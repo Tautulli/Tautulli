@@ -888,7 +888,8 @@ class ANDROIDAPP(Notifier):
     """
     NAME = 'Tautulli Remote Android App'
     _DEFAULT_CONFIG = {'device_id': '',
-                       'priority': 3
+                       'priority': 3,
+                       'notification_type': 0
                        }
 
     def agent_notify(self, subject='', body='', action='', notification_id=None, **kwargs):
@@ -907,6 +908,7 @@ class ANDROIDAPP(Notifier):
                           'body': body,
                           'action': action,
                           'priority': self.config['priority'],
+                          'notification_type': self.config['notification_type'],
                           'session_key': pretty_metadata.parameters.get('session_key', ''),
                           'session_id': pretty_metadata.parameters.get('session_id', ''),
                           'user_id': pretty_metadata.parameters.get('user_id', ''),
@@ -1046,6 +1048,17 @@ class ANDROIDAPP(Notifier):
             'description': 'Set the notification priority.',
             'input_type': 'select',
             'select_options': {1: 'Minimum', 2: 'Low', 3: 'Normal', 4: 'High'}
+            })
+        config_option.append({
+            'label': 'Notification Image Type',
+            'value': self.config['notification_type'],
+            'name': 'androidapp_notification_type',
+            'description': 'Set the notification image type.',
+            'input_type': 'select',
+            'select_options': {0: 'No notification image',
+                               1: 'Small image (Expandable text)',
+                               2: 'Large image (Non-expandable text)'
+                               }
             })
 
         return config_option
