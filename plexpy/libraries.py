@@ -841,8 +841,8 @@ class Libraries(object):
                     'do_notify, do_notify_created, keep_history, deleted_section, ' \
                     'MAX(session_history.started) AS last_accessed ' \
                     'FROM library_sections ' \
-                    'JOIN session_history_metadata ON library_sections.section_id == session_history_metadata.section_id ' \
-                    'JOIN session_history ON session_history_metadata.id == session_history.id ' \
+                    'LEFT OUTER JOIN session_history_metadata ON library_sections.section_id == session_history_metadata.section_id ' \
+                    'LEFT OUTER JOIN session_history ON session_history_metadata.id == session_history.id ' \
                     'WHERE %s AND server_id = ? ' % where
             result = monitor_db.select(query, args=args + [server_id])
         except Exception as e:
