@@ -102,7 +102,7 @@ problem isn't answered in the FAQ try the following first:
 -   For basic questions try asking on [Discord][], [Reddit][], 
     or the [Plex Forums][] first before opening an issue.
 
-##### If nothing has worked:
+**If nothing has worked:**
 
 1.  Please check the [issues tracker][Issues] to see if someone else has already reported the bug.
 2.  If this is a new bug, open a [bug report][Issue New] on the issues tracker.
