@@ -1610,6 +1610,7 @@ class WebInterface(object):
                      "is_home_user": 1,
                      "is_restricted": 0,
                      "keep_history": 1,
+                     "last_seen": 1462591869,
                      "row_id": 1,
                      "shared_libraries": ["10", "1", "4", "5", "15", "20", "2"],
                      "user_id": 133788,

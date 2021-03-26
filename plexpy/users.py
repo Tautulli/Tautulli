@@ -375,7 +375,8 @@ class Users(object):
                           'keep_history': 1,
                           'allow_guest': 0,
                           'deleted_user': 0,
-                          'shared_libraries': ()
+                          'shared_libraries': (),
+                          'last_seen': None
                           }
 
         if user_id is None and not user and not email:
@@ -409,36 +410,29 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
-                        'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                        'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                        'do_notify, keep_history, deleted_user, ' \
-                        'allow_guest, shared_libraries ' \
-                        'FROM users ' \
-                        'WHERE user_id = ? '
-                result = monitor_db.select(query, args=[user_id])
+                where = 'users.user_id = ?'
+                args = [user_id]
             elif user:
-                query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
-                        'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                        'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                        'do_notify, keep_history, deleted_user, ' \
-                        'allow_guest, shared_libraries ' \
-                        'FROM users ' \
-                        'WHERE username = ? COLLATE NOCASE '
-                result = monitor_db.select(query, args=[user])
+                where = 'users.username = ?'
+                args = [user]
             elif email:
-                query = 'SELECT id AS row_id, user_id, username, friendly_name, ' \
-                        'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                        'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                        'do_notify, keep_history, deleted_user, ' \
-                        'allow_guest, shared_libraries ' \
-                        'FROM users ' \
-                        'WHERE email = ? COLLATE NOCASE '
-                result = monitor_db.select(query, args=[email])
+                where = 'users.email = ?'
+                args = [email]
             else:
-                result = []
+                raise Exception('Missing user_id, username, or email')
+
+            query = 'SELECT users.id AS row_id, users.user_id, username, friendly_name, ' \
+                    'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
+                    'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
+                    'do_notify, keep_history, deleted_user, ' \
+                    'allow_guest, shared_libraries, ' \
+                    'MAX(session_history.started) AS last_seen ' \
+                    'FROM users ' \
+                    'JOIN session_history ON users.user_id == session_history.user_id ' \
+                    'WHERE %s COLLATE NOCASE' % where
+            result = monitor_db.select(query, args=args)
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_details: %s." % e)
+            logger.warn("Tautulli Users :: Unable to execute database query for get_user_details: %s." % e)
             result = []
 
         user_details = {}
@@ -475,7 +469,8 @@ class Users(object):
                                 'keep_history': item['keep_history'],
                                 'deleted_user': item['deleted_user'],
                                 'allow_guest': item['allow_guest'],
-                                'shared_libraries': shared_libraries
+                                'shared_libraries': shared_libraries,
+                                'last_seen': item['last_seen']
                                 }
         return user_details
 
