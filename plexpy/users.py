@@ -428,7 +428,7 @@ class Users(object):
                     'allow_guest, shared_libraries, ' \
                     'MAX(session_history.started) AS last_seen ' \
                     'FROM users ' \
-                    'JOIN session_history ON users.user_id == session_history.user_id ' \
+                    'LEFT OUTER JOIN session_history ON users.user_id == session_history.user_id ' \
                     'WHERE %s COLLATE NOCASE' % where
             result = monitor_db.select(query, args=args)
         except Exception as e:
