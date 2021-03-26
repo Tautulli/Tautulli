@@ -26,7 +26,7 @@ DOCUMENTATION :: END
 
 <%inherit file="base.html"/>
 <%!
-    from plexpy import helpers
+    from plexpy.helpers import page
 %>
 
 <%def name="headIncludes()">
@@ -53,7 +53,7 @@ DOCUMENTATION :: END
                 <div class="col-md-12">
                     <div class="table-card-back">
                         <div class="user-info-wrapper">
-                            <div class="user-info-poster-face" style="background-image: url(${data['user_thumb']});">
+                            <div class="user-info-poster-face" style="background-image: url(${page('pms_image_proxy', data['user_thumb'], None, 80, 80, fallback='user')});">
                                 % if not data['is_active']:
                                 <span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server">
                                     <i class="fa fa-2x fa-exclamation-triangle"></i>

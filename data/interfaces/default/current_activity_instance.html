@@ -399,7 +399,7 @@ DOCUMENTATION :: END
     </div>
     <div class="dashboard-activity-metadata-wrapper">
         <a href="${user_href}" title="${data['username']}">
-            <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${data['user_thumb']});"></div>
+            <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${page('pms_image_proxy', data['user_thumb'], None, 80, 80, fallback='user')});"></div>
         </a>
         <div class="dashboard-activity-metadata-title-container">
             <div id="play-state-${sk}" class="dashboard-activity-metadata-play_state-icon" title="${data['state'].capitalize()}">

@@ -26,13 +26,13 @@ DOCUMENTATION :: END
         <li>
             % if a['user_id']:
             <a href="${page('user', a['user_id'])}" title="${a['username']}">
-                <div class="library-user-instance-box" style="background-image: url(${a['user_thumb']});"></div>
+                <div class="library-user-instance-box" style="background-image: url(${page('pms_image_proxy', a['user_thumb'], None, 80, 80, fallback='user')});"></div>
             </a>
             <div class=" user-player-instance-name">
                 <a href="${page('user', a['user_id'])}" title="${a['username']}">${a['friendly_name']}</a>
             </div>
             % else:
-            <div class="library-user-instance-box" style="background-image: url(${a['user_thumb']});"></div>
+            <div class="library-user-instance-box" style="background-image: url(${page('pms_image_proxy', a['user_thumb'], None, 80, 80, fallback='user')});"></div>
             <div class=" user-player-instance-name">
                 ${a['friendly_name']}
             </div>

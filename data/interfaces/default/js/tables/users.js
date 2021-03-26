@@ -61,11 +61,7 @@ users_list_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 var inactive = '';
                 if (!rowData['is_active']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
-                if (cellData === '') {
-                    $(td).html('<a href="' + page('user', rowData['user_id']) + '"" title="' + rowData['username'] + '"><div class="users-poster-face" style="background-image: url(../../images/gravatar-default-80x80.png);">' + inactive + '</div></a>');
-                } else {
-                    $(td).html('<a href="' + page('user', rowData['user_id']) + '"" title="' + rowData['username'] + '"><div class="users-poster-face" style="background-image: url(' + rowData['user_thumb'] + ');">' + inactive + '</div></a>');
-                }
+                $(td).html('<a href="' + page('user', rowData['user_id']) + '"" title="' + rowData['username'] + '"><div class="users-poster-face" style="background-image: url(' + page('pms_image_proxy', cellData, null, 80, 80, null, null, null, 'user') + ');">' + inactive + '</div></a>');
             },
             "orderable": false,
             "searchable": false,
