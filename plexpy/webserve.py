@@ -4611,7 +4611,7 @@ class WebInterface(object):
         """ See real_pms_image_proxy docs string"""
 
         refresh = False
-        if kwargs.get('refresh'):
+        if kwargs.get('refresh') or 'no-cache' in cherrypy.request.headers.get('Cache-Control', ''):
             refresh = False if get_session_user_id() else True
 
         kwargs['refresh'] = refresh
@@ -4645,6 +4645,8 @@ class WebInterface(object):
                 None
             ```
         """
+        cherrypy.response.headers['Cache-Control'] = 'max-age=2592000'  # 30 days
+
         if isinstance(img, str) and img.startswith('interfaces/default/images'):
             fp = os.path.join(plexpy.PROG_DIR, 'data', img)
             return serve_file(path=fp, content_type='image/png')
@@ -4727,6 +4729,7 @@ class WebInterface(object):
 
             except Exception as e:
                 logger.warn("Failed to get image %s, falling back to %s." % (img, fallback))
+                cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
                 if fallback in common.DEFAULT_IMAGES:
                     fbi = common.DEFAULT_IMAGES[fallback]
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)

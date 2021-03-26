@@ -2831,8 +2831,9 @@ class PmsConnect(object):
 
         if img:
             web_img = img.startswith('http')
+            resource_img = img.startswith('/:/resources')
 
-            if refresh and not web_img:
+            if refresh and not web_img and not resource_img:
                 img = '{}/{}'.format(img.rstrip('/'), helpers.timestamp())
 
             if web_img:

@@ -501,16 +501,19 @@ $('*').on('click', '.refresh_pms_image', function (e) {
     pms_proxy_url = /^url\((['"]?)(.*)\1\)$/.exec(pms_proxy_url);
     pms_proxy_url = pms_proxy_url ? pms_proxy_url[2] : ""; // If matched, retrieve url, otherwise ""
 
-    if (pms_proxy_url.indexOf('pms_image_proxy') == -1) {
+    if (pms_proxy_url.indexOf('pms_image_proxy') === -1) {
         console.log('PMS image proxy url not found.');
     } else {
-        if (pms_proxy_url.indexOf('refresh=true') > -1) {
-            pms_proxy_url = pms_proxy_url.replace("&refresh=true", "");
-            background_div.css('background-image', 'url(' + pms_proxy_url + ')');
-            background_div.css('background-image', 'url(' + pms_proxy_url + '&refresh=true)');
-        } else {
-            background_div.css('background-image', 'url(' + pms_proxy_url + '&refresh=true)');
-        }
+        background_div.css('background-image', 'none')
+        $.ajax({
+            url: pms_proxy_url,
+            headers: {
+                'Cache-Control': 'no-cache'
+            },
+            success: function () {
+                background_div.css('background-image', 'url(' + pms_proxy_url + ')');
+            }
+        });
     }
 });
 
