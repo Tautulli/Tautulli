@@ -268,14 +268,6 @@ function resetFilters(text) {
     }
 }
 
-$.cachedScript = function (url) {
-    return $.ajax({
-        dataType: "script",
-        cache: true,
-        url: url
-    });
-};
-
 function isPrivateIP(ip_address) {
     var defer = $.Deferred();
 
