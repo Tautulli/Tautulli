@@ -971,6 +971,7 @@ class WebInterface(object):
                      "do_notify_created": 1,
                      "is_active": 1,
                      "keep_history": 1,
+                     "last_accessed": 1462693216,
                      "library_art": "/:/resources/movie-fanart.jpg",
                      "library_thumb": "/:/resources/movie.png",
                      "parent_count": null,

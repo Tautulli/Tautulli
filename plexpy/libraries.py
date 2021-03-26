@@ -787,7 +787,8 @@ class Libraries(object):
                           'do_notify': 0,
                           'do_notify_created': 0,
                           'keep_history': 1,
-                          'deleted_section': 0
+                          'deleted_section': 0,
+                          'last_accessed': None,
                           }
 
         if not section_id:
@@ -826,18 +827,26 @@ class Libraries(object):
 
         try:
             if str(section_id).isdigit():
-                query = 'SELECT id AS row_id, server_id, section_id, section_name, section_type, ' \
-                        'count, parent_count, child_count, ' \
-                        'thumb AS library_thumb, custom_thumb_url AS custom_thumb, art AS library_art, ' \
-                        'custom_art_url AS custom_art, is_active, ' \
-                        'do_notify, do_notify_created, keep_history, deleted_section ' \
-                        'FROM library_sections ' \
-                        'WHERE section_id = ? AND server_id = ? '
-                result = monitor_db.select(query, args=[section_id, server_id])
+                where = 'library_sections.section_id = ?'
+                args = [section_id]
             else:
-                result = []
+                raise Exception('Missing section_id')
+
+            query = 'SELECT library_sections.id AS row_id, server_id, library_sections.section_id, ' \
+                    'section_name, section_type, ' \
+                    'count, parent_count, child_count, ' \
+                    'library_sections.thumb AS library_thumb, custom_thumb_url AS custom_thumb, ' \
+                    'library_sections.art AS library_art, ' \
+                    'custom_art_url AS custom_art, is_active, ' \
+                    'do_notify, do_notify_created, keep_history, deleted_section, ' \
+                    'MAX(session_history.started) AS last_accessed ' \
+                    'FROM library_sections ' \
+                    'JOIN session_history_metadata ON library_sections.section_id == session_history_metadata.section_id ' \
+                    'JOIN session_history ON session_history_metadata.id == session_history.id ' \
+                    'WHERE %s AND server_id = ? ' % where
+            result = monitor_db.select(query, args=args + [server_id])
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_details: %s." % e)
+            logger.warn("Tautulli Libraries :: Unable to execute database query for get_library_details: %s." % e)
             result = []
 
         library_details = {}
@@ -869,7 +878,8 @@ class Libraries(object):
                                    'do_notify': item['do_notify'],
                                    'do_notify_created': item['do_notify_created'],
                                    'keep_history': item['keep_history'],
-                                   'deleted_section': item['deleted_section']
+                                   'deleted_section': item['deleted_section'],
+                                   'last_accessed': item['last_accessed']
                                    }
         return library_details
 
