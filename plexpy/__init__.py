@@ -2367,7 +2367,7 @@ def dbcheck():
     )
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_media_type_stopped" '
-        'ON "session_history" ("media_type", "stopped")'
+        'ON "session_history" ("media_type", "stopped" ASC)'
     )
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_rating_key" '
@@ -2391,7 +2391,7 @@ def dbcheck():
     )
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_user_id_stopped" '
-        'ON "session_history" ("user_id", "stopped")'
+        'ON "session_history" ("user_id", "stopped" ASC)'
     )
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_section_id" '
@@ -2399,7 +2399,7 @@ def dbcheck():
     )
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_section_id_stopped" '
-        'ON "session_history" ("section_id", "stopped")'
+        'ON "session_history" ("section_id", "stopped" ASC)'
     )
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_reference_id" '
