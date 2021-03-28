@@ -649,32 +649,28 @@ class DataFactory(object):
 
             elif stat == 'top_libraries':
                 top_libraries = []
-
                 try:
-                    query = 'SELECT section_id, section_name, section_type, thumb AS library_thumb, ' \
-                            'custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art ' \
-                            'FROM library_sections ' \
-                            'WHERE deleted_section = 0'
-
+                    query = 'SELECT sh.section_id, ls.section_name, ls.section_type, ' \
+                            'ls.thumb AS library_thumb, ls.custom_thumb_url AS custom_thumb, ' \
+                            'ls.art AS library_art, ls.custom_art_url AS custom_art, ' \
+                            'sh.started, ' \
+                            'MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration ' \
+                            'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
+                            '       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
+                            '       AS d ' \
+                            '   FROM session_history ' \
+                            '   WHERE session_history.stopped >= %s ' \
+                            '   GROUP BY %s) AS sh ' \
+                            'LEFT OUTER JOIN library_sections AS ls ON sh.section_id = ls.section_id ' \
+                            'GROUP BY sh.section_id ' \
+                            'ORDER BY %s DESC, sh.started DESC ' \
+                            'LIMIT %s OFFSET %s ' % (timestamp, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_libraries: %s." % e)
                     return None
 
-                library_data = libraries.Libraries()
-
                 for item in result:
-                    library_item = library_data.get_watch_time_stats(section_id=item['section_id'],
-                                                                     grouping=grouping,
-                                                                     query_days=time_range)
-
-                    if not library_item or library_item[0]['total_plays'] == 0 and library_item[0]['total_time'] == 0:
-                        continue
-
-                    library_watched = library_data.get_recently_watched(section_id=item['section_id'],
-                                                                        limit='1')
-                    last_play = library_watched[0]['time'] if library_watched else 0
-
                     if item['custom_thumb'] and item['custom_thumb'] != item['library_thumb']:
                         library_thumb = item['custom_thumb']
                     elif item['library_thumb']:
@@ -688,12 +684,12 @@ class DataFactory(object):
                         library_art = item['library_art']
 
                     row = {
-                        'total_plays': library_item[0]['total_plays'],
-                        'total_duration': library_item[0]['total_time'],
+                        'total_plays': item['total_plays'],
+                        'total_duration': item['total_duration'],
                         'section_type': item['section_type'],
                         'section_name': item['section_name'],
                         'section_id': item['section_id'],
-                        'last_play': last_play,
+                        'last_play': item['last_watch'],
                         'thumb': library_thumb,
                         'grandparent_thumb': '',
                         'art': library_art,
@@ -706,19 +702,12 @@ class DataFactory(object):
                         'platform': '',
                         'row_id': ''
                     }
-
                     top_libraries.append(row)
 
-                home_stats.append({
-                    'stat_id': stat,
-                    'stat_type': sort_type,
-                    'stat_title': 'Most Active Libraries',
-                    'rows': session.mask_session_info(
-                        sorted(top_libraries,
-                               key=lambda k: k[sort_type],
-                               reverse=True)[stats_start:stats_start + stats_count],
-                        mask_metadata=False)
-                })
+                home_stats.append({'stat_id': stat,
+                                   'stat_type': sort_type,
+                                   'stat_title': 'Most Active Libraries',
+                                   'rows': session.mask_session_info(top_libraries, mask_metadata=False)})
 
             elif stat == 'top_users':
                 top_users = []
@@ -734,7 +723,6 @@ class DataFactory(object):
                             '   FROM session_history ' \
                             '   WHERE session_history.stopped >= %s ' \
                             '   GROUP BY %s) AS sh ' \
-                            'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
                             'LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id ' \
                             'GROUP BY sh.user_id ' \
                             'ORDER BY %s DESC, sh.started DESC ' \
