@@ -1588,15 +1588,15 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user(self, user_id=None, **kwargs):
+    def get_user(self, user_id=None, include_last_seen=False, **kwargs):
         """ Get a user's details.
 
             ```
             Required parameters:
-                user_id (str):          The id of the Plex user
+                user_id (str):              The id of the Plex user
 
             Optional parameters:
-                None
+                include_last_seen (bool):   True to include the last_seen value for the user.
 
             Returns:
                 json:
@@ -1620,9 +1620,11 @@ class WebInterface(object):
                      }
             ```
         """
+        include_last_seen = helpers.bool_true(include_last_seen)
         if user_id:
             user_data = users.Users()
-            user_details = user_data.get_details(user_id=user_id)
+            user_details = user_data.get_details(user_id=user_id,
+                                                 include_last_seen=include_last_seen)
             if user_details:
                 return user_details
             else:

@@ -359,7 +359,7 @@ class Users(object):
             except Exception as e:
                 logger.warn("Tautulli Users :: Unable to execute database query for set_config: %s." % e)
 
-    def get_details(self, user_id=None, user=None, email=None):
+    def get_details(self, user_id=None, user=None, email=None, include_last_seen=False):
         default_return = {'row_id': 0,
                           'user_id': 0,
                           'username': 'Local',
@@ -382,7 +382,8 @@ class Users(object):
         if user_id is None and not user and not email:
             return default_return
 
-        user_details = self.get_user_details(user_id=user_id, user=user, email=email)
+        user_details = self.get_user_details(user_id=user_id, user=user, email=email,
+                                             include_last_seen=include_last_seen)
 
         if user_details:
             return user_details
@@ -393,7 +394,8 @@ class Users(object):
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
             refresh_users()
 
-            user_details = self.get_user_details(user_id=user_id, user=user, email=email)
+            user_details = self.get_user_details(user_id=user_id, user=user, email=email,
+                                                 include_last_seen=include_last_seen)
 
             if user_details:
                 return user_details
@@ -405,7 +407,13 @@ class Users(object):
                 # Use "Local" user to retain compatibility with PlexWatch database value
                 return default_return
 
-    def get_user_details(self, user_id=None, user=None, email=None):
+    def get_user_details(self, user_id=None, user=None, email=None, include_last_seen=False):
+        last_seen = 'NULL'
+        join = ''
+        if include_last_seen:
+            last_seen = 'MAX(session_history.started)'
+            join = 'LEFT OUTER JOIN session_history ON users.user_id == session_history.user_id'
+
         monitor_db = database.MonitorDatabase()
 
         try:
@@ -425,11 +433,9 @@ class Users(object):
                     'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
                     'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
                     'do_notify, keep_history, deleted_user, ' \
-                    'allow_guest, shared_libraries, ' \
-                    'MAX(session_history.started) AS last_seen ' \
-                    'FROM users ' \
-                    'LEFT OUTER JOIN session_history ON users.user_id == session_history.user_id ' \
-                    'WHERE %s COLLATE NOCASE' % where
+                    'allow_guest, shared_libraries, %s AS last_seen ' \
+                    'FROM users %s ' \
+                    'WHERE %s COLLATE NOCASE' % (last_seen, join, where)
             result = monitor_db.select(query, args=args)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_user_details: %s." % e)
