@@ -952,7 +952,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library(self, section_id=None, **kwargs):
+    def get_library(self, section_id=None, include_last_accessed=False, **kwargs):
         """ Get a library's details.
 
             ```
@@ -960,7 +960,7 @@ class WebInterface(object):
                 section_id (str):               The id of the Plex library section
 
             Optional parameters:
-                None
+                include_last_accessed (bool):   True to include the last_accessed value for the library.
 
             Returns:
                 json:
@@ -983,9 +983,11 @@ class WebInterface(object):
                      }
             ```
         """
+        include_last_accessed = helpers.bool_true(include_last_accessed)
         if section_id:
             library_data = libraries.Libraries()
-            library_details = library_data.get_details(section_id=section_id)
+            library_details = library_data.get_details(section_id=section_id,
+                                                       include_last_accessed=include_last_accessed)
             if library_details:
                 return library_details
             else:

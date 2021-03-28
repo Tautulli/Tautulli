@@ -772,7 +772,7 @@ class Libraries(object):
             except Exception as e:
                 logger.warn("Tautulli Libraries :: Unable to execute database query for set_config: %s." % e)
 
-    def get_details(self, section_id=None, server_id=None):
+    def get_details(self, section_id=None, server_id=None, include_last_accessed=False):
         default_return = {'row_id': 0,
                           'server_id': '',
                           'section_id': 0,
@@ -797,7 +797,8 @@ class Libraries(object):
         if server_id is None:
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
 
-        library_details = self.get_library_details(section_id=section_id, server_id=server_id)
+        library_details = self.get_library_details(section_id=section_id, server_id=server_id,
+                                                   include_last_accessed=include_last_accessed)
 
         if library_details:
             return library_details
@@ -808,7 +809,8 @@ class Libraries(object):
             # Let's first refresh the libraries list to make sure the library isn't newly added and not in the db yet
             refresh_libraries()
 
-            library_details = self.get_library_details(section_id=section_id, server_id=server_id)
+            library_details = self.get_library_details(section_id=section_id, server_id=server_id,
+                                                       include_last_accessed=include_last_accessed)
 
             if library_details:
                 return library_details
@@ -819,9 +821,18 @@ class Libraries(object):
                 # If there is no library data we must return something
                 return default_return
 
-    def get_library_details(self, section_id=None, server_id=None):
+    def get_library_details(self, section_id=None, server_id=None, include_last_accessed=False):
         if server_id is None:
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
+
+        last_accessed = 'NULL'
+        join = ''
+        if include_last_accessed:
+            last_accessed = 'MAX(session_history.started)'
+            join = 'LEFT OUTER JOIN session_history_metadata ' \
+                   'ON library_sections.section_id == session_history_metadata.section_id ' \
+                   'LEFT OUTER JOIN session_history ' \
+                   'ON session_history_metadata.id == session_history.id'
 
         monitor_db = database.MonitorDatabase()
 
@@ -838,12 +849,9 @@ class Libraries(object):
                     'library_sections.thumb AS library_thumb, custom_thumb_url AS custom_thumb, ' \
                     'library_sections.art AS library_art, ' \
                     'custom_art_url AS custom_art, is_active, ' \
-                    'do_notify, do_notify_created, keep_history, deleted_section, ' \
-                    'MAX(session_history.started) AS last_accessed ' \
-                    'FROM library_sections ' \
-                    'LEFT OUTER JOIN session_history_metadata ON library_sections.section_id == session_history_metadata.section_id ' \
-                    'LEFT OUTER JOIN session_history ON session_history_metadata.id == session_history.id ' \
-                    'WHERE %s AND server_id = ? ' % where
+                    'do_notify, do_notify_created, keep_history, deleted_section, %s AS last_accessed ' \
+                    'FROM library_sections %s ' \
+                    'WHERE %s AND server_id = ? ' % (last_accessed, join, where)
             result = monitor_db.select(query, args=args + [server_id])
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_library_details: %s." % e)
