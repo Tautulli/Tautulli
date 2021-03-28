@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -650,7 +650,8 @@ def dbcheck():
         'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, product TEXT, product_version TEXT, '
         'platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, '
         'bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER, '
-        'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, view_offset INTEGER DEFAULT 0)'
+        'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, section_id INTEGER, '
+        'view_offset INTEGER DEFAULT 0)'
     )
 
     # session_history_media_info table :: This is a table which logs each session's media info
@@ -682,7 +683,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS session_history_metadata (id INTEGER PRIMARY KEY, '
         'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, '
-        'media_index INTEGER, parent_media_index INTEGER, section_id INTEGER, '
+        'media_index INTEGER, parent_media_index INTEGER, '
         'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, '
         'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
         'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
@@ -1421,6 +1422,56 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.warn("Unable to capitalize Windows platform values in session_history table.")
 
+    # Upgrade session_history table from earlier versions
+    try:
+        c_db.execute('SELECT section_id FROM session_history')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table session_history.")
+        c_db.execute(
+            'ALTER TABLE session_history ADD COLUMN section_id INTEGER'
+        )
+        c_db.execute(
+            'UPDATE session_history SET section_id = ('
+            'SELECT section_id FROM session_history_metadata '
+            'WHERE session_history_metadata.id = session_history.id)'
+        )
+        c_db.execute(
+            'CREATE TABLE IF NOT EXISTS session_history_metadata_temp (id INTEGER PRIMARY KEY, '
+            'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+            'title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, '
+            'media_index INTEGER, parent_media_index INTEGER, '
+            'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, '
+            'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
+            'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
+            'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, '
+            'labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT)'
+        )
+        c_db.execute(
+            'INSERT INTO session_history_metadata_temp (id, rating_key, parent_rating_key, grandparent_rating_key, '
+            'title, parent_title, grandparent_title, original_title, full_title, '
+            'media_index, parent_media_index, '
+            'thumb, parent_thumb, grandparent_thumb, '
+            'art, media_type, year, originally_available_at, added_at, updated_at, '
+            'last_viewed_at, content_rating, summary, tagline, rating, '
+            'duration, guid, directors, writers, actors, genres, studio, '
+            'labels, live, channel_call_sign, channel_identifier, channel_thumb) '
+            'SELECT id, rating_key, parent_rating_key, grandparent_rating_key, '
+            'title, parent_title, grandparent_title, original_title, full_title, '
+            'media_index, parent_media_index, '
+            'thumb, parent_thumb, grandparent_thumb, '
+            'art, media_type, year, originally_available_at, added_at, updated_at, '
+            'last_viewed_at, content_rating, summary, tagline, rating, '
+            'duration, guid, directors, writers, actors, genres, studio, '
+            'labels, live, channel_call_sign, channel_identifier, channel_thumb '
+            'FROM session_history_metadata'
+        )
+        c_db.execute(
+            'DROP TABLE session_history_metadata'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_metadata_temp RENAME TO session_history_metadata'
+        )
+
     # Upgrade session_history_metadata table from earlier versions
     try:
         c_db.execute('SELECT full_title FROM session_history_metadata')
@@ -1437,15 +1488,6 @@ def dbcheck():
         logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT'
-        )
-
-    # Upgrade session_history_metadata table from earlier versions
-    try:
-        c_db.execute('SELECT section_id FROM session_history_metadata')
-    except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_metadata.")
-        c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN section_id INTEGER'
         )
 
     # Upgrade session_history_metadata table from earlier versions

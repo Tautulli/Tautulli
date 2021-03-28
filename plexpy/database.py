@@ -270,9 +270,7 @@ def delete_library_history(section_id=None):
         monitor_db = MonitorDatabase()
 
         # Get all history associated with the section_id
-        result = monitor_db.select('SELECT session_history.id FROM session_history '
-                                   'JOIN session_history_metadata ON session_history.id = session_history_metadata.id '
-                                   'WHERE session_history_metadata.section_id = ?',
+        result = monitor_db.select('SELECT id FROM session_history WHERE section_id = ?',
                                    [section_id])
         row_ids = [row['id'] for row in result]
 

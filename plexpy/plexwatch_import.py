@@ -361,6 +361,7 @@ def import_from_plexwatch(database_file=None, table_name=None, import_ignore_int
                            'grandparent_rating_key': row['grandparent_rating_key'],
                            'media_type': extracted_xml['media_type'],
                            'view_offset': extracted_xml['view_offset'],
+                           'section_id': extracted_xml['section_id'],
                            'video_decision': extracted_xml['video_decision'],
                            'audio_decision': extracted_xml['audio_decision'],
                            'transcode_decision': extracted_xml['transcode_decision'],

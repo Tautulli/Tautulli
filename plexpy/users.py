@@ -413,7 +413,7 @@ class Users(object):
         join = ''
         if include_last_seen:
             last_seen = 'MAX(session_history.started)'
-            join = 'LEFT OUTER JOIN session_history ON users.user_id == session_history.user_id'
+            join = 'LEFT OUTER JOIN session_history ON users.user_id = session_history.user_id'
 
         monitor_db = database.MonitorDatabase()
 

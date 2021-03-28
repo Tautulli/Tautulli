@@ -373,12 +373,12 @@ class Libraries(object):
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN'],
-                                          join_tables=['session_history_metadata',
-                                                       'session_history',
+                                          join_tables=['session_history',
+                                                       'session_history_metadata',
                                                        'session_history_media_info'],
-                                          join_evals=[['session_history_metadata.section_id', 'library_sections.section_id'],
-                                                      ['session_history_metadata.id', 'session_history.id'],
-                                                      ['session_history_metadata.id', 'session_history_media_info.id']],
+                                          join_evals=[['session_history.section_id', 'library_sections.section_id'],
+                                                      ['session_history.id', 'session_history_metadata.id'],
+                                                      ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
@@ -496,12 +496,11 @@ class Libraries(object):
             group_by = 'rating_key'
 
         try:
-            query = 'SELECT MAX(session_history.started) AS last_played, COUNT(DISTINCT session_history.%s) AS play_count, ' \
-                    'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key ' \
+            query = 'SELECT MAX(started) AS last_played, COUNT(DISTINCT %s) AS play_count, ' \
+                    'rating_key, parent_rating_key, grandparent_rating_key ' \
                     'FROM session_history ' \
-                    'JOIN session_history_metadata ON session_history.id = session_history_metadata.id ' \
-                    'WHERE session_history_metadata.section_id = ? ' \
-                    'GROUP BY session_history.%s ' % (count_by, group_by)
+                    'WHERE section_id = ? ' \
+                    'GROUP BY %s ' % (count_by, group_by)
             result = monitor_db.select(query, args=[section_id])
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
@@ -830,10 +829,7 @@ class Libraries(object):
         join = ''
         if include_last_accessed:
             last_accessed = 'MAX(session_history.started)'
-            join = 'LEFT OUTER JOIN session_history_metadata ' \
-                   'ON library_sections.section_id == session_history_metadata.section_id ' \
-                   'LEFT OUTER JOIN session_history ' \
-                   'ON session_history_metadata.id == session_history.id'
+            join = 'LEFT OUTER JOIN session_history ON library_sections.section_id = session_history.section_id ' \
 
         monitor_db = database.MonitorDatabase()
 

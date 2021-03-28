@@ -335,7 +335,7 @@ class DataFactory(object):
             if stat == 'top_movies':
                 top_movies = []
                 try:
-                    query = 'SELECT sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, shm.section_id, ' \
+                    query = 'SELECT sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, sh.section_id, ' \
                             'shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, ' \
                             'MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -387,7 +387,7 @@ class DataFactory(object):
             elif stat == 'popular_movies':
                 popular_movies = []
                 try:
-                    query = 'SELECT sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, shm.section_id, ' \
+                    query = 'SELECT sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, sh.section_id, ' \
                             'shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, ' \
                             'COUNT(DISTINCT sh.user_id) AS users_watched, ' \
                             'MAX(sh.started) AS last_watch, COUNT(sh.id) as total_plays, SUM(sh.d) AS total_duration ' \
@@ -439,7 +439,7 @@ class DataFactory(object):
                 top_tv = []
                 try:
                     query = 'SELECT sh.id, shm.grandparent_title, sh.grandparent_rating_key, ' \
-                            'shm.grandparent_thumb, shm.section_id, ' \
+                            'shm.grandparent_thumb, sh.section_id, ' \
                             'shm.year, sh.rating_key, shm.art, sh.media_type, ' \
                             'shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, ' \
                             'MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration ' \
@@ -493,7 +493,7 @@ class DataFactory(object):
                 popular_tv = []
                 try:
                     query = 'SELECT sh.id, shm.grandparent_title, sh.grandparent_rating_key, ' \
-                            'shm.grandparent_thumb, shm.section_id, ' \
+                            'shm.grandparent_thumb, sh.section_id, ' \
                             'shm.year, sh.rating_key, shm.art, sh.media_type, ' \
                             'shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, ' \
                             'COUNT(DISTINCT sh.user_id) AS users_watched, ' \
@@ -546,7 +546,7 @@ class DataFactory(object):
                 top_music = []
                 try:
                     query = 'SELECT sh.id, shm.grandparent_title, shm.original_title, shm.year, ' \
-                            'sh.grandparent_rating_key, shm.grandparent_thumb, shm.section_id, ' \
+                            'sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, ' \
                             'shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, ' \
                             'MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -599,7 +599,7 @@ class DataFactory(object):
                 popular_music = []
                 try:
                     query = 'SELECT sh.id, shm.grandparent_title, shm.original_title, shm.year, ' \
-                            'sh.grandparent_rating_key, shm.grandparent_thumb, shm.section_id, ' \
+                            'sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, ' \
                             'shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, ' \
                             'COUNT(DISTINCT sh.user_id) AS users_watched, ' \
                             'MAX(sh.started) AS last_watch, COUNT(sh.id) as total_plays, SUM(sh.d) AS total_duration ' \
@@ -829,7 +829,7 @@ class DataFactory(object):
                     query = 'SELECT sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, ' \
                             'shm.media_index, shm.parent_media_index, ' \
                             'sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, ' \
-                            'sh.user, sh.user_id, u.custom_avatar_url as user_thumb, sh.player, shm.section_id, ' \
+                            'sh.user, sh.user_id, u.custom_avatar_url as user_thumb, sh.player, sh.section_id, ' \
                             'shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, ' \
                             '(CASE WHEN u.friendly_name IS NULL THEN u.username ELSE u.friendly_name END) ' \
                             '   AS friendly_name, ' \
@@ -1170,14 +1170,14 @@ class DataFactory(object):
                 where = 'session_history_metadata.rating_key = ?'
                 args = [rating_key]
 
-            query = 'SELECT session_history_metadata.id, ' \
+            query = 'SELECT session_history.section_id, session_history_metadata.id, ' \
                     'session_history_metadata.rating_key, session_history_metadata.parent_rating_key, ' \
                     'session_history_metadata.grandparent_rating_key, session_history_metadata.title, ' \
                     'session_history_metadata.parent_title, session_history_metadata.grandparent_title, ' \
                     'session_history_metadata.original_title, session_history_metadata.full_title, ' \
                     'library_sections.section_name, ' \
                     'session_history_metadata.media_index, session_history_metadata.parent_media_index, ' \
-                    'session_history_metadata.section_id, session_history_metadata.thumb, ' \
+                    'session_history_metadata.thumb, ' \
                     'session_history_metadata.parent_thumb, session_history_metadata.grandparent_thumb, ' \
                     'session_history_metadata.art, session_history_metadata.media_type, session_history_metadata.year, ' \
                     'session_history_metadata.originally_available_at, session_history_metadata.added_at, ' \
@@ -1195,7 +1195,8 @@ class DataFactory(object):
                     'session_history_metadata.channel_call_sign, session_history_metadata.channel_identifier, ' \
                     'session_history_metadata.channel_thumb ' \
                     'FROM session_history_metadata ' \
-                    'JOIN library_sections ON session_history_metadata.section_id = library_sections.section_id ' \
+                    'JOIN library_sections ON session_history.section_id = library_sections.section_id ' \
+                    'JOIN session_history ON session_history_metadata.id = session_history.id ' \
                     'JOIN session_history_media_info ON session_history_metadata.id = session_history_media_info.id ' \
                     'WHERE %s ' \
                     'ORDER BY session_history_metadata.id DESC ' \

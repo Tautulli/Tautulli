@@ -311,6 +311,7 @@ class ActivityProcessor(object):
                           'location': session['location'],
                           'quality_profile': session['quality_profile'],
                           'view_offset': session['view_offset'],
+                          'section_id': metadata['section_id'],
                           'secure': session['secure'],
                           'relayed': session['relayed']
                           }
@@ -495,7 +496,6 @@ class ActivityProcessor(object):
                           'full_title': session['full_title'],
                           'media_index': metadata['media_index'],
                           'parent_media_index': metadata['parent_media_index'],
-                          'section_id': metadata['section_id'],
                           'thumb': metadata['thumb'],
                           'parent_thumb': metadata['parent_thumb'],
                           'grandparent_thumb': metadata['grandparent_thumb'],

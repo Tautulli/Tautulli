@@ -1953,7 +1953,7 @@ class WebInterface(object):
             custom_where.append(['session_history.reference_id', reference_id])
         if 'section_id' in kwargs:
             section_id = kwargs.get('section_id', '')
-            custom_where.append(['session_history_metadata.section_id', section_id])
+            custom_where.append(['session_history.section_id', section_id])
         if 'media_type' in kwargs:
             media_type = kwargs.get('media_type', '')
             if media_type not in ('all', 'live'):
