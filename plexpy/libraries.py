@@ -22,6 +22,7 @@ from future.builtins import object
 
 import json
 import os
+from datetime import datetime, timedelta
 
 import plexpy
 if plexpy.PYTHON2:
@@ -910,6 +911,8 @@ class Libraries(object):
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         for days in query_days:
+            timestamp = int((datetime.now(tz=plexpy.SYS_TIMEZONE) - timedelta(days=days)).timestamp())
+
             try:
                 if days > 0:
                     if str(section_id).isdigit():
@@ -918,8 +921,8 @@ class Libraries(object):
                                 'COUNT(DISTINCT %s) AS total_plays ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
-                                'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                                'AND section_id = ?' % (group_by, days)
+                                'WHERE stopped >= %s ' \
+                                'AND section_id = ?' % (group_by, timestamp)
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
