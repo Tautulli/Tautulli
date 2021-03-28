@@ -1,4 +1,4 @@
-# This file is part of Tautulli.
+﻿# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -2366,6 +2366,10 @@ def dbcheck():
         'ON "session_history" ("media_type")'
     )
     c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_media_type_stopped" '
+        'ON "session_history" ("media_type", "stopped")'
+    )
+    c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_rating_key" '
         'ON "session_history" ("rating_key")'
     )
@@ -2386,6 +2390,18 @@ def dbcheck():
         'ON "session_history" ("user_id")'
     )
     c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_user_id_stopped" '
+        'ON "session_history" ("user_id", "stopped")'
+    )
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_section_id" '
+        'ON "session_history" ("section_id")'
+    )
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_section_id_stopped" '
+        'ON "session_history" ("section_id", "stopped")'
+    )
+    c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_reference_id" '
         'ON "session_history" ("reference_id" ASC)'
     )
@@ -2394,10 +2410,6 @@ def dbcheck():
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_rating_key" '
         'ON "session_history_metadata" ("rating_key")'
-    )
-    c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_section_id" '
-        'ON "session_history_metadata" ("section_id")'
     )
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_guid" '
