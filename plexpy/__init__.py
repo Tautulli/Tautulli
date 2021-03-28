@@ -2318,27 +2318,88 @@ def dbcheck():
         logger.debug("User 'Local' does not exist. Adding user.")
         c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
 
-    # Create table indices
+    # Create session_history table indices
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup ON tvmaze_lookup (rating_key)'
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_media_type" '
+        'ON "session_history" ("media_type")'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup ON themoviedb_lookup (rating_key)'
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_rating_key" '
+        'ON "session_history" ("rating_key")'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_musicbrainz_lookup ON musicbrainz_lookup (rating_key)'
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_parent_rating_key" '
+        'ON "session_history" ("parent_rating_key")'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_image_hash_lookup ON image_hash_lookup (img_hash)'
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_grandparent_rating_key" '
+        'ON "session_history" ("grandparent_rating_key")'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_cloudinary_lookup ON cloudinary_lookup (img_hash)'
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_user" '
+        'ON "session_history" ("user")'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_imgur_lookup ON imgur_lookup (img_hash)'
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_user_id" '
+        'ON "session_history" ("user_id")'
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_continued ON sessions_continued (user_id, machine_id, media_type)'
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_reference_id" '
+        'ON "session_history" ("reference_id" ASC)'
+    )
+
+    # Create session_history_metadata table indices
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_rating_key" '
+        'ON "session_history_metadata" ("rating_key")'
+    )
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_section_id" '
+        'ON "session_history_metadata" ("section_id")'
+    )
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_guid" '
+        'ON "session_history_metadata" ("guid")'
+    )
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_live" '
+        'ON "session_history_metadata" ("live")'
+    )
+
+    # Create session_history_media_info table indices
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_session_history_media_info_transcode_decision" '
+        'ON "session_history_media_info" ("transcode_decision")'
+    )
+
+    # Create lookup table indices
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_tvmaze_lookup" '
+        'ON "tvmaze_lookup" ("rating_key")'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_themoviedb_lookup" '
+        'ON "themoviedb_lookup" ("rating_key")'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_musicbrainz_lookup" '
+        'ON "musicbrainz_lookup" ("rating_key")'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_image_hash_lookup" '
+        'ON "image_hash_lookup" ("img_hash")'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_cloudinary_lookup" '
+        'ON "cloudinary_lookup" ("img_hash")'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_imgur_lookup" '
+        'ON "imgur_lookup" ("img_hash")'
+    )
+    c_db.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_sessions_continued" '
+        'ON "sessions_continued" ("user_id", "machine_id", "media_type")'
     )
 
     conn_db.commit()
