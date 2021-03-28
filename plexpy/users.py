@@ -22,6 +22,7 @@ from future.builtins import object
 from future.moves.urllib.parse import parse_qsl
 
 import httpagentparser
+from datetime import datetime, timedelta
 
 import plexpy
 if plexpy.PYTHON2:
@@ -499,6 +500,8 @@ class Users(object):
         group_by = 'reference_id' if grouping else 'id'
 
         for days in query_days:
+            timestamp = int((datetime.now(tz=plexpy.SYS_TIMEZONE) - timedelta(days=days)).timestamp())
+
             try:
                 if days > 0:
                     if str(user_id).isdigit():
@@ -506,8 +509,8 @@ class Users(object):
                                 '   SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
                                 'COUNT(DISTINCT %s) AS total_plays ' \
                                 'FROM session_history ' \
-                                'WHERE datetime(stopped, "unixepoch", "localtime") >= datetime("now", "-%s days", "localtime") ' \
-                                'AND user_id = ? ' % (group_by, days)
+                                'WHERE stopped >= %s ' \
+                                'AND user_id = ? ' % (group_by, timestamp)
                         result = monitor_db.select(query, args=[user_id])
                     else:
                         result = []
