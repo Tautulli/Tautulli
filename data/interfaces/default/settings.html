@@ -750,17 +750,17 @@
                         </div>
                         <div class="checkbox">
                             <label>
+                                <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${checked(config['pms_ssl'])}> Use Secure Connection
+                                <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
+                            </label>
+                            <p class="help-block">Connect to your Plex server using HTTPS if you have <a href="${anon_url('https://support.plex.tv/articles/206225077-how-to-use-secure-server-connections')}" target="_blank" rel="noreferrer">secure connections</a> enabled.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
                                 <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle pms-settings" data-id="pms_is_remote" value="1" ${checked(config['pms_is_remote'])}> Remote Server
                                 <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
                             </label>
                             <p class="help-block">Check this if your Plex Server is not on the same local network as Tautulli.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${checked(config['pms_ssl'])}> Use SSL
-                                <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
-                            </label>
-                            <p class="help-block">If you have secure connections enabled on your Plex Server, communicate with it securely.</p>
                         </div>
                         <div class="form-group">
                             <label for="pms_url">Plex Server URL</label>
