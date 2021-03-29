@@ -3223,7 +3223,7 @@ div.dataTables_info {
 #libraries-to-purge > li {
     color: #e9a049;
 }
-#updatebar {
+#updatebar, #token_error_bar  {
     background-color: #444;
     opacity: 0.95;
     color: #999999;
@@ -3238,31 +3238,34 @@ div.dataTables_info {
     z-index: 9999;
     display: block;
 }
-#updatebar .msg {
+#updatebar .msg, #token_error_bar .msg {
     line-height: normal;
     padding-left: 20px;
 }
-#updatebar .loader {
+#updatebar .loader, #token_error_bar .loader {
     position: relative;
     top: 2px;
 }
-#updatebar.success {
+#updatebar.success, #token_error_bar.success {
     padding: 15px 10px;
     text-align: left;
 }
-#updatebar.error {
+#updatebar.error, #token_error_bar.error {
     padding: 15px 10px;
     text-align: left;
 }
-#updatebar .ui-icon {
+#updatebar .ui-icon, #token_error_bar .ui-icon {
     display: inline-block;
     margin-left: -20px;
     top: 2px;
     position: relative;
     margin-right: 3px;
 }
-#updatebar a:hover {
+#updatebar a:hover, #token_error_bar a:hover {
     color: #e9a049;
+}
+#token_error_bar {
+    background-color: rgba(255,0,0,0.5) !important;
 }
 .body-container {
     position: absolute;

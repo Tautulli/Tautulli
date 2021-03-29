@@ -71,8 +71,9 @@ function refreshTab() {
 function showMsg(msg, loader, timeout, ms, error) {
     var feedback = $("#ajaxMsg");
     var update = $("#updatebar");
-    if (update.is(":visible")) {
-        var height = update.height() + 35;
+    var token_error = $("#token_error_bar");
+    if (update.is(":visible") || token_error.is(":visible")) {
+        var height = (update.is(":visible") ? update.height() : 0) + (token_error.is(":visible") ? token_error.height() : 0) + 35;
         feedback.css("bottom", height + "px");
     } else {
         feedback.removeAttr("style");
@@ -131,8 +132,9 @@ function doAjaxCall(url, elem, reload, form, showMsg, callback) {
     // Set Message
     var feedback = (showMsg) ? $("#ajaxMsg") : $();
     var update = $("#updatebar");
-    if (update.is(":visible")) {
-        var height = update.height() + 35;
+    var token_error = $("#token_error_bar");
+    if (update.is(":visible") || token_error.is(":visible")) {
+        var height = (update.is(":visible") ? update.height() : 0) + (token_error.is(":visible") ? token_error.height() : 0) + 35;
         feedback.css("bottom", height + "px");
     } else {
         feedback.removeAttr("style");

@@ -1558,6 +1558,10 @@
         </div>
     </div>
 </div>
+<div id="token_error_bar" style="display: none;">
+    <i class="fa fa-exclamation-triangle"></i> Your Plex.tv token is no longer valid.<br>
+    Please <a data-tab-destination="plex_media_server" data-target="pms_token">fetch a new token</a>.
+</div>
 </%def>
 
 <%def name="modalIncludes()">
@@ -2648,12 +2652,28 @@ $(document).ready(function() {
         window.open(pms_web_url, '_blank');
     });
 
+    $.ajax({
+        url: "https://plex.tv/api/resources",
+        type: 'GET',
+        dataType: 'json',
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-Plex-Token', $('#pms_token').val());
+        },
+        statusCode: {
+            401: function (xhr, status) {
+                $("#updatebar").hide();
+                $("#token_error_bar").show();
+            }
+        }
+    });
+
     function OAuthPreFunction() {
         $("#token_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
     }
     function OAuthSuccessCallback(authToken) {
         $("#pms_token").val(authToken);
         $("#token_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
+        $('#token_error_bar').hide();
         getServerOptions(authToken);
     }
     function OAuthErrorCallback() {
