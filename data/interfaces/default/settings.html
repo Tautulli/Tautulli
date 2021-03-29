@@ -3045,6 +3045,8 @@ $(document).ready(function() {
     });
 
     function baseURLSet() {
+        var base_url = $('#http_base_url');
+        base_url.val(base_url.val().replace(/\/+$/g, ''));
         if ($('#http_base_url').val()) {
             $('.base-url-warning').hide();
         } else {
