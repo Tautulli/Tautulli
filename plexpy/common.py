@@ -561,6 +561,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'File', 'type': 'str', 'value': 'file', 'description': 'The file path to the item.'},
              {'name': 'Filename', 'type': 'str', 'value': 'filename', 'description': 'The file name of the item.'},
              {'name': 'File Size', 'type': 'int', 'value': 'file_size', 'description': 'The file size of the item.'},
+             {'name': 'Guid', 'type': 'str', 'value': 'guid', 'description': 'The full guid for the item.'},
              {'name': 'Section ID', 'type': 'int', 'value': 'section_id', 'description': 'The unique identifier for the library.'},
              {'name': 'Rating Key', 'type': 'int', 'value': 'rating_key', 'description': 'The unique identifier for the movie, episode, or track.'},
              {'name': 'Parent Rating Key', 'type': 'int', 'value': 'parent_rating_key', 'description': 'The unique identifier for the season or album.'},

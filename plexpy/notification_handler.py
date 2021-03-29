@@ -1084,6 +1084,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'filename': os.path.basename(notify_params['file']),
         'file_size': helpers.human_file_size(notify_params['file_size']),
         'indexes': notify_params['indexes'],
+        'guid': notify_params['guid'],
         'section_id': notify_params['section_id'],
         'rating_key': notify_params['rating_key'],
         'parent_rating_key': notify_params['parent_rating_key'],
