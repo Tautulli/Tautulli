@@ -46,8 +46,9 @@
 
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script>
-    $(document).ready(function() {
-        $('#date-header').html(moment('${data["start_date"]}','YYYY-MM-DD').format('ddd MMM Do YYYY'));
+    $('#date-header').html(moment('${data["start_date"]}','YYYY-MM-DD').format('ddd MMM Do YYYY'));
+
+    $('#history-modal').off('shown.bs.modal').on('shown.bs.modal', function() {
         history_table_options.ajax = {
             url: 'get_history',
             data: function ( d ) {
@@ -65,10 +66,6 @@
         history_table.columns([0, 3, 4, 5, 9, 11, 12]).visible(false);
 
         clearSearchButton('history_table_modal', history_table);
-
-        $('#history-modal').on('shown.bs.modal', function() {
-            history_table.columns.adjust().draw();
-        });
     });
 </script>
 % else:
