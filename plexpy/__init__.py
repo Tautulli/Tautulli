@@ -46,6 +46,7 @@ if PYTHON2:
     import database
     import datafactory
     import exporter
+    import helpers
     import libraries
     import logger
     import mobile_app
@@ -67,6 +68,7 @@ else:
     from plexpy import database
     from plexpy import datafactory
     from plexpy import exporter
+    from plexpy import helpers
     from plexpy import libraries
     from plexpy import logger
     from plexpy import mobile_app
@@ -599,6 +601,11 @@ def sig_handler(signum=None, frame=None):
 def dbcheck():
     conn_db = sqlite3.connect(DB_FILE)
     c_db = conn_db.cursor()
+
+    # schema table :: This is a table which keeps track of the database version
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS version_info (key TEXT UNIQUE, value TEXT)'
+    )
 
     # sessions table :: This is a temp table that logs currently active sessions
     c_db.execute(
@@ -2455,6 +2462,19 @@ def dbcheck():
         'CREATE UNIQUE INDEX IF NOT EXISTS "idx_sessions_continued" '
         'ON "sessions_continued" ("user_id", "machine_id", "media_type")'
     )
+
+    # Set database version
+    result = c_db.execute('SELECT value FROM version_info WHERE key = "version"').fetchone()
+    if not result:
+        c_db.execute(
+            'INSERT OR REPLACE INTO version_info (key, value) VALUES ("version", ?)',
+            [common.RELEASE]
+        )
+    elif helpers.version_to_tuple(result[0]) < helpers.version_to_tuple(common.RELEASE):
+        c_db.execute(
+            'UPDATE version_info SET value = ? WHERE key = "version"',
+            [common.RELEASE]
+        )
 
     conn_db.commit()
     c_db.close()
