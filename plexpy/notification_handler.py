@@ -1096,7 +1096,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'poster_thumb': poster_thumb
         }
 
-    return available_params
+    notify_params.update(available_params)
+    return notify_params
 
 
 def build_server_notify_params(notify_action=None, **kwargs):
