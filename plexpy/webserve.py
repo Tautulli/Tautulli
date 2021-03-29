@@ -3914,9 +3914,16 @@ class WebInterface(object):
         if not app:
             return {'result': 'error', 'message': 'No app specified for import'}
 
-        if database_file:
+        if database_path:
+            database_file_name = os.path.basename(database_path)
+            database_cache_path = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file_name + '.import.db')
+            logger.info("Received database file '%s' for import. Saving to cache: %s",
+                        database_file_name, database_cache_path)
+            database_path = shutil.copyfile(database_path, database_cache_path)
+
+        elif database_file:
             database_path = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file.filename + '.import.db')
-            logger.info("Received database file '%s' for import. Saving to cache '%s'.",
+            logger.info("Received database file '%s' for import. Saving to cache: %s",
                         database_file.filename, database_path)
             with open(database_path, 'wb') as f:
                 while True:

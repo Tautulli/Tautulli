@@ -211,6 +211,9 @@ def import_tautulli_db(database=None, method=None, backup=False):
     logger.info("Tautulli Database :: Tautulli database import complete.")
     set_is_importing(False)
 
+    logger.info("Tautulli Database :: Deleting cached database: %s", database)
+    os.remove(database)
+
 
 def integrity_check():
     monitor_db = MonitorDatabase()
