@@ -95,6 +95,15 @@ def import_tautulli_db(database=None, method=None, backup=False):
     db.connection.execute('BEGIN IMMEDIATE')
     db.connection.execute('ATTACH ? AS import_db', [database])
 
+    try:
+        version_info = db.select_single('SELECT * FROM import_db.version_info WHERE key = "version"')
+        import_db_version = version_info['value']
+    except sqlite3.OperationalError:
+        import_db_version = 'v2.6.10'
+
+    logger.info("Tautulli Database :: Import Tautulli database version: %s", import_db_version)
+    import_db_version = helpers.version_to_tuple(import_db_version)
+
     # Get the current number of used ids in the session_history table
     session_history_seq = db.select_single('SELECT seq FROM sqlite_sequence WHERE name = "session_history"')
     session_history_rows = session_history_seq.get('seq', 0)
@@ -110,6 +119,23 @@ def import_tautulli_db(database=None, method=None, backup=False):
             if table_name == 'session_history':
                 db.action('UPDATE {table}_copy SET reference_id = reference_id + ?'.format(table=table_name),
                           [session_history_rows])
+
+    # Migrate section_id from session_history_metadata to session_history
+    if import_db_version < helpers.version_to_tuple('v2.7.0'):
+        if method == 'merge':
+            from_db_name = 'main'
+            copy = '_copy'
+        else:
+            from_db_name = 'import_db'
+            copy = ''
+        db.action('ALTER TABLE {from_db}.session_history{copy} '
+                  'ADD COLUMN section_id INTEGER'.format(from_db=from_db_name,
+                                                         copy=copy))
+        db.action('UPDATE {from_db}.session_history{copy} SET section_id = ('
+                  'SELECT section_id FROM {from_db}.session_history_metadata{copy} '
+                  'WHERE {from_db}.session_history_metadata{copy}.id = '
+                  '{from_db}.session_history{copy}.id)'.format(from_db=from_db_name,
+                                                               copy=copy))
 
     # Keep track of all table columns so that duplicates can be removed after importing
     table_columns = {}
