@@ -217,6 +217,20 @@ DOCUMENTATION :: END
                                                 </button>&nbsp;
                                             </div>
                                             % endif
+                                            <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-all" value="all" autocomplete="off"> All
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"> Direct Play
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-direct_stream" value="direct stream" autocomplete="off"> Direct Stream
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"> Transcode
+                                                </label>
+                                            </div>
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
                                             </div>
@@ -557,7 +571,7 @@ DOCUMENTATION :: END
 
     $(".inactive-library-tooltip").tooltip();
 
-    function loadHistoryTable() {
+    function loadHistoryTable(transcode_decision) {
         // Build watch history table
         history_table_options.ajax = {
             url: 'get_history',
@@ -566,7 +580,8 @@ DOCUMENTATION :: END
                 return {
                     json_data: JSON.stringify( d ),
                     section_id: section_id,
-                    user_id: "${history_user_id}"
+                    user_id: "${history_user_id}",
+                    transcode_decision: transcode_decision
                 };
             }
         };
@@ -576,11 +591,25 @@ DOCUMENTATION :: END
         $(colvis.button()).appendTo('#button-bar-history');
 
         clearSearchButton('history_table-SID-${data["section_id"]}', history_table);
+
+        $('#transcode_decision-selection').on('change', function () {
+            $('#transcode_decision-selection > label').removeClass('active');
+            var selected_filter = $('input[name=transcode_decision-filter]:checked', '#transcode_decision-selection');
+            $(selected_filter).closest('label').addClass('active');
+            transcode_decision = $(selected_filter).val();
+            setLocalStorage('library_' + section_id + 'history_transcode_decision', transcode_decision);
+            history_table.draw();
+        });
     }
 
     $('#nav-tabs-history').on('shown.bs.tab', function() {
         if (typeof(history_table) === 'undefined') {
-            loadHistoryTable();
+            var transcode_decision = getLocalStorage('library_' + section_id + 'history_transcode_decision', 'all');
+            var history_transcode_decision = $('#history-transcode_decision-' + transcode_decision.replace(' ', '_'));
+            history_transcode_decision.prop('checked', true);
+            history_transcode_decision.closest('label').addClass('active');
+
+            loadHistoryTable(transcode_decision);
         }
     });
 

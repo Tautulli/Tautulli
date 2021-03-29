@@ -1963,7 +1963,7 @@ class WebInterface(object):
                 custom_where.append(['session_history_metadata.live', '1'])
         if 'transcode_decision' in kwargs:
             transcode_decision = kwargs.get('transcode_decision', '')
-            if transcode_decision:
+            if transcode_decision != 'all':
                 custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
         if 'guid' in kwargs:
             guid = kwargs.get('guid', '').split('?')[0]

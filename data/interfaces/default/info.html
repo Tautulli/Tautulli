@@ -615,6 +615,20 @@ DOCUMENTATION :: END
                                                 </button>&nbsp;
                                             </div>
                                             % endif
+                                            <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-all" value="all" autocomplete="off"> All
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"> Direct Play
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-direct_stream" value="direct stream" autocomplete="off"> Direct Stream
+                                                </label>
+                                                <label class="btn btn-dark">
+                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"> Transcode
+                                                </label>
+                                            </div>
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
                                             </div>
@@ -809,84 +823,53 @@ DOCUMENTATION :: END
 %>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
-% if data['live']:
-<script>
-    function get_history() {
-        history_table_options.ajax = {
-            url: 'get_history',
-            type: 'POST',
-            data: function ( d ) {
-                return {
-                    json_data: JSON.stringify( d ),
-                    guid: "${data['guid']}",
-                    user_id: "${history_user_id}"
-                };
-            }
-        }
-    }
-</script>
-% elif data['media_type'] in ('show', 'artist'):
-<script>
-    function get_history() {
-        history_table_options.ajax = {
-            url: 'get_history',
-            type: 'POST',
-            data: function ( d ) {
-                return { 
-                    json_data: JSON.stringify( d ),
-                    grandparent_rating_key: "${data['rating_key']}",
-                    user_id: "${history_user_id}"
-                };
-            }
-        }
-    }
-</script>
-% elif data['media_type'] in ('season', 'album'):
-<script>
-    function get_history() {
-        history_table_options.ajax = {
-            url: 'get_history',
-            type: 'POST',
-            data: function ( d ) {
-                return { 
-                    json_data: JSON.stringify( d ),
-                    parent_rating_key: "${data['rating_key']}",
-                    user_id: "${history_user_id}"
-                };
-            }
-        }
-    }
-</script>
-% elif data['media_type'] in ('movie', 'episode', 'track'):
-<script>
-    function get_history() {
-        history_table_options.ajax = {
-            url: 'get_history',
-            type: 'POST',
-            data: function ( d ) {
-                return { 
-                    json_data: JSON.stringify( d ),
-                    rating_key: "${data['rating_key']}",
-                    user_id: "${history_user_id}"
-                };
-            }
-        }
-    }
-</script>
-% endif
 % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
 <script>
-    function loadHistoryTable() {
-        get_history();
+    function loadHistoryTable(transcode_decision) {
+        // Build watch history table
+        history_table_options.ajax = {
+            url: 'get_history',
+            type: 'POST',
+            data: function (d) {
+                return {
+                    json_data: JSON.stringify(d),
+                    transcode_decision: transcode_decision,
+                    user_id: "${history_user_id}",
+                    % if data['live']:
+                    guid: "${data['guid']}
+                    % elif data['media_type'] in ('show', 'artist'):
+                    grandparent_rating_key: "${data['rating_key']}"
+                    % elif data['media_type'] in ('season', 'album'):
+                    parent_rating_key: "${data['rating_key']}"
+                    % elif data['media_type'] in ('movie', 'episode', 'track'):
+                    rating_key: "${data['rating_key']}"
+                    % endif
+                };
+            }
+        }
         history_table = $('#history_table-RK-${data["rating_key"]}').DataTable(history_table_options);
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
         $(colvis.button()).appendTo('#button-bar-history');
 
         clearSearchButton('history_table-RK-${data["rating_key"]}', history_table);
+
+        $('#transcode_decision-selection').on('change', function () {
+            $('#transcode_decision-selection > label').removeClass('active');
+            var selected_filter = $('input[name=transcode_decision-filter]:checked', '#transcode_decision-selection');
+            $(selected_filter).closest('label').addClass('active');
+            transcode_decision = $(selected_filter).val();
+            setLocalStorage('info_${data["rating_key"]}_history_transcode_decision', transcode_decision);
+            history_table.draw();
+        });
     }
 
+    var transcode_decision = getLocalStorage('info_${data["rating_key"]}_history_transcode_decision', 'all');
+    var history_transcode_decision = $('#history-transcode_decision-' + transcode_decision.replace(' ', '_'));
+    history_transcode_decision.prop('checked', true);
+    history_transcode_decision.closest('label').addClass('active');
+
     $(document).ready(function () {
-        loadHistoryTable();
+        loadHistoryTable(transcode_decision);
     });
 
     $("#refresh-history-list").click(function () {
