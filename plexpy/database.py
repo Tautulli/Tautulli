@@ -145,7 +145,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
                        'ORDER BY name')
     for table in tables:
         table_name = table['name']
-        if table_name == 'sessions':
+        if table_name == 'sessions' or table_name == 'version_info':
             # Skip temporary sessions table
             continue
 
