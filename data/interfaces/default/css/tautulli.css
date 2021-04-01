@@ -3851,6 +3851,10 @@ a:hover .overlay-refresh-image:hover {
     background-repeat: no-repeat !important;
     background-position: center !important;
 }
+.platform-alexa {
+    background-color: #00caff;
+    background-image: url(../images/platforms/alexa.svg);
+}
 .platform-android {
     background-color: #3ddc84;
     background-image: url(../images/platforms/android.svg);
