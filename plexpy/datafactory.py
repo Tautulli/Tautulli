@@ -1710,6 +1710,9 @@ class DataFactory(object):
                 metadata = pms_connect.get_metadata_details(new_key)
 
                 if metadata:
+                    logger.debug("Tautulli DataFactory :: Mapping for rating_key %s -> %s (%s)",
+                                 old_key, new_key, metadata['media_type'])
+
                     if metadata['media_type'] == 'show' or metadata['media_type'] == 'artist':
                         # check grandparent_rating_key (2 tables)
                         monitor_db.action('UPDATE session_history SET grandparent_rating_key = ? WHERE grandparent_rating_key = ?',
@@ -1754,7 +1757,9 @@ class DataFactory(object):
             genres = ";".join(metadata['genres'])
             labels = ";".join(metadata['labels'])
 
-            #logger.info("Tautulli DataFactory :: Updating metadata in the database for rating key: %s." % new_rating_key)
+            logger.debug("Tautulli DataFactory :: Updating metadata in the database for rating_key %s -> %s.",
+                         old_rating_key, new_rating_key)
+
             monitor_db = database.MonitorDatabase()
 
             query = 'UPDATE session_history SET section_id = ? WHERE rating_key = ?'
