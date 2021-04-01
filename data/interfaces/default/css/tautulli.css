@@ -3971,6 +3971,9 @@ a:hover .overlay-refresh-image:hover {
     background-color: #107c10;
     background-image: url(../images/platforms/xbox.svg);
 }
+.platform-alexa-rgba {
+    background-color: rgba(0, 202, 255, 0.40);
+}
 .platform-android-rgba {
     background-color: rgba(61, 220, 132, 0.40);
 }
