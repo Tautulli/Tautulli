@@ -3033,13 +3033,13 @@ class PmsConnect(object):
                                 key = int(child_index) if child_index else child_title
                                 children.update({key: {'rating_key': int(child_rating_key)}})
 
-                    key = int(parent_index) if match_type == 'index' else parent_title
+                    key = int(parent_index) if match_type == 'index' else str(parent_title).lower()
                     parents.update({key:
                                     {'rating_key': int(parent_rating_key),
                                      'children': children}
                                     })
 
-        key = 0 if match_type == 'index' else title
+        key = 0 if match_type == 'index' else str(title).lower()
         key_list = {key: {'rating_key': int(rating_key),
                           'children': parents},
                     'section_id': section_id,

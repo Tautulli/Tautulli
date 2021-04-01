@@ -1665,16 +1665,16 @@ class DataFactory(object):
                 result = monitor_db.select(query=query.format('parent_rating_key', 'rating_key'),
                                            args=[item['parent_rating_key']])
                 for item in result:
-                    key = item['media_index'] if item['media_index'] else item['title']
+                    key = item['media_index'] if item['media_index'] else str(item['title']).lower()
                     children.update({key: {'rating_key': item['rating_key']}})
 
-                key = item['parent_media_index'] if match_type == 'index' else item['parent_title']
+                key = item['parent_media_index'] if match_type == 'index' else str(item['parent_title']).lower()
                 parents.update({key:
                                 {'rating_key': item['parent_rating_key'],
                                  'children': children}
                                 })
 
-            key = 0 if match_type == 'index' else item['grandparent_title']
+            key = 0 if match_type == 'index' else str(item['grandparent_title']).lower()
             grandparents.update({key:
                                  {'rating_key': item['grandparent_rating_key'],
                                   'children': parents}
