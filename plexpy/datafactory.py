@@ -1757,11 +1757,15 @@ class DataFactory(object):
             #logger.info("Tautulli DataFactory :: Updating metadata in the database for rating key: %s." % new_rating_key)
             monitor_db = database.MonitorDatabase()
 
+            query = 'UPDATE session_history SET section_id = ? WHERE rating_key = ?'
+            args = [metadata['section_id'], old_rating_key]
+            monitor_db.action(query=query, args=args)
+
             # Update the session_history_metadata table
             query = 'UPDATE session_history_metadata SET rating_key = ?, parent_rating_key = ?, ' \
                     'grandparent_rating_key = ?, title = ?, parent_title = ?, grandparent_title = ?, ' \
                     'original_title = ?, full_title = ?, ' \
-                    'media_index = ?, parent_media_index = ?, section_id = ?, thumb = ?, parent_thumb = ?, ' \
+                    'media_index = ?, parent_media_index = ?, thumb = ?, parent_thumb = ?, ' \
                     'grandparent_thumb = ?, art = ?, media_type = ?, year = ?, originally_available_at = ?, ' \
                     'added_at = ?, updated_at = ?, last_viewed_at = ?, content_rating = ?, summary = ?, ' \
                     'tagline = ?, rating = ?, duration = ?, guid = ?, directors = ?, writers = ?, actors = ?, ' \
@@ -1771,7 +1775,7 @@ class DataFactory(object):
             args = [metadata['rating_key'], metadata['parent_rating_key'], metadata['grandparent_rating_key'],
                     metadata['title'], metadata['parent_title'], metadata['grandparent_title'],
                     metadata['original_title'], full_title,
-                    metadata['media_index'], metadata['parent_media_index'], metadata['section_id'], metadata['thumb'],
+                    metadata['media_index'], metadata['parent_media_index'], metadata['thumb'],
                     metadata['parent_thumb'], metadata['grandparent_thumb'], metadata['art'], metadata['media_type'],
                     metadata['year'], metadata['originally_available_at'], metadata['added_at'], metadata['updated_at'],
                     metadata['last_viewed_at'], metadata['content_rating'], metadata['summary'], metadata['tagline'],
