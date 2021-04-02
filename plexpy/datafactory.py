@@ -1264,11 +1264,7 @@ class DataFactory(object):
     def get_total_duration(self, custom_where=None):
         monitor_db = database.MonitorDatabase()
 
-        # Split up custom wheres
-        if custom_where:
-            where = 'WHERE ' + ' AND '.join([w[0] + ' = "' + w[1] + '"' for w in custom_where])
-        else:
-            where = ''
+        where, args = datatables.build_custom_where(custom_where=custom_where)
 
         try:
             query = 'SELECT SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - ' \
@@ -1277,7 +1273,7 @@ class DataFactory(object):
                     'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                     'JOIN session_history_media_info ON session_history_media_info.id = session_history.id ' \
                     '%s ' % where
-            result = monitor_db.select(query)
+            result = monitor_db.select(query, args=args)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_total_duration: %s." % e)
             return None
