@@ -219,16 +219,13 @@ DOCUMENTATION :: END
                                             % endif
                                             <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
                                                 <label class="btn btn-dark">
-                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-all" value="all" autocomplete="off"> All
+                                                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"><i class="fa fa-play-circle"></i> Direct Play
                                                 </label>
                                                 <label class="btn btn-dark">
-                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"> Direct Play
+                                                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_stream" value="copy" autocomplete="off"><i class="fa fa-stream"></i> Direct Stream
                                                 </label>
                                                 <label class="btn btn-dark">
-                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-direct_stream" value="copy" autocomplete="off"> Direct Stream
-                                                </label>
-                                                <label class="btn btn-dark">
-                                                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"> Transcode
+                                                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
                                                 </label>
                                             </div>
                                             <div class="btn-group">
@@ -596,7 +593,7 @@ DOCUMENTATION :: END
             $('#transcode_decision-selection > label').removeClass('active');
             var selected_filter = $('input[name=transcode_decision-filter]:checked', '#transcode_decision-selection');
             $(selected_filter).closest('label').addClass('active');
-            transcode_decision = $(selected_filter).val();
+            transcode_decision = $(selected_filter).map(function () { return $(this).val(); }).get().join(',');
             setLocalStorage('library_' + section_id + 'history_transcode_decision', transcode_decision);
             history_table.draw();
         });
@@ -605,9 +602,11 @@ DOCUMENTATION :: END
     $('#nav-tabs-history').on('shown.bs.tab', function() {
         if (typeof(history_table) === 'undefined') {
             var transcode_decision = getLocalStorage('library_' + section_id + 'history_transcode_decision', 'all');
-            var history_transcode_decision = $('#history-transcode_decision-' + transcode_decision.replace(' ', '_'));
-            history_transcode_decision.prop('checked', true);
-            history_transcode_decision.closest('label').addClass('active');
+            $.each(transcode_decision.split(','), function (i, item) {
+                var history_transcode_decision = $('#history-transcode_decision-' + item.replace(' ', '_'));
+                history_transcode_decision.prop('checked', true);
+                history_transcode_decision.closest('label').addClass('active');
+            });
 
             loadHistoryTable(transcode_decision);
         }
