@@ -408,6 +408,10 @@ def clean_filename(filename, replace='_'):
     return cleaned_filename
 
 
+def split_strip(s, delimiter=','):
+    return [x.strip() for x in str(s).split(delimiter) if x.strip()]
+
+
 def split_path(f):
     """
     Split a path into components, starting with the drive letter (if any). Given
