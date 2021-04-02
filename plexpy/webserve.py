@@ -1933,41 +1933,58 @@ class WebInterface(object):
 
         custom_where = []
         if user_id:
-            custom_where.append(['session_history.user_id', user_id])
+            user_id = helpers.split_strip(user_id)
+            if user_id:
+                custom_where.append(['session_history.user_id', user_id])
         elif user:
-            custom_where.append(['session_history.user', user])
+            user = helpers.split_strip(user)
+            if user:
+                custom_where.append(['session_history.user', user])
         if 'rating_key' in kwargs:
-            rating_key = kwargs.get('rating_key', '')
-            custom_where.append(['session_history.rating_key', rating_key])
+            rating_key = helpers.split_strip(kwargs.get('rating_key', ''))
+            if rating_key:
+                custom_where.append(['session_history.rating_key', rating_key])
         if 'parent_rating_key' in kwargs:
-            rating_key = kwargs.get('parent_rating_key', '')
-            custom_where.append(['session_history.parent_rating_key', rating_key])
+            rating_key = helpers.split_strip(kwargs.get('parent_rating_key', ''))
+            if rating_key:
+                custom_where.append(['session_history.parent_rating_key', rating_key])
         if 'grandparent_rating_key' in kwargs:
-            rating_key = kwargs.get('grandparent_rating_key', '')
-            custom_where.append(['session_history.grandparent_rating_key', rating_key])
+            rating_key = helpers.split_strip(kwargs.get('grandparent_rating_key', ''))
+            if rating_key:
+                custom_where.append(['session_history.grandparent_rating_key', rating_key])
         if 'start_date' in kwargs:
-            start_date = kwargs.get('start_date', '')
-            custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
+            start_date = helpers.split_strip(kwargs.get('start_date', ''))
+            if start_date:
+                custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
         if 'reference_id' in kwargs:
-            reference_id = kwargs.get('reference_id', '')
-            custom_where.append(['session_history.reference_id', reference_id])
+            reference_id = helpers.split_strip(kwargs.get('reference_id', ''))
+            if reference_id:
+                custom_where.append(['session_history.reference_id', reference_id])
         if 'section_id' in kwargs:
-            section_id = kwargs.get('section_id', '')
-            custom_where.append(['session_history.section_id', section_id])
+            section_id = helpers.split_strip(kwargs.get('section_id', ''))
+            if section_id:
+                custom_where.append(['session_history.section_id', section_id])
         if 'media_type' in kwargs:
-            media_type = kwargs.get('media_type', '')
-            if media_type not in ('all', 'live'):
-                custom_where.append(['session_history.media_type', media_type])
-                custom_where.append(['session_history_metadata.live', '0'])
-            elif media_type == 'live':
-                custom_where.append(['session_history_metadata.live', '1'])
+            media_type = helpers.split_strip(kwargs.get('media_type', ''))
+            if media_type and 'all' not in media_type:
+                if 'live' in media_type:
+                    media_type.remove('live')
+                    if len(media_type):
+                        custom_where.append(['session_history_metadata.live OR', '1'])
+                    else:
+                        custom_where.append(['session_history_metadata.live', '1'])
+                else:
+                    custom_where.append(['session_history_metadata.live', '0'])
+                if media_type:
+                    custom_where.append(['session_history.media_type', media_type])
         if 'transcode_decision' in kwargs:
-            transcode_decision = kwargs.get('transcode_decision', '')
-            if transcode_decision != 'all':
+            transcode_decision = helpers.split_strip(kwargs.get('transcode_decision', ''))
+            if transcode_decision and 'all' not in transcode_decision:
                 custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
         if 'guid' in kwargs:
-            guid = kwargs.get('guid', '').split('?')[0]
-            custom_where.append(['session_history_metadata.guid', 'LIKE ' + guid + '%'])  # SQLite LIKE wildcard
+            guid = helpers.split_strip(kwargs.get('guid', '').split('?')[0])
+            if guid:
+                custom_where.append(['session_history_metadata.guid', ['LIKE ' + g + '%' for g in guid]])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
