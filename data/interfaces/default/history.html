@@ -40,33 +40,27 @@
             % endif
             <div class="btn-group" data-toggle="buttons" id="media_type-selection">
                 <label class="btn btn-dark">
-                    <input type="radio" name="media_type-filter" id="history-media_type-all" value="all" autocomplete="off"> All
+                    <input type="checkbox" name="media_type-filter" id="history-media_type-movie" value="movie" autocomplete="off"><i class="fa fa-film"></i> Movies
                 </label>
                 <label class="btn btn-dark">
-                    <input type="radio" name="media_type-filter" id="history-media_type-movie" value="movie" autocomplete="off"> Movies
+                    <input type="checkbox" name="media_type-filter" id="history-media_type-episode" value="episode" autocomplete="off"><i class="fa fa-television"></i> TV Shows
                 </label>
                 <label class="btn btn-dark">
-                    <input type="radio" name="media_type-filter" id="history-media_type-episode" value="episode" autocomplete="off"> TV Shows
+                    <input type="checkbox" name="media_type-filter" id="history-media_type-track" value="track" autocomplete="off"><i class="fa fa-music"></i> Music
                 </label>
                 <label class="btn btn-dark">
-                    <input type="radio" name="media_type-filter" id="history-media_type-track" value="track" autocomplete="off"> Music
-                </label>
-                <label class="btn btn-dark">
-                    <input type="radio" name="media_type-filter" id="history-media_type-live" value="live" autocomplete="off"> Live TV
+                    <input type="checkbox" name="media_type-filter" id="history-media_type-live" value="live" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Live TV
                 </label>
             </div>
             <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
                 <label class="btn btn-dark">
-                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-all" value="all" autocomplete="off"> All
+                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"><i class="fa fa-play-circle"></i> Direct Play
                 </label>
                 <label class="btn btn-dark">
-                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"> Direct Play
+                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_stream" value="copy" autocomplete="off"><i class="fa fa-stream"></i> Direct Stream
                 </label>
                 <label class="btn btn-dark">
-                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-direct_stream" value="copy" autocomplete="off"> Direct Stream
-                </label>
-                <label class="btn btn-dark">
-                    <input type="radio" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"> Transcode
+                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
                 </label>
             </div>
             <div class="btn-group">
@@ -178,7 +172,7 @@
                 $('#media_type-selection > label').removeClass('active');
                 var selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
                 $(selected_filter).closest('label').addClass('active');
-                media_type = $(selected_filter).val();
+                media_type = $(selected_filter).map(function () { return $(this).val(); }).get().join(',');
                 setLocalStorage('history_media_type', media_type);
                 history_table.draw();
             });
@@ -187,7 +181,7 @@
                 $('#transcode_decision-selection > label').removeClass('active');
                 var selected_filter = $('input[name=transcode_decision-filter]:checked', '#transcode_decision-selection');
                 $(selected_filter).closest('label').addClass('active');
-                transcode_decision = $(selected_filter).val();
+                transcode_decision = $(selected_filter).map(function () { return $(this).val(); }).get().join(',');
                 setLocalStorage('history_transcode_decision', transcode_decision);
                 history_table.draw();
             });
@@ -201,14 +195,18 @@
         var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
 
         var media_type = getLocalStorage('history_media_type', 'all');
-        var history_media_type = $('#history-media_type-' + media_type);
-        history_media_type.prop('checked', true);
-        history_media_type.closest('label').addClass('active');
+        $.each(media_type.split(','), function (i, item) {
+            var history_media_type = $('#history-media_type-' + item);
+            history_media_type.prop('checked', true);
+            history_media_type.closest('label').addClass('active');
+        });
 
         var transcode_decision = getLocalStorage('history_transcode_decision', 'all');
-        var history_transcode_decision = $('#history-transcode_decision-' + transcode_decision.replace(' ', '_'));
-        history_transcode_decision.prop('checked', true);
-        history_transcode_decision.closest('label').addClass('active');
+        $.each(transcode_decision.split(','), function (i, item) {
+            var history_transcode_decision = $('#history-transcode_decision-' + item.replace(' ', '_'));
+            history_transcode_decision.prop('checked', true);
+            history_transcode_decision.closest('label').addClass('active');
+        });
 
         loadHistoryTable(media_type, transcode_decision, selected_user_id);
 
