@@ -80,6 +80,27 @@ MEDIA_TYPE_HEADERS = {
     'photo': 'Photos'
 }
 
+MEDIA_TYPE_VALUES = {
+    1: 'movie',
+    2: 'show',
+    3: 'season',
+    4: 'episode',
+    5: 'trailer',
+    6: 'comic',
+    7: 'person',
+    8: 'artist',
+    9: 'album',
+    10: 'track',
+    11: 'picture',
+    12: 'clip',
+    13: 'photo',
+    14: 'photoalbum',
+    15: 'playlist',
+    16: 'playlistFolder',
+    18: 'collection',
+    42: 'optimizedVersion'
+}
+
 PLATFORM_NAME_OVERRIDES = {
     'Konvergo': 'Plex Media Player',
     'Mystery 3': 'Playstation 3',

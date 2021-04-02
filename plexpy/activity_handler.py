@@ -27,6 +27,7 @@ import pytz
 import plexpy
 if plexpy.PYTHON2:
     import activity_processor
+    import common
     import datafactory
     import helpers
     import logger
@@ -34,6 +35,7 @@ if plexpy.PYTHON2:
     import pmsconnect
 else:
     from plexpy import activity_processor
+    from plexpy import common
     from plexpy import datafactory
     from plexpy import helpers
     from plexpy import logger
@@ -415,18 +417,12 @@ class TimelineHandler(object):
             global RECENTLY_ADDED_QUEUE
 
             rating_key = self.get_rating_key()
-
-            media_types = {1: 'movie',
-                           2: 'show',
-                           3: 'season',
-                           4: 'episode',
-                           8: 'artist',
-                           9: 'album',
-                           10: 'track'}
+            parent_rating_key = self.timeline.get('parentItemID')
+            grandparent_rating_key = self.timeline.get('rootItemID')
 
             identifier = self.timeline.get('identifier')
             state_type = self.timeline.get('state')
-            media_type = media_types.get(self.timeline.get('type'))
+            media_type = common.MEDIA_TYPE_VALUES.get(self.timeline.get('type'))
             section_id = helpers.cast_to_int(self.timeline.get('sectionID', 0))
             title = self.timeline.get('title', 'Unknown')
             metadata_state = self.timeline.get('metadataState')
@@ -438,81 +434,72 @@ class TimelineHandler(object):
                 return
 
             # Add a new media item to the recently added queue
-            if media_type and section_id > 0 and \
-                ((state_type == 0 and metadata_state == 'created')):  # or \
-                #(plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_UPGRADE and state_type in (1, 5) and \
-                 #media_state == 'analyzing' and queue_size is None)):
+            if media_type and section_id > 0 and state_type == 0 and metadata_state == 'created':
 
                 if media_type in ('episode', 'track'):
-                    metadata = self.get_metadata()
-                    if metadata:
-                        grandparent_title = metadata['grandparent_title']
-                        grandparent_rating_key = int(metadata['grandparent_rating_key'])
-                        parent_rating_key = int(metadata['parent_rating_key'])
+                    grandparent_set = RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, set())
+                    grandparent_set.add(parent_rating_key)
+                    RECENTLY_ADDED_QUEUE[grandparent_rating_key] = grandparent_set
 
-                        grandparent_set = RECENTLY_ADDED_QUEUE.get(grandparent_rating_key, set())
-                        grandparent_set.add(parent_rating_key)
-                        RECENTLY_ADDED_QUEUE[grandparent_rating_key] = grandparent_set
+                    parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
+                    parent_set.add(rating_key)
+                    RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
-                        parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
-                        parent_set.add(rating_key)
-                        RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
+                    RECENTLY_ADDED_QUEUE[rating_key] = {grandparent_rating_key}
 
-                        RECENTLY_ADDED_QUEUE[rating_key] = set([grandparent_rating_key])
+                    logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s, grandparent %s) "
+                                 "added to recently added queue."
+                                 % (title, str(rating_key), str(grandparent_rating_key)))
 
-                        logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s, grandparent %s) added to recently added queue."
-                                     % (title, str(rating_key), str(grandparent_rating_key)))
-
-                        # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(grandparent_rating_key),
-                                          func=clear_recently_added_queue,
-                                          args=[grandparent_rating_key, grandparent_title],
-                                          seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
+                    # Schedule a callback to clear the recently added queue
+                    schedule_callback('rating_key-{}'.format(grandparent_rating_key),
+                                      func=clear_recently_added_queue,
+                                      args=[grandparent_rating_key],
+                                      seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
                 elif media_type in ('season', 'album'):
-                    metadata = self.get_metadata()
-                    if metadata:
-                        parent_title = metadata['parent_title']
-                        parent_rating_key = int(metadata['parent_rating_key'])
+                    parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
+                    parent_set.add(rating_key)
+                    RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
 
-                        parent_set = RECENTLY_ADDED_QUEUE.get(parent_rating_key, set())
-                        parent_set.add(rating_key)
-                        RECENTLY_ADDED_QUEUE[parent_rating_key] = parent_set
+                    logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s , parent %s) "
+                                 "added to recently added queue."
+                                 % (title, str(rating_key), str(parent_rating_key)))
 
-                        logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s , parent %s) added to recently added queue."
-                                     % (title, str(rating_key), str(parent_rating_key)))
+                    # Schedule a callback to clear the recently added queue
+                    schedule_callback('rating_key-{}'.format(parent_rating_key),
+                                      func=clear_recently_added_queue,
+                                      args=[parent_rating_key],
+                                      seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
-                        # Schedule a callback to clear the recently added queue
-                        schedule_callback('rating_key-{}'.format(parent_rating_key),
-                                          func=clear_recently_added_queue,
-                                          args=[parent_rating_key, parent_title],
-                                          seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
-
-                else:
+                elif media_type in ('movie', 'show', 'artist'):
                     queue_set = RECENTLY_ADDED_QUEUE.get(rating_key, set())
                     RECENTLY_ADDED_QUEUE[rating_key] = queue_set
 
-                    logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) added to recently added queue."
+                    logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) "
+                                 "added to recently added queue."
                                  % (title, str(rating_key)))
 
                     # Schedule a callback to clear the recently added queue
                     schedule_callback('rating_key-{}'.format(rating_key),
                                       func=clear_recently_added_queue,
-                                      args=[rating_key, title],
+                                      args=[rating_key],
                                       seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
             # A movie, show, or artist is done processing
             elif media_type in ('movie', 'show', 'artist') and section_id > 0 and \
-                state_type == 5 and metadata_state is None and queue_size is None and \
-                rating_key in RECENTLY_ADDED_QUEUE:
+                    state_type == 5 and metadata_state is None and queue_size is None and \
+                    rating_key in RECENTLY_ADDED_QUEUE:
 
-                logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) done processing metadata."
+                logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) "
+                             "done processing metadata."
                              % (title, str(rating_key)))
 
             # An item was deleted, make sure it is removed from the queue
             elif state_type == 9 and metadata_state == 'deleted':
                 if rating_key in RECENTLY_ADDED_QUEUE and not RECENTLY_ADDED_QUEUE[rating_key]:
-                    logger.debug("Tautulli TimelineHandler :: Library item %s removed from recently added queue."
+                    logger.debug("Tautulli TimelineHandler :: Library item %s "
+                                 "removed from recently added queue."
                                  % str(rating_key))
                     del_keys(rating_key)
 
@@ -646,7 +633,7 @@ def force_stop_stream(session_key, title, user):
             delete_metadata_cache(session_key)
 
 
-def clear_recently_added_queue(rating_key, title):
+def clear_recently_added_queue(rating_key):
     child_keys = RECENTLY_ADDED_QUEUE[rating_key]
 
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
