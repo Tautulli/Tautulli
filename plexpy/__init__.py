@@ -493,7 +493,7 @@ def initialize_scheduler():
 
             # Schedule job to reconnect server
             schedule_job(activity_pinger.connect_server, 'Check for server response',
-                         hours=0, minutes=0, seconds=60, args=(False,))
+                         hours=0, minutes=0, seconds=30, args=(False,))
             schedule_job(web_socket.send_ping, 'Websocket ping',
                          hours=0, minutes=0, seconds=0)
 

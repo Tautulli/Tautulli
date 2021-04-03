@@ -522,10 +522,10 @@ class ReachabilityHandler(object):
         pref = pms_connect.get_server_pref(pref='PublishServerOnPlexOnlineKey')
         return helpers.bool_true(pref)
 
-    def on_down(self, server_response):
+    def on_extdown(self, server_response):
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
 
-    def on_up(self, server_response):
+    def on_extup(self, server_response):
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extup', 'remote_access_info': server_response})
 
     def process(self):
@@ -552,9 +552,9 @@ class ReachabilityHandler(object):
                 plexpy.PLEX_REMOTE_ACCESS_UP = False
 
                 if not ACTIVITY_SCHED.get_job('on_extdown'):
-                    logger.debug("Tautulli ReachabilityHandler :: Schedule remote access down callback in %d seconds.",
+                    logger.debug("Tautulli ReachabilityHandler :: Scheduling remote access down callback in %d seconds.",
                                  plexpy.CONFIG.NOTIFY_REMOTE_ACCESS_THRESHOLD)
-                    schedule_callback('on_extdown', func=self.on_down, args=[server_response],
+                    schedule_callback('on_extdown', func=self.on_extdown, args=[server_response],
                                       seconds=plexpy.CONFIG.NOTIFY_REMOTE_ACCESS_THRESHOLD)
 
             elif plexpy.PLEX_REMOTE_ACCESS_UP is False and not server_response['reason']:
@@ -566,7 +566,7 @@ class ReachabilityHandler(object):
                     logger.debug("Tautulli ReachabilityHandler :: Cancelling scheduled remote access down callback.")
                     schedule_callback('on_extdown', remove_job=True)
                 else:
-                    self.on_up(server_response)
+                    self.on_extup(server_response)
 
             elif plexpy.PLEX_REMOTE_ACCESS_UP is None:
                 plexpy.PLEX_REMOTE_ACCESS_UP = self.is_reachable()

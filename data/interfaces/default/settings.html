@@ -1092,9 +1092,19 @@
                         </div>-->
 
                         <div class="padded-header">
-                            <h3>Remote Access Notifications</h3>
+                            <h3>Server Notifications</h3>
                         </div>
 
+                        <div class="form-group">
+                            <label for="notify_server_connection_threshold">Plex Server Down Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_server_connection_threshold" name="notify_server_connection_threshold" value="${config['notify_server_connection_threshold']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_server_connection_threshold_error" required>
+                                </div>
+                                <div id="notify_server_connection_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The duration (in seconds) for the Plex server to be down before sending a notification. Minimum 60, default 60.</p>
+                        </div>
                         <div class="form-group">
                             <label for="notify_remote_access_threshold">Remote Access Down Threshold</label>
                             <div class="row">

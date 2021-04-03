@@ -71,8 +71,13 @@ def on_connect():
 
     if not plexpy.PLEX_SERVER_UP:
         logger.info("Tautulli WebSocket :: The Plex Media Server is back up.")
-        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
         plexpy.PLEX_SERVER_UP = True
+
+        if activity_handler.ACTIVITY_SCHED.get_job('on_intdown'):
+            logger.debug("Tautulli WebSocket :: Cancelling scheduled Plex server down callback.")
+            activity_handler.schedule_callback('on_intdown', remove_job=True)
+        else:
+            on_intup()
 
     plexpy.initialize_scheduler()
     if plexpy.CONFIG.WEBSOCKET_MONITOR_PING_PONG:
@@ -85,11 +90,23 @@ def on_disconnect():
 
     if plexpy.PLEX_SERVER_UP:
         logger.info("Tautulli WebSocket :: Unable to get a response from the server, Plex server is down.")
-        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
         plexpy.PLEX_SERVER_UP = False
+
+        logger.debug("Tautulli WebSocket :: Scheduling Plex server down callback in %d seconds.",
+                     plexpy.CONFIG.NOTIFY_SERVER_CONNECTION_THRESHOLD)
+        activity_handler.schedule_callback('on_intdown', func=on_intdown,
+                                           seconds=plexpy.CONFIG.NOTIFY_SERVER_CONNECTION_THRESHOLD)
 
     activity_processor.ActivityProcessor().set_temp_stopped()
     plexpy.initialize_scheduler()
+
+
+def on_intdown():
+    plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
+
+
+def on_intup():
+    plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
 
 
 def reconnect():
