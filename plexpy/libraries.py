@@ -249,7 +249,7 @@ def get_playlists(section_id=None, user_id=None):
     plex = Plex(token=plex_token)
 
     if user_id:
-        playlists = plex.plex.playlists()
+        playlists = plex.PlexServer.playlists()
     else:
         library = plex.get_library(section_id)
         playlists = library.playlists()

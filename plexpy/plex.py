@@ -56,13 +56,13 @@ class Plex(object):
     def __init__(self, url=None, token=None):
         url = url or plexpy.CONFIG.PMS_URL
         token = token or plexpy.CONFIG.PMS_TOKEN
-        self.plex = PlexObject(url, token)
+        self.PlexServer = PlexObject(url, token)
 
     def get_library(self, section_id):
-        return self.plex.library.sectionByID(str(section_id))
+        return self.PlexServer.library.sectionByID(int(section_id))
 
     def get_library_items(self, section_id):
-        return self.get_library(str(section_id)).all()
+        return self.get_library(section_id).all()
 
     def get_item(self, rating_key):
-        return self.plex.fetchItem(rating_key)
+        return self.PlexServer.fetchItem(rating_key)

@@ -503,7 +503,7 @@ class PlexTV(object):
                             tokens = users.Users().get_tokens(user_id=device_user_id)
                             if tokens['server_token']:
                                 plex = Plex(token=tokens['server_token'])
-                                for playlist in plex.plex.playlists():
+                                for playlist in plex.PlexServer.playlists():
                                     if location_uri.endswith(playlist.guid):
                                         rating_key = str(playlist.ratingKey)  # String for backwards consistency
 

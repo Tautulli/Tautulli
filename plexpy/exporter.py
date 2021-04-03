@@ -1654,7 +1654,7 @@ class Export(object):
                 self.user_id, self.metadata_level, self.media_info_level,
                 self.thumb_level, self.art_level, self.export_type, self.file_format)
 
-            self.obj = plex.plex
+            self.obj = plex.PlexServer
             self.media_type = self.export_type
 
             self.obj_title = user_info['username']
@@ -1667,7 +1667,7 @@ class Export(object):
                 self.section_id, self.metadata_level, self.media_info_level,
                 self.thumb_level, self.art_level, self.export_type, self.file_format)
 
-            self.obj = plex.get_library(str(self.section_id))
+            self.obj = plex.get_library(self.section_id)
             if self.export_type == 'all':
                 self.media_type = self.obj.type
             else:
