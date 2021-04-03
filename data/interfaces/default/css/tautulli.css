@@ -3332,29 +3332,45 @@ pre::-webkit-scrollbar-thumb {
     .button-bar {
         float: left !important;
         clear: both;
-        margin-top: 15px;
+        margin-top: 5px;
     }
     .button-bar > div,
     .button-bar > button,
     .button-bar > span {
         float: left !important;
         clear: both !important;
-        margin-bottom: 10px;
+        margin-top: 10px;
     }
     .button-bar > div > button.btn {
         float: left !important;
         clear: both !important;
     }
     .home-padded-header .button-bar {
-        margin-top: 10px;
+        margin-top: 0;
         margin-bottom: 15px;
     }
 }
 @media only screen
   and (min-width: 740px)
-  and (max-width: 1024px) {
+  and (max-width: 1280px) {
+    .header-bar {
+        display: block;
+        float: none !important;
+    }
     .button-bar {
-        float: right !important;
+        float: left !important;
+        clear: both;
+        margin-top: 5px;
+    }
+    .button-bar .btn-group,
+    .button-bar > button.btn {
+        margin-right: 3px;
+    }
+    .button-bar > div,
+    .button-bar > button,
+    .button-bar > span {
+        float: left !important;
+        margin-top: 10px;
     }
     .button-bar > div > button.btn {
         float: left !important;
@@ -3362,6 +3378,8 @@ pre::-webkit-scrollbar-thumb {
     }
     .home-padded-header .button-bar {
         float: left !important;
+        margin-top: 0;
+        margin-bottom: 15px;
     }
 }
 #search_form {
