@@ -20,11 +20,10 @@
         </div>
         <div class="button-bar">
             % if _session['user_group'] == 'admin':
-            <div class="alert alert-danger alert-edit" role="alert" id="sync-row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect syncs to delete. Data is deleted upon exiting delete mode.</div>
             <div class="btn-group">
                 <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="sync-row-edit-mode">
                     <i class="fa fa-trash-o"></i> Delete mode
-                </button>&nbsp
+                </button>
             </div>
             % endif
             % if _session['user_group'] == 'admin':
@@ -140,9 +139,9 @@
 
         % if _session['user_group'] == 'admin':
         $('#sync-row-edit-mode').on('click', function() {
-            $('#sync-row-edit-mode-alert').fadeIn(200);
-
             if ($(this).hasClass('active')) {
+                $(this).tooltip('destroy');
+
                 if (syncs_to_delete.length > 0) {
                     $('#deleteCount').text(syncs_to_delete.length);
                     $('#confirm-modal-delete').modal();
@@ -172,6 +171,13 @@
                 });
 
             } else {
+                $(this).tooltip({
+                    container: '.body-container',
+                    placement: 'bottom',
+                    title: 'Select syncs to delete. Data is deleted upon exiting delete mode.',
+                    trigger: 'manual'
+                }).tooltip('show');
+
                 syncs_to_delete = [];
                 $('.delete-control').each(function() {
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');

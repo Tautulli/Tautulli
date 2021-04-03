@@ -14,11 +14,10 @@
         </div>
         <div class="button-bar">
             % if _session['user_group'] == 'admin':
-            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect users to delete/purge. Data is deleted/purged upon exiting edit mode.</div>
             <div class="btn-group">
                 <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
                     <i class="fa fa-pencil"></i> Edit mode
-                </button>&nbsp
+                </button>
             </div>
             <div class="btn-group">
                 <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
@@ -103,11 +102,12 @@
 
         % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function () {
-            $('#row-edit-mode-alert').fadeIn(200);
             $('#users-to-delete').html('');
             $('#users-to-purge').html('');
 
             if ($(this).hasClass('active')) {
+                $(this).tooltip('destroy');
+
                 if (users_to_delete.length > 0 || users_to_purge.length > 0) {
                     $('.edit-control').each(function () {
                         $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
@@ -166,6 +166,13 @@
                 });
                 toggleEditNames();
             } else {
+                $(this).tooltip({
+                    container: '.body-container',
+                    placement: 'bottom',
+                    title: 'Select users to delete/purge. Data is deleted/purged upon exiting edit mode.',
+                    trigger: 'manual'
+                }).tooltip('show');
+
                 users_to_delete = [];
                 users_to_purge = [];
                 $('.edit-control').each(function () {
