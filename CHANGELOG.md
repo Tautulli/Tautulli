@@ -1,9 +1,50 @@
 # Changelog
 
+## v2.7.0-beta (2021-04-03)
+
+* History:
+  * New: Added transcode decision filter added to history tables.
+  * New: History table filters changed to allow multiple selections.
+* Notifications:
+  * Fix: Recently added notifications failing due to metadata not being available yet on the Plex server. (#1392)
+  * New: Added separate SSL/TLS support for Email notifications.
+  * New: Added notification image type setting for Tautulli Remote App notifications.
+  * New: Added guid notification parameter.
+  * New: Added a Plex server down notification threshold setting.
+* UI:
+  * Fix: Fixed spacing of rating images on the media info pages.
+  * Fix: Fixed refreshing cached image in the browser.
+  * Fix: Bootstrap tooltips logging javascript errors in some instances.
+  * New: Added blurred background to the Most Active Users statistics card.
+  * New: Added transcode decision filter for all history tables.
+  * New: Added an error popup message if the Plex.tv token is no longer valid when visiting the settings page.
+  * New: Added Amazon Alexa platform logo.
+  * Change: Improved loading times for the homepage watch statistics.
+  * Change: Improved loading times for user and library watch time statistics.
+  * Change: Improved loading of the graphs history modal popup.
+  * Change: Automatically trim trailing slashes from the Tautulli Public Domain setting.
+  * Change: Renamed the Plex Media Server "Use SSL" setting to "Use Secure Connection".
+  * Change: Update Microsoft Edge platform logo.
+  * Change: Consider link local IP addresses as local addresses.
+* Mobile App:
+  * New: Accept disabled OneSignal ID during device registration.
+* API:
+  * New: Added user fallback image option to the pms_image_proxy command.
+  * New: Added optional include_last_seen parameter to the get_user command.
+  * New: Added optional include_last_accessed parameter to the get_library command.
+  * New: Allow comma separated filter values for the get_history command.
+* Other:
+  * Fix: Importing the newsletter table would fail when manually repairing a corrupted database.
+  * Fix: Make fix match in Tautulli for music case insensitive.
+  * Change: Migrate section_id from the session_history_metadata database table to session_history.
+  * Change: Copy the database file to the cache folder when importing a database using the browse option.
+  * Change: Delete the cached database file after successfully importing.
+
+
 ## v2.6.10 (2021-03-17)
 
 * Other:
-  * Fix: Configuration upgrade would fail if the Most Active User card was disabled.
+  * Fix: Configuration upgrade would fail if the Most Active User card was disabled. (#1395)
 
 
 ## v2.6.9 (2021-03-17)
@@ -13,7 +54,7 @@
 * Exporter:
   * New: Added new TV show export fields for the beta Plex TV agent.
 * UI:
-  * Fix: Some popover images not showing up on hover.
+  * Fix: Some popover images not showing up on hover. (#1391)
   * Remove: HTTP Host setting removed from the UI. This setting may still be changed in the config file.
   * New: Added a Most Active Libraries statistics card to the homepage. (Thanks @herby2212) 
   * New: Mask sensitive text fields in the settings. Settings can be revealed by clicking on the eye icon.
