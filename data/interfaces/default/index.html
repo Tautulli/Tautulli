@@ -589,8 +589,8 @@
                             stream_view_offset.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
                         }
 
-                        // Update the progress bars, percent - 3 because of 3px padding-right
-                        $('#buffer-bar-' + key).css({width: parseInt(s.transcode_progress) - 3 + '%'}).html(s.transcode_progress + '%')
+                        // Update the progress bars
+                        $('#buffer-bar-' + key).css({width: parseInt(s.transcode_progress) + '%'}).html(s.transcode_progress + '%')
                             .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
                         if (s.live !== 1) {
                             var progress_bar = $('#progress-bar-' + key);
@@ -691,7 +691,7 @@
                     var stream_duration = parseInt($(this).data('stream_duration'));
                     var progress_percent = Math.floor(view_offset / stream_duration * 100);
                     progress_percent = (progress_percent >= 0) ? Math.min(progress_percent, 100) : 100;
-                    $(this).css({width: progress_percent - 3 + '%'}).html(progress_percent + '%')
+                    $(this).css({width: progress_percent + '%'}).html(progress_percent + '%')
                         .attr('data-original-title', 'Stream Progress ' + progress_percent + '%')
                         .data('view_offset', Math.min(view_offset + 1000, stream_duration));
                 }
