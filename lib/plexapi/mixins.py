@@ -1,8 +1,62 @@
 # -*- coding: utf-8 -*-
 from urllib.parse import quote_plus, urlencode
 
-from plexapi import media, utils
+from plexapi import media, settings, utils
 from plexapi.exceptions import NotFound
+
+
+class AdvancedSettingsMixin(object):
+    """ Mixin for Plex objects that can have advanced settings. """
+
+    def preferences(self):
+        """ Returns a list of :class:`~plexapi.settings.Preferences` objects. """
+        items = []
+        data = self._server.query(self._details_key)
+        for item in data.iter('Preferences'):
+            for elem in item:
+                setting = settings.Preferences(data=elem, server=self._server)
+                setting._initpath = self.key
+                items.append(setting)
+
+        return items
+
+    def preference(self, pref):
+        """ Returns a :class:`~plexapi.settings.Preferences` object for the specified pref.
+
+            Parameters:
+                pref (str): The id of the preference to return.
+        """
+        prefs = self.preferences()
+        try:
+            return next(p for p in prefs if p.id == pref)
+        except StopIteration:
+            availablePrefs = [p.id for p in prefs]
+            raise NotFound('Unknown preference "%s" for %s. '
+                           'Available preferences: %s'
+                           % (pref, self.TYPE, availablePrefs)) from None
+
+    def editAdvanced(self, **kwargs):
+        """ Edit a Plex object's advanced settings. """
+        data = {}
+        key = '%s/prefs?' % self.key
+        preferences = {pref.id: list(pref.enumValues.keys()) for pref in self.preferences()}
+        for settingID, value in kwargs.items():
+            enumValues = preferences.get(settingID)
+            if value in enumValues:
+                data[settingID] = value
+            else:
+                raise NotFound('%s not found in %s' % (value, enumValues))
+        url = key + urlencode(data)
+        self._server.query(url, method=self._server._session.put)
+
+    def defaultAdvanced(self):
+        """ Edit all of a Plex object's advanced settings to default. """
+        data = {}
+        key = '%s/prefs?' % self.key
+        for preference in self.preferences():
+            data[preference.id] = preference.default
+        url = key + urlencode(data)
+        self._server.query(url, method=self._server._session.put)
 
 
 class ArtUrlMixin(object):

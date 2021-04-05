@@ -237,7 +237,7 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin):
             uri = uri + '&limit=%s' % str(limit)
 
         for category, value in kwargs.items():
-            sectionChoices = section.listChoices(category)
+            sectionChoices = section.listFilterChoices(category)
             for choice in sectionChoices:
                 if str(choice.title).lower() == str(value).lower():
                     uri = uri + '&%s=%s' % (category.lower(), str(choice.key))

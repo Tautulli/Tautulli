@@ -144,34 +144,9 @@ class PlexObject(object):
                     it only returns those items. By default we convert the xml elements
                     with the best guess PlexObjects based on tag and type attrs.
                 etag (str): Only fetch items with the specified tag.
-                **kwargs (dict): Optionally add attribute filters on the items to fetch. For
-                    example, passing in viewCount=0 will only return matching items. Filtering
-                    is done before the Python objects are built to help keep things speedy.
-                    Note: Because some attribute names are already used as arguments to this
-                    function, such as 'tag', you may still reference the attr tag byappending
-                    an underscore. For example, passing in _tag='foobar' will return all items
-                    where tag='foobar'. Also Note: Case very much matters when specifying kwargs
-                    -- Optionally, operators can be specified by append it
-                    to the end of the attribute name for more complex lookups. For example,
-                    passing in viewCount__gte=0 will return all items where viewCount >= 0.
-                    Available operations include:
-
-                    * __contains: Value contains specified arg.
-                    * __endswith: Value ends with specified arg.
-                    * __exact: Value matches specified arg.
-                    * __exists (bool): Value is or is not present in the attrs.
-                    * __gt: Value is greater than specified arg.
-                    * __gte: Value is greater than or equal to specified arg.
-                    * __icontains: Case insensative value contains specified arg.
-                    * __iendswith: Case insensative value ends with specified arg.
-                    * __iexact: Case insensative value matches specified arg.
-                    * __in: Value is in a specified list or tuple.
-                    * __iregex: Case insensative value matches the specified regular expression.
-                    * __istartswith: Case insensative value starts with specified arg.
-                    * __lt: Value is less than specified arg.
-                    * __lte: Value is less than or equal to specified arg.
-                    * __regex: Value matches the specified regular expression.
-                    * __startswith: Value starts with specified arg.
+                **kwargs (dict): Optionally add XML attribute to filter the items.
+                    See :func:`~plexapi.base.PlexObject.fetchItems` for more details
+                    on how this is used.
         """
         if ekey is None:
             raise BadRequest('ekey was not provided')
@@ -185,12 +160,76 @@ class PlexObject(object):
 
     def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, **kwargs):
         """ Load the specified key to find and build all items with the specified tag
-            and attrs. See :func:`~plexapi.base.PlexObject.fetchItem` for more details
-            on how this is used.
+            and attrs.
 
             Parameters:
+                ekey (str): API URL path in Plex to fetch items from.
+                cls (:class:`~plexapi.base.PlexObject`): If you know the class of the
+                    items to be fetched, passing this in will help the parser ensure
+                    it only returns those items. By default we convert the xml elements
+                    with the best guess PlexObjects based on tag and type attrs.
+                etag (str): Only fetch items with the specified tag.
                 container_start (None, int): offset to get a subset of the data
                 container_size (None, int): How many items in data
+                **kwargs (dict): Optionally add XML attribute to filter the items.
+                    See the details below for more info.
+
+            **Filtering XML Attributes**
+
+            Any XML attribute can be filtered when fetching results. Filtering is done before
+            the Python objects are built to help keep things speedy. For example, passing in
+            ``viewCount=0`` will only return matching items where the view count is ``0``.
+            Note that case matters when specifying attributes. Attributes futher down in the XML
+            tree can be filtered by *prepending* the attribute with each element tag ``Tag__``.
+
+            Examples:
+
+                .. code-block:: python
+
+                    fetchItem(ekey, viewCount=0)
+                    fetchItem(ekey, contentRating="PG")
+                    fetchItem(ekey, Genre__tag="Animation")
+                    fetchItem(ekey, Media__videoCodec="h265")
+                    fetchItem(ekey, Media__Part__container="mp4)
+
+            Note that because some attribute names are already used as arguments to this
+            function, such as ``tag``, you may still reference the attr tag by prepending an
+            underscore. For example, passing in ``_tag='foobar'`` will return all items where
+            ``tag='foobar'``.
+
+            **Using PlexAPI Operators**
+
+            Optionally, PlexAPI operators can be specified by *appending* it to the end of the
+            attribute for more complex lookups. For example, passing in ``viewCount__gte=0``
+            will return all items where ``viewCount >= 0``.
+
+            List of Available Operators:
+
+            * ``__contains``: Value contains specified arg.
+            * ``__endswith``: Value ends with specified arg.
+            * ``__exact``: Value matches specified arg.
+            * ``__exists`` (*bool*): Value is or is not present in the attrs.
+            * ``__gt``: Value is greater than specified arg.
+            * ``__gte``: Value is greater than or equal to specified arg.
+            * ``__icontains``: Case insensative value contains specified arg.
+            * ``__iendswith``: Case insensative value ends with specified arg.
+            * ``__iexact``: Case insensative value matches specified arg.
+            * ``__in``: Value is in a specified list or tuple.
+            * ``__iregex``: Case insensative value matches the specified regular expression.
+            * ``__istartswith``: Case insensative value starts with specified arg.
+            * ``__lt``: Value is less than specified arg.
+            * ``__lte``: Value is less than or equal to specified arg.
+            * ``__regex``: Value matches the specified regular expression.
+            * ``__startswith``: Value starts with specified arg.
+
+            Examples:
+
+                .. code-block:: python
+
+                    fetchItem(ekey, viewCount__gte=0)
+                    fetchItem(ekey, Media__container__in=["mp4", "mkv"])
+                    fetchItem(ekey, guid__iregex=r"(imdb:\/\/|themoviedb:\/\/)")
+                    fetchItem(ekey, Media__Part__file__startswith="D:\\Movies")
 
         """
         url_kw = {}
@@ -204,7 +243,7 @@ class PlexObject(object):
         data = self._server.query(ekey, params=url_kw)
         items = self.findItems(data, cls, ekey, **kwargs)
 
-        librarySectionID = data.attrib.get('librarySectionID')
+        librarySectionID = utils.cast(int, data.attrib.get('librarySectionID'))
         if librarySectionID:
             for item in items:
                 item.librarySectionID = librarySectionID
@@ -526,6 +565,8 @@ class Playable(object):
             transcodeSessions (:class:`~plexapi.media.TranscodeSession`): Transcode Session object
                 if item is being transcoded (None otherwise).
             viewedAt (datetime): Datetime item was last viewed (history).
+            accountID (int): The associated :class:`~plexapi.server.SystemAccount` ID.
+            deviceID (int): The associated :class:`~plexapi.server.SystemDevice` ID.
             playlistItemID (int): Playlist item ID (only populated for :class:`~plexapi.playlist.Playlist` items).
             playQueueItemID (int): PlayQueue item ID (only populated for :class:`~plexapi.playlist.PlayQueue` items).
     """
@@ -538,6 +579,7 @@ class Playable(object):
         self.session = self.findItems(data, etag='Session')                         # session
         self.viewedAt = utils.toDatetime(data.attrib.get('viewedAt'))               # history
         self.accountID = utils.cast(int, data.attrib.get('accountID'))              # history
+        self.deviceID = utils.cast(int, data.attrib.get('deviceID'))                # history
         self.playlistItemID = utils.cast(int, data.attrib.get('playlistItemID'))    # playlist
         self.playQueueItemID = utils.cast(int, data.attrib.get('playQueueItemID'))  # playqueue
 

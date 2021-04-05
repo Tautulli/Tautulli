@@ -217,18 +217,40 @@ class PlexServer(PlexObject):
         return q.attrib.get('token')
 
     def systemAccounts(self):
-        """ Returns a list of :class:`~plexapi.server.SystemAccounts` objects this server contains. """
+        """ Returns a list of :class:`~plexapi.server.SystemAccount` objects this server contains. """
         if self._systemAccounts is None:
             key = '/accounts'
             self._systemAccounts = self.fetchItems(key, SystemAccount)
         return self._systemAccounts
 
+    def systemAccount(self, accountID):
+        """ Returns the :class:`~plexapi.server.SystemAccount` object for the specified account ID.
+
+            Parameters:
+                accountID (int): The :class:`~plexapi.server.SystemAccount` ID.
+        """
+        try:
+            return next(account for account in self.systemAccounts() if account.id == accountID)
+        except StopIteration:
+            raise NotFound('Unknown account with accountID=%s' % accountID) from None
+
     def systemDevices(self):
-        """ Returns a list of :class:`~plexapi.server.SystemDevices` objects this server contains. """
+        """ Returns a list of :class:`~plexapi.server.SystemDevice` objects this server contains. """
         if self._systemDevices is None:
             key = '/devices'
             self._systemDevices = self.fetchItems(key, SystemDevice)
         return self._systemDevices
+
+    def systemDevice(self, deviceID):
+        """ Returns the :class:`~plexapi.server.SystemDevice` object for the specified device ID.
+
+            Parameters:
+                deviceID (int): The :class:`~plexapi.server.SystemDevice` ID.
+        """
+        try:
+            return next(device for device in self.systemDevices() if device.id == deviceID)
+        except StopIteration:
+            raise NotFound('Unknown device with deviceID=%s' % deviceID) from None
 
     def myPlexAccount(self):
         """ Returns a :class:`~plexapi.myplex.MyPlexAccount` object using the same
@@ -512,7 +534,7 @@ class PlexServer(PlexObject):
         data = response.text.encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
 
-    def search(self, query, mediatype=None, limit=None):
+    def search(self, query, mediatype=None, limit=None, sectionId=None):
         """ Returns a list of media items or filter categories from the resulting
             `Hub Search <https://www.plex.tv/blog/seek-plex-shall-find-leveling-web-app/>`_
             against all items in your Plex library. This searches genres, actors, directors,
@@ -526,10 +548,11 @@ class PlexServer(PlexObject):
 
             Parameters:
                 query (str): Query to use when searching your library.
-                mediatype (str): Optionally limit your search to the specified media type.
+                mediatype (str, optional): Limit your search to the specified media type.
                     actor, album, artist, autotag, collection, director, episode, game, genre,
                     movie, photo, photoalbum, place, playlist, shared, show, tag, track
-                limit (int): Optionally limit to the specified number of results per Hub.
+                limit (int, optional): Limit to the specified number of results per Hub.
+                sectionId (int, optional): The section ID (key) of the library to search within.
         """
         results = []
         params = {
@@ -538,6 +561,8 @@ class PlexServer(PlexObject):
             'includeExternalMedia': 1}
         if limit:
             params['limit'] = limit
+        if sectionId:
+            params['sectionId'] = sectionId
         key = '/hubs/search?%s' % urlencode(params)
         for hub in self.fetchItems(key, Hub):
             if mediatype:
@@ -842,6 +867,7 @@ class SystemDevice(PlexObject):
 
         Attributes:
             TAG (str): 'Device'
+            clientIdentifier (str): The unique identifier for the device.
             createdAt (datatime): Datetime the device was created.
             id (int): The ID of the device (not the same as :class:`~plexapi.myplex.MyPlexDevice` ID).
             key (str): API URL (/devices/<id>)
@@ -852,6 +878,7 @@ class SystemDevice(PlexObject):
 
     def _loadData(self, data):
         self._data = data
+        self.clientIdentifier = data.attrib.get('clientIdentifier')
         self.createdAt = utils.toDatetime(data.attrib.get('createdAt'))
         self.id = cast(int, data.attrib.get('id'))
         self.key = '/devices/%s' % self.id
@@ -894,19 +921,11 @@ class StatisticsBandwidth(PlexObject):
 
     def account(self):
         """ Returns the :class:`~plexapi.server.SystemAccount` associated with the bandwidth data. """
-        accounts = self._server.systemAccounts()
-        try:
-            return next(account for account in accounts if account.id == self.accountID)
-        except StopIteration:
-            raise NotFound('Unknown account for this bandwidth data: accountID=%s' % self.accountID)
+        return self._server.systemAccount(self.accountID)
 
     def device(self):
         """ Returns the :class:`~plexapi.server.SystemDevice` associated with the bandwidth data. """
-        devices = self._server.systemDevices()
-        try:
-            return next(device for device in devices if device.id == self.deviceID)
-        except StopIteration:
-            raise NotFound('Unknown device for this bandwidth data: deviceID=%s' % self.deviceID)
+        return self._server.systemDevice(self.deviceID)
 
 
 class StatisticsResources(PlexObject):

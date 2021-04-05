@@ -24,6 +24,8 @@ class PlexClient(PlexObject):
             data (ElementTree): Response from PlexServer used to build this object (optional).
             initpath (str): Path used to generate data.
             baseurl (str): HTTP URL to connect dirrectly to this client.
+            identifier (str): The resource/machine identifier for the desired client.
+                May be necessary when connecting to a specific proxied client (optional).
             token (str): X-Plex-Token used for authenication (optional).
             session (:class:`~requests.Session`): requests.Session object if you want more control (optional).
             timeout (int): timeout in seconds on initial connect to client (default config.TIMEOUT).
@@ -59,9 +61,10 @@ class PlexClient(PlexObject):
     key = '/resources'
 
     def __init__(self, server=None, data=None, initpath=None, baseurl=None,
-          token=None, connect=True, session=None, timeout=None):
+          identifier=None, token=None, connect=True, session=None, timeout=None):
         super(PlexClient, self).__init__(server, data, initpath)
         self._baseurl = baseurl.strip('/') if baseurl else None
+        self._clientIdentifier = identifier
         self._token = logfilter.add_secret(token)
         self._showSecrets = CONFIG.get('log.show_secrets', '').lower() == 'true'
         server_session = server._session if server else None
@@ -90,7 +93,25 @@ class PlexClient(PlexObject):
             raise Unsupported('Cannot reload an object not built from a URL.')
         self._initpath = self.key
         data = self.query(self.key, timeout=timeout)
-        self._loadData(data[0])
+        if not data:
+            raise NotFound("Client not found at %s" % self._baseurl)
+        if self._clientIdentifier:
+            client = next(
+                (
+                    x
+                    for x in data
+                    if x.attrib.get("machineIdentifier") == self._clientIdentifier
+                ),
+                None,
+            )
+            if client is None:
+                raise NotFound(
+                    "Client with identifier %s not found at %s"
+                    % (self._clientIdentifier, self._baseurl)
+                )
+        else:
+            client = data[0]
+        self._loadData(client)
         return self
 
     def reload(self):

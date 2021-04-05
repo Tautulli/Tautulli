@@ -499,15 +499,18 @@ class MyPlexAccount(PlexObject):
         url = self.PLEXSERVERS.replace('{machineId}', machineIdentifier)
         data = self.query(url, self._session.get)
         for elem in data[0]:
-            allSectionIds[elem.attrib.get('id', '').lower()] = elem.attrib.get('id')
-            allSectionIds[elem.attrib.get('title', '').lower()] = elem.attrib.get('id')
-            allSectionIds[elem.attrib.get('key', '').lower()] = elem.attrib.get('id')
+            _id = utils.cast(int, elem.attrib.get('id'))
+            _key = utils.cast(int, elem.attrib.get('key'))
+            _title = elem.attrib.get('title', '').lower()
+            allSectionIds[_id] = _id
+            allSectionIds[_key] = _id
+            allSectionIds[_title] = _id
         log.debug(allSectionIds)
         # Convert passed in section items to section ids from above lookup
         sectionIds = []
         for section in sections:
-            sectionKey = section.key if isinstance(section, LibrarySection) else section
-            sectionIds.append(allSectionIds[sectionKey.lower()])
+            sectionKey = section.key if isinstance(section, LibrarySection) else section.lower()
+            sectionIds.append(allSectionIds[sectionKey])
         return sectionIds
 
     def _filterDictToStr(self, filterDict):
@@ -799,28 +802,28 @@ class MyPlexUser(PlexObject):
 
 class Section(PlexObject):
     """ This refers to a shared section. The raw xml for the data presented here
-        can be found at: https://plex.tv/api/servers/{machineId}/shared_servers/{serverId}
+        can be found at: https://plex.tv/api/servers/{machineId}/shared_servers
 
         Attributes:
             TAG (str): section
-            id (int): shared section id
-            sectionKey (str): what key we use for this section
-            title (str): Title of the section
-            sectionId (str): shared section id
-            type (str): movie, tvshow, artist
+            id (int): The shared section ID
+            key (int): The shared library section key
             shared (bool): If this section is shared with the user
+            title (str): Title of the section
+            type (str): movie, tvshow, artist
 
     """
     TAG = 'Section'
 
     def _loadData(self, data):
         self._data = data
-        # self.id = utils.cast(int, data.attrib.get('id'))  # Havnt decided if this should be changed.
-        self.sectionKey = data.attrib.get('key')
+        self.id = utils.cast(int, data.attrib.get('id'))
+        self.key = utils.cast(int, data.attrib.get('key'))
+        self.shared = utils.cast(bool, data.attrib.get('shared', '0'))
         self.title = data.attrib.get('title')
-        self.sectionId = data.attrib.get('id')
         self.type = data.attrib.get('type')
-        self.shared = utils.cast(bool, data.attrib.get('shared'))
+        self.sectionId = self.id  # For backwards compatibility
+        self.sectionKey = self.key  # For backwards compatibility
 
     def history(self, maxresults=9999999, mindate=None):
         """ Get all Play History for a user for this section in this shared server.

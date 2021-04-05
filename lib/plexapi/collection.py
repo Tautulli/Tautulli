@@ -59,7 +59,7 @@ class Collections(PlexPartialObject, ArtMixin, PosterMixin, LabelMixin):
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = data.attrib.get('key', '').replace('/children', '')  # FIX_BUG_50
         self.labels = self.findItems(data, media.Label)
-        self.librarySectionID = data.attrib.get('librarySectionID')
+        self.librarySectionID = utils.cast(int, data.attrib.get('librarySectionID'))
         self.librarySectionKey = data.attrib.get('librarySectionKey')
         self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.maxYear = utils.cast(int, data.attrib.get('maxYear'))
