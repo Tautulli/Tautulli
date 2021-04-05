@@ -232,7 +232,12 @@
                                 <label for="git_token">GitHub API Token</label>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <input type="text" class="form-control" id="git_token" name="git_token" value="${config['git_token']}" data-parsley-trigger="change">
+                                        <div class="input-group">
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
+                                            </span>
+                                            <input type="password" class="form-control" id="git_token" name="git_token" value="${config['git_token']}" data-parsley-trigger="change">
+                                        </div>
                                     </div>
                                 </div>
                                 <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
@@ -691,7 +696,7 @@
                                             <span class="input-group-btn">
                                                 <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
                                             </span>
-                                            <input class="form-control" type="password" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
+                                            <input type="password" class="form-control" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
                                             <span class="input-group-btn">
                                                 <button class="btn btn-form" type="button" id="generate_api">Generate</button>
                                             </span>
