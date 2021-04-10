@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.7.0-beta (2021-04-03)
+## v2.7.0 (2021-04-10)
 
 * History:
   * New: Added transcode decision filter added to history tables.
@@ -11,21 +11,25 @@
   * New: Added notification image type setting for Tautulli Remote App notifications.
   * New: Added guid notification parameter.
   * New: Added a Plex server down notification threshold setting.
+* Newsletters:
+  * Fix: Newsletters would fail if an episode was missing a season number.
 * UI:
   * Fix: Fixed spacing of rating images on the media info pages.
   * Fix: Fixed refreshing cached image in the browser.
   * Fix: Bootstrap tooltips logging javascript errors in some instances.
+  * Fix: Activity card progress bar not filling at 100%.
   * New: Added blurred background to the Most Active Users statistics card.
   * New: Added transcode decision filter for all history tables.
   * New: Added an error popup message if the Plex.tv token is no longer valid when visiting the settings page.
   * New: Added Amazon Alexa platform logo.
   * Change: Improved loading times for the homepage watch statistics.
   * Change: Improved loading times for user and library watch time statistics.
-  * Change: Improved loading of the graphs history modal popup.
+  * Change: Improved loading of the graph's history modal popup.
   * Change: Automatically trim trailing slashes from the Tautulli Public Domain setting.
   * Change: Renamed the Plex Media Server "Use SSL" setting to "Use Secure Connection".
   * Change: Update Microsoft Edge platform logo.
   * Change: Consider link local IP addresses as local addresses.
+  * Change: Reveal token fields if they are blank to make it easier to input new values.
 * Mobile App:
   * New: Accept disabled OneSignal ID during device registration.
 * API:
@@ -35,7 +39,8 @@
   * New: Allow comma separated filter values for the get_history command.
 * Other:
   * Fix: Importing the newsletter table would fail when manually repairing a corrupted database.
-  * Fix: Make fix match in Tautulli for music case insensitive.
+  * Fix: Make fix match in Tautulli for music case-insensitive.
+  * New: Update PlexAPI to 4.5.2.
   * Change: Migrate section_id from the session_history_metadata database table to session_history.
   * Change: Copy the database file to the cache folder when importing a database using the browse option.
   * Change: Delete the cached database file after successfully importing.
