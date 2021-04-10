@@ -2267,6 +2267,7 @@ $(document).ready(function() {
         getMobileDevicesTable();
         loadUpdateDistros();
         setBaseURLSuffix();
+        toggleRevealTokens();
         settingsChanged = false;
     }
 
@@ -3204,16 +3205,7 @@ $(document).ready(function() {
         openBrowsePath(null, path, filter, description, target);
     });
 
-    $('body').on('click', '.reveal-token', function() {
-        var input = $(this).parent().next('input');
-        if (input.prop('type') === 'password') {
-            input.prop('type', 'text');
-            $(this).children('.fa').removeClass('fa-eye-slash').addClass('fa-eye');
-        } else {
-            input.prop('type', 'password');
-            $(this).children('.fa').removeClass('fa-eye').addClass('fa-eye-slash');
-        }
-    });
+    toggleRevealTokens();
 });
 </script>
 </%def>

@@ -87,6 +87,7 @@
         }
 
         getMobileDevicesTable();
+        toggleRevealTokens();
     }
 
     function deleteCallback() {
@@ -122,6 +123,8 @@
             $('#'+configToggle).val(0);
         }
     });
+
+    toggleRevealTokens();
 </script>
 % else:
 <div class="modal-dialog" role="document">

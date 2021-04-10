@@ -453,6 +453,7 @@
         }
 
         getNotifiersTable();
+        toggleRevealTokens();
     }
 
     function deleteCallback() {
@@ -911,6 +912,8 @@
         };
         $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
+
+    toggleRevealTokens();
 </script>
 % else:
 <div class="modal-dialog" role="document">

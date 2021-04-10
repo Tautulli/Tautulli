@@ -891,3 +891,23 @@ function loadBlurHash(elem, src) {
             });
     }
 }
+
+function _toggleRevealToken(elem, click) {
+    var input = elem.parent().next('input');
+    if ((input.prop('type') === 'password' && click) || !input.val()) {
+        input.prop('type', 'text');
+        elem.children('.fa').removeClass('fa-eye-slash').addClass('fa-eye');
+    } else {
+        input.prop('type', 'password');
+        elem.children('.fa').removeClass('fa-eye').addClass('fa-eye-slash');
+    }
+}
+function toggleRevealTokens() {
+    $('.reveal-token').each(function () {
+        _toggleRevealToken($(this));
+    });
+}
+
+$('body').on('click', '.reveal-token', function() {
+    _toggleRevealToken($(this), true);
+});
