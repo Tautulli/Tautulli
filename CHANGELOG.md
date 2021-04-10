@@ -17,7 +17,7 @@
   * Fix: Fixed spacing of rating images on the media info pages.
   * Fix: Fixed refreshing cached image in the browser.
   * Fix: Bootstrap tooltips logging javascript errors in some instances.
-  * Fix: Activity card progress bar not filling at 100%.
+  * Fix: Activity card progress bar not filling at 100%. (#1404)
   * New: Added blurred background to the Most Active Users statistics card.
   * New: Added transcode decision filter for all history tables.
   * New: Added an error popup message if the Plex.tv token is no longer valid when visiting the settings page.
