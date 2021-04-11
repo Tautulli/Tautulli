@@ -4087,55 +4087,6 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_pms_token(self, username=None, password=None, **kwargs):
-        """ Get the user's Plex token used for Tautulli.
-
-            ```
-            Required parameters:
-                username (str):     The Plex.tv username
-                password (str):     The Plex.tv password
-
-            Optional parameters:
-                None
-
-            Returns:
-                string:             The Plex token used for Tautulli
-            ```
-        """
-        if not username and not password:
-            return None
-
-        plex_tv = plextv.PlexTV(username=username, password=password)
-        result = plex_tv.get_token()
-
-        if result:
-            return result['auth_token']
-        else:
-            logger.warn("Unable to retrieve Plex.tv token.")
-            return None
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    def get_plexpy_pms_token(self, username=None, password=None, force=False, **kwargs):
-        """ Fetch a new Plex.tv token for Tautulli """
-        if not username and not password:
-            return None
-
-        force = helpers.bool_true(force)
-
-        plex_tv = plextv.PlexTV(username=username, password=password)
-        token = plex_tv.get_plexpy_pms_token(force=force)
-
-        if token:
-            return {'result': 'success', 'message': 'Authentication successful.', 'token': token}
-        else:
-            return {'result': 'error', 'message': 'Authentication failed.'}
-
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
     def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, manual=0,
                       get_url=False, test_websocket=False, **kwargs):
         """ Get the PMS server identifier.

@@ -172,70 +172,6 @@ class PlexTV(object):
                                                         ssl_verify=self.ssl_verify,
                                                         headers=headers)
 
-    def get_plex_auth(self, output_format='raw'):
-        uri = '/api/v2/users/signin'
-        headers = {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                   'Accept': 'application/xml'}
-        data = {'login': self.username,
-                'password': self.password,
-                'rememberMe': True}
-
-        request = self.request_handler.make_request(uri=uri,
-                                                    request_type='POST',
-                                                    headers=headers,
-                                                    data=data,
-                                                    output_format=output_format,
-                                                    no_token=True,
-                                                    encode_multipart=False)
-
-        return request
-
-    def get_token(self):
-        plextv_response = self.get_plex_auth(output_format='xml')
-
-        if plextv_response:
-            try:
-                xml_head = plextv_response.getElementsByTagName('user')
-                if xml_head:
-                    user = {'auth_token': xml_head[0].getAttribute('authToken'),
-                            'user_id': xml_head[0].getAttribute('id')
-                            }
-                else:
-                    logger.warn("Tautulli PlexTV :: Could not get Plex authentication token.")
-            except Exception as e:
-                logger.warn("Tautulli PlexTV :: Unable to parse XML for get_token: %s." % e)
-                return None
-
-            return user
-        else:
-            return None
-
-    def get_plexpy_pms_token(self, force=False):
-        if force:
-            logger.debug("Tautulli PlexTV :: Forcing refresh of Plex.tv token.")
-            devices_list = self.get_devices_list()
-            device_id = next((d for d in devices_list if d['device_identifier'] == plexpy.CONFIG.PMS_UUID), {}).get('device_id', None)
-
-            if device_id:
-                logger.debug("Tautulli PlexTV :: Removing Tautulli from Plex.tv devices.")
-                try:
-                    self.delete_plextv_device(device_id=device_id)
-                except:
-                    logger.error("Tautulli PlexTV :: Failed to remove Tautulli from Plex.tv devices.")
-                    return None
-            else:
-                logger.warn("Tautulli PlexTV :: No existing Tautulli device found.")
-
-        logger.info("Tautulli PlexTV :: Fetching a new Plex.tv token for Tautulli.")
-        user = self.get_token()
-        if user:
-            token = user['auth_token']
-            plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
-            plexpy.CONFIG.write()
-            logger.info("Tautulli PlexTV :: Updated Plex.tv token for Tautulli.")
-            return token
-
-
     def get_server_token(self):
         servers = self.get_plextv_resources(output_format='xml')
         server_token = ''
@@ -292,14 +228,6 @@ class PlexTV(object):
 
         else:
             return None
-
-    def get_plextv_user_data(self):
-        plextv_response = self.get_plex_auth(output_format='dict')
-
-        if plextv_response:
-            return plextv_response
-        else:
-            return []
 
     def get_plextv_friends(self, output_format=''):
         uri = '/api/users'

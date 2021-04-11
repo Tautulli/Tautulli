@@ -55,18 +55,12 @@ JWT_ALGORITHM = 'HS256'
 JWT_COOKIE_NAME = 'tautulli_token_'
 
 
-def plex_user_login(username=None, password=None, token=None, headers=None):
+def plex_user_login(token=None, headers=None):
     user_token = None
     user_id = None
 
     # Try to login to Plex.tv to check if the user has a vaild account
-    if username and password:
-        plex_tv = PlexTV(username=username, password=password, headers=headers)
-        plex_user = plex_tv.get_token()
-        if plex_user:
-            user_token = plex_user['auth_token']
-            user_id = plex_user['user_id']
-    elif token:
+    if token:
         plex_tv = PlexTV(token=token, headers=headers)
         plex_user = plex_tv.get_plex_account_details()
         if plex_user:
@@ -125,9 +119,6 @@ def plex_user_login(username=None, password=None, token=None, headers=None):
             logger.warn("Tautulli WebAuth :: Unable to retrieve Plex.tv server token for user '%s'."
                         % user_details['username'])
             return None
-    elif username:
-        logger.warn("Tautulli WebAuth :: Unable to retrieve Plex.tv user token for user '%s'." % username)
-        return None
 
     elif token:
         logger.warn("Tautulli WebAuth :: Unable to retrieve Plex.tv user token for Plex OAuth.")
