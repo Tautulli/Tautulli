@@ -18,10 +18,8 @@ invalid:duplicate:
 invalid:support:
   comment: >
     :wave: @{issue-author}, we use the issue tracker exclusively for bug reports.
-    However, this issue appears to be a support request. Please use our support
-    channels to get help with Tautulli. Thanks.
-    - [Discord](https://tautulli.com/discord)
-    - [Reddit](https://reddit.com/r/Tautulli)
+    However, this issue appears to be a support request. Please use our
+    [Discord Server](https://tautulli.com/discord) to get help with Tautulli. Thanks.
   close: true
   lock: true
   lock-reason: 'off-topic'
@@ -35,8 +33,3 @@ invalid:template-incomplete:
   comment: >
     :wave: @{issue-author}, please edit your issue to complete the template with
     all the required info. Thanks.
-  lock: true
-  lock-reason: ''
-
--invalid:template-incomplete:
-  unlock: true
