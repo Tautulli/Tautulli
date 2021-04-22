@@ -2800,6 +2800,10 @@ a .home-platforms-list-cover-face:hover
     overflow: hidden;
     max-width: 350px;
 }
+#graph-tabs {
+    padding-bottom: 10px;
+    float: none;
+}
 .graphs-instance {
     height: 330px;
     padding: 20px;
