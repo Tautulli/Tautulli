@@ -417,8 +417,8 @@ class TimelineHandler(object):
             global RECENTLY_ADDED_QUEUE
 
             rating_key = self.get_rating_key()
-            parent_rating_key = self.timeline.get('parentItemID')
-            grandparent_rating_key = self.timeline.get('rootItemID')
+            parent_rating_key = helpers.cast_to_int(self.timeline.get('parentItemID')) or None
+            grandparent_rating_key = helpers.cast_to_int(self.timeline.get('rootItemID')) or None
 
             identifier = self.timeline.get('identifier')
             state_type = self.timeline.get('state')
