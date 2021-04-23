@@ -20,7 +20,9 @@ class Collections(PlexPartialObject, ArtMixin, PosterMixin, LabelMixin):
             artBlurHash (str): BlurHash string for artwork image.
             childCount (int): Number of items in the collection.
             collectionMode (str): How the items in the collection are displayed.
+            collectionPublished (bool): True if the collection is published to the Plex homepage.
             collectionSort (str): How to sort the items in the collection.
+            content (str): The filter URI string for smart collections.
             contentRating (str) Content rating (PG-13; NR; TV-G).
             fields (List<:class:`~plexapi.media.Field`>): List of field objects.
             guid (str): Plex GUID for the collection (collection://XXXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXX).
@@ -32,7 +34,9 @@ class Collections(PlexPartialObject, ArtMixin, PosterMixin, LabelMixin):
             librarySectionTitle (str): :class:`~plexapi.library.LibrarySection` title.
             maxYear (int): Maximum year for the items in the collection.
             minYear (int): Minimum year for the items in the collection.
+            ratingCount (int): The number of ratings.
             ratingKey (int): Unique key identifying the collection.
+            smart (bool): True if the collection is a smart collection.
             subtype (str): Media type of the items in the collection (movie, show, artist, or album).
             summary (str): Summary of the collection.
             thumb (str): URL to thumbnail image (/library/metadata/<ratingKey>/thumb/<thumbid>).
@@ -52,7 +56,9 @@ class Collections(PlexPartialObject, ArtMixin, PosterMixin, LabelMixin):
         self.artBlurHash = data.attrib.get('artBlurHash')
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
         self.collectionMode = utils.cast(int, data.attrib.get('collectionMode', '-1'))
+        self.collectionPublished = utils.cast(bool, data.attrib.get('collectionPublished', '0'))
         self.collectionSort = utils.cast(int, data.attrib.get('collectionSort', '0'))
+        self.content = data.attrib.get('content')
         self.contentRating = data.attrib.get('contentRating')
         self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
@@ -64,7 +70,9 @@ class Collections(PlexPartialObject, ArtMixin, PosterMixin, LabelMixin):
         self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.maxYear = utils.cast(int, data.attrib.get('maxYear'))
         self.minYear = utils.cast(int, data.attrib.get('minYear'))
+        self.ratingCount = utils.cast(int, data.attrib.get('ratingCount'))
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
+        self.smart = utils.cast(bool, data.attrib.get('smart', '0'))
         self.subtype = data.attrib.get('subtype')
         self.summary = data.attrib.get('summary')
         self.thumb = data.attrib.get('thumb')
