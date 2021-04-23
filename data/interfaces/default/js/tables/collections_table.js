@@ -24,8 +24,12 @@ collections_table_options = {
             "data": "titleSort",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
+                    var smart = '<i class="fa fa-blank fa-fw"></i>';
+                    if (rowData['smart']) {
+                        smart = '<span class="media-type-tooltip" data-toggle="tooltip" title="Smart Collection"><i class="fa fa-cog fa-fw"></i></span>&nbsp;'
+                    }
                     var thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['ratingKey'], 300, 450, null, null, null, 'poster') + '" data-height="120" data-width="80">' + rowData['title'] + '</span>';
-                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '"><i class="fa fa-blank fa-fw"></i>' + thumb_popover + '</a>');
+                    $(td).html(smart + '<a href="' + page('info', rowData['ratingKey']) + '">' + thumb_popover + '</a>');
                 }
             },
             "width": "50%",
@@ -90,6 +94,11 @@ collections_table_options = {
         //$('html,body').scrollTop(0);
         $('#ajaxMsg').fadeOut();
 
+        // Create the tooltips.
+        $('body').tooltip({
+            selector: '[data-toggle="tooltip"]',
+            container: 'body'
+        });
         $('body').popover({
             selector: '[data-toggle="popover"]',
             html: true,
