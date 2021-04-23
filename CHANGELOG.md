@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.7.1 (2021-04-22)
+
+* Notifications:
+  * Fix: Recently added single episode being sent as a show notification. (#1420)
+* Newsletters:
+  * Change: Ignore items with incorrect added at dates in the future.
+* Exporter:
+  * Fix: Exporting not working for libraries, collections, and playlists. (#1408)
+* UI:
+  * Fix: Collections and playlist tabs not loading on library and user pages. (#1408)
+  * Fix: Header overlapping graphs tabs on mobile layout. 
+  * Change: Rename "Plays by Period" graph tab to "Media Type".
+  * Removed: Clear logs button removed from main Tautulli logs.
+
+
 ## v2.7.0 (2021-04-10)
 
 * History:
