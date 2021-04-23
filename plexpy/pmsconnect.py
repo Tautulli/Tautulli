@@ -2833,7 +2833,13 @@ class PmsConnect(object):
             web_img = img.startswith('http')
             resource_img = img.startswith('/:/resources')
 
+            if 'collection' in img and 'composite' in img:
+                img = img.replace('composite', 'thumb')
+
             if refresh and not web_img and not resource_img:
+                img_split = img.split('/')
+                if img_split[-1].isdigit():
+                    img = '/'.join(img_split[:-1])
                 img = '{}/{}'.format(img.rstrip('/'), helpers.timestamp())
 
             if web_img:
