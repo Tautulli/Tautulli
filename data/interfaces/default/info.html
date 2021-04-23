@@ -229,6 +229,9 @@ DOCUMENTATION :: END
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
+                                    % if data['media_type'] == 'collection' and data['smart']:
+                                    <span class="smart-collection-image" title="Smart Collection"><i class="fa fa-cog"></i></span>
+                                    % endif
                             </div>
                             % if _session['user_group'] == 'admin':
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
@@ -376,7 +379,7 @@ DOCUMENTATION :: END
                                 Released <strong> ${data['year']}</strong>
                                 % elif data['media_type'] in ('photo', 'clip'):
                                 Taken <strong> <span id="airdate">${data['originally_available_at']}</span></strong>
-                                % elif data['media_type'] == 'collection':
+                                % elif data['media_type'] == 'collection' and data['min_year'] and data['max_year']:
                                 Year <strong> ${data['min_year']} - ${data['max_year']}</strong>
                                 % elif data['year']:
                                 Year <strong> ${data['year']}</strong>

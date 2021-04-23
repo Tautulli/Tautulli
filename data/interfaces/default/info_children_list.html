@@ -41,134 +41,7 @@ DOCUMENTATION :: END
         % else:
         <li>
         % endif
-            % if data['children_type'] == 'movie':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-            </a>
-            <div class="item-children-instance-text-wrapper poster-item">
-                <h3>
-                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
-                </h3>
-                <h3 class="text-muted">${child['year']}</h3>
-            </div>
-            % elif data['children_type'] == 'show':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-            </a>
-            <div class="item-children-instance-text-wrapper poster-item">
-                <h3>
-                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
-                </h3>
-            </div>
-            % elif data['children_type'] == 'season':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                <div class="item-children-poster">
-                    % if child['thumb']:
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});">
-                    % else:
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 450, fallback='poster')});">
-                    % endif
-                        <div class="item-children-card-overlay">
-                            <div class="item-children-overlay-text">
-                                ${child['title']}
-                            </div>
-                        </div>
-                    </div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-            </a>
-            % elif data['children_type'] == 'episode':
-            <a href="${page('info', child['rating_key'])}" title="Episode ${child['media_index']}">
-                <div class="item-children-poster">
-                    <div class="item-children-poster-face episode-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 500, 280, fallback='art')});">
-                        <div class="item-children-card-overlay">
-                            <div class="item-children-overlay-text">
-                                Episode ${child['media_index'] or child['originally_available_at']}
-                            </div>
-                        </div>
-                    </div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-            </a>
-            <div class="item-children-instance-text-wrapper episode-item">
-                <h3>
-                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
-                </h3>
-            </div>
-            % elif data['children_type'] == 'album':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
-                    % if _session['user_group'] == 'admin':
-                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
-                    % endif
-                </div>
-            </a>
-            <div class="item-children-instance-text-wrapper cover-item">
-                <h3>
-                    <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
-                </h3>
-            </div>
-            % elif data['children_type'] == 'track':
-                <% e = 'even' if loop.index % 2 == 0 else 'odd' %>
-                <div class="item-children-list-item-${e}">
-                    <span class="item-children-list-item-index">${child['media_index']}</span>
-                    <span class="item-children-list-item-title">
-                        <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
-                                ${child['title']}
-                            </span>
-                        </a>
-                        % if child['original_title']:
-                        <span class="text-muted"> - ${child['original_title']}</span>
-                        % endif
-                    </span>
-                    <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
-                        <% f = 'h:mm:ss' if cast_to_int(child['duration']) >= 3600000 else 'm:ss' %>
-                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("${f}"));</script>
-                    </span>
-                </div>
-            % elif data['children_type'] == 'photo':
-                <% e = 'even' if loop.index % 2 == 0 else 'odd' %>
-                <div class="item-children-list-item-${e}">
-                    <span class="item-children-list-item-index">${loop.index + 1}</span>
-                    <span class="item-children-list-item-title">
-                        % if child['media_type'] == 'photo_album':
-                        <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-camera fa-fw"></i></span>
-                        % elif child['media_type'] == 'clip':
-                        <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-video-camera fa-fw"></i></span>
-                        % else:
-                        <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-picture-o fa-fw"></i></span>
-                        % endif
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
-                                ${child['title']}
-                            </span>
-                        </a>
-                    </span>
-                    % if child['duration']:
-                    <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
-                        <% f = 'h:mm:ss' if cast_to_int(child['duration']) >= 3600000 else 'm:ss' %>
-                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("${f}"));</script>
-                    </span>
-                    % endif
-                </div>
-            % elif media_type == 'playlist':
+            % if media_type == 'playlist':
                 <% e = 'even' if loop.index % 2 == 0 else 'odd' %>
                 <div class="item-children-list-item-${e}">
                     <span class="item-children-list-item-index">${loop.index + 1}</span>
@@ -231,6 +104,133 @@ DOCUMENTATION :: END
                         </a>
                         <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % endif
+                    </span>
+                    % if child['duration']:
+                    <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
+                        <% f = 'h:mm:ss' if cast_to_int(child['duration']) >= 3600000 else 'm:ss' %>
+                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("${f}"));</script>
+                    </span>
+                    % endif
+                </div>
+            % elif child['media_type'] == 'movie':
+            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
+                    % if _session['user_group'] == 'admin':
+                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
+                </div>
+            </a>
+            <div class="item-children-instance-text-wrapper poster-item">
+                <h3>
+                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                </h3>
+                <h3 class="text-muted">${child['year']}</h3>
+            </div>
+            % elif child['media_type'] == 'show':
+            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
+                    % if _session['user_group'] == 'admin':
+                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
+                </div>
+            </a>
+            <div class="item-children-instance-text-wrapper poster-item">
+                <h3>
+                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                </h3>
+            </div>
+            % elif child['media_type'] == 'season':
+            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                <div class="item-children-poster">
+                    % if child['thumb']:
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});">
+                    % else:
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 450, fallback='poster')});">
+                    % endif
+                        <div class="item-children-card-overlay">
+                            <div class="item-children-overlay-text">
+                                ${child['title']}
+                            </div>
+                        </div>
+                    </div>
+                    % if _session['user_group'] == 'admin':
+                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
+                </div>
+            </a>
+            % elif child['media_type'] == 'episode':
+            <a href="${page('info', child['rating_key'])}" title="Episode ${child['media_index']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face episode-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 500, 280, fallback='art')});">
+                        <div class="item-children-card-overlay">
+                            <div class="item-children-overlay-text">
+                                Episode ${child['media_index'] or child['originally_available_at']}
+                            </div>
+                        </div>
+                    </div>
+                    % if _session['user_group'] == 'admin':
+                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
+                </div>
+            </a>
+            <div class="item-children-instance-text-wrapper episode-item">
+                <h3>
+                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                </h3>
+            </div>
+            % elif child['media_type'] == 'album':
+            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
+                    % if _session['user_group'] == 'admin':
+                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
+                </div>
+            </a>
+            <div class="item-children-instance-text-wrapper cover-item">
+                <h3>
+                    <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                </h3>
+            </div>
+            % elif child['media_type'] == 'track':
+                <% e = 'even' if loop.index % 2 == 0 else 'odd' %>
+                <div class="item-children-list-item-${e}">
+                    <span class="item-children-list-item-index">${child['media_index']}</span>
+                    <span class="item-children-list-item-title">
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>
+                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['title']}
+                            </span>
+                        </a>
+                        % if child['original_title']:
+                        <span class="text-muted"> - ${child['original_title']}</span>
+                        % endif
+                    </span>
+                    <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">
+                        <% f = 'h:mm:ss' if cast_to_int(child['duration']) >= 3600000 else 'm:ss' %>
+                        <script>$('#item-children-list-item-duration-${loop.index + 1}').text(moment.utc(${child['duration']}).format("${f}"));</script>
+                    </span>
+                </div>
+            % elif child['media_type'] == 'photo':
+                <% e = 'even' if loop.index % 2 == 0 else 'odd' %>
+                <div class="item-children-list-item-${e}">
+                    <span class="item-children-list-item-index">${loop.index + 1}</span>
+                    <span class="item-children-list-item-title">
+                        % if child['media_type'] == 'photo_album':
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-camera fa-fw"></i></span>
+                        % elif child['media_type'] == 'clip':
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-video-camera fa-fw"></i></span>
+                        % else:
+                        <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-picture-o fa-fw"></i></span>
+                        % endif
+                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['title']}
+                            </span>
+                        </a>
                     </span>
                     % if child['duration']:
                     <span class="item-children-list-item-duration" id="item-children-list-item-duration-${loop.index + 1}">

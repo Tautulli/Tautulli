@@ -3746,6 +3746,7 @@ a:hover .overlay-refresh-image {
 a:hover .overlay-refresh-image:hover {
     opacity: .9;
 }
+.smart-collection-image,
 .smart-playlist-image {
     float: left;
     position: absolute;

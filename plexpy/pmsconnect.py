@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -144,7 +144,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_metadata_children(self, rating_key='', output_format=''):
+    def get_metadata_children(self, rating_key='', collection=False, output_format=''):
         """
         Return metadata for children of the request item.
 
@@ -153,7 +153,9 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/library/metadata/' + rating_key + '/children'
+        uri = '/library/{}/{}/children'.format(
+            'collections' if collection else 'metadata', rating_key
+        )
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -1273,7 +1275,8 @@ class PmsConnect(object):
                         'guids': guids,
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'childCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'smart': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'smart'))
                         }
 
         elif metadata_type == 'playlist':
@@ -2297,6 +2300,8 @@ class PmsConnect(object):
 
         if media_type == 'playlist':
             children_data = self.get_playlist_items(rating_key, output_format='xml')
+        elif media_type == 'collection':
+            children_data = self.get_metadata_children(rating_key, collection=True, output_format='xml')
         elif get_grandchildren:
             children_data = self.get_metadata_grandchildren(rating_key, output_format='xml')
         else:
