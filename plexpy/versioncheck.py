@@ -281,6 +281,10 @@ def check_github(scheduler=False, notify=False, use_cache=False):
 
         plexpy.LATEST_RELEASE = release['tag_name']
 
+        if plexpy.CONFIG.GIT_BRANCH in ('master', 'beta') and release['target_commitish'] == plexpy.CURRENT_VERSION:
+            logger.info('Tautulli is up to date')
+            return plexpy.CURRENT_VERSION
+
         if notify:
             plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpyupdate',
                                      'plexpy_download_info': release,
