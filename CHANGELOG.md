@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.7.2 (2021-04-24)
+
+* UI:
+  * New: Show smart collections in the library collections tab.
+
+
 ## v2.7.1 (2021-04-22)
 
 * Notifications:
