@@ -94,7 +94,7 @@ DOCUMENTATION :: END
                                     % if _session['user_group'] == 'admin':
                                     <li><a id="nav-tabs-mediainfo" href="#tabs-mediainfo" role="tab" data-toggle="tab">Media Info</a></li>
                                     % endif
-                                    % if data['section_type'] != 'artist':
+                                    % if data['section_type'] != 'photo':
                                     <li><a id="nav-tabs-collections" href="#tabs-collections" role="tab" data-toggle="tab">Collections</a></li>
                                     % endif
                                     <li><a id="nav-tabs-playlists" href="#tabs-playlists" role="tab" data-toggle="tab">Playlists</a></li>
@@ -322,7 +322,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     % endif
-                    % if data['section_type'] != 'artist':
+                    % if data['section_type'] != 'photo':
                     <div role="tabpanel" class="tab-pane" id="tabs-collections">
                         <div class="container-fluid">
                             <div class="row">
@@ -615,7 +615,7 @@ DOCUMENTATION :: END
         history_table.draw();
     });
 </script>
-% if data['section_type'] != 'artist':
+% if data['section_type'] != 'photo':
 <script>
     function loadCollectionsTable() {
         // Build collections table
