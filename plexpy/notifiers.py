@@ -2110,14 +2110,25 @@ class MQTT(Notifier):
                        'keep_alive': 60
                        }
 
-    def agent_notify(self, subject='', body='', action='', **kwargs):
-        if not self.config['topic']:
+    def agent_notify(self, subject='', body='', action='', parameters={}, **kwargs):
+        if plexpy.PYTHON2:
+            from notification_handler import build_notify_text
+        else:
+            from plexpy.notification_handler import build_notify_text
+
+        topic = self.config['topic']
+        if not topic:
             logger.error("Tautulli Notifiers :: MQTT topic not specified.")
             return
 
+        # format the topic just like the body
+        _, topic, _ = build_notify_text(subject='',
+                                        body=topic,
+                                        parameters=parameters)
+
         data = {'subject': subject,
                 'body': body,
-                'topic': self.config['topic']}
+                'topic': topic}
 
         auth = {}
         if self.config['username']:
@@ -2125,7 +2136,7 @@ class MQTT(Notifier):
         if self.config['password']:
             auth['password'] = self.config['password']
 
-        single(self.config['topic'], payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
+        single(topic, payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
                hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
                keepalive=self.config['keep_alive'], auth=auth or None, protocol=self.config['protocol'])
 
@@ -2174,7 +2185,7 @@ class MQTT(Notifier):
                          {'label': 'Topic',
                           'value': self.config['topic'],
                           'name': 'mqtt_topic',
-                          'description': 'The topic to publish notifications to.',
+                          'description': 'The topic to publish notifications to. Can be dynamic by including parameters just like the message body.',
                           'input_type': 'text'
                           },
                          {'label': 'Quality of Service',
