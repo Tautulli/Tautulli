@@ -2107,7 +2107,8 @@ class MQTT(Notifier):
                        'topic': '',
                        'qos': 1,
                        'retain': 0,
-                       'keep_alive': 60
+                       'keep_alive': 60,
+                       'omit_subject': 0
                        }
 
     def agent_notify(self, subject='', body='', action='', parameters={}, **kwargs):
@@ -2126,9 +2127,12 @@ class MQTT(Notifier):
                                         body=topic,
                                         parameters=parameters)
 
-        data = {'subject': subject,
-                'body': body,
-                'topic': topic}
+        if self.config['omit_subject']:
+            data = body
+        else:
+            data = json.dumps({'subject': subject,
+                               'body': body,
+                               'topic': topic})
 
         auth = {}
         if self.config['username']:
@@ -2136,7 +2140,7 @@ class MQTT(Notifier):
         if self.config['password']:
             auth['password'] = self.config['password']
 
-        single(topic, payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
+        single(topic, payload=data, qos=self.config['qos'], retain=bool(self.config['retain']),
                hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
                keepalive=self.config['keep_alive'], auth=auth or None, protocol=self.config['protocol'])
 
@@ -2209,7 +2213,16 @@ class MQTT(Notifier):
                           'name': 'mqtt_keep_alive',
                           'description': 'Maximum period in seconds before timing out the connection with the broker.',
                           'input_type': 'number'
-                          }
+                          },
+                         {'label': 'Omit Subject',
+                          'value': self.config['omit_subject'],
+                          'name': 'mqtt_omit_subject',
+                          'description': 'Omit the subject in the MQTT message.<br>'
+                                         'The default is to wrap the notification subject and body in a JSON object, '
+                                         'and send that as the MQTT payload. With this option, the body will be sent '
+                                         'as the bare payload, with no additional escaping.',
+                          'input_type': 'checkbox'
+                          },
                          ]
 
         return config_option
