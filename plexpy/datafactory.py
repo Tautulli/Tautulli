@@ -22,7 +22,6 @@ from future.builtins import str
 from future.builtins import object
 
 import json
-from datetime import datetime, timedelta
 from itertools import groupby
 
 import plexpy
@@ -311,7 +310,7 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range)
-        timestamp = int((datetime.now(tz=plexpy.SYS_TIMEZONE) - timedelta(days=time_range)).timestamp())
+        timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
         stats_start = helpers.cast_to_int(stats_start)
         stats_count = helpers.cast_to_int(stats_count)
