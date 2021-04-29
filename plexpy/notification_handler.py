@@ -1783,6 +1783,8 @@ class CustomFormatter(Formatter):
             return str(value).lower()
         elif conversion == 'c':  # capitalize
             return str(value).title()
+        elif conversion == 'j': # JSON
+            return json.dumps(str(value))
         else:
             return value
 

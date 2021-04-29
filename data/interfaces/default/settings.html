@@ -1883,6 +1883,25 @@ Rating: {rating}/10   --> Rating: /10
 {Rating: &lt;rating&gt;/10} --> </pre>
                     </div>
                     <div>
+                        <h4>JSON</h4>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">
+                            Notification parameters with the <span class="inline-pre">!j</span> modifier will be dumped as a JSON string.
+                            Note that if you want to include literal braces in your body (to build a JSON object), they will need to be
+                            doubled to avoid them being interpreted as parameter references.
+                        </p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{player}              --> John's "Theater"
+{player!j}            --> "John's \"Theater\"" </pre>
+                        <p><strong style="color: #fff;">Example building full JSON object:</strong></p>
+                        <pre>{{ "title": {title!j},
+ "media_type": {media_type!j} }}       -->
+
+{ "title": "Paw Patrol - Pups Save a School Day",
+  "media_type": "episode" } </pre>
+                    </div>
+                    <div>
                         <h4>Combined</h4>
                     </div>
                     <div>
@@ -1892,7 +1911,7 @@ Rating: {rating}/10   --> Rating: /10
                         <ol class="help-block">
                             <li>Prefix</li>
                             <li>Parameter</li>
-                            <li>Case Modifier</li>
+                            <li>Case Modifier/JSON</li>
                             <li>List Slicing</li>
                             <li>Suffix</li>
                         </ol>
