@@ -911,3 +911,20 @@ function toggleRevealTokens() {
 $('body').on('click', '.reveal-token', function() {
     _toggleRevealToken($(this), true);
 });
+
+// https://stackoverflow.com/a/57414592
+// prevent modal close when click starts in modal and ends on backdrop
+$(document).on('mousedown', '.modal', function(e){
+    window.clickStartedInModal = $(e.target).is('.modal-dialog *');
+});
+$(document).on('mouseup', '.modal', function(e){
+    if(!$(e.target).is('.modal-dialog *') && window.clickStartedInModal) {
+        window.preventModalClose = true;
+    }
+});
+$('.modal').on('hide.bs.modal', function (e) {
+    if(window.preventModalClose){
+        window.preventModalClose = false;
+        return false;
+    }
+});
