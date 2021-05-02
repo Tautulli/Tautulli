@@ -30,6 +30,13 @@ invalid:support:
   unlock: true
 
 invalid:template-incomplete:
-  comment: >
-    :wave: @{issue-author}, please edit your issue to complete the template with
-    all the required info. Thanks.
+  issues:
+    comment: >
+      :wave: @{issue-author}, please edit your issue to complete the template with
+      all the required info. Your issue will be automatically closed in 5 days if
+      the template is not completed. Thanks.
+  prs:
+    comment: >
+      :wave: @{issue-author}, please edit your PR to complete the template with
+      all the required info. Your PR will be automatically closed in 5 days if
+      the template is not completed. Thanks.
