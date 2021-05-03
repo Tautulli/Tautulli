@@ -88,7 +88,7 @@ def initialize(options):
         'server.socket_port': options['http_port'],
         'server.socket_host': options['http_host'],
         'environment': options['http_environment'],
-        'server.thread_pool': 10,
+        'server.thread_pool': plexpy.CONFIG.HTTP_THREAD_POOL,
         'server.max_request_body_size': 1073741824,
         'server.socket_timeout': 60,
         'tools.encode.on': True,
@@ -135,6 +135,7 @@ def initialize(options):
     else:
         plexpy.HTTP_ROOT = options['http_root'] = '/'
 
+    logger.info("Tautulli WebStart :: Thread Pool Size: %d.", plexpy.CONFIG.HTTP_THREAD_POOL)
     cherrypy.config.update(options_dict)
 
     conf = {

@@ -137,6 +137,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_RATE_LIMIT_ATTEMPTS': (int, 'General', 10),
     'HTTP_RATE_LIMIT_ATTEMPTS_INTERVAL': (int, 'General', 300),
     'HTTP_RATE_LIMIT_LOCKOUT_TIME': (int, 'General', 300),
+    'HTTP_THREAD_POOL': (int, 'General', 10),
     'INTERFACE': (str, 'General', 'default'),
     'IMGUR_CLIENT_ID': (str, 'Monitoring', ''),
     'JOURNAL_MODE': (str, 'Advanced', 'WAL'),
