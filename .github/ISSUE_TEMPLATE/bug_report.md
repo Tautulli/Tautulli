@@ -42,7 +42,7 @@ Provide screenshots to help explain your problem.
 - Browser and Version: [e.g. Chrome 88]
 
 **Link to logs (required)**
-Include a link to your **FULL** logs (not just a few lines) on [Gist](http://gist.github.com).
+Include a link to your **FULL** logs (not just a few lines) on [Gist](http://gist.github.com). _Do not upload attachments_.
 
 <!--
 Close your issue when it's solved! If you found the solution yourself please comment so that others benefit from it.
