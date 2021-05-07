@@ -644,11 +644,12 @@ class WebInterface(object):
             ```
             Required parameters:
                 section_id (str):           The id of the Plex library section
-
-            Optional parameters:
                 custom_thumb (str):         The URL for the custom library thumbnail
                 custom_art (str):           The URL for the custom library background art
                 keep_history (int):         0 or 1
+
+            Optional parameters:
+                None
 
             Returns:
                 None
@@ -1370,12 +1371,13 @@ class WebInterface(object):
             ```
             Required parameters:
                 user_id (str):              The id of the Plex user
-
-            Optional paramters:
                 friendly_name(str):         The friendly name of the user
                 custom_thumb (str):         The URL for the custom user thumbnail
                 keep_history (int):         0 or 1
                 allow_guest (int):          0 or 1
+
+            Optional paramters:
+                None
 
             Returns:
                 None
