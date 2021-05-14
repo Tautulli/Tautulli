@@ -849,10 +849,14 @@ class Users(object):
 
         return filters_list
 
-    def set_user_login(self, user_id=None, user=None, user_group=None, ip_address=None, host=None, user_agent=None, success=0):
+    def set_user_login(self, user_id=None, user=None, user_group=None, ip_address=None, host=None,
+                       user_agent=None, success=0, expiry=None, jwt_token=None):
 
         if user_id is None or str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
+
+            if expiry is not None:
+                expiry = helpers.datetime_to_iso(expiry)
 
             keys = {'timestamp': helpers.timestamp(),
                     'user_id': user_id}
@@ -862,12 +866,28 @@ class Users(object):
                       'ip_address': ip_address,
                       'host': host,
                       'user_agent': user_agent,
-                      'success': success}
+                      'success': success,
+                      'expiry': expiry,
+                      'jwt_token': jwt_token}
 
             try:
                 monitor_db.upsert(table_name='user_login', key_dict=keys, value_dict=values)
             except Exception as e:
                 logger.warn("Tautulli Users :: Unable to execute database query for set_login_log: %s." % e)
+
+    def get_user_login(self, jwt_token):
+        monitor_db = database.MonitorDatabase()
+        result = monitor_db.select_single('SELECT * FROM user_login '
+                                          'WHERE jwt_token = ?',
+                                          [jwt_token])
+        return result
+
+    def clear_user_login_token(self, jwt_token):
+        monitor_db = database.MonitorDatabase()
+        result = monitor_db.select_single('UPDATE user_login SET jwt_token = NULL '
+                                          'WHERE jwt_token = ?',
+                                          [jwt_token])
+        return result
 
     def get_datatables_user_login(self, user_id=None, kwargs=None):
         default_return = {'recordsFiltered': 0,

@@ -723,7 +723,8 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, '
-        'ip_address TEXT, host TEXT, user_agent TEXT, success INTEGER DEFAULT 1)'
+        'ip_address TEXT, host TEXT, user_agent TEXT, success INTEGER DEFAULT 1,'
+        'expiry TEXT, jwt_token TEXT)'
     )
 
     # notifiers table :: This table keeps record of the notification agent settings
@@ -2298,6 +2299,18 @@ def dbcheck():
         logger.debug("Altering database. Updating database table user_login.")
         c_db.execute(
             'ALTER TABLE user_login ADD COLUMN success INTEGER DEFAULT 1'
+        )
+
+    # Upgrade user_login table from earlier versions
+    try:
+        c_db.execute('SELECT expiry FROM user_login')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table user_login.")
+        c_db.execute(
+            'ALTER TABLE user_login ADD COLUMN expiry TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE user_login ADD COLUMN jwt_token TEXT'
         )
 
     # Rename notifiers in the database

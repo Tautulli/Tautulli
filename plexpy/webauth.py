@@ -148,16 +148,26 @@ def check_credentials(username=None, password=None, token=None, admin_login='0',
     return False, None, None
 
 
-def check_jwt_token():
+def get_jwt_token():
     jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
     jwt_token = cherrypy.request.cookie.get(jwt_cookie)
 
     if jwt_token:
+        return jwt_token.value
+
+
+def check_jwt_token():
+    jwt_token = get_jwt_token()
+
+    if jwt_token:
         try:
             payload = jwt.decode(
-                jwt_token.value, plexpy.CONFIG.JWT_SECRET, leeway=timedelta(seconds=10), algorithms=[JWT_ALGORITHM]
+                jwt_token, plexpy.CONFIG.JWT_SECRET, leeway=timedelta(seconds=10), algorithms=[JWT_ALGORITHM]
             )
         except (jwt.DecodeError, jwt.ExpiredSignatureError):
+            return None
+
+        if not Users().get_user_login(jwt_token=jwt_token):
             return None
 
         return payload
@@ -275,7 +285,8 @@ class AuthController(object):
             return
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-    def on_login(self, username=None, user_id=None, user_group=None, success=False, oauth=False):
+    def on_login(self, username=None, user_id=None, user_group=None, success=False, oauth=False,
+                 expiry=None, jwt_token=None):
         """Called on successful login"""
 
         # Save login to the database
@@ -289,15 +300,21 @@ class AuthController(object):
                                ip_address=ip_address,
                                host=host,
                                user_agent=user_agent,
-                               success=success)
+                               success=success,
+                               expiry=expiry,
+                               jwt_token=jwt_token)
 
         if success:
             use_oauth = 'Plex OAuth' if oauth else 'form'
             logger.debug("Tautulli WebAuth :: %s user '%s' logged into Tautulli using %s login."
                          % (user_group.capitalize(), username, use_oauth))
 
-    def on_logout(self, username, user_group):
+    def on_logout(self, username, user_group, jwt_token=None):
         """Called on logout"""
+        jwt_token = get_jwt_token()
+        if jwt_token:
+            Users().clear_user_login_token(jwt_token=jwt_token)
+
         logger.debug("Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
 
     def get_loginform(self, redirect_uri=''):
@@ -320,7 +337,8 @@ class AuthController(object):
 
         payload = check_jwt_token()
         if payload:
-            self.on_logout(payload['user'], payload['user_group'])
+            self.on_logout(username=payload['user'],
+                           user_group=payload['user_group'])
 
         jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
         cherrypy.response.cookie[jwt_cookie] = ''
@@ -380,7 +398,9 @@ class AuthController(object):
                           user_id=user_details['user_id'],
                           user_group=user_group,
                           success=True,
-                          oauth=bool(token))
+                          oauth=bool(token),
+                          expiry=expiry,
+                          jwt_token=jwt_token)
 
             jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
             cherrypy.response.cookie[jwt_cookie] = jwt_token
