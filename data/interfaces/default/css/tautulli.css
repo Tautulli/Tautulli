@@ -3136,6 +3136,10 @@ div.dataTables_info {
     bottom: 0;
     text-shadow: 0 0 2px rgba(0,0,0,.5);
 }
+.sign-out-tooltip:hover {
+    color: #E5A00D;
+    cursor: pointer;
+}
 .history-thumbnail-popover {
     z-index: 2000;
     padding: 0;

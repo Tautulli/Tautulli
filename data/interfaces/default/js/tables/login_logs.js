@@ -42,7 +42,7 @@ login_log_table_options = {
         {
             "targets": [2],
             "data": "user_group",
-            "width": "10%",
+            "width": "7%",
             "className": "no-wrap"
         },
         {
@@ -66,23 +66,42 @@ login_log_table_options = {
         {
             "targets": [4],
             "data": "host",
-            "width": "20%",
+            "width": "18%",
             "className": "no-wrap"
         },
         {
             "targets": [5],
             "data": "os",
-            "width": "20%",
+            "width": "15%",
             "className": "no-wrap"
         },
         {
             "targets": [6],
             "data": "browser",
-            "width": "18%",
+            "width": "15%",
             "className": "no-wrap"
         },
         {
             "targets": [7],
+            "data": "expiry",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                var active = '';
+                if (rowData['current']) {
+                    active = '<span class="current-tooltip" data-toggle="tooltip" title="Current Session"><i class="fa fa-lg fa-fw fa-check-circle"></i></span>&nbsp;';
+                }
+                if (cellData) {
+                    var signout = '&nbsp;<span class="sign-out-tooltip" data-toggle="tooltip" title="Sign Out"><i class="fa fa-lg fa-fw fa-sign-out-alt"></i></span>';
+                    $(td).html(active + cellData + signout);
+                } else if (rowData['success']) {
+                    $(td).html('expired');
+                }
+            },
+            "searchable": false,
+            "className": "no-wrap",
+            "width": "13%"
+        },
+        {
+            "targets": [8],
             "data": "success",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData == 1) {
@@ -113,6 +132,7 @@ login_log_table_options = {
     "preDrawCallback": function (settings) {
         var msg = "<i class='fa fa-refresh fa-spin'></i>&nbsp; Fetching rows...";
         showMsg(msg, false, false, 0)
+        $('[data-toggle="tooltip"]').tooltip('destroy');
     }
 };
 
@@ -125,5 +145,22 @@ $('.login_log_table').on('click', '> tbody > tr > td.modal-control-ip', function
         ip_address: rowData['ip_address']
     }).then(function (jqXHR) {
         $("#ip-info-modal").html(jqXHR);
+    });
+});
+
+$('.login_log_table').on('click', '> tbody > tr > td> .sign-out-tooltip', function () {
+    var tr = $(this).closest('tr');
+    var row = login_log_table.row(tr);
+    var rowData = row.data();
+
+    $.get('logout_user_session', {
+        row_ids: rowData['row_id'],
+        current: rowData['current']
+    }).then(function () {
+        if (rowData['current']) {
+            window.location = 'auth/logout'
+        } else {
+            login_log_table.draw();
+        }
     });
 });
