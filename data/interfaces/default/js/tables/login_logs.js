@@ -158,7 +158,7 @@ $('.login_log_table').on('click', '> tbody > tr > td> .sign-out-tooltip', functi
         current: rowData['current']
     }).then(function () {
         if (rowData['current']) {
-            window.location = 'auth/logout'
+            window.location = 'auth/logout';
         } else {
             login_log_table.draw();
         }
