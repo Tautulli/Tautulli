@@ -581,14 +581,24 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     user_transcode_decision_count = Counter(s['transcode_decision'] for s in user_sessions)
 
     if notify_action != 'on_play':
-        stream_duration = int((time.time() -
-                               helpers.cast_to_int(session.get('started', 0)) -
-                               helpers.cast_to_int(session.get('paused_counter', 0))) / 60)
+        stream_duration_sec = int(
+            (
+                helpers.timestamp()
+                - helpers.cast_to_int(session.get('started', 0))
+                - helpers.cast_to_int(session.get('paused_counter', 0))
+            )
+        )
+        stream_duration = helpers.seconds_to_minutes(stream_duration_sec)
     else:
+        stream_duration_sec = 0
         stream_duration = 0
 
-    view_offset = helpers.convert_milliseconds_to_minutes(session.get('view_offset', 0))
-    duration = helpers.convert_milliseconds_to_minutes(notify_params['duration'])
+    view_offset_sec = helpers.convert_milliseconds_to_seconds(session.get('view_offset', 0))
+    duration_sec = helpers.convert_milliseconds_to_seconds(notify_params['duration'])
+    remaining_duration_sec = duration_sec - view_offset_sec
+
+    view_offset = helpers.seconds_to_minutes(view_offset_sec)
+    duration = helpers.seconds_to_minutes(duration_sec)
     remaining_duration = duration - view_offset
 
     # Build Plex URL
@@ -899,12 +909,15 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'player': notify_params['player'],
         'ip_address': notify_params.get('ip_address', 'N/A'),
         'stream_duration': stream_duration,
-        'stream_time': arrow.get(stream_duration * 60).format(duration_format),
+        'stream_duration_sec': stream_duration_sec,
+        'stream_time': arrow.get(stream_duration_sec).format(duration_format),
         'remaining_duration': remaining_duration,
-        'remaining_time': arrow.get(remaining_duration * 60).format(duration_format),
+        'remaining_duration_sec': remaining_duration_sec,
+        'remaining_time': arrow.get(remaining_duration_sec).format(duration_format),
         'progress_duration': view_offset,
-        'progress_time': arrow.get(view_offset * 60).format(duration_format),
-        'progress_percent': helpers.get_percent(view_offset, duration),
+        'progress_duration_sec': view_offset_sec,
+        'progress_time': arrow.get(view_offset_sec).format(duration_format),
+        'progress_percent': helpers.get_percent(view_offset_sec, duration_sec),
         'initial_stream': notify_params['initial_stream'],
         'transcode_decision': transcode_decision,
         'container_decision': notify_params['container_decision'],
@@ -1027,6 +1040,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'audience_rating': audience_rating,
         'user_rating': notify_params['user_rating'],
         'duration': duration,
+        'duration_sec': duration_sec,
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
         'plex_id': notify_params['plex_id'],

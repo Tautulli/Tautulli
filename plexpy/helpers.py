@@ -172,14 +172,25 @@ def convert_milliseconds(ms):
     return minutes
 
 
-def convert_milliseconds_to_minutes(ms):
+def convert_milliseconds_to_seconds(ms):
+    if str(ms).isdigit():
+        seconds = float(ms) / 1000
+        return math.trunc(seconds)
+    return 0
 
+
+def convert_milliseconds_to_minutes(ms):
     if str(ms).isdigit():
         seconds = float(ms) / 1000
         minutes = round(seconds / 60, 0)
-
         return math.trunc(minutes)
+    return 0
 
+
+def seconds_to_minutes(s):
+    if str(s).isdigit():
+        minutes = round(s / 60, 0)
+        return math.trunc(minutes)
     return 0
 
 
