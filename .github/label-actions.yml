@@ -1,6 +1,10 @@
 # Configuration for Label Actions - https://github.com/dessant/label-actions
 
-fixed:next-release:
+added:
+  comment: >
+    This feature has been added and will be available in the next release of Tautulli.
+
+fixed:
   comment: >
     This issue has been fixed and will be available in the next release of Tautulli.
 

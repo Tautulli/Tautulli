@@ -18,7 +18,7 @@ jobs:
           close-issue-message: >
             This issue was closed because it has been stalled for 5 days with no activity.
           stale-issue-label: 'stale'
-          exempt-issue-labels: 'fixed:next-release,type:enhancement,status:awaiting-triage,status:in-progress'
+          exempt-issue-labels: 'added,fixed,type:enhancement,status:awaiting-triage,status:in-progress'
           stale-pr-message: >
             This PR is stale because it has been open for 30 days with no activity.
             Remove the stale label or comment, otherwise this will be closed in 5 days.
