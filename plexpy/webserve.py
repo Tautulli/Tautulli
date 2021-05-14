@@ -73,7 +73,7 @@ if plexpy.PYTHON2:
     from api2 import API2
     from helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
     from session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
-    from webauth import AuthController, requireAuth, member_of, check_auth
+    from webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
     if common.PLATFORM == 'Windows':
         import windows
     elif common.PLATFORM == 'Darwin':
@@ -107,7 +107,7 @@ else:
     from plexpy.api2 import API2
     from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
     from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
-    from plexpy.webauth import AuthController, requireAuth, member_of, check_auth
+    from plexpy.webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
     if common.PLATFORM == 'Windows':
         from plexpy import windows
     elif common.PLATFORM == 'Darwin':
@@ -1556,10 +1556,13 @@ class WebInterface(object):
                      "recordsFiltered": 10,
                      "data":
                         [{"browser": "Safari 7.0.3",
+                          "current": false,
+                          "expiry": "2021-06-30 18:48:03",
                           "friendly_name": "Jon Snow",
                           "host": "http://plexpy.castleblack.com",
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "os": "Mac OS X",
+                          "row_id": 1,
                           "timestamp": 1462591869,
                           "user": "LordCommanderSnow",
                           "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.75.14 (KHTML, like Gecko) Version/7.0.3 Safari/7046A194A",
@@ -1583,10 +1586,40 @@ class WebInterface(object):
                           ("browser", True, True)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "timestamp")
 
+        jwt_token = get_jwt_token()
+
         user_data = users.Users()
-        history = user_data.get_datatables_user_login(user_id=user_id, kwargs=kwargs)
+        history = user_data.get_datatables_user_login(user_id=user_id,
+                                                      jwt_token=jwt_token,
+                                                      kwargs=kwargs)
 
         return history
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def logout_user_session(self, row_ids=None, **kwargs):
+        """ Logout Tautulli user sessions.
+
+            ```
+            Required parameters:
+                row_ids (str):          Comma separated row ids to sign out, e.g. "2,3,8"
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        user_data = users.Users()
+        result = user_data.clear_user_login_token(row_ids=row_ids)
+
+        if result:
+            return {'result': 'success', 'message': 'Users session logged out.'}
+        else:
+            return {'result': 'error', 'message': 'Unable to logout user session.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
