@@ -2166,17 +2166,20 @@ class PmsConnect(object):
                     synced_version_profile = common.VIDEO_QUALITY_PROFILES[synced_bitrate]
                 except ValueError:
                     synced_version_profile = 'Original'
-            else:
+            elif video_details['stream_video_decision'] == 'transcode':
                 synced_version_profile = ''
 
                 stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
                 source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
                 try:
                     quailtiy_bitrate = min(
-                        b for b in common.VIDEO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
+                        b for b in common.VIDEO_QUALITY_PROFILES if stream_bitrate <= b)
                     quality_profile = common.VIDEO_QUALITY_PROFILES[quailtiy_bitrate]
                 except ValueError:
                     quality_profile = 'Original'
+            else:
+                synced_version_profile = ''
+                quality_profile = 'Original'
 
             if stream_details['optimized_version']:
                 source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
