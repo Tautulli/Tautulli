@@ -758,7 +758,7 @@ def dbcheck():
         'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
         'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
         'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT, script_args TEXT, success INTEGER DEFAULT 0)'
+        'subject_text TEXT, body_text TEXT, script_args TEXT, success INTEGER DEFAULT 0, tag TEXT)'
     )
 
     # newsletters table :: This table keeps record of the newsletter settings
@@ -1962,6 +1962,15 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE notify_log SET success = 1'
+        )
+
+    # Upgrade notify_log table from earlier versions
+    try:
+        c_db.execute('SELECT tag FROM notify_log')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table notify_log.")
+        c_db.execute(
+            'ALTER TABLE notify_log ADD COLUMN tag TEXT'
         )
 
     # Upgrade newsletter_log table from earlier versions
