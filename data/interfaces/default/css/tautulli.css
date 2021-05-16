@@ -2165,12 +2165,21 @@ span.settings-warning {
   color: #eee;
   background-color: #cc7b19;
 }
+#configUpdate .form-group,
+#configUpdate .checkbox{
+    padding-left: 10px;
+    margin-left: -10px;
+}
+.hidden-settings {
+    overflow: hidden;
+    padding-left: 10px;
+    margin-left: -10px;
+}
 .advanced-setting {
     display: none;
 }
 div.advanced-setting {
     border-left: 1px solid #cc7b19;
-    padding-left: 10px;
 }
 li.advanced-setting {
     border-left: 1px solid #cc7b19;

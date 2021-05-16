@@ -1161,7 +1161,7 @@
                             </label>
                             <p class="help-block">Enable to host newsletters on your own domain. This will generate a link to an HTML page where you can view the newsletter.</p>
                         </div>
-                        <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
+                        <div id="self_host_newsletter_options" style="overflow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
                             <div class="form-group">
                                 <p class="help-block" id="self_host_newsletter_message">
                                     Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.
@@ -1309,7 +1309,7 @@
                             </div>
                             <p class="help-block">Select where to host Plex images for notifications and newsletters.</p>
                         </div>
-                        <div id="imgur_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
+                        <div id="imgur_upload_options" style="overflow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block">
                                     Please see the <a href="${anon_url('https://github.com/%s/%s/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">3rd Party APIs Guide</a> for instructions on setting up Imgur.<br>
@@ -1331,13 +1331,13 @@
                                 <p class="help-block">Enter your Imgur API Client ID.</p>
                             </div>
                         </div>
-                        <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
+                        <div id="self_host_image_options" style="overflow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publicly accessible from the internet.</p>
                                 <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="web_interface" data-target="http_base_url">Web Interface</a>.</p>
                             </div>
                         </div>
-                        <div id="cloudinary_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
+                        <div id="cloudinary_upload_options" style="overflow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block">
                                     Please see the <a href="${anon_url('https://github.com/%s/%s/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">3rd Party APIs Guide</a> for instructions on setting up Cloudinary.

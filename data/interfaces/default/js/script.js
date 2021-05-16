@@ -44,7 +44,7 @@ function initConfigCheckbox(elem, toggleElem, reverse) {
     toggleElem = (toggleElem === undefined) ? null : toggleElem;
     reverse = (reverse === undefined) ? false : reverse;
     var config = toggleElem ? $(toggleElem) : $(elem).closest('div').next();
-    config.css('overflow', 'hidden');
+    config.addClass('hidden-settings');
     if ($(elem).is(":checked")) {
         config.toggle(!reverse);
     } else {
