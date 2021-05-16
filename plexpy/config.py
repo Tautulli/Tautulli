@@ -562,3 +562,9 @@ class Config(object):
             self.HOME_STATS_CARDS = home_stats_cards
 
             self.CONFIG_VERSION = 18
+
+        if self.CONFIG_VERSION == 18:
+            self.CHECK_GITHUB_INTERVAL = (
+                    int(self.CHECK_GITHUB_INTERVAL // 60)
+                    + (self.CHECK_GITHUB_INTERVAL % 60 > 0)
+            )
