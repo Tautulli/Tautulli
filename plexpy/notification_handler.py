@@ -113,7 +113,8 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         # Check if notification conditions are satisfied
         conditions = notify_conditions(notify_action=notify_action,
                                        stream_data=stream_data,
-                                       timeline_data=timeline_data)
+                                       timeline_data=timeline_data,
+                                       **kwargs)
     else:
         conditions = True
 
@@ -158,11 +159,11 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         plexpy.NOTIFY_QUEUE.put({'stream_data': stream_data.copy(), 'notify_action': 'on_newdevice'})
 
 
-def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
+def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, **kwargs):
+    logger.debug("Tautulli NotificationHandler :: Checking global notification conditions.")
+
     # Activity notifications
     if stream_data:
-        logger.debug("Tautulli NotificationHandler :: Checking global notification conditions.")
-
         # Check if notifications enabled for user and library
         # user_data = users.Users()
         # user_details = user_data.get_details(user_id=stream_data['user_id'])
@@ -218,7 +219,6 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
         else:
             evaluated = False
 
-        logger.debug("Tautulli NotificationHandler :: Global notification conditions evaluated to '{}'.".format(evaluated))
     # Recently Added notifications
     elif timeline_data:
 
@@ -232,10 +232,23 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None):
 
         evaluated = True
 
+    elif notify_action == 'on_pmsupdate':
+        evaluated = True
+        if not plexpy.CONFIG.NOTIFY_SERVER_UPDATE_REPEAT:
+            evaluated = not check_nofity_tag(notify_action=notify_action,
+                                             tag=kwargs['pms_download_info']['version'])
+
+    elif notify_action == 'on_plexpyupdate':
+        evaluated = True
+        if not plexpy.CONFIG.NOTIFY_PLEXPY_UPDATE_REPEAT:
+            evaluated = not check_nofity_tag(notify_action=notify_action,
+                                             tag=kwargs['plexpy_download_info']['tag_name'])
+
     # Server notifications
     else:
         evaluated = True
 
+    logger.debug("Tautulli NotificationHandler :: Global notification conditions evaluated to '{}'.".format(evaluated))
     return evaluated
 
 
@@ -398,7 +411,8 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                        notify_action=notify_action,
                                        subject=subject,
                                        body=body,
-                                       script_args=script_args)
+                                       script_args=script_args,
+                                       parameters=parameters)
 
     # Send the notification
     success = notifiers.send_notification(notifier_id=notifier_config['id'],
@@ -456,7 +470,7 @@ def get_notify_state_enabled(session, notify_action, notified=True):
     return result
 
 
-def set_notify_state(notifier, notify_action, subject='', body='', script_args='', session=None):
+def set_notify_state(notifier, notify_action, subject='', body='', script_args='', session=None, parameters=None):
 
     if notifier and notify_action:
         monitor_db = database.MonitorDatabase()
@@ -481,6 +495,11 @@ def set_notify_state(notifier, notify_action, subject='', body='', script_args='
                   'body_text': body,
                   'script_args': script_args}
 
+        if notify_action == 'on_pmsupdate':
+            values['tag'] = parameters['update_version']
+        elif notify_action == 'on_plexpyupdate':
+            values['tag'] = parameters['tautulli_update_version']
+
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
         return monitor_db.last_insert_id()
     else:
@@ -493,6 +512,14 @@ def set_notify_success(notification_id):
 
     monitor_db = database.MonitorDatabase()
     monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
+
+
+def check_nofity_tag(notify_action, tag):
+    monitor_db = database.MonitorDatabase()
+    result = monitor_db.select_single('SELECT * FROM notify_log '
+                                      'WHERE notify_action = ? AND tag = ?',
+                                      [notify_action, tag])
+    return bool(result)
 
 
 def build_media_notify_params(notify_action=None, session=None, timeline=None, manual_trigger=False, **kwargs):

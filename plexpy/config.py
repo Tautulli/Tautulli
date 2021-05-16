@@ -173,6 +173,8 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'NOTIFY_NEW_DEVICE_INITIAL_ONLY': (int, 'Monitoring', 1),
     'NOTIFY_SERVER_CONNECTION_THRESHOLD': (int, 'Monitoring', 60),
+    'NOTIFY_SERVER_UPDATE_REPEAT': (int, 'Monitoring', 0),
+    'NOTIFY_PLEXPY_UPDATE_REPEAT': (int, 'Monitoring', 0),
     'PLEXPY_AUTO_UPDATE': (int, 'General', 0),
     'REFRESH_LIBRARIES_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
