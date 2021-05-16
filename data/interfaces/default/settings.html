@@ -215,11 +215,23 @@
 
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
+                                <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Check for Tautulli Updates
                             </label>
-                            <p class="help-block">Check for Tautulli updates periodically.</p>
+                            <p class="help-block">Enable to check for Tautulli updates.</p>
                         </div>
                         <div id="git_update_options">
+                            <div class="form-group">
+                                <label for="check_github_interval">Update Check Interval</label>
+                                <div class="row">
+                                    <div class="col-md-2">
+                                        <input type="text" class="form-control" data-parsley-type="integer" id="check_github_interval" name="check_github_interval" value="${config['check_github_interval']}" size="3" data-parsley-min="1" data-parsley-trigger="change" data-parsley-errors-container="#check_github_interval_error" required>
+                                    </div>
+                                    <div id="check_github_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                                </div>
+                                <p class="help-block">
+                                    The interval (in hours) Tautulli will check for a new update. Minimum 1, default 6.
+                                </p>
+                            </div>
                             % if not plexpy.SNAP and not plexpy.FROZEN:
                             <div class="checkbox">
                                 <label>
@@ -889,7 +901,7 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="pms_update_check_interval">Update Check Interval</label>
+                                <label for="pms_update_check_interval">Plex Update Check Interval</label>
                                 <div class="row">
                                     <div class="col-md-2">
                                         <input type="text" class="form-control" data-parsley-type="integer" id="pms_update_check_interval" name="pms_update_check_interval" value="${config['pms_update_check_interval']}" size="3" data-parsley-min="1" data-parsley-trigger="change" data-parsley-errors-container="#pms_update_check_interval_error" required>

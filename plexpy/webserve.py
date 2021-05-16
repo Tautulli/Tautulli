@@ -3165,6 +3165,7 @@ class WebInterface(object):
             "log_dir": plexpy.CONFIG.LOG_DIR,
             "log_blacklist": checked(plexpy.CONFIG.LOG_BLACKLIST),
             "check_github": checked(plexpy.CONFIG.CHECK_GITHUB),
+            "check_github_interval": plexpy.CONFIG.CHECK_GITHUB_INTERVAL,
             "interface_list": interface_list,
             "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
@@ -3319,6 +3320,7 @@ class WebInterface(object):
 
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
+                kwargs.get('check_github_interval') != str(plexpy.CONFIG.CHECK_GITHUB_INTERVAL) or \
                 kwargs.get('refresh_libraries_interval') != str(plexpy.CONFIG.REFRESH_LIBRARIES_INTERVAL) or \
                 kwargs.get('refresh_users_interval') != str(plexpy.CONFIG.REFRESH_USERS_INTERVAL) or \
                 kwargs.get('pms_update_check_interval') != str(plexpy.CONFIG.PMS_UPDATE_CHECK_INTERVAL) or \
