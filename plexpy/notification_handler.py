@@ -685,7 +685,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     # Get TheMovieDB info (for movies and tv only)
     if plexpy.CONFIG.THEMOVIEDB_LOOKUP and notify_params['media_type'] in ('movie', 'show', 'season', 'episode'):
         if notify_params.get('themoviedb_id'):
-            themoveidb_json = get_themoviedb_info(rating_key=rating_key,
+            if notify_params['media_type'] == 'episode':
+                lookup_key = notify_params['grandparent_rating_key']
+            elif notify_params['media_type'] == 'season':
+                lookup_key = notify_params['parent_rating_key']
+            else:
+                lookup_key = rating_key
+
+            themoveidb_json = get_themoviedb_info(rating_key=lookup_key,
                                                   media_type=notify_params['media_type'],
                                                   themoviedb_id=notify_params['themoviedb_id'])
 
