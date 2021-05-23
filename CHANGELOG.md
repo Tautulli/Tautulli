@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.7.3 (2021-05-22)
+
+* Activity:
+  * Fix: Incorrect quality profile being shown when transcoding to a higher bitrate.
+* Notifications:
+  * New: Added notification parameters for duration values in seconds. (#1434)
+  * New: Added setting to allow repeat Tautulli update notifications. By default the Tautulli update notification will only notify once.
+  * New: Added setting to allow repeat Plex Media Server update notifications. By default the Plex Media Server update notification will only notify once.
+  * New: Added setting to configure the Tautulli update check interval.
+* UI:
+  * Fix: Prevent accidentally closing modals when dragging the mouse outside the window.
+  * Fix: Recently added queue modal not loading. (#1429)
+  * New: Show collections tab in music libraries. (#1421)
+  * New: Added method to logout of active Tautulli sessions from the login logs.
+* API:
+  * Fix: Update edit_user and edit_library doc strings for required parameters. (#1432)
+* Other:
+  * New: Added advanced hidden setting for CherryPy thread pool size. (Thanks @psaab #1425)
+
+
 ## v2.7.2 (2021-04-24)
 
 * UI:
