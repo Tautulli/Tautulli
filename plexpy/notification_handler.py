@@ -1895,23 +1895,22 @@ class CustomFormatter(Formatter):
             prefix = None
             suffix = None
 
-            if real_format_string != format_string[1:-1]:
-                matches = re.findall(r"`.*?`", real_format_string)
-                temp_format_string = re.sub(r"`.*`", "{}", real_format_string)
+            matches = re.findall(r'`.*?`', real_format_string)
+            temp_format_string = re.sub(r'`.*`', '{}', real_format_string)
 
-                prefix_split = temp_format_string.split('<')
-                if len(prefix_split) == 2:
-                    prefix = prefix_split[0].replace('\\n', '\n')
-                    temp_format_string = prefix_split[1]
+            prefix_split = temp_format_string.split('<')
+            if len(prefix_split) == 2:
+                prefix = prefix_split[0].replace('\\n', '\n')
+                temp_format_string = prefix_split[1]
 
-                suffix_split = temp_format_string.split('>')
-                if len(suffix_split) == 2:
-                    suffix = suffix_split[1].replace('\\n', '\n')
-                    temp_format_string = suffix_split[0]
+            suffix_split = temp_format_string.split('>')
+            if len(suffix_split) == 2:
+                suffix = suffix_split[1].replace('\\n', '\n')
+                temp_format_string = suffix_split[0]
 
-                if prefix or suffix:
-                    real_format_string = '{' + temp_format_string.format(*matches) + '}'
-                    _, field_name, format_spec, conversion, _, _ = next(self.parse(real_format_string))
+            if prefix or suffix:
+                real_format_string = '{' + temp_format_string.format(*matches) + '}'
+                _, field_name, format_spec, conversion, _, _ = next(self.parse(real_format_string))
 
             yield literal_text, field_name, format_spec, conversion, prefix, suffix
 
