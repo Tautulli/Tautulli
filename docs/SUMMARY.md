@@ -1,26 +1,27 @@
-# Table of Contents
+# Table of contents
 
-- [Introduction](README.md)
+* [Introduction](README.md)
 
 ## Getting Started
 
-- [Installation](Installation.md)
-- [Upgrading to Python 3](Upgrading-to-Python-3.md)
+* [Installation](getting-started/installation.md)
+* [Upgrading to Python 3](getting-started/upgrading-to-python-3.md)
 
 ## Using Tautulli
 
-- [Notifications Agents Guide](Notification-Agents-Guide.md)
-- [Custom Notification Conditions](Custom-Notification-Conditions.md)
-- [Exporter Guide](Exporter-Guide.md)
-- [3rd Party APIs Guide](3rd-Party-APIs-Guide.md)
+* [Notifications Agents Guide](using-tautulli/notification-agents-guide.md)
+* [Custom Notification Conditions](using-tautulli/custom-notification-conditions.md)
+* [Exporter Guide](using-tautulli/exporter-guide.md)
+* [3rd Party APIs Guide](using-tautulli/3rd-party-apis-guide.md)
 
 ## Support
 
-- [Asking for Support](Asking-for-Support.md)
-- [Frequently Asked Questions (FAQ)](Frequently-Asked-Questions.md)
-- [Debugging Tautulli](Debugging.md)
+* [Asking for Support](support/asking-for-support.md)
+* [Frequently Asked Questions \(FAQ\)](support/frequently-asked-questions.md)
+* [Debugging Tautulli](support/debugging.md)
 
 ## Extending Tautulli
 
-- [Custom Scripts](Custom-Scripts.md)
-- [API Reference](API-Reference.md)
+* [Custom Scripts](extending-tautulli/custom-scripts.md)
+* [API Reference](extending-tautulli/api-reference.md)
+
