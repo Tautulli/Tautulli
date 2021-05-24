@@ -5,6 +5,7 @@
 ## Getting Started
 
 * [Installation](getting-started/installation.md)
+  * [Install as a Daemon](getting-started/install-as-a-daemon.md)
 * [Upgrading to Python 3](getting-started/upgrading-to-python-3.md)
 
 ## Using Tautulli
