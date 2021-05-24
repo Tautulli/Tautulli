@@ -364,7 +364,7 @@ Parameters are split into two halves separated by a colon. The left side represe
 | `-e PGID=<gid>` | Group ID \(see below\) | Optional |
 | `-e TZ=<timezone>` | Lookup `TZ` value [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) \(e.g. America/Toronto\) | Required |
 
-### User / Group Identifiers:
+### User / Group Identifiers
 
 When using data volumes \(`-v` flags\) permissions issues can arise between the host OS and the container. To avoid this issue you can specify the user `PUID` and group `PGID`. Ensure the data volume directory on the host is owned by the same user you specify.
 
@@ -377,7 +377,7 @@ uid=1001(dockeruser) gid=1001(dockergroup) groups=1001(dockergroup)
 
 ## Synology
 
-You can easily install _Tautulli_ on Synology devices using [Docker](installation.md#docker). Depending on your Synology device you may or may not have Docker pre-installed. If your device is 'unsupported' \(i.e. Docker is not pre-installed or downloadable through the Synology _Package Center_\), follow the guide [here](https://web.archive.org/web/20190730155552/https://tylermade.net/2017/09/28/how-to-install-docker-on-an-unsupported-synology-nas/) and newer versions of the Docker spk found [here](https://archive.synology.com/download/Package/Docker) to install it.
+You can easily install _Tautulli_ on Synology devices using [Docker](./#docker). Depending on your Synology device you may or may not have Docker pre-installed. If your device is 'unsupported' \(i.e. Docker is not pre-installed or downloadable through the Synology _Package Center_\), follow the guide [here](https://web.archive.org/web/20190730155552/https://tylermade.net/2017/09/28/how-to-install-docker-on-an-unsupported-synology-nas/) and newer versions of the Docker spk found [here](https://archive.synology.com/download/Package/Docker) to install it.
 
 Once you have Docker on your Synology, add the [official image](https://hub.docker.com/r/tautulli/tautulli/) for Tautulli. This is done by opening the Docker program and searching the **Registry** tab for Tautulli. At the time of this write-up, the interface looked like [this](https://imgur.com/EqxJT91). The official image is named `tautulli/tautulli` and it may not be the first option listed. Double-click the image entry to download it. Once downloaded you will see the image show up under your **Image** tab. Before installing the image you will need some additional user information.
 
@@ -439,7 +439,7 @@ Finalize the container by applying the _advanced settings_ and then following th
 
 If your container doesn't immediately run, launch it from the Docker window and give it a few dozen seconds to start completely. Your _Tautulli_ installation should now be accessible via port `8181` \(or your other _Local Port_\) on your DiskStation's local IP address. You can find this under Control Panel -&gt; Network -&gt; Network Interface under `LAN1` or `LAN2`. For example if it shows `192.168.0.5`, then Tautulli can be found at `http://192.168.0.5:8181/`.
 
-### How to update the container
+### Updating the Container
 
 * See [here](https://mendesconsulting.net/2018/03/26/updating-docker-containers-on-synology/) for instructions on updating a Docker container on Synology.
 
@@ -447,7 +447,7 @@ If your container doesn't immediately run, launch it from the Docker window and 
 
 {% tabs %}
 {% tab title="Docker" %}
-Installing using [Docker](installation.md#docker) is recommended if it is supported by your NAS.
+Installing using [Docker](./#docker) is recommended if it is supported by your NAS.
 {% endtab %}
 
 {% tab title="Package" %}
@@ -463,7 +463,7 @@ You can install Tautulli on Western Digital devices using the [WD package by Tfl
 
 {% tabs %}
 {% tab title="Docker" %}
-Installing using [Docker](installation.md#docker) is recommended if it is supported by your NAS.
+Installing using [Docker](./#docker) is recommended if it is supported by your NAS.
 {% endtab %}
 
 {% tab title="Package" %}
@@ -482,7 +482,7 @@ You can install Tautulli on QNAP devices using the `.qpkg` by QNAP\_Stephane:
 
 {% tabs %}
 {% tab title="Docker" %}
-Installing using [Docker](installation.md#docker) is recommended if it is supported by your NAS.
+Installing using [Docker](./#docker) is recommended if it is supported by your NAS.
 {% endtab %}
 
 {% tab title="Package" %}
@@ -498,7 +498,7 @@ You can install Tautulli on ReadyNAS devices using the [ReadyNAS app by Mhynlo](
 
 {% tabs %}
 {% tab title="Docker" %}
-Installing using [Docker](installation.md#docker) is recommended if it is supported by your NAS.
+Installing using [Docker](./#docker) is recommended if it is supported by your NAS.
 {% endtab %}
 
 {% tab title="Package" %}
@@ -514,7 +514,7 @@ You can install Tautulli on Thecus devices using the [Thecus app by outkastm](ht
 
 {% tabs %}
 {% tab title="Docker" %}
-Installing using [Docker](installation.md#docker) is recommended if it is supported by your machine.
+Installing using [Docker](./#docker) is recommended if it is supported by your machine.
 {% endtab %}
 
 {% tab title="Package" %}
