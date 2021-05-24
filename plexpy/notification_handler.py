@@ -1814,6 +1814,24 @@ def str_format(s, parameters):
     return s
 
 
+def str_eval(field_name, kwargs):
+    field_name = field_name.strip('`')
+    allowed_names = {
+        'bool': bool,
+        'divmod': divmod,
+        'float': float,
+        'int': int,
+        'round': round,
+        'str': str
+    }
+    allowed_names.update(kwargs)
+    code = compile(field_name, '<string>', 'eval')
+    for name in code.co_names:
+        if name not in allowed_names:
+            raise NameError('Use of {name} not allowed'.format(name=name))
+    return eval(code, {'__builtins__': {}}, allowed_names)
+
+
 class CustomFormatter(Formatter):
     def __init__(self, default='{{{0}}}'):
         self.default = default
@@ -1926,10 +1944,19 @@ class CustomFormatter(Formatter):
                     # used later on, then an exception will be raised
                     auto_arg_index = False
 
-                # given the field_name, find the object it references
-                #  and the argument it came from
-                obj, arg_used = self.get_field(field_name, args, kwargs)
-                used_args.add(arg_used)
+                if plexpy.CONFIG.NOTIFY_TEXT_EVAL and field_name.startswith('`') and field_name.endswith('`'):
+                    try:
+                        obj = str_eval(field_name, kwargs)
+                        used_args.add(field_name)
+                    except (SyntaxError, NameError, ValueError, TypeError) as e:
+                        logger.error("Tautulli NotificationHandler :: Failed to evaluate notification text %s: %s.",
+                                     field_name, e)
+                        obj = field_name
+                else:
+                    # given the field_name, find the object it references
+                    #  and the argument it came from
+                    obj, arg_used = self.get_field(field_name, args, kwargs)
+                    used_args.add(arg_used)
 
                 # do any conversion on the resulting object
                 obj = self.convert_field(obj, conversion)
