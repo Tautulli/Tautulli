@@ -2173,7 +2173,7 @@ class PmsConnect(object):
                 source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
                 try:
                     quailtiy_bitrate = min(
-                        b for b in common.VIDEO_QUALITY_PROFILES if stream_bitrate <= b)
+                        b for b in common.VIDEO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
                     quality_profile = common.VIDEO_QUALITY_PROFILES[quailtiy_bitrate]
                 except ValueError:
                     quality_profile = 'Original'
