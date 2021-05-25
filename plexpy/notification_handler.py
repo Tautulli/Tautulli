@@ -1818,10 +1818,10 @@ def str_eval(field_name, kwargs):
     field_name = field_name.strip('`')
     allowed_names = {
         'bool': bool,
-        'divmod': divmod,
-        'float': float,
-        'int': int,
-        'round': round,
+        'divmod': helpers.helper_divmod,
+        'float': helpers.cast_to_float,
+        'int': helpers.cast_to_int,
+        'round': helpers.helper_round,
         'str': str
     }
     allowed_names.update(kwargs)

@@ -530,6 +530,20 @@ def cast_to_float(s):
         return 0
 
 
+def helper_divmod(a, b):
+    try:
+        return divmod(a, b)
+    except (ValueError, TypeError):
+        return 0
+
+
+def helper_round(n, ndigits):
+    try:
+        return round(n, ndigits)
+    except (ValueError, TypeError):
+        return 0
+
+
 def convert_xml_to_json(xml):
     o = xmltodict.parse(xml)
     return json.dumps(o)
