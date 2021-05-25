@@ -1913,6 +1913,31 @@ Rating: {rating}/10   --> Rating: /10
 {Rating: &lt;rating&gt;/10} --> </pre>
                     </div>
                     <div>
+                        <h4>Expressions</h4>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">
+                            Note: <span class="inline-pre">notify_text_eval = 1</span> must be manually enabled in the configuration file to enable expressions.
+                            Enabling this setting could pose a security risk. Enable at your own risk. It is recommended to leave this feature disabled if it is not being used.
+                        </p>
+                        <p class="help-block">
+                            Notification parameters can be wrapped with backticks <span class="inline-pre">`expr`</span> to be evaluated as Python expressions.
+                            Only the following functions are supported in expressions:
+                        </p>
+                        <ul class="help-block">
+                            <li><span class="inline-pre">bool(x)</span></li>
+                            <li><span class="inline-pre">divmod(a, b)</span></li>
+                            <li><span class="inline-pre">float(x)</span></li>
+                            <li><span class="inline-pre">int(x)</span></li>
+                            <li><span class="inline-pre">round(n[, ndigits])</span></li>
+                            <li><span class="inline-pre">str(x)</span></li>
+                        </ul>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{`float(rating) * 10`>%}                           --> 89%
+{`"%d hr %d min" % divmod(int(duration), 60)`}     --> 1 hr 50 min
+{`round(float(stream_bandwidth) / 1000, 1)`> Mbps} --> 6.9 Mbps</pre>
+                    </div>
+                    <div>
                         <h4>Combined</h4>
                     </div>
                     <div>
@@ -1921,6 +1946,7 @@ Rating: {rating}/10   --> Rating: /10
                         </p>
                         <ol class="help-block">
                             <li>Prefix</li>
+                            <li>Evaluation</li>
                             <li>Parameter</li>
                             <li>Case Modifier</li>
                             <li>List Slicing</li>
