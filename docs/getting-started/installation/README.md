@@ -286,7 +286,7 @@ Create and run the container \(substitute your `<values>`\):
 ```bash
 docker run -d \
   --name=tautulli \
-  --restart=unless-stopped
+  --restart=unless-stopped \
   -v <path to data>:/config \
   -e PUID=<uid> \
   -e PGID=<gid> \
