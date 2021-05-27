@@ -573,9 +573,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
-        child_metadata.append(pmsconnect.PmsConnect().get_metadata_details(rating_key=key))
+        child = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
+        if child:
+            child_metadata.append(child)
     for key in kwargs.pop('grandchild_keys', []):
-        grandchild_metadata.append(pmsconnect.PmsConnect().get_metadata_details(rating_key=key))
+        grandchild = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
+        if grandchild:
+            grandchild_metadata.append(grandchild)
 
     # Session values
     session = session or {}
