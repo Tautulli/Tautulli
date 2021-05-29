@@ -893,7 +893,7 @@ function loadBlurHash(elem, src) {
 }
 
 function _toggleRevealToken(elem, click) {
-    var input = elem.parent().next('input');
+    var input = elem.parent().siblings('input');
     if ((input.prop('type') === 'password' && click) || !input.val()) {
         input.prop('type', 'text');
         elem.children('.fa').removeClass('fa-eye-slash').addClass('fa-eye');
