@@ -1033,7 +1033,7 @@ class ANDROIDAPP(Notifier):
                 'label': 'Device',
                 'value': self.config['device_id'],
                 'name': 'androidapp_device_id',
-                'description': 'Set your mobile device or '
+                'description': 'Select your mobile device or '
                                '<a data-tab-destination="android_app" data-toggle="tab" data-dismiss="modal">'
                                'register a new device</a> with Tautulli.<br>'
                                'Note: Only devices registered with a valid OneSignal ID will appear in the list.',
@@ -1308,7 +1308,7 @@ class DISCORD(Notifier):
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
                                          'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
-                                         'must be enabled under the notifications settings tab.',
+                                         'must be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -1333,7 +1333,8 @@ class DISCORD(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'discord_movie_provider',
                           'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -1341,7 +1342,8 @@ class DISCORD(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'discord_tv_provider',
                           'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -1694,14 +1696,15 @@ class FACEBOOK(Notifier):
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
                                          'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
-                                         'must be enabled under the notifications settings tab.',
+                                         'must be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'facebook_movie_provider',
                           'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -1709,7 +1712,8 @@ class FACEBOOK(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'facebook_tv_provider',
                           'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -2063,14 +2067,15 @@ class JOIN(Notifier):
                           'description': 'Include a poster with the notifications.<br>'
                                          'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
-                                         'must be enabled under the notifications settings tab.',
+                                         'must be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Movie Link Source',
                           'value': self.config['movie_provider'],
                           'name': 'join_movie_provider',
                           'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -2078,7 +2083,8 @@ class JOIN(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'join_tv_provider',
                           'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -2962,7 +2968,8 @@ class PUSHOVER(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'pushover_movie_provider',
                           'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -2970,7 +2977,8 @@ class PUSHOVER(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'pushover_tv_provider',
                           'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -3340,7 +3348,7 @@ class SLACK(Notifier):
                           'description': 'Include an info card with a poster and metadata with the notifications.<br>'
                                          'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
-                                         'must be enabled under the notifications settings tab.',
+                                         'must be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Plot Summaries',
@@ -3365,7 +3373,8 @@ class SLACK(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'slack_movie_provider',
                           'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -3373,7 +3382,8 @@ class SLACK(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'slack_tv_provider',
                           'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
@@ -3599,7 +3609,7 @@ class TWITTER(Notifier):
                           'description': 'Include a poster with the notifications.<br>'
                                          'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
                                          'data-target="notify_upload_posters">Image Hosting</a> '
-                                         'must be enabled under the notifications settings tab.',
+                                         'must be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'checkbox'
                           }
                          ]
@@ -3853,7 +3863,8 @@ class ZAPIER(Notifier):
                           'value': self.config['movie_provider'],
                           'name': 'zapier_movie_provider',
                           'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_movie_providers()
                           },
@@ -3861,7 +3872,8 @@ class ZAPIER(Notifier):
                           'value': self.config['tv_provider'],
                           'name': 'zapier_tv_provider',
                           'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
-                                         'Note: 3rd party API lookup may need to be enabled under the notifications settings tab.',
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_tv_providers()
                           },
