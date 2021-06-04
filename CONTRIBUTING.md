@@ -39,3 +39,14 @@ HTML5 compatible browsers are targeted.
 * `methodName`
 * `variableName`
 * `ClassName`
+
+
+## Translation
+
+Tautulli uses [Weblate][Weblate Engage] for translations, and your help with localizing Tautulli would be greatly appreciated! If your language is not listed below, please [open a feature request][Issue New].
+
+[![Translation Status][Weblate Status]][Weblate Engage]
+
+[Weblate Engage]: https://hosted.weblate.org/engage/tautulli
+[Weblate Status]: https://hosted.weblate.org/widgets/tautulli/-/tautulli/multi-auto.svg
+[Issue New]: https://github.com/Tautulli/Tautulli/issues/new/choose
