@@ -1,0 +1,25 @@
+#: ../../data/interfaces/default/base.html:107
+#: ../../data/interfaces/default/base.html:109
+msgid "Libraries"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:112
+#: ../../data/interfaces/default/base.html:114
+msgid "Users"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:117
+#: ../../data/interfaces/default/base.html:119
+msgid "History"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:122
+#: ../../data/interfaces/default/base.html:124
+msgid "Graphs"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:127
+#: ../../data/interfaces/default/base.html:129
+msgid "Synced Items"
+msgstr ""
+
