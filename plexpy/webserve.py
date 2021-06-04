@@ -23,6 +23,7 @@ from backports import csv
 
 from io import open, BytesIO
 import base64
+import gettext
 import json
 import linecache
 import os
@@ -115,6 +116,8 @@ else:
 
 
 def serve_template(templatename, **kwargs):
+    _ = gettext.gettext
+
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
     template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
 
@@ -130,7 +133,7 @@ def serve_template(templatename, **kwargs):
     try:
         template = _hplookup.get_template(templatename)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
-                               _session=_session, **kwargs)
+                               _session=_session, _=_, **kwargs)
     except Exception as e:
         logger.exception("WebUI :: Mako template render error: %s" % e)
         return mako.exceptions.html_error_template().render()
