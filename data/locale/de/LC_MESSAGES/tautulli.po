@@ -1,0 +1,66 @@
+# Translations template for PROJECT.
+# Copyright (C) 2021 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2021-06-04 21:35-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.9.0\n"
+
+msgid "base.nav.libraries"
+msgstr ""
+
+msgid "base.nav.users"
+msgstr ""
+
+msgid "base.nav.history"
+msgstr ""
+
+msgid "base.nav.graphs"
+msgstr ""
+
+msgid "base.nav.synced_items"
+msgstr ""
+
+msgid "base.nav.settings"
+msgstr ""
+
+msgid "base.nav.view_logs"
+msgstr ""
+
+msgid "base.nav.support"
+msgstr ""
+
+msgid "base.nav.donate"
+msgstr ""
+
+msgid "base.nav.check_for_updates"
+msgstr ""
+
+msgid "base.nav.restart"
+msgstr ""
+
+msgid "base.nav.shutdown"
+msgstr ""
+
+msgid "base.nav.admin_login"
+msgstr ""
+
+msgid "base.nav.sign_out"
+msgstr ""
+
+msgid "login.remember_me"
+msgstr ""
+
+msgid "login.sign_in"
+msgstr ""
