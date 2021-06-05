@@ -143,6 +143,7 @@ _CONFIG_DEFINITIONS = {
     'JOURNAL_MODE': (str, 'Advanced', 'WAL'),
     'LAUNCH_BROWSER': (int, 'General', 1),
     'LAUNCH_STARTUP': (int, 'General', 1),
+    'LOCALE': (str, 'General', 'en'),
     'LOG_BLACKLIST': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),

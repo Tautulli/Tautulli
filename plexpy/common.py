@@ -258,6 +258,11 @@ SCHEDULER_LIST = [
 ]
 SCHEDULER_LIST = OrderedDict(SCHEDULER_LIST)
 
+LOCALES = {
+    'en': 'English',
+    'fr': 'French'
+}
+
 DATE_TIME_FORMATS = [
     {
         'category': 'Year',
