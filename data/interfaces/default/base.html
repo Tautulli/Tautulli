@@ -137,25 +137,25 @@
                         <a href="#" class="dropdown-toggle" aria-haspopup="true" data-toggle="dropdown" data-hover="dropdown" data-href="${href}"><i class="fa fa-lg fa-cogs"></i> <span class="caret"></span></a>
                         <ul class="dropdown-menu" id="settings-dropdown-menu">
                             % if _session['user_group'] == 'admin':
-                            <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
+                            <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> ${_('base.nav.settings')}</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
+                            <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> ${_('base.nav.view_logs')}</a></li>
                             <li><a href="${anon_url('https://github.com/%s/%s/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
-                            <li><a href="support"><i class="fa fa-fw fa-comment"></i> Support</a></li>
+                            <li><a href="support"><i class="fa fa-fw fa-comment"></i> ${_('base.nav.support')}</a></li>
                             <li role="separator" class="divider"></li>
-                            <li><a href="#" data-target="#donate-modal" data-toggle="modal"><i class="fa fa-fw fa-heart"></i> Donate</a></li>
+                            <li><a href="#" data-target="#donate-modal" data-toggle="modal"><i class="fa fa-fw fa-heart"></i> ${_('base.nav.donate')}</a></li>
                             <li role="separator" class="divider"></li>
                             % if plexpy.CONFIG.CHECK_GITHUB:
-                            <li><a href="#" id="nav-update"><i class="fa fa-fw fa-arrow-alt-circle-up"></i> Check for Updates</a></li>
+                            <li><a href="#" id="nav-update"><i class="fa fa-fw fa-arrow-alt-circle-up"></i> ${_('base.nav.check_for_updates')}</a></li>
                             % endif
-                            <li><a href="#" id="nav-restart"><i class="fa fa-fw fa-refresh"></i> Restart</a></li>
-                            <li><a href="#" id="nav-shutdown"><i class="fa fa-fw fa-power-off"></i> Shutdown</a></li>
+                            <li><a href="#" id="nav-restart"><i class="fa fa-fw fa-refresh"></i> ${_('base.nav.restart')}</a></li>
+                            <li><a href="#" id="nav-shutdown"><i class="fa fa-fw fa-power-off"></i> ${_('base.nav.shutdown')}</a></li>
                             % else:
-                            <li><a href="#" data-target="#admin-login-modal" data-toggle="modal"><i class="fa fa-fw fa-lock"></i> Admin Login</a></li>
+                            <li><a href="#" data-target="#admin-login-modal" data-toggle="modal"><i class="fa fa-fw fa-lock"></i> ${_('base.nav.admin_login')}</a></li>
                             <li role="separator" class="divider"></li>
                             % endif
                             % if _session['exp']:
-                            <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> Sign Out</a></li>
+                            <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> ${_('base.nav.sign_out')}</a></li>
                             % endif
                         </ul>
                     </li>
@@ -180,7 +180,7 @@ ${next.modalIncludes()}
             <form id="login-form">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Admin Login</h4>
+                    <h4 class="modal-title">${_('base.nav.admin_login')}</h4>
                 </div>
                 <div class="modal-body">
                     <div class="col-md-6" style="margin: auto;">
@@ -199,7 +199,7 @@ ${next.modalIncludes()}
                         <div class="form-footer">
                             <div class="remember-group">
                                 <label class="control-label">
-                                    <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
+                                    <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> ${_('login.remember_me')}
                                 </label>
                             </div>
                         </div>
@@ -207,7 +207,7 @@ ${next.modalIncludes()}
                 </div>
                 <div class="modal-footer">
                     <span id="sign-in-alert" style="padding-right: 25px; display: none;"></span>
-                    <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                    <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; ${_('login.sign_in')}</button>
                 </div>
                 <input type="hidden" id="admin_login" name="admin_login" value="1" />
             </form>

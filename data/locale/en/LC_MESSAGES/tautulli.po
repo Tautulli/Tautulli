@@ -38,3 +38,47 @@ msgstr "Graphs"
 #: ../../data/interfaces/default/base.html:129
 msgid "base.nav.synced_items"
 msgstr "Synced Items"
+
+#: ../../data/interfaces/default/base.html:140
+msgid "base.nav.settings"
+msgstr "Settings"
+
+#: ../../data/interfaces/default/base.html:142
+msgid "base.nav.view_logs"
+msgstr "View Logs"
+
+#: ../../data/interfaces/default/base.html:144
+msgid "base.nav.support"
+msgstr "Support"
+
+#: ../../data/interfaces/default/base.html:146
+msgid "base.nav.donate"
+msgstr "Donate"
+
+#: ../../data/interfaces/default/base.html:149
+msgid "base.nav.check_for_updates"
+msgstr "Check for Updates"
+
+#: ../../data/interfaces/default/base.html:151
+msgid "base.nav.restart"
+msgstr "Restart"
+
+#: ../../data/interfaces/default/base.html:152
+msgid "base.nav.shutdown"
+msgstr "Shutdown"
+
+#: ../../data/interfaces/default/base.html:154
+msgid "base.nav.admin_login"
+msgstr "Admin Login"
+
+#: ../../data/interfaces/default/base.html:158
+msgid "base.nav.sign_out"
+msgstr "Sign Out"
+
+#: ../../data/interfaces/default/base.html:202
+msgid "login.remember_me"
+msgstr "Remember me"
+
+#: ../../data/interfaces/default/base.html:210
+msgid "login.sign_in"
+msgstr "Sign In"
