@@ -494,6 +494,8 @@ class Users(object):
         else:
             query_days = [1, 7, 30, 0]
 
+        timestamp = helpers.timestamp()
+
         monitor_db = database.MonitorDatabase()
 
         user_watch_time_stats = []
@@ -501,7 +503,7 @@ class Users(object):
         group_by = 'reference_id' if grouping else 'id'
 
         for days in query_days:
-            timestamp = int((datetime.now(tz=plexpy.SYS_TIMEZONE) - timedelta(days=days)).timestamp())
+            timestamp_query = timestamp - days * 24 * 60 * 60
 
             try:
                 if days > 0:
@@ -511,7 +513,7 @@ class Users(object):
                                 'COUNT(DISTINCT %s) AS total_plays ' \
                                 'FROM session_history ' \
                                 'WHERE stopped >= %s ' \
-                                'AND user_id = ? ' % (group_by, timestamp)
+                                'AND user_id = ? ' % (group_by, timestamp_query)
                         result = monitor_db.select(query, args=[user_id])
                     else:
                         result = []
