@@ -1,1 +1,0 @@
-msgfmt.py -o en/LC_MESSAGES/tautulli.mo en/LC_MESSAGES/tautulli
