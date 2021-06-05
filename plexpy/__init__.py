@@ -2709,5 +2709,5 @@ def set_locale(locale):
     logger.info("Setting locale to '%s'", locale)
     locale_dir = os.path.join(PROG_DIR, 'data/locale/')
     translation = gettext.translation('tautulli', localedir=locale_dir,
-                                      languages=[locale], fallback='en')
+                                      languages=[locale, 'en'], fallback=True)
     translation.install()
