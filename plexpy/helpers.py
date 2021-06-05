@@ -30,7 +30,6 @@ from cloudinary.utils import cloudinary_url
 from collections import OrderedDict
 import datetime
 from functools import reduce, wraps
-import gettext
 import hashlib
 import imghdr
 from future.moves.itertools import islice, zip_longest
@@ -1696,10 +1695,3 @@ def short_season(title):
     if title.startswith('Season ') and title[7:].isdigit():
         return 'S%s' % title[7:]
     return title
-
-
-def translate(text):
-    locale_dir = os.path.join(str(plexpy.PROG_DIR), 'data/locales/')
-    translation = gettext.translation('tautulli', localedir=locale_dir,
-                                      languages=[plexpy.CONFIG.LOCALE], fallback='en')
-    return translation.gettext(text)

@@ -17,6 +17,7 @@ from __future__ import unicode_literals
 from future.builtins import range
 
 import datetime
+import gettext
 import os
 import future.moves.queue as queue
 import sqlite3
@@ -536,6 +537,8 @@ def start():
     global _STARTED
 
     if _INITIALIZED:
+        set_locale(CONFIG.LOCALE)
+
         # Start refreshes on a separate thread
         threading.Thread(target=startup_refresh).start()
 
@@ -2700,3 +2703,11 @@ def get_tautulli_info():
         'tautulli_python_version': common.PYTHON_VERSION,
     }
     return tautulli
+
+
+def set_locale(locale):
+    logger.info("Setting locale to '%s'", locale)
+    locale_dir = os.path.join(PROG_DIR, 'data/locales/')
+    translation = gettext.translation('tautulli', localedir=locale_dir,
+                                      languages=[locale], fallback='en')
+    translation.install()

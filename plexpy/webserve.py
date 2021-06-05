@@ -72,7 +72,6 @@ if plexpy.PYTHON2:
     import webstart
     from api2 import API2
     from helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
-    from helpers import translate as _
     from session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
     from webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
     if common.PLATFORM == 'Windows':
@@ -107,7 +106,6 @@ else:
     from plexpy import webstart
     from plexpy.api2 import API2
     from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
-    from plexpy.helpers import translate as _
     from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
     from plexpy.webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
     if common.PLATFORM == 'Windows':
@@ -3259,7 +3257,7 @@ class WebInterface(object):
         https_changed = False
         refresh_libraries = False
         refresh_users = False
-        refresh_page = False
+        change_locale = False
 
         # First run from the setup wizard
         if kwargs.pop('first_run', None):
@@ -3324,7 +3322,7 @@ class WebInterface(object):
 
         # Refresh the page if locale changed
         if kwargs.get('locale') != plexpy.CONFIG.LOCALE:
-            refresh_page = True
+            change_locale = True
 
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
@@ -3426,9 +3424,12 @@ class WebInterface(object):
         if refresh_users:
             threading.Thread(target=users.refresh_users).start()
 
+        if change_locale:
+            plexpy.set_locale(plexpy.CONFIG.LOCALE)
+
         result = {'result': 'success', 'message': 'Settings saved.'}
-        if refresh_page:
-            result['refresh'] = refresh_page
+        if change_locale:
+            result['refresh'] = True
         return result
 
     @cherrypy.expose
