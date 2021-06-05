@@ -103,7 +103,7 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <select class="form-control" id="locale" name="locale">
-                                        % for lang_code, lang_name in common.LOCALES.items():
+                                        % for lang_code, lang_name in sorted(common.LOCALES.items(), key=lambda l: l[1]):
                                         <option value="${lang_code}" lang="${lang_code}" ${'selected' if config['locale'] == lang_code else ''}>${lang_name}</option>
                                         % endfor
                                     </select>
