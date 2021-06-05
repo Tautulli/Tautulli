@@ -260,8 +260,14 @@ SCHEDULER_LIST = OrderedDict(SCHEDULER_LIST)
 
 LOCALES = {
     'de': 'Deutsche',
+    'el': 'Ελληνικά',
     'en': 'English',
-    'fr': 'Français'
+    'es': 'Español',
+    'fr': 'Français',
+    'it': 'Italiano',
+    'nl': 'Nederlands',
+    'pt': 'Português',
+    'sv': 'Svenska',
 }
 
 DATE_TIME_FORMATS = [
