@@ -109,7 +109,7 @@
                                     </select>
                                 </div>
                             </div>
-                            <p class="help-block">Change the display language of Tautulli. Refresh the page to show changes. Help translate Tautulli on <a href="${anon_url('https://hosted.weblate.org/engage/tautulli')}" target="_blank">Weblate</a>.</p>
+                            <p class="help-block">Change the display language of Tautulli. Help translate Tautulli on <a href="${anon_url('https://hosted.weblate.org/engage/tautulli')}" target="_blank">Weblate</a>.</p>
                         </div>
                         <div class="form-group">
                             <label for="date_format">Date Format</label>
@@ -2324,7 +2324,7 @@ $(document).ready(function() {
     }
 
     // Alert the user that their changes require a restart.
-    function postSaveChecks() {
+    function postSaveChecks(data) {
         if (authChanged || httpChanged || directoryChanged) {
           $('#restart-modal').modal('show');
         }
@@ -2338,6 +2338,9 @@ $(document).ready(function() {
         setBaseURLSuffix();
         toggleRevealTokens();
         settingsChanged = false;
+        if (data.responseJSON.refresh) {
+            location.reload();
+        }
     }
 
     var configForm = $("#configUpdate");

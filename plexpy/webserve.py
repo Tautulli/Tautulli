@@ -3259,6 +3259,7 @@ class WebInterface(object):
         https_changed = False
         refresh_libraries = False
         refresh_users = False
+        refresh_page = False
 
         # First run from the setup wizard
         if kwargs.pop('first_run', None):
@@ -3320,6 +3321,10 @@ class WebInterface(object):
         if kwargs.get('launch_startup') != plexpy.CONFIG.LAUNCH_STARTUP or \
                 kwargs.get('launch_browser') != plexpy.CONFIG.LAUNCH_BROWSER:
             startup_changed = True
+
+        # Refresh the page if locale changed
+        if kwargs.get('locale') != plexpy.CONFIG.LOCALE:
+            refresh_page = True
 
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
@@ -3421,7 +3426,10 @@ class WebInterface(object):
         if refresh_users:
             threading.Thread(target=users.refresh_users).start()
 
-        return {'result': 'success', 'message': 'Settings saved.'}
+        result = {'result': 'success', 'message': 'Settings saved.'}
+        if refresh_page:
+            result['refresh'] = refresh_page
+        return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
