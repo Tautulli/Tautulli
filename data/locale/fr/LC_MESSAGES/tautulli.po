@@ -16,25 +16,25 @@ msgstr ""
 
 #: ../../data/interfaces/default/base.html:107
 #: ../../data/interfaces/default/base.html:109
-msgid "Libraries"
+msgid "base.nav.libraries"
 msgstr "Bibliothèques"
 
 #: ../../data/interfaces/default/base.html:112
 #: ../../data/interfaces/default/base.html:114
-msgid "Users"
+msgid "base.nav.users"
 msgstr "Utilisateurs"
 
 #: ../../data/interfaces/default/base.html:117
 #: ../../data/interfaces/default/base.html:119
-msgid "History"
+msgid "base.nav.history"
 msgstr "Historique"
 
 #: ../../data/interfaces/default/base.html:122
 #: ../../data/interfaces/default/base.html:124
-msgid "Graphs"
+msgid "base.nav.graphs"
 msgstr "Graphiques"
 
 #: ../../data/interfaces/default/base.html:127
 #: ../../data/interfaces/default/base.html:129
-msgid "Synced Items"
+msgid "base.nav.synced_items"
 msgstr "Éléments synchronisés"
