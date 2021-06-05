@@ -259,8 +259,9 @@ SCHEDULER_LIST = [
 SCHEDULER_LIST = OrderedDict(SCHEDULER_LIST)
 
 LOCALES = {
+    'de': 'Deutsche',
     'en': 'English',
-    'fr': 'French'
+    'fr': 'Français'
 }
 
 DATE_TIME_FORMATS = [
