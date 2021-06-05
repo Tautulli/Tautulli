@@ -23,7 +23,6 @@ from backports import csv
 
 from io import open, BytesIO
 import base64
-import gettext
 import json
 import linecache
 import os
@@ -116,8 +115,6 @@ else:
 
 
 def serve_template(templatename, **kwargs):
-    _ = gettext.gettext
-
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
     template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
 
@@ -3260,7 +3257,7 @@ class WebInterface(object):
         https_changed = False
         refresh_libraries = False
         refresh_users = False
-        refresh_page = False
+        change_locale = False
 
         # First run from the setup wizard
         if kwargs.pop('first_run', None):
@@ -3325,7 +3322,7 @@ class WebInterface(object):
 
         # Refresh the page if locale changed
         if kwargs.get('locale') != plexpy.CONFIG.LOCALE:
-            refresh_page = True
+            change_locale = True
 
         # If we change any monitoring settings, make sure we reschedule tasks.
         if kwargs.get('check_github') != plexpy.CONFIG.CHECK_GITHUB or \
@@ -3427,9 +3424,12 @@ class WebInterface(object):
         if refresh_users:
             threading.Thread(target=users.refresh_users).start()
 
+        if change_locale:
+            plexpy.set_locale(plexpy.CONFIG.LOCALE)
+
         result = {'result': 'success', 'message': 'Settings saved.'}
-        if refresh_page:
-            result['refresh'] = refresh_page
+        if change_locale:
+            result['refresh'] = True
         return result
 
     @cherrypy.expose
