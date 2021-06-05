@@ -1,25 +1,40 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-06-05 01:01+0200\n"
+"PO-Revision-Date: 2021-06-04 23:06+0000\n"
+"Last-Translator: JonnyWong16 <9099342+JonnyWong16@users.noreply.github.com>\n"
+"Language-Team: English <https://hosted.weblate.org/projects/tautulli/tautulli/"
+"en/>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 4.7-dev\n"
+
 #: ../../data/interfaces/default/base.html:107
 #: ../../data/interfaces/default/base.html:109
-msgid "Libraries"
-msgstr ""
+msgid "base.nav.libraries"
+msgstr "Libraries"
 
 #: ../../data/interfaces/default/base.html:112
 #: ../../data/interfaces/default/base.html:114
-msgid "Users"
-msgstr ""
+msgid "base.nav.users"
+msgstr "Users"
 
 #: ../../data/interfaces/default/base.html:117
 #: ../../data/interfaces/default/base.html:119
-msgid "History"
-msgstr ""
+msgid "base.nav.history"
+msgstr "History"
 
 #: ../../data/interfaces/default/base.html:122
 #: ../../data/interfaces/default/base.html:124
-msgid "Graphs"
-msgstr ""
+msgid "base.nav.graphs"
+msgstr "Graphs"
 
 #: ../../data/interfaces/default/base.html:127
 #: ../../data/interfaces/default/base.html:129
-msgid "Synced Items"
-msgstr ""
-
+msgid "base.nav.synced_items"
+msgstr "Synced Items"
