@@ -180,7 +180,7 @@ ${next.modalIncludes()}
             <form id="login-form">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">Admin Login</h4>
+                    <h4 class="modal-title">${_('base.nav.admin_login')}</h4>
                 </div>
                 <div class="modal-body">
                     <div class="col-md-6" style="margin: auto;">
@@ -199,7 +199,7 @@ ${next.modalIncludes()}
                         <div class="form-footer">
                             <div class="remember-group">
                                 <label class="control-label">
-                                    <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
+                                    <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> ${_('login.remember_me')}
                                 </label>
                             </div>
                         </div>
@@ -207,7 +207,7 @@ ${next.modalIncludes()}
                 </div>
                 <div class="modal-footer">
                     <span id="sign-in-alert" style="padding-right: 25px; display: none;"></span>
-                    <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                    <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; ${_('login.sign_in')}</button>
                 </div>
                 <input type="hidden" id="admin_login" name="admin_login" value="1" />
             </form>

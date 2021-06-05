@@ -74,3 +74,11 @@ msgstr "Admin Login"
 #: ../../data/interfaces/default/base.html:158
 msgid "base.nav.sign_out"
 msgstr "Sign Out"
+
+#: ../../data/interfaces/default/base.html:202
+msgid "login.remember_me"
+msgstr "Remember me"
+
+#: ../../data/interfaces/default/base.html:210
+msgid "login.sign_in"
+msgstr "Sign In"
