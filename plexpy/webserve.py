@@ -3185,6 +3185,7 @@ class WebInterface(object):
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "pms_update_check_interval": plexpy.CONFIG.PMS_UPDATE_CHECK_INTERVAL,
+            "locale": plexpy.CONFIG.LOCALE,
             "date_format": plexpy.CONFIG.DATE_FORMAT,
             "time_format": plexpy.CONFIG.TIME_FORMAT,
             "week_start_monday": checked(plexpy.CONFIG.WEEK_START_MONDAY),

@@ -99,6 +99,19 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="locale">Display Language</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <select class="form-control" id="locale" name="locale">
+                                        % for lang_code, lang_name in common.LOCALES.items():
+                                        <option value="${lang_code}" lang="${lang_code}" ${'selected' if config['locale'] == lang_code else ''}>${lang_name}</option>
+                                        % endfor
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">Change the display language of Tautulli. Refresh the page to show changes. Help translate Tautulli on <a href="${anon_url('https://hosted.weblate.org/engage/tautulli')}" target="_blank">Weblate</a>.</p>
+                        </div>
+                        <div class="form-group">
                             <label for="date_format">Date Format</label>
                             <div class="row">
                                 <div class="col-md-4">
