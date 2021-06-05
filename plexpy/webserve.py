@@ -23,7 +23,6 @@ from backports import csv
 
 from io import open, BytesIO
 import base64
-import gettext
 import json
 import linecache
 import os
@@ -73,6 +72,7 @@ if plexpy.PYTHON2:
     import webstart
     from api2 import API2
     from helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
+    from helpers import translate as _
     from session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
     from webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
     if common.PLATFORM == 'Windows':
@@ -107,6 +107,7 @@ else:
     from plexpy import webstart
     from plexpy.api2 import API2
     from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
+    from plexpy.helpers import translate as _
     from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
     from plexpy.webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
     if common.PLATFORM == 'Windows':
@@ -116,8 +117,6 @@ else:
 
 
 def serve_template(templatename, **kwargs):
-    _ = gettext.gettext
-
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
     template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
 
