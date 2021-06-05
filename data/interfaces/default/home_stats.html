@@ -58,6 +58,8 @@ DOCUMENTATION :: END
     # Human readable duration
     def hd(seconds):
         m, s = divmod(cast_to_int(seconds), 60)
+        if s > 30:
+            m += 1
         h, m = divmod(m, 60)
         return str(h).zfill(1) + ':' + str(m).zfill(2)
 %>
