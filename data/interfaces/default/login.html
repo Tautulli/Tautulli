@@ -54,16 +54,16 @@
                             % if plex_login:
                             <li class="open">
                                 <div class="link login-method-header">
-                                    Sign In with Plex
+                                    ${_('login.sign_in_plex')}
                                 </div>
                                 <ul class="submenu login-button-plex" style="display: block;">
                                     <li>
                                         <div>
-                                            <button id="sign-in-plex" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                                            <button id="sign-in-plex" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; ${_('login.sign_in')}</button>
                                         </div>
                                         <div class="remember-group">
                                             <label class="control-label">
-                                                <input type="checkbox" id="remember_me_plex" name="remember_me_plex" title="for 30 days" value="1" checked="checked" /> Remember me
+                                                <input type="checkbox" id="remember_me_plex" name="remember_me_plex" title="for 30 days" value="1" checked="checked" /> ${_('login.remember_me')}
                                             </label>
                                         </div>
                                     </li>
@@ -72,30 +72,30 @@
                             % endif
                             <li class="${'open' if not plex_login else ''}">
                                 <div class="link login-method-header">
-                                    Sign In with Tautulli
+                                    ${_('login.sign_in_tautulli')}
                                 </div>
                                 <ul class="submenu" style="${'display: block;' if not plex_login else ''}">
                                     <li>
                                         <form id="login-form">
                                             <div class="form-group">
                                                 <label for="username" class="control-label">
-                                                    Username
+                                                    ${_('login.username')}
                                                 </label>
                                                 <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" autofocus>
                                             </div>
                                             <div class="form-group">
                                                 <label for="password" class="control-label">
-                                                    Password
+                                                    ${_('login.password')}
                                                 </label>
                                                 <input type="password" id="password" name="password" class="form-control">
                                             </div>
                                             <div class="form-group">
                                                 <span class="remember-group">
                                                     <label class="control-label">
-                                                        <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
+                                                        <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> ${_('login.remember_me')}
                                                     </label>
                                                 </span>
-                                                <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                                                <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; ${_('login.sign_in')}</button>
                                             </div>
                                         </form>
                                     </li>
@@ -119,7 +119,7 @@
         signIn(true, authToken);
     }
     function OAuthErrorCallback() {
-        $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
+        $('#sign-in-alert').text('${_("login.error_plex_communication")}').show();
     }
 
     $('#sign-in-plex').click(function() {
@@ -134,9 +134,9 @@
     function signIn(plex, token) {
         $('.login-container button').prop('disabled', true);
         if (plex) {
-            $('#sign-in-plex').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+            $('#sign-in-plex').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; ${_("login.sign_in")}');
         } else {
-            $('#sign-in').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+            $('#sign-in').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; ${_("login.sign_in")}');
         }
 
         const username = plex ? null : $('#username').val();
@@ -164,23 +164,23 @@
                 },
                 401: function(xhr, status) {
                     if (plex) {
-                        $('#sign-in-alert').text('Invalid Plex Login.').show();
+                        $('#sign-in-alert').text('${_("login.error_plex_invalid")}').show();
                     } else {
-                        $('#sign-in-alert').text('Incorrect username or password.').show();
+                        $('#sign-in-alert').text('${_("login.error_tautulli_invalid")}').show();
                         $('#username').focus();
                     }
                 },
                 429: function(xhr, status) {
                     var retry = Math.ceil(xhr.getResponseHeader('Retry-After') / 60)
-                    $('#sign-in-alert').text('Too many login attempts. Try again in ' + retry + ' minute(s).').show();
+                    $('#sign-in-alert').text(${_("login.error_retry")}).show();
                 }
             },
             complete: function() {
                 $('.login-container button').prop('disabled', false);
                 if (plex) {
-                    $('#sign-in-plex').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+                    $('#sign-in-plex').html('<i class="fa fa-sign-in"></i>&nbsp; ${_("login.sign_in")}');
                 } else {
-                    $('#sign-in').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+                    $('#sign-in').html('<i class="fa fa-sign-in"></i>&nbsp; ${_("login.sign_in")}');
                 }
             }
         });

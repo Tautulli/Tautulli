@@ -1,5 +1,5 @@
 # Translations template for PROJECT.
-# Copyright (C) 2021 ORGANIZATION
+# Copyright (C) 2021 Tautulli
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
 #
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-04 21:44-0700\n"
+"POT-Creation-Date: 2021-06-05 00:01-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,19 +17,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
 
-#: ../../data/interfaces/default/base.html:107
-#: ../../data/interfaces/default/base.html:109
-msgid "base.nav.libraries"
+#: ../../data/interfaces/default/base.html:149
+msgid "base.nav.check_for_updates"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:112
-#: ../../data/interfaces/default/base.html:114
-msgid "base.nav.users"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:117
-#: ../../data/interfaces/default/base.html:119
-msgid "base.nav.history"
+#: ../../data/interfaces/default/base.html:146
+msgid "base.nav.donate"
 msgstr ""
 
 #: ../../data/interfaces/default/base.html:122
@@ -37,53 +30,111 @@ msgstr ""
 msgid "base.nav.graphs"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:127
-#: ../../data/interfaces/default/base.html:129
-msgid "base.nav.synced_items"
+#: ../../data/interfaces/default/base.html:117
+#: ../../data/interfaces/default/base.html:119
+msgid "base.nav.history"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:140
-msgid "base.nav.settings"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:142
-msgid "base.nav.view_logs"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:144
-msgid "base.nav.support"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:146
-msgid "base.nav.donate"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:149
-msgid "base.nav.check_for_updates"
+#: ../../data/interfaces/default/base.html:107
+#: ../../data/interfaces/default/base.html:109
+msgid "base.nav.libraries"
 msgstr ""
 
 #: ../../data/interfaces/default/base.html:151
 msgid "base.nav.restart"
 msgstr ""
 
+#: ../../data/interfaces/default/base.html:140
+msgid "base.nav.settings"
+msgstr ""
+
 #: ../../data/interfaces/default/base.html:152
 msgid "base.nav.shutdown"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:154
-#: ../../data/interfaces/default/base.html:183
-msgid "base.nav.admin_login"
+#: ../../data/interfaces/default/base.html:144
+msgid "base.nav.support"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:158
-msgid "base.nav.sign_out"
+#: ../../data/interfaces/default/base.html:127
+#: ../../data/interfaces/default/base.html:129
+msgid "base.nav.synced_items"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:112
+#: ../../data/interfaces/default/base.html:114
+msgid "base.nav.users"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:142
+msgid "base.nav.view_logs"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:297
+msgid "global.cancel"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:290
+#: ../../data/interfaces/default/base.html:298
+msgid "global.confirm"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:154
+#: ../../data/interfaces/default/base.html:183
+msgid "login.admin_login"
+msgstr ""
+
+#: ../../data/interfaces/default/login.html:122
+msgid "login.error_plex_communication"
+msgstr ""
+
+#: ../../data/interfaces/default/login.html:167
+msgid "login.error_plex_invalid"
+msgstr ""
+
+#: ../../data/interfaces/default/login.html:175
+msgid "login.error_retry"
+msgstr ""
+
+#: ../../data/interfaces/default/login.html:169
+msgid "login.error_tautulli_invalid"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:195
+#: ../../data/interfaces/default/login.html:88
+msgid "login.password"
 msgstr ""
 
 #: ../../data/interfaces/default/base.html:202
+#: ../../data/interfaces/default/login.html:66
+#: ../../data/interfaces/default/login.html:95
 msgid "login.remember_me"
 msgstr ""
 
 #: ../../data/interfaces/default/base.html:210
+#: ../../data/interfaces/default/login.html:62
+#: ../../data/interfaces/default/login.html:98
+#: ../../data/interfaces/default/login.html:137
+#: ../../data/interfaces/default/login.html:139
+#: ../../data/interfaces/default/login.html:181
+#: ../../data/interfaces/default/login.html:183
 msgid "login.sign_in"
+msgstr ""
+
+#: ../../data/interfaces/default/login.html:57
+msgid "login.sign_in_plex"
+msgstr ""
+
+#: ../../data/interfaces/default/login.html:75
+msgid "login.sign_in_tautulli"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:158
+msgid "login.sign_out"
+msgstr ""
+
+#: ../../data/interfaces/default/base.html:189
+#: ../../data/interfaces/default/login.html:82
+msgid "login.username"
 msgstr ""
 

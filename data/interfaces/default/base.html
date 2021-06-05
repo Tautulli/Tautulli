@@ -151,11 +151,11 @@
                             <li><a href="#" id="nav-restart"><i class="fa fa-fw fa-refresh"></i> ${_('base.nav.restart')}</a></li>
                             <li><a href="#" id="nav-shutdown"><i class="fa fa-fw fa-power-off"></i> ${_('base.nav.shutdown')}</a></li>
                             % else:
-                            <li><a href="#" data-target="#admin-login-modal" data-toggle="modal"><i class="fa fa-fw fa-lock"></i> ${_('base.nav.admin_login')}</a></li>
+                            <li><a href="#" data-target="#admin-login-modal" data-toggle="modal"><i class="fa fa-fw fa-lock"></i> ${_('login.admin_login')}</a></li>
                             <li role="separator" class="divider"></li>
                             % endif
                             % if _session['exp']:
-                            <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> ${_('base.nav.sign_out')}</a></li>
+                            <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> ${_('login.sign_out')}</a></li>
                             % endif
                         </ul>
                     </li>
@@ -180,19 +180,19 @@ ${next.modalIncludes()}
             <form id="login-form">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                    <h4 class="modal-title">${_('base.nav.admin_login')}</h4>
+                    <h4 class="modal-title">${_('login.admin_login')}</h4>
                 </div>
                 <div class="modal-body">
                     <div class="col-md-6" style="margin: auto;">
                         <div class="form-group">
                             <label for="username" class="control-label">
-                                Username
+                                ${_('login.username')}
                             </label>
                             <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off">
                         </div>
                         <div class="form-group">
                             <label for="password" class="control-label">
-                                Password
+                                ${_('login.password')}
                             </label>
                             <input type="password" id="password" name="password" class="form-control">
                         </div>
@@ -287,15 +287,15 @@ ${next.modalIncludes()}
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Confirm</h4>
+                <h4 class="modal-title">${_('global.confirm')}</h4>
             </div>
             <div class="modal-body">
                 <div id="confirm-message" style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-button">Confirm</button>
+                <button type="button" class="btn btn-dark" data-dismiss="modal">${_('global.cancel')}</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-button">${_('global.confirm')}</button>
             </div>
         </div>
     </div>

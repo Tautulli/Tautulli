@@ -14,50 +14,80 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Generator: Weblate 4.7-dev\n"
 
-msgid "base.nav.libraries"
-msgstr "Libraries"
-
-msgid "base.nav.users"
-msgstr "Users"
-
-msgid "base.nav.history"
-msgstr "History"
-
-msgid "base.nav.graphs"
-msgstr "Graphs"
-
-msgid "base.nav.synced_items"
-msgstr "Synced Items"
-
-msgid "base.nav.settings"
-msgstr "Settings"
-
-msgid "base.nav.view_logs"
-msgstr "View Logs"
-
-msgid "base.nav.support"
-msgstr "Support"
+msgid "base.nav.check_for_updates"
+msgstr "Check for Updates"
 
 msgid "base.nav.donate"
 msgstr "Donate"
 
-msgid "base.nav.check_for_updates"
-msgstr "Check for Updates"
+msgid "base.nav.graphs"
+msgstr "Graphs"
+
+msgid "base.nav.history"
+msgstr "History"
+
+msgid "base.nav.libraries"
+msgstr "Libraries"
 
 msgid "base.nav.restart"
 msgstr "Restart"
 
+msgid "base.nav.settings"
+msgstr "Settings"
+
 msgid "base.nav.shutdown"
 msgstr "Shutdown"
 
-msgid "base.nav.admin_login"
+msgid "base.nav.support"
+msgstr "Support"
+
+msgid "base.nav.synced_items"
+msgstr "Synced Items"
+
+msgid "base.nav.users"
+msgstr "Users"
+
+msgid "base.nav.view_logs"
+msgstr "View Logs"
+
+msgid "global.cancel"
+msgstr "Cancel"
+
+msgid "global.confirm"
+msgstr "Confirm"
+
+msgid "login.admin_login"
 msgstr "Admin Login"
 
-msgid "base.nav.sign_out"
-msgstr "Sign Out"
+msgid "login.error_plex_communication"
+msgstr "Error communicating with Plex.tv."
+
+msgid "login.error_plex_invalid"
+msgstr "Invalid Plex login."
+
+msgid "login.error_retry"
+msgstr "`Too many login attempts. Try again in ${retry} minute(s).`"
+
+msgid "login.error_tautulli_invalid"
+msgstr "Incorrect username or password."
+
+msgid "login.password"
+msgstr "Password"
 
 msgid "login.remember_me"
 msgstr "Remember me"
 
 msgid "login.sign_in"
 msgstr "Sign In"
+
+msgid "login.sign_in_plex"
+msgstr "Sign In with Plex"
+
+msgid "login.sign_in_tautulli"
+msgstr "Sign In with Tautulli"
+
+msgid "login.sign_out"
+msgstr "Sign Out"
+
+msgid "login.username"
+msgstr "Username"
