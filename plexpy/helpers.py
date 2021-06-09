@@ -537,6 +537,13 @@ def helper_divmod(a, b):
         return 0
 
 
+def helper_len(s):
+    try:
+        return len(s)
+    except (ValueError, TypeError):
+        return 0
+
+
 def helper_round(n, ndigits=None):
     try:
         return round(n, ndigits)

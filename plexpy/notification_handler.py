@@ -1825,6 +1825,7 @@ def str_eval(field_name, kwargs):
         'divmod': helpers.helper_divmod,
         'float': helpers.cast_to_float,
         'int': helpers.cast_to_int,
+        'len': helpers.helper_len,
         'round': helpers.helper_round,
         'str': str
     }
