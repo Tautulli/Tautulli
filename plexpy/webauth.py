@@ -132,12 +132,7 @@ def check_credentials(username=None, password=None, token=None, admin_login='0',
     if username and password:
         if plexpy.CONFIG.HTTP_PASSWORD:
             user_details = {'user_id': None, 'username': username}
-
-            if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-                    username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
-                return True, user_details, 'admin'
-            elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-                    username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
+            if username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
                 return True, user_details, 'admin'
 
     if plexpy.CONFIG.HTTP_PLEX_ADMIN or (not admin_login == '1' and plexpy.CONFIG.ALLOW_GUEST_ACCESS):

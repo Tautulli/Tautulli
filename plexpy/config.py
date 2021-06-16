@@ -24,6 +24,7 @@ import time
 import threading
 
 from configobj import ConfigObj, ParseError
+from hashing_passwords import make_hash
 
 import plexpy
 if plexpy.PYTHON2:
@@ -124,8 +125,8 @@ _CONFIG_DEFINITIONS = {
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
     'HTTP_BASIC_AUTH': (int, 'General', 0),
     'HTTP_ENVIRONMENT': (str, 'General', 'production'),
-    'HTTP_HASH_PASSWORD': (int, 'General', 0),
-    'HTTP_HASHED_PASSWORD': (int, 'General', 0),
+    'HTTP_HASH_PASSWORD': (int, 'General', 1),
+    'HTTP_HASHED_PASSWORD': (int, 'General', 1),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
     'HTTP_PASSWORD': (str, 'General', ''),
     'HTTP_PORT': (int, 'General', 8181),
@@ -569,3 +570,13 @@ class Config(object):
                     int(self.CHECK_GITHUB_INTERVAL // 60)
                     + (self.CHECK_GITHUB_INTERVAL % 60 > 0)
             )
+
+            self.CONFIG_VERSION = 19
+
+        if self.CONFIG_VERSION == 19:
+            if not self.HTTP_HASHED_PASSWORD:
+                self.HTTP_PASSWORD = make_hash(self.HTTP_PASSWORD)
+            self.HTTP_HASH_PASSWORD = 1
+            self.HTTP_HASHED_PASSWORD = 1
+
+            self.CONFIG_VERSION = 20

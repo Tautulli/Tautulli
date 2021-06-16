@@ -647,13 +647,7 @@ General optional parameters:
         data = None
         apikey = hashlib.sha224(str(random.getrandbits(256)).encode('utf-8')).hexdigest()[0:32]
         if plexpy.CONFIG.HTTP_USERNAME and plexpy.CONFIG.HTTP_PASSWORD:
-            authenticated = False
-            if plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-                    username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):
-                authenticated = True
-            elif not plexpy.CONFIG.HTTP_HASHED_PASSWORD and \
-                    username == plexpy.CONFIG.HTTP_USERNAME and password == plexpy.CONFIG.HTTP_PASSWORD:
-                authenticated = True
+            authenticated = username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD)
 
             if authenticated:
                 if plexpy.CONFIG.API_KEY:
