@@ -14,7 +14,6 @@ from plexapi.library import LibrarySection
 from plexapi.server import PlexServer
 from plexapi.sonos import PlexSonosClient
 from plexapi.sync import SyncItem, SyncList
-from plexapi.utils import joinArgs
 from requests.status_codes import _codes as codes
 
 
@@ -76,6 +75,7 @@ class MyPlexAccount(PlexObject):
     REQUESTS = 'https://plex.tv/api/invites/requests'                                           # get
     SIGNIN = 'https://plex.tv/users/sign_in.xml'                                                # get with auth
     WEBHOOKS = 'https://plex.tv/api/v2/user/webhooks'                                           # get, post with data
+    OPTOUTS = 'https://plex.tv/api/v2/user/%(userUUID)s/settings/opt_outs'                      # get
     LINK = 'https://plex.tv/api/v2/pins/link'                                                   # put
     # Hub sections
     VOD = 'https://vod.provider.plex.tv/'                                                       # get
@@ -128,26 +128,16 @@ class MyPlexAccount(PlexObject):
         self.title = data.attrib.get('title')
         self.username = data.attrib.get('username')
         self.uuid = data.attrib.get('uuid')
-        subscription = data.find('subscription')
 
+        subscription = data.find('subscription')
         self.subscriptionActive = utils.cast(bool, subscription.attrib.get('active'))
         self.subscriptionStatus = subscription.attrib.get('status')
         self.subscriptionPlan = subscription.attrib.get('plan')
+        self.subscriptionFeatures = self.listAttrs(subscription, 'id', etag='feature')
 
-        self.subscriptionFeatures = []
-        for feature in subscription.iter('feature'):
-            self.subscriptionFeatures.append(feature.attrib.get('id'))
+        self.roles = self.listAttrs(data, 'id', rtag='roles', etag='role')
 
-        roles = data.find('roles')
-        self.roles = []
-        if roles is not None:
-            for role in roles.iter('role'):
-                self.roles.append(role.attrib.get('id'))
-
-        entitlements = data.find('entitlements')
-        self.entitlements = []
-        for entitlement in entitlements.iter('entitlement'):
-            self.entitlements.append(entitlement.attrib.get('id'))
+        self.entitlements = self.listAttrs(data, 'id', rtag='entitlements', etag='entitlement')
 
         # TODO: Fetch missing MyPlexAccount attributes
         self.profile_settings = None
@@ -460,7 +450,7 @@ class MyPlexAccount(PlexObject):
         if isinstance(allowChannels, dict):
             params['filterMusic'] = self._filterDictToStr(filterMusic or {})
         if params:
-            url += joinArgs(params)
+            url += utils.joinArgs(params)
             response_filters = self.query(url, self._session.put)
         return response_servers, response_filters
 
@@ -470,6 +460,7 @@ class MyPlexAccount(PlexObject):
             Parameters:
                 username (str): Username, email or id of the user to return.
         """
+        username = str(username)
         for user in self.users():
             # Home users don't have email, username etc.
             if username.lower() == user.title.lower():
@@ -698,6 +689,13 @@ class MyPlexAccount(PlexObject):
         elem = ElementTree.fromstring(req.text)
         return self.findItems(elem)
 
+    def onlineMediaSources(self):
+        """ Returns a list of user account Online Media Sources settings :class:`~plexapi.myplex.AccountOptOut`
+        """
+        url = self.OPTOUTS % {'userUUID': self.uuid}
+        elem = self.query(url)
+        return self.findItems(elem, cls=AccountOptOut, etag='optOut')
+
     def link(self, pin):
         """ Link a device to the account using a pin code.
 
@@ -884,13 +882,7 @@ class MyPlexServerShare(PlexObject):
         """
         url = MyPlexAccount.FRIENDSERVERS.format(machineId=self.machineIdentifier, serverId=self.id)
         data = self._server.query(url)
-        sections = []
-
-        for section in data.iter('Section'):
-            if ElementTree.iselement(section):
-                sections.append(Section(self, section, url))
-
-        return sections
+        return self.findItems(data, Section, rtag='SharedServer')
 
     def history(self, maxresults=9999999, mindate=None):
         """ Get all Play History for a user in this shared server.
@@ -1075,7 +1067,7 @@ class MyPlexDevice(PlexObject):
         self.screenDensity = data.attrib.get('screenDensity')
         self.createdAt = utils.toDatetime(data.attrib.get('createdAt'))
         self.lastSeenAt = utils.toDatetime(data.attrib.get('lastSeenAt'))
-        self.connections = [connection.attrib.get('uri') for connection in data.iter('Connection')]
+        self.connections = self.listAttrs(data, 'uri', etag='Connection')
 
     def connect(self, timeout=None):
         """ Returns a new :class:`~plexapi.client.PlexClient` or :class:`~plexapi.server.PlexServer`
@@ -1341,3 +1333,54 @@ def _chooseConnection(ctype, name, results):
         log.debug('Connecting to %s: %s?X-Plex-Token=%s', ctype, results[0]._baseurl, results[0]._token)
         return results[0]
     raise NotFound('Unable to connect to %s: %s' % (ctype.lower(), name))
+
+
+class AccountOptOut(PlexObject):
+    """ Represents a single AccountOptOut
+        'https://plex.tv/api/v2/user/{userUUID}/settings/opt_outs'
+
+        Attributes:
+            TAG (str): optOut
+            key (str): Online Media Source key
+            value (str): Online Media Source opt_in, opt_out, or opt_out_managed
+    """
+    TAG = 'optOut'
+    CHOICES = {'opt_in', 'opt_out', 'opt_out_managed'}
+
+    def _loadData(self, data):
+        self.key = data.attrib.get('key')
+        self.value = data.attrib.get('value')
+
+    def _updateOptOut(self, option):
+        """ Sets the Online Media Sources option.
+
+            Parameters:
+                option (str): see CHOICES
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: ``option`` str not found in CHOICES.
+        """
+        if option not in self.CHOICES:
+            raise NotFound('%s not found in available choices: %s' % (option, self.CHOICES))
+        url = self._server.OPTOUTS % {'userUUID': self._server.uuid}
+        params = {'key': self.key, 'value': option}
+        self._server.query(url, method=self._server._session.post, params=params)
+        self.value = option  # assume query successful and set the value to option
+
+    def optIn(self):
+        """ Sets the Online Media Source to "Enabled". """
+        self._updateOptOut('opt_in')
+
+    def optOut(self):
+        """ Sets the Online Media Source to "Disabled". """
+        self._updateOptOut('opt_out')
+
+    def optOutManaged(self):
+        """ Sets the Online Media Source to "Disabled for Managed Users".
+        
+            Raises:
+                :exc:`~plexapi.exceptions.BadRequest`: When trying to opt out music.
+        """
+        if self.key == 'tv.plex.provider.music':
+            raise BadRequest('%s does not have the option to opt out managed users.' % self.key)
+        self._updateOptOut('opt_out_managed')

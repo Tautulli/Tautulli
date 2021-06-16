@@ -200,9 +200,8 @@ def toDatetime(value, format=None):
         else:
             # https://bugs.python.org/issue30684
             # And platform support for before epoch seems to be flaky.
-            # TODO check for others errors too.
-            if int(value) <= 0:
-                value = 86400
+            # Also limit to max 32-bit integer
+            value = min(max(int(value), 86400), 2**31 - 1)
             value = datetime.fromtimestamp(int(value))
     return value
 

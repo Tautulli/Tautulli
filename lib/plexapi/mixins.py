@@ -2,7 +2,7 @@
 from urllib.parse import quote_plus, urlencode
 
 from plexapi import media, settings, utils
-from plexapi.exceptions import NotFound
+from plexapi.exceptions import BadRequest, NotFound
 
 
 class AdvancedSettingsMixin(object):
@@ -10,15 +10,8 @@ class AdvancedSettingsMixin(object):
 
     def preferences(self):
         """ Returns a list of :class:`~plexapi.settings.Preferences` objects. """
-        items = []
         data = self._server.query(self._details_key)
-        for item in data.iter('Preferences'):
-            for elem in item:
-                setting = settings.Preferences(data=elem, server=self._server)
-                setting._initpath = self.key
-                items.append(setting)
-
-        return items
+        return self.findItems(data, settings.Preferences, rtag='Preferences')
 
     def preference(self, pref):
         """ Returns a :class:`~plexapi.settings.Preferences` object for the specified pref.
@@ -39,13 +32,18 @@ class AdvancedSettingsMixin(object):
         """ Edit a Plex object's advanced settings. """
         data = {}
         key = '%s/prefs?' % self.key
-        preferences = {pref.id: list(pref.enumValues.keys()) for pref in self.preferences()}
+        preferences = {pref.id: pref for pref in self.preferences() if pref.enumValues}
         for settingID, value in kwargs.items():
-            enumValues = preferences.get(settingID)
-            if value in enumValues:
+            try:
+                pref = preferences[settingID]
+            except KeyError:
+                raise NotFound('%s not found in %s' % (value, list(preferences.keys())))
+            
+            enumValues = pref.enumValues
+            if enumValues.get(value, enumValues.get(str(value))):
                 data[settingID] = value
             else:
-                raise NotFound('%s not found in %s' % (value, enumValues))
+                raise NotFound('%s not found in %s' % (value, list(enumValues)))
         url = key + urlencode(data)
         self._server.query(url, method=self._server._session.put)
 
@@ -185,6 +183,26 @@ class PosterMixin(PosterUrlMixin):
                 poster (:class:`~plexapi.media.Poster`): The poster object to select.
         """
         poster.select()
+
+
+class RatingMixin(object):
+    """ Mixin for Plex objects that can have user star ratings. """
+
+    def rate(self, rating=None):
+        """ Rate the Plex object. Note: Plex ratings are displayed out of 5 stars (e.g. rating 7.0 = 3.5 stars).
+
+            Parameters:
+                rating (float, optional): Rating from 0 to 10. Exclude to reset the rating.
+
+            Raises:
+                :exc:`~plexapi.exceptions.BadRequest`: If the rating is invalid.
+        """
+        if rating is None:
+            rating = -1
+        elif not isinstance(rating, (int, float)) or rating < 0 or rating > 10:
+            raise BadRequest('Rating must be between 0 to 10.')
+        key = '/:/rate?key=%s&identifier=com.plexapp.plugins.library&rating=%s' % (self.ratingKey, rating)
+        self._server.query(key, method=self._server._session.put)
 
 
 class SplitMergeMixin(object):
