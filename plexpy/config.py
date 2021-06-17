@@ -574,7 +574,7 @@ class Config(object):
             self.CONFIG_VERSION = 19
 
         if self.CONFIG_VERSION == 19:
-            if not self.HTTP_HASHED_PASSWORD:
+            if self.HTTP_PASSWORD and not self.HTTP_HASHED_PASSWORD:
                 self.HTTP_PASSWORD = make_hash(self.HTTP_PASSWORD)
             self.HTTP_HASH_PASSWORD = 1
             self.HTTP_HASHED_PASSWORD = 1
