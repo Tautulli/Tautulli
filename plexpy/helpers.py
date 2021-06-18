@@ -1296,6 +1296,8 @@ def sort_obj(obj):
                         result_end.append([k, sort_obj(v)])
                     else:
                         result_start.append([k, sort_obj(v)])
+                if not v:
+                    result_end.append([k, v])
             else:
                 result_start.append([k, sort_obj(v)])
 
@@ -1331,7 +1333,7 @@ def get_attrs_to_dict(obj, attrs):
                 value = getattr(value, sub, None)
         elif isinstance(sub, dict):
             if isinstance(value, list):
-                value = [get_attrs_to_dict(o, sub) for o in value]
+                value = [get_attrs_to_dict(o, sub) for o in value] or [get_attrs_to_dict({}, sub)]
             else:
                 value = get_attrs_to_dict(value, sub)
         elif callable(sub):
