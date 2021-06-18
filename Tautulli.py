@@ -212,9 +212,18 @@ def main():
                 'Could not create data directory: ' + plexpy.DATA_DIR + '. Exiting....')
 
     # Make sure the DATA_DIR is writeable
-    if not os.access(plexpy.DATA_DIR, os.W_OK):
+    test_file = os.path.join(plexpy.DATA_DIR, '.TEST')
+    try:
+        with open(test_file, 'w'):
+            pass
+    except IOError:
         raise SystemExit(
             'Cannot write to the data directory: ' + plexpy.DATA_DIR + '. Exiting...')
+    finally:
+        try:
+            os.remove(test_file)
+        except OSError:
+            pass
 
     # Put the database in the DATA_DIR
     plexpy.DB_FILE = os.path.join(plexpy.DATA_DIR, database.FILENAME)
