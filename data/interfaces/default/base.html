@@ -86,7 +86,7 @@
             </div>
             <div class="collapse navbar-collapse navbar-right" id="navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li class="hidden-sm hidden-xs">
+                    <li>
                         <form action="search" method="post" class="form" id="search_form">
                             <div class="input-group">
                                 <span class="input-textbox">
@@ -395,8 +395,22 @@ ${next.modalIncludes()}
         }
     });
 
+    function displaySearch() {
+        if ($(this).width() < 768) {
+            $('#search_button').removeClass('btn-inactive');
+            $('#query').css({ right: 0, width: '100%' })
+        } else if ($('#query').val().trim() == '') {
+            $('#search_button').addClass('btn-inactive');
+            $('#query').css({ right: '-200px', width: '0' })
+        }
+    }
+    displaySearch();
+    $(window).resize(function() {
+        displaySearch();
+    });
+
     $('#search_form').submit(function (e) {
-        if ($('#query').hasClass('active') && $('#query').val().trim() != '') {
+        if ($('#query').val().trim() != '') {
             $.ajax({
                 type: 'post',
                 url: 'search',
@@ -404,14 +418,16 @@ ${next.modalIncludes()}
             })
         } else {
             e.preventDefault();
-            $('#search_button').removeClass('btn-inactive');
-            $('#query').clearQueue().val('').animate({ right: '0', width: '200px' }).addClass('active').focus();
+            if ($(window).width() >= 768) {
+                $('#search_button').removeClass('btn-inactive');
+                $('#query').clearQueue().val('').animate({ right: '0', width: '200px' }).addClass('active').focus();
+            }
         }
     })
     $('#query').on('blur', function (e) {
-        if ($(this).val().trim() == '') {
+        if ($(this).val().trim() == '' && $(window).width() >= 768) {
             $(this).delay(200).animate({ right: '-200px', width: '0' }, function () {
-                $('#search_button').addClass('btn-inactive');
+                displaySearch();
             }).removeClass('active');
         }
     });

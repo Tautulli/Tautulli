@@ -3432,6 +3432,22 @@ pre::-webkit-scrollbar-thumb {
     -o-transition: background 0.3s;
     transition: background 0.3s;
 }
+@media (max-width: 767px) {
+    #search_form {
+        width: 100%;
+    }
+    #search_form span.input-textbox {
+        width: 100%;
+    }
+    #search_form #query {
+        width: 100%;
+        right: 0;
+    }
+    #search_form #query.active {
+        width: 100%;
+        right: 0px;
+    }
+}
 #update_search_form div.input-group {
     display: inline-table;
     vertical-align: middle;

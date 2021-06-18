@@ -30,8 +30,11 @@
 <script>
     var query_string = "${query.replace('"','\\"').replace('/','\\/') | n}";
 
-    $('#search_button').removeClass('btn-inactive');
-    $('#query').val(query_string).css({ right: '0', width: '250px' }).addClass('active');
+    $('#query').val(query_string);
+    if ($(window).width() >= 768) {
+        $('#search_button').removeClass('btn-inactive');
+        $('#query').css({ right: '0', width: '250px' }).addClass('active');
+    }
 
     $.ajax({
         url: 'get_search_results_children',
