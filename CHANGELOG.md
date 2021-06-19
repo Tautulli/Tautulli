@@ -1,5 +1,26 @@
 # Changelog
 
+# v2.7.4 (2021-06-19)
+
+* Activity:
+  * Fix: Incorrect quality profile shown on the activity card.
+* Notifications:
+  * New: Added ability to evaluate Python expressions in notification parameters.
+  * New: Added tilde (~) to represent blank notification condition values.
+* Exporter:
+  * Fix: Blank fields missing from csv and json exports. 
+  * New: Added some new exporter fields.
+* Graphs:
+  * Fix: Play counts and durations not matching the homepage statistics.
+* UI:
+  * New: Show search bar in the collapsed menu on the mobile layout. (#1446)
+  * Change: Do not show seconds for total played duration on Users and Libraries tables.
+* Other:
+  * Fix: Check the Tautulli data folder is writable on startup. (#1441)
+  * New: Update PlexAPI to 4.6.1.
+  * Change: Always hash HTTP password in config file.
+
+
 ## v2.7.3 (2021-05-22)
 
 * Activity:
