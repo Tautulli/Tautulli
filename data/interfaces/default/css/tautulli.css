@@ -2175,6 +2175,10 @@ span.settings-warning {
     padding-left: 10px;
     margin-left: -10px;
 }
+#newsletter_agent_options.hidden-settings {
+    padding-left: 15px;
+    margin-left: 0;
+}
 .advanced-setting {
     display: none;
 }
