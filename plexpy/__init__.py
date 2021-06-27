@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -790,7 +790,8 @@ def dbcheck():
     # mobile_devices table :: This table keeps record of devices linked with the mobile app
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT, '
+        'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, '
+        'platform TEXT, version TEXT, friendly_name TEXT, '
         'onesignal_id TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)'
     )
 
@@ -2213,6 +2214,23 @@ def dbcheck():
         c_db.execute(
             'ALTER TABLE mobile_devices ADD COLUMN onesignal_id TEXT'
         )
+
+    # Upgrade mobile_devices table from earlier versions
+    try:
+        c_db.execute('SELECT platform FROM mobile_devices')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table mobile_devices.")
+        c_db.execute(
+            'ALTER TABLE mobile_devices ADD COLUMN platform TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE mobile_devices ADD COLUMN version TEXT'
+        )
+        # Update mobile device platforms
+        for device_id, in c_db.execute(
+                'SELECT device_id FROM mobile_devices WHERE official > 0').fetchall():
+            c_db.execute('UPDATE mobile_devices SET platform = ? WHERE device_id = ?',
+                         ['android', device_id])
 
     # Upgrade notifiers table from earlier versions
     try:

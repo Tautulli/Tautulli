@@ -16,7 +16,14 @@ DOCUMENTATION :: END
             % if device['official'] == -1:
                 <span class="toggle-left official-tooltip" data-toggle="tooltip" data-placement="top" title="OneSignal Validation Failed"><i class="fa fa-lg fa-fw fa-exclamation-triangle"></i></span>
             % elif device['official'] > 0:
-                <span class="toggle-left"><i class="fa fa-lg fa-fw fa-mobile"></i></span>
+                <%
+                    icon = 'mobile'
+                    if device['platform'] == 'android':
+                        icon = 'android'
+                    elif device['platform'] == 'ios':
+                        icon = 'apple'
+                %>
+                <span class="toggle-left"><i class="fa fa-lg fa-fw fa-${icon}"></i></span>
             % else:
                 <span class="toggle-left official-tooltip" data-toggle="tooltip" data-placement="top" title="Unofficial or Unknown App"><i class="fa fa-lg fa-fw fa-exclamation-triangle"></i></span>
             % endif

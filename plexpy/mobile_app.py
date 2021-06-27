@@ -89,12 +89,15 @@ def get_mobile_device_by_token(device_token=None):
     return get_mobile_devices(device_token=device_token)
 
 
-def add_mobile_device(device_id=None, device_name=None, device_token=None, friendly_name=None, onesignal_id=None):
+def add_mobile_device(device_id=None, device_name=None, device_token=None,
+                      platform=None, version=None, friendly_name=None, onesignal_id=None):
     db = database.MonitorDatabase()
 
     keys = {'device_id': device_id}
     values = {'device_name': device_name,
               'device_token': device_token,
+              'platform': platform,
+              'version': version,
               'onesignal_id': onesignal_id}
 
     if friendly_name:
@@ -110,8 +113,9 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None, frien
     if result == 'insert':
         logger.info("Tautulli MobileApp :: Registered mobile device '%s' in the database." % device_name)
     else:
-        logger.debug("Tautulli MobileApp :: Re-registered mobile device '%s' in the database." % device_name)
+        logger.info("Tautulli MobileApp :: Re-registered mobile device '%s' in the database." % device_name)
 
+    set_last_seen(device_token=device_token)
     threading.Thread(target=set_official, args=[device_id, onesignal_id]).start()
     return True
 
@@ -172,10 +176,13 @@ def delete_mobile_device(mobile_device_id=None, device_id=None):
 def set_official(device_id, onesignal_id):
     db = database.MonitorDatabase()
     official = validate_onesignal_id(onesignal_id=onesignal_id)
+    platform = 'android' if official > 0 else None
 
     try:
-        result = db.action('UPDATE mobile_devices SET official = ? WHERE device_id = ?',
-                           args=[official, device_id])
+        result = db.action('UPDATE mobile_devices '
+                           'SET official = ?, platform = coalesce(platform, ?) '
+                           'WHERE device_id = ?',
+                           args=[official, platform, device_id])
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to set official flag for device: %s." % e)
         return

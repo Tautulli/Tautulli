@@ -21,9 +21,18 @@
                                 <p class="help-block">Optional: Enter a friendly name for this device. Leave blank for default.</p>
                             </div>
                             <div class="form-group">
+                                <label for="friendly_name">App Version</label>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control" id="app_version" name="app_version" value="${device['version'] or ''}" size="30" readonly>
+                                    </div>
+                                </div>
+                                <p class="help-block">The version of the mobile app.</p>
+                          </div>
+                            <div class="form-group">
                                 <label for="friendly_name">Device Token</label>
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-md-12">
                                         <div class="input-group">
                                             <span class="input-group-btn">
                                                 <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>

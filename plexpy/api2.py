@@ -398,9 +398,9 @@ class API2(object):
 
         return data
 
-    def register_device(self, device_id='', device_name='', friendly_name='', onesignal_id=None,
-                        min_version='', **kwargs):
-        """ Registers the Tautulli Android App for notifications.
+    def register_device(self, device_id='', device_name='', platform=None, version=None,
+                        friendly_name='', onesignal_id=None, min_version='', **kwargs):
+        """ Registers the Tautulli Remote App.
 
             ```
             Required parameters:
@@ -408,6 +408,8 @@ class API2(object):
                 device_name (str):        The device name of the mobile device
 
             Optional parameters:
+                platform (str):           The platform of the mobile devices
+                version (str):            The version of the app
                 friendly_name (str):      A friendly name to identify the mobile device
                 onesignal_id (str):       The OneSignal id for the mobile device
                 min_version (str):        The minimum Tautulli version supported by the mobile device, e.g. v2.5.6
@@ -462,6 +464,8 @@ class API2(object):
         result = mobile_app.add_mobile_device(device_id=device_id,
                                               device_name=device_name,
                                               device_token=self._api_apikey,
+                                              platform=platform,
+                                              version=version,
                                               friendly_name=friendly_name,
                                               onesignal_id=onesignal_id)
 
