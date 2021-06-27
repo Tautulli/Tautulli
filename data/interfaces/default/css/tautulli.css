@@ -3888,16 +3888,15 @@ a:hover .overlay-refresh-image:hover {
 #changelog-modal ul {
     padding-left: 20px;
 }
-.google-play-badge {
-    display:inline-block;
-    height:45px;
-    margin-top: 10px;
+.app-badge {
+    float: left;
+    display: inline-block;
+    height: 46px;
+    margin-right: 10px;
+    margin-bottom: 5px;
 }
-.google-play-badge img {
-    border: 1px solid #3B3B3B;
-    border-radius: 6px;
-    box-sizing: border-box;
-    height: 45px;
+.app-badge img {
+    height: 46px;
     vertical-align: middle;
 }
 

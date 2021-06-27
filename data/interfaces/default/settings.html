@@ -56,7 +56,7 @@
                 <li role="presentation"><a id="nav-tabs-newsletter_agents" href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
                 <li role="presentation"><a id="nav-tabs-3rd_party_apis" href="#tabs-3rd_party_apis" aria-controls="tabs-3rd_party_apis" role="tab" data-toggle="tab">3rd Party APIs</a></li>
                 <li role="presentation"><a id="nav-tabs-import_backups" href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
-                <li role="presentation"><a id="nav-tabs-android_app" href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
+                <li role="presentation"><a id="nav-tabs-remote_app" href="#tabs-remote_app" aria-controls="tabs-remote_app" role="tab" data-toggle="tab">Tautulli Remote App <sup><small>beta</small></sup></a></li>
             </ul>
         </div>
         <div class="col-md-9">
@@ -696,7 +696,7 @@
                             <label>
                                 <input type="checkbox" id="api_enabled" name="api_enabled" value="1" ${config['api_enabled']}> Enable API
                             </label>
-                            <p class="help-block">Allow remote applications to interface with Tautulli.</p>
+                            <p class="help-block">Allow external applications to interface with Tautulli.</p>
                         </div>
                         <div id="apioptions">
                             <div class="form-group">
@@ -1559,20 +1559,28 @@
 
                     </div>
 
-                    <div role="tabpanel" class="tab-pane" id="tabs-android_app">
+                    <div role="tabpanel" class="tab-pane" id="tabs-remote_app">
 
                         <div class="padded-header">
-                            <h3>Tautulli Remote Android App</h3>
+                            <h3>Tautulli Remote App</h3>
                         </div>
 
                         <div class="form-group">
                             <label>Get the App</label>
                             <p class="help-block">
-                                Get the <a href="${anon_url('https://play.google.com/store/apps/details?id=com.tautulli.tautulli_remote')}" target="_blank" rel="noreferrer">Tautulli Remote</a> app on Google Play<sup><small>TM</small></sup> to access Tautulli from your Android device!<br />
-                                <span class="google-play-badge">
-                                    <a href="${anon_url('https://play.google.com/store/apps/details?id=com.tautulli.tautulli_remote')}" target="_blank" rel="noreferrer"><img alt="Get it on Google Play" src="images/en-play-badge.png" /></a>
+                                Get the Tautulli Remote app on
+                                <a href="${anon_url('https://play.google.com/store/apps/details?id=com.tautulli.tautulli_remote')}" target="_blank" rel="noreferrer">Google Play</a>
+                                to access Tautulli from your mobile device!<br />
+                            </p>
+                            <p class="help-block">
+                                <span class="app-badge">
+                                    <a href="${anon_url('https://play.google.com/store/apps/details?id=com.tautulli.tautulli_remote')}" target="_blank" rel="noreferrer"><img alt="Get it on Google Play" src="images/google-play-badge.svg" /></a>
+                                </span>
+                                <span class="app-badge">
+                                    <small>Google Play and the Google Play logo are trademarks of Google LLC.</small>
                                 </span>
                             </p>
+                            <br style="clear: both">
                         </div>
                         <div class="form-group">
                             <label>Registered Devices</label>
@@ -2040,12 +2048,12 @@ Rating: {rating}/10   --> Rating: /10
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title">Register Tautulli Android App</h4>
+                <h4 class="modal-title">Register Tautulli Remote App</h4>
             </div>
             <div class="modal-body">
                 <label>Instructions</label>
                 <p class="help-block">
-                    Scan the QR code below with the Tautulli Android app to automatically register it with the server (make sure the Tautulli Address below is correct)
+                    Scan the QR code below with the Tautulli Remote app to automatically register it with the server (make sure the Tautulli Address below is correct)
                     or manually enter the connection info and device token into the app settings. This window will automatically close once device registration is successful.
                 </p>
                 <p class="help-block">

@@ -1,4 +1,4 @@
-# This file is part of Tautulli.
+﻿# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -2342,7 +2342,9 @@ def dbcheck():
 
     # Rename notifiers in the database
     result = c_db.execute('SELECT agent_label FROM notifiers '
-                          'WHERE agent_label = "XBMC" OR agent_label = "OSX Notify"').fetchone()
+                          'WHERE agent_label = "XBMC" '
+                          'OR agent_label = "OSX Notify" '
+                          'OR agent_name = "androidapp"').fetchone()
     if result:
         logger.debug("Altering database. Renaming notifiers.")
         c_db.execute(
@@ -2350,6 +2352,10 @@ def dbcheck():
         )
         c_db.execute(
             'UPDATE notifiers SET agent_label = "macOS Notification Center" WHERE agent_label = "OSX Notify"'
+        )
+        c_db.execute(
+            'UPDATE notifiers SET agent_name = "remoteapp", agent_label = "Tautulli Remote App" '
+            'WHERE agent_name = "androidapp"'
         )
 
     # Upgrade exports table from earlier versions
