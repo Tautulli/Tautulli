@@ -2407,6 +2407,20 @@ def dbcheck():
     except sqlite3.OperationalError:
         pass
 
+    # Upgrade imgur_lookup table from earlier versions
+    try:
+        c_db.execute('DELETE FROM imgur_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM imgur_lookup GROUP BY img_hash)')
+    except sqlite3.OperationalError:
+        pass
+
+    # Upgrade cloudinary_lookup table from earlier versions
+    try:
+        c_db.execute('DELETE FROM cloudinary_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM cloudinary_lookup GROUP BY img_hash)')
+    except sqlite3.OperationalError:
+        pass
+
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
     if not result.fetchone():
