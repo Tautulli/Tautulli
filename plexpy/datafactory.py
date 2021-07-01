@@ -659,7 +659,8 @@ class DataFactory(object):
                             '   FROM session_history ' \
                             '   WHERE session_history.stopped >= %s ' \
                             '   GROUP BY %s) AS sh ' \
-                            'LEFT OUTER JOIN library_sections AS ls ON sh.section_id = ls.section_id ' \
+                            'LEFT OUTER JOIN (SELECT * FROM library_sections WHERE deleted_section = 0) ' \
+                            '   AS ls ON sh.section_id = ls.section_id ' \
                             'GROUP BY sh.section_id ' \
                             'ORDER BY %s DESC, sh.started DESC ' \
                             'LIMIT %s OFFSET %s ' % (timestamp, group_by, sort_type, stats_count, stats_start)

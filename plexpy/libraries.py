@@ -1099,7 +1099,7 @@ class Libraries(object):
         if row_ids and row_ids is not None:
             row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
 
-            # Get the user_ids corresponding to the row_ids
+            # Get the section_ids corresponding to the row_ids
             result = monitor_db.select('SELECT server_id, section_id FROM library_sections '
                                        'WHERE id IN ({})'.format(','.join(['?'] * len(row_ids))), row_ids)
 
