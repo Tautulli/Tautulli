@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 #  This file is part of Tautulli.
 #
@@ -21,6 +21,7 @@ from future.builtins import object
 
 import base64
 import bleach
+from collections import defaultdict
 import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -3308,19 +3309,10 @@ class TAUTULLIREMOTEAPP(Notifier):
         try:
             query = 'SELECT * FROM mobile_devices WHERE official = 1 ' \
                     'AND onesignal_id IS NOT NULL AND onesignal_id != ""'
-            result = db.select(query=query)
+            return db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Notifiers :: Unable to retrieve Tautulli Remote app devices list: %s." % e)
-            return {'': ''}
-
-        devices = {}
-        for device in result:
-            if device['friendly_name']:
-                devices[device['device_id']] = device['friendly_name']
-            else:
-                devices[device['device_id']] = device['device_name']
-
-        return devices
+            return []
 
     def _return_config_options(self):
         config_option = []
@@ -3336,21 +3328,21 @@ class TAUTULLIREMOTEAPP(Notifier):
                                  'https://github.com/%s/%s/wiki/Frequently-Asked-Questions#notifications-pycryptodome'
                                  % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank">FAQ</a>.' ,
                 'input_type': 'help'
-                })
+            })
         else:
             config_option.append({
                 'label': 'Note',
                 'description': 'The PyCryptodome library was found. '
                                'The content of your notifications will be sent encrypted!',
                 'input_type': 'help'
-                })
+            })
 
-        config_option[-1]['description'] += '<br><br>Notifications are sent using the ' \
-            '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">' \
-            'OneSignal</a>. Some user data is collected and cannot be encrypted. ' \
+        config_option[-1]['description'] += ('<br><br>Notifications are sent using '
+            '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">'
+            'OneSignal</a>. Some user data is collected and cannot be encrypted.<br>'
             'Please read the <a href="' + helpers.anon_url(
-                'https://onesignal.com/privacy_policy') + '" target="_blank">' \
-            'OneSignal Privacy Policy</a> for more details.'
+                'https://onesignal.com/privacy_policy') + '" target="_blank">'
+            'OneSignal Privacy Policy</a> for more details.')
 
         devices = self.get_devices()
 
@@ -3362,8 +3354,19 @@ class TAUTULLIREMOTEAPP(Notifier):
                                'Get the Tautulli Remote App</a> and register a device.<br>'
                                'Note: Only devices registered with a valid OneSignal ID will appear in the list.',
                 'input_type': 'help'
-                })
+            })
         else:
+            if len({d['platform'] for d in devices}) <= 1:
+                device_select = {d['device_id']: d['friendly_name'] or d['device_name'] for d in devices}
+            else:
+                device_select = defaultdict(list)
+                for d in devices:
+                    platform = 'iOS' if d['platform'] == 'ios' else d['platform'].capitalize()
+                    device_select[platform].append({
+                        'value': d['device_id'],
+                        'text': d['friendly_name'] or d['device_name']
+                    })
+
             config_option.append({
                 'label': 'Device',
                 'value': self.config['device_id'],
@@ -3373,27 +3376,37 @@ class TAUTULLIREMOTEAPP(Notifier):
                                'register a new device</a> with Tautulli.<br>'
                                'Note: Only devices registered with a valid OneSignal ID will appear in the list.',
                 'input_type': 'select',
-                'select_options': devices
-                })
-
-        config_option.append({
-            'label': 'Priority',
-            'value': self.config['priority'],
-            'name': 'remoteapp_priority',
-            'description': 'Set the notification priority.',
-            'input_type': 'select',
-            'select_options': {1: 'Minimum', 2: 'Low', 3: 'Normal', 4: 'High'}
+                'select_options': device_select,
+                'refresh': True
             })
-        config_option.append({
-            'label': 'Notification Image Type',
-            'value': self.config['notification_type'],
-            'name': 'remoteapp_notification_type',
-            'description': 'Set the notification image type.',
-            'input_type': 'select',
-            'select_options': {0: 'No notification image',
-                               1: 'Small image (Expandable text)',
-                               2: 'Large image (Non-expandable text)'
-                               }
+
+        platform = next((d['platform'] for d in devices if d['device_id'] == self.config['device_id']), None)
+
+        if platform == 'android':
+            config_option.append({
+                'label': 'Priority',
+                'value': self.config['priority'],
+                'name': 'remoteapp_priority',
+                'description': 'Set the notification priority.',
+                'input_type': 'select',
+                'select_options': {
+                    1: 'Minimum',
+                    2: 'Low',
+                    3: 'Normal',
+                    4: 'High'
+                }
+            })
+            config_option.append({
+                'label': 'Notification Image Type',
+                'value': self.config['notification_type'],
+                'name': 'remoteapp_notification_type',
+                'description': 'Set the notification image type.',
+                'input_type': 'select',
+                'select_options': {
+                    0: 'No notification image',
+                    1: 'Small image (Expandable text)',
+                    2: 'Large image (Non-expandable text)'
+                }
             })
 
         return config_option
