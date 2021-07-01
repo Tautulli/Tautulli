@@ -3286,12 +3286,13 @@ class WebInterface(object):
                 kwargs[checked_config] = 1
 
         # If http password exists in config, do not overwrite when blank value received
-        if kwargs.get('http_password') != '    ':
-            kwargs['http_password'] = make_hash(kwargs['http_password'])
+        if kwargs.get('http_password') == '    ':
+            kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
+        else:
+            if kwargs['http_password'] != '':
+                kwargs['http_password'] = make_hash(kwargs['http_password'])
             # Flag to refresh JWT uuid to log out clients
             kwargs['jwt_update_secret'] = True and not first_run
-        else:
-            kwargs['http_password'] = plexpy.CONFIG.HTTP_PASSWORD
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
             # the use prefix is fairly nice in the html, but does not match the actual config
