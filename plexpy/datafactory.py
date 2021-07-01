@@ -71,16 +71,15 @@ class DataFactory(object):
 
             for c_where in custom_where:
                 if 'user_id' in c_where[0]:
-                    # This currently only works if c_where[1] is not a list or tuple
-                    if str(c_where[1]) == session_user_id:
-                        added = True
-                        break
-                    else:
-                        c_where[1] = (c_where[1], session_user_id)
-                        added = True
+                    if isinstance(c_where[1], list) and session_user_id not in c_where[1]:
+                        c_where[1].append(session_user_id)
+                    elif isinstance(c_where[1], str) and c_where[1] != session_user_id:
+                        c_where[1] = [c_where[1], session_user_id]
+                    added = True
+                    break
 
             if not added:
-                custom_where.append(['session_history.user_id', session.get_session_user_id()])
+                custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
