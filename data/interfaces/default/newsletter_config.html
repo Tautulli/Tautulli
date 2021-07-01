@@ -326,10 +326,14 @@
                                                 <div class="col-md-12">
                                                     <select class="form-control" id="${item['name']}" name="${item['name']}">
                                                         % for key, value in sorted(item['select_options'].items()):
-                                                        % if key == item['value']:
-                                                        <option value="${key}" selected>${value}</option>
+                                                        % if isinstance(value, list):
+                                                        <optgroup label="${key}">
+                                                            % for option in sorted(value, key=lambda x: x['text'].lower()):
+                                                                <option value="${option['value']}" ${'selected' if option['value'] == item['value'] else ''}>${option['text']}</option>
+                                                            % endfor
+                                                        </optgroup>
                                                         % else:
-                                                        <option value="${key}">${value}</option>
+                                                        <option value="${key}" ${'selected' if key == item['value'] else ''}>${value}</option>
                                                         % endif
                                                         % endfor
                                                     </select>
