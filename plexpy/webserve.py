@@ -43,6 +43,9 @@ import mako.exceptions
 
 import websocket
 
+if sys.version_info >= (3, 6):
+    import secrets
+
 import plexpy
 if plexpy.PYTHON2:
     import activity_pinger
@@ -4251,7 +4254,10 @@ class WebInterface(object):
     def generate_api_key(self, device=None, **kwargs):
         apikey = ''
         while not apikey or apikey == plexpy.CONFIG.API_KEY or mobile_app.get_mobile_device_by_token(device_token=apikey):
-            apikey = plexpy.generate_uuid()
+            if sys.version_info >= (3, 6):
+                apikey = secrets.token_urlsafe(24)
+            else:
+                apikey = plexpy.generate_uuid()
 
         logger.info("New API key generated.")
         logger._BLACKLIST_WORDS.add(apikey)
