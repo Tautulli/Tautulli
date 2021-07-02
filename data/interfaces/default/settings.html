@@ -1498,9 +1498,6 @@
                                             <button class="btn btn-form" type="button" id="log_dir_browse" data-toggle="browse" data-filter=".folderonly" data-target="#log_dir" ${docker_setting}>Browse</button>
                                         </span>
                                     </div>
-                                    <div class="btn-group">
-                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2447,12 +2444,6 @@ $(document).ready(function() {
     $("#clear_exports").click(function () {
         var msg = 'Are you sure you want to clear the Tautulli metadata exports?';
         var url = 'delete_export?delete_all=true';
-        confirmAjaxCall(url, msg);
-    });
-
-    $("#clear_logs").click(function () {
-        var msg = 'Are you sure you want to clear the Tautulli logs?';
-        var url = 'delete_logs';
         confirmAjaxCall(url, msg);
     });
 
