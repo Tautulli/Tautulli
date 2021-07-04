@@ -6,7 +6,8 @@ added:
 
 fixed:
   comment: >
-    This issue has been fixed and will be available in the next release of Tautulli.
+    This bug has been fixed and will be available in the next release of Tautulli.
+    This issue will be automatically closed once the update is available.
 
 invalid:duplicate:
   comment: >
