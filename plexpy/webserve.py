@@ -3135,7 +3135,6 @@ class WebInterface(object):
         config = {
             "allow_guest_access": checked(plexpy.CONFIG.ALLOW_GUEST_ACCESS),
             "history_table_activity": checked(plexpy.CONFIG.HISTORY_TABLE_ACTIVITY),
-            "http_basic_auth": checked(plexpy.CONFIG.HTTP_BASIC_AUTH),
             "http_host": plexpy.CONFIG.HTTP_HOST,
             "http_username": plexpy.CONFIG.HTTP_USERNAME,
             "http_port": plexpy.CONFIG.HTTP_PORT,
@@ -3273,7 +3272,7 @@ class WebInterface(object):
             "notify_new_device_initial_only",
             "notify_server_update_repeat", "notify_plexpy_update_repeat",
             "monitor_pms_updates", "get_file_sizes", "log_blacklist",
-            "allow_guest_access", "cache_images", "http_proxy", "http_basic_auth", "notify_concurrent_by_ip",
+            "allow_guest_access", "cache_images", "http_proxy", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
             "themoviedb_lookup", "tvmaze_lookup", "musicbrainz_lookup", "http_plex_admin",
             "newsletter_self_hosted", "newsletter_inline_styles", "sys_tray_icon"

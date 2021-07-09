@@ -664,13 +664,6 @@
                             <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
                         </div>
 
-                        <div class="checkbox advanced-setting">
-                            <label>
-                                <input type="checkbox" class="auth-settings" name="http_basic_auth" id="http_basic_auth" value="1" ${config['http_basic_auth']} data-parsley-trigger="change"> Use Basic Authentication
-                            </label>
-                            <p class="help-block">Use basic HTTP authentication instead of the HTML login form.</p>
-                        </div>
-
                         <input type="checkbox" name="auth_changed" id="auth_changed" value="1" style="display: none;">
 
                         <div class="checkbox">
@@ -2873,10 +2866,7 @@ $(document).ready(function() {
     });
 
     function allowPlexAdminCheck () {
-        if ($("#http_basic_auth").is(":checked")) {
-            $("#http_plex_admin").attr("checked", false).attr("disabled", true);
-            $("#allowPlexCheck").html("Plex admin login cannot be enabled with basic authentication.");
-        } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+        if ($('#http_username').val() == '' || $('#http_password').val() == '') {
             $("#http_plex_admin").attr("checked", false).attr("disabled", true);
             $("#allowPlexCheck").html("You must set an admin username and password above to allow Plex admin login.");
         } else {
@@ -2886,15 +2876,12 @@ $(document).ready(function() {
     }
     allowPlexAdminCheck();
 
-    $('#http_username, #http_password, #http_basic_auth').change(function () {
+    $('#http_username, #http_password').change(function () {
         allowPlexAdminCheck();
     });
 
     function allowGuestAccessCheck () {
-        if ($("#http_basic_auth").is(":checked")) {
-            $("#allow_guest_access").attr("checked", false).attr("disabled", true);
-            $("#allowGuestCheck").html("Guest access cannot be enabled with basic authentication.");
-        } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+        if ($('#http_username').val() == '' || $('#http_password').val() == '') {
             $("#allow_guest_access").attr("checked", false).attr("disabled", true);
             $("#allowGuestCheck").html("You must set an admin username and password above to allow guest access.");
         } else {
@@ -2905,7 +2892,7 @@ $(document).ready(function() {
     }
     allowGuestAccessCheck();
 
-    $('#http_username, #http_password, #http_basic_auth').change(function () {
+    $('#http_username, #http_password').change(function () {
         allowGuestAccessCheck();
     });
 
