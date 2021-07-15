@@ -1,5 +1,22 @@
 # Changelog
 
+# v2.7.5 (2021-07-15)
+
+* History:
+  * Fix: Guest users were unable to view history.
+  * Fix: Most Active Library statistics was counting deleted libraries.
+* Newsletters:
+  * Fix: Incorrect padding on the newsletter configuration modal.
+* Mobile App:
+  * New: Tautulli Remote App is out of beta on Android. The iOS app is available for beta testing on TestFlight.
+* API:
+  * New: Added mobile device platform and version to device registration.
+* Other:
+  * Fix: Unable to remove authentication.
+  * Change: Improve API key and device token security on Python 3.
+  * Remove: Basic Authentication setting.
+
+
 # v2.7.4 (2021-06-19)
 
 * Activity:
