@@ -276,7 +276,7 @@ def check_rate_limit(ip_address):
 class AuthController(object):
 
     def check_auth_enabled(self):
-        if plexpy.CONFIG.HTTP_PASSWORD:
+        if not plexpy.CONFIG.HTTP_BASIC_AUTH and plexpy.CONFIG.HTTP_PASSWORD:
             return
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
