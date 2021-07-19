@@ -890,6 +890,73 @@ class Libraries(object):
                                    }
         return library_details
 
+    def get_element_watch_time_stats(self, rating_key=None, grouping=None, query_days=None):
+        if rating_key is None:
+            return []
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        if query_days and query_days is not None:
+            query_days = map(helpers.cast_to_int, str(query_days).split(','))
+        else:
+            query_days = [1, 7, 30, 0]
+
+        timestamp = helpers.timestamp()
+
+        monitor_db = database.MonitorDatabase()
+
+        element_watch_time_stats = []
+
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+
+        for days in query_days:
+            timestamp_query = timestamp - days * 24 * 60 * 60
+
+            try:
+                if days > 0:
+                    if str(rating_key).isdigit():
+                        query = 'SELECT (SUM(stopped - started) - ' \
+                                'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                                'COUNT(DISTINCT %s) AS total_plays ' \
+                                'FROM session_history ' \
+                                'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                                'WHERE stopped >= %s ' \
+                                'AND session_history.grandparent_rating_key = ?' % (group_by, timestamp_query)
+                        result = monitor_db.select(query, args=[rating_key])
+                    else:
+                        result = []
+                else:
+                    if str(rating_key).isdigit():
+                        query = 'SELECT (SUM(stopped - started) - ' \
+                                'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                                'COUNT(DISTINCT %s) AS total_plays ' \
+                                'FROM session_history ' \
+                                'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                                'WHERE session_history.grandparent_rating_key = ?' % group_by
+                        result = monitor_db.select(query, args=[rating_key])
+                    else:
+                        result = []
+            except Exception as e:
+                logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
+                result = []
+
+            for item in result:
+                if item['total_time']:
+                    total_time = item['total_time']
+                    total_plays = item['total_plays']
+                else:
+                    total_time = 0
+                    total_plays = 0
+
+                row = {'query_days': days,
+                       'total_time': total_time,
+                       'total_plays': total_plays
+                       }
+
+                element_watch_time_stats.append(row)
+
+        return element_watch_time_stats
+
     def get_watch_time_stats(self, section_id=None, grouping=None, query_days=None):
         if not session.allow_session_library(section_id):
             return []

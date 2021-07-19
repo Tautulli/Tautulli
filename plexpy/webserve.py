@@ -458,6 +458,23 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'Flush recently added failed.'}
 
+    ##### Indivial Elements (Might be put under Libraries) #####
+
+    @cherrypy.expose
+    @requireAuth()
+    def element_watch_time_stats(self, rating_key=None, **kwargs):
+        if rating_key:
+            element_data = libraries.Libraries()
+            result = element_data.get_element_watch_time_stats(rating_key=rating_key)
+        else:
+            result = None
+
+        if result:
+            return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
+        else:
+            logger.warn("Unable to retrieve data for element_watch_time_stats.")
+            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+
 
     ##### Libraries #####
 

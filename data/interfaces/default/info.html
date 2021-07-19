@@ -470,6 +470,19 @@ DOCUMENTATION :: END
                         <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading season list...</div>
                     </div>
                 </div>
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="show-time-stats" class="user-overview-stats-wrapper">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
+                    </div>
+                </div>
                 % elif data['media_type'] == 'season':
                 <div class="col-md-12">
                     <div class="table-card-header">
@@ -890,6 +903,19 @@ DOCUMENTATION :: END
         },
         complete: function(xhr, status) {
             $("#children-list").html(xhr.responseText);
+        }
+    });
+</script>
+% endif
+% if data['media_type'] == 'show':
+<script>
+    // Populate watch time stats
+    $.ajax({
+        url: 'element_watch_time_stats',
+        async: true,
+        data: { rating_key: "${data['rating_key']}" },
+        complete: function(xhr, status) {
+            $("#show-time-stats").html(xhr.responseText);
         }
     });
 </script>
