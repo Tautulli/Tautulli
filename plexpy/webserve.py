@@ -2476,6 +2476,20 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
+    #called additions instead of adds so it isn't blocked by adblockers...
+    def get_additions_by_date(self, time_range='30'):
+        graph = graphs.Graphs()
+        result = graph.get_total_additions_per_day(time_range=time_range)
+
+        if result:
+            return result
+        else:
+            logger.warn("Unable to retrieve data for get_additions_by_date.")
+            return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
     @addtoapi()
     def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by stream type by date.

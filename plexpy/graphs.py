@@ -421,6 +421,105 @@ class Graphs(object):
                   'series': series_output}
         return output
 
+    def get_total_additions_per_day(self, time_range='30'):
+        monitor_db = database.MonitorDatabase()
+
+        time_range = helpers.cast_to_int(time_range) or 30
+        timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
+
+        try:
+            query = 'SELECT raM.date_added, ' \
+                        'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                        '0 AS tv_count, ' \
+                        '0 AS season_count, ' \
+                        'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                        'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                        '    FROM recently_added ' \
+                        '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
+                    'GROUP BY raM.date_added ' \
+                    'UNION ALL ' \
+                    'SELECT raG.date_added, ' \
+                        '0 AS movie_count, ' \
+                        'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
+                        '0 AS season_count, ' \
+                        '0 AS episode_count ' \
+                        'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                        '    FROM recently_added ' \
+                        '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                        '    GROUP BY grandparent_rating_key) AS raG ' \
+                    'GROUP BY raG.date_added ' \
+                    'UNION ALL ' \
+                    'SELECT raS.date_added, ' \
+                        '0 AS movie_count, ' \
+                        '0 AS tv_count, ' \
+                        'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
+                        '0 AS episode_count ' \
+                        'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                        '   FROM recently_added ' \
+                        '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                        '   GROUP BY parent_rating_key) AS raS ' \
+                    'GROUP BY raS.date_added ' \
+                    'ORDER BY date_added' % (timestamp, timestamp, timestamp)
+
+            result = monitor_db.select(query)
+
+        except Exception as e:
+            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_per_day: %s." % e)
+            return None
+
+         # create our date range as some days may not have any data
+        # but we still want to display them
+        base = datetime.date.today()
+        date_list = [base - datetime.timedelta(days=x) for x in range(0, int(time_range))]
+
+        categories = []
+        series_1 = []
+        series_2 = []
+        series_3 = []
+        series_4 = []
+
+        for date_item in sorted(date_list):
+            date_string = date_item.strftime('%Y-%m-%d')
+            categories.append(date_string)
+            series_1_value = 0
+            series_2_value = 0
+            series_3_value = 0
+            series_4_value = 0
+            for item in result:
+                if date_string == item['date_added']:
+                    series_1_value = item['movie_count'] if series_1_value is 0 else series_1_value
+                    series_2_value = item['tv_count'] if series_2_value is 0 else series_2_value
+                    series_3_value = item['season_count'] if series_3_value is 0 else series_3_value
+                    series_4_value = item['episode_count'] if series_4_value is 0 else series_4_value
+                    continue
+
+            series_1.append(series_1_value)
+            series_2.append(series_2_value)
+            series_3.append(series_3_value)
+            series_4.append(series_4_value)
+
+        series_1_output = {'name': 'Movies',
+                           'data': series_1}
+        series_2_output = {'name': 'Shows',
+                           'data': series_2}
+        series_3_output = {'name': 'Seasons',
+                           'data': series_3}
+        series_4_output = {'name': 'Episodes',
+                           'data': series_4}
+
+        series_output = []
+        if libraries.has_library_type('movie'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('show'):
+            series_output.append(series_2_output)
+            series_output.append(series_3_output)
+            series_output.append(series_4_output)
+
+        output = {'categories': categories,
+                  'series': series_output}
+        
+        return output
+
     def get_total_additions_by_media_type(self, time_range='30'):
         monitor_db = database.MonitorDatabase()
 

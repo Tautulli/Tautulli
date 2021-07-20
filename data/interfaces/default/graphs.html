@@ -649,9 +649,9 @@
             setGraphFormat(yaxis);
 
             $.ajax({
-                url: "get_plays_by_date",
+                url: "get_additions_by_date",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
