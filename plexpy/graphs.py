@@ -444,7 +444,7 @@ class Graphs(object):
                         '0 AS episode_count ' \
                         'FROM (SELECT * ' \
                         '    FROM recently_added ' \
-                        '    WHERE NOT grandparent_rating_key = "" AND added_at >= %s ' \
+                        '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                         '    GROUP BY grandparent_rating_key) AS raG ' \
                     'UNION ALL ' \
                     'SELECT ' \
@@ -473,8 +473,13 @@ class Graphs(object):
 
         for idx, item in enumerate(result):
             if idx == 2:
-                series_3[1] = item['season_count']
+                series_3[1] = item['season_count'] if item['season_count'] is not None else 0 
                 continue
+
+            item['movie_count'] = 0 if item['movie_count'] is None else item['movie_count']
+            item['tv_count'] = 0 if item['tv_count'] is None else item['tv_count']
+            item['season_count'] = 0 if item['season_count'] is None else item['season_count']
+
             series_1.append(item['movie_count'])
             series_2.append(item['tv_count'])
             series_3.append(item['season_count'])
