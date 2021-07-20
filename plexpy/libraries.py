@@ -890,7 +890,7 @@ class Libraries(object):
                                    }
         return library_details
 
-    def get_element_watch_time_stats(self, rating_key=None, grouping=None, query_days=None):
+    def get_element_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None):
         if rating_key is None:
             return []
         if grouping is None:
@@ -907,6 +907,9 @@ class Libraries(object):
 
         element_watch_time_stats = []
 
+
+        identifier = 'session_history.grandparent_rating_key' if media_type == 'show' else 'session_history.rating_key'
+
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         for days in query_days:
@@ -921,7 +924,7 @@ class Libraries(object):
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                                 'WHERE stopped >= %s ' \
-                                'AND session_history.grandparent_rating_key = ?' % (group_by, timestamp_query)
+                                'AND %s = ?' % (group_by, timestamp_query, identifier)
                         result = monitor_db.select(query, args=[rating_key])
                     else:
                         result = []
@@ -932,12 +935,12 @@ class Libraries(object):
                                 'COUNT(DISTINCT %s) AS total_plays ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
-                                'WHERE session_history.grandparent_rating_key = ?' % group_by
+                                'WHERE %s = ?' % (group_by, identifier)
                         result = monitor_db.select(query, args=[rating_key])
                     else:
                         result = []
             except Exception as e:
-                logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
+                logger.warn("Tautulli Libraries :: Unable to execute database query for get_element_watch_time_stats: %s." % e)
                 result = []
 
             for item in result:

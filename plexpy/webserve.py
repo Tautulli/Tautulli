@@ -462,10 +462,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def element_watch_time_stats(self, rating_key=None, **kwargs):
+    def element_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
         if rating_key:
             element_data = libraries.Libraries()
-            result = element_data.get_element_watch_time_stats(rating_key=rating_key)
+            result = element_data.get_element_watch_time_stats(rating_key=rating_key, media_type=media_type)
         else:
             result = None
 

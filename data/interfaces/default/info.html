@@ -477,7 +477,7 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                     <div class="table-card-back">
-                        <div id="show-time-stats" class="user-overview-stats-wrapper">
+                        <div id="watch-time-stats" class="user-overview-stats-wrapper">
                             <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
                             <br>
                         </div>
@@ -492,6 +492,20 @@ DOCUMENTATION :: END
                     </div>
                     <div class="table-card-back">
                         <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading episode list...</div>
+                    </div>
+                </div>
+                % elif data['media_type'] == 'movie':
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="watch-time-stats" class="user-overview-stats-wrapper">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
                     </div>
                 </div>
                 % elif data['media_type'] == 'artist':
@@ -907,15 +921,15 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['media_type'] == 'show':
+% if data['media_type'] in ('show', 'movie'):
 <script>
     // Populate watch time stats
     $.ajax({
         url: 'element_watch_time_stats',
         async: true,
-        data: { rating_key: "${data['rating_key']}" },
+        data: { rating_key: "${data['rating_key']}", media_type: "${data['media_type']}" },
         complete: function(xhr, status) {
-            $("#show-time-stats").html(xhr.responseText);
+            $("#watch-time-stats").html(xhr.responseText);
         }
     });
 </script>
