@@ -2458,6 +2458,20 @@ class WebInterface(object):
         else:
             logger.warn("Unable to retrieve data for get_plays_by_top_10_users.")
             return result
+    
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    #called additions instead of adds so it isn't blocked by adblockers...
+    def get_additions_by_media_type(self, time_range='30'):
+        graph = graphs.Graphs()
+        result = graph.get_total_additions_by_media_type(time_range=time_range)
+
+        if result:
+            return result
+        else:
+            logger.warn("Unable to retrieve data for get_additions_by_media_type.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

@@ -421,6 +421,58 @@ class Graphs(object):
                   'series': series_output}
         return output
 
+    def get_total_additions_by_media_type(self, time_range='30'):
+        monitor_db = database.MonitorDatabase()
+
+        time_range = helpers.cast_to_int(time_range) or 30
+        timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
+
+        try:
+            query = 'SELECT '\
+                        'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                        'SUM(CASE WHEN NOT raM.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count ' \
+                        'FROM (SELECT * ' \
+                        '    FROM recently_added ' \
+                        '    WHERE media_type = "movie" AND added_at >= %s) AS raM ' \
+                    'UNION ALL ' \
+                    'SELECT ' \
+                        'SUM(CASE WHEN raG.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                        'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count ' \
+                        'FROM (SELECT * ' \
+                        '    FROM recently_added ' \
+                        '    WHERE NOT grandparent_rating_key = "" AND added_at >= %s '\
+                        '    GROUP BY grandparent_rating_key) AS raG ' % (timestamp, timestamp)
+
+            result = monitor_db.select(query)
+
+        except Exception as e:
+            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_by_media_type: %s." % e)
+            return None
+
+        categories = ["Movies", "Shows"]
+        series_1 = []
+        series_2 = []
+
+        for item in result:
+            series_1.append(item['movie_count'])
+            series_2.append(item['tv_count'])
+
+        series_1_output = {'name': 'Movies',
+                           'data': series_1}
+        series_2_output = {'name': 'Shows',
+                           'data': series_2}
+
+        series_output = []
+        if libraries.has_library_type('movie'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('show'):
+            series_output.append(series_2_output)
+
+        output = {'categories': categories,
+                  'series': series_output}
+        return output
+
+
     def get_total_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
