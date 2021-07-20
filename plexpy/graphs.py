@@ -428,20 +428,34 @@ class Graphs(object):
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
         try:
-            query = 'SELECT '\
+            query = 'SELECT ' \
                         'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN NOT raM.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count ' \
+                        '0 AS tv_count, ' \
+                        '0 AS season_count, ' \
+                        'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
                         'FROM (SELECT * ' \
                         '    FROM recently_added ' \
-                        '    WHERE media_type = "movie" AND added_at >= %s) AS raM ' \
+                        '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
                     'UNION ALL ' \
                     'SELECT ' \
-                        'SUM(CASE WHEN raG.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count ' \
+                        '0 AS movie_count, ' \
+                        'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
+                        '0 AS season_count, ' \
+                        '0 AS episode_count ' \
                         'FROM (SELECT * ' \
                         '    FROM recently_added ' \
-                        '    WHERE NOT grandparent_rating_key = "" AND added_at >= %s '\
-                        '    GROUP BY grandparent_rating_key) AS raG ' % (timestamp, timestamp)
+                        '    WHERE NOT grandparent_rating_key = "" AND added_at >= %s ' \
+                        '    GROUP BY grandparent_rating_key) AS raG ' \
+                    'UNION ALL ' \
+                    'SELECT ' \
+                        '0 AS movie_count, ' \
+                        '0 AS tv_count, ' \
+                        'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
+                        '0 AS episode_count ' \
+                        'FROM (SELECT * ' \
+                            'FROM recently_added ' \
+                            'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            'GROUP BY parent_rating_key) AS raS' % (timestamp, timestamp, timestamp)
 
             result = monitor_db.select(query)
 
@@ -449,24 +463,46 @@ class Graphs(object):
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_by_media_type: %s." % e)
             return None
 
-        categories = ["Movies", "Shows"]
+        categories = ["Movies", "TV"]
         series_1 = []
         series_2 = []
+        series_3 = []
+        series_4 = []
 
-        for item in result:
+        _episodes = 0
+
+        for idx, item in enumerate(result):
+            if idx == 2:
+                series_3[1] = item['season_count']
+                continue
             series_1.append(item['movie_count'])
             series_2.append(item['tv_count'])
+            series_3.append(item['season_count'])
+            #Value switch implemented as the episode count comes with the first item which is for the movies category,
+            #  but needs to be placed at the second item for the TV category
+            if item['episode_count'] == 0:
+                series_4.append(_episodes)
+            else:
+                if item['tv_count'] != None:
+                    series_4.append(0)
+                _episodes = item['episode_count']
 
         series_1_output = {'name': 'Movies',
                            'data': series_1}
         series_2_output = {'name': 'Shows',
                            'data': series_2}
+        series_3_output = {'name': 'Seasons',
+                           'data': series_3}
+        series_4_output = {'name': 'Episodes',
+                           'data': series_4}
 
         series_output = []
         if libraries.has_library_type('movie'):
             series_output.append(series_1_output)
         if libraries.has_library_type('show'):
             series_output.append(series_2_output)
+            series_output.append(series_3_output)
+            series_output.append(series_4_output)
 
         output = {'categories': categories,
                   'series': series_output}
