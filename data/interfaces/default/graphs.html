@@ -322,6 +322,10 @@
 
         return data_series.map(function(s) {
             var obj = Object.assign({}, s);
+            if(obj.name == "Episodes" && chart_name == "graph_additions_by_day") {
+                obj.yAxis = 1;
+                obj.softThreshold = true;
+            }
             obj.visible = (chart_visibility[s.name] !== false);
             return obj
         });
@@ -667,7 +671,6 @@
                             });
                         }
                     });
-                    if (yaxis === 'duration') { dataSecondsToHours(data); }
                     hc_additions_by_day_options.yAxis.min = 0;
                     hc_additions_by_day_options.xAxis.categories = dateArray;
                     hc_additions_by_day_options.series = getGraphVisibility(hc_additions_by_day_options.chart.renderTo, data.series);
@@ -840,8 +843,9 @@
             hc_plays_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_stream_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_platform_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
+            hc_additions_by_day_options.yAxis[0].labels.formatter = yaxis_format;
+            hc_additions_by_day_options.yAxis[1].labels.formatter = yaxis_format;
             hc_additions_by_media_type_options.yAxis.labels.formatter = yaxis_format;
-            hc_additions_by_day_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_user_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
 

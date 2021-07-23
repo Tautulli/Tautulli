@@ -25,6 +25,7 @@ var hc_additions_by_day_options = {
     },
     plotOptions: {
         series: {
+            threshold: 0,
             cursor: 'pointer',
             point: {
                 events: {
@@ -53,7 +54,7 @@ var hc_additions_by_day_options = {
             categories: [{}],
             plotBands: []
     },
-    yAxis: {
+    yAxis: [{
             title: {
                 text: null
             },
@@ -62,7 +63,17 @@ var hc_additions_by_day_options = {
                     color: '#aaa'
                 }
             }
-    },
+    }, {
+            title: {
+                text: null
+            },
+            labels: {
+                style: {
+                    color: '#aaa'
+                }
+            },
+            opposite: true
+    }],
     tooltip: {
         shared: true,
         crosshairs: true
