@@ -865,15 +865,28 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
     else:
         _img_title = img_title
 
-    try:
-        response = upload((img_title, img_data),
-                          public_id='{}_{}'.format(fallback, rating_key),
-                          tags=['tautulli', fallback, str(rating_key)],
-                          context={'title': _img_title, 'rating_key': str(rating_key), 'fallback': fallback})
-        logger.debug("Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
-        img_url = response.get('url', '')
-    except Exception as e:
-        logger.error("Tautulli Helpers :: Unable to upload image '{}' ({}) to Cloudinary: {}".format(img_title, fallback, e))
+    retry_attempts = 3
+    # Attempt the upload n times, before giving up and raising the exception.
+    for attempt in range(retry_attempts):
+        try:
+            response = upload((img_title, img_data),
+                              public_id='{}_{}'.format(fallback, rating_key),
+                              tags=['tautulli', fallback, str(rating_key)],
+                              context={'title': _img_title, 'rating_key': str(rating_key), 'fallback': fallback})
+            logger.debug("Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
+            img_url = response.get('url', '')
+        except Exception as e:
+            if attempt == retry_attempts-1:
+                logger.error("Tautulli Helpers :: Unable to upload image '{}' ({}) to Cloudinary: {}".format(img_title,
+                                                                                                             fallback,
+                                                                                                             e))
+                raise e
+            else:
+                logger.warn("Tautulli Helpers :: Unable to upload image '{}' ({}) to Cloudinary: {}".format(img_title,
+                                                                                                            fallback,
+                                                                                                            e))
+        else:
+            break
 
     return img_url
 
