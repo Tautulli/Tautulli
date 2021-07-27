@@ -483,6 +483,19 @@ DOCUMENTATION :: END
                         </div>
                     </div>
                 </div>
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-group"></i> User Stats</span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="user-stats" class="user-player">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
+                    </div>
+                </div>
                 % elif data['media_type'] == 'season':
                 <div class="col-md-12">
                     <div class="table-card-header">
@@ -503,6 +516,19 @@ DOCUMENTATION :: END
                     </div>
                     <div class="table-card-back">
                         <div id="watch-time-stats" class="user-overview-stats-wrapper">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-group"></i> User Stats</span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="user-stats" class="user-player">
                             <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
                             <br>
                         </div>
@@ -930,6 +956,15 @@ DOCUMENTATION :: END
         data: { rating_key: "${data['rating_key']}", media_type: "${data['media_type']}" },
         complete: function(xhr, status) {
             $("#watch-time-stats").html(xhr.responseText);
+        }
+    });
+    // Populate user stats
+    $.ajax({
+        url: 'element_user_stats',
+        async: true,
+        data: { rating_key: "${data['rating_key']}", media_type: "${data['media_type']}" },
+        complete: function(xhr, status) {
+            $("#user-stats").html(xhr.responseText);
         }
     });
 </script>

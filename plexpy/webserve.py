@@ -475,6 +475,21 @@ class WebInterface(object):
             logger.warn("Unable to retrieve data for element_watch_time_stats.")
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
+    @cherrypy.expose
+    @requireAuth()
+    def element_user_stats(self, rating_key=None, media_type=None, **kwargs):
+        if rating_key:
+            element_data = libraries.Libraries()
+            result = element_data.get_element_user_stats(rating_key=rating_key, media_type=media_type)
+        else:
+            result = None
+
+        if result:
+            return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
+        else:
+            logger.warn("Unable to retrieve data for element_user_stats.")
+            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
+
 
     ##### Libraries #####
 
