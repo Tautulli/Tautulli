@@ -1889,6 +1889,12 @@ class CustomFormatter(Formatter):
     def parse(self, format_string):
         parsed = super(CustomFormatter, self).parse(format_string)
         for literal_text, field_name, format_spec, conversion in parsed:
+            # Fix colon (:) inside an eval expression being parsed as a format specifier
+            if (field_name and field_name.startswith('`') and
+                    format_spec and format_spec.endswith('`')):
+                field_name += ':' + format_spec
+                format_spec = ''
+
             real_format_string = ''
             if field_name:
                 real_format_string += field_name
