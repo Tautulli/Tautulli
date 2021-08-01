@@ -243,6 +243,20 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-television"></i> Addition count by source resolution <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of tv, movies, and music added to the server by source resolution.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_additions_by_source_resolution" style="float: left;">
+                                <div class="graphs-load">
+                                    <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -362,6 +376,7 @@
     }
 </script>
 <script src="${http_root}js/graphs/additions_by_media_type.js${cache_param}"></script>
+<script src="${http_root}js/graphs/additions_by_source_resolution.js${cache_param}"></script>
 <script src="${http_root}js/graphs/additions_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_dayofweek.js${cache_param}"></script>
@@ -692,6 +707,19 @@
                 }
             });
 
+            $.ajax({
+                url: "get_additions_by_resolution",
+                type: 'get',
+                data: { time_range: time_range },
+                dataType: "json",
+                success: function(data) {
+                    hc_additions_by_source_resolution_options.xAxis.categories = data.categories;
+                    hc_additions_by_source_resolution_options.series = getGraphVisibility(hc_additions_by_source_resolution_options.chart.renderTo, data.series);
+                    hc_additions_by_source_resolution_options.colors = getGraphColors(data.series);
+                    var hc_additions_by_source_resolution = new Highcharts.Chart(hc_additions_by_source_resolution_options);
+                }
+            });
+
             $('#nav-tabs-library-statistics').tab('show')
         }
 
@@ -846,6 +874,7 @@
             hc_additions_by_day_options.yAxis[0].labels.formatter = yaxis_format;
             hc_additions_by_day_options.yAxis[1].labels.formatter = yaxis_format;
             hc_additions_by_media_type_options.yAxis.labels.formatter = yaxis_format;
+            hc_additions_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_user_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
 
@@ -854,6 +883,7 @@
             hc_plays_by_hourofday_options.tooltip.formatter = tooltip_format;
             hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
             hc_additions_by_media_type_options.tooltip.formatter = tooltip_format;
+            hc_additions_by_source_resolution_options.tooltip.formatter = tooltip_format;
             hc_additions_by_day_options.tooltip.formatter = tooltip_format;
             hc_plays_by_user_options.tooltip.formatter = tooltip_format;
             hc_plays_by_stream_type_options.tooltip.formatter = tooltip_format;
