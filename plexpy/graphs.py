@@ -618,10 +618,10 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        fourK = '\'%"video_resolution": "4K"%\''
-        fullHD = '\'%"video_resolution": "1080"%\''
-        hD = '\'%"video_resolution": "720"%\'' 
-        sd = '\'%"video_resolution": "sd"%\''
+        resolution_identifier = '(CASE WHEN media_info LIKE \'%"video_resolution": "4K"%\' THEN "4k" ' \
+                                'WHEN media_info LIKE \'%"video_resolution": "1080"%\' THEN "1080" ' \
+                                'WHEN media_info LIKE \'%"video_resolution": "720"%\' THEN "720" ' \
+                                'WHEN media_info LIKE \'%"video_resolution": "sd"%\' THEN "SD" ELSE "Unknown" END) AS resolution '
 
         try:
             query = 'SELECT ra.resolution, SUM(ra.movie_count) AS movie_count, ' \
@@ -633,11 +633,7 @@ class Graphs(object):
                             '0 AS tv_count, ' \
                             '0 AS season_count, ' \
                             'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                            'FROM (SELECT *, (' \
-                                'CASE WHEN media_info LIKE %s THEN "4k" ' \
-                                'WHEN media_info LIKE %s THEN "1080" ' \
-                                'WHEN media_info LIKE %s THEN "720" ' \
-                                'WHEN media_info LIKE %s THEN "SD" ELSE "Unknown" END) AS resolution ' \
+                            'FROM (SELECT *, %s ' \
                                 'FROM recently_added ' \
                                 'WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
                             'GROUP BY raM.resolution ' \
@@ -648,12 +644,8 @@ class Graphs(object):
                             'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
                             '0 AS season_count, ' \
                             '0 AS episode_count ' \
-                            'FROM (SELECT *, (' \
-                                'CASE WHEN media_info LIKE %s THEN "4k" ' \
-                                'WHEN media_info LIKE %s THEN "1080" ' \
-                                'WHEN media_info LIKE %s THEN "720" ' \
-                                'WHEN media_info LIKE %s THEN "SD" ELSE "Unknown" END) AS resolution ' \
-                            '    FROM recently_added ' \
+                            'FROM (SELECT *, %s ' \
+                                'FROM recently_added ' \
                             '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                             'GROUP BY raG.resolution ' \
@@ -664,24 +656,20 @@ class Graphs(object):
                             '0 AS tv_count, ' \
                             'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
                             '0 AS episode_count ' \
-                            'FROM (SELECT *, (' \
-                                'CASE WHEN media_info LIKE %s THEN "4k" ' \
-                                'WHEN media_info LIKE %s THEN "1080" ' \
-                                'WHEN media_info LIKE %s THEN "720" ' \
-                                'WHEN media_info LIKE %s THEN "SD" ELSE "Unknown" END) AS resolution ' \
+                            'FROM (SELECT *, %s ' \
                                 'FROM recently_added ' \
                                 'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                                 'GROUP BY parent_rating_key) AS raS ' \
                             'GROUP BY raS.resolution) AS ra ' \
                     'GROUP BY resolution ' \
-                    'ORDER BY resolution' % (fourK, fullHD, hD, sd, timestamp,
-                                            fourK, fullHD, hD, sd, timestamp,
-                                            fourK, fullHD, hD, sd, timestamp)
+                    'ORDER BY resolution' % (resolution_identifier, timestamp,
+                                            resolution_identifier, timestamp,
+                                            resolution_identifier, timestamp)
 
             result = monitor_db.select(query)
 
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_by_media_type: %s." % e)
+            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_by_resolution: %s." % e)
             return None
 
         categories = []
