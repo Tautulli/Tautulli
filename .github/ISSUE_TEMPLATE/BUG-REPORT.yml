@@ -45,35 +45,40 @@ body:
     id: version
     attributes:
       label: Tautulli Version
-      placeholder: ex. v2.7.5 (check Tautulli Settings > Help & Info page)
+      description: Check Tautulli Settings > Help & Info page.
+      placeholder: ex. v2.7.5
     validations:
       required: true
   - type: input
     id: branch
     attributes:
       label: Git Branch
-      placeholder: ex. master (check Tautulli Settings > Help & Info page)
+      description: Check Tautulli Settings > Help & Info page.
+      placeholder: ex. master
     validations:
       required: true
   - type: input
     id: hash
     attributes:
       label: Git Commit Hash
-      placeholder: ex. `2cc5bf812fe05e0666aeaeb37ed550c59816fb4c` (check Tautulli Settings > Help & Info page)
+      description: Check Tautulli Settings > Help & Info page.
+      placeholder: ex. 2cc5bf812fe05e0666aeaeb37ed550c59816fb4c
     validations:
       required: true
   - type: input
     id: platform
     attributes:
       label: Platform and Version
-      placeholder: ex. Windows 10 (check Tautulli Settings > Help & Info page)
+      description: Check Tautulli Settings > Help & Info page.
+      placeholder: ex. Windows 10
     validations:
       required: true
   - type: input
     id: python
     attributes:
       label: Python Version
-      placeholder: ex. 3.8.10 (check Tautulli Settings > Help & Info page)
+      description: Check Tautulli Settings > Help & Info page.
+      placeholder: ex. 3.8.10
     validations:
       required: true
   - type: input
@@ -87,7 +92,8 @@ body:
     id: logs
     attributes:
       label: Link to logs
-      placeholder: Include a link to your **FULL** logs (not just a few lines) on [Gist](http://gist.github.com). _Do not upload attachments_.
+      description: Include a link to your **FULL** logs (not just a few lines) on [Gist](http://gist.github.com). _Do not upload attachments_.
+      placeholder: Gist link to logs
     validations:
       required: true
   - type: markdown
