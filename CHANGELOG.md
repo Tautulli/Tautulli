@@ -1,6 +1,6 @@
 # Changelog
 
-# v2.7.5 (2021-07-15)
+## v2.7.5 (2021-07-15)
 
 * History:
   * Fix: Guest users were unable to view history.
@@ -17,7 +17,7 @@
   * Remove: Basic Authentication setting.
 
 
-# v2.7.4 (2021-06-19)
+## v2.7.4 (2021-06-19)
 
 * Activity:
   * Fix: Incorrect quality profile shown on the activity card.

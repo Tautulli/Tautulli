@@ -6,13 +6,13 @@ from plexapi.base import PlexPartialObject
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
 from plexapi.library import LibrarySection
 from plexapi.mixins import AdvancedSettingsMixin, ArtMixin, PosterMixin, RatingMixin
-from plexapi.mixins import LabelMixin
+from plexapi.mixins import LabelMixin, SmartFilterMixin
 from plexapi.playqueue import PlayQueue
 from plexapi.utils import deprecated
 
 
 @utils.registerPlexObject
-class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin, RatingMixin, LabelMixin):
+class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin, RatingMixin, LabelMixin, SmartFilterMixin):
     """ Represents a single Collection.
 
         Attributes:
@@ -90,6 +90,7 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
         self.userRating = utils.cast(float, data.attrib.get('userRating'))
         self._items = None  # cache for self.items
         self._section = None  # cache for self.section
+        self._filters = None  # cache for self.filters
 
     def __len__(self):  # pragma: no cover
         return len(self.items())
@@ -140,6 +141,15 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
     @deprecated('use "items" instead', stacklevel=3)
     def children(self):
         return self.items()
+
+    def filters(self):
+        """ Returns the search filter dict for smart collection.
+            The filter dict be passed back into :func:`~plexapi.library.LibrarySection.search`
+            to get the list of items.
+        """
+        if self.smart and self._filters is None:
+            self._filters = self._parseFilters(self.content)
+        return self._filters
 
     def section(self):
         """ Returns the :class:`~plexapi.library.LibrarySection` this collection belongs to.
@@ -276,6 +286,28 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
         for item in items:
             key = '%s/items/%s' % (self.key, item.ratingKey)
             self._server.query(key, method=self._server._session.delete)
+
+    def moveItem(self, item, after=None):
+        """ Move an item to a new position in the collection.
+
+            Parameters:
+                items (obj): :class:`~plexapi.audio.Audio`, :class:`~plexapi.video.Video`,
+                    or :class:`~plexapi.photo.Photo` objects to be moved in the collection.
+                after (obj): :class:`~plexapi.audio.Audio`, :class:`~plexapi.video.Video`,
+                    or :class:`~plexapi.photo.Photo` objects to move the item after in the collection.
+
+            Raises:
+                :class:`plexapi.exceptions.BadRequest`: When trying to move items in a smart collection.
+        """
+        if self.smart:
+            raise BadRequest('Cannot move items in a smart collection.')
+
+        key = '%s/items/%s/move' % (self.key, item.ratingKey)
+
+        if after:
+            key += '?after=%s' % after.ratingKey
+
+        self._server.query(key, method=self._server._session.put)
 
     def updateFilters(self, libtype=None, limit=None, sort=None, filters=None, **kwargs):
         """ Update the filters for a smart collection.

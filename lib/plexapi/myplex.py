@@ -623,9 +623,7 @@ class MyPlexAccount(PlexObject):
         }
 
         url = SyncList.key.format(clientId=client.clientIdentifier)
-        data = self.query(url, method=self._session.post, headers={
-            'Content-type': 'x-www-form-urlencoded',
-        }, params=params)
+        data = self.query(url, method=self._session.post, params=params)
 
         return SyncItem(self, data, None, clientIdentifier=client.clientIdentifier)
 
@@ -925,6 +923,10 @@ class MyPlexResource(PlexObject):
     TAG = 'Device'
     key = 'https://plex.tv/api/resources?includeHttps=1&includeRelay=1'
 
+    # Default order to prioritize available resource connections
+    DEFAULT_LOCATION_ORDER = ['local', 'remote', 'relay']
+    DEFAULT_SCHEME_ORDER = ['https', 'http']
+
     def _loadData(self, data):
         self._data = data
         self.name = data.attrib.get('name')
@@ -949,10 +951,51 @@ class MyPlexResource(PlexObject):
         self.ownerid = utils.cast(int, data.attrib.get('ownerId', 0))
         self.sourceTitle = data.attrib.get('sourceTitle')  # owners plex username.
 
-    def connect(self, ssl=None, timeout=None):
-        """ Returns a new :class:`~plexapi.server.PlexServer` or :class:`~plexapi.client.PlexClient` object.
+    def preferred_connections(
+        self,
+        ssl=None,
+        timeout=None,
+        locations=DEFAULT_LOCATION_ORDER,
+        schemes=DEFAULT_SCHEME_ORDER,
+    ):
+        """ Returns a sorted list of the available connection addresses for this resource.
             Often times there is more than one address specified for a server or client.
-            This function will prioritize local connections before remote or relay and HTTPS before HTTP.
+            Default behavior will prioritize local connections before remote or relay and HTTPS before HTTP.
+
+            Parameters:
+                ssl (bool, optional): Set True to only connect to HTTPS connections. Set False to
+                    only connect to HTTP connections. Set None (default) to connect to any
+                    HTTP or HTTPS connection.
+                timeout (int, optional): The timeout in seconds to attempt each connection.
+        """
+        connections_dict = {location: {scheme: [] for scheme in schemes} for location in locations}
+        for connection in self.connections:
+            # Only check non-local connections unless we own the resource
+            if self.owned or (not self.owned and not connection.local):
+                location = 'relay' if connection.relay else ('local' if connection.local else 'remote')
+                if location not in locations:
+                    continue
+                if 'http' in schemes:
+                    connections_dict[location]['http'].append(connection.httpuri)
+                if 'https' in schemes:
+                    connections_dict[location]['https'].append(connection.uri)
+        if ssl is True: schemes.remove('http')
+        elif ssl is False: schemes.remove('https')
+        connections = []
+        for location in locations:
+            for scheme in schemes:
+                connections.extend(connections_dict[location][scheme])
+        return connections
+
+    def connect(
+        self,
+        ssl=None,
+        timeout=None,
+        locations=DEFAULT_LOCATION_ORDER,
+        schemes=DEFAULT_SCHEME_ORDER,
+    ):
+        """ Returns a new :class:`~plexapi.server.PlexServer` or :class:`~plexapi.client.PlexClient` object.
+            Uses `MyPlexResource.preferred_connections()` to generate the priority order of connection addresses.
             After trying to connect to all available addresses for this resource and
             assuming at least one connection was successful, the PlexServer object is built and returned.
 
@@ -965,22 +1008,7 @@ class MyPlexResource(PlexObject):
             Raises:
                 :exc:`~plexapi.exceptions.NotFound`: When unable to connect to any addresses for this resource.
         """
-        # Keys in the order we want the connections to be sorted
-        locations = ['local', 'remote', 'relay']
-        schemes = ['https', 'http']
-        connections_dict = {location: {scheme: [] for scheme in schemes} for location in locations}
-        for connection in self.connections:
-            # Only check non-local connections unless we own the resource
-            if self.owned or (not self.owned and not connection.local):
-                location = 'relay' if connection.relay else ('local' if connection.local else 'remote')
-                connections_dict[location]['http'].append(connection.httpuri)
-                connections_dict[location]['https'].append(connection.uri)
-        if ssl is True: schemes.remove('http')
-        elif ssl is False: schemes.remove('https')
-        connections = []
-        for location in locations:
-            for scheme in schemes:
-                connections.extend(connections_dict[location][scheme])
+        connections = self.preferred_connections(ssl, timeout, locations, schemes)
         # Try connecting to all known resource connections in parellel, but
         # only return the first server (in order) that provides a response.
         cls = PlexServer if 'server' in self.provides else PlexClient

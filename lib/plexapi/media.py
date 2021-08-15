@@ -964,10 +964,12 @@ class Marker(PlexObject):
         name = self._clean(self.firstAttr('type'))
         start = utils.millisecondToHumanstr(self._clean(self.firstAttr('start')))
         end = utils.millisecondToHumanstr(self._clean(self.firstAttr('end')))
-        return '<%s:%s %s - %s>' % (self.__class__.__name__, name, start, end)
+        offsets = '%s-%s' % (start, end)
+        return '<%s>' % ':'.join([self.__class__.__name__, name, offsets])
 
     def _loadData(self, data):
         self._data = data
+        self.id = utils.cast(int, data.attrib.get('id'))
         self.type = data.attrib.get('type')
         self.start = utils.cast(int, data.attrib.get('startTimeOffset'))
         self.end = utils.cast(int, data.attrib.get('endTimeOffset'))

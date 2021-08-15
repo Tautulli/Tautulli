@@ -1840,6 +1840,11 @@ def str_eval(field_name, kwargs):
 class CustomFormatter(Formatter):
     def __init__(self, default='{{{0}}}'):
         self.default = default
+        self.eval_regex = re.compile(r'`.*?`')
+        self.eval_replace = {
+            ':': '%%colon%%',
+            '!': '%%exclamation%%'
+        }
 
     def convert_field(self, value, conversion):
         if conversion is None:
@@ -1887,8 +1892,21 @@ class CustomFormatter(Formatter):
             return super(CustomFormatter, self).get_value(key, args, kwargs)
 
     def parse(self, format_string):
+        # Replace characters in eval expression
+        for match in re.findall(self.eval_regex, format_string):
+            replaced = match
+            for k, v in self.eval_replace.items():
+                replaced = replaced.replace(k, v)
+            format_string = format_string.replace(match, replaced)
+
         parsed = super(CustomFormatter, self).parse(format_string)
+
         for literal_text, field_name, format_spec, conversion in parsed:
+            # Restore characters in eval expression
+            if field_name:
+                for k, v in self.eval_replace.items():
+                    field_name = field_name.replace(v, k)
+
             real_format_string = ''
             if field_name:
                 real_format_string += field_name
@@ -1900,8 +1918,8 @@ class CustomFormatter(Formatter):
             prefix = None
             suffix = None
 
-            matches = re.findall(r'`.*?`', real_format_string)
-            temp_format_string = re.sub(r'`.*`', '{}', real_format_string)
+            matches = re.findall(self.eval_regex, real_format_string)
+            temp_format_string = re.sub(self.eval_regex, '{}', real_format_string)
 
             prefix_split = temp_format_string.split('<')
             if len(prefix_split) == 2:

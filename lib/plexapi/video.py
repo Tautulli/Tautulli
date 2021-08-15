@@ -767,7 +767,9 @@ class Episode(Video, Playable, ArtMixin, PosterMixin, RatingMixin,
             parentThumb (str): URL to season thumbnail image (/library/metadata/<parentRatingKey>/thumb/<thumbid>).
             parentTitle (str): Name of the season for the episode.
             parentYear (int): Year the season was released.
+            producers (List<:class:`~plexapi.media.Producer`>): List of producers objects.
             rating (float): Episode rating (7.9; 9.8; 8.1).
+            roles (List<:class:`~plexapi.media.Role`>): List of role objects.
             skipParent (bool): True if the show's seasons are set to hidden.
             viewOffset (int): View offset in milliseconds.
             writers (List<:class:`~plexapi.media.Writer`>): List of writers objects.
@@ -809,7 +811,9 @@ class Episode(Video, Playable, ArtMixin, PosterMixin, RatingMixin,
         self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
         self.parentYear = utils.cast(int, data.attrib.get('parentYear'))
+        self.producers = self.findItems(data, media.Producer)
         self.rating = utils.cast(float, data.attrib.get('rating'))
+        self.roles = self.findItems(data, media.Role)
         self.skipParent = utils.cast(bool, data.attrib.get('skipParent', '0'))
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.writers = self.findItems(data, media.Writer)
@@ -839,6 +843,11 @@ class Episode(Video, Playable, ArtMixin, PosterMixin, RatingMixin,
         return '%s.%s' % (self.grandparentTitle.replace(' ', '.'), self.seasonEpisode)
 
     @property
+    def actors(self):
+        """ Alias to self.roles. """
+        return self.roles
+
+    @property
     def locations(self):
         """ This does not exist in plex xml response but is added to have a common
             interface to get the locations of the episode.
@@ -864,6 +873,11 @@ class Episode(Video, Playable, ArtMixin, PosterMixin, RatingMixin,
     def seasonEpisode(self):
         """ Returns the s00e00 string containing the season and episode numbers. """
         return 's%se%s' % (str(self.seasonNumber).zfill(2), str(self.episodeNumber).zfill(2))
+
+    @property
+    def hasCommercialMarker(self):
+        """ Returns True if the episode has a commercial marker in the xml. """
+        return any(marker.type == 'commercial' for marker in self.markers)
 
     @property
     def hasIntroMarker(self):
