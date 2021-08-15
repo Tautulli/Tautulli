@@ -3,4 +3,4 @@ pyinstaller==4.2
 pyopenssl==20.0.1
 pycryptodomex==3.10.1
 pyobjc-framework-Cocoa==6.2.2
-pyobjc-core==6.2.2
+pyobjc-core==7.3
