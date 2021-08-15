@@ -566,6 +566,7 @@ class Export(object):
                 'guids': {
                     'id': None
                 },
+                'hasCommercialMarker': None,
                 'hasIntroMarker': None,
                 'hasPreviewThumbnails': None,
                 'index': None,
@@ -732,8 +733,18 @@ class Export(object):
                 'parentThumb': None,
                 'parentTitle': None,
                 'parentYear': None,
+                'producers': {
+                    'id': None,
+                    'tag': None
+                },
                 'rating': None,
                 'ratingKey': None,
+                'roles': {
+                    'id': None,
+                    'tag': None,
+                    'role': None,
+                    'thumb': None
+                },
                 'seasonEpisode': None,
                 'seasonNumber': None,
                 'summary': None,
@@ -1318,10 +1329,11 @@ class Export(object):
                     'rating', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
                     'summary', 'guid', 'duration', 'durationHuman', 'type', 'episodeNumber', 'seasonEpisode',
                     'parentTitle', 'parentRatingKey', 'parentGuid', 'parentYear', 'seasonNumber',
-                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid', 'hasIntroMarker'
+                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid',
+                    'hasCommercialMarker', 'hasIntroMarker'
                 ],
                 2: [
-                    'collections.tag', 'directors.tag', 'writers.tag',
+                    'collections.tag', 'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
                     'fields.name', 'fields.locked', 'guids.id',
                     'markers.type', 'markers.start', 'markers.end'
                 ],
