@@ -847,12 +847,6 @@ class LibrarySection(PlexObject):
             values = [values]
 
         fieldType = self.getFieldType(filterField.type)
-        choiceTypes = {'tag', 'subtitleLanguage', 'audioLanguage', 'resolution'}
-        if fieldType.type in choiceTypes:
-            filterChoices = self.listFilterChoices(filterField.key, libtype)
-        else:
-            filterChoices = []
-
         results = []
 
         try:
@@ -865,11 +859,8 @@ class LibrarySection(PlexObject):
                     value = float(value) if '.' in str(value) else int(value)
                 elif fieldType.type == 'string':
                     value = str(value)
-                elif fieldType.type in choiceTypes:
-                    value = str((value.id or value.tag) if isinstance(value, media.MediaTag) else value)
-                    matchValue = value.lower()
-                    value = next((f.key for f in filterChoices
-                                  if matchValue in {f.key.lower(), f.title.lower()}), value)
+                elif fieldType.type in {'tag', 'subtitleLanguage', 'audioLanguage', 'resolution'}:
+                    value = self._validateFieldValueTag(value, filterField, libtype)
                 results.append(str(value))
         except (ValueError, AttributeError):
             raise BadRequest('Invalid value "%s" for filter field "%s", value should be type %s'
@@ -888,24 +879,47 @@ class LibrarySection(PlexObject):
         else:
             return int(utils.toDatetime(value, '%Y-%m-%d').timestamp())
 
+    def _validateFieldValueTag(self, value, filterField, libtype):
+        """ Validates a filter tag value. A filter tag value can be a :class:`~plexapi.library.FilterChoice` object,
+            a :class:`~plexapi.media.MediaTag` object, the exact name :attr:`MediaTag.tag` (*str*),
+            or the exact id :attr:`MediaTag.id` (*int*).
+        """
+        if isinstance(value, FilterChoice):
+            return value.key
+        if isinstance(value, media.MediaTag):
+            value = str(value.id or value.tag)
+        else:
+            value = str(value)
+        filterChoices = self.listFilterChoices(filterField.key, libtype)
+        matchValue = value.lower()
+        return next((f.key for f in filterChoices if matchValue in {f.key.lower(), f.title.lower()}), value)
+
     def _validateSortFields(self, sort, libtype=None):
-        """ Validates a list of filter sort fields is available for the library.
+        """ Validates a list of filter sort fields is available for the library. Sort fields can be a
+            list of :class:`~plexapi.library.FilteringSort` objects, or a comma separated string.
             Returns the validated comma separated sort fields string.
         """
         if isinstance(sort, str):
             sort = sort.split(',')
 
+        if not isinstance(sort, (list, tuple)):
+            sort = [sort]
+
         validatedSorts = []
         for _sort in sort:
-            validatedSorts.append(self._validateSortField(_sort.strip(), libtype))
+            validatedSorts.append(self._validateSortField(_sort, libtype))
 
         return ','.join(validatedSorts)
 
     def _validateSortField(self, sort, libtype=None):
-        """ Validates a filter sort field is available for the library.
+        """ Validates a filter sort field is available for the library. A sort field can be a
+            :class:`~plexapi.library.FilteringSort` object, or a string.
             Returns the validated sort field string.
         """
-        match = re.match(r'(?:([a-zA-Z]*)\.)?([a-zA-Z]+):?([a-zA-Z]*)', sort)
+        if isinstance(sort, FilteringSort):
+            return '%s.%s:%s' % (libtype or self.TYPE, sort.key, sort.defaultDirection)
+
+        match = re.match(r'(?:([a-zA-Z]*)\.)?([a-zA-Z]+):?([a-zA-Z]*)', sort.strip())
         if not match:
             raise BadRequest('Invalid filter sort: %s' % sort)
         _libtype, sortField, sortDir = match.groups()
@@ -921,16 +935,13 @@ class LibrarySection(PlexObject):
 
         sortField = libtype + '.' + filterSort.key
 
-        if not sortDir:
-            sortDir = filterSort.defaultDirection
-
-        availableDirections = ['asc', 'desc', 'nullsLast']
+        availableDirections = ['', 'asc', 'desc', 'nullsLast']
         if sortDir not in availableDirections:
             raise NotFound('Unknown sort direction "%s". '
                            'Available sort directions: %s'
                            % (sortDir, availableDirections))
 
-        return '%s:%s' % (sortField, sortDir)
+        return '%s:%s' % (sortField, sortDir) if sortDir else sortField
 
     def _validateAdvancedSearch(self, filters, libtype):
         """ Validates an advanced search filter dictionary.
@@ -1009,9 +1020,8 @@ class LibrarySection(PlexObject):
 
             Parameters:
                 title (str, optional): General string query to search for. Partial string matches are allowed.
-                sort (str or list, optional): A string of comma separated sort fields or a list of sort fields
-                    in the format ``column:dir``.
-                    See :func:`~plexapi.library.LibrarySection.listSorts` to get a list of available sort fields.
+                sort (:class:`~plexapi.library.FilteringSort` or str or list, optional): A field to sort the results.
+                    See the details below for more info.
                 maxresults (int, optional): Only return the specified number of results.
                 libtype (str, optional): Return results of a specific type (movie, show, season, episode,
                     artist, album, track, photoalbum, photo, collection) (e.g. ``libtype='episode'`` will only
@@ -1026,6 +1036,28 @@ class LibrarySection(PlexObject):
             Raises:
                 :exc:`~plexapi.exceptions.BadRequest`: When the sort or filter is invalid.
                 :exc:`~plexapi.exceptions.NotFound`: When applying an unknown sort or filter.
+
+            **Sorting Results**
+
+            The search results can be sorted by including the ``sort`` parameter.
+
+            * See :func:`~plexapi.library.LibrarySection.listSorts` to get a list of available sort fields.
+
+            The ``sort`` parameter can be a :class:`~plexapi.library.FilteringSort` object or a sort string in the
+            format ``field:dir``. The sort direction ``dir`` can be ``asc``, ``desc``, or ``nullsLast``. Omitting the
+            sort direction or using a :class:`~plexapi.library.FilteringSort` object will sort the results in the default
+            direction of the field. Multi-sorting on multiple fields can be achieved by using a comma separated list of
+            sort strings, or a list of :class:`~plexapi.library.FilteringSort` object or strings.
+
+            Examples:
+
+                .. code-block:: python
+
+                    library.search(sort="titleSort:desc")  # Sort title in descending order
+                    library.search(sort="titleSort")  # Sort title in the default order
+                    # Multi-sort by year in descending order, then by audience rating in descending order
+                    library.search(sort="year:desc,audienceRating:desc")
+                    library.search(sort=["year:desc", "audienceRating:desc"])
 
             **Using Plex Filters**
 
@@ -1065,8 +1097,9 @@ class LibrarySection(PlexObject):
             * **writer** (:class:`~plexapi.media.MediaTag`): Search for the name of a writer.
             * **year** (*int*): Search for a specific year.
 
-            Tag type filter values can be a :class:`~plexapi.media.MediaTag` object, the exact name
-            :attr:`MediaTag.tag` (*str*), or the exact id :attr:`MediaTag.id` (*int*).
+            Tag type filter values can be a :class:`~plexapi.library.FilterChoice` object,
+            :class:`~plexapi.media.MediaTag` object, the exact name :attr:`MediaTag.tag` (*str*),
+            or the exact id :attr:`MediaTag.id` (*int*).
             
             Date type filter values can be a ``datetime`` object, a relative date using a one of the
             available date suffixes (e.g. ``30d``) (*str*), or a date in ``YYYY-MM-DD`` (*str*) format.
@@ -2014,7 +2047,6 @@ class FilteringType(PlexObject):
             ('guid', 'asc', 'Guid'),
             ('id', 'asc', 'Rating Key'),
             ('index', 'asc', '%s Number' % self.type.capitalize()),
-            ('random', 'asc', 'Random'),
             ('summary', 'asc', 'Summary'),
             ('tagline', 'asc', 'Tagline'),
             ('updatedAt', 'asc', 'Date Updated')
@@ -2029,7 +2061,11 @@ class FilteringType(PlexObject):
             additionalSorts.extend([
                 ('absoluteIndex', 'asc', 'Absolute Index')
             ])
-        if self.type == 'collection':
+        elif self.type == 'photo':
+            additionalSorts.extend([
+                ('viewUpdatedAt', 'desc', 'View Updated At')
+            ])
+        elif self.type == 'collection':
             additionalSorts.extend([
                 ('addedAt', 'asc', 'Date Added')
             ])
@@ -2080,10 +2116,6 @@ class FilteringType(PlexObject):
                 ('duration', 'integer', 'Duration'),
                 ('rating', 'integer', 'Critic Rating'),
                 ('viewOffset', 'integer', 'View Offset')
-            ])
-        elif self.type == 'artist':
-            additionalFields.extend([
-                ('lastViewedAt', 'date', 'Artist Last Played')
             ])
         elif self.type == 'track':
             additionalFields.extend([

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from urllib.parse import quote_plus, urlencode
+from urllib.parse import parse_qsl, quote_plus, unquote, urlencode, urlsplit
 
 from plexapi import media, settings, utils
 from plexapi.exceptions import BadRequest, NotFound
@@ -559,3 +559,61 @@ class WriterMixin(object):
                 locked (bool): True (default) to lock the field, False to unlock the field.
         """
         self._edit_tags('writer', writers, locked=locked, remove=True)
+
+
+class SmartFilterMixin(object):
+    """ Mixing for Plex objects that can have smart filters. """
+
+    def _parseFilters(self, content):
+        """ Parse the content string and returns the filter dict. """
+        content = urlsplit(unquote(content))
+        filters = {}
+        filterOp = 'and'
+        filterGroups = [[]]
+        
+        for key, value in parse_qsl(content.query):
+            # Move = sign to key when operator is ==
+            if value.startswith('='):
+                key += '='
+                value = value[1:]
+
+            if key == 'type':
+                filters['libtype'] = utils.reverseSearchType(value)
+            elif key == 'sort':
+                filters['sort'] = value.split(',')
+            elif key == 'limit':
+                filters['limit'] = int(value)
+            elif key == 'push':
+                filterGroups[-1].append([])
+                filterGroups.append(filterGroups[-1][-1])
+            elif key == 'and':
+                filterOp = 'and'
+            elif key == 'or':
+                filterOp = 'or'
+            elif key == 'pop':
+                filterGroups[-1].insert(0, filterOp)
+                filterGroups.pop()
+            else:
+                filterGroups[-1].append({key: value})
+        
+        if filterGroups:
+            filters['filters'] = self._formatFilterGroups(filterGroups.pop())
+        return filters
+    
+    def _formatFilterGroups(self, groups):
+        """ Formats the filter groups into the advanced search rules. """
+        if len(groups) == 1 and isinstance(groups[0], list):
+            groups = groups.pop()
+
+        filterOp = 'and'
+        rules = []
+
+        for g in groups:
+            if isinstance(g, list):
+                rules.append(self._formatFilterGroups(g))
+            elif isinstance(g, dict):
+                rules.append(g)
+            elif g in {'and', 'or'}:
+                filterOp = g
+
+        return {filterOp: rules}

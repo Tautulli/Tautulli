@@ -178,19 +178,19 @@ class MediaSettings(object):
             photoQuality (int): photo quality on scale 0 to 100.
             photoResolution (str): maximum photo resolution, formatted as WxH (e.g. `1920x1080`).
             videoResolution (str): maximum video resolution, formatted as WxH (e.g. `1280x720`, may be empty).
-            subtitleSize (int|str): unknown, usually equals to 0, may be empty string.
+            subtitleSize (int): subtitle size on scale 0 to 100.
             videoQuality (int): video quality on scale 0 to 100.
     """
 
     def __init__(self, maxVideoBitrate=4000, videoQuality=100, videoResolution='1280x720', audioBoost=100,
-                 musicBitrate=192, photoQuality=74, photoResolution='1920x1080', subtitleSize=''):
+                 musicBitrate=192, photoQuality=74, photoResolution='1920x1080', subtitleSize=100):
         self.audioBoost = plexapi.utils.cast(int, audioBoost)
         self.maxVideoBitrate = plexapi.utils.cast(int, maxVideoBitrate) if maxVideoBitrate != '' else ''
         self.musicBitrate = plexapi.utils.cast(int, musicBitrate) if musicBitrate != '' else ''
         self.photoQuality = plexapi.utils.cast(int, photoQuality) if photoQuality != '' else ''
         self.photoResolution = photoResolution
         self.videoResolution = videoResolution
-        self.subtitleSize = subtitleSize
+        self.subtitleSize = plexapi.utils.cast(int, subtitleSize) if subtitleSize != '' else ''
         self.videoQuality = plexapi.utils.cast(int, videoQuality) if videoQuality != '' else ''
 
     @staticmethod
