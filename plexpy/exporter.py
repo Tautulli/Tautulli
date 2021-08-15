@@ -1815,7 +1815,11 @@ class Export(object):
             # Only playlists export allowed for users
             items = self.obj.playlists()
         else:
-            method = getattr(self.obj, self.export_type)
+            if self.export_type != 'all':
+                export_method = self.export_type + 's'
+            else:
+                export_method = self.export_type
+            method = getattr(self.obj, export_method)
             items = method()
 
         self.total_items = len(items)
