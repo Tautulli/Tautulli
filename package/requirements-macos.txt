@@ -1,5 +1,5 @@
 apscheduler==3.7.0
-pyinstaller==4.2
+pyinstaller==4.5.1
 pyopenssl==20.0.1
 pycryptodomex==3.10.1
 pyobjc-framework-Cocoa==6.2.2
