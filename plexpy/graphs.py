@@ -528,33 +528,40 @@ class Graphs(object):
 
         try:
             query = 'SELECT ' \
-                        'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
-                        '0 AS tv_count, ' \
-                        '0 AS season_count, ' \
-                        'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                        'FROM (SELECT * ' \
-                        '    FROM recently_added ' \
-                        '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
-                    'UNION ALL ' \
-                    'SELECT ' \
-                        '0 AS movie_count, ' \
-                        'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
-                        '0 AS season_count, ' \
-                        '0 AS episode_count ' \
-                        'FROM (SELECT * ' \
-                        '    FROM recently_added ' \
-                        '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
-                        '    GROUP BY grandparent_rating_key) AS raG ' \
-                    'UNION ALL ' \
-                    'SELECT ' \
-                        '0 AS movie_count, ' \
-                        '0 AS tv_count, ' \
-                        'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
-                        '0 AS episode_count ' \
-                        'FROM (SELECT * ' \
-                            'FROM recently_added ' \
-                            'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
-                            'GROUP BY parent_rating_key) AS raS' % (timestamp, timestamp, timestamp)
+                        'SUM(ra.movie_count) AS movie_count, ' \
+                        'SUM(ra.tv_count) AS tv_count, ' \
+                        'SUM(ra.season_count) AS season_count, ' \
+                        'SUM(ra.episode_count) AS episode_count ' \
+                    'FROM (' \
+                        'SELECT ' \
+                            'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                            '0 AS tv_count, ' \
+                            '0 AS season_count, ' \
+                            'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                            'FROM (SELECT * ' \
+                                'FROM recently_added ' \
+                                'WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
+                        'UNION ALL ' \
+                        'SELECT ' \
+                            '0 AS movie_count, ' \
+                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
+                            '0 AS season_count, ' \
+                            '0 AS episode_count ' \
+                            'FROM (SELECT * ' \
+                                'FROM recently_added ' \
+                                'WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                                'GROUP BY grandparent_rating_key) AS raG ' \
+                        'UNION ALL ' \
+                        'SELECT ' \
+                            '0 AS movie_count, ' \
+                            '0 AS tv_count, ' \
+                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
+                            '0 AS episode_count ' \
+                            'FROM (SELECT * ' \
+                                'FROM recently_added ' \
+                                'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                                'GROUP BY parent_rating_key) AS raS ' \
+                    ') AS ra' % (timestamp, timestamp, timestamp)
 
             result = monitor_db.select(query)
 
@@ -568,28 +575,19 @@ class Graphs(object):
         series_3 = []
         series_4 = []
 
-        _episodes = 0
+        content = result[0]
 
-        for idx, item in enumerate(result):
-            if idx == 2:
-                series_3[1] = item['season_count'] if item['season_count'] is not None else 0 
-                continue
-
-            item['movie_count'] = 0 if item['movie_count'] is None else item['movie_count']
-            item['tv_count'] = 0 if item['tv_count'] is None else item['tv_count']
-            item['season_count'] = 0 if item['season_count'] is None else item['season_count']
-
-            series_1.append(item['movie_count'])
-            series_2.append(item['tv_count'])
-            series_3.append(item['season_count'])
-            #Value switch implemented as the episode count comes with the first item which is for the movies category,
-            #  but needs to be placed at the second item for the TV category
-            if item['episode_count'] == 0:
-                series_4.append(_episodes)
+        for idx, item in enumerate(categories):
+            if idx == 0:
+                series_1.append(content['movie_count'])
+                series_2.append(None)
+                series_3.append(None)
+                series_4.append(None)
             else:
-                if item['tv_count'] != None:
-                    series_4.append(0)
-                _episodes = item['episode_count']
+                series_1.append(None)
+                series_2.append(content['tv_count'])
+                series_3.append(content['season_count'])
+                series_4.append(content['episode_count'])
 
         series_1_output = {'name': 'Movies',
                            'data': series_1}
@@ -610,6 +608,7 @@ class Graphs(object):
 
         output = {'categories': categories,
                   'series': series_output}
+
         return output
 
     def get_total_additions_by_resolution(self, time_range='30'):
@@ -618,14 +617,18 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        resolution_identifier = '(CASE WHEN media_info LIKE \'%"video_resolution": "4K"%\' THEN "4k" ' \
-                                'WHEN media_info LIKE \'%"video_resolution": "1080"%\' THEN "1080" ' \
-                                'WHEN media_info LIKE \'%"video_resolution": "720"%\' THEN "720" ' \
-                                'WHEN media_info LIKE \'%"video_resolution": "sd"%\' THEN "SD" ELSE "Unknown" END) AS resolution '
+        resolution_identifier = '(CASE WHEN media_info LIKE \'%"video_resolution": "4K"%\' THEN "1_4K" ' \
+                                'WHEN media_info LIKE \'%"video_resolution": "1080"%\' THEN "2_1080" ' \
+                                'WHEN media_info LIKE \'%"video_resolution": "720"%\' THEN "3_720" ' \
+                                'WHEN media_info LIKE \'%"video_resolution": "sd"%\' THEN "4_SD" ELSE "5_Unknown" END) AS resolution '
 
         try:
-            query = 'SELECT ra.resolution, SUM(ra.movie_count) AS movie_count, ' \
-                        'SUM(ra.tv_count) AS tv_count, SUM(ra.season_count) AS season_count, SUM(ra.episode_count) AS episode_count ' \
+            query = 'SELECT ' \
+                        'ra.resolution, ' \
+                        'SUM(ra.movie_count) AS movie_count, ' \
+                        'SUM(ra.tv_count) AS tv_count, ' \
+                        'SUM(ra.season_count) AS season_count, ' \
+                        'SUM(ra.episode_count) AS episode_count ' \
                     'FROM(' \
                         'SELECT ' \
                             'raM.resolution, ' \
@@ -678,10 +681,9 @@ class Graphs(object):
         series_3 = []
         series_4 = []
 
-        _episodes = 0
-
         for idx, item in enumerate(result):
-            categories.append(item['resolution'])
+            #remove sorting indicators (like 1_%)
+            categories.append(item['resolution'][2:])
 
             series_1.append(item['movie_count'])
             series_2.append(item['tv_count'])

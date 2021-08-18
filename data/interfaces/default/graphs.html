@@ -214,16 +214,32 @@
                 </div>
             </div>
             <div role="tabpanel" class="tab-pane" id="tabs-library-statistics">
-                <div class="row">
-                    <div class="col-md-12">
-                        <h4><i class="fa fa-history"></i> Daily addition by media type <small>Last <span class="days">30</span> days</small></h4>
-                        <p class="help-block">
-                            The total addition count of shows, seasons, episodes and movies per day.
-                        </p>
-                        <div class="graphs-instance">
-                            <div class="watch-chart" id="graph_additions_by_day">
-                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
-                                <br>
+                <div id="section-library-graphs">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4><i class="fa fa-history"></i> Daily addition by media type <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The total addition count of shows, seasons, episodes and movies per day.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="graph_additions_by_day">
+                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4><i class="fa fa-signal"></i> Library Growth <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The overall library growth by the library stats per day.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="library_growth_by_day">
+                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                    <br>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -336,11 +352,12 @@
 
         return data_series.map(function(s) {
             var obj = Object.assign({}, s);
-            if(obj.name == "Episodes" && chart_name == "graph_additions_by_day") {
+            obj.visible = (chart_visibility[s.name] !== false);
+            if(obj.name == "Episodes" && (chart_name == "graph_additions_by_day" || chart_name == "library_growth_by_day")) {
                 obj.yAxis = 1;
                 obj.softThreshold = true;
-            }
-            obj.visible = (chart_visibility[s.name] !== false);
+                //obj.chart.options.yAxis[1].title.text = (obj.visible) ? "Episodes" : "";
+            }          
             return obj
         });
     }
@@ -349,7 +366,13 @@
         var chart_key = 'HighCharts_' + chart_name;
 
         var chart_visibility = data_series.map(function(s) {
-            return {name: s.name, visible: (s.name === series_name) ? !s.visible : s.visible}
+            var _visible = (s.name === series_name) ? !s.visible : s.visible;
+            if(s.name == "Episodes") {
+                document.getElementsByClassName("highcharts-yaxis-title")[0].innerHTML = (_visible) ? "Episodes" : "";
+            }
+            return {
+                name: s.name, visible: _visible
+            }
         });
 
         setLocalStorage(chart_key, JSON.stringify(chart_visibility));
@@ -376,6 +399,7 @@
     }
 </script>
 <script src="${http_root}js/graphs/additions_by_media_type.js${cache_param}"></script>
+<script src="${http_root}js/graphs/library_growth_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/additions_by_source_resolution.js${cache_param}"></script>
 <script src="${http_root}js/graphs/additions_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_day.js${cache_param}"></script>
@@ -684,6 +708,12 @@
                                 to: i+0.5,
                                 color: 'rgba(80,80,80,0.3)'
                             });
+
+                            hc_library_growth_by_day_options.xAxis.plotBands.push({
+                                from: i-0.5,
+                                to: i+0.5,
+                                color: 'rgba(80,80,80,0.3)'
+                            });
                         }
                     });
                     hc_additions_by_day_options.yAxis.min = 0;
@@ -691,6 +721,12 @@
                     hc_additions_by_day_options.series = getGraphVisibility(hc_additions_by_day_options.chart.renderTo, data.series);
                     hc_additions_by_day_options.colors = getGraphColors(data.series);
                     var hc_additions_by_day = new Highcharts.Chart(hc_additions_by_day_options);
+
+                    hc_library_growth_by_day_options.yAxis.min = 0;
+                    hc_library_growth_by_day_options.xAxis.categories = dateArray;
+                    hc_library_growth_by_day_options.series = getGraphVisibility(hc_library_growth_by_day_options.chart.renderTo, data.series);
+                    hc_library_growth_by_day_options.colors = getGraphColors(data.series);
+                    var hc_library_growth_by_day = new Highcharts.Chart(hc_library_growth_by_day_options);
                 }
             });
 
@@ -860,6 +896,7 @@
 
             hc_plays_by_day_options.xAxis.plotBands = [];
             hc_additions_by_day_options.xAxis.plotBands = [];
+            hc_library_growth_by_day_options.xAxis.plotBands = [];
             hc_plays_by_stream_type_options.xAxis.plotBands = [];
 
             hc_plays_by_day_options.yAxis.labels.formatter = yaxis_format;
@@ -873,6 +910,8 @@
             hc_plays_by_platform_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_additions_by_day_options.yAxis[0].labels.formatter = yaxis_format;
             hc_additions_by_day_options.yAxis[1].labels.formatter = yaxis_format;
+            hc_library_growth_by_day_options.yAxis[0].labels.formatter = yaxis_format;
+            hc_library_growth_by_day_options.yAxis[1].labels.formatter = yaxis_format;
             hc_additions_by_media_type_options.yAxis.labels.formatter = yaxis_format;
             hc_additions_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_user_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
@@ -885,6 +924,7 @@
             hc_additions_by_media_type_options.tooltip.formatter = tooltip_format;
             hc_additions_by_source_resolution_options.tooltip.formatter = tooltip_format;
             hc_additions_by_day_options.tooltip.formatter = tooltip_format;
+            hc_library_growth_by_day_options.tooltip.formatter = tooltip_format;
             hc_plays_by_user_options.tooltip.formatter = tooltip_format;
             hc_plays_by_stream_type_options.tooltip.formatter = tooltip_format;
             hc_plays_by_source_resolution_options.tooltip.formatter = tooltip_format;
@@ -897,5 +937,94 @@
             hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
         }
     });
+
+    ['mousemove', 'touchmove', 'touchstart'].forEach(function (eventType) {
+        document.getElementById('section-library-graphs').addEventListener(
+            eventType,
+            function (e) {
+                var chart,
+                    point,
+                    points,
+                    i,
+                    event;
+
+                for (i = 0; i < Highcharts.charts.length; i = i + 1) {
+                    chart = Highcharts.charts[i];
+                    if(chart.options.chart.type != "line") {
+                        continue;
+                    }
+                    // Find coordinates within the chart
+                    event = chart.pointer.normalize(e);
+                    // Get the hovered point
+                    points = [];
+                    chart.series.forEach(function (series, idx) {
+                        if(idx == 0) {
+                            series.tooltipOptions.followPointer = false;
+                        }
+                        points.push(series.searchPoint(event, true));
+                    });
+                    //point = chart.series[0].searchPoint(event, true);
+                    /*
+                    if (point) {
+                        points[2].highlight(e);
+                        points[1].highlight(e);
+                        points[0].highlight(e);
+                    }
+                    */
+                   if(!points.includes(undefined)) {
+                    chart.tooltip.refresh(points);
+                    chart.xAxis[0].drawCrosshair(e, points[0]);
+                    chart.xAxis[0].drawCrosshair(e, points[points.length]);
+                   }
+                }
+            }
+        );
+    });
+
+    //https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/demo/synchronized-charts
+    Highcharts.Point.prototype.highlight = function (event) {
+        this.onMouseOver(); // Show the hover marker
+        var a = [this];
+        //this.series.chart.tooltip.refresh(a); // Show the tooltip
+        this.series.chart.xAxis[0].drawCrosshair(event, this); // Show the crosshair
+    };
+
+    //MAYBE NOT EVEN NESSECARY
+    Highcharts.Pointer.prototype.reset = function (a, b) {
+        if(this.chart.renderTo.outerHTML.includes("library")) {
+            return undefined;
+        }
+        var c = this.chart
+              , d = c.hoverSeries
+              , e = c.hoverPoint
+              , f = c.hoverPoints
+              , g = c.tooltip
+              , h = g && g.shared ? f : e;
+            (a = a && g && h) && sa(h)[0].plotX === y && (a = !1);
+            if (a)
+                g.refresh(h),
+                e && (e.setState(e.state, !0),
+                Highcharts.each(c.axes, function(a) {
+                    p(a.options.crosshair && a.options.crosshair.snap, !0) ? a.drawCrosshair(null, e) : a.hideCrosshair()
+                }));
+            else {
+                if (e)
+                    e.onMouseOut();
+                f && Highcharts.each(f, function(a) {
+                    a.setState()
+                });
+                if (d)
+                    d.onMouseOut();
+                g && g.hide(b);
+                if (this._onDocumentMouseMove)
+                    Highcharts.removeEvent(document, "mousemove", this._onDocumentMouseMove),
+                    this._onDocumentMouseMove = null;
+                    Highcharts.each(c.axes, function(a) {
+                    a.hideCrosshair()
+                });
+                this.hoverX = c.hoverPoints = c.hoverPoint = null
+            }
+    };
+
 </script>
 </%def>

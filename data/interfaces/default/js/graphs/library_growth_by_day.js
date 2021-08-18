@@ -1,8 +1,8 @@
-var hc_additions_by_day_options = {
+var hc_library_growth_by_day_options = {
     chart: {
         type: 'line',
         backgroundColor: 'rgba(0,0,0,0)',
-        renderTo: 'graph_additions_by_day'
+        renderTo: 'library_growth_by_day'
     },
     title: {
         text: ''
@@ -25,6 +25,7 @@ var hc_additions_by_day_options = {
     },
     plotOptions: {
         series: {
+            allowPointSelect: false,
             threshold: 0,
             cursor: 'pointer',
             point: {
