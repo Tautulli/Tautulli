@@ -369,6 +369,7 @@
             var _visible = (s.name === series_name) ? !s.visible : s.visible;
             if(s.name == "Episodes") {
                 document.getElementsByClassName("highcharts-yaxis-title")[0].innerHTML = (_visible) ? "Episodes" : "";
+                document.getElementsByClassName("highcharts-yaxis-title")[1].innerHTML = (_visible) ? "Episodes" : "";
             }
             return {
                 name: s.name, visible: _visible
@@ -708,12 +709,6 @@
                                 to: i+0.5,
                                 color: 'rgba(80,80,80,0.3)'
                             });
-
-                            hc_library_growth_by_day_options.xAxis.plotBands.push({
-                                from: i-0.5,
-                                to: i+0.5,
-                                color: 'rgba(80,80,80,0.3)'
-                            });
                         }
                     });
                     hc_additions_by_day_options.yAxis.min = 0;
@@ -721,6 +716,28 @@
                     hc_additions_by_day_options.series = getGraphVisibility(hc_additions_by_day_options.chart.renderTo, data.series);
                     hc_additions_by_day_options.colors = getGraphColors(data.series);
                     var hc_additions_by_day = new Highcharts.Chart(hc_additions_by_day_options);
+                }
+            });
+
+            $.ajax({
+                url: "get_additions_by_date",
+                type: 'get',
+                data: { time_range: time_range, growth: 1 },
+                dataType: "json",
+                success: function(data) {
+                    var dateArray = [];
+                    $.each(data.categories, function (i, day) {
+                        dateArray.push(moment(day, 'YYYY-MM-DD').valueOf());
+                        // Highlight the weekend
+                        if ((moment(day, 'YYYY-MM-DD').format('ddd') === 'Sat') ||
+                            (moment(day, 'YYYY-MM-DD').format('ddd') === 'Sun')) {
+                            hc_library_growth_by_day_options.xAxis.plotBands.push({
+                                from: i-0.5,
+                                to: i+0.5,
+                                color: 'rgba(80,80,80,0.3)'
+                            });
+                        }
+                    });
 
                     hc_library_growth_by_day_options.yAxis.min = 0;
                     hc_library_growth_by_day_options.xAxis.categories = dateArray;
@@ -955,22 +972,17 @@
                     }
                     // Find coordinates within the chart
                     event = chart.pointer.normalize(e);
-                    // Get the hovered point
+
+                    // Get the hovered points
                     points = [];
                     chart.series.forEach(function (series, idx) {
                         if(idx == 0) {
+                            // Required to prevent error on initial graph loading
                             series.tooltipOptions.followPointer = false;
                         }
                         points.push(series.searchPoint(event, true));
                     });
-                    //point = chart.series[0].searchPoint(event, true);
-                    /*
-                    if (point) {
-                        points[2].highlight(e);
-                        points[1].highlight(e);
-                        points[0].highlight(e);
-                    }
-                    */
+                    
                    if(!points.includes(undefined)) {
                     chart.tooltip.refresh(points);
                     chart.xAxis[0].drawCrosshair(e, points[0]);
@@ -981,50 +993,26 @@
         );
     });
 
-    //https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/highcharts/demo/synchronized-charts
-    Highcharts.Point.prototype.highlight = function (event) {
-        this.onMouseOver(); // Show the hover marker
-        var a = [this];
-        //this.series.chart.tooltip.refresh(a); // Show the tooltip
-        this.series.chart.xAxis[0].drawCrosshair(event, this); // Show the crosshair
-    };
-
-    //MAYBE NOT EVEN NESSECARY
-    Highcharts.Pointer.prototype.reset = function (a, b) {
-        if(this.chart.renderTo.outerHTML.includes("library")) {
-            return undefined;
+    function synchronize(point) {
+        if (chart1.customCrosshair) { // destroy previous crosshair
+        chart1.customCrosshair.element.remove()
         }
-        var c = this.chart
-              , d = c.hoverSeries
-              , e = c.hoverPoint
-              , f = c.hoverPoints
-              , g = c.tooltip
-              , h = g && g.shared ? f : e;
-            (a = a && g && h) && sa(h)[0].plotX === y && (a = !1);
-            if (a)
-                g.refresh(h),
-                e && (e.setState(e.state, !0),
-                Highcharts.each(c.axes, function(a) {
-                    p(a.options.crosshair && a.options.crosshair.snap, !0) ? a.drawCrosshair(null, e) : a.hideCrosshair()
-                }));
-            else {
-                if (e)
-                    e.onMouseOut();
-                f && Highcharts.each(f, function(a) {
-                    a.setState()
-                });
-                if (d)
-                    d.onMouseOut();
-                g && g.hide(b);
-                if (this._onDocumentMouseMove)
-                    Highcharts.removeEvent(document, "mousemove", this._onDocumentMouseMove),
-                    this._onDocumentMouseMove = null;
-                    Highcharts.each(c.axes, function(a) {
-                    a.hideCrosshair()
-                });
-                this.hoverX = c.hoverPoints = c.hoverPoint = null
-            }
-    };
+        if (chart2.customCrosshair) {
+        chart2.customCrosshair.element.remove()
+        }
+
+        // show tooltip on second chart
+        chart2.tooltip.refresh(chart2.series[0].points[point.x]);
+
+        // render crosshairs
+        chart1.customCrosshair = chart1.renderer.rect(point.plotX + chart1.plotLeft - 1, chart1.plotTop, 1, chart1.plotSizeY).attr({
+        fill: 'red'
+        }).add()
+
+        chart2.customCrosshair = chart2.renderer.rect(chart2.series[0].points[point.x].plotX + chart2.plotLeft - 1, chart2.plotTop, 1, chart2.plotSizeY).attr({
+        fill: 'red'
+        }).add()
+    }
 
 </script>
 </%def>

@@ -2491,9 +2491,9 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     #called additions instead of adds so it isn't blocked by adblockers...
-    def get_additions_by_date(self, time_range='30'):
+    def get_additions_by_date(self, time_range='30', growth=False):
         graph = graphs.Graphs()
-        result = graph.get_total_additions_per_day(time_range=time_range)
+        result = graph.get_total_additions_per_day(time_range=time_range, growth=growth)
 
         if result:
             return result

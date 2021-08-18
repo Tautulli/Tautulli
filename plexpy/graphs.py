@@ -421,48 +421,120 @@ class Graphs(object):
                   'series': series_output}
         return output
 
-    def get_total_additions_per_day(self, time_range='30'):
+    def get_total_additions_per_day(self, time_range='30', growth=False):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
         try:
-            query = 'SELECT raM.date_added, ' \
-                        'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
-                        '0 AS tv_count, ' \
-                        '0 AS season_count, ' \
-                        'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                        'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                        '    FROM recently_added ' \
-                        '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
-                    'GROUP BY raM.date_added ' \
-                    'UNION ALL ' \
-                    'SELECT raG.date_added, ' \
-                        '0 AS movie_count, ' \
-                        'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
-                        '0 AS season_count, ' \
-                        '0 AS episode_count ' \
-                        'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                        '    FROM recently_added ' \
-                        '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
-                        '    GROUP BY grandparent_rating_key) AS raG ' \
-                    'GROUP BY raG.date_added ' \
-                    'UNION ALL ' \
-                    'SELECT raS.date_added, ' \
-                        '0 AS movie_count, ' \
-                        '0 AS tv_count, ' \
-                        'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
-                        '0 AS episode_count ' \
-                        'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                        '   FROM recently_added ' \
-                        '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
-                        '   GROUP BY parent_rating_key) AS raS ' \
-                    'GROUP BY raS.date_added ' \
-                    'ORDER BY date_added' % (timestamp, timestamp, timestamp)
+            if growth:
+                query = 'SELECT ' \
+                            '0 AS date_added, ' \
+                            'SUM(ra.movie_count) AS movie_count, ' \
+                            'SUM(ra.tv_count) AS tv_count, ' \
+                            'SUM(ra.season_count) AS season_count, ' \
+                            'SUM(ra.episode_count) AS episode_count ' \
+                        'FROM (' \
+                            'SELECT ' \
+                                'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                                '0 AS tv_count, ' \
+                                '0 AS season_count, ' \
+                                'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                                'FROM (SELECT * ' \
+                                    'FROM recently_added ' \
+                                    'WHERE (media_type = "movie" OR media_type = "episode") AND added_at < %s) AS raM ' \
+                            'UNION ALL ' \
+                            'SELECT ' \
+                                '0 AS movie_count, ' \
+                                'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
+                                '0 AS season_count, ' \
+                                '0 AS episode_count ' \
+                                'FROM (SELECT * ' \
+                                    'FROM recently_added ' \
+                                    'WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at < %s ' \
+                                    'GROUP BY grandparent_rating_key) AS raG ' \
+                            'UNION ALL ' \
+                            'SELECT ' \
+                                '0 AS movie_count, ' \
+                                '0 AS tv_count, ' \
+                                'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
+                                '0 AS episode_count ' \
+                                'FROM (SELECT * ' \
+                                    'FROM recently_added ' \
+                                    'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at < %s ' \
+                                    'GROUP BY parent_rating_key) AS raS ' \
+                        ') AS ra ' \
+                        'UNION ALL ' \
+                        'SELECT raM.date_added, ' \
+                            'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                            '0 AS tv_count, ' \
+                            '0 AS season_count, ' \
+                            'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            '    FROM recently_added ' \
+                            '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
+                        'GROUP BY raM.date_added ' \
+                        'UNION ALL ' \
+                        'SELECT raG.date_added, ' \
+                            '0 AS movie_count, ' \
+                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
+                            '0 AS season_count, ' \
+                            '0 AS episode_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            '    FROM recently_added ' \
+                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            '    GROUP BY grandparent_rating_key) AS raG ' \
+                        'GROUP BY raG.date_added ' \
+                        'UNION ALL ' \
+                        'SELECT raS.date_added, ' \
+                            '0 AS movie_count, ' \
+                            '0 AS tv_count, ' \
+                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
+                            '0 AS episode_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            '   FROM recently_added ' \
+                            '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            '   GROUP BY parent_rating_key) AS raS ' \
+                        'GROUP BY raS.date_added ' \
+                        'ORDER BY date_added' % (timestamp, timestamp, timestamp,
+                                                timestamp, timestamp, timestamp)
 
-            result = monitor_db.select(query)
-
+                result = monitor_db.select(query)
+            else:
+                query = 'SELECT raM.date_added, ' \
+                            'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                            '0 AS tv_count, ' \
+                            '0 AS season_count, ' \
+                            'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            '    FROM recently_added ' \
+                            '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
+                        'GROUP BY raM.date_added ' \
+                        'UNION ALL ' \
+                        'SELECT raG.date_added, ' \
+                            '0 AS movie_count, ' \
+                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
+                            '0 AS season_count, ' \
+                            '0 AS episode_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            '    FROM recently_added ' \
+                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            '    GROUP BY grandparent_rating_key) AS raG ' \
+                        'GROUP BY raG.date_added ' \
+                        'UNION ALL ' \
+                        'SELECT raS.date_added, ' \
+                            '0 AS movie_count, ' \
+                            '0 AS tv_count, ' \
+                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
+                            '0 AS episode_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            '   FROM recently_added ' \
+                            '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            '   GROUP BY parent_rating_key) AS raS ' \
+                        'GROUP BY raS.date_added ' \
+                        'ORDER BY date_added' % (timestamp, timestamp, timestamp)
+                result = monitor_db.select(query)
         except Exception as e:
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_per_day: %s." % e)
             return None
@@ -477,6 +549,12 @@ class Graphs(object):
         series_2 = []
         series_3 = []
         series_4 = []
+
+        if growth:
+            base_value_1 = result[0]['movie_count']
+            base_value_2 = result[0]['tv_count']
+            base_value_3 = result[0]['season_count']
+            base_value_4 = result[0]['episode_count']
 
         for date_item in sorted(date_list):
             date_string = date_item.strftime('%Y-%m-%d')
@@ -497,6 +575,20 @@ class Graphs(object):
             series_2.append(series_2_value)
             series_3.append(series_3_value)
             series_4.append(series_4_value)
+
+        if growth:
+            for idx, day in enumerate(series_1):
+                series_1[idx] = base_value_1 + day
+                base_value_1 += day
+            for idx, day in enumerate(series_2):
+                series_2[idx] = base_value_2 + day
+                base_value_2 += day
+            for idx, day in enumerate(series_3):
+                series_3[idx] = base_value_3 + day
+                base_value_3 += day
+            for idx, day in enumerate(series_4):
+                series_4[idx] = base_value_4 + day
+                base_value_4 += day
 
         series_1_output = {'name': 'Movies',
                            'data': series_1}
