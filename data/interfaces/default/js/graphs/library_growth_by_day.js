@@ -27,14 +27,6 @@ var hc_library_growth_by_day_options = {
         series: {
             allowPointSelect: false,
             threshold: 0,
-            cursor: 'pointer',
-            point: {
-                events: {
-                    click: function () {
-                        selectHandler(this.category, this.series.name);
-                    }
-                }
-            },
             events: {
                 legendItemClick: function() {
                     setGraphVisibility(this.chart.renderTo.id, this.chart.series, this.name);
@@ -46,7 +38,7 @@ var hc_library_growth_by_day_options = {
             type: 'datetime',
             labels: {
                 formatter: function() {
-                    return moment(this.value).format("MMM D");
+                    return moment(this.value).format("YY MMM D");
                 },
                 style: {
                     color: '#aaa'

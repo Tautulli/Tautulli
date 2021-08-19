@@ -980,10 +980,16 @@
                             // Required to prevent error on initial graph loading
                             series.tooltipOptions.followPointer = false;
                         }
-                        points.push(series.searchPoint(event, true));
+                        var _point = series.searchPoint(event, true);
+                        if(_point == undefined) {
+                            return;
+                        }
+                        if(_point.series.visible == true) {
+                            points.push(_point);    
+                        }
                     });
                     
-                   if(!points.includes(undefined)) {
+                   if(points.length && !points.includes(undefined)) {
                     chart.tooltip.refresh(points);
                     chart.xAxis[0].drawCrosshair(e, points[0]);
                     chart.xAxis[0].drawCrosshair(e, points[points.length]);
