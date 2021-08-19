@@ -88,6 +88,16 @@ DOCUMENTATION :: END
         $('#api_qr_https').toggle((protocol === 'http:'));
     }
 
+    function generateQRCode(url) {
+        $('#api_qr_code').empty().kjua({
+            text: url + '|' + $('#api_qr_token').val(),
+            render: 'canvas',
+            ecLevel: 'H',
+            size: 256,
+            fill: '#000'
+        });
+    }
+
     var verifiedDevice = false;
     $('#register-mobile-device').click(function () {
         verifiedDevice = false;
@@ -98,9 +108,7 @@ DOCUMENTATION :: END
             $.get('generate_api_key', { device: true }).then(function (token) {
                 $('#api_qr_address').val(url);
                 $('#api_qr_token').val(token);
-                $('#api_qr_code').empty().qrcode({
-                    text: url + '|' + token
-                });
+                generateQRCode(url);
 
                 (function poll() {
                     setTimeout(function () {
@@ -135,10 +143,7 @@ DOCUMENTATION :: END
         this.value = $.trim(this.value);
         var url = $(this).val();
         checkQRAddress(url);
-
-        $('#api_qr_code').empty().qrcode({
-            text: url + '|' + $('#api_qr_token').val()
-        });
+        generateQRCode(url);
     });
 
     $('#api-qr-modal').on('hide.bs.modal', function () {

@@ -4508,3 +4508,8 @@ a.donate-with-crypto::after {
     top: 0;
     left: 0;
 }
+
+#api_qr_code {
+    padding: 1px;
+    line-height: 1;
+}
