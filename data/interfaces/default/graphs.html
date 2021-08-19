@@ -369,7 +369,7 @@
 
     function syncGraphs(instance, chart_name, series_name) {
         var otherChart = Highcharts.charts.find(c => c['renderTo'].id == syncLinks[chart_name]);
-        sisterSeries = otherChart.series.find(s => s['name'] == series_name);
+        var sisterSeries = otherChart.series.find(s => s['name'] == series_name);
 
         // Chart Visibility in storage - needs to be done before setting axis visibility
         setGraphVisibility(syncLinks[chart_name], otherChart.series, series_name);
@@ -979,16 +979,19 @@
         }
     });
 
+    // https://jsfiddle.net/BlackLabel/5wq9sdbp
     ['mousemove', 'touchmove', 'touchstart'].forEach(function (eventType) {
         document.getElementById('section-library-graphs').addEventListener(
             eventType,
             function (e) {
                 var chart,
+                    otherChart,
                     point,
                     points,
                     i,
                     event;
 
+                
                 for (i = 0; i < Highcharts.charts.length; i = i + 1) {
                     chart = Highcharts.charts[i];
                     if(chart.options.chart.type != "line") {
@@ -996,6 +999,8 @@
                     }
                     // Find coordinates within the chart
                     event = chart.pointer.normalize(e);
+
+                    otherChart = Highcharts.charts.find(c => c['renderTo'].id == syncLinks[chart.renderTo.id]);
 
                     // Get the hovered points
                     points = [];
@@ -1009,8 +1014,25 @@
                     if(points.length && !points.includes(undefined)) {
                         chart.tooltip.refresh(points);
                         chart.xAxis[0].drawCrosshair(e, points[0]);
-                        chart.xAxis[0].drawCrosshair(e, points[points.length]);
+                        //chart.xAxis[0].drawCrosshair(e, points[points.length]);
+
+                        pointsChart2 = []
+                        number = 0;
+                        otherChart.series.forEach(function(_series, idx) {
+                            if(_series.visible) {
+                                var _point = _series.points[points[number].x];
+                                pointsChart2.push(_point);
+                                number++;
+                            }
+                        });
+                        otherChart.tooltip.refresh(pointsChart2);
+                        otherChart.xAxis[0].drawCrosshair(e, pointsChart2[0]);
                     }
+
+                    /**
+                     * If a chart matching chart is found the other will be retrieved through the syncLink so no additional iteration is required.
+                    **/
+                    break;
                 }
             }
         );
