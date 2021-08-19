@@ -295,6 +295,7 @@
 
 <script>
     var selected_user_id = null;
+    var _Charts = [];
 
     // Modal popup dialog
     function selectHandler(selectedDate, selectedSeries) {
@@ -368,7 +369,7 @@
     }
 
     function syncGraphs(instance, chart_name, series_name) {
-        var otherChart = Highcharts.charts.find(c => c['renderTo'].id == syncLinks[chart_name]);
+        var otherChart = _Charts.find(c => c['renderTo'].id == syncLinks[chart_name]);
         var sisterSeries = otherChart.series.find(s => s['name'] == series_name);
 
         // Chart Visibility in storage - needs to be done before setting axis visibility
@@ -389,6 +390,73 @@
             document.getElementsByClassName("highcharts-yaxis-title")[1].innerHTML = (instance.visible) ? "" : "Episodes";
         }
     }
+
+
+    // Sync selected day (tooltip position)
+    // https://jsfiddle.net/BlackLabel/5wq9sdbp
+    ['mousemove', 'touchmove', 'touchstart'].forEach(function (eventType) {
+        document.getElementById('section-library-graphs').addEventListener(
+            eventType,
+            function (e) {
+                var chart,
+                    otherChart,
+                    point,
+                    points,
+                    i,
+                    event;
+
+                
+                for (i = 0; i < Highcharts.charts.length; i = i + 1) {                    
+                    if(Highcharts.charts.includes(undefined)) {
+                        _Charts = Highcharts.charts.filter(chart => chart !== undefined);
+                    } else {
+                        _Charts = Highcharts.charts;
+                    }
+                    
+                    chart = _Charts[i];
+                    if(chart.options.chart.type != "line" || !syncLinks.hasOwnProperty(chart.renderTo.id)) {
+                        continue;
+                    }
+                    // Find coordinates within the chart
+                    event = chart.pointer.normalize(e);
+
+                    otherChart = _Charts.find(c => c['renderTo'].id == syncLinks[chart.renderTo.id]);
+
+                    // Get the hovered points
+                    points = [];
+                    chart.series.forEach(function (series, idx) {
+                        var _point = series.searchPoint(event, true);
+                        if(_point && _point.series.visible == true) {
+                            points.push(_point);
+                        }
+                    });
+                    
+                    if(points.length && !points.includes(undefined)) {
+                        chart.tooltip.refresh(points);
+                        chart.xAxis[0].drawCrosshair(e, points[0]);
+                        //chart.xAxis[0].drawCrosshair(e, points[points.length]);
+
+                        pointsChart2 = []
+                        number = 0;
+                        otherChart.series.forEach(function(_series, idx) {
+                            if(_series.visible) {
+                                var _point = _series.points[points[number].x];
+                                pointsChart2.push(_point);
+                                number++;
+                            }
+                        });
+                        otherChart.tooltip.refresh(pointsChart2);
+                        otherChart.xAxis[0].drawCrosshair(e, pointsChart2[0]);
+                    }
+
+                    /**
+                     * If a chart matching chart is found the other will be retrieved through the syncLink so no additional iteration is required.
+                    **/
+                    break;
+                }
+            }
+        );
+    });
     
     function setGraphVisibility(chart_name, data_series, series_name) {
         var chart_key = 'HighCharts_' + chart_name;
@@ -978,86 +1046,5 @@
             hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
         }
     });
-
-    // https://jsfiddle.net/BlackLabel/5wq9sdbp
-    ['mousemove', 'touchmove', 'touchstart'].forEach(function (eventType) {
-        document.getElementById('section-library-graphs').addEventListener(
-            eventType,
-            function (e) {
-                var chart,
-                    otherChart,
-                    point,
-                    points,
-                    i,
-                    event;
-
-                
-                for (i = 0; i < Highcharts.charts.length; i = i + 1) {
-                    chart = Highcharts.charts[i];
-                    if(chart.options.chart.type != "line") {
-                        continue;
-                    }
-                    // Find coordinates within the chart
-                    event = chart.pointer.normalize(e);
-
-                    otherChart = Highcharts.charts.find(c => c['renderTo'].id == syncLinks[chart.renderTo.id]);
-
-                    // Get the hovered points
-                    points = [];
-                    chart.series.forEach(function (series, idx) {
-                        var _point = series.searchPoint(event, true);
-                        if(_point && _point.series.visible == true) {
-                            points.push(_point);
-                        }
-                    });
-                    
-                    if(points.length && !points.includes(undefined)) {
-                        chart.tooltip.refresh(points);
-                        chart.xAxis[0].drawCrosshair(e, points[0]);
-                        //chart.xAxis[0].drawCrosshair(e, points[points.length]);
-
-                        pointsChart2 = []
-                        number = 0;
-                        otherChart.series.forEach(function(_series, idx) {
-                            if(_series.visible) {
-                                var _point = _series.points[points[number].x];
-                                pointsChart2.push(_point);
-                                number++;
-                            }
-                        });
-                        otherChart.tooltip.refresh(pointsChart2);
-                        otherChart.xAxis[0].drawCrosshair(e, pointsChart2[0]);
-                    }
-
-                    /**
-                     * If a chart matching chart is found the other will be retrieved through the syncLink so no additional iteration is required.
-                    **/
-                    break;
-                }
-            }
-        );
-    });
-
-    function synchronize(point) {
-        if (chart1.customCrosshair) { // destroy previous crosshair
-        chart1.customCrosshair.element.remove()
-        }
-        if (chart2.customCrosshair) {
-        chart2.customCrosshair.element.remove()
-        }
-
-        // show tooltip on second chart
-        chart2.tooltip.refresh(chart2.series[0].points[point.x]);
-
-        // render crosshairs
-        chart1.customCrosshair = chart1.renderer.rect(point.plotX + chart1.plotLeft - 1, chart1.plotTop, 1, chart1.plotSizeY).attr({
-        fill: 'red'
-        }).add()
-
-        chart2.customCrosshair = chart2.renderer.rect(chart2.series[0].points[point.x].plotX + chart2.plotLeft - 1, chart2.plotTop, 1, chart2.plotSizeY).attr({
-        fill: 'red'
-        }).add()
-    }
-
 </script>
 </%def>
