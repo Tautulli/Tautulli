@@ -362,15 +362,39 @@
         });
     }
 
+    var syncLinks = {
+        'library_growth_by_day': 'graph_additions_by_day',
+        'graph_additions_by_day': 'library_growth_by_day'
+    }
+
+    function syncGraphs(instance, chart_name, series_name) {
+        var otherChart = Highcharts.charts.find(c => c['renderTo'].id == syncLinks[chart_name]);
+        sisterSeries = otherChart.series.find(s => s['name'] == series_name);
+
+        // Chart Visibility in storage - needs to be done before setting axis visibility
+        setGraphVisibility(syncLinks[chart_name], otherChart.series, series_name);
+
+        // Axis visibility
+        if (sisterSeries) {
+            if (instance.visible) {
+                sisterSeries.hide();
+            } else {
+                sisterSeries.show();
+            }
+        }
+        
+        // Axis name visibility
+        if (series_name == "Episodes") {
+            document.getElementsByClassName("highcharts-yaxis-title")[0].innerHTML = (instance.visible) ? "" : "Episodes";
+            document.getElementsByClassName("highcharts-yaxis-title")[1].innerHTML = (instance.visible) ? "" : "Episodes";
+        }
+    }
+    
     function setGraphVisibility(chart_name, data_series, series_name) {
         var chart_key = 'HighCharts_' + chart_name;
 
         var chart_visibility = data_series.map(function(s) {
             var _visible = (s.name === series_name) ? !s.visible : s.visible;
-            if(s.name == "Episodes") {
-                document.getElementsByClassName("highcharts-yaxis-title")[0].innerHTML = (_visible) ? "Episodes" : "";
-                document.getElementsByClassName("highcharts-yaxis-title")[1].innerHTML = (_visible) ? "Episodes" : "";
-            }
             return {
                 name: s.name, visible: _visible
             }
@@ -976,24 +1000,17 @@
                     // Get the hovered points
                     points = [];
                     chart.series.forEach(function (series, idx) {
-                        if(idx == 0) {
-                            // Required to prevent error on initial graph loading
-                            series.tooltipOptions.followPointer = false;
-                        }
                         var _point = series.searchPoint(event, true);
-                        if(_point == undefined) {
-                            return;
-                        }
-                        if(_point.series.visible == true) {
-                            points.push(_point);    
+                        if(_point && _point.series.visible == true) {
+                            points.push(_point);
                         }
                     });
                     
-                   if(points.length && !points.includes(undefined)) {
-                    chart.tooltip.refresh(points);
-                    chart.xAxis[0].drawCrosshair(e, points[0]);
-                    chart.xAxis[0].drawCrosshair(e, points[points.length]);
-                   }
+                    if(points.length && !points.includes(undefined)) {
+                        chart.tooltip.refresh(points);
+                        chart.xAxis[0].drawCrosshair(e, points[0]);
+                        chart.xAxis[0].drawCrosshair(e, points[points.length]);
+                    }
                 }
             }
         );
