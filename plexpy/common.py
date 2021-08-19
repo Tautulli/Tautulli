@@ -228,8 +228,7 @@ HW_ENCODERS = [
     'videotoolbox',
     'mediacodecndk',
     'vaapi',
-    'nvenc',
-    'x264'
+    'nvenc'
 ]
 
 EXTRA_TYPES = {
