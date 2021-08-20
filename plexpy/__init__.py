@@ -787,6 +787,14 @@ def dbcheck():
         'media_info TEXT)'
     )
 
+    # library_stats_items :: This table keeps record of all added items
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS library_stats_items (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'added_at INTEGER, updated_at INTEGER, last_viewed_at INTEGER, pms_identifier TEXT, section_id INTEGER, '
+        'library_name TEXT, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'media_type TEXT, media_info TEXT, user_ratings TEXT)'
+    )
+
     # mobile_devices table :: This table keeps record of devices linked with the mobile app
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -2491,6 +2499,16 @@ def dbcheck():
     c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_session_history_media_info_transcode_decision" '
         'ON "session_history_media_info" ("transcode_decision")'
+    )
+
+    # Create library_stats_items table indices
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_library_stats_items_media_type" '
+        'ON "library_stats_items" ("media_type")'
+    )
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_library_stats_items_rating_key" '
+        'ON "library_stats_items" ("rating_key")'
     )
 
     # Create lookup table indices

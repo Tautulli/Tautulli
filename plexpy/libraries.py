@@ -35,6 +35,7 @@ if plexpy.PYTHON2:
     import pmsconnect
     import session
     import users
+    import datafactory
     from plex import Plex
 else:
     from plexpy import common
@@ -47,6 +48,7 @@ else:
     from plexpy import session
     from plexpy import users
     from plexpy.plex import Plex
+    from plexpy import datafactory
 
 
 def refresh_libraries():
@@ -64,19 +66,25 @@ def refresh_libraries():
 
         library_keys = []
         new_keys = []
+        ratingKeys = []
 
         # Keep track of section_id to update is_active status
         section_ids = [common.LIVE_TV_SECTION_ID]  # Live TV library always considered active
 
+        _pms = pmsconnect.PmsConnect()
+        _datafactory = datafactory.DataFactory()
+
         for section in library_sections:
             section_ids.append(helpers.cast_to_int(section['section_id']))
+
+            section_type = section['section_type']
 
             section_keys = {'server_id': server_id,
                             'section_id': section['section_id']}
             section_values = {'server_id': server_id,
                               'section_id': section['section_id'],
                               'section_name': section['section_name'],
-                              'section_type': section['section_type'],
+                              'section_type': section_type,
                               'agent': section['agent'],
                               'thumb': section['thumb'],
                               'art': section['art'],
@@ -92,6 +100,34 @@ def refresh_libraries():
 
             if result == 'insert':
                 new_keys.append(section['section_id'])
+
+            # Push Data to library_sections table
+            # Placed here as statistics should represent current library status (be in sync)
+            # if library update disabled => statistics update also disabled => will me moved to 
+            # seperate refresh function as it has long runtimes
+            # initial run: 16min for 16000 item (movies + shows + seasons + episodes + track + album + artist)
+            # update run: 8min -,-
+            _resultSet = []
+            _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type=section['section_type'], get_media_info=False))
+
+            # Add additional library contents for easier filtering at graph queries
+            if section_type == 'show':
+                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='season', get_media_info=False))
+                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='episode', get_media_info=False))
+            
+            if section_type == 'artist':
+                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='album', get_media_info=False))
+                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='track', get_media_info=False))
+
+            for result in _resultSet:
+                for item in result['children_list']:
+                    if item['rating_key'] not in ratingKeys:
+                        ratingKeys.append(item['rating_key'])
+
+        ratingKeys = sorted(ratingKeys, key=lambda k: helpers.cast_to_int(k), reverse=False)
+        # TEMP disabled due to long runtime on startup -> to prevent it
+        for key in ratingKeys:
+            _datafactory.set_library_stats_item(rating_key=key)
 
         add_live_tv_library(refresh=True)
 

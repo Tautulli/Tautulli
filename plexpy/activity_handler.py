@@ -681,7 +681,7 @@ def on_created(rating_key, **kwargs):
 
         data_factory = datafactory.DataFactory()
         if 'child_keys' not in kwargs:
-            if data_factory.get_recently_added_item(rating_key):
+            if data_factory.get_recently_added_item(rating_key) and data_factory.get_library_stats_item(rating_key):
                 logger.debug("Tautulli TimelineHandler :: Library item %s added already. Not notifying again."
                              % str(rating_key))
                 notify = False
@@ -697,6 +697,7 @@ def on_created(rating_key, **kwargs):
 
         for key in all_keys:
             data_factory.set_recently_added_item(key)
+            data_factory.set_library_stats_item(key)
 
         logger.debug("Added %s items to the recently_added database table." % str(len(all_keys)))
 

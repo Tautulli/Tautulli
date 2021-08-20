@@ -1999,3 +1999,48 @@ class DataFactory(object):
             return False
 
         return True
+
+
+    def get_library_stats_item(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        if rating_key:
+            try:
+                query = 'SELECT * FROM library_stats_items WHERE rating_key = ?'
+                result = monitor_db.select(query=query, args=[rating_key])
+            except Exception as e:
+                logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats_item: %s." % e)
+                return []
+        else:
+            return []
+
+        return result
+
+    def set_library_stats_item(self, rating_key=''):
+        monitor_db = database.MonitorDatabase()
+
+        pms_connect = pmsconnect.PmsConnect()
+        metadata = pms_connect.get_metadata_details(rating_key=rating_key, skip_cache=True, media_info=True)
+
+        keys = {'rating_key': metadata['rating_key']}
+
+        values = {'added_at': metadata['added_at'],
+                  'updated_at': metadata['updated_at'],
+                  'last_viewed_at': metadata['last_viewed_at'],
+                  'section_id': metadata['section_id'],
+                  'library_name': metadata['library_name'],
+                  'parent_rating_key': metadata['parent_rating_key'],
+                  'grandparent_rating_key': metadata['grandparent_rating_key'],
+                  'media_type': metadata['media_type'],
+                  'media_info': json.dumps(metadata['media_info']),
+                  # TODO json array with ratings from all users
+                  'user_ratings': ''
+                  }
+
+        try:
+            monitor_db.upsert(table_name='library_stats_items', key_dict=keys, value_dict=values)
+        except Exception as e:
+            logger.warn("Tautulli DataFactory :: Unable to execute database query for set_library_stats_item: %s." % e)
+            return False
+
+        return True
