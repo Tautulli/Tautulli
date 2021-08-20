@@ -180,6 +180,8 @@ _CONFIG_DEFINITIONS = {
     'PLEXPY_AUTO_UPDATE': (int, 'General', 0),
     'REFRESH_LIBRARIES_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_LIBRARIES_ON_STARTUP': (int, 'Monitoring', 1),
+    'REFRESH_LIBRARY_STATS_DATA_INTERVAL': (int, 'Monitoring', 12),
+    'REFRESH_LIBRARY_STATS_DATA_ON_STARTUP': (int, 'Monitoring', 1),
     'REFRESH_USERS_INTERVAL': (int, 'Monitoring', 12),
     'REFRESH_USERS_ON_STARTUP': (int, 'Monitoring', 1),
     'SESSION_DB_WRITE_ATTEMPTS': (int, 'Advanced', 5),
@@ -580,3 +582,9 @@ class Config(object):
             self.HTTP_HASHED_PASSWORD = 1
 
             self.CONFIG_VERSION = 20
+
+        if self.CONFIG_VERSION == 20:
+            self.REFRESH_LIBRARY_STATS_DATA_INTERVAL = 12
+            self.REFRESH_LIBRARY_STATS_DATA_ON_STARTUP = 1
+
+            self.CONFIG_VERSION = 21

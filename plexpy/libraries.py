@@ -77,14 +77,12 @@ def refresh_libraries():
         for section in library_sections:
             section_ids.append(helpers.cast_to_int(section['section_id']))
 
-            section_type = section['section_type']
-
             section_keys = {'server_id': server_id,
                             'section_id': section['section_id']}
             section_values = {'server_id': server_id,
                               'section_id': section['section_id'],
                               'section_name': section['section_name'],
-                              'section_type': section_type,
+                              'section_type': section['section_type'],
                               'agent': section['agent'],
                               'thumb': section['thumb'],
                               'art': section['art'],
@@ -100,6 +98,47 @@ def refresh_libraries():
 
             if result == 'insert':
                 new_keys.append(section['section_id'])
+
+        add_live_tv_library(refresh=True)
+
+        query = 'UPDATE library_sections SET is_active = 0 WHERE server_id != ? OR ' \
+                'section_id NOT IN ({})'.format(', '.join(['?'] * len(section_ids)))
+        monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
+
+        if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
+            plexpy.CONFIG.write()
+        else:
+            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+            plexpy.CONFIG.write()
+
+        logger.info("Tautulli Libraries :: Libraries list refreshed.")
+        return True
+    else:
+        logger.warn("Tautulli Libraries :: Unable to refresh libraries list.")
+        return False
+
+def refresh_library_statistics():
+    logger.info("Tautulli Library Statistics :: Requesting library statistics data refresh...")
+
+    server_id = plexpy.CONFIG.PMS_IDENTIFIER
+    if not server_id:
+        logger.error("Tautulli Library Statistics :: No PMS identifier, cannot refresh data. Verify server in settings.")
+        return
+
+    library_sections = pmsconnect.PmsConnect().get_library_details()
+
+    if library_sections:
+        ratingKeys = []
+
+        _pms = pmsconnect.PmsConnect()
+        _datafactory = datafactory.DataFactory()
+
+        # TODO Check if library is deleted in Tautulli?
+
+        for section in library_sections:
+            section_type = section['section_type']
 
             # Push Data to library_sections table
             # Placed here as statistics should represent current library status (be in sync)
@@ -129,26 +168,11 @@ def refresh_libraries():
         for key in ratingKeys:
             _datafactory.set_library_stats_item(rating_key=key)
 
-        add_live_tv_library(refresh=True)
-
-        query = 'UPDATE library_sections SET is_active = 0 WHERE server_id != ? OR ' \
-                'section_id NOT IN ({})'.format(', '.join(['?'] * len(section_ids)))
-        monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
-
-        if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
-            plexpy.CONFIG.write()
-        else:
-            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
-            plexpy.CONFIG.write()
-
-        logger.info("Tautulli Libraries :: Libraries list refreshed.")
+        logger.info("Tautulli Library Statistics :: Data refreshed.")
         return True
     else:
-        logger.warn("Tautulli Libraries :: Unable to refresh libraries list.")
+        logger.warn("Tautulli Library Statistics :: Unable to refresh data.")
         return False
-
 
 def add_live_tv_library(refresh=False):
     monitor_db = database.MonitorDatabase()
