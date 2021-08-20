@@ -431,40 +431,12 @@ class Graphs(object):
             if growth:
                 query = 'SELECT ' \
                             '0 AS date_added, ' \
-                            'SUM(ra.movie_count) AS movie_count, ' \
-                            'SUM(ra.tv_count) AS tv_count, ' \
-                            'SUM(ra.season_count) AS season_count, ' \
-                            'SUM(ra.episode_count) AS episode_count ' \
-                        'FROM (' \
-                            'SELECT ' \
-                                'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
-                                '0 AS tv_count, ' \
-                                '0 AS season_count, ' \
-                                'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                                'FROM (SELECT * ' \
-                                    'FROM recently_added ' \
-                                    'WHERE (media_type = "movie" OR media_type = "episode") AND added_at < %s) AS raM ' \
-                            'UNION ALL ' \
-                            'SELECT ' \
-                                '0 AS movie_count, ' \
-                                'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
-                                '0 AS season_count, ' \
-                                '0 AS episode_count ' \
-                                'FROM (SELECT * ' \
-                                    'FROM recently_added ' \
-                                    'WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at < %s ' \
-                                    'GROUP BY grandparent_rating_key) AS raG ' \
-                            'UNION ALL ' \
-                            'SELECT ' \
-                                '0 AS movie_count, ' \
-                                '0 AS tv_count, ' \
-                                'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
-                                '0 AS episode_count ' \
-                                'FROM (SELECT * ' \
-                                    'FROM recently_added ' \
-                                    'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at < %s ' \
-                                    'GROUP BY parent_rating_key) AS raS ' \
-                        ') AS ra ' \
+                            'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                            'SUM(CASE WHEN media_type = "show" THEN 1 ELSE 0 END) AS tv_count, ' \
+                            'SUM(CASE WHEN media_type = "season" THEN 1 ELSE 0 END) AS season_count, ' \
+                            'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                        'FROM library_stats_items ' \
+                        'WHERE added_at < %s ' \
                         'UNION ALL ' \
                         'SELECT raM.date_added, ' \
                             'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
@@ -472,7 +444,7 @@ class Graphs(object):
                             '0 AS season_count, ' \
                             'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '    FROM recently_added ' \
+                            '    FROM library_stats_items ' \
                             '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
                         'GROUP BY raM.date_added ' \
                         'UNION ALL ' \
@@ -482,7 +454,7 @@ class Graphs(object):
                             '0 AS season_count, ' \
                             '0 AS episode_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '    FROM recently_added ' \
+                            '    FROM library_stats_items ' \
                             '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                         'GROUP BY raG.date_added ' \
@@ -493,12 +465,11 @@ class Graphs(object):
                             'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
                             '0 AS episode_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '   FROM recently_added ' \
+                            '   FROM library_stats_items ' \
                             '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                             '   GROUP BY parent_rating_key) AS raS ' \
                         'GROUP BY raS.date_added ' \
-                        'ORDER BY date_added' % (timestamp, timestamp, timestamp,
-                                                timestamp, timestamp, timestamp)
+                        'ORDER BY date_added' % (timestamp, timestamp, timestamp, timestamp)
 
                 result = monitor_db.select(query)
             else:
@@ -620,40 +591,12 @@ class Graphs(object):
 
         try:
             query = 'SELECT ' \
-                        'SUM(ra.movie_count) AS movie_count, ' \
-                        'SUM(ra.tv_count) AS tv_count, ' \
-                        'SUM(ra.season_count) AS season_count, ' \
-                        'SUM(ra.episode_count) AS episode_count ' \
-                    'FROM (' \
-                        'SELECT ' \
-                            'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
-                            '0 AS tv_count, ' \
-                            '0 AS season_count, ' \
-                            'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                            'FROM (SELECT * ' \
-                                'FROM recently_added ' \
-                                'WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
-                        'UNION ALL ' \
-                        'SELECT ' \
-                            '0 AS movie_count, ' \
-                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
-                            '0 AS season_count, ' \
-                            '0 AS episode_count ' \
-                            'FROM (SELECT * ' \
-                                'FROM recently_added ' \
-                                'WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
-                                'GROUP BY grandparent_rating_key) AS raG ' \
-                        'UNION ALL ' \
-                        'SELECT ' \
-                            '0 AS movie_count, ' \
-                            '0 AS tv_count, ' \
-                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
-                            '0 AS episode_count ' \
-                            'FROM (SELECT * ' \
-                                'FROM recently_added ' \
-                                'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
-                                'GROUP BY parent_rating_key) AS raS ' \
-                    ') AS ra' % (timestamp, timestamp, timestamp)
+                        'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                        'SUM(CASE WHEN media_type = "show" THEN 1 ELSE 0 END) AS tv_count, ' \
+                        'SUM(CASE WHEN media_type = "season" THEN 1 ELSE 0 END) AS season_count, ' \
+                        'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                    'FROM library_stats_items ' \
+                    'WHERE added_at >= %s' % timestamp
 
             result = monitor_db.select(query)
 
@@ -712,7 +655,9 @@ class Graphs(object):
         resolution_identifier = '(CASE WHEN media_info LIKE \'%"video_resolution": "4K"%\' THEN "1_4K" ' \
                                 'WHEN media_info LIKE \'%"video_resolution": "1080"%\' THEN "2_1080" ' \
                                 'WHEN media_info LIKE \'%"video_resolution": "720"%\' THEN "3_720" ' \
-                                'WHEN media_info LIKE \'%"video_resolution": "sd"%\' THEN "4_SD" ELSE "5_Unknown" END) AS resolution '
+                                'WHEN media_info LIKE \'%"video_resolution": "576"%\' THEN "4_576" ' \
+                                'WHEN media_info LIKE \'%"video_resolution": "480"%\' THEN "5_480" ' \
+                                'WHEN media_info LIKE \'%"video_resolution": "sd"%\' THEN "6_SD" ELSE "7_Unknown" END) AS resolution '
 
         try:
             query = 'SELECT ' \
@@ -729,7 +674,7 @@ class Graphs(object):
                             '0 AS season_count, ' \
                             'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
                             'FROM (SELECT *, %s ' \
-                                'FROM recently_added ' \
+                                'FROM library_stats_items ' \
                                 'WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
                             'GROUP BY raM.resolution ' \
                         'UNION ALL ' \
@@ -740,7 +685,7 @@ class Graphs(object):
                             '0 AS season_count, ' \
                             '0 AS episode_count ' \
                             'FROM (SELECT *, %s ' \
-                                'FROM recently_added ' \
+                                'FROM library_stats_items ' \
                             '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                             'GROUP BY raG.resolution ' \
@@ -752,7 +697,7 @@ class Graphs(object):
                             'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
                             '0 AS episode_count ' \
                             'FROM (SELECT *, %s ' \
-                                'FROM recently_added ' \
+                                'FROM library_stats_items ' \
                                 'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                                 'GROUP BY parent_rating_key) AS raS ' \
                             'GROUP BY raS.resolution) AS ra ' \

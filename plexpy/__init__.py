@@ -2517,6 +2517,10 @@ def dbcheck():
         'ON "library_stats_items" ("media_type")'
     )
     c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_library_stats_items_added_at" '
+        'ON "library_stats_items" ("added_at")'
+    )
+    c_db.execute(
         'CREATE INDEX IF NOT EXISTS "idx_library_stats_items_rating_key" '
         'ON "library_stats_items" ("rating_key")'
     )
