@@ -848,6 +848,15 @@ class DataFactory(object):
                     else:
                         thumb = item['grandparent_thumb']
 
+                    media_type = item['media_type']
+                    media_index = item['media_index']
+                    parent_media_index = item['parent_media_index']
+
+                    if media_type == 'episode':
+                        season = 'S' + str(parent_media_index).zfill(2) + 'E' + str(media_index).zfill(2)
+                    else:
+                        season = ''
+
                     row = {'row_id': item['id'],
                            'user': item['user'],
                            'friendly_name': item['friendly_name'],
@@ -857,15 +866,16 @@ class DataFactory(object):
                            'grandparent_title': item['grandparent_title'],
                            'grandchild_title': item['title'],
                            'year': item['year'],
-                           'media_index': item['media_index'],
-                           'parent_media_index': item['parent_media_index'],
+                           'season': season,
+                           'media_index': media_index,
+                           'parent_media_index': parent_media_index,
                            'rating_key': item['rating_key'],
                            'grandparent_rating_key': item['grandparent_rating_key'],
                            'thumb': thumb,
                            'grandparent_thumb': item['grandparent_thumb'],
                            'art': item['art'],
                            'section_id': item['section_id'],
-                           'media_type': item['media_type'],
+                           'media_type': media_type,
                            'content_rating': item['content_rating'],
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'last_watch': item['last_watch'],

@@ -187,6 +187,8 @@ DOCUMENTATION :: END
                                     ${row['users_watched']}
                                     % elif stat_id == 'most_concurrent':
                                     ${row['count']}
+                                    % elif stat_id == 'last_watched':
+                                    ${row['season']}
                                     % endif
                                 </div>
                             </li>
