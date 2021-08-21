@@ -436,16 +436,16 @@ class Graphs(object):
                             'SUM(CASE WHEN media_type = "season" THEN 1 ELSE 0 END) AS season_count, ' \
                             'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
                         'FROM library_stats_items ' \
-                        'WHERE added_at < %s ' \
+                        'WHERE updated_at < %s ' \
                         'UNION ALL ' \
                         'SELECT raM.date_added, ' \
                             'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                             '0 AS tv_count, ' \
                             '0 AS season_count, ' \
                             'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
                             '    FROM library_stats_items ' \
-                            '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
+                            '    WHERE (media_type = "movie" OR media_type = "episode") AND updated_at >= %s) AS raM ' \
                         'GROUP BY raM.date_added ' \
                         'UNION ALL ' \
                         'SELECT raG.date_added, ' \
@@ -453,9 +453,9 @@ class Graphs(object):
                             'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
                             '0 AS season_count, ' \
                             '0 AS episode_count ' \
-                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
                             '    FROM library_stats_items ' \
-                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                         'GROUP BY raG.date_added ' \
                         'UNION ALL ' \
@@ -464,9 +464,9 @@ class Graphs(object):
                             '0 AS tv_count, ' \
                             'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
                             '0 AS episode_count ' \
-                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
+                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
                             '   FROM library_stats_items ' \
-                            '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
                             '   GROUP BY parent_rating_key) AS raS ' \
                         'GROUP BY raS.date_added ' \
                         'ORDER BY date_added' % (timestamp, timestamp, timestamp, timestamp)
@@ -478,9 +478,9 @@ class Graphs(object):
                             '0 AS tv_count, ' \
                             '0 AS season_count, ' \
                             'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '    FROM recently_added ' \
-                            '    WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
+                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            '    FROM library_stats_items ' \
+                            '    WHERE (media_type = "movie" OR media_type = "episode") AND updated_at >= %s) AS raM ' \
                         'GROUP BY raM.date_added ' \
                         'UNION ALL ' \
                         'SELECT raG.date_added, ' \
@@ -488,9 +488,9 @@ class Graphs(object):
                             'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
                             '0 AS season_count, ' \
                             '0 AS episode_count ' \
-                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '    FROM recently_added ' \
-                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            '    FROM library_stats_items ' \
+                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                         'GROUP BY raG.date_added ' \
                         'UNION ALL ' \
@@ -499,9 +499,9 @@ class Graphs(object):
                             '0 AS tv_count, ' \
                             'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
                             '0 AS episode_count ' \
-                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '   FROM recently_added ' \
-                            '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            '   FROM library_stats_items ' \
+                            '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
                             '   GROUP BY parent_rating_key) AS raS ' \
                         'GROUP BY raS.date_added ' \
                         'ORDER BY date_added' % (timestamp, timestamp, timestamp)
@@ -596,7 +596,7 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "season" THEN 1 ELSE 0 END) AS season_count, ' \
                         'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
                     'FROM library_stats_items ' \
-                    'WHERE added_at >= %s' % timestamp
+                    'WHERE updated_at >= %s' % timestamp
 
             result = monitor_db.select(query)
 
@@ -675,7 +675,7 @@ class Graphs(object):
                             'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
                             'FROM (SELECT *, %s ' \
                                 'FROM library_stats_items ' \
-                                'WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
+                                'WHERE (media_type = "movie" OR media_type = "episode") AND updated_at >= %s) AS raM ' \
                             'GROUP BY raM.resolution ' \
                         'UNION ALL ' \
                         'SELECT ' \
@@ -686,7 +686,7 @@ class Graphs(object):
                             '0 AS episode_count ' \
                             'FROM (SELECT *, %s ' \
                                 'FROM library_stats_items ' \
-                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                             'GROUP BY raG.resolution ' \
                         'UNION ALL ' \
@@ -698,7 +698,7 @@ class Graphs(object):
                             '0 AS episode_count ' \
                             'FROM (SELECT *, %s ' \
                                 'FROM library_stats_items ' \
-                                'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
+                                'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
                                 'GROUP BY parent_rating_key) AS raS ' \
                             'GROUP BY raS.resolution) AS ra ' \
                     'GROUP BY resolution ' \

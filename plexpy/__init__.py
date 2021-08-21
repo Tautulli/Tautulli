@@ -797,7 +797,7 @@ def dbcheck():
         'media_info TEXT)'
     )
 
-    # library_stats_items :: This table keeps record of all added items
+    # library_stats_items table :: This table keeps record of all added items
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS library_stats_items (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'added_at INTEGER, updated_at INTEGER, last_viewed_at INTEGER, pms_identifier TEXT, section_id INTEGER, '

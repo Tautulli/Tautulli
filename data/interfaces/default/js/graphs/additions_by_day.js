@@ -35,8 +35,8 @@ var hc_additions_by_day_options = {
                 }
             },
             events: {
-                legendItemClick: function() {
-                    syncGraphs(this, this.chart.renderTo.id, this.name);
+                legendItemClick: function(event) {
+                    syncGraphs(this, this.chart.renderTo.id, this.name, event.browserEvent);
                     setGraphVisibility(this.chart.renderTo.id, this.chart.series, this.name);
                 }
             }

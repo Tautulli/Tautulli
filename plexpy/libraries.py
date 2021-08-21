@@ -66,13 +66,9 @@ def refresh_libraries():
 
         library_keys = []
         new_keys = []
-        ratingKeys = []
 
         # Keep track of section_id to update is_active status
         section_ids = [common.LIVE_TV_SECTION_ID]  # Live TV library always considered active
-
-        _pms = pmsconnect.PmsConnect()
-        _datafactory = datafactory.DataFactory()
 
         for section in library_sections:
             section_ids.append(helpers.cast_to_int(section['section_id']))

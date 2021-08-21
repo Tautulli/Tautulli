@@ -368,7 +368,7 @@
         'graph_additions_by_day': 'library_growth_by_day'
     }
 
-    function syncGraphs(instance, chart_name, series_name) {
+    function syncGraphs(instance, chart_name, series_name, browserEvent) {
         var otherChart = _Charts.find(c => c['renderTo'].id == syncLinks[chart_name]);
         var sisterSeries = otherChart.series.find(s => s['name'] == series_name);
 
@@ -389,6 +389,9 @@
             document.getElementsByClassName("highcharts-yaxis-title")[0].innerHTML = (instance.visible) ? "" : "Episodes";
             document.getElementsByClassName("highcharts-yaxis-title")[1].innerHTML = (instance.visible) ? "" : "Episodes";
         }
+
+        // Tooltip
+        syncTooltip(browserEvent);
     }
 
 
@@ -397,66 +400,67 @@
     ['mousemove', 'touchmove', 'touchstart'].forEach(function (eventType) {
         document.getElementById('section-library-graphs').addEventListener(
             eventType,
-            function (e) {
-                var chart,
-                    otherChart,
-                    point,
-                    points,
-                    i,
-                    event;
-
-                
-                for (i = 0; i < Highcharts.charts.length; i = i + 1) {                    
-                    if(Highcharts.charts.includes(undefined)) {
-                        _Charts = Highcharts.charts.filter(chart => chart !== undefined);
-                    } else {
-                        _Charts = Highcharts.charts;
-                    }
-                    
-                    chart = _Charts[i];
-                    if(chart.options.chart.type != "line" || !syncLinks.hasOwnProperty(chart.renderTo.id)) {
-                        continue;
-                    }
-                    // Find coordinates within the chart
-                    event = chart.pointer.normalize(e);
-
-                    otherChart = _Charts.find(c => c['renderTo'].id == syncLinks[chart.renderTo.id]);
-
-                    // Get the hovered points
-                    points = [];
-                    chart.series.forEach(function (series, idx) {
-                        var _point = series.searchPoint(event, true);
-                        if(_point && _point.series.visible == true) {
-                            points.push(_point);
-                        }
-                    });
-                    
-                    if(points.length && !points.includes(undefined)) {
-                        chart.tooltip.refresh(points);
-                        chart.xAxis[0].drawCrosshair(e, points[0]);
-                        //chart.xAxis[0].drawCrosshair(e, points[points.length]);
-
-                        pointsChart2 = []
-                        number = 0;
-                        otherChart.series.forEach(function(_series, idx) {
-                            if(_series.visible) {
-                                var _point = _series.points[points[number].x];
-                                pointsChart2.push(_point);
-                                number++;
-                            }
-                        });
-                        otherChart.tooltip.refresh(pointsChart2);
-                        otherChart.xAxis[0].drawCrosshair(e, pointsChart2[0]);
-                    }
-
-                    /**
-                     * If a matching chart is found the other will be retrieved through the syncLink so no additional iteration is required.
-                    **/
-                    break;
-                }
+            function(e) {
+                syncTooltip(e);
             }
         );
     });
+
+    function syncTooltip(e) {
+        var chart, otherChart,
+            point, points,
+            i, event;
+        
+        for (i = 0; i < Highcharts.charts.length; i = i + 1) {                    
+            if(Highcharts.charts.includes(undefined)) {
+                _Charts = Highcharts.charts.filter(chart => chart !== undefined);
+            } else {
+                _Charts = Highcharts.charts;
+            }
+            
+            chart = _Charts[i];
+            if(chart.options.chart.type != "line" || !syncLinks.hasOwnProperty(chart.renderTo.id)) {
+                continue;
+            }
+
+            // Find coordinates within the chart
+            event = chart.pointer.normalize(e);
+
+            otherChart = _Charts.find(c => c['renderTo'].id == syncLinks[chart.renderTo.id]);
+
+            // Get the hovered points
+            points = [];
+            chart.series.forEach(function (series, idx) {
+                var _point = series.searchPoint(event, true);
+                if(_point && _point.series.visible == true) {
+                    points.push(_point);
+                }
+            });
+            
+            if(points.length && !points.includes(undefined)) {
+                chart.tooltip.refresh(points);
+                chart.xAxis[0].drawCrosshair(e, points[0]);
+                //chart.xAxis[0].drawCrosshair(e, points[points.length]);
+
+                pointsChart2 = []
+                number = 0;
+                otherChart.series.forEach(function(_series, idx) {
+                    if(_series.visible) {
+                        var _point = _series.points[points[number].x];
+                        pointsChart2.push(_point);
+                        number++;
+                    }
+                });
+                otherChart.tooltip.refresh(pointsChart2);
+                otherChart.xAxis[0].drawCrosshair(e, pointsChart2[0]);
+            }
+
+            /**
+             * If a matching chart is found the other will be retrieved through the syncLink so no additional iteration is required.
+            **/
+            break;
+        }
+    }
     
     function setGraphVisibility(chart_name, data_series, series_name) {
         var chart_key = 'HighCharts_' + chart_name;
@@ -782,7 +786,8 @@
             $('#days-selection').show();
             $('#months-selection').hide();
 
-            setGraphFormat(yaxis);
+            // Fixed as graph uses own measurement 'addition count' with formatting of 'plays'
+            setGraphFormat("plays");
 
             $.ajax({
                 url: "get_additions_by_date",

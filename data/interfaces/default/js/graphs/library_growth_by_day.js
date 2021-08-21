@@ -29,7 +29,7 @@ var hc_library_growth_by_day_options = {
             threshold: 0,
             events: {
                 legendItemClick: function(event) {
-                    syncGraphs(this, this.chart.renderTo.id, this.name);
+                    syncGraphs(this, this.chart.renderTo.id, this.name, event.browserEvent);
                     setGraphVisibility(this.chart.renderTo.id, this.chart.series, this.name);
                 }
             }
