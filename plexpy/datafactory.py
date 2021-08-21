@@ -852,10 +852,9 @@ class DataFactory(object):
                     media_index = item['media_index']
                     parent_media_index = item['parent_media_index']
 
-                    if media_type == 'episode':
-                        season = 'S' + str(parent_media_index).zfill(2) + 'E' + str(media_index).zfill(2)
-                    else:
-                        season = ''
+                    identifier = ''
+                    if plexpy.CONFIG.IDENTIFIER_LAST_WATCHED:
+                        identifier = 'S' + str(parent_media_index).zfill(2) + 'E' + str(media_index).zfill(2) if media_type == 'episode' else ''
 
                     row = {'row_id': item['id'],
                            'user': item['user'],
@@ -866,7 +865,7 @@ class DataFactory(object):
                            'grandparent_title': item['grandparent_title'],
                            'grandchild_title': item['title'],
                            'year': item['year'],
-                           'season': season,
+                           'identifier': identifier,
                            'media_index': media_index,
                            'parent_media_index': parent_media_index,
                            'rating_key': item['rating_key'],

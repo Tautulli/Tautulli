@@ -139,6 +139,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_RATE_LIMIT_ATTEMPTS_INTERVAL': (int, 'General', 300),
     'HTTP_RATE_LIMIT_LOCKOUT_TIME': (int, 'General', 300),
     'HTTP_THREAD_POOL': (int, 'General', 10),
+    'IDENTIFIER_LAST_WATCHED': (int, 'Monitoring', 0),
     'INTERFACE': (str, 'General', 'default'),
     'IMGUR_CLIENT_ID': (str, 'Monitoring', ''),
     'JOURNAL_MODE': (str, 'Advanced', 'WAL'),
@@ -580,3 +581,8 @@ class Config(object):
             self.HTTP_HASHED_PASSWORD = 1
 
             self.CONFIG_VERSION = 20
+
+        if self.CONFIG_VERSION == 20:
+            self.IDENTIFIER_LAST_WATCHED = 1
+
+            self.CONFIG_VERSION = 21
