@@ -296,6 +296,7 @@
 <script>
     var selected_user_id = null;
     var _Charts = [];
+    var _enableChartSync = false;
 
     // Modal popup dialog
     function selectHandler(selectedDate, selectedSeries) {
@@ -391,17 +392,21 @@
         }
 
         // Tooltip
-        syncTooltip(browserEvent);
+        if(browserEvent) {
+            syncTooltip(browserEvent);
+        }
     }
 
 
     // Sync selected day (tooltip position)
     // https://jsfiddle.net/BlackLabel/5wq9sdbp
     ['mousemove', 'touchmove', 'touchstart'].forEach(function (eventType) {
-        document.getElementById('section-library-graphs').addEventListener(
+            document.getElementById('section-library-graphs').addEventListener(
             eventType,
             function(e) {
-                syncTooltip(e);
+                if(_enableChartSync) {
+                    syncTooltip(e);
+                }
             }
         );
     });
@@ -411,13 +416,7 @@
             point, points,
             i, event;
         
-        for (i = 0; i < Highcharts.charts.length; i = i + 1) {                    
-            if(Highcharts.charts.includes(undefined)) {
-                _Charts = Highcharts.charts.filter(chart => chart !== undefined);
-            } else {
-                _Charts = Highcharts.charts;
-            }
-            
+        for (i = 0; i < Highcharts.charts.length; i = i + 1) {                                
             chart = _Charts[i];
             if(chart.options.chart.type != "line" || !syncLinks.hasOwnProperty(chart.renderTo.id)) {
                 continue;
@@ -789,7 +788,7 @@
             // Fixed as graph uses own measurement 'addition count' with formatting of 'plays'
             setGraphFormat("plays");
 
-            $.ajax({
+            var _graph_1_call = $.ajax({
                 url: "get_additions_by_date",
                 type: 'get',
                 data: { time_range: time_range },
@@ -816,7 +815,7 @@
                 }
             });
 
-            $.ajax({
+            var _graph_2_call = $.ajax({
                 url: "get_additions_by_date",
                 type: 'get',
                 data: { time_range: time_range, growth: 1 },
@@ -868,6 +867,33 @@
                     hc_additions_by_source_resolution_options.colors = getGraphColors(data.series);
                     var hc_additions_by_source_resolution = new Highcharts.Chart(hc_additions_by_source_resolution_options);
                 }
+            });
+
+            $.when(_graph_1_call, _graph_2_call).then(function(a1, a2) {
+                // Define charts.
+                if(Highcharts.charts.includes(undefined)) {
+                    _Charts = Highcharts.charts.filter(chart => chart !== undefined);
+                } else {
+                    _Charts = Highcharts.charts;
+                }
+
+                // Both graphs loaded successful. Prepare sync.
+                chart = _Charts.find(c => c['renderTo'].id == "graph_additions_by_day");
+                otherChart = _Charts.find(c => c['renderTo'].id == syncLinks["graph_additions_by_day"]);
+
+                /**
+                * Sync different series to fix possible misconfiguration/data that leads
+                * to a series having different states in the two additions_by_day graphs.
+                **/
+                chart.series.forEach(function(series) {
+                    _othSeries = otherChart.series.find(s => s['name'] == series.name);
+                    if(!series.visible == _othSeries.visible) {
+                        syncGraphs(series, syncLinks["graph_additions_by_day"], series.name);
+                    }
+                });
+
+                // Enable sync.
+                _enableChartSync = true;
             });
 
             $('#nav-tabs-library-statistics').tab('show')
