@@ -74,6 +74,16 @@ var hc_additions_by_day_options = {
                 }
             },
             opposite: true
+    }, {
+            title: {
+                text: 'Tracks'
+            },
+            labels: {
+                style: {
+                    color: '#aaa'
+                }
+            },
+            opposite: true
     }],
     tooltip: {
         shared: true,

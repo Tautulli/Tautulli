@@ -355,10 +355,13 @@
         return data_series.map(function(s) {
             var obj = Object.assign({}, s);
             obj.visible = (chart_visibility[s.name] !== false);
-            if(obj.name == "Episodes" && (chart_name == "graph_additions_by_day" || chart_name == "library_growth_by_day")) {
-                obj.yAxis = 1;
+            if(chart_name == "graph_additions_by_day" || chart_name == "library_growth_by_day") {
+                if(obj.name == "Episodes") {
+                    obj.yAxis = 1;
+                } else if(obj.name == "Tracks") {
+                    obj.yAxis = 2;
+                }
                 obj.softThreshold = true;
-                //obj.chart.options.yAxis[1].title.text = (obj.visible) ? "Episodes" : "";
             }          
             return obj
         });
@@ -388,12 +391,15 @@
         // Axis name visibility
         if (series_name == "Episodes") {
             document.getElementsByClassName("highcharts-yaxis-title")[0].innerHTML = (instance.visible) ? "" : "Episodes";
-            document.getElementsByClassName("highcharts-yaxis-title")[1].innerHTML = (instance.visible) ? "" : "Episodes";
+            document.getElementsByClassName("highcharts-yaxis-title")[2].innerHTML = (instance.visible) ? "" : "Episodes";
+        } else if(series_name == "Tracks") {
+            document.getElementsByClassName("highcharts-yaxis-title")[1].innerHTML = (instance.visible) ? "" : "Tracks";
+            document.getElementsByClassName("highcharts-yaxis-title")[3].innerHTML = (instance.visible) ? "" : "Tracks";
         }
 
         // Tooltip
         if(browserEvent) {
-            syncTooltip(browserEvent);
+            //syncTooltip(browserEvent);
         }
     }
 
@@ -445,9 +451,14 @@
                 number = 0;
                 otherChart.series.forEach(function(_series, idx) {
                     if(_series.visible) {
-                        var _point = _series.points[points[number].x];
-                        pointsChart2.push(_point);
-                        number++;
+                        try {
+                            var _point = _series.points[points[number].x];
+                            pointsChart2.push(_point);
+                            number++;
+                        } catch {
+                            // Graph render issue. Normalizes by itself so no additional measures required.
+                            // No effect on the user.
+                        }
                     }
                 });
                 otherChart.tooltip.refresh(pointsChart2);
@@ -476,6 +487,9 @@
 
     function getGraphColors(data_series) {
         var colors = {
+            'Artists': '#461d1d',
+            'Albums': '#9b4141',
+            'Tracks': '#f06464',
             'Shows': '#ff3300',
             'Seasons': '#ff6600',
             'Episodes': '#ff9933',
@@ -1050,8 +1064,10 @@
             hc_plays_by_platform_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_additions_by_day_options.yAxis[0].labels.formatter = yaxis_format;
             hc_additions_by_day_options.yAxis[1].labels.formatter = yaxis_format;
+            hc_additions_by_day_options.yAxis[2].labels.formatter = yaxis_format;
             hc_library_growth_by_day_options.yAxis[0].labels.formatter = yaxis_format;
             hc_library_growth_by_day_options.yAxis[1].labels.formatter = yaxis_format;
+            hc_library_growth_by_day_options.yAxis[2].labels.formatter = yaxis_format;
             hc_additions_by_media_type_options.yAxis.labels.formatter = yaxis_format;
             hc_additions_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_user_by_stream_type_options.yAxis.labels.formatter = yaxis_format;

@@ -67,6 +67,16 @@ var hc_library_growth_by_day_options = {
                 }
             },
             opposite: true
+    }, {
+        title: {
+            text: 'Tracks'
+        },
+        labels: {
+            style: {
+                color: '#aaa'
+            }
+        },
+        opposite: true
     }],
     tooltip: {
         shared: true,

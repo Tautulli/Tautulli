@@ -434,39 +434,51 @@ class Graphs(object):
                             'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                             'SUM(CASE WHEN media_type = "show" THEN 1 ELSE 0 END) AS tv_count, ' \
                             'SUM(CASE WHEN media_type = "season" THEN 1 ELSE 0 END) AS season_count, ' \
-                            'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                            'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count, ' \
+                            'SUM(CASE WHEN media_type = "artist" THEN 1 ELSE 0 END) AS artist_count, ' \
+                            'SUM(CASE WHEN media_type = "album" THEN 1 ELSE 0 END) AS album_count, ' \
+                            'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
                         'FROM library_stats_items ' \
-                        'WHERE updated_at < %s ' \
+                        'WHERE added_at < %s ' \
                         'UNION ALL ' \
                         'SELECT raM.date_added, ' \
                             'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                             '0 AS tv_count, ' \
                             '0 AS season_count, ' \
-                            'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count, ' \
+                            '0 AS artist_count, ' \
+                            '0 AS album_count, ' \
+                            'SUM(CASE WHEN raM.media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
                             '    FROM library_stats_items ' \
-                            '    WHERE (media_type = "movie" OR media_type = "episode") AND updated_at >= %s) AS raM ' \
+                            '    WHERE (media_type = "movie" OR media_type = "episode" or media_type = "track") AND added_at >= %s) AS raM ' \
                         'GROUP BY raM.date_added ' \
                         'UNION ALL ' \
                         'SELECT raG.date_added, ' \
                             '0 AS movie_count, ' \
-                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
+                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" AND media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                             '0 AS season_count, ' \
-                            '0 AS episode_count ' \
-                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            '0 AS episode_count, ' \
+                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" AND media_type = "track" THEN 1 ELSE 0 END) AS artist_count, ' \
+                            '0 AS album_count, ' \
+                            '0 AS track_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
                             '    FROM library_stats_items ' \
-                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
+                            '    WHERE NOT grandparent_rating_key = "" AND (media_type = "episode" OR media_type = "track") AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                         'GROUP BY raG.date_added ' \
                         'UNION ALL ' \
                         'SELECT raS.date_added, ' \
                             '0 AS movie_count, ' \
                             '0 AS tv_count, ' \
-                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
-                            '0 AS episode_count ' \
-                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" AND media_type = "episode" THEN 1 ELSE 0 END) AS season_count, ' \
+                            '0 AS episode_count, ' \
+                            '0 AS artist_count, ' \
+                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" AND media_type = "track" THEN 1 ELSE 0 END) AS album_count, ' \
+                            '0 AS track_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
                             '   FROM library_stats_items ' \
-                            '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
+                            '   WHERE NOT parent_rating_key = "" AND (media_type = "episode" OR media_type = "track") AND added_at >= %s ' \
                             '   GROUP BY parent_rating_key) AS raS ' \
                         'GROUP BY raS.date_added ' \
                         'ORDER BY date_added' % (timestamp, timestamp, timestamp, timestamp)
@@ -477,34 +489,44 @@ class Graphs(object):
                             'SUM(CASE WHEN raM.media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                             '0 AS tv_count, ' \
                             '0 AS season_count, ' \
-                            'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
-                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count, ' \
+                            '0 AS artist_count, ' \
+                            '0 AS album_count, ' \
+                            'SUM(CASE WHEN raM.media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
                             '    FROM library_stats_items ' \
-                            '    WHERE (media_type = "movie" OR media_type = "episode") AND updated_at >= %s) AS raM ' \
+                            '    WHERE (media_type = "movie" OR media_type = "episode" or media_type = "track") AND added_at >= %s) AS raM ' \
                         'GROUP BY raM.date_added ' \
                         'UNION ALL ' \
                         'SELECT raG.date_added, ' \
                             '0 AS movie_count, ' \
-                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" THEN 1 ELSE 0 END) AS tv_count, ' \
+                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" AND media_type = "episode" THEN 1 ELSE 0 END) AS tv_count, ' \
                             '0 AS season_count, ' \
-                            '0 AS episode_count ' \
-                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            '0 AS episode_count, ' \
+                            'SUM(CASE WHEN NOT raG.grandparent_rating_key = "" AND media_type = "track" THEN 1 ELSE 0 END) AS artist_count, ' \
+                            '0 AS album_count, ' \
+                            '0 AS track_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
                             '    FROM library_stats_items ' \
-                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
+                            '    WHERE NOT grandparent_rating_key = "" AND (media_type = "episode" OR media_type = "track") AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                         'GROUP BY raG.date_added ' \
                         'UNION ALL ' \
                         'SELECT raS.date_added, ' \
                             '0 AS movie_count, ' \
                             '0 AS tv_count, ' \
-                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
-                            '0 AS episode_count ' \
-                            'FROM (SELECT *, date(updated_at, "unixepoch", "localtime") AS date_added ' \
+                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" AND media_type = "episode" THEN 1 ELSE 0 END) AS season_count, ' \
+                            '0 AS episode_count, ' \
+                            '0 AS artist_count, ' \
+                            'SUM(CASE WHEN NOT raS.parent_rating_key = "" AND media_type = "track" THEN 1 ELSE 0 END) AS album_count, ' \
+                            '0 AS track_count ' \
+                            'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
                             '   FROM library_stats_items ' \
-                            '   WHERE NOT parent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
+                            '   WHERE NOT parent_rating_key = "" AND (media_type = "episode" OR media_type = "track") AND added_at >= %s ' \
                             '   GROUP BY parent_rating_key) AS raS ' \
                         'GROUP BY raS.date_added ' \
                         'ORDER BY date_added' % (timestamp, timestamp, timestamp)
+
                 result = monitor_db.select(query)
         except Exception as e:
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_per_day: %s." % e)
@@ -520,12 +542,18 @@ class Graphs(object):
         series_2 = []
         series_3 = []
         series_4 = []
+        series_5 = []
+        series_6 = []
+        series_7 = []
 
         if growth:
             base_value_1 = result[0]['movie_count']
             base_value_2 = result[0]['tv_count']
             base_value_3 = result[0]['season_count']
             base_value_4 = result[0]['episode_count']
+            base_value_5 = result[0]['artist_count']
+            base_value_6 = result[0]['album_count']
+            base_value_7 = result[0]['track_count']
 
         for date_item in sorted(date_list):
             date_string = date_item.strftime('%Y-%m-%d')
@@ -534,18 +562,27 @@ class Graphs(object):
             series_2_value = 0
             series_3_value = 0
             series_4_value = 0
+            series_5_value = 0
+            series_6_value = 0
+            series_7_value = 0
             for item in result:
                 if date_string == item['date_added']:
                     series_1_value = item['movie_count'] if series_1_value is 0 else series_1_value
                     series_2_value = item['tv_count'] if series_2_value is 0 else series_2_value
                     series_3_value = item['season_count'] if series_3_value is 0 else series_3_value
                     series_4_value = item['episode_count'] if series_4_value is 0 else series_4_value
+                    series_5_value = item['artist_count'] if series_5_value is 0 else series_5_value
+                    series_6_value = item['album_count'] if series_6_value is 0 else series_6_value
+                    series_7_value = item['track_count'] if series_7_value is 0 else series_7_value
                     continue
 
             series_1.append(series_1_value)
             series_2.append(series_2_value)
             series_3.append(series_3_value)
             series_4.append(series_4_value)
+            series_5.append(series_5_value)
+            series_6.append(series_6_value)
+            series_7.append(series_7_value)
 
         if growth:
             for idx, day in enumerate(series_1):
@@ -560,6 +597,15 @@ class Graphs(object):
             for idx, day in enumerate(series_4):
                 series_4[idx] = base_value_4 + day
                 base_value_4 += day
+            for idx, day in enumerate(series_5):
+                series_5[idx] = base_value_5 + day
+                base_value_5 += day
+            for idx, day in enumerate(series_6):
+                series_6[idx] = base_value_6 + day
+                base_value_6 += day
+            for idx, day in enumerate(series_7):
+                series_7[idx] = base_value_7 + day
+                base_value_7 += day
 
         series_1_output = {'name': 'Movies',
                            'data': series_1}
@@ -569,6 +615,12 @@ class Graphs(object):
                            'data': series_3}
         series_4_output = {'name': 'Episodes',
                            'data': series_4}
+        series_5_output = {'name': 'Artists',
+                           'data': series_5}
+        series_6_output = {'name': 'Albums',
+                           'data': series_6}
+        series_7_output = {'name': 'Tracks',
+                           'data': series_7}
 
         series_output = []
         if libraries.has_library_type('movie'):
@@ -577,6 +629,10 @@ class Graphs(object):
             series_output.append(series_2_output)
             series_output.append(series_3_output)
             series_output.append(series_4_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_5_output)
+            series_output.append(series_6_output)
+            series_output.append(series_7_output)
 
         output = {'categories': categories,
                   'series': series_output}
@@ -594,9 +650,12 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
                         'SUM(CASE WHEN media_type = "show" THEN 1 ELSE 0 END) AS tv_count, ' \
                         'SUM(CASE WHEN media_type = "season" THEN 1 ELSE 0 END) AS season_count, ' \
-                        'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
+                        'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count, ' \
+                        'SUM(CASE WHEN media_type = "artist" THEN 1 ELSE 0 END) AS artist_count, ' \
+                        'SUM(CASE WHEN media_type = "album" THEN 1 ELSE 0 END) AS album_count, ' \
+                        'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
                     'FROM library_stats_items ' \
-                    'WHERE updated_at >= %s' % timestamp
+                    'WHERE added_at >= %s' % timestamp
 
             result = monitor_db.select(query)
 
@@ -604,25 +663,30 @@ class Graphs(object):
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_by_media_type: %s." % e)
             return None
 
-        categories = ["Movies", "TV"]
-        series_1 = []
-        series_2 = []
-        series_3 = []
-        series_4 = []
+        categories = ["Movies", "TV", "Music"]
+        _catCount = len(categories)
+
+        series_1 = [None] * _catCount
+        series_2 = [None] * _catCount
+        series_3 = [None] * _catCount
+        series_4 = [None] * _catCount
+        series_5 = [None] * _catCount
+        series_6 = [None] * _catCount
+        series_7 = [None] * _catCount
 
         content = result[0]
 
         for idx, item in enumerate(categories):
             if idx == 0:
-                series_1.append(content['movie_count'])
-                series_2.append(None)
-                series_3.append(None)
-                series_4.append(None)
+                series_1[idx] = content['movie_count']
+            elif idx == 1:
+                series_2[idx] = content['tv_count']
+                series_3[idx] = content['season_count']
+                series_4[idx] = content['episode_count']
             else:
-                series_1.append(None)
-                series_2.append(content['tv_count'])
-                series_3.append(content['season_count'])
-                series_4.append(content['episode_count'])
+                series_5[idx] = content['artist_count']
+                series_6[idx] = content['album_count']
+                series_7[idx] = content['track_count']
 
         series_1_output = {'name': 'Movies',
                            'data': series_1}
@@ -632,6 +696,12 @@ class Graphs(object):
                            'data': series_3}
         series_4_output = {'name': 'Episodes',
                            'data': series_4}
+        series_5_output = {'name': 'Artists',
+                           'data': series_5}
+        series_6_output = {'name': 'Albums',
+                           'data': series_6}
+        series_7_output = {'name': 'Tracks',
+                           'data': series_7}
 
         series_output = []
         if libraries.has_library_type('movie'):
@@ -640,6 +710,10 @@ class Graphs(object):
             series_output.append(series_2_output)
             series_output.append(series_3_output)
             series_output.append(series_4_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_5_output)
+            series_output.append(series_6_output)
+            series_output.append(series_7_output)
 
         output = {'categories': categories,
                   'series': series_output}
@@ -675,7 +749,7 @@ class Graphs(object):
                             'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
                             'FROM (SELECT *, %s ' \
                                 'FROM library_stats_items ' \
-                                'WHERE (media_type = "movie" OR media_type = "episode") AND updated_at >= %s) AS raM ' \
+                                'WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
                             'GROUP BY raM.resolution ' \
                         'UNION ALL ' \
                         'SELECT ' \
@@ -686,7 +760,7 @@ class Graphs(object):
                             '0 AS episode_count ' \
                             'FROM (SELECT *, %s ' \
                                 'FROM library_stats_items ' \
-                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
+                            '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                             'GROUP BY raG.resolution ' \
                         'UNION ALL ' \
@@ -698,7 +772,7 @@ class Graphs(object):
                             '0 AS episode_count ' \
                             'FROM (SELECT *, %s ' \
                                 'FROM library_stats_items ' \
-                                'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND updated_at >= %s ' \
+                                'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                                 'GROUP BY parent_rating_key) AS raS ' \
                             'GROUP BY raS.resolution) AS ra ' \
                     'GROUP BY resolution ' \
