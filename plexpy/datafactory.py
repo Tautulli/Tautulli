@@ -847,7 +847,7 @@ class DataFactory(object):
                         thumb = item['thumb']
                     else:
                         thumb = item['grandparent_thumb']
-                    
+
                     row = {'row_id': item['id'],
                            'user': item['user'],
                            'friendly_name': item['friendly_name'],

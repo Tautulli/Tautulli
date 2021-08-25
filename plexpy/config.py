@@ -583,6 +583,6 @@ class Config(object):
             self.CONFIG_VERSION = 20
 
         if self.CONFIG_VERSION == 20:
-            self.IDENTIFIER_LAST_WATCHED = 1
+            self.IDENTIFIER_LAST_WATCHED = 0
 
             self.CONFIG_VERSION = 21
