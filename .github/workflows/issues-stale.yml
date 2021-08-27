@@ -25,7 +25,7 @@ jobs:
           close-pr-message: >
             This PR was closed because it has been stalled for 5 days with no activity.
           stale-pr-label: 'stale'
-          exempt-pr-labels: 'status:in-progress,dependencies'
+          exempt-pr-labels: 'status:in-progress,status:in-review,dependencies'
           days-before-stale: 30
           days-before-close: 5
 
@@ -42,7 +42,7 @@ jobs:
           close-pr-message: >
             This PR was closed because the the template was not completed after 5 days.
           stale-pr-label: 'invalid:template-incomplete'
-          exempt-pr-labels: 'status:in-progress,dependencies'
+          exempt-pr-labels: 'status:in-progress,status:in-review,dependencies'
           only-labels: 'invalid:template-incomplete'
           days-before-stale: 0
           days-before-close: 5
