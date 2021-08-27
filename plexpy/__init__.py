@@ -15,7 +15,9 @@
 
 from __future__ import unicode_literals
 from future.builtins import range
+from future.builtins import str
 
+import ctypes
 import datetime
 import os
 import future.moves.queue as queue
@@ -169,6 +171,7 @@ def initialize(config_file):
         try:
             CONFIG = config.Config(config_file)
         except:
+            alert_message('Failed to start Tautulli: Config file is corrupted.\n\n%s' % config_file)
             raise SystemExit("Unable to initialize Tautulli due to a corrupted config file. Exiting...")
 
         CONFIG_FILE = config_file
@@ -2738,3 +2741,12 @@ def get_tautulli_info():
         'tautulli_python_version': common.PYTHON_VERSION,
     }
     return tautulli
+
+
+def alert_message(msg, title='Tautulli Startup Error'):
+    if common.PLATFORM == 'Windows':
+        ctypes.windll.user32.MessageBoxW(0, str(msg), str(title), 0)
+    elif common.PLATFORM == 'Darwin':
+        applescript = 'display dialog "%s" with title "%s"' \
+                      'with icon caution buttons {"OK"}' % (msg, title)
+        os.system("osascript -e '%s'" % applescript)

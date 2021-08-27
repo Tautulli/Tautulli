@@ -265,6 +265,7 @@ def initialize(options):
             cherrypy.engine.block()
     except IOError as e:
         logger.error("Tautulli WebStart :: Failed to start Tautulli: %s", e)
+        plexpy.alert_message('Failed to start Tautulli: %s' % e)
         sys.exit(1)
 
     cherrypy.server.wait()
