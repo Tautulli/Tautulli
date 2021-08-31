@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.7.6 (2021-08-31)
+
+* Notifications:
+  * Fix: Unable to parse colons (:) and exclamation marks (!) in notification text eval strings.
+* Exporter:
+  * Fix: Unable to export playlists and collections from a library.
+  * New: Added new episode export fields.
+* Mobile App:
+  * Fix: Unable to scan QR code with dark mode enabled.
+  * New: Tautulli Remote App is out of beta for iOS and can be downloaded in the App Store.
+* Other:
+  * New: Update PlexAPI to 4.6.3.
+  * New: Added popup alert message for Windows and macOS when Tautulli fails to start.
+
+
 ## v2.7.5 (2021-07-15)
 
 * History:
