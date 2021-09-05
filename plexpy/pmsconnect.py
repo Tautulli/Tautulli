@@ -2587,6 +2587,7 @@ class PmsConnect(object):
                     libraries_output = {'section_id': helpers.get_xml_attr(result, 'key'),
                                         'section_type': helpers.get_xml_attr(result, 'type'),
                                         'section_name': helpers.get_xml_attr(result, 'title'),
+                                        'created_at': helpers.get_xml_attr(result, 'createdAt'),
                                         'agent': helpers.get_xml_attr(result, 'agent'),
                                         'thumb': helpers.get_xml_attr(result, 'thumb'),
                                         'art': helpers.get_xml_attr(result, 'art')
@@ -2751,6 +2752,7 @@ class PmsConnect(object):
                                      'agent': library['agent'],
                                      'thumb': library['thumb'],
                                      'art': library['art'],
+                                     'created_at': library['created_at'],
                                      'count': children_list['library_count'],
                                      'is_active': 1
                                      }

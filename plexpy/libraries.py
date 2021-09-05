@@ -126,43 +126,42 @@ def refresh_library_statistics():
     library_sections = pmsconnect.PmsConnect().get_library_details()
 
     if library_sections:
-        ratingKeys = []
+        ratingKeys = {}
 
         _pms = pmsconnect.PmsConnect()
         _datafactory = datafactory.DataFactory()
 
-        # TODO Check if library is deleted in Tautulli?
-
         for section in library_sections:
-            section_type = section['section_type']
+            if section['created_at'] and section['is_active']:
+                section_type = section['section_type']
 
-            # Push Data to library_sections table
-            # Placed here as statistics should represent current library status (be in sync)
-            # if library update disabled => statistics update also disabled => will me moved to 
-            # seperate refresh function as it has long runtimes
-            # initial run: 16min for 16000 item (movies + shows + seasons + episodes + track + album + artist)
-            # update run: 8min -,-
-            _resultSet = []
-            _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type=section['section_type'], get_media_info=False))
+                # Push Data to library_sections table
+                # Placed here as statistics should represent current library status (be in sync)
+                # initial run: 16min for 16000 item (movies + shows + seasons + episodes + track + album + artist)
+                # update run: 8min -,-
+                _resultSet = []
+                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type=section['section_type'], get_media_info=False))
 
-            # Add additional library contents for easier filtering at graph queries
-            if section_type == 'show':
-                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='season', get_media_info=False))
-                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='episode', get_media_info=False))
-            
-            if section_type == 'artist':
-                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='album', get_media_info=False))
-                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='track', get_media_info=False))
+                # Add additional library contents for easier filtering at graph queries
+                if section_type == 'show':
+                    _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='season', get_media_info=False))
+                    _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='episode', get_media_info=False))
+                
+                if section_type == 'artist':
+                    _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='album', get_media_info=False))
+                    _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='track', get_media_info=False))
 
-            for result in _resultSet:
-                for item in result['children_list']:
-                    if item['rating_key'] not in ratingKeys:
-                        ratingKeys.append(item['rating_key'])
+                for result in _resultSet:
+                    for item in result['children_list']:
+                        if item['rating_key'] not in ratingKeys:
+                            ratingKeys[item['rating_key']] = section['created_at']
+            elif not section['created_at']:
+                logger.warn("Tautulli Library Statistics :: Library " + library['section_name'] + " skipped, because of no created_at timestamp!")
 
-        ratingKeys = sorted(ratingKeys, key=lambda k: helpers.cast_to_int(k), reverse=False)
-        # TEMP disabled due to long runtime on startup -> to prevent it
-        for key in ratingKeys:
-            _datafactory.set_library_stats_item(rating_key=key)
+        ratingKeys = sorted(ratingKeys.items())
+
+        for key, createdAt in ratingKeys:
+            _datafactory.set_library_stats_item(rating_key=key, created_at=createdAt)
 
         logger.info("Tautulli Library Statistics :: Data refreshed.")
         return True

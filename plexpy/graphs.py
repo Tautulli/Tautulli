@@ -547,13 +547,13 @@ class Graphs(object):
         series_7 = []
 
         if growth:
-            base_value_1 = result[0]['movie_count']
-            base_value_2 = result[0]['tv_count']
-            base_value_3 = result[0]['season_count']
-            base_value_4 = result[0]['episode_count']
-            base_value_5 = result[0]['artist_count']
-            base_value_6 = result[0]['album_count']
-            base_value_7 = result[0]['track_count']
+            base_value_1 = result[0]['movie_count'] if result[0]['movie_count'] else 0
+            base_value_2 = result[0]['tv_count'] if result[0]['tv_count'] else 0
+            base_value_3 = result[0]['season_count'] if result[0]['season_count'] else 0
+            base_value_4 = result[0]['episode_count'] if result[0]['episode_count'] else 0
+            base_value_5 = result[0]['artist_count'] if result[0]['artist_count'] else 0
+            base_value_6 = result[0]['album_count'] if result[0]['album_count'] else 0
+            base_value_7 = result[0]['track_count'] if result[0]['track_count'] else 0
 
         for date_item in sorted(date_list):
             date_string = date_item.strftime('%Y-%m-%d')

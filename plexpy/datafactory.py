@@ -2016,7 +2016,7 @@ class DataFactory(object):
 
         return result
 
-    def set_library_stats_item(self, rating_key=''):
+    def set_library_stats_item(self, rating_key='', created_at=None):
         monitor_db = database.MonitorDatabase()
 
         pms_connect = pmsconnect.PmsConnect()
@@ -2024,7 +2024,11 @@ class DataFactory(object):
 
         keys = {'rating_key': metadata['rating_key']}
 
-        values = {'added_at': metadata['added_at'],
+        _addedAt = metadata['added_at']
+        # Catch media items which have a timestamp when their corresponding library did not existed
+        added_at = _addedAt if _addedAt > created_at else created_at
+
+        values = {'added_at': added_at,
                   'updated_at': metadata['updated_at'],
                   'last_viewed_at': metadata['last_viewed_at'],
                   'section_id': metadata['section_id'],
