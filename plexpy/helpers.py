@@ -31,6 +31,7 @@ from collections import OrderedDict
 import datetime
 from functools import reduce, wraps
 import hashlib
+import html
 import imghdr
 from future.moves.itertools import islice, zip_longest
 import ipwhois
@@ -418,6 +419,9 @@ def clean_filename(filename, replace='_'):
     cleaned_filename = ''.join(c if c in whitelist else replace for c in cleaned_filename)
     return cleaned_filename
 
+# Format date for date based tv shows
+def format_date_based_show(date):
+    return str(date).replace('-', html.unescape('&middot;'))
 
 def split_strip(s, delimiter=','):
     return [x.strip() for x in str(s).split(delimiter) if x.strip()]

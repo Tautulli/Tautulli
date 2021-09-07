@@ -21,6 +21,7 @@ parent_title            Returns the name of the artist.
 grandparent_title       Returns the name of the show.
 media_index             Returns the index number of the episode.
 parent_media_index      Returns the index number of the season.
+originally_available_at Returns the availability date of the media item.  
 year                    Returns the release year of the movie, episode, or album.
 
 DOCUMENTATION :: END
@@ -28,13 +29,16 @@ DOCUMENTATION :: END
 
 % if data:
 <%
-    from plexpy.helpers import page, short_season
+    from plexpy.helpers import page, short_season, format_date_based_show
 %>
 <div class="dashboard-recent-media-row">
     <div id="recently-watched-row-scroller" style="left: 0;">
         <ul class="dashboard-recent-media list-unstyled">
             % for item in data:
             <li>
+                % if not item['media_index']:
+                item['originally_available_at'] = format_date_based_show(item['originally_available_at'])
+                % endif
                 % if item['media_type'] == 'episode' or item['media_type'] == 'movie':
                 % if item['rating_key']:
                 % if item['media_type'] == 'movie':
@@ -84,8 +88,12 @@ DOCUMENTATION :: END
                         <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['title']}">${item['title']}</a>
                     </h3>
                     <h3 class="text-muted">
+                        % if item['media_index']:
                         <a href="${page('info', item['parent_rating_key'])}" title="${item['parent_title']}">${short_season(item['parent_title'])}</a>
                          &middot; <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
+                        % else:
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="Episode ${item['originally_available_at']}">E${item['originally_available_at']}</a>
+                        % endif
                     </h3>
                     % endif
                     % elif item['media_type'] == 'movie':
