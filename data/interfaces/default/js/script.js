@@ -854,6 +854,10 @@ function short_season(title) {
     return title
 }
 
+function format_date_based_show(date) {
+    return String(date).replaceAll('-', '\u00B7')
+}
+
 function loadAllBlurHash() {
     $('[data-blurhash]').each(function() {
         const elem = $(this);

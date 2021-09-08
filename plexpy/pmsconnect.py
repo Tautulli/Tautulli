@@ -2696,6 +2696,7 @@ class PmsConnect(object):
                              'sort_title': helpers.get_xml_attr(item, 'titleSort'),
                              'media_index': helpers.get_xml_attr(item, 'index'),
                              'parent_media_index': helpers.get_xml_attr(item, 'parentIndex'),
+                             'originally_available_at': helpers.get_xml_attr(item, 'originallyAvailableAt'),
                              'year': helpers.get_xml_attr(item, 'year'),
                              'thumb': helpers.get_xml_attr(item, 'thumb'),
                              'parent_thumb': helpers.get_xml_attr(item, 'thumb'),

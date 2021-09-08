@@ -40,9 +40,6 @@ DOCUMENTATION :: END
     <div id="recently-added-row-scroller" style="left: 0;">
         <ul class="dashboard-recent-media list-unstyled">
             % for item in data:
-            % if not item['media_index']:
-            item['originally_available_at'] = format_date_based_show(item['originally_available_at'])
-            % endif
             <div class="dashboard-recent-media-instance">
                 <li data-type="${item['media_type']}">
                     % if item['media_type'] == 'movie':
@@ -155,7 +152,8 @@ DOCUMENTATION :: END
                             &middot;
                             <a href="${page('info', item['rating_key'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
                             % else:
-                            <a href="${page('info', item['rating_key'])}" title="Episode ${item['originally_available_at']}">E${item['originally_available_at']}</a>
+                            <a href="${page('info', item['rating_key'])}" title="Episode ${format_date_based_show(item['originally_available_at'])}">
+                                E${format_date_based_show(item['originally_available_at'])}</a>
                             % endif
                         </h3>
                     </div>
