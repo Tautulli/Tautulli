@@ -36,9 +36,6 @@ DOCUMENTATION :: END
         <ul class="dashboard-recent-media list-unstyled">
             % for item in data:
             <li>
-                % if not item['media_index']:
-                item['originally_available_at'] = format_date_based_show(item['originally_available_at'])
-                % endif
                 % if item['media_type'] == 'episode' or item['media_type'] == 'movie':
                 % if item['rating_key']:
                 % if item['media_type'] == 'movie':
@@ -63,6 +60,9 @@ DOCUMENTATION :: END
                 </a>
                 <div class="dashboard-recent-media-metacontainer">
                     % if item['media_type'] == 'episode':
+                    % if not item['media_index']:
+                    item['originally_available_at'] = format_date_based_show(item['originally_available_at'])
+                    % endif
                     % if item['live']:
                     <h3>
                         <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
