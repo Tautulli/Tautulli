@@ -10,7 +10,7 @@ DOCUMENTATION :: END
 </%doc>
 
 <ul class="stacked-configs list-unstyled">
-    % for device in sorted(devices_list, key=lambda k: k['device_name']):
+    % for device in sorted(devices_list, key=lambda k: ((k['friendly_name'] or k['device_name']).lower(), k['id'])):
     <li class="mobile-device pointer" data-id="${device['id']}" data-name="${device['device_name']}">
         <span>
             % if device['official'] == -1:
