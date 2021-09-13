@@ -513,7 +513,7 @@ class PmsConnect(object):
             xml_head = recent.getElementsByTagName('MediaContainer')
         except Exception as e:
             logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_recently_added: %s." % e)
-            return []
+            return {'recently_added': []}
 
         for a in xml_head:
             if a.getAttribute('size'):

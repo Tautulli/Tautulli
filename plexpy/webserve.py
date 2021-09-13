@@ -424,7 +424,7 @@ class WebInterface(object):
         except IOError as e:
             return serve_template(templatename="recently_added.html", data=None)
 
-        if result:
+        if result and result['recently_added']:
             return serve_template(templatename="recently_added.html", data=result['recently_added'])
         else:
             logger.warn("Unable to retrieve data for get_recently_added.")
@@ -744,7 +744,7 @@ class WebInterface(object):
         else:
             result = None
 
-        if result:
+        if result and result['recently_added']:
             return serve_template(templatename="library_recently_added.html", data=result['recently_added'], title="Recently Added")
         else:
             logger.warn("Unable to retrieve data for library_recently_added.")
