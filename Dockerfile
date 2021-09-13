@@ -1,4 +1,4 @@
-FROM tautulli/tautulli-baseimage:python3
+FROM ghcr.io/tautulli/tautulli-baseimage:python3
 
 LABEL maintainer="Tautulli"
 
