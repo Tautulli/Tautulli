@@ -9,17 +9,17 @@ ENV TAUTULLI_DOCKER=True
 ENV TZ=UTC
 
 WORKDIR /app
-
+COPY . /app
 RUN \
   groupadd -g 1000 tautulli && \
   useradd -u 1000 -g 1000 tautulli && \
   echo ${BRANCH} > /app/branch.txt && \
   echo ${COMMIT} > /app/version.txt
 
-COPY . /app
-
+RUN \
+  mkdir /config && \
+  touch /config/DOCKER
 VOLUME /config
-RUN touch /config/DOCKER
 
 CMD [ "python", "Tautulli.py", "--datadir", "/config" ]
 ENTRYPOINT [ "./start.sh" ]
