@@ -18,9 +18,11 @@ RUN \
 
 COPY . /app
 
+VOLUME /config
+RUN touch /config/DOCKER
+
 CMD [ "python", "Tautulli.py", "--datadir", "/config" ]
 ENTRYPOINT [ "./start.sh" ]
 
-VOLUME /config
 EXPOSE 8181
 HEALTHCHECK --start-period=90s CMD curl -ILfSs http://localhost:8181/status > /dev/null || curl -ILfkSs https://localhost:8181/status > /dev/null || exit 1
