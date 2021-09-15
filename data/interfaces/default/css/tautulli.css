@@ -225,6 +225,9 @@ select.form-control option {
     color: #555;
     background-color: #eee;
 }
+select.btn {
+    text-align: left;
+}
 img {
     -webkit-box-sizing: content-box;
     -moz-box-sizing: content-box;
