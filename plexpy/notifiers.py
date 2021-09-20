@@ -30,6 +30,7 @@ from paho.mqtt.publish import single
 import os
 import re
 import requests
+from requests.auth import HTTPBasicAuth
 import smtplib
 import subprocess
 import sys
@@ -104,7 +105,8 @@ AGENT_IDS = {'growl': 0,
              'mqtt': 23,
              'zapier': 24,
              'webhook': 25,
-             'plexmobileapp': 26
+             'plexmobileapp': 26,
+             'lunasea': 27
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -175,6 +177,12 @@ def available_notification_agents():
                'name': 'xbmc',
                'id': AGENT_IDS['xbmc'],
                'class': XBMC,
+               'action_types': ('all',)
+               },
+              {'label': 'LunaSea',
+               'name': 'lunasea',
+               'id': AGENT_IDS['lunasea'],
+               'class': LUNASEA,
                'action_types': ('all',)
                },
               {'label': 'MQTT',
@@ -705,7 +713,7 @@ class PrettyMetadata(object):
                 }
 
     def get_poster_url(self):
-        poster_url = self.parameters['poster_url']
+        poster_url = self.parameters.get('poster_url')
         if not poster_url:
             if self.media_type in ('artist', 'album', 'track'):
                 poster_url = common.ONLINE_COVER_THUMB
@@ -1913,6 +1921,72 @@ class JOIN(Notifier):
                           'description': 'Select the source for music links in the notification. Leave blank to disable.',
                           'input_type': 'select',
                           'select_options': PrettyMetadata().get_music_providers()
+                          }
+                         ]
+
+        return config_option
+
+
+class LUNASEA(Notifier):
+    """
+    LunaSea Notifications
+    """
+    NAME = 'LunaSea'
+    _DEFAULT_CONFIG = {'hook': '',
+                       'profile': '',
+                       'incl_subject': 1
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        if self.config['incl_subject']:
+            text = subject + '\r\n' + body
+        else:
+            text = body
+
+        if self.config['profile']:
+            auth = HTTPBasicAuth(self.config['profile'], '')
+        else:
+            auth = None
+
+        pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+        payload = {
+            'action': action,
+            'data': {
+                'message': text,
+                'user': pretty_metadata.parameters.get('user'),
+                'user_id': pretty_metadata.parameters.get('user_id'),
+                'player': pretty_metadata.parameters.get('player'),
+                'title': pretty_metadata.get_title(),
+                'poster_url': pretty_metadata.get_poster_url(),
+                'session_id': pretty_metadata.parameters.get('session_id'),
+                'user_streams': pretty_metadata.parameters.get('user_streams'),
+                'remote_access_reason': pretty_metadata.parameters.get('remote_access_reason'),
+                'update_version': pretty_metadata.parameters.get('update_version'),
+                'tautulli_update_version': pretty_metadata.parameters.get('tautulli_update_version')
+            }
+        }
+
+        return self.make_request(self.config['hook'], json=payload, auth=auth)
+
+    def _return_config_options(self):
+        config_option = [{'label': 'LunaSea Webhook URL',
+                          'value': self.config['hook'],
+                          'name': 'lunasea_hook',
+                          'description': 'Your LunaSea device-based or user-based webhook URL.',
+                          'input_type': 'token'
+                          },
+                         {'label': 'LunaSea Profile',
+                          'value': self.config['profile'],
+                          'name': 'lunasea_profile',
+                          'description': 'Your LunaSea profile name. Leave blank for the default profile.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'lunasea_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
                           }
                          ]
 
