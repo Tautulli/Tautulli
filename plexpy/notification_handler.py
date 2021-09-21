@@ -876,8 +876,11 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         track_name = notify_params['title']
         season_num = str(notify_params['parent_media_index']).zfill(1)
         season_num00 = str(notify_params['parent_media_index']).zfill(2)
-        episode_num = str(notify_params['media_index']).zfill(1)
-        episode_num00 = str(notify_params['media_index']).zfill(2)
+        if notify_params['media_index']:
+            episode_num = str(notify_params['media_index']).zfill(1)
+            episode_num00 = str(notify_params['media_index']).zfill(2)
+        else:
+            episode_num = episode_num00 =  helpers.format_date_based_show(notify_params['originally_available_at'])
         track_num = str(notify_params['media_index']).zfill(1)
         track_num00 = str(notify_params['media_index']).zfill(2)
         child_count = 1
