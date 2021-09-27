@@ -1841,6 +1841,7 @@ class CustomFormatter(Formatter):
     def __init__(self, default='{{{0}}}'):
         self.default = default
         self.eval_regex = re.compile(r'`.*?`')
+        self.eval_replace_regex = re.compile(r'{.*(`.*?`).*}')
         self.eval_replace = {
             ':': '%%colon%%',
             '!': '%%exclamation%%'
@@ -1893,7 +1894,7 @@ class CustomFormatter(Formatter):
 
     def parse(self, format_string):
         # Replace characters in eval expression
-        for match in re.findall(self.eval_regex, format_string):
+        for match in re.findall(self.eval_replace_regex, format_string):
             replaced = match
             for k, v in self.eval_replace.items():
                 replaced = replaced.replace(k, v)
