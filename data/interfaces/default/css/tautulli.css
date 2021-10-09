@@ -4522,3 +4522,9 @@ a.donate-with-crypto::after {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+.docker-mount {
+    margin: 20px auto 0 auto;
+    position: relative;
+    z-index: 9999;
+}

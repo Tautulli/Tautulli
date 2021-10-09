@@ -104,6 +104,7 @@ CREATEPID = False
 PIDFILE = None
 NOFORK = False
 DOCKER = False
+DOCKER_MOUNT = False
 SNAP = False
 SNAP_MIGRATE = False
 FROZEN = False

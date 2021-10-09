@@ -21,6 +21,16 @@
 
 <%def name="body()">
 <div class="container">
+    % if plexpy.DOCKER and not plexpy.DOCKER_MOUNT:
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-danger docker-mount" role="alert">
+                The <span class="inline-pre">/config</span> volume mount was not configured properly for the Docker container.
+                All data may be cleared when the container is recreated or updated.
+            </div>
+        </div>
+    </div>
+    % endif
     <div class="row">
         <div class="col-md-12">
             <div class='card-back-full'>

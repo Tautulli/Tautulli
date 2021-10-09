@@ -125,6 +125,7 @@ def main():
 
     if helpers.bool_true(os.getenv('TAUTULLI_DOCKER', False)):
         plexpy.DOCKER = True
+        plexpy.DOCKER_MOUNT = not os.path.isfile('/config/DOCKER')
     if helpers.bool_true(os.getenv('TAUTULLI_SNAP', False)):
         plexpy.SNAP = True
 
