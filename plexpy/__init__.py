@@ -241,6 +241,13 @@ def initialize(config_file):
         logger.info("Python {}".format(
             sys.version.replace('\n', '')
         ))
+
+        if DOCKER and not DOCKER_MOUNT:
+            logger.warn(
+                "Docker /config volume not mounted. "
+                "All data may be cleared when the container is recreated or updated."
+            )
+
         logger.info("Program Dir: {}".format(
             PROG_DIR
         ))
