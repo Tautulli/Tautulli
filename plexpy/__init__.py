@@ -252,7 +252,7 @@ def initialize(config_file):
             DB_FILE
         ))
 
-        if CONFIG.CHECK_DOCKER_MOUNT and DOCKER and not DOCKER_MOUNT:
+        if DOCKER and not DOCKER_MOUNT:
             logger.warn(
                 "Docker /config volume not mounted. Using a Docker volume instead. "
                 "All data may be cleared when the container is recreated or updated."
