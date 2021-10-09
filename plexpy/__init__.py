@@ -242,12 +242,6 @@ def initialize(config_file):
             sys.version.replace('\n', '')
         ))
 
-        if DOCKER and not DOCKER_MOUNT:
-            logger.warn(
-                "Docker /config volume not mounted. "
-                "All data may be cleared when the container is recreated or updated."
-            )
-
         logger.info("Program Dir: {}".format(
             PROG_DIR
         ))
@@ -257,6 +251,12 @@ def initialize(config_file):
         logger.info("Database File: {}".format(
             DB_FILE
         ))
+
+        if DOCKER and not DOCKER_MOUNT:
+            logger.warn(
+                "Docker /config volume not mounted. Using a Docker volume instead. "
+                "All data may be cleared when the container is recreated or updated."
+            )
 
         CONFIG.BACKUP_DIR, _ = check_folder_writable(
             CONFIG.BACKUP_DIR, os.path.join(DATA_DIR, 'backups'), 'backups')
