@@ -21,7 +21,7 @@
 
 <%def name="body()">
 <div class="container">
-    % if plexpy.DOCKER and not plexpy.DOCKER_MOUNT:
+    % if plexpy.CONFIG.CHECK_DOCKER_MOUNT and plexpy.DOCKER and not plexpy.DOCKER_MOUNT:
     <div class="row">
         <div class="col-md-12">
             <div class="alert alert-danger docker-mount" role="alert">
