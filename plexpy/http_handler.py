@@ -55,7 +55,7 @@ class HTTPHandler(object):
             self.headers = {
                 'X-Plex-Product': plexpy.common.PRODUCT,
                 'X-Plex-Version': plexpy.common.RELEASE,
-                'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_UUID,
+                'X-Plex-Client-Identifier': plexpy.CONFIG.PMS_CLIENT_ID or plexpy.CONFIG.PMS_UUID,
                 'X-Plex-Platform': plexpy.common.PLATFORM,
                 'X-Plex-Platform-Version': plexpy.common.PLATFORM_RELEASE,
                 'X-Plex-Device': '{} {}'.format(plexpy.common.PLATFORM,

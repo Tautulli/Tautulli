@@ -973,7 +973,7 @@
                             </div>
                             <p class="help-block">Token for Plex.tv authentication.</p>
                         </div>
-                        <input type="hidden" id="pms_uuid" name="pms_uuid" value="${config['pms_uuid']}">
+                        <input type="hidden" id="pms_client_id" name="pms_client_id" value="${config['pms_client_id']}">
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
@@ -2753,7 +2753,7 @@ $(document).ready(function() {
     }
 
     $('#sign-in-plex').click(function() {
-        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction, $('#pms_client_id').val(uuidv4()).val());
     });
 
     // Load database import modal

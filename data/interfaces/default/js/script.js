@@ -610,12 +610,12 @@ function uuidv4() {
     });
 }
 
-function getPlexHeaders() {
+function getPlexHeaders(clientID) {
     return {
         'Accept': 'application/json',
         'X-Plex-Product': 'Tautulli',
         'X-Plex-Version': 'Plex OAuth',
-        'X-Plex-Client-Identifier': getLocalStorage('Tautulli_ClientID', uuidv4(), false),
+        'X-Plex-Client-Identifier': clientID ? clientID : getLocalStorage('Tautulli_ClientID', uuidv4(), false),
         'X-Plex-Platform': p.name,
         'X-Plex-Platform-Version': p.version,
         'X-Plex-Model': 'Plex OAuth',
@@ -674,8 +674,8 @@ function closePlexOAuthWindow() {
     }
 }
 
-getPlexOAuthPin = function () {
-    var x_plex_headers = getPlexHeaders();
+getPlexOAuthPin = function (clientID) {
+    var x_plex_headers = getPlexHeaders(clientID);
     var deferred = $.Deferred();
 
     $.ajax({
@@ -695,7 +695,7 @@ getPlexOAuthPin = function () {
 
 var polling = null;
 
-function PlexOAuth(success, error, pre) {
+function PlexOAuth(success, error, pre, clientID) {
     if (typeof pre === "function") {
         pre()
     }
@@ -703,8 +703,8 @@ function PlexOAuth(success, error, pre) {
     plex_oauth_window = PopupCenter('', 'Plex-OAuth', 600, 700);
     $(plex_oauth_window.document.body).html(plex_oauth_loader);
 
-    getPlexOAuthPin().then(function (data) {
-        var x_plex_headers = getPlexHeaders();
+    getPlexOAuthPin(clientID).then(function (data) {
+        var x_plex_headers = getPlexHeaders(clientID);
         const pin = data.pin;
         const code = data.code;
 

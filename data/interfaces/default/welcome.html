@@ -111,7 +111,8 @@
                             Tautulli requires a Plex.tv account. Click the button below to sign in on Plex.tv. You may need to allow popups in your browser.
                         </p>
                     </div>
-                    <input type="hidden" class="form-control" name="pms_token" id="pms_token" value="" data-validate="validatePMStoken">
+                    <input type="hidden" name="pms_token" id="pms_token" value="" data-validate="validatePMStoken">
+                    <input type="hidden" name="pms_client_id" id="pms_client_id" value="${config['pms_client_id']}">
                     <a class="btn btn-dark" id="sign-in-plex" href="#" role="button">Sign In with Plex</a>
                     <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
@@ -570,7 +571,7 @@ $(document).ready(function() {
     }
 
     $('#sign-in-plex').click(function() {
-        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction, $('#pms_client_id').val(uuidv4()).val());
     });
 });
 </script>

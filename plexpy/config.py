@@ -50,6 +50,7 @@ FILENAME = "config.ini"
 _CONFIG_DEFINITIONS = {
     'ALLOW_GUEST_ACCESS': (int, 'General', 0),
     'DATE_FORMAT': (str, 'General', 'YYYY-MM-DD'),
+    'PMS_CLIENT_ID': (str, 'PMS', ''),
     'PMS_IDENTIFIER': (str, 'PMS', ''),
     'PMS_IP': (str, 'PMS', '127.0.0.1'),
     'PMS_IS_CLOUD': (int, 'PMS', 0),

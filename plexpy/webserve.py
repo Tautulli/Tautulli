@@ -205,6 +205,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def welcome(self, **kwargs):
         config = {
+            "pms_client_id": plexpy.CONFIG.PMS_CLIENT_ID,
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_port": plexpy.CONFIG.PMS_PORT,
@@ -212,7 +213,6 @@ class WebInterface(object):
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "pms_token": plexpy.CONFIG.PMS_TOKEN,
-            "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
@@ -3168,6 +3168,7 @@ class WebInterface(object):
             "check_github_interval": plexpy.CONFIG.CHECK_GITHUB_INTERVAL,
             "interface_list": interface_list,
             "cache_sizemb": plexpy.CONFIG.CACHE_SIZEMB,
+            "pms_client_id": plexpy.CONFIG.PMS_CLIENT_ID,
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
@@ -3178,7 +3179,6 @@ class WebInterface(object):
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "pms_url": plexpy.CONFIG.PMS_URL,
             "pms_url_manual": checked(plexpy.CONFIG.PMS_URL_MANUAL),
-            "pms_uuid": plexpy.CONFIG.PMS_UUID,
             "pms_web_url": plexpy.CONFIG.PMS_WEB_URL,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "pms_update_check_interval": plexpy.CONFIG.PMS_UPDATE_CHECK_INTERVAL,
