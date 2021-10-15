@@ -7,12 +7,12 @@ import sys
 
 THIS_DIR = os.path.dirname(__file__)
 
-README = os.path.join(THIS_DIR, os.pardir, os.pardir, 'README.txt')
+README = os.path.join(THIS_DIR, os.pardir, os.pardir, 'README.rst')
 
 
 class DocumentationTestCase(unittest.TestCase):
     def test_readme_encoding(self):
-        '''Confirm the README.txt is pure ASCII.'''
+        '''Confirm the README.rst is ASCII.'''
         f = open(README, 'rb')
         try:
             f.read().decode('ASCII')
@@ -24,7 +24,7 @@ def test_suite():
     "For the Z3 test runner"
     return unittest.TestSuite((
         DocumentationTestCase('test_readme_encoding'),
-        DocFileSuite(os.path.join(os.pardir, os.pardir, 'README.txt'))))
+        DocFileSuite(os.path.join(os.pardir, os.pardir, 'README.rst'))))
 
 
 if __name__ == '__main__':
