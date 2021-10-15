@@ -783,7 +783,7 @@ DOCUMENTATION :: END
                 <label for="send-notification-notifier">Select the Notification Agent</label>
                 <div class="row">
                     <div class="col-md-8" style="float: none; margin: 0 auto;">
-                        <select class="form-control" id="send-notification-notifier" name="send-notification-notifier" value="" placeholder="The server owner has ended the stream." style="text-align: center;">
+                        <select class="form-control" id="send-notification-notifier" name="send-notification-notifier" value="" placeholder="The server owner has ended the stream.">
                             <option value="">All Enabled Recently Added Notification Agents</option>
                             % for notifier in sorted(notifiers.get_notifiers(), key=lambda k: (k['agent_label'], k['friendly_name'], k['id'])):
                             % if notifier['friendly_name']:
