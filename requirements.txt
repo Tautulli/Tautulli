@@ -43,7 +43,7 @@ soupsieve==2.2.1
 tempora==4.1.2
 tokenize-rt==4.1.0
 tzdata==2021.2.post0
-tzlocal<3.0
+tzlocal<4.0
 urllib3==1.26.7
 webencodings==0.5.1
 websocket-client==1.2.1
