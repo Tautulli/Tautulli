@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2004-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -18,33 +20,23 @@ import binascii
 
 import dns.exception
 import dns.rdata
-from dns._compat import text_type
 
 
 class NSEC3PARAM(dns.rdata.Rdata):
 
-    """NSEC3PARAM record
-
-    @ivar algorithm: the hash algorithm number
-    @type algorithm: int
-    @ivar flags: the flags
-    @type flags: int
-    @ivar iterations: the number of iterations
-    @type iterations: int
-    @ivar salt: the salt
-    @type salt: string"""
+    """NSEC3PARAM record"""
 
     __slots__ = ['algorithm', 'flags', 'iterations', 'salt']
 
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt):
-        super(NSEC3PARAM, self).__init__(rdclass, rdtype)
-        self.algorithm = algorithm
-        self.flags = flags
-        self.iterations = iterations
-        if isinstance(salt, text_type):
-            self.salt = salt.encode()
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'flags', flags)
+        object.__setattr__(self, 'iterations', iterations)
+        if isinstance(salt, str):
+            object.__setattr__(self, 'salt', salt.encode())
         else:
-            self.salt = salt
+            object.__setattr__(self, 'salt', salt)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.salt == b'':
@@ -55,7 +47,8 @@ class NSEC3PARAM(dns.rdata.Rdata):
                                 salt)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         algorithm = tok.get_uint8()
         flags = tok.get_uint8()
         iterations = tok.get_uint16()
@@ -67,23 +60,14 @@ class NSEC3PARAM(dns.rdata.Rdata):
         tok.get_eol()
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.salt)
         file.write(struct.pack("!BBHB", self.algorithm, self.flags,
                                self.iterations, l))
         file.write(self.salt)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (algorithm, flags, iterations, slen) = \
-             struct.unpack('!BBHB',
-                           wire[current: current + 5])
-        current += 5
-        rdlen -= 5
-        salt = wire[current: current + slen].unwrap()
-        current += slen
-        rdlen -= slen
-        if rdlen != 0:
-            raise dns.exception.FormError
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (algorithm, flags, iterations) = parser.get_struct('!BBH')
+        salt = parser.get_counted_bytes()
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
-

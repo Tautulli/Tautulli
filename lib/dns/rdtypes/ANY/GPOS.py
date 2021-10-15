@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -18,15 +20,19 @@ import struct
 import dns.exception
 import dns.rdata
 import dns.tokenizer
-from dns._compat import long, text_type
 
 
 def _validate_float_string(what):
+    if len(what) == 0:
+        raise dns.exception.FormError
     if what[0] == b'-'[0] or what[0] == b'+'[0]:
         what = what[1:]
     if what.isdigit():
         return
-    (left, right) = what.split(b'.')
+    try:
+        (left, right) = what.split(b'.')
+    except ValueError:
+        raise dns.exception.FormError
     if left == b'' and right == b'':
         raise dns.exception.FormError
     if not left == b'' and not left.decode().isdigit():
@@ -36,38 +42,29 @@ def _validate_float_string(what):
 
 
 def _sanitize(value):
-    if isinstance(value, text_type):
+    if isinstance(value, str):
         return value.encode()
     return value
 
 
 class GPOS(dns.rdata.Rdata):
 
-    """GPOS record
+    """GPOS record"""
 
-    @ivar latitude: latitude
-    @type latitude: string
-    @ivar longitude: longitude
-    @type longitude: string
-    @ivar altitude: altitude
-    @type altitude: string
-    @see: RFC 1712"""
+    # see: RFC 1712
 
     __slots__ = ['latitude', 'longitude', 'altitude']
 
     def __init__(self, rdclass, rdtype, latitude, longitude, altitude):
-        super(GPOS, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         if isinstance(latitude, float) or \
-           isinstance(latitude, int) or \
-           isinstance(latitude, long):
+           isinstance(latitude, int):
             latitude = str(latitude)
         if isinstance(longitude, float) or \
-           isinstance(longitude, int) or \
-           isinstance(longitude, long):
+           isinstance(longitude, int):
             longitude = str(longitude)
         if isinstance(altitude, float) or \
-           isinstance(altitude, int) or \
-           isinstance(altitude, long):
+           isinstance(altitude, int):
             altitude = str(altitude)
         latitude = _sanitize(latitude)
         longitude = _sanitize(longitude)
@@ -75,24 +72,31 @@ class GPOS(dns.rdata.Rdata):
         _validate_float_string(latitude)
         _validate_float_string(longitude)
         _validate_float_string(altitude)
-        self.latitude = latitude
-        self.longitude = longitude
-        self.altitude = altitude
+        object.__setattr__(self, 'latitude', latitude)
+        object.__setattr__(self, 'longitude', longitude)
+        object.__setattr__(self, 'altitude', altitude)
+        flat = self.float_latitude
+        if flat < -90.0 or flat > 90.0:
+            raise dns.exception.FormError('bad latitude')
+        flong = self.float_longitude
+        if flong < -180.0 or flong > 180.0:
+            raise dns.exception.FormError('bad longitude')
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return '%s %s %s' % (self.latitude.decode(),
-                             self.longitude.decode(),
-                             self.altitude.decode())
+        return '{} {} {}'.format(self.latitude.decode(),
+                                 self.longitude.decode(),
+                                 self.altitude.decode())
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         latitude = tok.get_string()
         longitude = tok.get_string()
         altitude = tok.get_string()
         tok.get_eol()
         return cls(rdclass, rdtype, latitude, longitude, altitude)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.latitude)
         assert l < 256
         file.write(struct.pack('!B', l))
@@ -107,54 +111,23 @@ class GPOS(dns.rdata.Rdata):
         file.write(self.altitude)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l > rdlen:
-            raise dns.exception.FormError
-        latitude = wire[current: current + l].unwrap()
-        current += l
-        rdlen -= l
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l > rdlen:
-            raise dns.exception.FormError
-        longitude = wire[current: current + l].unwrap()
-        current += l
-        rdlen -= l
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l != rdlen:
-            raise dns.exception.FormError
-        altitude = wire[current: current + l].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        latitude = parser.get_counted_bytes()
+        longitude = parser.get_counted_bytes()
+        altitude = parser.get_counted_bytes()
         return cls(rdclass, rdtype, latitude, longitude, altitude)
 
-    def _get_float_latitude(self):
+    @property
+    def float_latitude(self):
+        "latitude as a floating point value"
         return float(self.latitude)
 
-    def _set_float_latitude(self, value):
-        self.latitude = str(value)
-
-    float_latitude = property(_get_float_latitude, _set_float_latitude,
-                              doc="latitude as a floating point value")
-
-    def _get_float_longitude(self):
+    @property
+    def float_longitude(self):
+        "longitude as a floating point value"
         return float(self.longitude)
 
-    def _set_float_longitude(self, value):
-        self.longitude = str(value)
-
-    float_longitude = property(_get_float_longitude, _set_float_longitude,
-                               doc="longitude as a floating point value")
-
-    def _get_float_altitude(self):
+    @property
+    def float_altitude(self):
+        "altitude as a floating point value"
         return float(self.altitude)
-
-    def _set_float_altitude(self, value):
-        self.altitude = str(value)
-
-    float_altitude = property(_get_float_altitude, _set_float_altitude,
-                              doc="altitude as a floating point value")

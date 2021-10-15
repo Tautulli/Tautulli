@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2005-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -22,27 +24,19 @@ import dns.rdatatype
 
 class TLSA(dns.rdata.Rdata):
 
-    """TLSA record
+    """TLSA record"""
 
-    @ivar usage: The certificate usage
-    @type usage: int
-    @ivar selector: The selector field
-    @type selector: int
-    @ivar mtype: The 'matching type' field
-    @type mtype: int
-    @ivar cert: The 'Certificate Association Data' field
-    @type cert: string
-    @see: RFC 6698"""
+    # see: RFC 6698
 
     __slots__ = ['usage', 'selector', 'mtype', 'cert']
 
     def __init__(self, rdclass, rdtype, usage, selector,
                  mtype, cert):
-        super(TLSA, self).__init__(rdclass, rdtype)
-        self.usage = usage
-        self.selector = selector
-        self.mtype = mtype
-        self.cert = cert
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'usage', usage)
+        object.__setattr__(self, 'selector', selector)
+        object.__setattr__(self, 'mtype', mtype)
+        object.__setattr__(self, 'cert', cert)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.usage,
@@ -52,32 +46,22 @@ class TLSA(dns.rdata.Rdata):
                                                   chunksize=128))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         usage = tok.get_uint8()
         selector = tok.get_uint8()
         mtype = tok.get_uint8()
-        cert_chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            cert_chunks.append(t.value.encode())
-        cert = b''.join(cert_chunks)
+        cert = tok.concatenate_remaining_identifiers().encode()
         cert = binascii.unhexlify(cert)
         return cls(rdclass, rdtype, usage, selector, mtype, cert)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         header = struct.pack("!BBB", self.usage, self.selector, self.mtype)
         file.write(header)
         file.write(self.cert)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        header = struct.unpack("!BBB", wire[current: current + 3])
-        current += 3
-        rdlen -= 3
-        cert = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        header = parser.get_struct("BBB")
+        cert = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2], cert)
-

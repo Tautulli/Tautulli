@@ -1,4 +1,6 @@
-# Copyright (C) 2001-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+# Copyright (C) 2001-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -15,58 +17,55 @@
 
 """DNS Opcodes."""
 
+import dns.enum
 import dns.exception
 
-QUERY = 0
-IQUERY = 1
-STATUS = 2
-NOTIFY = 4
-UPDATE = 5
+class Opcode(dns.enum.IntEnum):
+    #: Query
+    QUERY = 0
+    #: Inverse Query (historical)
+    IQUERY = 1
+    #: Server Status (unspecified and unimplemented anywhere)
+    STATUS = 2
+    #: Notify
+    NOTIFY = 4
+    #: Dynamic Update
+    UPDATE = 5
 
-_by_text = {
-    'QUERY': QUERY,
-    'IQUERY': IQUERY,
-    'STATUS': STATUS,
-    'NOTIFY': NOTIFY,
-    'UPDATE': UPDATE
-}
+    @classmethod
+    def _maximum(cls):
+        return 15
 
-# We construct the inverse mapping programmatically to ensure that we
-# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
-# would cause the mapping not to be true inverse.
+    @classmethod
+    def _unknown_exception_class(cls):
+        return UnknownOpcode
 
-_by_value = dict((y, x) for x, y in _by_text.items())
+globals().update(Opcode.__members__)
 
 
 class UnknownOpcode(dns.exception.DNSException):
-
     """An DNS opcode is unknown."""
 
 
 def from_text(text):
     """Convert text into an opcode.
 
-    @param text: the textual opcode
-    @type text: string
-    @raises UnknownOpcode: the opcode is unknown
-    @rtype: int
+    *text*, a ``str``, the textual opcode
+
+    Raises ``dns.opcode.UnknownOpcode`` if the opcode is unknown.
+
+    Returns an ``int``.
     """
 
-    if text.isdigit():
-        value = int(text)
-        if value >= 0 and value <= 15:
-            return value
-    value = _by_text.get(text.upper())
-    if value is None:
-        raise UnknownOpcode
-    return value
+    return Opcode.from_text(text)
 
 
 def from_flags(flags):
     """Extract an opcode from DNS message flags.
 
-    @param flags: int
-    @rtype: int
+    *flags*, an ``int``, the DNS flags.
+
+    Returns an ``int``.
     """
 
     return (flags & 0x7800) >> 11
@@ -75,7 +74,10 @@ def from_flags(flags):
 def to_flags(value):
     """Convert an opcode to a value suitable for ORing into DNS message
     flags.
-    @rtype: int
+
+    *value*, an ``int``, the DNS opcode value.
+
+    Returns an ``int``.
     """
 
     return (value << 11) & 0x7800
@@ -84,26 +86,22 @@ def to_flags(value):
 def to_text(value):
     """Convert an opcode to text.
 
-    @param value: the opcdoe
-    @type value: int
-    @raises UnknownOpcode: the opcode is unknown
-    @rtype: string
+    *value*, an ``int`` the opcode value,
+
+    Raises ``dns.opcode.UnknownOpcode`` if the opcode is unknown.
+
+    Returns a ``str``.
     """
 
-    text = _by_value.get(value)
-    if text is None:
-        text = str(value)
-    return text
+    return Opcode.to_text(value)
 
 
 def is_update(flags):
-    """True if the opcode in flags is UPDATE.
+    """Is the opcode in flags UPDATE?
 
-    @param flags: DNS flags
-    @type flags: int
-    @rtype: bool
+    *flags*, an ``int``, the DNS message flags.
+
+    Returns a ``bool``.
     """
 
-    if (from_flags(flags) == UPDATE):
-        return True
-    return False
+    return from_flags(flags) == Opcode.UPDATE

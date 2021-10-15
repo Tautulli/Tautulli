@@ -1,4 +1,6 @@
-# Copyright (C) 2003-2007, 2009, 2011 Nominum, Inc.
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+# Copyright (C) 2003-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -15,99 +17,88 @@
 
 """Common DNSSEC-related functions and constants."""
 
-from io import BytesIO
+import hashlib
 import struct
 import time
+import base64
 
+import dns.enum
 import dns.exception
-import dns.hash
 import dns.name
 import dns.node
 import dns.rdataset
 import dns.rdata
 import dns.rdatatype
 import dns.rdataclass
-from ._compat import string_types
 
 
 class UnsupportedAlgorithm(dns.exception.DNSException):
-
     """The DNSSEC algorithm is not supported."""
 
 
 class ValidationFailure(dns.exception.DNSException):
-
     """The DNSSEC signature is invalid."""
 
-RSAMD5 = 1
-DH = 2
-DSA = 3
-ECC = 4
-RSASHA1 = 5
-DSANSEC3SHA1 = 6
-RSASHA1NSEC3SHA1 = 7
-RSASHA256 = 8
-RSASHA512 = 10
-ECDSAP256SHA256 = 13
-ECDSAP384SHA384 = 14
-INDIRECT = 252
-PRIVATEDNS = 253
-PRIVATEOID = 254
 
-_algorithm_by_text = {
-    'RSAMD5': RSAMD5,
-    'DH': DH,
-    'DSA': DSA,
-    'ECC': ECC,
-    'RSASHA1': RSASHA1,
-    'DSANSEC3SHA1': DSANSEC3SHA1,
-    'RSASHA1NSEC3SHA1': RSASHA1NSEC3SHA1,
-    'RSASHA256': RSASHA256,
-    'RSASHA512': RSASHA512,
-    'INDIRECT': INDIRECT,
-    'ECDSAP256SHA256': ECDSAP256SHA256,
-    'ECDSAP384SHA384': ECDSAP384SHA384,
-    'PRIVATEDNS': PRIVATEDNS,
-    'PRIVATEOID': PRIVATEOID,
-}
+class Algorithm(dns.enum.IntEnum):
+    RSAMD5 = 1
+    DH = 2
+    DSA = 3
+    ECC = 4
+    RSASHA1 = 5
+    DSANSEC3SHA1 = 6
+    RSASHA1NSEC3SHA1 = 7
+    RSASHA256 = 8
+    RSASHA512 = 10
+    ECCGOST = 12
+    ECDSAP256SHA256 = 13
+    ECDSAP384SHA384 = 14
+    ED25519 = 15
+    ED448 = 16
+    INDIRECT = 252
+    PRIVATEDNS = 253
+    PRIVATEOID = 254
 
-# We construct the inverse mapping programmatically to ensure that we
-# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
-# would cause the mapping not to be true inverse.
+    @classmethod
+    def _maximum(cls):
+        return 255
 
-_algorithm_by_value = dict((y, x) for x, y in _algorithm_by_text.items())
+
+globals().update(Algorithm.__members__)
 
 
 def algorithm_from_text(text):
-    """Convert text into a DNSSEC algorithm value
-    @rtype: int"""
+    """Convert text into a DNSSEC algorithm value.
 
-    value = _algorithm_by_text.get(text.upper())
-    if value is None:
-        value = int(text)
-    return value
+    *text*, a ``str``, the text to convert to into an algorithm value.
+
+    Returns an ``int``.
+    """
+
+    return Algorithm.from_text(text)
 
 
 def algorithm_to_text(value):
     """Convert a DNSSEC algorithm value to text
-    @rtype: string"""
 
-    text = _algorithm_by_value.get(value)
-    if text is None:
-        text = str(value)
-    return text
+    *value*, an ``int`` a DNSSEC algorithm.
 
+    Returns a ``str``, the name of a DNSSEC algorithm.
+    """
 
-def _to_rdata(record, origin):
-    s = BytesIO()
-    record.to_wire(s, origin=origin)
-    return s.getvalue()
+    return Algorithm.to_text(value)
 
 
-def key_id(key, origin=None):
-    rdata = _to_rdata(key, origin)
-    rdata = bytearray(rdata)
-    if key.algorithm == RSAMD5:
+def key_id(key):
+    """Return the key id (a 16-bit number) for the specified key.
+
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``
+
+    Returns an ``int`` between 0 and 65535
+    """
+
+    rdata = key.to_wire()
+    if key.algorithm == Algorithm.RSAMD5:
         return (rdata[-3] << 8) + rdata[-2]
     else:
         total = 0
@@ -119,24 +110,60 @@ def key_id(key, origin=None):
         total += ((total >> 16) & 0xffff)
         return total & 0xffff
 
+class DSDigest(dns.enum.IntEnum):
+    """DNSSEC Delgation Signer Digest Algorithm"""
+
+    SHA1 = 1
+    SHA256 = 2
+    SHA384 = 4
+
+    @classmethod
+    def _maximum(cls):
+        return 255
+
 
 def make_ds(name, key, algorithm, origin=None):
-    if algorithm.upper() == 'SHA1':
-        dsalg = 1
-        hash = dns.hash.hashes['SHA1']()
-    elif algorithm.upper() == 'SHA256':
-        dsalg = 2
-        hash = dns.hash.hashes['SHA256']()
+    """Create a DS record for a DNSSEC key.
+
+    *name*, a ``dns.name.Name`` or ``str``, the owner name of the DS record.
+
+    *key*, a ``dns.rdtypes.ANY.DNSKEY.DNSKEY``, the key the DS is about.
+
+    *algorithm*, a ``str`` or ``int`` specifying the hash algorithm.
+    The currently supported hashes are "SHA1", "SHA256", and "SHA384". Case
+    does not matter for these strings.
+
+    *origin*, a ``dns.name.Name`` or ``None``.  If `key` is a relative name,
+    then it will be made absolute using the specified origin.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is unknown.
+
+    Returns a ``dns.rdtypes.ANY.DS.DS``
+    """
+
+    try:
+        if isinstance(algorithm, str):
+            algorithm = DSDigest[algorithm.upper()]
+    except Exception:
+        raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
+
+    if algorithm == DSDigest.SHA1:
+        dshash = hashlib.sha1()
+    elif algorithm == DSDigest.SHA256:
+        dshash = hashlib.sha256()
+    elif algorithm == DSDigest.SHA384:
+        dshash = hashlib.sha384()
     else:
         raise UnsupportedAlgorithm('unsupported algorithm "%s"' % algorithm)
 
-    if isinstance(name, string_types):
+    if isinstance(name, str):
         name = dns.name.from_text(name, origin)
-    hash.update(name.canonicalize().to_wire())
-    hash.update(_to_rdata(key, origin))
-    digest = hash.digest()
+    dshash.update(name.canonicalize().to_wire())
+    dshash.update(key.to_wire(origin=origin))
+    digest = dshash.digest()
 
-    dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, dsalg) + digest
+    dsrdata = struct.pack("!HBB", key_id(key), key.algorithm, algorithm) + \
+        digest
     return dns.rdata.from_wire(dns.rdataclass.IN, dns.rdatatype.DS, dsrdata, 0,
                                len(dsrdata))
 
@@ -162,101 +189,109 @@ def _find_candidate_keys(keys, rrsig):
 
 
 def _is_rsa(algorithm):
-    return algorithm in (RSAMD5, RSASHA1,
-                         RSASHA1NSEC3SHA1, RSASHA256,
-                         RSASHA512)
+    return algorithm in (Algorithm.RSAMD5, Algorithm.RSASHA1,
+                         Algorithm.RSASHA1NSEC3SHA1, Algorithm.RSASHA256,
+                         Algorithm.RSASHA512)
 
 
 def _is_dsa(algorithm):
-    return algorithm in (DSA, DSANSEC3SHA1)
+    return algorithm in (Algorithm.DSA, Algorithm.DSANSEC3SHA1)
 
 
 def _is_ecdsa(algorithm):
-    return _have_ecdsa and (algorithm in (ECDSAP256SHA256, ECDSAP384SHA384))
+    return algorithm in (Algorithm.ECDSAP256SHA256, Algorithm.ECDSAP384SHA384)
+
+
+def _is_eddsa(algorithm):
+    return algorithm in (Algorithm.ED25519, Algorithm.ED448)
+
+
+def _is_gost(algorithm):
+    return algorithm == Algorithm.ECCGOST
 
 
 def _is_md5(algorithm):
-    return algorithm == RSAMD5
+    return algorithm == Algorithm.RSAMD5
 
 
 def _is_sha1(algorithm):
-    return algorithm in (DSA, RSASHA1,
-                         DSANSEC3SHA1, RSASHA1NSEC3SHA1)
+    return algorithm in (Algorithm.DSA, Algorithm.RSASHA1,
+                         Algorithm.DSANSEC3SHA1, Algorithm.RSASHA1NSEC3SHA1)
 
 
 def _is_sha256(algorithm):
-    return algorithm in (RSASHA256, ECDSAP256SHA256)
+    return algorithm in (Algorithm.RSASHA256, Algorithm.ECDSAP256SHA256)
 
 
 def _is_sha384(algorithm):
-    return algorithm == ECDSAP384SHA384
+    return algorithm == Algorithm.ECDSAP384SHA384
 
 
 def _is_sha512(algorithm):
-    return algorithm == RSASHA512
+    return algorithm == Algorithm.RSASHA512
 
 
 def _make_hash(algorithm):
     if _is_md5(algorithm):
-        return dns.hash.hashes['MD5']()
+        return hashes.MD5()
     if _is_sha1(algorithm):
-        return dns.hash.hashes['SHA1']()
+        return hashes.SHA1()
     if _is_sha256(algorithm):
-        return dns.hash.hashes['SHA256']()
+        return hashes.SHA256()
     if _is_sha384(algorithm):
-        return dns.hash.hashes['SHA384']()
+        return hashes.SHA384()
     if _is_sha512(algorithm):
-        return dns.hash.hashes['SHA512']()
+        return hashes.SHA512()
+    if algorithm == Algorithm.ED25519:
+        return hashes.SHA512()
+    if algorithm == Algorithm.ED448:
+        return hashes.SHAKE256(114)
+
     raise ValidationFailure('unknown hash for algorithm %u' % algorithm)
 
 
-def _make_algorithm_id(algorithm):
-    if _is_md5(algorithm):
-        oid = [0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x02, 0x05]
-    elif _is_sha1(algorithm):
-        oid = [0x2b, 0x0e, 0x03, 0x02, 0x1a]
-    elif _is_sha256(algorithm):
-        oid = [0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01]
-    elif _is_sha512(algorithm):
-        oid = [0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03]
-    else:
-        raise ValidationFailure('unknown algorithm %u' % algorithm)
-    olen = len(oid)
-    dlen = _make_hash(algorithm).digest_size
-    idbytes = [0x30] + [8 + olen + dlen] + \
-              [0x30, olen + 4] + [0x06, olen] + oid + \
-              [0x05, 0x00] + [0x04, dlen]
-    return struct.pack('!%dB' % len(idbytes), *idbytes)
+def _bytes_to_long(b):
+    return int.from_bytes(b, 'big')
 
 
 def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
-    """Validate an RRset against a single signature rdata
+    """Validate an RRset against a single signature rdata, throwing an
+    exception if validation is not successful.
 
-    The owner name of the rrsig is assumed to be the same as the owner name
-    of the rrset.
+    *rrset*, the RRset to validate.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
+    tuple.
 
-    @param rrset: The RRset to validate
-    @type rrset: dns.rrset.RRset or (dns.name.Name, dns.rdataset.Rdataset)
-    tuple
-    @param rrsig: The signature rdata
-    @type rrsig: dns.rrset.Rdata
-    @param keys: The key dictionary.
-    @type keys: a dictionary keyed by dns.name.Name with node or rdataset
-    values
-    @param origin: The origin to use for relative names
-    @type origin: dns.name.Name or None
-    @param now: The time to use when validating the signatures.  The default
-    is the current time.
-    @type now: int
+    *rrsig*, a ``dns.rdata.Rdata``, the signature to validate.
+
+    *keys*, the key dictionary, used to find the DNSKEY associated
+    with a given name.  The dictionary is keyed by a
+    ``dns.name.Name``, and has ``dns.node.Node`` or
+    ``dns.rdataset.Rdataset`` values.
+
+    *origin*, a ``dns.name.Name`` or ``None``, the origin to use for relative
+    names.
+
+    *now*, an ``int`` or ``None``, the time, in seconds since the epoch, to
+    use as the current time when validating.  If ``None``, the actual current
+    time is used.
+
+    Raises ``ValidationFailure`` if the signature is expired, not yet valid,
+    the public key is invalid, the algorithm is unknown, the verification
+    fails, etc.
+
+    Raises ``UnsupportedAlgorithm`` if the algorithm is recognized by
+    dnspython but not implemented.
     """
 
-    if isinstance(origin, string_types):
+    if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root)
 
-    for candidate_key in _find_candidate_keys(keys, rrsig):
-        if not candidate_key:
-            raise ValidationFailure('unknown key')
+    candidate_keys = _find_candidate_keys(keys, rrsig)
+    if candidate_keys is None:
+        raise ValidationFailure('unknown key')
 
+    for candidate_key in candidate_keys:
         # For convenience, allow the rrset to be specified as a (name,
         # rdataset) tuple as well as a proper rrset
         if isinstance(rrset, tuple):
@@ -273,8 +308,6 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
         if rrsig.inception > now:
             raise ValidationFailure('not yet valid')
 
-        hash = _make_hash(rrsig.algorithm)
-
         if _is_rsa(rrsig.algorithm):
             keyptr = candidate_key.key
             (bytes_,) = struct.unpack('!B', keyptr[0:1])
@@ -284,11 +317,13 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                 keyptr = keyptr[2:]
             rsa_e = keyptr[0:bytes_]
             rsa_n = keyptr[bytes_:]
-            keylen = len(rsa_n) * 8
-            pubkey = Crypto.PublicKey.RSA.construct(
-                (Crypto.Util.number.bytes_to_long(rsa_n),
-                 Crypto.Util.number.bytes_to_long(rsa_e)))
-            sig = (Crypto.Util.number.bytes_to_long(rrsig.signature),)
+            try:
+                public_key = rsa.RSAPublicNumbers(
+                    _bytes_to_long(rsa_e),
+                    _bytes_to_long(rsa_n)).public_key(default_backend())
+            except ValueError:
+                raise ValidationFailure('invalid public key')
+            sig = rrsig.signature
         elif _is_dsa(rrsig.algorithm):
             keyptr = candidate_key.key
             (t,) = struct.unpack('!B', keyptr[0:1])
@@ -301,41 +336,62 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
             dsa_g = keyptr[0:octets]
             keyptr = keyptr[octets:]
             dsa_y = keyptr[0:octets]
-            pubkey = Crypto.PublicKey.DSA.construct(
-                (Crypto.Util.number.bytes_to_long(dsa_y),
-                 Crypto.Util.number.bytes_to_long(dsa_g),
-                 Crypto.Util.number.bytes_to_long(dsa_p),
-                 Crypto.Util.number.bytes_to_long(dsa_q)))
-            (dsa_r, dsa_s) = struct.unpack('!20s20s', rrsig.signature[1:])
-            sig = (Crypto.Util.number.bytes_to_long(dsa_r),
-                   Crypto.Util.number.bytes_to_long(dsa_s))
+            try:
+                public_key = dsa.DSAPublicNumbers(
+                    _bytes_to_long(dsa_y),
+                    dsa.DSAParameterNumbers(
+                        _bytes_to_long(dsa_p),
+                        _bytes_to_long(dsa_q),
+                        _bytes_to_long(dsa_g))).public_key(default_backend())
+            except ValueError:
+                raise ValidationFailure('invalid public key')
+            sig_r = rrsig.signature[1:21]
+            sig_s = rrsig.signature[21:]
+            sig = utils.encode_dss_signature(_bytes_to_long(sig_r),
+                                             _bytes_to_long(sig_s))
         elif _is_ecdsa(rrsig.algorithm):
-            if rrsig.algorithm == ECDSAP256SHA256:
-                curve = ecdsa.curves.NIST256p
-                key_len = 32
-            elif rrsig.algorithm == ECDSAP384SHA384:
-                curve = ecdsa.curves.NIST384p
-                key_len = 48
-            else:
-                # shouldn't happen
-                raise ValidationFailure('unknown ECDSA curve')
             keyptr = candidate_key.key
-            x = Crypto.Util.number.bytes_to_long(keyptr[0:key_len])
-            y = Crypto.Util.number.bytes_to_long(keyptr[key_len:key_len * 2])
-            assert ecdsa.ecdsa.point_is_valid(curve.generator, x, y)
-            point = ecdsa.ellipticcurve.Point(curve.curve, x, y, curve.order)
-            verifying_key = ecdsa.keys.VerifyingKey.from_public_point(point,
-                                                                      curve)
-            pubkey = ECKeyWrapper(verifying_key, key_len)
-            r = rrsig.signature[:key_len]
-            s = rrsig.signature[key_len:]
-            sig = ecdsa.ecdsa.Signature(Crypto.Util.number.bytes_to_long(r),
-                                        Crypto.Util.number.bytes_to_long(s))
+            if rrsig.algorithm == Algorithm.ECDSAP256SHA256:
+                curve = ec.SECP256R1()
+                octets = 32
+            else:
+                curve = ec.SECP384R1()
+                octets = 48
+            ecdsa_x = keyptr[0:octets]
+            ecdsa_y = keyptr[octets:octets * 2]
+            try:
+                public_key = ec.EllipticCurvePublicNumbers(
+                    curve=curve,
+                    x=_bytes_to_long(ecdsa_x),
+                    y=_bytes_to_long(ecdsa_y)).public_key(default_backend())
+            except ValueError:
+                raise ValidationFailure('invalid public key')
+            sig_r = rrsig.signature[0:octets]
+            sig_s = rrsig.signature[octets:]
+            sig = utils.encode_dss_signature(_bytes_to_long(sig_r),
+                                             _bytes_to_long(sig_s))
+
+        elif _is_eddsa(rrsig.algorithm):
+            keyptr = candidate_key.key
+            if rrsig.algorithm == Algorithm.ED25519:
+                loader = ed25519.Ed25519PublicKey
+            else:
+                loader = ed448.Ed448PublicKey
+            try:
+                public_key = loader.from_public_bytes(keyptr)
+            except ValueError:
+                raise ValidationFailure('invalid public key')
+            sig = rrsig.signature
+        elif _is_gost(rrsig.algorithm):
+            raise UnsupportedAlgorithm(
+                'algorithm "%s" not supported by dnspython' %
+                algorithm_to_text(rrsig.algorithm))
         else:
             raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
 
-        hash.update(_to_rdata(rrsig, origin)[:18])
-        hash.update(rrsig.signer.to_digestable(origin))
+        data = b''
+        data += rrsig.to_wire(origin=origin)[:18]
+        data += rrsig.signer.to_digestable(origin)
 
         if rrsig.labels < len(rrname) - 1:
             suffix = rrname.split(rrsig.labels + 1)[1]
@@ -345,54 +401,69 @@ def _validate_rrsig(rrset, rrsig, keys, origin=None, now=None):
                               rrsig.original_ttl)
         rrlist = sorted(rdataset)
         for rr in rrlist:
-            hash.update(rrnamebuf)
-            hash.update(rrfixed)
+            data += rrnamebuf
+            data += rrfixed
             rrdata = rr.to_digestable(origin)
             rrlen = struct.pack('!H', len(rrdata))
-            hash.update(rrlen)
-            hash.update(rrdata)
+            data += rrlen
+            data += rrdata
 
-        digest = hash.digest()
-
-        if _is_rsa(rrsig.algorithm):
-            # PKCS1 algorithm identifier goop
-            digest = _make_algorithm_id(rrsig.algorithm) + digest
-            padlen = keylen // 8 - len(digest) - 3
-            digest = struct.pack('!%dB' % (2 + padlen + 1),
-                                 *([0, 1] + [0xFF] * padlen + [0])) + digest
-        elif _is_dsa(rrsig.algorithm) or _is_ecdsa(rrsig.algorithm):
-            pass
-        else:
-            # Raise here for code clarity; this won't actually ever happen
-            # since if the algorithm is really unknown we'd already have
-            # raised an exception above
-            raise ValidationFailure('unknown algorithm %u' % rrsig.algorithm)
-
-        if pubkey.verify(digest, sig):
+        chosen_hash = _make_hash(rrsig.algorithm)
+        try:
+            if _is_rsa(rrsig.algorithm):
+                public_key.verify(sig, data, padding.PKCS1v15(), chosen_hash)
+            elif _is_dsa(rrsig.algorithm):
+                public_key.verify(sig, data, chosen_hash)
+            elif _is_ecdsa(rrsig.algorithm):
+                public_key.verify(sig, data, ec.ECDSA(chosen_hash))
+            elif _is_eddsa(rrsig.algorithm):
+                public_key.verify(sig, data)
+            else:
+                # Raise here for code clarity; this won't actually ever happen
+                # since if the algorithm is really unknown we'd already have
+                # raised an exception above
+                raise ValidationFailure('unknown algorithm %u' %
+                                        rrsig.algorithm)  # pragma: no cover
+            # If we got here, we successfully verified so we can return
+            # without error
             return
+        except InvalidSignature:
+            # this happens on an individual validation failure
+            continue
+    # nothing verified -- raise failure:
     raise ValidationFailure('verify failure')
 
 
 def _validate(rrset, rrsigset, keys, origin=None, now=None):
-    """Validate an RRset
+    """Validate an RRset against a signature RRset, throwing an exception
+    if none of the signatures validate.
 
-    @param rrset: The RRset to validate
-    @type rrset: dns.rrset.RRset or (dns.name.Name, dns.rdataset.Rdataset)
-    tuple
-    @param rrsigset: The signature RRset
-    @type rrsigset: dns.rrset.RRset or (dns.name.Name, dns.rdataset.Rdataset)
-    tuple
-    @param keys: The key dictionary.
-    @type keys: a dictionary keyed by dns.name.Name with node or rdataset
-    values
-    @param origin: The origin to use for relative names
-    @type origin: dns.name.Name or None
-    @param now: The time to use when validating the signatures.  The default
-    is the current time.
-    @type now: int
+    *rrset*, the RRset to validate.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
+    tuple.
+
+    *rrsigset*, the signature RRset.  This can be a
+    ``dns.rrset.RRset`` or a (``dns.name.Name``, ``dns.rdataset.Rdataset``)
+    tuple.
+
+    *keys*, the key dictionary, used to find the DNSKEY associated
+    with a given name.  The dictionary is keyed by a
+    ``dns.name.Name``, and has ``dns.node.Node`` or
+    ``dns.rdataset.Rdataset`` values.
+
+    *origin*, a ``dns.name.Name``, the origin to use for relative names;
+    defaults to None.
+
+    *now*, an ``int`` or ``None``, the time, in seconds since the epoch, to
+    use as the current time when validating.  If ``None``, the actual current
+    time is used.
+
+    Raises ``ValidationFailure`` if the signature is expired, not yet valid,
+    the public key is invalid, the algorithm is unknown, the verification
+    fails, etc.
     """
 
-    if isinstance(origin, string_types):
+    if isinstance(origin, str):
         origin = dns.name.from_text(origin, dns.name.root)
 
     if isinstance(rrset, tuple):
@@ -408,7 +479,7 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
         rrsigrdataset = rrsigset
 
     rrname = rrname.choose_relativity(origin)
-    rrsigname = rrname.choose_relativity(origin)
+    rrsigname = rrsigname.choose_relativity(origin)
     if rrname != rrsigname:
         raise ValidationFailure("owner names do not match")
 
@@ -416,42 +487,95 @@ def _validate(rrset, rrsigset, keys, origin=None, now=None):
         try:
             _validate_rrsig(rrset, rrsig, keys, origin, now)
             return
-        except ValidationFailure:
+        except (ValidationFailure, UnsupportedAlgorithm):
             pass
     raise ValidationFailure("no RRSIGs validated")
 
 
-def _need_pycrypto(*args, **kwargs):
-    raise NotImplementedError("DNSSEC validation requires pycrypto")
+class NSEC3Hash(dns.enum.IntEnum):
+    """NSEC3 hash algorithm"""
+
+    SHA1 = 1
+
+    @classmethod
+    def _maximum(cls):
+        return 255
+
+def nsec3_hash(domain, salt, iterations, algorithm):
+    """
+    Calculate the NSEC3 hash, according to
+    https://tools.ietf.org/html/rfc5155#section-5
+
+    *domain*, a ``dns.name.Name`` or ``str``, the name to hash.
+
+    *salt*, a ``str``, ``bytes``, or ``None``, the hash salt.  If a
+    string, it is decoded as a hex string.
+
+    *iterations*, an ``int``, the number of iterations.
+
+    *algorithm*, a ``str`` or ``int``, the hash algorithm.
+    The only defined algorithm is SHA1.
+
+    Returns a ``str``, the encoded NSEC3 hash.
+    """
+
+    b32_conversion = str.maketrans(
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567", "0123456789ABCDEFGHIJKLMNOPQRSTUV"
+    )
+
+    try:
+        if isinstance(algorithm, str):
+            algorithm = NSEC3Hash[algorithm.upper()]
+    except Exception:
+        raise ValueError("Wrong hash algorithm (only SHA1 is supported)")
+
+    if algorithm != NSEC3Hash.SHA1:
+        raise ValueError("Wrong hash algorithm (only SHA1 is supported)")
+
+    salt_encoded = salt
+    if salt is None:
+        salt_encoded = b''
+    elif isinstance(salt, str):
+        if len(salt) % 2 == 0:
+            salt_encoded = bytes.fromhex(salt)
+        else:
+            raise ValueError("Invalid salt length")
+
+    if not isinstance(domain, dns.name.Name):
+        domain = dns.name.from_text(domain)
+    domain_encoded = domain.canonicalize().to_wire()
+
+    digest = hashlib.sha1(domain_encoded + salt_encoded).digest()
+    for i in range(iterations):
+        digest = hashlib.sha1(digest + salt_encoded).digest()
+
+    output = base64.b32encode(digest).decode("utf-8")
+    output = output.translate(b32_conversion)
+
+    return output
+
+
+def _need_pyca(*args, **kwargs):
+    raise ImportError("DNSSEC validation requires " +
+                      "python cryptography")  # pragma: no cover
+
 
 try:
-    import Crypto.PublicKey.RSA
-    import Crypto.PublicKey.DSA
-    import Crypto.Util.number
-    validate = _validate
-    validate_rrsig = _validate_rrsig
-    _have_pycrypto = True
-except ImportError:
-    validate = _need_pycrypto
-    validate_rrsig = _need_pycrypto
-    _have_pycrypto = False
-
-try:
-    import ecdsa
-    import ecdsa.ecdsa
-    import ecdsa.ellipticcurve
-    import ecdsa.keys
-    _have_ecdsa = True
-
-    class ECKeyWrapper(object):
-
-        def __init__(self, key, key_len):
-            self.key = key
-            self.key_len = key_len
-
-        def verify(self, digest, sig):
-            diglong = Crypto.Util.number.bytes_to_long(digest)
-            return self.key.pubkey.verifies(diglong, sig)
-
-except ImportError:
-    _have_ecdsa = False
+    from cryptography.exceptions import InvalidSignature
+    from cryptography.hazmat.backends import default_backend
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.asymmetric import padding
+    from cryptography.hazmat.primitives.asymmetric import utils
+    from cryptography.hazmat.primitives.asymmetric import dsa
+    from cryptography.hazmat.primitives.asymmetric import ec
+    from cryptography.hazmat.primitives.asymmetric import ed25519
+    from cryptography.hazmat.primitives.asymmetric import ed448
+    from cryptography.hazmat.primitives.asymmetric import rsa
+except ImportError:  # pragma: no cover
+    validate = _need_pyca
+    validate_rrsig = _need_pyca
+    _have_pyca = False
+else:
+    validate = _validate                # type: ignore
+    validate_rrsig = _validate_rrsig    # type: ignore
+    _have_pyca = True

@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2005-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -22,24 +24,18 @@ import dns.rdatatype
 
 class SSHFP(dns.rdata.Rdata):
 
-    """SSHFP record
+    """SSHFP record"""
 
-    @ivar algorithm: the algorithm
-    @type algorithm: int
-    @ivar fp_type: the digest type
-    @type fp_type: int
-    @ivar fingerprint: the fingerprint
-    @type fingerprint: string
-    @see: draft-ietf-secsh-dns-05.txt"""
+    # See RFC 4255
 
     __slots__ = ['algorithm', 'fp_type', 'fingerprint']
 
     def __init__(self, rdclass, rdtype, algorithm, fp_type,
                  fingerprint):
-        super(SSHFP, self).__init__(rdclass, rdtype)
-        self.algorithm = algorithm
-        self.fp_type = fp_type
-        self.fingerprint = fingerprint
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'fp_type', fp_type)
+        object.__setattr__(self, 'fingerprint', fingerprint)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %s' % (self.algorithm,
@@ -48,31 +44,21 @@ class SSHFP(dns.rdata.Rdata):
                                                chunksize=128))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         algorithm = tok.get_uint8()
         fp_type = tok.get_uint8()
-        chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value.encode())
-        fingerprint = b''.join(chunks)
+        fingerprint = tok.concatenate_remaining_identifiers().encode()
         fingerprint = binascii.unhexlify(fingerprint)
         return cls(rdclass, rdtype, algorithm, fp_type, fingerprint)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         header = struct.pack("!BB", self.algorithm, self.fp_type)
         file.write(header)
         file.write(self.fingerprint)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        header = struct.unpack("!BB", wire[current: current + 2])
-        current += 2
-        rdlen -= 2
-        fingerprint = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        header = parser.get_struct("BB")
+        fingerprint = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], fingerprint)
-

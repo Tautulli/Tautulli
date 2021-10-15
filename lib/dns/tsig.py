@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2001-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -15,15 +17,15 @@
 
 """DNS TSIG support."""
 
+import base64
+import hashlib
 import hmac
 import struct
-import sys
 
 import dns.exception
-import dns.hash
 import dns.rdataclass
 import dns.name
-from ._compat import long, string_types
+import dns.rcode
 
 class BadTime(dns.exception.DNSException):
 
@@ -33,6 +35,16 @@ class BadTime(dns.exception.DNSException):
 class BadSignature(dns.exception.DNSException):
 
     """The TSIG signature fails to verify."""
+
+
+class BadKey(dns.exception.DNSException):
+
+    """The TSIG record owner name does not match the key."""
+
+
+class BadAlgorithm(dns.exception.DNSException):
+
+    """The TSIG algorithm does not match the key."""
 
 
 class PeerError(dns.exception.DNSException):
@@ -69,83 +81,88 @@ HMAC_SHA384 = dns.name.from_text("hmac-sha384")
 HMAC_SHA512 = dns.name.from_text("hmac-sha512")
 
 _hashes = {
-    HMAC_SHA224: 'SHA224',
-    HMAC_SHA256: 'SHA256',
-    HMAC_SHA384: 'SHA384',
-    HMAC_SHA512: 'SHA512',
-    HMAC_SHA1: 'SHA1',
-    HMAC_MD5: 'MD5',
+    HMAC_SHA224: hashlib.sha224,
+    HMAC_SHA256: hashlib.sha256,
+    HMAC_SHA384: hashlib.sha384,
+    HMAC_SHA512: hashlib.sha512,
+    HMAC_SHA1: hashlib.sha1,
+    HMAC_MD5: hashlib.md5,
 }
 
-default_algorithm = HMAC_MD5
-
-BADSIG = 16
-BADKEY = 17
-BADTIME = 18
-BADTRUNC = 22
+default_algorithm = HMAC_SHA256
 
 
-def sign(wire, keyname, secret, time, fudge, original_id, error,
-         other_data, request_mac, ctx=None, multi=False, first=True,
-         algorithm=default_algorithm):
-    """Return a (tsig_rdata, mac, ctx) tuple containing the HMAC TSIG rdata
-    for the input parameters, the HMAC MAC calculated by applying the
-    TSIG signature algorithm, and the TSIG digest context.
-    @rtype: (string, string, hmac.HMAC object)
+def _digest(wire, key, rdata, time=None, request_mac=None, ctx=None,
+            multi=None):
+    """Return a context containing the TSIG rdata for the input parameters
+    @rtype: hmac.HMAC object
     @raises ValueError: I{other_data} is too long
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
-    (algorithm_name, digestmod) = get_algorithm(algorithm)
+    first = not (ctx and multi)
     if first:
-        ctx = hmac.new(secret, digestmod=digestmod)
-        ml = len(request_mac)
-        if ml > 0:
-            ctx.update(struct.pack('!H', ml))
+        ctx = get_context(key)
+        if request_mac:
+            ctx.update(struct.pack('!H', len(request_mac)))
             ctx.update(request_mac)
-    id = struct.pack('!H', original_id)
-    ctx.update(id)
+    ctx.update(struct.pack('!H', rdata.original_id))
     ctx.update(wire[2:])
     if first:
-        ctx.update(keyname.to_digestable())
+        ctx.update(key.name.to_digestable())
         ctx.update(struct.pack('!H', dns.rdataclass.ANY))
         ctx.update(struct.pack('!I', 0))
-    long_time = time + long(0)
-    upper_time = (long_time >> 32) & long(0xffff)
-    lower_time = long_time & long(0xffffffff)
-    time_mac = struct.pack('!HIH', upper_time, lower_time, fudge)
-    pre_mac = algorithm_name + time_mac
-    ol = len(other_data)
-    if ol > 65535:
+    if time is None:
+        time = rdata.time_signed
+    upper_time = (time >> 32) & 0xffff
+    lower_time = time & 0xffffffff
+    time_encoded = struct.pack('!HIH', upper_time, lower_time, rdata.fudge)
+    other_len = len(rdata.other)
+    if other_len > 65535:
         raise ValueError('TSIG Other Data is > 65535 bytes')
-    post_mac = struct.pack('!HH', error, ol) + other_data
     if first:
-        ctx.update(pre_mac)
-        ctx.update(post_mac)
+        ctx.update(key.algorithm.to_digestable() + time_encoded)
+        ctx.update(struct.pack('!HH', rdata.error, other_len) + rdata.other)
     else:
-        ctx.update(time_mac)
-    mac = ctx.digest()
-    mpack = struct.pack('!H', len(mac))
-    tsig_rdata = pre_mac + mpack + mac + id + post_mac
+        ctx.update(time_encoded)
+    return ctx
+
+
+def _maybe_start_digest(key, mac, multi):
+    """If this is the first message in a multi-message sequence,
+    start a new context.
+    @rtype: hmac.HMAC object
+    """
     if multi:
-        ctx = hmac.new(secret, digestmod=digestmod)
-        ml = len(mac)
-        ctx.update(struct.pack('!H', ml))
+        ctx = get_context(key)
+        ctx.update(struct.pack('!H', len(mac)))
         ctx.update(mac)
+        return ctx
     else:
-        ctx = None
-    return (tsig_rdata, mac, ctx)
+        return None
 
 
-def hmac_md5(wire, keyname, secret, time, fudge, original_id, error,
-             other_data, request_mac, ctx=None, multi=False, first=True,
-             algorithm=default_algorithm):
-    return sign(wire, keyname, secret, time, fudge, original_id, error,
-                other_data, request_mac, ctx, multi, first, algorithm)
+def sign(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=False):
+    """Return a (tsig_rdata, mac, ctx) tuple containing the HMAC TSIG rdata
+    for the input parameters, the HMAC MAC calculated by applying the
+    TSIG signature algorithm, and the TSIG digest context.
+    @rtype: (string, hmac.HMAC object)
+    @raises ValueError: I{other_data} is too long
+    @raises NotImplementedError: I{algorithm} is not supported
+    """
+
+    ctx = _digest(wire, key, rdata, time, request_mac, ctx, multi)
+    mac = ctx.digest()
+    tsig = dns.rdtypes.ANY.TSIG.TSIG(dns.rdataclass.ANY, dns.rdatatype.TSIG,
+                                     key.algorithm, time, rdata.fudge, mac,
+                                     rdata.original_id, rdata.error,
+                                     rdata.other)
+
+    return (tsig, _maybe_start_digest(key, mac, multi))
 
 
-def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
-             tsig_rdlen, ctx=None, multi=False, first=True):
+def validate(wire, key, owner, rdata, now, request_mac, tsig_start, ctx=None,
+             multi=False):
     """Validate the specified TSIG rdata against the other input parameters.
 
     @raises FormError: The TSIG is badly formed.
@@ -159,75 +176,59 @@ def validate(wire, keyname, secret, now, request_mac, tsig_start, tsig_rdata,
         raise dns.exception.FormError
     adcount -= 1
     new_wire = wire[0:10] + struct.pack("!H", adcount) + wire[12:tsig_start]
-    current = tsig_rdata
-    (aname, used) = dns.name.from_wire(wire, current)
-    current = current + used
-    (upper_time, lower_time, fudge, mac_size) = \
-        struct.unpack("!HIHH", wire[current:current + 10])
-    time = ((upper_time + long(0)) << 32) + (lower_time + long(0))
-    current += 10
-    mac = wire[current:current + mac_size]
-    current += mac_size
-    (original_id, error, other_size) = \
-        struct.unpack("!HHH", wire[current:current + 6])
-    current += 6
-    other_data = wire[current:current + other_size]
-    current += other_size
-    if current != tsig_rdata + tsig_rdlen:
-        raise dns.exception.FormError
-    if error != 0:
-        if error == BADSIG:
+    if rdata.error != 0:
+        if rdata.error == dns.rcode.BADSIG:
             raise PeerBadSignature
-        elif error == BADKEY:
+        elif rdata.error == dns.rcode.BADKEY:
             raise PeerBadKey
-        elif error == BADTIME:
+        elif rdata.error == dns.rcode.BADTIME:
             raise PeerBadTime
-        elif error == BADTRUNC:
+        elif rdata.error == dns.rcode.BADTRUNC:
             raise PeerBadTruncation
         else:
-            raise PeerError('unknown TSIG error code %d' % error)
-    time_low = time - fudge
-    time_high = time + fudge
-    if now < time_low or now > time_high:
+            raise PeerError('unknown TSIG error code %d' % rdata.error)
+    if abs(rdata.time_signed - now) > rdata.fudge:
         raise BadTime
-    (junk, our_mac, ctx) = sign(new_wire, keyname, secret, time, fudge,
-                                original_id, error, other_data,
-                                request_mac, ctx, multi, first, aname)
-    if (our_mac != mac):
+    if key.name != owner:
+        raise BadKey
+    if key.algorithm != rdata.algorithm:
+        raise BadAlgorithm
+    ctx = _digest(new_wire, key, rdata, None, request_mac, ctx, multi)
+    mac = ctx.digest()
+    if not hmac.compare_digest(mac, rdata.mac):
         raise BadSignature
-    return ctx
+    return _maybe_start_digest(key, mac, multi)
 
 
-def get_algorithm(algorithm):
-    """Returns the wire format string and the hash module to use for the
-    specified TSIG algorithm
+def get_context(key):
+    """Returns an HMAC context foe the specified key.
 
-    @rtype: (string, hash constructor)
+    @rtype: HMAC context
     @raises NotImplementedError: I{algorithm} is not supported
     """
 
-    if isinstance(algorithm, string_types):
-        algorithm = dns.name.from_text(algorithm)
-
     try:
-        return (algorithm.to_digestable(), dns.hash.hashes[_hashes[algorithm]])
+        digestmod = _hashes[key.algorithm]
     except KeyError:
-        raise NotImplementedError("TSIG algorithm " + str(algorithm) +
-                                  " is not supported")
+        raise NotImplementedError(f"TSIG algorithm {key.algorithm} " +
+                                  "is not supported")
+    return hmac.new(key.secret, digestmod=digestmod)
 
 
-def get_algorithm_and_mac(wire, tsig_rdata, tsig_rdlen):
-    """Return the tsig algorithm for the specified tsig_rdata
-    @raises FormError: The TSIG is badly formed.
-    """
-    current = tsig_rdata
-    (aname, used) = dns.name.from_wire(wire, current)
-    current = current + used
-    (upper_time, lower_time, fudge, mac_size) = \
-        struct.unpack("!HIHH", wire[current:current + 10])
-    current += 10
-    mac = wire[current:current + mac_size]
-    current += mac_size
-    if current > tsig_rdata + tsig_rdlen:
-        raise dns.exception.FormError
-    return (aname, mac)
+class Key:
+    def __init__(self, name, secret, algorithm=default_algorithm):
+        if isinstance(name, str):
+            name = dns.name.from_text(name)
+        self.name = name
+        if isinstance(secret, str):
+            secret = base64.decodebytes(secret.encode())
+        self.secret = secret
+        if isinstance(algorithm, str):
+            algorithm = dns.name.from_text(algorithm)
+        self.algorithm = algorithm
+
+    def __eq__(self, other):
+        return (isinstance(other, Key) and
+                self.name == other.name and
+                self.secret == other.secret and
+                self.algorithm == other.algorithm)
