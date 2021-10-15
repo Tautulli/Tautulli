@@ -1,12 +1,17 @@
+import sys
+
 try:
     import _winreg as winreg
 except ImportError:
     import winreg
 
-import pytz
-
 from tzlocal.windows_tz import win_tz
 from tzlocal import utils
+
+if sys.version_info >= (3, 9):
+    from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+else:
+    from backports.zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 _cache_tz = None
 
@@ -81,7 +86,7 @@ def get_localzone_name():
 
     # Return what we have.
     if timezone is None:
-        raise pytz.UnknownTimeZoneError('Can not find timezone ' + tzkeyname)
+        raise ZoneInfoNotFoundError(tzkeyname)
 
     return timezone
 
@@ -90,7 +95,7 @@ def get_localzone():
     """Returns the zoneinfo-based tzinfo object that matches the Windows-configured timezone."""
     global _cache_tz
     if _cache_tz is None:
-        _cache_tz = pytz.timezone(get_localzone_name())
+        _cache_tz = ZoneInfo(get_localzone_name())
 
     utils.assert_tz_offset(_cache_tz)
     return _cache_tz
@@ -99,6 +104,6 @@ def get_localzone():
 def reload_localzone():
     """Reload the cached localzone. You need to call this if the timezone has changed."""
     global _cache_tz
-    _cache_tz = pytz.timezone(get_localzone_name())
+    _cache_tz = ZoneInfo(get_localzone_name())
     utils.assert_tz_offset(_cache_tz)
     return _cache_tz
