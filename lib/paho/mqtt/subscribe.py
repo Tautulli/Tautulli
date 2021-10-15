@@ -1,4 +1,4 @@
-# Copyright (c) 2014 Roger Light <roger@atchoo.org>
+# Copyright (c) 2016 Roger Light <roger@atchoo.org>
 #
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Eclipse Public License v1.0
@@ -13,81 +13,74 @@
 #    Roger Light - initial API and implementation
 
 """
-This module provides some helper functions to allow straightforward publishing
-of messages in a one-shot manner. In other words, they are useful for the
-situation where you have a single/multiple messages you want to publish to a
-broker, then disconnect and nothing else is required.
+This module provides some helper functions to allow straightforward subscribing
+to topics and retrieving messages. The two functions are simple(), which
+returns one or messages matching a set of topics, and callback() which allows
+you to pass a callback for processing of messages.
 """
 from __future__ import absolute_import
-
-import collections
-try:
-    from collections.abc import Iterable
-except ImportError:
-    from collections import Iterable
 
 from . import client as paho
 from .. import mqtt
 
-def _do_publish(client):
-    """Internal function"""
-
-    message = client._userdata.popleft()
-
-    if isinstance(message, dict):
-        client.publish(**message)
-    elif isinstance(message, (tuple, list)):
-        client.publish(*message)
-    else:
-        raise TypeError('message must be a dict, tuple, or list')
-
-
 def _on_connect(client, userdata, flags, rc):
     """Internal callback"""
-    #pylint: disable=invalid-name, unused-argument
-
-    if rc == 0:
-        if len(userdata) > 0:
-            _do_publish(client)
-    else:
+    if rc != 0:
         raise mqtt.MQTTException(paho.connack_string(rc))
 
-
-def _on_publish(client, userdata, mid):
-    """Internal callback"""
-    #pylint: disable=unused-argument
-
-    if len(userdata) == 0:
-        client.disconnect()
+    if isinstance(userdata['topics'], list):
+        for topic in userdata['topics']:
+            client.subscribe(topic, userdata['qos'])
     else:
-        _do_publish(client)
+        client.subscribe(userdata['topics'], userdata['qos'])
 
 
-def multiple(msgs, hostname="localhost", port=1883, client_id="", keepalive=60,
-             will=None, auth=None, tls=None, protocol=paho.MQTTv311,
-             transport="tcp", proxy_args=None):
-    """Publish multiple messages to a broker, then disconnect cleanly.
+def _on_message_callback(client, userdata, message):
+    """Internal callback"""
+    userdata['callback'](client, userdata['userdata'], message)
 
-    This function creates an MQTT client, connects to a broker and publishes a
-    list of messages. Once the messages have been delivered, it disconnects
-    cleanly from the broker.
 
-    msgs : a list of messages to publish. Each message is either a dict or a
-           tuple.
+def _on_message_simple(client, userdata, message):
+    """Internal callback"""
 
-           If a dict, only the topic must be present. Default values will be
-           used for any missing arguments. The dict must be of the form:
+    if userdata['msg_count'] == 0:
+        return
 
-           msg = {'topic':"<topic>", 'payload':"<payload>", 'qos':<qos>,
-           'retain':<retain>}
-           topic must be present and may not be empty.
-           If payload is "", None or not present then a zero length payload
-           will be published.
-           If qos is not present, the default of 0 is used.
-           If retain is not present, the default of False is used.
+    # Don't process stale retained messages if 'retained' was false
+    if message.retain and not userdata['retained']:
+        return
 
-           If a tuple, then it must be of the form:
-           ("<topic>", "<payload>", qos, retain)
+    userdata['msg_count'] = userdata['msg_count'] - 1
+
+    if userdata['messages'] is None and userdata['msg_count'] == 0:
+        userdata['messages'] = message
+        client.disconnect()
+        return
+
+    userdata['messages'].append(message)
+    if userdata['msg_count'] == 0:
+        client.disconnect()
+
+
+def callback(callback, topics, qos=0, userdata=None, hostname="localhost",
+             port=1883, client_id="", keepalive=60, will=None, auth=None,
+             tls=None, protocol=paho.MQTTv311, transport="tcp",
+             clean_session=True, proxy_args=None):
+    """Subscribe to a list of topics and process them in a callback function.
+
+    This function creates an MQTT client, connects to a broker and subscribes
+    to a list of topics. Incoming messages are processed by the user provided
+    callback.  This is a blocking function and will never return.
+
+    callback : function of the form "on_message(client, userdata, message)" for
+               processing the messages received.
+
+    topics : either a string containing a single topic to subscribe to, or a
+             list of topics to subscribe to.
+
+    qos : the qos to use when subscribing. This is applied to all topics.
+
+    userdata : passed to the callback
 
     hostname : a string containing the address of the broker to connect to.
                Defaults to localhost.
@@ -125,16 +118,30 @@ def multiple(msgs, hostname="localhost", port=1883, client_id="", keepalive=60,
 
     transport : set to "tcp" to use the default setting of transport which is
           raw TCP. Set to "websockets" to use WebSockets as the transport.
+
+    clean_session : a boolean that determines the client type. If True,
+                    the broker will remove all information about this client
+                    when it disconnects. If False, the client is a persistent
+                    client and subscription information and queued messages
+                    will be retained when the client disconnects.
+                    Defaults to True.
+
     proxy_args: a dictionary that will be given to the client.
     """
 
-    if not isinstance(msgs, Iterable):
-        raise TypeError('msgs must be an iterable')
+    if qos < 0 or qos > 2:
+        raise ValueError('qos must be in the range 0-2')
 
-    client = paho.Client(client_id=client_id, userdata=collections.deque(msgs),
-                         protocol=protocol, transport=transport)
+    callback_userdata = {
+        'callback':callback,
+        'topics':topics,
+        'qos':qos,
+        'userdata':userdata}
 
-    client.on_publish = _on_publish
+    client = paho.Client(client_id=client_id, userdata=callback_userdata,
+                         protocol=protocol, transport=transport,
+                         clean_session=clean_session)
+    client.on_message = _on_message_callback
     client.on_connect = _on_connect
 
     if proxy_args is not None:
@@ -168,24 +175,30 @@ def multiple(msgs, hostname="localhost", port=1883, client_id="", keepalive=60,
     client.loop_forever()
 
 
-def single(topic, payload=None, qos=0, retain=False, hostname="localhost",
+def simple(topics, qos=0, msg_count=1, retained=True, hostname="localhost",
            port=1883, client_id="", keepalive=60, will=None, auth=None,
-           tls=None, protocol=paho.MQTTv311, transport="tcp", proxy_args=None):
-    """Publish a single message to a broker, then disconnect cleanly.
+           tls=None, protocol=paho.MQTTv311, transport="tcp",
+           clean_session=True, proxy_args=None):
+    """Subscribe to a list of topics and return msg_count messages.
 
-    This function creates an MQTT client, connects to a broker and publishes a
-    single message. Once the message has been delivered, it disconnects cleanly
-    from the broker.
+    This function creates an MQTT client, connects to a broker and subscribes
+    to a list of topics. Once "msg_count" messages have been received, it
+    disconnects cleanly from the broker and returns the messages.
 
-    topic : the only required argument must be the topic string to which the
-            payload will be published.
+    topics : either a string containing a single topic to subscribe to, or a
+             list of topics to subscribe to.
 
-    payload : the payload to be published. If "" or None, a zero length payload
-              will be published.
+    qos : the qos to use when subscribing. This is applied to all topics.
 
-    qos : the qos to use when publishing,  default to 0.
+    msg_count : the number of messages to retrieve from the broker.
+                if msg_count == 1 then a single MQTTMessage will be returned.
+                if msg_count > 1 then a list of MQTTMessages will be returned.
 
-    retain : set the message to be retained (True) or not (False).
+    retained : If set to True, retained messages will be processed the same as
+               non-retained messages. If set to False, retained messages will
+               be ignored. This means that with retained=False and msg_count=1,
+               the function will return the first message received that does
+               not have the retained flag set.
 
     hostname : a string containing the address of the broker to connect to.
                Defaults to localhost.
@@ -217,16 +230,37 @@ def single(topic, payload=None, qos=0, retain=False, hostname="localhost",
           ca_certs is required, all other parameters are optional and will
           default to None if not provided, which results in the client using
           the default behaviour - see the paho.mqtt.client documentation.
-          Defaults to None, which indicates that TLS should not be used.
           Alternatively, tls input can be an SSLContext object, which will be
           processed using the tls_set_context method.
+          Defaults to None, which indicates that TLS should not be used.
 
     transport : set to "tcp" to use the default setting of transport which is
           raw TCP. Set to "websockets" to use WebSockets as the transport.
+
+    clean_session : a boolean that determines the client type. If True,
+                    the broker will remove all information about this client
+                    when it disconnects. If False, the client is a persistent
+                    client and subscription information and queued messages
+                    will be retained when the client disconnects.
+                    Defaults to True.
+
     proxy_args: a dictionary that will be given to the client.
     """
 
-    msg = {'topic':topic, 'payload':payload, 'qos':qos, 'retain':retain}
+    if msg_count < 1:
+        raise ValueError('msg_count must be > 0')
 
-    multiple([msg], hostname, port, client_id, keepalive, will, auth, tls,
-             protocol, transport, proxy_args)
+    # Set ourselves up to return a single message if msg_count == 1, or a list
+    # if > 1.
+    if msg_count == 1:
+        messages = None
+    else:
+        messages = []
+
+    userdata = {'retained':retained, 'msg_count':msg_count, 'messages':messages}
+
+    callback(_on_message_simple, topics, qos, userdata, hostname, port,
+             client_id, keepalive, will, auth, tls, protocol, transport,
+             clean_session, proxy_args)
+
+    return userdata['messages']
