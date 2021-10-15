@@ -68,7 +68,7 @@ class MakeFile_PY2(getattr(socket, '_fileobject', object)):
             self._refcount -= 1
 
     def write(self, data):
-        """Sendall for non-blocking sockets."""
+        """Send entire data contents for non-blocking sockets."""
         bytes_sent = 0
         data_mv = memoryview(data)
         payload_size = len(data_mv)
@@ -122,7 +122,7 @@ class MakeFile_PY2(getattr(socket, '_fileobject', object)):
     # FauxSocket is no longer needed
     del FauxSocket
 
-    if not _fileobject_uses_str_type:
+    if not _fileobject_uses_str_type:  # noqa: C901  # FIXME
         def read(self, size=-1):
             """Read data from the socket to buffer."""
             # Use max, disallow tiny reads in a loop as they are very

@@ -1,4 +1,9 @@
-"""A thread-based worker pool."""
+"""A thread-based worker pool.
+
+.. spelling::
+
+   joinable
+"""
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
@@ -111,11 +116,6 @@ class WorkerThread(threading.Thread):
                 if conn is _SHUTDOWNREQUEST:
                     return
 
-                # Just close the connection and move on.
-                if conn.closeable:
-                    conn.close()
-                    continue
-
                 self.conn = conn
                 is_stats_enabled = self.server.stats['Enabled']
                 if is_stats_enabled:
@@ -125,7 +125,7 @@ class WorkerThread(threading.Thread):
                     keep_conn_open = conn.communicate()
                 finally:
                     if keep_conn_open:
-                        self.server.connections.put(conn)
+                        self.server.put_conn(conn)
                     else:
                         conn.close()
                     if is_stats_enabled:
@@ -176,7 +176,10 @@ class ThreadPool:
         for i in range(self.min):
             self._threads.append(WorkerThread(self.server))
         for worker in self._threads:
-            worker.setName('CP Server ' + worker.getName())
+            worker.setName(
+                'CP Server {worker_name!s}'.
+                format(worker_name=worker.getName()),
+            )
             worker.start()
         for worker in self._threads:
             while not worker.ready:
@@ -192,7 +195,7 @@ class ThreadPool:
         """Put request into queue.
 
         Args:
-            obj (cheroot.server.HTTPConnection): HTTP connection
+            obj (:py:class:`~cheroot.server.HTTPConnection`): HTTP connection
                 waiting to be processed
         """
         self._queue.put(obj, block=True, timeout=self._queue_put_timeout)
@@ -223,7 +226,10 @@ class ThreadPool:
 
     def _spawn_worker(self):
         worker = WorkerThread(self.server)
-        worker.setName('CP Server ' + worker.getName())
+        worker.setName(
+            'CP Server {worker_name!s}'.
+            format(worker_name=worker.getName()),
+        )
         worker.start()
         return worker
 

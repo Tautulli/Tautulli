@@ -20,6 +20,9 @@ def generate(url=None, acl=None, start_time=None, duration=None,
         else:
             raise Exception("Must provide either expiration or duration")
 
+    if url is None and acl is None:
+        raise Exception("Must provide either acl or url")
+
     token_parts = []
     if ip is not None:
         token_parts.append("ip=" + ip)

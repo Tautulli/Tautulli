@@ -456,9 +456,44 @@ class LibrarySection(PlexObject):
 
             Parameters:
                 title (str): Title of the item to return.
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: The title is not found in the library.
         """
-        key = '/library/sections/%s/all?title=%s' % (self.key, quote(title, safe=''))
+        key = '/library/sections/%s/all?includeGuids=1&title=%s' % (self.key, quote(title, safe=''))
         return self.fetchItem(key, title__iexact=title)
+
+    def getGuid(self, guid):
+        """ Returns the media item with the specified external IMDB, TMDB, or TVDB ID.
+            Note: This search uses a PlexAPI operator so performance may be slow. All items from the
+            entire Plex library need to be retrieved for each guid search. It is recommended to create
+            your own lookup dictionary if you are searching for a lot of external guids.
+
+            Parameters:
+                guid (str): The external guid of the item to return.
+                    Examples: IMDB ``imdb://tt0944947``, TMDB ``tmdb://1399``, TVDB ``tvdb://121361``.
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: The guid is not found in the library.
+
+            Example:
+
+                .. code-block:: python
+
+                    # This will retrieve all items in the entire library 3 times
+                    result1 = library.getGuid('imdb://tt0944947')
+                    result2 = library.getGuid('tmdb://1399')
+                    result3 = library.getGuid('tvdb://121361')
+
+                    # This will only retrieve all items in the library once to create a lookup dictionary
+                    guidLookup = {guid.id: item for item in library.all() for guid in item.guids}
+                    result1 = guidLookup['imdb://tt0944947']
+                    result2 = guidLookup['tmdb://1399']
+                    result3 = guidLookup['tvdb://121361']
+
+        """
+        key = '/library/sections/%s/all?includeGuids=1' % self.key
+        return self.fetchItem(key, Guid__id__iexact=guid)
 
     def all(self, libtype=None, **kwargs):
         """ Returns a list of all items from this library section.
@@ -979,6 +1014,8 @@ class LibrarySection(PlexObject):
         """
         args = {}
         filter_args = []
+
+        args['includeGuids'] = int(bool(kwargs.pop('includeGuids', True)))
         for field, values in list(kwargs.items()):
             if field.split('__')[-1] not in OPERATORS:
                 filter_args.append(self._validateFilterField(field, values, libtype))
@@ -1405,10 +1442,14 @@ class LibrarySection(PlexObject):
 
             Parameters:
                 title (str): Title of the item to return.
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: Unable to find collection.
         """
-        results = self.collections(title__iexact=title)
-        if results:
-            return results[0]
+        try:
+            return self.collections(title=title, title__iexact=title)[0]
+        except IndexError:
+            raise NotFound('Unable to find collection with title "%s".' % title) from None
 
     def collections(self, **kwargs):
         """ Returns a list of collections from this library section.
@@ -1430,15 +1471,19 @@ class LibrarySection(PlexObject):
 
             Parameters:
                 title (str): Title of the item to return.
-        """
-        results = self.playlists(title__iexact=title)
-        if results:
-            return results[0]
 
-    def playlists(self, **kwargs):
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: Unable to find playlist.
+        """
+        try:
+            return self.playlists(title=title, title__iexact=title)[0]
+        except IndexError:
+            raise NotFound('Unable to find playlist with title "%s".' % title) from None
+
+    def playlists(self, sort=None, **kwargs):
         """ Returns a list of playlists from this library section. """
-        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
-        return self.fetchItems(key, **kwargs)
+        return self._server.playlists(
+            playlistType=self.CONTENT_TYPE, sectionId=self.key, sort=sort, **kwargs)
 
     @deprecated('use "listFields" instead')
     def filterFields(self, mediaType=None):
@@ -1447,6 +1492,23 @@ class LibrarySection(PlexObject):
     @deprecated('use "listFilterChoices" instead')
     def listChoices(self, category, libtype=None, **kwargs):
         return self.listFilterChoices(field=category, libtype=libtype)
+
+    def getWebURL(self, base=None, tab=None, key=None):
+        """ Returns the Plex Web URL for the library.
+
+            Parameters:
+                base (str): The base URL before the fragment (``#!``).
+                    Default is https://app.plex.tv/desktop.
+                tab (str): The library tab (recommended, library, collections, playlists, timeline).
+                key (str): A hub key.
+        """
+        params = {'source': self.key}
+        if tab is not None:
+            params['pivot'] = tab
+        if key is not None:
+            params['key'] = key
+            params['pageType'] = 'list'
+        return self._server._buildWebURL(base=base, **params)
 
 
 class MovieSection(LibrarySection):
@@ -1849,6 +1911,7 @@ class Hub(PlexObject):
         self.style = data.attrib.get('style')
         self.title = data.attrib.get('title')
         self.type = data.attrib.get('type')
+        self._section = None  # cache for self.section
 
     def __len__(self):
         return self.size
@@ -1859,6 +1922,13 @@ class Hub(PlexObject):
             self.items = self.fetchItems(self.key)
             self.more = False
             self.size = len(self.items)
+
+    def section(self):
+        """ Returns the :class:`~plexapi.library.LibrarySection` this hub belongs to.
+        """
+        if self._section is None:
+            self._section = self._server.library.sectionByID(self.librarySectionID)
+        return self._section
 
 
 class HubMediaTag(PlexObject):

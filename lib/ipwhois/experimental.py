@@ -158,11 +158,14 @@ def bulk_lookup_rdap(addresses=None, inc_raw=False, retry_count=3, depth=0,
                 'ip_lookup_total' (int) - The total number of addresses that
                     lookups were attempted for, excluding any that failed ASN
                     registry checks.
+                'ip_failed_total' (int) - The total number of addresses that
+                    lookups failed for. Excludes any that failed initially, but
+                    succeeded after further retries.
                 'lacnic' (dict) -
                 {
                     'failed' (list) - The addresses that failed to lookup.
                         Excludes any that failed initially, but succeeded after
-                        futher retries.
+                        further retries.
                     'rate_limited' (list) - The addresses that encountered
                         rate-limiting. Unless an address is also in 'failed',
                         it eventually succeeded.
@@ -196,6 +199,7 @@ def bulk_lookup_rdap(addresses=None, inc_raw=False, retry_count=3, depth=0,
         'ip_input_total': len(addresses),
         'ip_unique_total': 0,
         'ip_lookup_total': 0,
+        'ip_failed_total': 0,
         'lacnic': {'failed': [], 'rate_limited': [], 'total': 0},
         'ripencc': {'failed': [], 'rate_limited': [], 'total': 0},
         'apnic': {'failed': [], 'rate_limited': [], 'total': 0},
@@ -253,15 +257,15 @@ def bulk_lookup_rdap(addresses=None, inc_raw=False, retry_count=3, depth=0,
 
         try:
 
-            results = ipasn.parse_fields_whois(asn_result)
+            asn_parsed = ipasn.parse_fields_whois(asn_result)
 
         except ASNRegistryError:  # pragma: no cover
 
             continue
 
         # Add valid IP ASN result to asn_parsed_results for RDAP lookup
-        asn_parsed_results[ip] = results
-        stats[results['asn_registry']]['total'] += 1
+        asn_parsed_results[ip] = asn_parsed
+        stats[asn_parsed['asn_registry']]['total'] += 1
 
     # Set the list of IPs that are not allocated/failed ASN lookup
     stats['unallocated_addresses'] = list(k for k in addresses if k not in
@@ -362,7 +366,7 @@ def bulk_lookup_rdap(addresses=None, inc_raw=False, retry_count=3, depth=0,
 
                         # Perform the RDAP lookup. retry_count is set to 0
                         # here since we handle that in this function
-                        results = rdap.lookup(
+                        rdap_result = rdap.lookup(
                             inc_raw=inc_raw, retry_count=0, asn_data=asn_data,
                             depth=depth, excluded_entities=excluded_entities
                         )
@@ -373,7 +377,9 @@ def bulk_lookup_rdap(addresses=None, inc_raw=False, retry_count=3, depth=0,
                         # Lookup was successful, add to result. Set the nir
                         # key to None as this is not supported
                         # (yet - requires more queries)
-                        results[ip] = results
+                        results[ip] = asn_data
+                        results[ip].update(rdap_result)
+
                         results[ip]['nir'] = None
 
                         # Remove the IP from the lookup queue
@@ -423,6 +429,7 @@ def bulk_lookup_rdap(addresses=None, inc_raw=False, retry_count=3, depth=0,
 
                                 del asn_parsed_results[ip]
                                 stats[rir]['failed'].append(ip)
+                                stats['ip_failed_total'] += 1
 
                                 if rir == 'lacnic':
 

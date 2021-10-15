@@ -505,6 +505,17 @@ class PlexPartialObject(PlexObject):
         """ Returns True if this is not a full object. """
         return not self.isFullObject()
 
+    def _edit(self, **kwargs):
+        """ Actually edit an object. """
+        if 'id' not in kwargs:
+            kwargs['id'] = self.ratingKey
+        if 'type' not in kwargs:
+            kwargs['type'] = utils.searchType(self.type)
+
+        part = '/library/sections/%s/all?%s' % (self.librarySectionID,
+                                                urlencode(kwargs))
+        self._server.query(part, method=self._server._session.put)
+
     def edit(self, **kwargs):
         """ Edit an object.
 
@@ -517,14 +528,7 @@ class PlexPartialObject(PlexObject):
                  'collection[0].tag.tag': 'Super',
                  'collection.locked': 0}
         """
-        if 'id' not in kwargs:
-            kwargs['id'] = self.ratingKey
-        if 'type' not in kwargs:
-            kwargs['type'] = utils.searchType(self.type)
-
-        part = '/library/sections/%s/all?%s' % (self.librarySectionID,
-                                                urlencode(kwargs))
-        self._server.query(part, method=self._server._session.put)
+        self._edit(**kwargs)
 
     def _edit_tags(self, tag, items, locked=True, remove=False):
         """ Helper to edit tags.
@@ -575,11 +579,27 @@ class PlexPartialObject(PlexObject):
 
     def history(self, maxresults=9999999, mindate=None):
         """ Get Play History for a media item.
+
             Parameters:
                 maxresults (int): Only return the specified number of results (optional).
                 mindate (datetime): Min datetime to return results from.
         """
         return self._server.history(maxresults=maxresults, mindate=mindate, ratingKey=self.ratingKey)
+
+    def _getWebURL(self, base=None):
+        """ Get the Plex Web URL with the correct parameters.
+            Private method to allow overriding parameters from subclasses.
+        """
+        return self._server._buildWebURL(base=base, endpoint='details', key=self.key)
+
+    def getWebURL(self, base=None):
+        """ Returns the Plex Web URL for a media item.
+
+            Parameters:
+                base (str): The base URL before the fragment (``#!``).
+                    Default is https://app.plex.tv/desktop.
+        """
+        return self._getWebURL(base=base)
 
 
 class Playable(object):

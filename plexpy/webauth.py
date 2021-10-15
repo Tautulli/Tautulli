@@ -387,7 +387,7 @@ class AuthController(object):
                 'exp': expiry
             }
 
-            jwt_token = jwt.encode(payload, plexpy.CONFIG.JWT_SECRET, algorithm=JWT_ALGORITHM).decode('utf-8')
+            jwt_token = jwt.encode(payload, plexpy.CONFIG.JWT_SECRET, algorithm=JWT_ALGORITHM)
 
             self.on_login(username=user_details['username'],
                           user_id=user_details['user_id'],

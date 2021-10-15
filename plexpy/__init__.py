@@ -214,7 +214,7 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR if log_writable else None,
                           verbose=VERBOSE)
 
-        if not PYTHON2:
+        if not PYTHON2 and sys.version_info >= (3, 7):
             os.environ['PLEXAPI_CONFIG_PATH'] = os.path.join(DATA_DIR, 'plexapi.config.ini')
             os.environ['PLEXAPI_LOG_PATH'] = os.path.join(CONFIG.LOG_DIR, 'plexapi.log')
             plex.initialize_plexapi()
@@ -236,7 +236,7 @@ def initialize(config_file):
             ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
         ))
         logger.info("{} (UTC{})".format(
-            SYS_TIMEZONE.zone, SYS_UTC_OFFSET
+            str(SYS_TIMEZONE), SYS_UTC_OFFSET
         ))
         logger.info("Python {}".format(
             sys.version.replace('\n', '')

@@ -427,7 +427,7 @@ class PlexServer(PlexObject):
                 smart (bool): True to create a smart collection. Default False.
                 limit (int): Smart collections only, limit the number of items in the collection.
                 libtype (str): Smart collections only, the specific type of content to filter
-                    (movie, show, season, episode, artist, album, track, photoalbum, photo, collection).
+                    (movie, show, season, episode, artist, album, track, photoalbum, photo).
                 sort (str or list, optional): Smart collections only, a string of comma separated sort fields
                     or a list of sort fields in the format ``column:dir``.
                     See :func:`~plexapi.library.LibrarySection.search` for more info.
@@ -448,7 +448,7 @@ class PlexServer(PlexObject):
             libtype=libtype, sort=sort, filters=filters, **kwargs)
 
     def createPlaylist(self, title, section=None, items=None, smart=False, limit=None,
-                       sort=None, filters=None, **kwargs):
+                       libtype=None, sort=None, filters=None, **kwargs):
         """ Creates and returns a new :class:`~plexapi.playlist.Playlist`.
 
             Parameters:
@@ -459,6 +459,8 @@ class PlexServer(PlexObject):
                     :class:`~plexapi.video.Video`, or :class:`~plexapi.photo.Photo` objects to be added to the playlist.
                 smart (bool): True to create a smart playlist. Default False.
                 limit (int): Smart playlists only, limit the number of items in the playlist.
+                libtype (str): Smart playlists only, the specific type of content to filter
+                    (movie, show, season, episode, artist, album, track, photoalbum, photo).
                 sort (str or list, optional): Smart playlists only, a string of comma separated sort fields
                     or a list of sort fields in the format ``column:dir``.
                     See :func:`~plexapi.library.LibrarySection.search` for more info.
@@ -476,7 +478,7 @@ class PlexServer(PlexObject):
         """
         return Playlist.create(
             self, title, section=section, items=items, smart=smart, limit=limit,
-            sort=sort, filters=filters, **kwargs)
+            libtype=libtype, sort=sort, filters=filters, **kwargs)
 
     def createPlayQueue(self, item, **kwargs):
         """ Creates and returns a new :class:`~plexapi.playqueue.PlayQueue`.
@@ -575,17 +577,29 @@ class PlexServer(PlexObject):
             args['X-Plex-Container-Start'] += args['X-Plex-Container-Size']
         return results
 
-    def playlists(self, playlistType=None):
+    def playlists(self, playlistType=None, sectionId=None, title=None, sort=None, **kwargs):
         """ Returns a list of all :class:`~plexapi.playlist.Playlist` objects on the server.
 
             Parameters:
                 playlistType (str, optional): The type of playlists to return (audio, video, photo).
                     Default returns all playlists.
+                sectionId (int, optional): The section ID (key) of the library to search within.
+                title (str, optional): General string query to search for. Partial string matches are allowed.
+                sort (str or list, optional): A string of comma separated sort fields in the format ``column:dir``.
         """
-        key = '/playlists'
-        if playlistType:
-            key = '%s?playlistType=%s' % (key, playlistType)
-        return self.fetchItems(key)
+        args = {}
+        if playlistType is not None:
+            args['playlistType'] = playlistType
+        if sectionId is not None:
+            args['sectionID'] = sectionId
+        if title is not None:
+            args['title'] = title
+        if sort is not None:
+            # TODO: Automatically retrieve and validate sort field similar to LibrarySection.search()
+            args['sort'] = sort
+
+        key = '/playlists%s' % utils.joinArgs(args)
+        return self.fetchItems(key, **kwargs)
 
     def playlist(self, title):
         """ Returns the :class:`~plexapi.client.Playlist` that matches the specified title.
@@ -594,9 +608,12 @@ class PlexServer(PlexObject):
                 title (str): Title of the playlist to return.
 
             Raises:
-                :exc:`~plexapi.exceptions.NotFound`: Invalid playlist title.
+                :exc:`~plexapi.exceptions.NotFound`: Unable to find playlist.
         """
-        return self.fetchItem('/playlists', title=title)
+        try:
+            return self.playlists(title=title, title__iexact=title)[0]
+        except IndexError:
+            raise NotFound('Unable to find playlist with title "%s".' % title) from None
 
     def optimizedItems(self, removeAll=None):
         """ Returns list of all :class:`~plexapi.media.Optimized` objects connected to server. """
@@ -872,6 +889,42 @@ class PlexServer(PlexObject):
             with the Plex server dashboard resources data. """
         key = '/statistics/resources?timespan=6'
         return self.fetchItems(key, StatisticsResources)
+
+    def _buildWebURL(self, base=None, endpoint=None, **kwargs):
+        """ Build the Plex Web URL for the object.
+
+            Parameters:
+                base (str): The base URL before the fragment (``#!``).
+                    Default is https://app.plex.tv/desktop.
+                endpoint (str): The Plex Web URL endpoint.
+                    None for server, 'playlist' for playlists, 'details' for all other media types.
+                **kwargs (dict): Dictionary of URL parameters.
+        """
+        if base is None:
+            base = 'https://app.plex.tv/desktop/'
+
+        if endpoint:
+            return '%s#!/server/%s/%s%s' % (
+                base, self.machineIdentifier, endpoint, utils.joinArgs(kwargs)
+            )
+        else:
+            return '%s#!/media/%s/com.plexapp.plugins.library%s' % (
+                base, self.machineIdentifier, utils.joinArgs(kwargs)
+            )
+
+    def getWebURL(self, base=None, playlistTab=None):
+        """ Returns the Plex Web URL for the server.
+
+            Parameters:
+                base (str): The base URL before the fragment (``#!``).
+                    Default is https://app.plex.tv/desktop.
+                playlistTab (str): The playlist tab (audio, video, photo). Only used for the playlist URL.
+        """
+        if playlistTab is not None:
+            params = {'source': 'playlists', 'pivot': 'playlists.%s' % playlistTab}
+        else:
+            params = {'key': '/hubs', 'pageType': 'hub'}
+        return self._buildWebURL(base=base, **params)
 
 
 class Account(PlexObject):

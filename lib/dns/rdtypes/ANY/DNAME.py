@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -20,5 +22,5 @@ class DNAME(dns.rdtypes.nsbase.UncompressedNS):
 
     """DNAME record"""
 
-    def to_digestable(self, origin=None):
-        return self.target.to_digestable(origin)
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        self.target.to_wire(file, None, origin, canonicalize)

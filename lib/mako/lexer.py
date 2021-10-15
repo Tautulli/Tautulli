@@ -201,7 +201,7 @@ class Lexer(object):
         """
         if isinstance(text, compat.text_type):
             m = self._coding_re.match(text)
-            encoding = m and m.group(1) or known_encoding or "ascii"
+            encoding = m and m.group(1) or known_encoding or "utf-8"
             return encoding, text
 
         if text.startswith(codecs.BOM_UTF8):
@@ -222,7 +222,7 @@ class Lexer(object):
             if m:
                 parsed_encoding = m.group(1)
             else:
-                parsed_encoding = known_encoding or "ascii"
+                parsed_encoding = known_encoding or "utf-8"
 
         if decode_raw:
             try:

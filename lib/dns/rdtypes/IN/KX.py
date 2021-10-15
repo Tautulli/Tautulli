@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -16,6 +18,6 @@
 import dns.rdtypes.mxbase
 
 
-class KX(dns.rdtypes.mxbase.UncompressedMX):
+class KX(dns.rdtypes.mxbase.UncompressedDowncasingMX):
 
     """KX record"""

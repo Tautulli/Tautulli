@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2010, 2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -24,40 +26,33 @@ import dns.rdatatype
 
 class HIP(dns.rdata.Rdata):
 
-    """HIP record
+    """HIP record"""
 
-    @ivar hit: the host identity tag
-    @type hit: string
-    @ivar algorithm: the public key cryptographic algorithm
-    @type algorithm: int
-    @ivar key: the public key
-    @type key: string
-    @ivar servers: the rendezvous servers
-    @type servers: list of dns.name.Name objects
-    @see: RFC 5205"""
+    # see: RFC 5205
 
     __slots__ = ['hit', 'algorithm', 'key', 'servers']
 
     def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
-        super(HIP, self).__init__(rdclass, rdtype)
-        self.hit = hit
-        self.algorithm = algorithm
-        self.key = key
-        self.servers = servers
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'hit', hit)
+        object.__setattr__(self, 'algorithm', algorithm)
+        object.__setattr__(self, 'key', key)
+        object.__setattr__(self, 'servers', dns.rdata._constify(servers))
 
     def to_text(self, origin=None, relativize=True, **kw):
         hit = binascii.hexlify(self.hit).decode()
         key = base64.b64encode(self.key).replace(b'\n', b'').decode()
-        text = u''
+        text = ''
         servers = []
         for server in self.servers:
             servers.append(server.choose_relativity(origin, relativize))
         if len(servers) > 0:
-            text += (u' ' + u' '.join(map(lambda x: x.to_unicode(), servers)))
-        return u'%u %s %s%s' % (self.algorithm, hit, key, text)
+            text += (' ' + ' '.join((x.to_unicode() for x in servers)))
+        return '%u %s %s%s' % (self.algorithm, hit, key, text)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         algorithm = tok.get_uint8()
         hit = binascii.unhexlify(tok.get_string().encode())
         if len(hit) > 255:
@@ -68,46 +63,26 @@ class HIP(dns.rdata.Rdata):
             token = tok.get()
             if token.is_eol_or_eof():
                 break
-            server = dns.name.from_text(token.value, origin)
-            server.choose_relativity(origin, relativize)
+            server = tok.as_name(token, origin, relativize, relativize_to)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         lh = len(self.hit)
         lk = len(self.key)
         file.write(struct.pack("!BBH", lh, self.algorithm, lk))
         file.write(self.hit)
         file.write(self.key)
         for server in self.servers:
-            server.to_wire(file, None, origin)
+            server.to_wire(file, None, origin, False)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (lh, algorithm, lk) = struct.unpack('!BBH',
-                                            wire[current: current + 4])
-        current += 4
-        rdlen -= 4
-        hit = wire[current: current + lh].unwrap()
-        current += lh
-        rdlen -= lh
-        key = wire[current: current + lk].unwrap()
-        current += lk
-        rdlen -= lk
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        (lh, algorithm, lk) = parser.get_struct('!BBH')
+        hit = parser.get_bytes(lh)
+        key = parser.get_bytes(lk)
         servers = []
-        while rdlen > 0:
-            (server, cused) = dns.name.from_wire(wire[: current + rdlen],
-                                                 current)
-            current += cused
-            rdlen -= cused
-            if origin is not None:
-                server = server.relativize(origin)
+        while parser.remaining() > 0:
+            server = parser.get_name(origin)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)
-
-    def choose_relativity(self, origin=None, relativize=True):
-        servers = []
-        for server in self.servers:
-            server = server.choose_relativity(origin, relativize)
-            servers.append(server)
-        self.servers = servers

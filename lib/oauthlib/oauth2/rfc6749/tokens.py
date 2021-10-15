@@ -4,21 +4,17 @@ oauthlib.oauth2.rfc6749.tokens
 
 This module contains methods for adding two types of access tokens to requests.
 
-- Bearer http://tools.ietf.org/html/rfc6750
-- MAC http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01
+- Bearer https://tools.ietf.org/html/rfc6750
+- MAC https://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01
 """
-from __future__ import absolute_import, unicode_literals
-
-from binascii import b2a_base64
 import hashlib
 import hmac
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+import warnings
+from binascii import b2a_base64
+from urllib.parse import urlparse
 
-from oauthlib.common import add_params_to_uri, add_params_to_qs, unicode_type
 from oauthlib import common
+from oauthlib.common import add_params_to_qs, add_params_to_uri
 
 from . import utils
 
@@ -26,7 +22,7 @@ from . import utils
 class OAuth2Token(dict):
 
     def __init__(self, params, old_scope=None):
-        super(OAuth2Token, self).__init__(params)
+        super().__init__(params)
         self._new_scope = None
         if 'scope' in params and params['scope']:
             self._new_scope = set(utils.scope_to_list(params['scope']))
@@ -92,13 +88,17 @@ def prepare_mac_header(token, uri, key, http_method,
                        nonce="1336363200:dj83hs9s",
                        mac="bhCQXTVyfj5cmA9uKkPFx1zeOXM="
 
-    .. _`MAC Access Authentication`: http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01
-    .. _`extension algorithms`: http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01#section-7.1
+    .. _`MAC Access Authentication`: https://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01
+    .. _`extension algorithms`: https://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01#section-7.1
 
+    :param token:
     :param uri: Request URI.
-    :param headers: Request headers as a dictionary.
-    :param http_method: HTTP Request method.
     :param key: MAC given provided by token endpoint.
+    :param http_method: HTTP Request method.
+    :param nonce:
+    :param headers: Request headers as a dictionary.
+    :param body:
+    :param ext:
     :param hash_algorithm: HMAC algorithm provided by token endpoint.
     :param issue_time: Time when the MAC credentials were issued (datetime).
     :param draft: MAC authentication specification version.
@@ -115,7 +115,7 @@ def prepare_mac_header(token, uri, key, http_method,
         raise ValueError('unknown hash algorithm')
 
     if draft == 0:
-        nonce = nonce or '{0}:{1}'.format(utils.generate_age(issue_time),
+        nonce = nonce or '{}:{}'.format(utils.generate_age(issue_time),
                                           common.generate_nonce())
     else:
         ts = common.generate_timestamp()
@@ -152,7 +152,7 @@ def prepare_mac_header(token, uri, key, http_method,
     base_string = '\n'.join(base) + '\n'
 
     # hmac struggles with unicode strings - http://bugs.python.org/issue5285
-    if isinstance(key, unicode_type):
+    if isinstance(key, str):
         key = key.encode('utf-8')
     sign = hmac.new(key, base_string.encode('utf-8'), h)
     sign = b2a_base64(sign.digest())[:-1].decode('utf-8')
@@ -179,7 +179,10 @@ def prepare_bearer_uri(token, uri):
 
     http://www.example.com/path?access_token=h480djs93hd8
 
-    .. _`Bearer Token`: http://tools.ietf.org/html/rfc6750
+    .. _`Bearer Token`: https://tools.ietf.org/html/rfc6750
+
+    :param token:
+    :param uri:
     """
     return add_params_to_uri(uri, [(('access_token', token))])
 
@@ -190,7 +193,10 @@ def prepare_bearer_headers(token, headers=None):
 
     Authorization: Bearer h480djs93hd8
 
-    .. _`Bearer Token`: http://tools.ietf.org/html/rfc6750
+    .. _`Bearer Token`: https://tools.ietf.org/html/rfc6750
+
+    :param token:
+    :param headers:
     """
     headers = headers or {}
     headers['Authorization'] = 'Bearer %s' % token
@@ -202,16 +208,27 @@ def prepare_bearer_body(token, body=''):
 
     access_token=h480djs93hd8
 
-    .. _`Bearer Token`: http://tools.ietf.org/html/rfc6750
+    .. _`Bearer Token`: https://tools.ietf.org/html/rfc6750
+
+    :param token:
+    :param body:
     """
     return add_params_to_qs(body, [(('access_token', token))])
 
 
 def random_token_generator(request, refresh_token=False):
+    """
+    :param request: OAuthlib request.
+    :type request: oauthlib.common.Request
+    :param refresh_token:
+    """
     return common.generate_token()
 
 
 def signed_token_generator(private_pem, **kwargs):
+    """
+    :param private_pem:
+    """
     def signed_token_generator(request):
         request.claims = kwargs
         return common.generate_signed_token(private_pem, request)
@@ -219,15 +236,43 @@ def signed_token_generator(private_pem, **kwargs):
     return signed_token_generator
 
 
-class TokenBase(object):
+def get_token_from_header(request):
+    """
+    Helper function to extract a token from the request header.
+
+    :param request: OAuthlib request.
+    :type request: oauthlib.common.Request
+    :return: Return the token or None if the Authorization header is malformed.
+    """
+    token = None
+
+    if 'Authorization' in request.headers:
+        split_header = request.headers.get('Authorization').split()
+        if len(split_header) == 2 and split_header[0].lower() == 'bearer':
+            token = split_header[1]
+    else:
+        token = request.access_token
+
+    return token
+
+
+class TokenBase:
 
     def __call__(self, request, refresh_token=False):
         raise NotImplementedError('Subclasses must implement this method.')
 
     def validate_request(self, request):
+        """
+        :param request: OAuthlib request.
+        :type request: oauthlib.common.Request
+        """
         raise NotImplementedError('Subclasses must implement this method.')
 
     def estimate_type(self, request):
+        """
+        :param request: OAuthlib request.
+        :type request: oauthlib.common.Request
+        """
         raise NotImplementedError('Subclasses must implement this method.')
 
 
@@ -246,8 +291,18 @@ class BearerToken(TokenBase):
         )
         self.expires_in = expires_in or 3600
 
-    def create_token(self, request, refresh_token=False):
-        """Create a BearerToken, by default without refresh token."""
+    def create_token(self, request, refresh_token=False, **kwargs):
+        """
+        Create a BearerToken, by default without refresh token.
+
+        :param request: OAuthlib request.
+        :type request: oauthlib.common.Request
+        :param refresh_token:
+        """
+        if "save_token" in kwargs:
+            warnings.warn("`save_token` has been deprecated, it was not called internally."
+                          "If you do, call `request_validator.save_token()` instead.",
+                          DeprecationWarning)
 
         if callable(self.expires_in):
             expires_in = self.expires_in(request)
@@ -262,11 +317,11 @@ class BearerToken(TokenBase):
             'token_type': 'Bearer',
         }
 
+        # If provided, include - this is optional in some cases https://tools.ietf.org/html/rfc6749#section-3.3 but
+        # there is currently no mechanism to coordinate issuing a token for only a subset of the requested scopes so
+        # all tokens issued are for the entire set of requested scopes.
         if request.scopes is not None:
             token['scope'] = ' '.join(request.scopes)
-
-        if request.state is not None:
-            token['state'] = request.state
 
         if refresh_token:
             if (request.refresh_token and
@@ -276,21 +331,23 @@ class BearerToken(TokenBase):
                 token['refresh_token'] = self.refresh_token_generator(request)
 
         token.update(request.extra_credentials or {})
-        token = OAuth2Token(token)
-        self.request_validator.save_bearer_token(token, request)
-        return token
+        return OAuth2Token(token)
 
     def validate_request(self, request):
-        token = None
-        if 'Authorization' in request.headers:
-            token = request.headers.get('Authorization')[7:]
-        else:
-            token = request.access_token
+        """
+        :param request: OAuthlib request.
+        :type request: oauthlib.common.Request
+        """
+        token = get_token_from_header(request)
         return self.request_validator.validate_bearer_token(
             token, request.scopes, request)
 
     def estimate_type(self, request):
-        if request.headers.get('Authorization', '').startswith('Bearer'):
+        """
+        :param request: OAuthlib request.
+        :type request: oauthlib.common.Request
+        """
+        if request.headers.get('Authorization', '').split(' ')[0].lower() == 'bearer':
             return 9
         elif request.access_token is not None:
             return 5

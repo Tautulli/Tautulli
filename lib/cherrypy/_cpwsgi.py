@@ -10,8 +10,6 @@ still be translatable to bytes via the Latin-1 encoding!"
 import sys as _sys
 import io
 
-import six
-
 import cherrypy as _cherrypy
 from cherrypy._cpcompat import ntou
 from cherrypy import _cperror
@@ -25,10 +23,10 @@ def downgrade_wsgi_ux_to_1x(environ):
     env1x = {}
 
     url_encoding = environ[ntou('wsgi.url_encoding')]
-    for k, v in list(environ.items()):
+    for k, v in environ.copy().items():
         if k in [ntou('PATH_INFO'), ntou('SCRIPT_NAME'), ntou('QUERY_STRING')]:
             v = v.encode(url_encoding)
-        elif isinstance(v, six.text_type):
+        elif isinstance(v, str):
             v = v.encode('ISO-8859-1')
         env1x[k.encode('ISO-8859-1')] = v
 
@@ -177,10 +175,6 @@ class _TrappedResponse(object):
     def __next__(self):
         return self.trap(next, self.iter_response)
 
-    # todo: https://pythonhosted.org/six/#six.Iterator
-    if six.PY2:
-        next = __next__
-
     def close(self):
         if hasattr(self.response, 'close'):
             self.response.close()
@@ -198,7 +192,7 @@ class _TrappedResponse(object):
             if not _cherrypy.request.show_tracebacks:
                 tb = ''
             s, h, b = _cperror.bare_error(tb)
-            if six.PY3:
+            if True:
                 # What fun.
                 s = s.decode('ISO-8859-1')
                 h = [
@@ -238,9 +232,6 @@ class AppResponse(object):
     def __init__(self, environ, start_response, cpapp):
         self.cpapp = cpapp
         try:
-            if six.PY2:
-                if environ.get(ntou('wsgi.version')) == (ntou('u'), 0):
-                    environ = downgrade_wsgi_ux_to_1x(environ)
             self.environ = environ
             self.run()
 
@@ -262,7 +253,7 @@ class AppResponse(object):
                     raise TypeError(tmpl % v)
                 outheaders.append((k, v))
 
-            if six.PY3:
+            if True:
                 # According to PEP 3333, when using Python 3, the response
                 # status and headers must be bytes masquerading as unicode;
                 # that is, they must be of type "str" but are restricted to
@@ -284,10 +275,6 @@ class AppResponse(object):
 
     def __next__(self):
         return next(self.iter_response)
-
-    # todo: https://pythonhosted.org/six/#six.Iterator
-    if six.PY2:
-        next = __next__
 
     def close(self):
         """Close and de-reference the current request and response. (Core)"""
@@ -356,9 +343,6 @@ class AppResponse(object):
     }
 
     def recode_path_qs(self, path, qs):
-        if not six.PY3:
-            return
-
         # This isn't perfect; if the given PATH_INFO is in the
         # wrong encoding, it may fail to match the appropriate config
         # section URI. But meh.

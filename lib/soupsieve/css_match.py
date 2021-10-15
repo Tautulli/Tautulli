@@ -1,10 +1,12 @@
 """CSS matcher."""
-from __future__ import unicode_literals
 from datetime import datetime
 from . import util
 import re
 from .import css_types as ct
 import unicodedata
+from collections.abc import Sequence
+
+import bs4
 
 # Empty tag pattern (whitespace okay)
 RE_NOT_EMPTY = re.compile('[^ \t\r\n\f]')
@@ -88,57 +90,36 @@ class _DocumentNav(object):
     @staticmethod
     def is_doc(obj):
         """Is `BeautifulSoup` object."""
-
-        import bs4
         return isinstance(obj, bs4.BeautifulSoup)
 
     @staticmethod
     def is_tag(obj):
         """Is tag."""
-
-        import bs4
         return isinstance(obj, bs4.Tag)
-
-    @staticmethod
-    def is_comment(obj):
-        """Is comment."""
-
-        import bs4
-        return isinstance(obj, bs4.Comment)
 
     @staticmethod
     def is_declaration(obj):  # pragma: no cover
         """Is declaration."""
-
-        import bs4
         return isinstance(obj, bs4.Declaration)
 
     @staticmethod
     def is_cdata(obj):
         """Is CDATA."""
-
-        import bs4
         return isinstance(obj, bs4.CData)
 
     @staticmethod
     def is_processing_instruction(obj):  # pragma: no cover
         """Is processing instruction."""
-
-        import bs4
         return isinstance(obj, bs4.ProcessingInstruction)
 
     @staticmethod
     def is_navigable_string(obj):
         """Is navigable string."""
-
-        import bs4
         return isinstance(obj, bs4.NavigableString)
 
     @staticmethod
     def is_special_string(obj):
         """Is special string."""
-
-        import bs4
         return isinstance(obj, (bs4.Comment, bs4.Declaration, bs4.CData, bs4.ProcessingInstruction, bs4.Doctype))
 
     @classmethod
@@ -296,36 +277,68 @@ class _DocumentNav(object):
 
         return getattr(attr_name, 'namespace', None), getattr(attr_name, 'name', None)
 
-    @staticmethod
-    def get_attribute_by_name(el, name, default=None):
+    @classmethod
+    def normalize_value(cls, value):
+        """Normalize the value to be a string or list of strings."""
+
+        # Treat `None` as empty string.
+        if value is None:
+            return ''
+
+        # Pass through strings
+        if (isinstance(value, str)):
+            return value
+
+        # If it's a byte string, convert it to Unicode, treating it as UTF-8.
+        if isinstance(value, bytes):
+            return value.decode("utf8")
+
+        # BeautifulSoup supports sequences of attribute values, so make sure the children are strings.
+        if isinstance(value, Sequence):
+            new_value = []
+            for v in value:
+                if isinstance(v, Sequence):
+                    # This is most certainly a user error and will crash and burn later,
+                    # but to avoid excessive recursion, kick out now.
+                    new_value.append(v)
+                else:
+                    # Convert the child to a string
+                    new_value.append(cls.normalize_value(v))
+            return new_value
+
+        # Try and make anything else a string
+        return str(value)
+
+    @classmethod
+    def get_attribute_by_name(cls, el, name, default=None):
         """Get attribute by name."""
 
         value = default
         if el._is_xml:
             try:
-                value = el.attrs[name]
+                value = cls.normalize_value(el.attrs[name])
             except KeyError:
                 pass
         else:
             for k, v in el.attrs.items():
                 if util.lower(k) == name:
-                    value = v
+                    value = cls.normalize_value(v)
                     break
         return value
 
-    @staticmethod
-    def iter_attributes(el):
+    @classmethod
+    def iter_attributes(cls, el):
         """Iterate attributes."""
 
         for k, v in el.attrs.items():
-            yield k, v
+            yield k, cls.normalize_value(v)
 
     @classmethod
     def get_classes(cls, el):
         """Get classes."""
 
         classes = cls.get_attribute_by_name(el, 'class', [])
-        if isinstance(classes, util.ustr):
+        if isinstance(classes, str):
             classes = RE_NOT_WS.findall(classes)
         return classes
 
@@ -335,6 +348,11 @@ class _DocumentNav(object):
         return ''.join(
             [node for node in self.get_descendants(el, tags=False, no_iframe=no_iframe) if self.is_content_string(node)]
         )
+
+    def get_own_text(self, el, no_iframe=False):
+        """Get Own Text."""
+
+        return [node for node in self.get_contents(el, no_iframe=no_iframe) if self.is_content_string(node)]
 
 
 class Inputs(object):
@@ -963,12 +981,23 @@ class _Match(object):
         content = None
         for contain_list in contains:
             if content is None:
-                content = self.get_text(el, no_iframe=self.is_html)
+                if contain_list.own:
+                    content = self.get_own_text(el, no_iframe=self.is_html)
+                else:
+                    content = self.get_text(el, no_iframe=self.is_html)
             found = False
             for text in contain_list.text:
-                if text in content:
-                    found = True
-                    break
+                if contain_list.own:
+                    for c in content:
+                        if text in c:
+                            found = True
+                            break
+                    if found:
+                        break
+                else:
+                    if text in content:
+                        found = True
+                        break
             if not found:
                 match = False
         return match
@@ -1429,30 +1458,6 @@ class CSSMatch(_DocumentNav, _Match):
     """The Beautiful Soup CSS match class."""
 
 
-class CommentsMatch(_DocumentNav):
-    """Comments matcher."""
-
-    def __init__(self, el):
-        """Initialize."""
-
-        self.assert_valid_input(el)
-        self.tag = el
-
-    def get_comments(self, limit=0):
-        """Get comments."""
-
-        if limit < 1:
-            limit = None
-
-        for child in self.get_descendants(self.tag, tags=False):
-            if self.is_comment(child):
-                yield child
-                if limit is not None:
-                    limit -= 1
-                    if limit < 1:
-                        break
-
-
 class SoupSieve(ct.Immutable):
     """Compiled Soup Sieve selector matching object."""
 
@@ -1495,19 +1500,6 @@ class SoupSieve(ct.Immutable):
             return CSSMatch(self.selectors, iterable, self.namespaces, self.flags).filter()
         else:
             return [node for node in iterable if not CSSMatch.is_navigable_string(node) and self.match(node)]
-
-    @util.deprecated("'comments' is not related to CSS selectors and will be removed in the future.")
-    def comments(self, tag, limit=0):
-        """Get comments only."""
-
-        return [comment for comment in CommentsMatch(tag).get_comments(limit)]
-
-    @util.deprecated("'icomments' is not related to CSS selectors and will be removed in the future.")
-    def icomments(self, tag, limit=0):
-        """Iterate comments only."""
-
-        for comment in CommentsMatch(tag).get_comments(limit):
-            yield comment
 
     def select_one(self, tag):
         """Select a single tag."""

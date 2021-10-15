@@ -2,7 +2,7 @@
 
 #
 #
-# Copyright 2007-2016 The Python-Twitter Developers
+# Copyright 2007-2016, 2018 The Python-Twitter Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ class Api(object):
         >>> api.GetUserTimeline(user)
         >>> api.GetHomeTimeline()
         >>> api.GetStatus(status_id)
-        >>> def GetStatuses(status_ids)
+        >>> api.GetStatuses(status_ids)
         >>> api.DestroyStatus(status_id)
         >>> api.GetFriends(user)
         >>> api.GetFollowers()
@@ -291,6 +291,8 @@ class Api(object):
             requests_log = logging.getLogger("requests.packages.urllib3")
             requests_log.setLevel(logging.DEBUG)
             requests_log.propagate = True
+
+        self._session = requests.Session()
 
     @staticmethod
     def GetAppOnlyAuthToken(consumer_key, consumer_secret):
@@ -1158,9 +1160,13 @@ class Api(object):
             else:
                 _, _, file_size, media_type = parse_media_file(media)
                 if file_size > self.chunk_size or media_type in chunked_types:
-                    media_ids.append(self.UploadMediaChunked(media, media_additional_owners))
+                    media_ids.append(self.UploadMediaChunked(
+                        media, media_additional_owners, media_category=media_category
+                    ))
                 else:
-                    media_ids.append(self.UploadMediaSimple(media, media_additional_owners))
+                    media_ids.append(self.UploadMediaSimple(
+                        media, media_additional_owners, media_category=media_category
+                    ))
             parameters['media_ids'] = ','.join([str(mid) for mid in media_ids])
 
         if latitude is not None and longitude is not None:
@@ -1262,7 +1268,7 @@ class Api(object):
         """
         url = '%s/media/upload.json' % self.upload_url
 
-        media_fp, filename, file_size, media_type = parse_media_file(media)
+        media_fp, filename, file_size, media_type = parse_media_file(media, async_upload=True)
 
         if not all([media_fp, filename, file_size, media_type]):
             raise TwitterError({'message': 'Could not process media file'})
@@ -2819,8 +2825,6 @@ class Api(object):
         if len(uids) > 100:
             raise TwitterError("No more than 100 users may be requested per request.")
 
-        print(parameters)
-
         resp = self._RequestUrl(url, 'GET', data=parameters)
         data = self._ParseAndCheckTwitter(resp.content.decode('utf-8'))
 
@@ -3003,30 +3007,48 @@ class Api(object):
         Args:
           text: The message text to be posted.
           user_id:
-            The ID of the user who should receive the direct message. [Optional]
-          screen_name:
-            The screen name of the user who should receive the direct message. [Optional]
+            The ID of the user who should receive the direct message.
           return_json (bool, optional):
-            If True JSON data will be returned, instead of twitter.User
+            If True JSON data will be returned, instead of twitter.DirectMessage
         Returns:
           A twitter.DirectMessage instance representing the message posted
         """
-        url = '%s/direct_messages/new.json' % self.base_url
-        data = {'text': text}
-        if user_id:
-            data['user_id'] = user_id
-        elif screen_name:
-            data['screen_name'] = screen_name
-        else:
-            raise TwitterError({'message': "Specify at least one of user_id or screen_name."})
+        url = '%s/direct_messages/events/new.json' % self.base_url
 
-        resp = self._RequestUrl(url, 'POST', data=data)
-        data = self._ParseAndCheckTwitter(resp.content.decode('utf-8'))
+        # Hack to allow some sort of backwards compatibility with older versions
+        # part of the fix for Issue #587
+        if user_id is None and screen_name is not None:
+            user_id = self.GetUser(screen_name=screen_name).id
+
+        event = {
+            'event': {
+                'type': 'message_create',
+                'message_create': {
+                    'target': {
+                        'recipient_id': user_id,
+                    },
+                    'message_data': {
+                        'text': text
+                    }
+                }
+            }
+        }
+
+        resp = self._RequestUrl(url, 'POST', json=event)
+        data = resp.json()
 
         if return_json:
             return data
         else:
-            return DirectMessage.NewFromJsonDict(data)
+            dm = DirectMessage(
+                created_at=data['event']['created_timestamp'],
+                id=data['event']['id'],
+                recipient_id=data['event']['message_create']['target']['recipient_id'],
+                sender_id=data['event']['message_create']['sender_id'],
+                text=data['event']['message_create']['message_data']['text'],
+            )
+            dm._json = data
+            return dm
 
     def DestroyDirectMessage(self, message_id, include_entities=True, return_json=False):
         """Destroys the direct message specified in the required ID parameter.
@@ -4882,7 +4904,7 @@ class Api(object):
                 raise TwitterError({'message': "Exceeded connection limit for user"})
             if "Error 401 Unauthorized" in json_data:
                 raise TwitterError({'message': "Unauthorized"})
-            raise TwitterError({'Unknown error: {0}'.format(json_data)})
+            raise TwitterError({'Unknown error': '{0}'.format(json_data)})
         self._CheckForTwitterError(data)
         return data
 
@@ -4954,20 +4976,20 @@ class Api(object):
             if data:
                 if 'media_ids' in data:
                     url = self._BuildUrl(url, extra_params={'media_ids': data['media_ids']})
-                    resp = requests.post(url, data=data, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
+                    resp = self._session.post(url, data=data, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
                 elif 'media' in data:
-                    resp = requests.post(url, files=data, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
+                    resp = self._session.post(url, files=data, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
                 else:
-                    resp = requests.post(url, data=data, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
+                    resp = self._session.post(url, data=data, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
             elif json:
-                resp = requests.post(url, json=json, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
+                resp = self._session.post(url, json=json, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
             else:
                 resp = 0  # POST request, but without data or json
 
         elif verb == 'GET':
             data['tweet_mode'] = self.tweet_mode
             url = self._BuildUrl(url, extra_params=data)
-            resp = requests.get(url, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
+            resp = self._session.get(url, auth=self.__auth, timeout=self._timeout, proxies=self.proxies)
 
         else:
             resp = 0  # if not a POST or GET request

@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Philip Hane
+# Copyright (c) 2013-2020 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -103,17 +103,13 @@ class Net:
             seconds. Defaults to 5.
         proxy_opener (:obj:`urllib.request.OpenerDirector`): The request for
             proxy support. Defaults to None.
-        allow_permutations (:obj:`bool`): Allow net.Net() to use additional
-            methods if DNS lookups to Cymru fail. *WARNING* deprecated in
-            favor of new argument asn_methods. Defaults to False.
 
     Raises:
         IPDefinedError: The address provided is defined (does not need to be
             resolved).
     """
 
-    def __init__(self, address, timeout=5, proxy_opener=None,
-                 allow_permutations=False):
+    def __init__(self, address, timeout=5, proxy_opener=None):
 
         # IPv4Address or IPv6Address
         if isinstance(address, IPv4Address) or isinstance(
@@ -128,16 +124,6 @@ class Net:
 
         # Default timeout for socket connections.
         self.timeout = timeout
-
-        # Allow other than DNS lookups for ASNs.
-        self.allow_permutations = allow_permutations
-
-        if self.allow_permutations:
-
-            from warnings import warn
-            warn('allow_permutations has been deprecated and will be removed. '
-                 'It is no longer needed, due to the deprecation of asn_alts, '
-                 'and the addition of the asn_methods argument.')
 
         self.dns_resolver = dns.resolver.Resolver()
         self.dns_resolver.timeout = timeout
@@ -218,21 +204,6 @@ class Net:
             self.reversed = '.'.join(val)
 
             self.dns_zone = IPV6_DNS_ZONE.format(self.reversed)
-
-    def lookup_asn(self, *args, **kwargs):
-        """
-        Temporary wrapper for IP ASN lookups (moved to
-        asn.IPASN.lookup()). This will be removed in a future
-        release.
-        """
-
-        from warnings import warn
-        warn('Net.lookup_asn() has been deprecated and will be removed. '
-             'You should now use asn.IPASN.lookup() for IP ASN lookups.')
-        from .asn import IPASN
-        response = None
-        ipasn = IPASN(self)
-        return ipasn.lookup(*args, **kwargs), response
 
     def get_asn_dns(self):
         """

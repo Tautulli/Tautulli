@@ -25,8 +25,7 @@ import sys
 import cgi
 import os
 import os.path
-
-from six.moves import urllib
+import urllib.parse
 
 import cherrypy
 

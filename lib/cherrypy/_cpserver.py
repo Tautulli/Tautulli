@@ -1,7 +1,5 @@
 """Manage HTTP servers with CherryPy."""
 
-import six
-
 import cherrypy
 from cherrypy.lib.reprconf import attributes
 from cherrypy._cpcompat import text_or_bytes
@@ -116,21 +114,12 @@ class Server(ServerAdapter):
     ssl_ciphers = None
     """The ciphers list of SSL."""
 
-    if six.PY3:
-        ssl_module = 'builtin'
-        """The name of a registered SSL adaptation module to use with
-        the builtin WSGI server. Builtin options are: 'builtin' (to
-        use the SSL library built into recent versions of Python).
-        You may also register your own classes in the
-        cheroot.server.ssl_adapters dict."""
-    else:
-        ssl_module = 'pyopenssl'
-        """The name of a registered SSL adaptation module to use with the
-        builtin WSGI server. Builtin options are 'builtin' (to use the SSL
-        library built into recent versions of Python) and 'pyopenssl' (to
-        use the PyOpenSSL project, which you must install separately). You
-        may also register your own classes in the cheroot.server.ssl_adapters
-        dict."""
+    ssl_module = 'builtin'
+    """The name of a registered SSL adaptation module to use with
+    the builtin WSGI server. Builtin options are: 'builtin' (to
+    use the SSL library built into recent versions of Python).
+    You may also register your own classes in the
+    cheroot.server.ssl_adapters dict."""
 
     statistics = False
     """Turns statistics-gathering on or off for aware HTTP servers."""

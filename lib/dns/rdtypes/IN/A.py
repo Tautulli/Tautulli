@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -21,33 +23,30 @@ import dns.tokenizer
 
 class A(dns.rdata.Rdata):
 
-    """A record.
-
-    @ivar address: an IPv4 address
-    @type address: string (in the standard "dotted quad" format)"""
+    """A record."""
 
     __slots__ = ['address']
 
     def __init__(self, rdclass, rdtype, address):
-        super(A, self).__init__(rdclass, rdtype)
+        super().__init__(rdclass, rdtype)
         # check that it's OK
         dns.ipv4.inet_aton(address)
-        self.address = address
+        object.__setattr__(self, 'address', address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return self.address
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         address = tok.get_identifier()
         tok.get_eol()
         return cls(rdclass, rdtype, address)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(dns.ipv4.inet_aton(self.address))
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        address = dns.ipv4.inet_ntoa(wire[current: current + rdlen]).decode()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = dns.ipv4.inet_ntoa(parser.get_remaining())
         return cls(rdclass, rdtype, address)
-

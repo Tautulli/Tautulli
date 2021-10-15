@@ -520,7 +520,10 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
                 else:
                     _asdict = _namedtuple_as_object and getattr(value, '_asdict', None)
                     if _asdict and callable(_asdict):
-                        chunks = _iterencode_dict(_asdict(),
+                        dct = _asdict()
+                        if not isinstance(dct, dict):
+                            raise TypeError("_asdict() must return a dict, not %s" % (type(dct).__name__,))
+                        chunks = _iterencode_dict(dct,
                                                   _current_indent_level)
                     elif _tuple_as_array and isinstance(value, tuple):
                         chunks = _iterencode_list(value, _current_indent_level)
@@ -641,7 +644,10 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
                 else:
                     _asdict = _namedtuple_as_object and getattr(value, '_asdict', None)
                     if _asdict and callable(_asdict):
-                        chunks = _iterencode_dict(_asdict(),
+                        dct = _asdict()
+                        if not isinstance(dct, dict):
+                            raise TypeError("_asdict() must return a dict, not %s" % (type(dct).__name__,))
+                        chunks = _iterencode_dict(dct,
                                                   _current_indent_level)
                     elif _tuple_as_array and isinstance(value, tuple):
                         chunks = _iterencode_list(value, _current_indent_level)
@@ -686,8 +692,10 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
             else:
                 _asdict = _namedtuple_as_object and getattr(o, '_asdict', None)
                 if _asdict and callable(_asdict):
-                    for chunk in _iterencode_dict(_asdict(),
-                            _current_indent_level):
+                    dct = _asdict()
+                    if not isinstance(dct, dict):
+                        raise TypeError("_asdict() must return a dict, not %s" % (type(dct).__name__,))
+                    for chunk in _iterencode_dict(dct, _current_indent_level):
                         yield chunk
                 elif (_tuple_as_array and isinstance(o, tuple)):
                     for chunk in _iterencode_list(o, _current_indent_level):

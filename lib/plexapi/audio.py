@@ -28,6 +28,7 @@ class Audio(PlexPartialObject):
             librarySectionTitle (str): :class:`~plexapi.library.LibrarySection` title.
             listType (str): Hardcoded as 'audio' (useful for search filters).
             moods (List<:class:`~plexapi.media.Mood`>): List of mood objects.
+            musicAnalysisVersion (int): The Plex music analysis version for the item.
             ratingKey (int): Unique key identifying the item.
             summary (str): Summary of the artist, album, or track.
             thumb (str): URL to thumbnail image (/library/metadata/<ratingKey>/thumb/<thumbid>).
@@ -59,6 +60,7 @@ class Audio(PlexPartialObject):
         self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.listType = 'audio'
         self.moods = self.findItems(data, media.Mood)
+        self.musicAnalysisVersion = utils.cast(int, data.attrib.get('musicAnalysisVersion'))
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
         self.summary = data.attrib.get('summary')
         self.thumb = data.attrib.get('thumb')
@@ -77,6 +79,11 @@ class Audio(PlexPartialObject):
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """
         return self.title
+
+    @property
+    def hasSonicAnalysis(self):
+        """ Returns True if the audio has been sonically analyzed. """
+        return self.musicAnalysisVersion == 1
 
     def sync(self, bitrate, client=None, clientId=None, limit=None, title=None):
         """ Add current audio (artist, album or track) as sync item for specified device.
@@ -227,6 +234,7 @@ class Album(Audio, ArtMixin, PosterMixin, RatingMixin, UnmatchMatchMixin,
             TAG (str): 'Directory'
             TYPE (str): 'album'
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
+            formats (List<:class:`~plexapi.media.Format`>): List of format objects.
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
             key (str): API URL (/library/metadata/<ratingkey>).
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
@@ -241,6 +249,7 @@ class Album(Audio, ArtMixin, PosterMixin, RatingMixin, UnmatchMatchMixin,
             rating (float): Album rating (7.9; 9.8; 8.1).
             studio (str): Studio that released the album.
             styles (List<:class:`~plexapi.media.Style`>): List of style objects.
+            subformats (List<:class:`~plexapi.media.Subformat`>): List of subformat objects.
             viewedLeafCount (int): Number of items marked as played in the album view.
             year (int): Year the album was released.
     """
@@ -251,6 +260,7 @@ class Album(Audio, ArtMixin, PosterMixin, RatingMixin, UnmatchMatchMixin,
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
         self.collections = self.findItems(data, media.Collection)
+        self.formats = self.findItems(data, media.Format)
         self.genres = self.findItems(data, media.Genre)
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.labels = self.findItems(data, media.Label)
@@ -265,6 +275,7 @@ class Album(Audio, ArtMixin, PosterMixin, RatingMixin, UnmatchMatchMixin,
         self.rating = utils.cast(float, data.attrib.get('rating'))
         self.studio = data.attrib.get('studio')
         self.styles = self.findItems(data, media.Style)
+        self.subformats = self.findItems(data, media.Subformat)
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
 
@@ -415,3 +426,7 @@ class Track(Audio, Playable, ArtUrlMixin, PosterUrlMixin, RatingMixin,
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """
         return '%s - %s - %s' % (self.grandparentTitle, self.parentTitle, self.title)
+
+    def _getWebURL(self, base=None):
+        """ Get the Plex Web URL with the correct parameters. """
+        return self._server._buildWebURL(base=base, endpoint='details', key=self.parentKey)

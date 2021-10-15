@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2015 Red Hat, Inc.
 # Author: Petr Spacek <pspacek@redhat.com>
 #
@@ -19,11 +21,9 @@ import dns.rdtypes.euibase
 
 class EUI64(dns.rdtypes.euibase.EUIBase):
 
-    """EUI64 record
+    """EUI64 record"""
 
-    @ivar fingerprint: 64-bit Extended Unique Identifier (EUI-64)
-    @type fingerprint: string
-    @see: rfc7043.txt"""
+    # see: rfc7043.txt
 
     byte_len = 8  # 0123456789abcdef (in hex)
     text_len = byte_len * 3 - 1  # 01-23-45-67-89-ab-cd-ef

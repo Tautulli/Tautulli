@@ -81,7 +81,7 @@ import warnings
 import subprocess
 import functools
 
-import six
+from more_itertools import always_iterable
 
 
 # Here I save the value of os.getcwd(), which, if I am imported early enough,
@@ -356,13 +356,13 @@ class Bus(object):
             # implemented as a windows service and in any other case
             # that another thread executes cherrypy.engine.exit()
             if (
-                    t != threading.currentThread() and
+                    t != threading.current_thread() and
                     not isinstance(t, threading._MainThread) and
                     # Note that any dummy (external) threads are
                     # always daemonic.
                     not t.daemon
             ):
-                self.log('Waiting for thread %s.' % t.getName())
+                self.log('Waiting for thread %s.' % t.name)
                 t.join()
 
         if self.execv:
@@ -370,10 +370,7 @@ class Bus(object):
 
     def wait(self, state, interval=0.1, channel=None):
         """Poll for the given state(s) at intervals; publish to channel."""
-        if isinstance(state, (tuple, list)):
-            states = state
-        else:
-            states = [state]
+        states = set(always_iterable(state))
 
         while self.state not in states:
             time.sleep(interval)
@@ -436,7 +433,7 @@ class Bus(object):
         :seealso: http://stackoverflow.com/a/28414807/595220
         """
         try:
-            char_p = ctypes.c_char_p if six.PY2 else ctypes.c_wchar_p
+            char_p = ctypes.c_wchar_p
 
             argv = ctypes.POINTER(char_p)()
             argc = ctypes.c_int()
@@ -573,7 +570,7 @@ class Bus(object):
             self.wait(states.STARTED)
             func(*a, **kw)
         t = threading.Thread(target=_callback, args=args, kwargs=kwargs)
-        t.setName('Bus Callback ' + t.getName())
+        t.name = 'Bus Callback ' + t.name
         t.start()
 
         self.start()

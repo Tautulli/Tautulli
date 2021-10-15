@@ -1057,11 +1057,11 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             if notify_params['originally_available_at'] else '',
         'air_date': arrow.get(notify_params['originally_available_at']).format(date_format)
             if notify_params['originally_available_at'] else '',
-        'added_date': arrow.get(notify_params['added_at']).format(date_format)
+        'added_date': arrow.get(int(notify_params['added_at'])).format(date_format)
             if notify_params['added_at'] else '',
-        'updated_date': arrow.get(notify_params['updated_at']).format(date_format)
+        'updated_date': arrow.get(int(notify_params['updated_at'])).format(date_format)
             if notify_params['updated_at'] else '',
-        'last_viewed_date': arrow.get(notify_params['last_viewed_at']).format(date_format)
+        'last_viewed_date': arrow.get(int(notify_params['last_viewed_at'])).format(date_format)
             if notify_params['last_viewed_at'] else '',
         'studio': notify_params['studio'],
         'content_rating': notify_params['content_rating'],

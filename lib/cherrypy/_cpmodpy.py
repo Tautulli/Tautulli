@@ -61,8 +61,6 @@ import os
 import re
 import sys
 
-import six
-
 from more_itertools import always_iterable
 
 import cherrypy
@@ -197,7 +195,7 @@ def handler(req):
             path = req.uri
             qs = req.args or ''
             reqproto = req.protocol
-            headers = list(six.iteritems(req.headers_in))
+            headers = list(req.headers_in.copy().items())
             rfile = _ReadOnlyRequest(req)
             prev = None
 

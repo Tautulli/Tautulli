@@ -1,21 +1,17 @@
-# -*- coding: utf-8 -*-
 """
 oauthlib.oauth2.rfc6749.endpoint.revocation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An implementation of the OAuth 2 `Token Revocation`_ spec (draft 11).
 
-.. _`Token Revocation`: http://tools.ietf.org/html/draft-ietf-oauth-revocation-11
+.. _`Token Revocation`: https://tools.ietf.org/html/draft-ietf-oauth-revocation-11
 """
-from __future__ import absolute_import, unicode_literals
-
 import logging
 
 from oauthlib.common import Request
 
+from ..errors import OAuth2Error
 from .base import BaseEndpoint, catch_errors_and_unavailability
-from ..errors import InvalidClientError, UnsupportedTokenTypeError
-from ..errors import InvalidRequestError, OAuth2Error
 
 log = logging.getLogger(__name__)
 
@@ -29,6 +25,7 @@ class RevocationEndpoint(BaseEndpoint):
     """
 
     valid_token_types = ('access_token', 'refresh_token')
+    valid_request_methods = ('POST',)
 
     def __init__(self, request_validator, supported_token_types=None,
             enable_jsonp=False):
@@ -59,6 +56,11 @@ class RevocationEndpoint(BaseEndpoint):
         An invalid token type hint value is ignored by the authorization server
         and does not influence the revocation response.
         """
+        resp_headers = {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+            'Pragma': 'no-cache',
+        }
         request = Request(
             uri, http_method=http_method, body=body, headers=headers)
         try:
@@ -68,8 +70,9 @@ class RevocationEndpoint(BaseEndpoint):
             log.debug('Client error during validation of %r. %r.', request, e)
             response_body = e.json
             if self.enable_jsonp and request.callback:
-                response_body = '%s(%s);' % (request.callback, response_body)
-            return {}, response_body, e.status_code
+                response_body = '{}({});'.format(request.callback, response_body)
+            resp_headers.update(e.headers)
+            return resp_headers, response_body, e.status_code
 
         self.request_validator.revoke_token(request.token,
                                             request.token_type_hint, request)
@@ -110,21 +113,14 @@ class RevocationEndpoint(BaseEndpoint):
         The client also includes its authentication credentials as described in
         `Section 2.3`_. of [`RFC6749`_].
 
-        .. _`section 1.4`: http://tools.ietf.org/html/rfc6749#section-1.4
-        .. _`section 1.5`: http://tools.ietf.org/html/rfc6749#section-1.5
-        .. _`section 2.3`: http://tools.ietf.org/html/rfc6749#section-2.3
-        .. _`Section 4.1.2`: http://tools.ietf.org/html/draft-ietf-oauth-revocation-11#section-4.1.2
-        .. _`RFC6749`: http://tools.ietf.org/html/rfc6749
+        .. _`section 1.4`: https://tools.ietf.org/html/rfc6749#section-1.4
+        .. _`section 1.5`: https://tools.ietf.org/html/rfc6749#section-1.5
+        .. _`section 2.3`: https://tools.ietf.org/html/rfc6749#section-2.3
+        .. _`Section 4.1.2`: https://tools.ietf.org/html/draft-ietf-oauth-revocation-11#section-4.1.2
+        .. _`RFC6749`: https://tools.ietf.org/html/rfc6749
         """
-        if not request.token:
-            raise InvalidRequestError(request=request,
-                                      description='Missing token parameter.')
-
-        if self.request_validator.client_authentication_required(request):
-            if not self.request_validator.authenticate_client(request):
-                raise InvalidClientError(request=request)
-
-        if (request.token_type_hint and
-                request.token_type_hint in self.valid_token_types and
-                request.token_type_hint not in self.supported_token_types):
-            raise UnsupportedTokenTypeError(request=request)
+        self._raise_on_bad_method(request)
+        self._raise_on_bad_post_request(request)
+        self._raise_on_missing_token(request)
+        self._raise_on_invalid_client(request)
+        self._raise_on_unsupported_token(request)

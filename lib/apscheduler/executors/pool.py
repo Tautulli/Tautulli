@@ -3,6 +3,11 @@ import concurrent.futures
 
 from apscheduler.executors.base import BaseExecutor, run_job
 
+try:
+    from concurrent.futures.process import BrokenProcessPool
+except ImportError:
+    BrokenProcessPool = None
+
 
 class BasePoolExecutor(BaseExecutor):
     @abstractmethod
@@ -19,7 +24,13 @@ class BasePoolExecutor(BaseExecutor):
             else:
                 self._run_job_success(job.id, f.result())
 
-        f = self._pool.submit(run_job, job, job._jobstore_alias, run_times, self._logger.name)
+        try:
+            f = self._pool.submit(run_job, job, job._jobstore_alias, run_times, self._logger.name)
+        except BrokenProcessPool:
+            self._logger.warning('Process pool is broken; replacing pool with a fresh instance')
+            self._pool = self._pool.__class__(self._pool._max_workers)
+            f = self._pool.submit(run_job, job, job._jobstore_alias, run_times, self._logger.name)
+
         f.add_done_callback(callback)
 
     def shutdown(self, wait=True):
@@ -33,10 +44,13 @@ class ThreadPoolExecutor(BasePoolExecutor):
     Plugin alias: ``threadpool``
 
     :param max_workers: the maximum number of spawned threads.
+    :param pool_kwargs: dict of keyword arguments to pass to the underlying
+        ThreadPoolExecutor constructor
     """
 
-    def __init__(self, max_workers=10):
-        pool = concurrent.futures.ThreadPoolExecutor(int(max_workers))
+    def __init__(self, max_workers=10, pool_kwargs=None):
+        pool_kwargs = pool_kwargs or {}
+        pool = concurrent.futures.ThreadPoolExecutor(int(max_workers), **pool_kwargs)
         super(ThreadPoolExecutor, self).__init__(pool)
 
 
@@ -47,8 +61,11 @@ class ProcessPoolExecutor(BasePoolExecutor):
     Plugin alias: ``processpool``
 
     :param max_workers: the maximum number of spawned processes.
+    :param pool_kwargs: dict of keyword arguments to pass to the underlying
+        ProcessPoolExecutor constructor
     """
 
-    def __init__(self, max_workers=10):
-        pool = concurrent.futures.ProcessPoolExecutor(int(max_workers))
+    def __init__(self, max_workers=10, pool_kwargs=None):
+        pool_kwargs = pool_kwargs or {}
+        pool = concurrent.futures.ProcessPoolExecutor(int(max_workers), **pool_kwargs)
         super(ProcessPoolExecutor, self).__init__(pool)

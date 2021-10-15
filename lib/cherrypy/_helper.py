@@ -1,7 +1,6 @@
 """Helper functions for CP apps."""
 
-import six
-from six.moves import urllib
+import urllib.parse
 
 from cherrypy._cpcompat import text_or_bytes
 
@@ -26,9 +25,6 @@ def expose(func=None, alias=None):
     import sys
     import types
     decoratable_types = types.FunctionType, types.MethodType, type,
-    if six.PY2:
-        # Old-style classes are type types.ClassType.
-        decoratable_types += types.ClassType,
     if isinstance(func, decoratable_types):
         if alias is None:
             # @expose
@@ -87,52 +83,60 @@ def popargs(*args, **kwargs):
     This decorator may be used in one of two ways:
 
     As a class decorator:
-    @cherrypy.popargs('year', 'month', 'day')
-    class Blog:
-        def index(self, year=None, month=None, day=None):
-            #Process the parameters here; any url like
-            #/, /2009, /2009/12, or /2009/12/31
-            #will fill in the appropriate parameters.
 
-        def create(self):
-            #This link will still be available at /create.  Defined functions
-            #take precedence over arguments.
+    .. code-block:: python
+
+        @cherrypy.popargs('year', 'month', 'day')
+        class Blog:
+            def index(self, year=None, month=None, day=None):
+                #Process the parameters here; any url like
+                #/, /2009, /2009/12, or /2009/12/31
+                #will fill in the appropriate parameters.
+
+            def create(self):
+                #This link will still be available at /create.
+                #Defined functions take precedence over arguments.
 
     Or as a member of a class:
-    class Blog:
-        _cp_dispatch = cherrypy.popargs('year', 'month', 'day')
-        #...
+
+    .. code-block:: python
+
+        class Blog:
+            _cp_dispatch = cherrypy.popargs('year', 'month', 'day')
+            #...
 
     The handler argument may be used to mix arguments with built in functions.
     For instance, the following setup allows different activities at the
     day, month, and year level:
 
-    class DayHandler:
-        def index(self, year, month, day):
-            #Do something with this day; probably list entries
+    .. code-block:: python
 
-        def delete(self, year, month, day):
-            #Delete all entries for this day
+        class DayHandler:
+            def index(self, year, month, day):
+                #Do something with this day; probably list entries
 
-    @cherrypy.popargs('day', handler=DayHandler())
-    class MonthHandler:
-        def index(self, year, month):
-            #Do something with this month; probably list entries
+            def delete(self, year, month, day):
+                #Delete all entries for this day
 
-        def delete(self, year, month):
-            #Delete all entries for this month
+        @cherrypy.popargs('day', handler=DayHandler())
+        class MonthHandler:
+            def index(self, year, month):
+                #Do something with this month; probably list entries
 
-    @cherrypy.popargs('month', handler=MonthHandler())
-    class YearHandler:
-        def index(self, year):
-            #Do something with this year
+            def delete(self, year, month):
+                #Delete all entries for this month
 
-        #...
+        @cherrypy.popargs('month', handler=MonthHandler())
+        class YearHandler:
+            def index(self, year):
+                #Do something with this year
 
-    @cherrypy.popargs('year', handler=YearHandler())
-    class Root:
-        def index(self):
             #...
+
+        @cherrypy.popargs('year', handler=YearHandler())
+        class Root:
+            def index(self):
+                #...
 
     """
     # Since keyword arg comes after *args, we have to process it ourselves

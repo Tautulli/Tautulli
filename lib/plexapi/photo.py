@@ -137,6 +137,10 @@ class Photoalbum(PlexPartialObject, ArtMixin, PosterMixin, RatingMixin):
                 filepaths.append(filepath)
         return filepaths
 
+    def _getWebURL(self, base=None):
+        """ Get the Plex Web URL with the correct parameters. """
+        return self._server._buildWebURL(base=base, endpoint='details', key=self.key, legacy=1)
+
 
 @utils.registerPlexObject
 class Photo(PlexPartialObject, Playable, ArtUrlMixin, PosterUrlMixin, RatingMixin, TagMixin):
@@ -301,3 +305,7 @@ class Photo(PlexPartialObject, Playable, ArtUrlMixin, PosterUrlMixin, RatingMixi
             if filepath:
                 filepaths.append(filepath)
         return filepaths
+
+    def _getWebURL(self, base=None):
+        """ Get the Plex Web URL with the correct parameters. """
+        return self._server._buildWebURL(base=base, endpoint='details', key=self.parentKey, legacy=1)

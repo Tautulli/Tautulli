@@ -26,7 +26,8 @@ import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
-from paho.mqtt.publish import single
+import paho.mqtt.client
+import paho.mqtt.publish
 import os
 import re
 import requests
@@ -1997,6 +1998,7 @@ class MQTT(Notifier):
     """
     MQTT notifications
     """
+    NAME = 'MQTT'
     _DEFAULT_CONFIG = {'broker': '',
                        'port': 1883,
                        'protocol': 'MQTTv311',
@@ -2024,9 +2026,17 @@ class MQTT(Notifier):
         if self.config['password']:
             auth['password'] = self.config['password']
 
-        single(self.config['topic'], payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
-               hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
-               keepalive=self.config['keep_alive'], auth=auth or None, protocol=self.config['protocol'])
+        protocol = getattr(paho.mqtt.client, self.config['protocol'])
+
+        logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
+
+        paho.mqtt.publish.single(
+            self.config['topic'], payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
+            hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
+            keepalive=self.config['keep_alive'], auth=auth or None, protocol=protocol
+        )
+
+        logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
 
         return True
 
@@ -2049,7 +2059,8 @@ class MQTT(Notifier):
                           'description': 'The MQTT protocol version.',
                           'input_type': 'select',
                           'select_options': {'MQTTv31': '3.1',
-                                             'MQTTv311': '3.1.1'
+                                             'MQTTv311': '3.1.1',
+                                             'MQTTv5': '5.0'
                                              }
                           },
                          {'label': 'Client ID',

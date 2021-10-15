@@ -2,8 +2,6 @@
 # -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:expandtab:fileencoding=utf-8
 
-import six
-
 
 import cherrypy
 from cherrypy.lib import auth_digest
@@ -92,8 +90,7 @@ class DigestAuthTest(helper.CPWebCase):
                      'cnonce="1522e61005789929"')
 
         encoded_user = username
-        if six.PY3:
-            encoded_user = encoded_user.encode('utf-8')
+        encoded_user = encoded_user.encode('utf-8')
         encoded_user = encoded_user.decode('latin1')
         auth_header = base_auth % (
             encoded_user, realm, nonce, test_uri,

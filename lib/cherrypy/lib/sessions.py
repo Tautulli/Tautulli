@@ -106,10 +106,7 @@ import os
 import time
 import threading
 import binascii
-
-import six
-from six.moves import cPickle as pickle
-import contextlib2
+import pickle
 
 import zc.lockfile
 
@@ -117,10 +114,6 @@ import cherrypy
 from cherrypy.lib import httputil
 from cherrypy.lib import locking
 from cherrypy.lib import is_iterator
-
-
-if six.PY2:
-    FileNotFoundError = OSError
 
 
 missing = object()
@@ -410,7 +403,7 @@ class RamSession(Session):
         """Clean up expired sessions."""
 
         now = self.now()
-        for _id, (data, expiration_time) in list(six.iteritems(self.cache)):
+        for _id, (data, expiration_time) in self.cache.copy().items():
             if expiration_time <= now:
                 try:
                     del self.cache[_id]
@@ -572,8 +565,6 @@ class FileSession(Session):
     def release_lock(self, path=None):
         """Release the lock on the currently-loaded session data."""
         self.lock.close()
-        with contextlib2.suppress(FileNotFoundError):
-            os.remove(self.lock._path)
         self.locked = False
 
     def clean_up(self):
@@ -624,7 +615,7 @@ class MemcachedSession(Session):
     # This is a separate set of locks per session id.
     locks = {}
 
-    servers = ['127.0.0.1:11211']
+    servers = ['localhost:11211']
 
     @classmethod
     def setup(cls, **kwargs):

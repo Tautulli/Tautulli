@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Philip Hane
+# Copyright (c) 2013-2020 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,4 +26,4 @@ from .exceptions import *
 from .net import Net
 from .ipwhois import IPWhois
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'

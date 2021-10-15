@@ -4,6 +4,11 @@ import simplejson as json
 from simplejson.compat import StringIO
 
 try:
+    from unittest import mock
+except ImportError:
+    mock = None
+
+try:
     from collections import namedtuple
 except ImportError:
     class Value(tuple):
@@ -120,3 +125,25 @@ class TestNamedTuple(unittest.TestCase):
             self.assertEqual(
                 json.dumps(f({})),
                 json.dumps(f(DeadDict()), namedtuple_as_object=True))
+
+    def test_asdict_does_not_return_dict(self):
+        if not mock:
+            if hasattr(unittest, "SkipTest"):
+                raise unittest.SkipTest("unittest.mock required")
+            else:
+                print("unittest.mock not available")
+                return
+        fake = mock.Mock()
+        self.assertTrue(hasattr(fake, '_asdict'))
+        self.assertTrue(callable(fake._asdict))
+        self.assertFalse(isinstance(fake._asdict(), dict))
+        # https://github.com/simplejson/simplejson/pull/284
+        # when running under a debug build of CPython (COPTS=-UNDEBUG)
+        # a C assertion could fire due to an unchecked error of an PyDict
+        # API call on a non-dict internally in _speedups.c.  Without a debug
+        # build of CPython this test likely passes either way despite the
+        # potential for internal data corruption.  Getting it to crash in
+        # a debug build is not always easy either as it requires an
+        # assert(!PyErr_Occurred()) that could fire later on.
+        with self.assertRaises(TypeError):
+            json.dumps({23: fake}, namedtuple_as_object=True, for_json=False)

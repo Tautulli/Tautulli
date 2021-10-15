@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -22,23 +24,17 @@ import dns.tokenizer
 
 class CAA(dns.rdata.Rdata):
 
-    """CAA (Certification Authority Authorization) record
+    """CAA (Certification Authority Authorization) record"""
 
-    @ivar flags: the flags
-    @type flags: int
-    @ivar tag: the tag
-    @type tag: string
-    @ivar value: the value
-    @type value: string
-    @see: RFC 6844"""
+    # see: RFC 6844
 
     __slots__ = ['flags', 'tag', 'value']
 
     def __init__(self, rdclass, rdtype, flags, tag, value):
-        super(CAA, self).__init__(rdclass, rdtype)
-        self.flags = flags
-        self.tag = tag
-        self.value = value
+        super().__init__(rdclass, rdtype)
+        object.__setattr__(self, 'flags', flags)
+        object.__setattr__(self, 'tag', tag)
+        object.__setattr__(self, 'value', value)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%u %s "%s"' % (self.flags,
@@ -46,7 +42,8 @@ class CAA(dns.rdata.Rdata):
                                dns.rdata._escapify(self.value))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
         flags = tok.get_uint8()
         tag = tok.get_string().encode()
         if len(tag) > 255:
@@ -56,7 +53,7 @@ class CAA(dns.rdata.Rdata):
         value = tok.get_string().encode()
         return cls(rdclass, rdtype, flags, tag, value)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(struct.pack('!B', self.flags))
         l = len(self.tag)
         assert l < 256
@@ -65,10 +62,8 @@ class CAA(dns.rdata.Rdata):
         file.write(self.value)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        (flags, l) = struct.unpack('!BB', wire[current: current + 2])
-        current += 2
-        tag = wire[current: current + l]
-        value = wire[current + l:current + rdlen - 2]
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        flags = parser.get_uint8()
+        tag = parser.get_counted_bytes()
+        value = parser.get_remaining()
         return cls(rdclass, rdtype, flags, tag, value)
-

@@ -55,7 +55,7 @@ def http_server():
 
 
 def make_http_server(bind_addr):
-    """Create and start an HTTP server bound to bind_addr."""
+    """Create and start an HTTP server bound to ``bind_addr``."""
     httpserver = HTTPServer(
         bind_addr=bind_addr,
         gateway=Gateway,
