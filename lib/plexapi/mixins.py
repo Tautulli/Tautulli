@@ -97,6 +97,14 @@ class ArtMixin(ArtUrlMixin):
         """
         art.select()
 
+    def lockArt(self):
+        """ Lock the background artwork for a Plex object. """
+        self._edit(**{'art.locked': 1})
+
+    def unlockArt(self):
+        """ Unlock the background artwork for a Plex object. """
+        self._edit(**{'art.locked': 0})
+
 
 class BannerUrlMixin(object):
     """ Mixin for Plex objects that can have a banner url. """
@@ -137,6 +145,14 @@ class BannerMixin(BannerUrlMixin):
                 banner (:class:`~plexapi.media.Banner`): The banner object to select.
         """
         banner.select()
+
+    def lockBanner(self):
+        """ Lock the banner for a Plex object. """
+        self._edit(**{'banner.locked': 1})
+
+    def unlockBanner(self):
+        """ Unlock the banner for a Plex object. """
+        self._edit(**{'banner.locked': 0})
 
 
 class PosterUrlMixin(object):
@@ -183,6 +199,14 @@ class PosterMixin(PosterUrlMixin):
                 poster (:class:`~plexapi.media.Poster`): The poster object to select.
         """
         poster.select()
+
+    def lockPoster(self):
+        """ Lock the poster for a Plex object. """
+        self._edit(**{'thumb.locked': 1})
+
+    def unlockPoster(self):
+        """ Unlock the poster for a Plex object. """
+        self._edit(**{'thumb.locked': 0})
 
 
 class RatingMixin(object):
@@ -577,7 +601,9 @@ class SmartFilterMixin(object):
                 key += '='
                 value = value[1:]
 
-            if key == 'type':
+            if key == 'includeGuids':
+                filters['includeGuids'] = int(value)
+            elif key == 'type':
                 filters['libtype'] = utils.reverseSearchType(value)
             elif key == 'sort':
                 filters['sort'] = value.split(',')

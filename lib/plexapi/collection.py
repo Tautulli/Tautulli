@@ -442,7 +442,7 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
                 smart (bool): True to create a smart collection. Default False.
                 limit (int): Smart collections only, limit the number of items in the collection.
                 libtype (str): Smart collections only, the specific type of content to filter
-                    (movie, show, season, episode, artist, album, track, photoalbum, photo, collection).
+                    (movie, show, season, episode, artist, album, track, photoalbum, photo).
                 sort (str or list, optional): Smart collections only, a string of comma separated sort fields
                     or a list of sort fields in the format ``column:dir``.
                     See :func:`~plexapi.library.LibrarySection.search` for more info.

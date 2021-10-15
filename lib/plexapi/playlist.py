@@ -2,7 +2,7 @@
 import re
 from urllib.parse import quote_plus, unquote
 
-from plexapi import utils
+from plexapi import media, utils
 from plexapi.base import Playable, PlexPartialObject
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
 from plexapi.library import LibrarySection
@@ -24,6 +24,7 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
             content (str): The filter URI string for smart playlists.
             duration (int): Duration of the playlist in milliseconds.
             durationInSeconds (int): Duration of the playlist in seconds.
+            fields (List<:class:`~plexapi.media.Field`>): List of field objects.
             guid (str): Plex GUID for the playlist (com.plexapp.agents.none://XXXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXX).
             icon (str): Icon URI string for smart playlists.
             key (str): API URL (/playlist/<ratingkey>).
@@ -48,8 +49,9 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
         self.content = data.attrib.get('content')
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.durationInSeconds = utils.cast(int, data.attrib.get('durationInSeconds'))
-        self.icon = data.attrib.get('icon')
+        self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
+        self.icon = data.attrib.get('icon')
         self.key = data.attrib.get('key', '').replace('/items', '')  # FIX_BUG_50
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
         self.playlistType = data.attrib.get('playlistType')
@@ -288,6 +290,11 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
         }))
         self._server.query(key, method=self._server._session.put)
 
+    def _edit(self, **kwargs):
+        """ Actually edit the playlist. """
+        key = '%s%s' % (self.key, utils.joinArgs(kwargs))
+        self._server.query(key, method=self._server._session.put)
+
     def edit(self, title=None, summary=None):
         """ Edit the playlist.
         
@@ -300,9 +307,7 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
             args['title'] = title
         if summary:
             args['summary'] = summary
-
-        key = '%s%s' % (self.key, utils.joinArgs(args))
-        self._server.query(key, method=self._server._session.put)
+        self._edit(**args)
 
     def delete(self):
         """ Delete the playlist. """
@@ -341,13 +346,15 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
         return cls(server, data, initpath=key)
 
     @classmethod
-    def _createSmart(cls, server, title, section, limit=None, sort=None, filters=None, **kwargs):
+    def _createSmart(cls, server, title, section, limit=None, libtype=None, sort=None, filters=None, **kwargs):
         """ Create a smart playlist. """
         if not isinstance(section, LibrarySection):
             section = server.library.section(section)
 
+        libtype = libtype or section.METADATA_TYPE
+
         searchKey = section._buildSearchKey(
-            sort=sort, libtype=section.METADATA_TYPE, limit=limit, filters=filters, **kwargs)
+            sort=sort, libtype=libtype, limit=limit, filters=filters, **kwargs)
         uri = '%s%s' % (server._uriRoot(), searchKey)
 
         key = '/playlists%s' % utils.joinArgs({
@@ -361,7 +368,7 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
 
     @classmethod
     def create(cls, server, title, section=None, items=None, smart=False, limit=None,
-               sort=None, filters=None, **kwargs):
+               libtype=None, sort=None, filters=None, **kwargs):
         """ Create a playlist.
 
             Parameters:
@@ -373,6 +380,8 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
                     :class:`~plexapi.video.Video`, or :class:`~plexapi.photo.Photo` objects to be added to the playlist.
                 smart (bool): True to create a smart playlist. Default False.
                 limit (int): Smart playlists only, limit the number of items in the playlist.
+                libtype (str): Smart playlists only, the specific type of content to filter
+                    (movie, show, season, episode, artist, album, track, photoalbum, photo).
                 sort (str or list, optional): Smart playlists only, a string of comma separated sort fields
                     or a list of sort fields in the format ``column:dir``.
                     See :func:`~plexapi.library.LibrarySection.search` for more info.
@@ -389,7 +398,7 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
                 :class:`~plexapi.playlist.Playlist`: A new instance of the created Playlist.
         """
         if smart:
-            return cls._createSmart(server, title, section, limit, sort, filters, **kwargs)
+            return cls._createSmart(server, title, section, limit, libtype, sort, filters, **kwargs)
         else:
             return cls._create(server, title, items)
 
@@ -455,3 +464,7 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
             raise Unsupported('Unsupported playlist content')
 
         return myplex.sync(sync_item, client=client, clientId=clientId)
+
+    def _getWebURL(self, base=None):
+        """ Get the Plex Web URL with the correct parameters. """
+        return self._server._buildWebURL(base=base, endpoint='playlist', key=self.key)

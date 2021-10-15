@@ -511,7 +511,9 @@ class PlexClient(PlexObject):
 
         playqueue = media if isinstance(media, PlayQueue) else self._server.createPlayQueue(media)
         self.sendCommand('playback/playMedia', **dict({
+            'providerIdentifier': 'com.plexapp.plugins.library',
             'machineIdentifier': self._server.machineIdentifier,
+            'protocol': server_url[0],
             'address': server_url[1].strip('/'),
             'port': server_port,
             'offset': offset,
