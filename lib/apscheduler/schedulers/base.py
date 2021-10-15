@@ -86,6 +86,11 @@ class BaseScheduler(six.with_metaclass(ABCMeta)):
         self.state = STATE_STOPPED
         self.configure(gconfig, **options)
 
+    def __getstate__(self):
+        raise TypeError("Schedulers cannot be serialized. Ensure that you are not passing a "
+                        "scheduler instance as an argument to a job, or scheduling an instance "
+                        "method where the instance contains a scheduler as an attribute.")
+
     def configure(self, gconfig={}, prefix='apscheduler.', **options):
         """
         Reconfigures the scheduler with the given options.
@@ -402,7 +407,7 @@ class BaseScheduler(six.with_metaclass(ABCMeta)):
         :param str|unicode id: explicit identifier for the job (for modifying it later)
         :param str|unicode name: textual description of the job
         :param int misfire_grace_time: seconds after the designated runtime that the job is still
-            allowed to be run
+            allowed to be run (or ``None`` to allow the job to run no matter how late it is)
         :param bool coalesce: run once instead of many times if the scheduler determines that the
             job should be run more than once in succession
         :param int max_instances: maximum number of concurrently running instances allowed for this
