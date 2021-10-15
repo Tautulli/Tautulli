@@ -178,7 +178,7 @@ class ServerAdapter(object):
 
         import threading
         t = threading.Thread(target=self._start_http_thread)
-        t.setName('HTTPServer ' + t.getName())
+        t.name = 'HTTPServer ' + t.name
         t.start()
 
         self.wait()

@@ -115,28 +115,27 @@ except ImportError:
 import re
 import sys
 import tempfile
-try:
-    from urllib import unquote_plus
-except ImportError:
-    def unquote_plus(bs):
-        """Bytes version of urllib.parse.unquote_plus."""
-        bs = bs.replace(b'+', b' ')
-        atoms = bs.split(b'%')
-        for i in range(1, len(atoms)):
-            item = atoms[i]
-            try:
-                pct = int(item[:2], 16)
-                atoms[i] = bytes([pct]) + item[2:]
-            except ValueError:
-                pass
-        return b''.join(atoms)
+from urllib.parse import unquote
 
-import six
 import cheroot.server
 
 import cherrypy
-from cherrypy._cpcompat import ntou, unquote
+from cherrypy._cpcompat import ntou
 from cherrypy.lib import httputil
+
+
+def unquote_plus(bs):
+    """Bytes version of urllib.parse.unquote_plus."""
+    bs = bs.replace(b'+', b' ')
+    atoms = bs.split(b'%')
+    for i in range(1, len(atoms)):
+        item = atoms[i]
+        try:
+            pct = int(item[:2], 16)
+            atoms[i] = bytes([pct]) + item[2:]
+        except ValueError:
+            pass
+    return b''.join(atoms)
 
 
 # ------------------------------- Processors -------------------------------- #
@@ -986,12 +985,6 @@ class RequestBody(Entity):
         # add them in here.
         request_params = self.request_params
         for key, value in self.params.items():
-            # Python 2 only: keyword arguments must be byte strings (type
-            # 'str').
-            if sys.version_info < (3, 0):
-                if isinstance(key, six.text_type):
-                    key = key.encode('ISO-8859-1')
-
             if key in request_params:
                 if not isinstance(request_params[key], list):
                     request_params[key] = [request_params[key]]

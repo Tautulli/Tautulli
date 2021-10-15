@@ -5,8 +5,6 @@ import os
 import sys
 import unittest
 
-import six
-
 import cherrypy
 
 from cherrypy.test import helper
@@ -16,7 +14,7 @@ localDir = os.path.join(os.getcwd(), os.path.dirname(__file__))
 
 
 def StringIOFromNative(x):
-    return io.StringIO(six.text_type(x))
+    return io.StringIO(str(x))
 
 
 def setup_server():
@@ -82,7 +80,7 @@ def setup_server():
 
             def wrapper():
                 params = cherrypy.request.params
-                for name, coercer in list(value.items()):
+                for name, coercer in value.copy().items():
                     try:
                         params[name] = coercer(params[name])
                     except KeyError:
@@ -105,18 +103,12 @@ def setup_server():
         def incr(self, num):
             return num + 1
 
-    if not six.PY3:
-        thing3 = "thing3: unicode('test', errors='ignore')"
-    else:
-        thing3 = ''
-
     ioconf = StringIOFromNative("""
 [/]
 neg: -1234
 filename: os.path.join(sys.prefix, "hello.py")
 thing1: cherrypy.lib.httputil.response_codes[404]
 thing2: __import__('cherrypy.tutorial', globals(), locals(), ['']).thing2
-%s
 complex: 3+2j
 mul: 6*3
 ones: "11"
@@ -125,7 +117,7 @@ stradd: %%(ones)s + %%(twos)s + "33"
 
 [/favicon.ico]
 tools.staticfile.filename = %r
-""" % (thing3, os.path.join(localDir, 'static/dirback.jpg')))
+""" % os.path.join(localDir, 'static/dirback.jpg'))
 
     root = Root()
     root.foo = Foo()
@@ -203,10 +195,6 @@ class ConfigTests(helper.CPWebCase):
             from cherrypy.tutorial import thing2
             self.assertBody(repr(thing2))
 
-        if not six.PY3:
-            self.getPage('/repr?key=thing3')
-            self.assertBody(repr(six.text_type('test')))
-
         self.getPage('/repr?key=complex')
         self.assertBody('(3+2j)')
 
@@ -233,8 +221,8 @@ class ConfigTests(helper.CPWebCase):
         # the favicon in the page handler to be '../favicon.ico',
         # but then overrode it in config to be './static/dirback.jpg'.
         self.getPage('/favicon.ico')
-        self.assertBody(open(os.path.join(localDir, 'static/dirback.jpg'),
-                             'rb').read())
+        with open(os.path.join(localDir, 'static/dirback.jpg'), 'rb') as tf:
+            self.assertBody(tf.read())
 
     def test_request_body_namespace(self):
         self.getPage('/plain', method='POST', headers=[

@@ -1,5 +1,3 @@
-import six
-
 import cherrypy
 from cherrypy.test import helper
 
@@ -79,7 +77,7 @@ def setup_server():
             self.name = name
 
         def __unicode__(self):
-            return six.text_type(self.name)
+            return str(self.name)
 
         def __str__(self):
             return str(self.name)
@@ -105,7 +103,7 @@ def setup_server():
             return 'POST %d' % make_user(name)
 
         def GET(self):
-            return six.text_type(sorted(user_lookup.keys()))
+            return str(sorted(user_lookup.keys()))
 
         def dynamic_dispatch(self, vpath):
             try:
@@ -130,7 +128,7 @@ def setup_server():
             """
             Return the appropriate representation of the instance.
             """
-            return six.text_type(self.user)
+            return str(self.user)
 
         def POST(self, name):
             """

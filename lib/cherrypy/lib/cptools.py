@@ -3,9 +3,7 @@
 import logging
 import re
 from hashlib import md5
-
-import six
-from six.moves import urllib
+import urllib.parse
 
 import cherrypy
 from cherrypy._cpcompat import text_or_bytes
@@ -307,7 +305,7 @@ class SessionAuth(object):
 
     def login_screen(self, from_page='..', username='', error_msg='',
                      **kwargs):
-        return (six.text_type("""<html><body>
+        return (str("""<html><body>
 Message: %(error_msg)s
 <form method="post" action="do_login">
     Login: <input type="text" name="username" value="%(username)s" size="10" />
@@ -406,21 +404,20 @@ Message: %(error_msg)s
 
 
 def session_auth(**kwargs):
+    """Session authentication hook.
+
+    Any attribute of the SessionAuth class may be overridden
+    via a keyword arg to this function:
+
+    """ + '\n    '.join(
+        '{!s}: {!s}'.format(k, type(getattr(SessionAuth, k)).__name__)
+        for k in dir(SessionAuth)
+        if not k.startswith('__')
+    )
     sa = SessionAuth()
     for k, v in kwargs.items():
         setattr(sa, k, v)
     return sa.run()
-
-
-session_auth.__doc__ = (
-    """Session authentication hook.
-
-    Any attribute of the SessionAuth class may be overridden via a keyword arg
-    to this function:
-
-    """ + '\n'.join(['%s: %s' % (k, type(getattr(SessionAuth, k)).__name__)
-                     for k in dir(SessionAuth) if not k.startswith('__')])
-)
 
 
 def log_traceback(severity=logging.ERROR, debug=False):

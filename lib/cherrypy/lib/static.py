@@ -5,11 +5,11 @@ import platform
 import re
 import stat
 import mimetypes
+import urllib.parse
+import unicodedata
 
 from email.generator import _make_boundary as make_boundary
 from io import UnsupportedOperation
-
-from six.moves import urllib
 
 import cherrypy
 from cherrypy._cpcompat import ntob
@@ -29,6 +29,30 @@ def _setup_mimetypes():
 _setup_mimetypes()
 
 
+def _make_content_disposition(disposition, file_name):
+    """Create HTTP header for downloading a file with a UTF-8 filename.
+
+    This function implements the recommendations of :rfc:`6266#appendix-D`.
+    See this and related answers: https://stackoverflow.com/a/8996249/2173868.
+    """
+    # As normalization algorithm for `unicodedata` is used composed form (NFC
+    # and NFKC) with compatibility equivalence criteria (NFK), so "NFKC" is the
+    # one. It first applies the compatibility decomposition, followed by the
+    # canonical composition. Should be displayed in the same manner, should be
+    # treated in the same way by applications such as alphabetizing names or
+    # searching, and may be substituted for each other.
+    # See: https://en.wikipedia.org/wiki/Unicode_equivalence.
+    ascii_name = (
+        unicodedata.normalize('NFKC', file_name).
+        encode('ascii', errors='ignore').decode()
+    )
+    header = '{}; filename="{}"'.format(disposition, ascii_name)
+    if ascii_name != file_name:
+        quoted_name = urllib.parse.quote(file_name)
+        header += '; filename*=UTF-8\'\'{}'.format(quoted_name)
+    return header
+
+
 def serve_file(path, content_type=None, disposition=None, name=None,
                debug=False):
     """Set status, headers, and body in order to serve the given path.
@@ -38,9 +62,10 @@ def serve_file(path, content_type=None, disposition=None, name=None,
     of the 'path' argument.
 
     If disposition is not None, the Content-Disposition header will be set
-    to "<disposition>; filename=<name>". If name is None, it will be set
-    to the basename of path. If disposition is None, no Content-Disposition
-    header will be written.
+    to "<disposition>; filename=<name>; filename*=utf-8''<name>"
+    as described in :rfc:`6266#appendix-D`.
+    If name is None, it will be set to the basename of path.
+    If disposition is None, no Content-Disposition header will be written.
     """
     response = cherrypy.serving.response
 
@@ -93,7 +118,7 @@ def serve_file(path, content_type=None, disposition=None, name=None,
     if disposition is not None:
         if name is None:
             name = os.path.basename(path)
-        cd = '%s; filename="%s"' % (disposition, name)
+        cd = _make_content_disposition(disposition, name)
         response.headers['Content-Disposition'] = cd
     if debug:
         cherrypy.log('Content-Disposition: %r' % cd, 'TOOLS.STATIC')
@@ -112,9 +137,10 @@ def serve_fileobj(fileobj, content_type=None, disposition=None, name=None,
     The Content-Type header will be set to the content_type arg, if provided.
 
     If disposition is not None, the Content-Disposition header will be set
-    to "<disposition>; filename=<name>". If name is None, 'filename' will
-    not be set. If disposition is None, no Content-Disposition header will
-    be written.
+    to "<disposition>; filename=<name>; filename*=utf-8''<name>"
+    as described in :rfc:`6266#appendix-D`.
+    If name is None, 'filename' will not be set.
+    If disposition is None, no Content-Disposition header will be written.
 
     CAUTION: If the request contains a 'Range' header, one or more seek()s will
     be performed on the file object.  This may cause undesired behavior if
@@ -150,7 +176,7 @@ def serve_fileobj(fileobj, content_type=None, disposition=None, name=None,
         if name is None:
             cd = disposition
         else:
-            cd = '%s; filename="%s"' % (disposition, name)
+            cd = _make_content_disposition(disposition, name)
         response.headers['Content-Disposition'] = cd
     if debug:
         cherrypy.log('Content-Disposition: %r' % cd, 'TOOLS.STATIC')

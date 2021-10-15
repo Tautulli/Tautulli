@@ -37,11 +37,8 @@ import sys
 import threading
 import time
 
-import six
-
 import cherrypy
 from cherrypy.lib import cptools, httputil
-from cherrypy._cpcompat import Event
 
 
 class Cache(object):
@@ -82,7 +79,7 @@ class AntiStampedeCache(dict):
         If timeout is None, no waiting is performed nor sentinels used.
         """
         value = self.get(key)
-        if isinstance(value, Event):
+        if isinstance(value, threading.Event):
             if timeout is None:
                 # Ignore the other thread and recalc it ourselves.
                 if debug:
@@ -122,7 +119,7 @@ class AntiStampedeCache(dict):
         """Set the cached value for the given key."""
         existing = self.get(key)
         dict.__setitem__(self, key, value)
-        if isinstance(existing, Event):
+        if isinstance(existing, threading.Event):
             # Set Event.result so other threads waiting on it have
             # immediate access without needing to poll the cache again.
             existing.result = value
@@ -199,8 +196,7 @@ class MemoryCache(Cache):
             now = time.time()
             # Must make a copy of expirations so it doesn't change size
             # during iteration
-            items = list(six.iteritems(self.expirations))
-            for expiration_time, objects in items:
+            for expiration_time, objects in self.expirations.copy().items():
                 if expiration_time <= now:
                     for obj_size, uri, sel_header_values in objects:
                         try:

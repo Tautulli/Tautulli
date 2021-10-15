@@ -5,9 +5,7 @@ import os
 import sys
 import types
 import uuid
-
-import six
-from six.moves.http_client import IncompleteRead
+from http.client import IncompleteRead
 
 import cherrypy
 from cherrypy._cpcompat import ntou
@@ -243,7 +241,7 @@ class RequestObjectTests(helper.CPWebCase):
 
             def ifmatch(self):
                 val = cherrypy.request.headers['If-Match']
-                assert isinstance(val, six.text_type)
+                assert isinstance(val, str)
                 cherrypy.response.headers['ETag'] = val
                 return val
 
@@ -251,7 +249,7 @@ class RequestObjectTests(helper.CPWebCase):
 
             def get_elements(self, headername):
                 e = cherrypy.request.headers.elements(headername)
-                return '\n'.join([six.text_type(x) for x in e])
+                return '\n'.join([str(x) for x in e])
 
         class Method(Test):
 

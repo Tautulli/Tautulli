@@ -3,9 +3,8 @@
 import gzip
 import io
 from unittest import mock
-
-from six.moves.http_client import IncompleteRead
-from six.moves.urllib.parse import quote as url_quote
+from http.client import IncompleteRead
+from urllib.parse import quote as url_quote
 
 import cherrypy
 from cherrypy._cpcompat import ntob, ntou

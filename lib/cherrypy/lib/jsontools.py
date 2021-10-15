@@ -1,5 +1,6 @@
 import cherrypy
-from cherrypy._cpcompat import text_or_bytes, ntou, json_encode, json_decode
+from cherrypy import _json as json
+from cherrypy._cpcompat import text_or_bytes, ntou
 
 
 def json_processor(entity):
@@ -9,7 +10,7 @@ def json_processor(entity):
 
     body = entity.fp.read()
     with cherrypy.HTTPError.handle(ValueError, 400, 'Invalid JSON document'):
-        cherrypy.serving.request.json = json_decode(body.decode('utf-8'))
+        cherrypy.serving.request.json = json.decode(body.decode('utf-8'))
 
 
 def json_in(content_type=[ntou('application/json'), ntou('text/javascript')],
@@ -56,7 +57,7 @@ def json_in(content_type=[ntou('application/json'), ntou('text/javascript')],
 
 def json_handler(*args, **kwargs):
     value = cherrypy.serving.request._json_inner_handler(*args, **kwargs)
-    return json_encode(value)
+    return json.encode(value)
 
 
 def json_out(content_type='application/json', debug=False,

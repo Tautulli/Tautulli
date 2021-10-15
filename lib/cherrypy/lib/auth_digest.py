@@ -23,8 +23,7 @@ of plaintext passwords as the credentials store::
 import time
 import functools
 from hashlib import md5
-
-from six.moves.urllib.request import parse_http_list, parse_keqv_list
+from urllib.request import parse_http_list, parse_keqv_list
 
 import cherrypy
 from cherrypy._cpcompat import ntob, tonative

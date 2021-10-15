@@ -34,6 +34,7 @@ user:
                                               POST should not raise this error
 305      Use Proxy                            Confirm with the user
 307      Temporary Redirect                   Confirm with the user
+308      Permanent Redirect                   No confirmation
 =====    =================================    ===========
 
 However, browsers have historically implemented these restrictions poorly;
@@ -119,17 +120,15 @@ and not simply return an error message as a result.
 
 import io
 import contextlib
+import urllib.parse
 from sys import exc_info as _exc_info
 from traceback import format_exception as _format_exception
 from xml.sax import saxutils
-
-import six
-from six.moves import urllib
+import html
 
 from more_itertools import always_iterable
 
 import cherrypy
-from cherrypy._cpcompat import escape_html
 from cherrypy._cpcompat import ntob
 from cherrypy._cpcompat import tonative
 from cherrypy._helper import classproperty
@@ -256,7 +255,7 @@ class HTTPRedirect(CherryPyException):
         response = cherrypy.serving.response
         response.status = status = self.status
 
-        if status in (300, 301, 302, 303, 307):
+        if status in (300, 301, 302, 303, 307, 308):
             response.headers['Content-Type'] = 'text/html;charset=utf-8'
             # "The ... URI SHOULD be given by the Location field
             # in the response."
@@ -271,10 +270,11 @@ class HTTPRedirect(CherryPyException):
                 302: 'This resource resides temporarily at ',
                 303: 'This resource can be found at ',
                 307: 'This resource has moved temporarily to ',
+                308: 'This resource has been moved to ',
             }[status]
             msg += '<a href=%s>%s</a>.'
             msgs = [
-                msg % (saxutils.quoteattr(u), escape_html(u))
+                msg % (saxutils.quoteattr(u), html.escape(u, quote=False))
                 for u in self.urls
             ]
             response.body = ntob('<br />\n'.join(msgs), 'utf-8')
@@ -496,11 +496,11 @@ def get_error_page(status, **kwargs):
     if kwargs.get('version') is None:
         kwargs['version'] = cherrypy.__version__
 
-    for k, v in six.iteritems(kwargs):
+    for k, v in kwargs.items():
         if v is None:
             kwargs[k] = ''
         else:
-            kwargs[k] = escape_html(kwargs[k])
+            kwargs[k] = html.escape(kwargs[k], quote=False)
 
     # Use a custom template or callable for the error page?
     pages = cherrypy.serving.request.error_page
@@ -520,13 +520,13 @@ def get_error_page(status, **kwargs):
                 if cherrypy.lib.is_iterator(result):
                     from cherrypy.lib.encoding import UTF8StreamEncoder
                     return UTF8StreamEncoder(result)
-                elif isinstance(result, six.text_type):
+                elif isinstance(result, str):
                     return result.encode('utf-8')
                 else:
                     if not isinstance(result, bytes):
                         raise ValueError(
                             'error page function did not '
-                            'return a bytestring, six.text_type or an '
+                            'return a bytestring, str or an '
                             'iterator - returned object of type %s.'
                             % (type(result).__name__))
                     return result

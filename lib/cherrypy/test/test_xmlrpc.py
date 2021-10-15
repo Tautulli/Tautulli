@@ -1,54 +1,20 @@
 import sys
+import socket
 
-import six
-
-from six.moves.xmlrpc_client import (
+from xmlrpc.client import (
     DateTime, Fault,
-    ProtocolError, ServerProxy, SafeTransport
+    ServerProxy, SafeTransport
 )
 
 import cherrypy
 from cherrypy import _cptools
 from cherrypy.test import helper
 
-if six.PY3:
-    HTTPSTransport = SafeTransport
+HTTPSTransport = SafeTransport
 
-    # Python 3.0's SafeTransport still mistakenly checks for socket.ssl
-    import socket
-    if not hasattr(socket, 'ssl'):
-        socket.ssl = True
-else:
-    class HTTPSTransport(SafeTransport):
-
-        """Subclass of SafeTransport to fix sock.recv errors (by using file).
-        """
-
-        def request(self, host, handler, request_body, verbose=0):
-            # issue XML-RPC request
-            h = self.make_connection(host)
-            if verbose:
-                h.set_debuglevel(1)
-
-            self.send_request(h, handler, request_body)
-            self.send_host(h, host)
-            self.send_user_agent(h)
-            self.send_content(h, request_body)
-
-            errcode, errmsg, headers = h.getreply()
-            if errcode != 200:
-                raise ProtocolError(host + handler, errcode, errmsg, headers)
-
-            self.verbose = verbose
-
-            # Here's where we differ from the superclass. It says:
-            # try:
-            #     sock = h._conn.sock
-            # except AttributeError:
-            #     sock = None
-            # return self._parse_response(h.getfile(), sock)
-
-            return self.parse_response(h.getfile())
+# Python 3.0's SafeTransport still mistakenly checks for socket.ssl
+if not hasattr(socket, 'ssl'):
+    socket.ssl = True
 
 
 def setup_server():

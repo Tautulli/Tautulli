@@ -10,10 +10,10 @@ import sys
 import time
 import unittest
 import warnings
+import contextlib
 
 import portend
 import pytest
-import six
 
 from cheroot.test import webtest
 
@@ -93,8 +93,7 @@ class LocalSupervisor(Supervisor):
 
         cherrypy.engine.exit()
 
-        servers_copy = list(six.iteritems(getattr(cherrypy, 'servers', {})))
-        for name, server in servers_copy:
+        for name, server in getattr(cherrypy, 'servers', {}).copy().items():
             server.unsubscribe()
             del cherrypy.servers[name]
 
@@ -311,19 +310,12 @@ class CPWebCase(webtest.WebCase):
     def exit(self):
         sys.exit()
 
-    def getPage(self, url, headers=None, method='GET', body=None,
-                protocol=None, raise_subcls=None):
-        """Open the url. Return status, headers, body.
-
-        `raise_subcls` must be a tuple with the exceptions classes
-        or a single exception class that are not going to be considered
-        a socket.error regardless that they were are subclass of a
-        socket.error and therefore not considered for a connection retry.
+    def getPage(self, url, *args, **kwargs):
+        """Open the url.
         """
         if self.script_name:
             url = httputil.urljoin(self.script_name, url)
-        return webtest.WebCase.getPage(self, url, headers, method, body,
-                                       protocol, raise_subcls)
+        return webtest.WebCase.getPage(self, url, *args, **kwargs)
 
     def skip(self, msg='skipped '):
         pytest.skip(msg)
@@ -449,7 +441,7 @@ server.ssl_private_key: r'%s'
             'extra': extra,
         }
         with io.open(self.config_file, 'w', encoding='utf-8') as f:
-            f.write(six.text_type(conf))
+            f.write(str(conf))
 
     def start(self, imports=None):
         """Start cherryd in a subprocess."""
@@ -523,20 +515,5 @@ server.ssl_private_key: r'%s'
         self._proc.wait()
 
     def _join_daemon(self):
-        try:
-            try:
-                # Mac, UNIX
-                os.wait()
-            except AttributeError:
-                # Windows
-                try:
-                    pid = self.get_pid()
-                except IOError:
-                    # Assume the subprocess deleted the pidfile on shutdown.
-                    pass
-                else:
-                    os.waitpid(pid, 0)
-        except OSError:
-            x = sys.exc_info()[1]
-            if x.args != (10, 'No child processes'):
-                raise
+        with contextlib.suppress(IOError):
+            os.waitpid(self.get_pid(), 0)

@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-import contextlib
 import io
 import os
 import sys
+import re
 import platform
 import tempfile
-
-from six import text_type as str
-from six.moves import urllib
-from six.moves.http_client import HTTPConnection
+import urllib.parse
+import unittest.mock
+from http.client import HTTPConnection
 
 import pytest
 import py.path
+import path
 
 import cherrypy
 from cherrypy.lib import static
@@ -46,9 +46,9 @@ def ensure_unicode_filesystem():
         tmpdir.remove()
 
 
-curdir = os.path.join(os.getcwd(), os.path.dirname(__file__))
-has_space_filepath = os.path.join(curdir, 'static', 'has space.html')
-bigfile_filepath = os.path.join(curdir, 'static', 'bigfile.log')
+curdir = path.Path(__file__).dirname()
+has_space_filepath = curdir / 'static' / 'has space.html'
+bigfile_filepath = curdir / 'static' / 'bigfile.log'
 
 # The file size needs to be big enough such that half the size of it
 # won't be socket-buffered (or server-buffered) all in one go. See
@@ -58,6 +58,7 @@ BIGFILE_SIZE = 32 * MB
 
 
 class StaticTest(helper.CPWebCase):
+    files_to_remove = []
 
     @staticmethod
     def setup_server():
@@ -95,6 +96,20 @@ class StaticTest(helper.CPWebCase):
             def bytesio(self):
                 f = io.BytesIO(b'Fee\nfie\nfo\nfum')
                 return static.serve_fileobj(f, content_type='text/plain')
+
+            @cherrypy.expose
+            def serve_file_utf8_filename(self):
+                return static.serve_file(
+                    __file__,
+                    disposition='attachment',
+                    name='has_utf-8_character_☃.html')
+
+            @cherrypy.expose
+            def serve_fileobj_utf8_filename(self):
+                return static.serve_fileobj(
+                    io.BytesIO('☃\nfie\nfo\nfum'.encode('utf-8')),
+                    disposition='attachment',
+                    name='has_utf-8_character_☃.html')
 
         class Static:
 
@@ -157,14 +172,13 @@ class StaticTest(helper.CPWebCase):
         vhost = cherrypy._cpwsgi.VirtualHost(rootApp, {'virt.net': testApp})
         cherrypy.tree.graft(vhost)
 
-    @staticmethod
-    def teardown_server():
-        for f in (has_space_filepath, bigfile_filepath):
-            if os.path.exists(f):
-                try:
-                    os.unlink(f)
-                except Exception:
-                    pass
+    @classmethod
+    def teardown_class(cls):
+        super(cls, cls).teardown_class()
+        files_to_remove = has_space_filepath, bigfile_filepath
+        files_to_remove += tuple(cls.files_to_remove)
+        for file in files_to_remove:
+            file.remove_p()
 
     def test_static(self):
         self.getPage('/static/index.html')
@@ -192,6 +206,22 @@ class StaticTest(helper.CPWebCase):
         #   into \r\n on Windows when extracting the CherryPy tarball so
         #   we just check the content
         self.assertMatchesBody('^Dummy stylesheet')
+
+        # Check a filename with utf-8 characters in it
+        ascii_fn = 'has_utf-8_character_.html'
+        url_quote_fn = 'has_utf-8_character_%E2%98%83.html'  # %E2%98%83 == ☃
+        expected_content_disposition = (
+            'attachment; filename="{!s}"; filename*=UTF-8\'\'{!s}'.
+            format(ascii_fn, url_quote_fn)
+        )
+
+        self.getPage('/serve_file_utf8_filename')
+        self.assertStatus('200 OK')
+        self.assertHeader('Content-Disposition', expected_content_disposition)
+
+        self.getPage('/serve_fileobj_utf8_filename')
+        self.assertStatus('200 OK')
+        self.assertHeader('Content-Disposition', expected_content_disposition)
 
     @pytest.mark.skipif(platform.system() != 'Windows', reason='Windows only')
     def test_static_longpath(self):
@@ -399,38 +429,34 @@ class StaticTest(helper.CPWebCase):
         self.assertStatus(404)
         self.assertInBody("I couldn't find that thing")
 
+    @unittest.mock.patch(
+        'http.client._contains_disallowed_url_pchar_re',
+        re.compile(r'[\n]'),
+        create=True,
+    )
     def test_null_bytes(self):
         self.getPage('/static/\x00')
         self.assertStatus('404 Not Found')
 
-    @staticmethod
-    @contextlib.contextmanager
-    def unicode_file():
+    @classmethod
+    def unicode_file(cls):
         filename = ntou('Слава Україні.html', 'utf-8')
-        filepath = os.path.join(curdir, 'static', filename)
-        with io.open(filepath, 'w', encoding='utf-8') as strm:
+        filepath = curdir / 'static' / filename
+        with filepath.open('w', encoding='utf-8')as strm:
             strm.write(ntou('Героям Слава!', 'utf-8'))
-        try:
-            yield
-        finally:
-            os.remove(filepath)
+        cls.files_to_remove.append(filepath)
 
-    py27_on_windows = (
-        platform.system() == 'Windows' and
-        sys.version_info < (3,)
-    )
-    @pytest.mark.xfail(py27_on_windows, reason='#1544')  # noqa: E301
     def test_unicode(self):
         ensure_unicode_filesystem()
-        with self.unicode_file():
-            url = ntou('/static/Слава Україні.html', 'utf-8')
-            # quote function requires str
-            url = tonative(url, 'utf-8')
-            url = urllib.parse.quote(url)
-            self.getPage(url)
+        self.unicode_file()
+        url = ntou('/static/Слава Україні.html', 'utf-8')
+        # quote function requires str
+        url = tonative(url, 'utf-8')
+        url = urllib.parse.quote(url)
+        self.getPage(url)
 
-            expected = ntou('Героям Слава!', 'utf-8')
-            self.assertInBody(expected)
+        expected = ntou('Героям Слава!', 'utf-8')
+        self.assertInBody(expected)
 
 
 def error_page_404(status, message, traceback, version):

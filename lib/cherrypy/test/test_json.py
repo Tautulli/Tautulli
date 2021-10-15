@@ -1,7 +1,6 @@
 import cherrypy
 from cherrypy.test import helper
-
-from cherrypy._cpcompat import json
+from cherrypy._json import json
 
 
 json_out = cherrypy.config(**{'tools.json_out.on': True})
