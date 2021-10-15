@@ -10,8 +10,8 @@ from requests.compat import is_py3
 from requests.utils import to_native_string
 from requests.auth import AuthBase
 
-CONTENT_TYPE_FORM_URLENCODED = 'application/x-www-form-urlencoded'
-CONTENT_TYPE_MULTI_PART = 'multipart/form-data'
+CONTENT_TYPE_FORM_URLENCODED = "application/x-www-form-urlencoded"
+CONTENT_TYPE_MULTI_PART = "multipart/form-data"
 
 if is_py3:
     unicode = str
@@ -26,18 +26,22 @@ class OAuth1(AuthBase):
 
     client_class = Client
 
-    def __init__(self, client_key,
-            client_secret=None,
-            resource_owner_key=None,
-            resource_owner_secret=None,
-            callback_uri=None,
-            signature_method=SIGNATURE_HMAC,
-            signature_type=SIGNATURE_TYPE_AUTH_HEADER,
-            rsa_key=None, verifier=None,
-            decoding='utf-8',
-            client_class=None,
-            force_include_body=False,
-            **kwargs):
+    def __init__(
+        self,
+        client_key,
+        client_secret=None,
+        resource_owner_key=None,
+        resource_owner_secret=None,
+        callback_uri=None,
+        signature_method=SIGNATURE_HMAC,
+        signature_type=SIGNATURE_TYPE_AUTH_HEADER,
+        rsa_key=None,
+        verifier=None,
+        decoding="utf-8",
+        client_class=None,
+        force_include_body=False,
+        **kwargs
+    ):
 
         try:
             signature_type = signature_type.upper()
@@ -48,9 +52,19 @@ class OAuth1(AuthBase):
 
         self.force_include_body = force_include_body
 
-        self.client = client_class(client_key, client_secret, resource_owner_key,
-            resource_owner_secret, callback_uri, signature_method,
-            signature_type, rsa_key, verifier, decoding=decoding, **kwargs)
+        self.client = client_class(
+            client_key,
+            client_secret,
+            resource_owner_key,
+            resource_owner_secret,
+            callback_uri,
+            signature_method,
+            signature_type,
+            rsa_key,
+            verifier,
+            decoding=decoding,
+            **kwargs
+        )
 
     def __call__(self, r):
         """Add OAuth parameters to the request.
@@ -60,36 +74,44 @@ class OAuth1(AuthBase):
         """
         # Overwriting url is safe here as request will not modify it past
         # this point.
-        log.debug('Signing request %s using client %s', r, self.client)
+        log.debug("Signing request %s using client %s", r, self.client)
 
-        content_type = r.headers.get('Content-Type', '')
-        if (not content_type and extract_params(r.body)
-                or self.client.signature_type == SIGNATURE_TYPE_BODY):
+        content_type = r.headers.get("Content-Type", "")
+        if (
+            not content_type
+            and extract_params(r.body)
+            or self.client.signature_type == SIGNATURE_TYPE_BODY
+        ):
             content_type = CONTENT_TYPE_FORM_URLENCODED
         if not isinstance(content_type, unicode):
-            content_type = content_type.decode('utf-8')
+            content_type = content_type.decode("utf-8")
 
-        is_form_encoded = (CONTENT_TYPE_FORM_URLENCODED in content_type)
+        is_form_encoded = CONTENT_TYPE_FORM_URLENCODED in content_type
 
-        log.debug('Including body in call to sign: %s',
-                  is_form_encoded or self.force_include_body)
+        log.debug(
+            "Including body in call to sign: %s",
+            is_form_encoded or self.force_include_body,
+        )
 
         if is_form_encoded:
-            r.headers['Content-Type'] = CONTENT_TYPE_FORM_URLENCODED
+            r.headers["Content-Type"] = CONTENT_TYPE_FORM_URLENCODED
             r.url, headers, r.body = self.client.sign(
-                unicode(r.url), unicode(r.method), r.body or '', r.headers)
+                unicode(r.url), unicode(r.method), r.body or "", r.headers
+            )
         elif self.force_include_body:
             # To allow custom clients to work on non form encoded bodies.
             r.url, headers, r.body = self.client.sign(
-                unicode(r.url), unicode(r.method), r.body or '', r.headers)
+                unicode(r.url), unicode(r.method), r.body or "", r.headers
+            )
         else:
             # Omit body data in the signing of non form-encoded requests
             r.url, headers, _ = self.client.sign(
-                unicode(r.url), unicode(r.method), None, r.headers)
+                unicode(r.url), unicode(r.method), None, r.headers
+            )
 
         r.prepare_headers(headers)
         r.url = to_native_string(r.url)
-        log.debug('Updated url: %s', r.url)
-        log.debug('Updated headers: %s', headers)
-        log.debug('Updated body: %r', r.body)
+        log.debug("Updated url: %s", r.url)
+        log.debug("Updated headers: %s", headers)
+        log.debug("Updated body: %r", r.body)
         return r

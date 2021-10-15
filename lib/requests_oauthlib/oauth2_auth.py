@@ -31,6 +31,7 @@ class OAuth2(AuthBase):
         """
         if not is_secure_transport(r.url):
             raise InsecureTransportError()
-        r.url, r.headers, r.body = self._client.add_token(r.url,
-                http_method=r.method, body=r.body, headers=r.headers)
+        r.url, r.headers, r.body = self._client.add_token(
+            r.url, http_method=r.method, body=r.body, headers=r.headers
+        )
         return r
