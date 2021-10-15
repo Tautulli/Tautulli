@@ -236,7 +236,7 @@ def initialize(config_file):
             ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
         ))
         logger.info("{} (UTC{})".format(
-            SYS_TIMEZONE.zone, SYS_UTC_OFFSET
+            str(SYS_TIMEZONE), SYS_UTC_OFFSET
         ))
         logger.info("Python {}".format(
             sys.version.replace('\n', '')
