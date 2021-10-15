@@ -2,4 +2,4 @@ apscheduler==3.8.0
 pyinstaller==4.5.1
 pyopenssl==21.0.0
 pycryptodomex==3.11.0
-pywin32==301
+pywin32==302
