@@ -1,11 +1,26 @@
 # Changelog
 
+## v2.7.7 (2021-10-14)
+
+* Notifications:
+  * Fix: Colons and exclamation marks being replaced outside of expressions.
+  * New: Added LunaSea notification agent. Note: Requires a future LunaSea app update to function.
+* Newsletters:
+  * Fix: Star rating not showing on newsletter with the new Plex metadata agents. (#1511)
+* UI:
+  * Fix: Sorting of mobile devices table with uppercase and lowercase device names.
+  * Fix: Various dropdown menus with centered text to left-aligned text.
+* Other:
+  * Fix: Plex.tv account token not changing when fetching a new token.
+  * New: Added check and warning message for missing Docker container volume mount.
+
+
 ## v2.7.6 (2021-08-31)
 
 * Notifications:
   * Fix: Unable to parse colons (:) and exclamation marks (!) in notification text eval strings.
 * Exporter:
-  * Fix: Unable to export playlists and collections from a library.
+  * Fix: Unable to export playlists and collections from a library. (#1484)
   * New: Added new episode export fields.
 * Mobile App:
   * Fix: Unable to scan QR code with dark mode enabled.
