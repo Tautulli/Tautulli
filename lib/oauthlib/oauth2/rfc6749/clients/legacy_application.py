@@ -6,11 +6,8 @@ oauthlib.oauth2.rfc6749
 This module is an implementation of various logic needed
 for consuming and providing OAuth 2.0 RFC6749.
 """
-from __future__ import absolute_import, unicode_literals
-
-from .base import Client
 from ..parameters import prepare_token_request
-from ..parameters import parse_token_response
+from .base import Client
 
 
 class LegacyApplicationClient(Client):
@@ -36,10 +33,13 @@ class LegacyApplicationClient(Client):
     MUST discard the credentials once an access token has been obtained.
     """
 
-    def __init__(self, client_id, **kwargs):
-        super(LegacyApplicationClient, self).__init__(client_id, **kwargs)
+    grant_type = 'password'
 
-    def prepare_request_body(self, username, password, body='', scope=None, **kwargs):
+    def __init__(self, client_id, **kwargs):
+        super().__init__(client_id, **kwargs)
+
+    def prepare_request_body(self, username, password, body='', scope=None,
+                             include_client_id=False, **kwargs):
         """Add the resource owner password and username to the request body.
 
         The client makes a request to the token endpoint by adding the
@@ -48,8 +48,16 @@ class LegacyApplicationClient(Client):
 
         :param username:    The resource owner username.
         :param password:    The resource owner password.
+        :param body: Existing request body (URL encoded string) to embed parameters
+                     into. This may contain extra paramters. Default ''.
         :param scope:   The scope of the access request as described by
                         `Section 3.3`_.
+        :param include_client_id: `True` to send the `client_id` in the
+                                  body of the upstream request. This is required
+                                  if the client is not authenticating with the
+                                  authorization server as described in
+                                  `Section 3.2.1`_. False otherwise (default).
+        :type include_client_id: Boolean
         :param kwargs:  Extra credentials to include in the token request.
 
         If the client type is confidential or the client was issued client
@@ -65,9 +73,12 @@ class LegacyApplicationClient(Client):
             >>> client.prepare_request_body(username='foo', password='bar', scope=['hello', 'world'])
             'grant_type=password&username=foo&scope=hello+world&password=bar'
 
-        .. _`Appendix B`: http://tools.ietf.org/html/rfc6749#appendix-B
-        .. _`Section 3.3`: http://tools.ietf.org/html/rfc6749#section-3.3
-        .. _`Section 3.2.1`: http://tools.ietf.org/html/rfc6749#section-3.2.1
+        .. _`Appendix B`: https://tools.ietf.org/html/rfc6749#appendix-B
+        .. _`Section 3.3`: https://tools.ietf.org/html/rfc6749#section-3.3
+        .. _`Section 3.2.1`: https://tools.ietf.org/html/rfc6749#section-3.2.1
         """
-        return prepare_token_request('password', body=body, username=username,
+        kwargs['client_id'] = self.client_id
+        kwargs['include_client_id'] = include_client_id
+        scope = self.scope if scope is None else scope
+        return prepare_token_request(self.grant_type, body=body, username=username,
                                      password=password, scope=scope, **kwargs)

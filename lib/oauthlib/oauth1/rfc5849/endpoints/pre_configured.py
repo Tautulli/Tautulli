@@ -1,7 +1,7 @@
-from __future__ import absolute_import, unicode_literals
-
-from . import RequestTokenEndpoint, AuthorizationEndpoint
-from . import AccessTokenEndpoint, ResourceEndpoint
+from . import (
+    AccessTokenEndpoint, AuthorizationEndpoint, RequestTokenEndpoint,
+    ResourceEndpoint,
+)
 
 
 class WebApplicationServer(RequestTokenEndpoint, AuthorizationEndpoint,

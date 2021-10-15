@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 oauthlib.oauth1.rfc5849.errors
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -6,9 +5,7 @@ oauthlib.oauth1.rfc5849.errors
 Error used both by OAuth 1 clients and provicers to represent the spec
 defined error responses for all four core grant types.
 """
-from __future__ import unicode_literals
-
-from oauthlib.common import urlencode, add_params_to_uri
+from oauthlib.common import add_params_to_uri, urlencode
 
 
 class OAuth1Error(Exception):
@@ -37,10 +34,10 @@ class OAuth1Error(Exception):
         request:  Oauthlib Request object
         """
         self.description = description or self.description
-        message = '(%s) %s' % (self.error, self.description)
+        message = '({}) {}'.format(self.error, self.description)
         if request:
             message += ' ' + repr(request)
-        super(OAuth1Error, self).__init__(message)
+        super().__init__(message)
 
         self.uri = uri
         self.status_code = status_code

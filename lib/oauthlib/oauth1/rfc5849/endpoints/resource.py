@@ -6,12 +6,10 @@ oauthlib.oauth1.rfc5849.endpoints.resource
 This module is an implementation of the resource protection provider logic of
 OAuth 1.0 RFC 5849.
 """
-from __future__ import absolute_import, unicode_literals
-
 import logging
 
-from .base import BaseEndpoint
 from .. import errors
+from .base import BaseEndpoint
 
 log = logging.getLogger(__name__)
 
@@ -119,7 +117,7 @@ class ResourceEndpoint(BaseEndpoint):
         # However they could be seen as a scope or realm to which the
         # client has access and as such every client should be checked
         # to ensure it is authorized access to that scope or realm.
-        # .. _`realm`: http://tools.ietf.org/html/rfc2617#section-1.2
+        # .. _`realm`: https://tools.ietf.org/html/rfc2617#section-1.2
         #
         # Note that early exit would enable client realm access enumeration.
         #

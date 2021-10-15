@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 oauthlib.common
 ~~~~~~~~~~~~~~
@@ -6,28 +5,24 @@ oauthlib.common
 This module provides data structures and utilities common
 to all implementations of OAuth.
 """
-from __future__ import absolute_import, unicode_literals
-
 import collections
 import datetime
 import logging
-import random
 import re
-import sys
 import time
+import urllib.parse as urlparse
+from urllib.parse import (
+    quote as _quote, unquote as _unquote, urlencode as _urlencode,
+)
+
+from . import get_debug
 
 try:
-    from urllib import quote as _quote
-    from urllib import unquote as _unquote
-    from urllib import urlencode as _urlencode
+    from secrets import randbits
+    from secrets import SystemRandom
 except ImportError:
-    from urllib.parse import quote as _quote
-    from urllib.parse import unquote as _unquote
-    from urllib.parse import urlencode as _urlencode
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
+    from random import getrandbits as randbits
+    from random import SystemRandom
 
 UNICODE_ASCII_CHARACTER_SET = ('abcdefghijklmnopqrstuvwxyz'
                                'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -45,23 +40,14 @@ always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
 log = logging.getLogger('oauthlib')
 
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    unicode_type = str
-    bytes_type = bytes
-else:
-    unicode_type = unicode
-    bytes_type = str
-
 
 # 'safe' must be bytes (Python 2.6 requires bytes, other versions allow either)
 def quote(s, safe=b'/'):
-    s = s.encode('utf-8') if isinstance(s, unicode_type) else s
+    s = s.encode('utf-8') if isinstance(s, str) else s
     s = _quote(s, safe)
     # PY3 always returns unicode.  PY2 may return either, depending on whether
     # it had to modify the string.
-    if isinstance(s, bytes_type):
+    if isinstance(s, bytes):
         s = s.decode('utf-8')
     return s
 
@@ -71,7 +57,7 @@ def unquote(s):
     # PY3 always returns unicode.  PY2 seems to always return what you give it,
     # which differs from quote's behavior.  Just to be safe, make sure it is
     # unicode before we return.
-    if isinstance(s, bytes_type):
+    if isinstance(s, bytes):
         s = s.decode('utf-8')
     return s
 
@@ -79,7 +65,7 @@ def unquote(s):
 def urlencode(params):
     utf8_params = encode_params_utf8(params)
     urlencoded = _urlencode(utf8_params)
-    if isinstance(urlencoded, unicode_type):  # PY3 returns unicode
+    if isinstance(urlencoded, str):
         return urlencoded
     else:
         return urlencoded.decode("utf-8")
@@ -92,8 +78,8 @@ def encode_params_utf8(params):
     encoded = []
     for k, v in params:
         encoded.append((
-            k.encode('utf-8') if isinstance(k, unicode_type) else k,
-            v.encode('utf-8') if isinstance(v, unicode_type) else v))
+            k.encode('utf-8') if isinstance(k, str) else k,
+            v.encode('utf-8') if isinstance(v, str) else v))
     return encoded
 
 
@@ -104,12 +90,12 @@ def decode_params_utf8(params):
     decoded = []
     for k, v in params:
         decoded.append((
-            k.decode('utf-8') if isinstance(k, bytes_type) else k,
-            v.decode('utf-8') if isinstance(v, bytes_type) else v))
+            k.decode('utf-8') if isinstance(k, bytes) else k,
+            v.decode('utf-8') if isinstance(v, bytes) else v))
     return decoded
 
 
-urlencoded = set(always_safe) | set('=&;%+~,*@!()/?')
+urlencoded = set(always_safe) | set('=&;:%+~,*@!()/?\'$')
 
 
 def urldecode(query):
@@ -137,22 +123,6 @@ def urldecode(query):
     if INVALID_HEX_PATTERN.search(query):
         raise ValueError('Invalid hex encoding in query string.')
 
-    # We encode to utf-8 prior to parsing because parse_qsl behaves
-    # differently on unicode input in python 2 and 3.
-    # Python 2.7
-    # >>> urlparse.parse_qsl(u'%E5%95%A6%E5%95%A6')
-    # u'\xe5\x95\xa6\xe5\x95\xa6'
-    # Python 2.7, non unicode input gives the same
-    # >>> urlparse.parse_qsl('%E5%95%A6%E5%95%A6')
-    # '\xe5\x95\xa6\xe5\x95\xa6'
-    # but now we can decode it to unicode
-    # >>> urlparse.parse_qsl('%E5%95%A6%E5%95%A6').decode('utf-8')
-    # u'\u5566\u5566'
-    # Python 3.3 however
-    # >>> urllib.parse.parse_qsl(u'%E5%95%A6%E5%95%A6')
-    # u'\u5566\u5566'
-    query = query.encode(
-        'utf-8') if not PY3 and isinstance(query, unicode_type) else query
     # We want to allow queries such as "c2" whereas urlparse.parse_qsl
     # with the strict_parsing flag will not.
     params = urlparse.parse_qsl(query, keep_blank_values=True)
@@ -169,7 +139,7 @@ def extract_params(raw):
     empty list of parameters. Any other input will result in a return
     value of None.
     """
-    if isinstance(raw, bytes_type) or isinstance(raw, unicode_type):
+    if isinstance(raw, (bytes, str)):
         try:
             params = urldecode(raw)
         except ValueError:
@@ -199,10 +169,10 @@ def generate_nonce():
     A random 64-bit number is appended to the epoch timestamp for both
     randomness and to decrease the likelihood of collisions.
 
-    .. _`section 3.2.1`: http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01#section-3.2.1
-    .. _`section 3.3`: http://tools.ietf.org/html/rfc5849#section-3.3
+    .. _`section 3.2.1`: https://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01#section-3.2.1
+    .. _`section 3.3`: https://tools.ietf.org/html/rfc5849#section-3.3
     """
-    return unicode_type(unicode_type(random.getrandbits(64)) + generate_timestamp())
+    return str(str(randbits(64)) + generate_timestamp())
 
 
 def generate_timestamp():
@@ -211,10 +181,10 @@ def generate_timestamp():
     Per `section 3.3`_ of the OAuth 1 RFC 5849 spec.
     Per `section 3.2.1`_ of the MAC Access Authentication spec.
 
-    .. _`section 3.2.1`: http://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01#section-3.2.1
-    .. _`section 3.3`: http://tools.ietf.org/html/rfc5849#section-3.3
+    .. _`section 3.2.1`: https://tools.ietf.org/html/draft-ietf-oauth-v2-http-mac-01#section-3.2.1
+    .. _`section 3.3`: https://tools.ietf.org/html/rfc5849#section-3.3
     """
-    return unicode_type(int(time.time()))
+    return str(int(time.time()))
 
 
 def generate_token(length=30, chars=UNICODE_ASCII_CHARACTER_SET):
@@ -225,7 +195,7 @@ def generate_token(length=30, chars=UNICODE_ASCII_CHARACTER_SET):
     and entropy when generating the random characters is important. Which is
     why SystemRandom is used instead of the default random.choice method.
     """
-    rand = random.SystemRandom()
+    rand = SystemRandom()
     return ''.join(rand.choice(chars) for x in range(length))
 
 
@@ -257,7 +227,7 @@ def generate_client_id(length=30, chars=CLIENT_ID_CHARACTER_SET):
     """Generates an OAuth client_id
 
     OAuth 2 specify the format of client_id in
-    http://tools.ietf.org/html/rfc6749#appendix-A.
+    https://tools.ietf.org/html/rfc6749#appendix-A.
     """
     return generate_token(length, chars)
 
@@ -301,11 +271,11 @@ def safe_string_equals(a, b):
 
 def to_unicode(data, encoding='UTF-8'):
     """Convert a number of different types of objects to unicode."""
-    if isinstance(data, unicode_type):
+    if isinstance(data, str):
         return data
 
-    if isinstance(data, bytes_type):
-        return unicode_type(data, encoding=encoding)
+    if isinstance(data, bytes):
+        return str(data, encoding=encoding)
 
     if hasattr(data, '__iter__'):
         try:
@@ -319,7 +289,7 @@ def to_unicode(data, encoding='UTF-8'):
             # We support 2.6 which lacks dict comprehensions
             if hasattr(data, 'items'):
                 data = data.items()
-            return dict(((to_unicode(k, encoding), to_unicode(v, encoding)) for k, v in data))
+            return {to_unicode(k, encoding): to_unicode(v, encoding) for k, v in data}
 
     return data
 
@@ -331,7 +301,7 @@ class CaseInsensitiveDict(dict):
     proxy = {}
 
     def __init__(self, data):
-        self.proxy = dict((k.lower(), k) for k in data)
+        self.proxy = {k.lower(): k for k in data}
         for k in data:
             self[k] = data[k]
 
@@ -340,22 +310,27 @@ class CaseInsensitiveDict(dict):
 
     def __delitem__(self, k):
         key = self.proxy[k.lower()]
-        super(CaseInsensitiveDict, self).__delitem__(key)
+        super().__delitem__(key)
         del self.proxy[k.lower()]
 
     def __getitem__(self, k):
         key = self.proxy[k.lower()]
-        return super(CaseInsensitiveDict, self).__getitem__(key)
+        return super().__getitem__(key)
 
     def get(self, k, default=None):
         return self[k] if k in self else default
 
     def __setitem__(self, k, v):
-        super(CaseInsensitiveDict, self).__setitem__(k, v)
+        super().__setitem__(k, v)
         self.proxy[k.lower()] = k
 
+    def update(self, *args, **kwargs):
+        super().update(*args, **kwargs)
+        for k in dict(*args, **kwargs):
+            self.proxy[k.lower()] = k
 
-class Request(object):
+
+class Request:
 
     """A malleable representation of a signable HTTP request.
 
@@ -389,6 +364,9 @@ class Request(object):
             "client_id": None,
             "client_secret": None,
             "code": None,
+            "code_challenge": None,
+            "code_challenge_method": None,
+            "code_verifier": None,
             "extra_credentials": None,
             "grant_type": None,
             "redirect_uri": None,
@@ -401,10 +379,21 @@ class Request(object):
             "token": None,
             "user": None,
             "token_type_hint": None,
+
+            # OpenID Connect
+            "response_mode": None,
+            "nonce": None,
+            "display": None,
+            "prompt": None,
+            "claims": None,
+            "max_age": None,
+            "ui_locales": None,
+            "id_token_hint": None,
+            "login_hint": None,
+            "acr_values": None
         }
         self._params.update(dict(urldecode(self.uri_query)))
         self._params.update(dict(self.decoded_body or []))
-        self._params.update(self.headers)
 
     def __getattr__(self, name):
         if name in self._params:
@@ -413,13 +402,15 @@ class Request(object):
             raise AttributeError(name)
 
     def __repr__(self):
+        if not get_debug():
+            return "<oauthlib.Request SANITIZED>"
         body = self.body
         headers = self.headers.copy()
         if body:
-            body = SANITIZE_PATTERN.sub('\1<SANITIZED>', body)
+            body = SANITIZE_PATTERN.sub('\1<SANITIZED>', str(body))
         if 'Authorization' in headers:
             headers['Authorization'] = '<SANITIZED>'
-        return '<oauthlib.Request url="%s", http_method="%s", headers="%s", body="%s">' % (
+        return '<oauthlib.Request url="{}", http_method="{}", headers="{}", body="{}">'.format(
             self.uri, self.http_method, headers, body)
 
     @property
