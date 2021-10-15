@@ -10,18 +10,25 @@ When any of these things occur, we emit a DataLossWarning
 """
 
 from __future__ import absolute_import, division, unicode_literals
+# pylint:disable=protected-access
 
 import warnings
 import re
 import sys
 
-from . import _base
+try:
+    from collections.abc import MutableMapping
+except ImportError:
+    from collections import MutableMapping
+
+from . import base
 from ..constants import DataLossWarning
 from .. import constants
 from . import etree as etree_builders
-from .. import ihatexml
+from .. import _ihatexml
 
 import lxml.etree as etree
+from six import PY3, binary_type
 
 
 fullTree = True
@@ -43,7 +50,11 @@ class Document(object):
         self._childNodes = []
 
     def appendChild(self, element):
-        self._elementTree.getroot().addnext(element._element)
+        last = self._elementTree.getroot()
+        for last in self._elementTree.getroot().itersiblings():
+            pass
+
+        last.addnext(element._element)
 
     def _getChildNodes(self):
         return self._childNodes
@@ -53,8 +64,7 @@ class Document(object):
 
 def testSerializer(element):
     rv = []
-    finalText = None
-    infosetFilter = ihatexml.InfosetFilter()
+    infosetFilter = _ihatexml.InfosetFilter(preventDoubleDashComments=True)
 
     def serializeElement(element, indent=0):
         if not hasattr(element, "tag"):
@@ -79,7 +89,7 @@ def testSerializer(element):
                     next_element = next_element.getnext()
             elif isinstance(element, str) or isinstance(element, bytes):
                 # Text in a fragment
-                assert isinstance(element, str) or sys.version_info.major == 2
+                assert isinstance(element, str) or sys.version_info[0] == 2
                 rv.append("|%s\"%s\"" % (' ' * indent, element))
             else:
                 # Fragment case
@@ -128,16 +138,12 @@ def testSerializer(element):
                 rv.append("|%s\"%s\"" % (' ' * (indent - 2), element.tail))
     serializeElement(element, 0)
 
-    if finalText is not None:
-        rv.append("|%s\"%s\"" % (' ' * 2, finalText))
-
     return "\n".join(rv)
 
 
 def tostring(element):
     """Serialize an element and its child nodes to a string"""
     rv = []
-    finalText = None
 
     def serializeElement(element):
         if not hasattr(element, "tag"):
@@ -173,13 +179,10 @@ def tostring(element):
 
     serializeElement(element)
 
-    if finalText is not None:
-        rv.append("%s\"" % (' ' * 2, finalText))
-
     return "".join(rv)
 
 
-class TreeBuilder(_base.TreeBuilder):
+class TreeBuilder(base.TreeBuilder):
     documentClass = Document
     doctypeClass = DocumentType
     elementClass = None
@@ -189,27 +192,40 @@ class TreeBuilder(_base.TreeBuilder):
 
     def __init__(self, namespaceHTMLElements, fullTree=False):
         builder = etree_builders.getETreeModule(etree, fullTree=fullTree)
-        infosetFilter = self.infosetFilter = ihatexml.InfosetFilter()
+        infosetFilter = self.infosetFilter = _ihatexml.InfosetFilter(preventDoubleDashComments=True)
         self.namespaceHTMLElements = namespaceHTMLElements
 
-        class Attributes(dict):
-            def __init__(self, element, value={}):
+        class Attributes(MutableMapping):
+            def __init__(self, element):
                 self._element = element
-                dict.__init__(self, value)
-                for key, value in self.items():
-                    if isinstance(key, tuple):
-                        name = "{%s}%s" % (key[2], infosetFilter.coerceAttribute(key[1]))
-                    else:
-                        name = infosetFilter.coerceAttribute(key)
-                    self._element._element.attrib[name] = value
 
-            def __setitem__(self, key, value):
-                dict.__setitem__(self, key, value)
+            def _coerceKey(self, key):
                 if isinstance(key, tuple):
                     name = "{%s}%s" % (key[2], infosetFilter.coerceAttribute(key[1]))
                 else:
                     name = infosetFilter.coerceAttribute(key)
-                self._element._element.attrib[name] = value
+                return name
+
+            def __getitem__(self, key):
+                value = self._element._element.attrib[self._coerceKey(key)]
+                if not PY3 and isinstance(value, binary_type):
+                    value = value.decode("ascii")
+                return value
+
+            def __setitem__(self, key, value):
+                self._element._element.attrib[self._coerceKey(key)] = value
+
+            def __delitem__(self, key):
+                del self._element._element.attrib[self._coerceKey(key)]
+
+            def __iter__(self):
+                return iter(self._element._element.attrib)
+
+            def __len__(self):
+                return len(self._element._element.attrib)
+
+            def clear(self):
+                return self._element._element.attrib.clear()
 
         class Element(builder.Element):
             def __init__(self, name, namespace):
@@ -230,8 +246,10 @@ class TreeBuilder(_base.TreeBuilder):
             def _getAttributes(self):
                 return self._attributes
 
-            def _setAttributes(self, attributes):
-                self._attributes = Attributes(self, attributes)
+            def _setAttributes(self, value):
+                attributes = self.attributes
+                attributes.clear()
+                attributes.update(value)
 
             attributes = property(_getAttributes, _setAttributes)
 
@@ -239,8 +257,11 @@ class TreeBuilder(_base.TreeBuilder):
                 data = infosetFilter.coerceCharacters(data)
                 builder.Element.insertText(self, data, insertBefore)
 
-            def appendChild(self, child):
-                builder.Element.appendChild(self, child)
+            def cloneNode(self):
+                element = type(self)(self.name, self.namespace)
+                if self._element.attrib:
+                    element._element.attrib.update(self._element.attrib)
+                return element
 
         class Comment(builder.Comment):
             def __init__(self, data):
@@ -257,12 +278,12 @@ class TreeBuilder(_base.TreeBuilder):
             data = property(_getData, _setData)
 
         self.elementClass = Element
-        self.commentClass = builder.Comment
+        self.commentClass = Comment
         # self.fragmentClass = builder.DocumentFragment
-        _base.TreeBuilder.__init__(self, namespaceHTMLElements)
+        base.TreeBuilder.__init__(self, namespaceHTMLElements)
 
     def reset(self):
-        _base.TreeBuilder.reset(self)
+        base.TreeBuilder.reset(self)
         self.insertComment = self.insertCommentInitial
         self.initial_comments = []
         self.doctype = None
@@ -303,19 +324,20 @@ class TreeBuilder(_base.TreeBuilder):
             self.doctype = doctype
 
     def insertCommentInitial(self, data, parent=None):
+        assert parent is None or parent is self.document
+        assert self.document._elementTree is None
         self.initial_comments.append(data)
 
     def insertCommentMain(self, data, parent=None):
         if (parent == self.document and
                 self.document._elementTree.getroot()[-1].tag == comment_type):
-                warnings.warn("lxml cannot represent adjacent comments beyond the root elements", DataLossWarning)
+            warnings.warn("lxml cannot represent adjacent comments beyond the root elements", DataLossWarning)
         super(TreeBuilder, self).insertComment(data, parent)
 
     def insertRoot(self, token):
-        """Create the document root"""
         # Because of the way libxml2 works, it doesn't seem to be possible to
         # alter information like the doctype after the tree has been parsed.
-        # Therefore we need to use the built-in parser to create our iniial
+        # Therefore we need to use the built-in parser to create our initial
         # tree, after which we can add elements like normal
         docStr = ""
         if self.doctype:
@@ -344,7 +366,8 @@ class TreeBuilder(_base.TreeBuilder):
 
         # Append the initial comments:
         for comment_token in self.initial_comments:
-            root.addprevious(etree.Comment(comment_token["data"]))
+            comment = self.commentClass(comment_token["data"])
+            root.addprevious(comment._element)
 
         # Create the root document and add the ElementTree to it
         self.document = self.documentClass()
