@@ -61,14 +61,14 @@ def cheroot_server(server_factory):
     httpserver.stop()  # destroy it
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def wsgi_server():
     """Set up and tear down a Cheroot WSGI server instance."""
     for srv in cheroot_server(cheroot.wsgi.Server):
         yield srv
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def native_server():
     """Set up and tear down a Cheroot HTTP server instance."""
     for srv in cheroot_server(cheroot.server.HTTPServer):

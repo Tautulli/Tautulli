@@ -119,10 +119,7 @@ class Gateway(server.Gateway):
                 corresponding class
 
         """
-        return dict(
-            (gw.version, gw)
-            for gw in cls.__subclasses__()
-        )
+        return {gw.version: gw for gw in cls.__subclasses__()}
 
     def get_environ(self):
         """Return a new environ dict targeting the given wsgi.version."""
@@ -195,9 +192,9 @@ class Gateway(server.Gateway):
         """Cast status to bytes representation of current Python version.
 
         According to :pep:`3333`, when using Python 3, the response status
-        and headers must be bytes masquerading as unicode; that is, they
+        and headers must be bytes masquerading as Unicode; that is, they
         must be of type "str" but are restricted to code points in the
-        "latin-1" set.
+        "Latin-1" set.
         """
         if six.PY2:
             return status
@@ -300,7 +297,11 @@ class Gateway_10(Gateway):
 
         # Request headers
         env.update(
-            ('HTTP_' + bton(k).upper().replace('-', '_'), bton(v))
+            (
+                'HTTP_{header_name!s}'.
+                format(header_name=bton(k).upper().replace('-', '_')),
+                bton(v),
+            )
             for k, v in req.inheaders.items()
         )
 
@@ -321,7 +322,7 @@ class Gateway_10(Gateway):
 class Gateway_u0(Gateway_10):
     """A Gateway class to interface HTTPServer with WSGI u.0.
 
-    WSGI u.0 is an experimental protocol, which uses unicode for keys
+    WSGI u.0 is an experimental protocol, which uses Unicode for keys
     and values in both Python 2 and Python 3.
     """
 
@@ -409,7 +410,7 @@ class PathInfoDispatcher:
         path = environ['PATH_INFO'] or '/'
         for p, app in self.apps:
             # The apps list should be sorted by length, descending.
-            if path.startswith(p + '/') or path == p:
+            if path.startswith('{path!s}/'.format(path=p)) or path == p:
                 environ = environ.copy()
                 environ['SCRIPT_NAME'] = environ.get('SCRIPT_NAME', '') + p
                 environ['PATH_INFO'] = path[len(p):]

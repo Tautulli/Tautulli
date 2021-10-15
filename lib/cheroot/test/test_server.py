@@ -5,10 +5,12 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
+from contextlib import closing
 import os
 import socket
 import tempfile
 import threading
+import time
 import uuid
 
 import pytest
@@ -16,14 +18,15 @@ import requests
 import requests_unixsocket
 import six
 
+from six.moves import queue, urllib
+
 from .._compat import bton, ntob
-from .._compat import IS_LINUX, IS_MACOS, SYS_PLATFORM
+from .._compat import IS_LINUX, IS_MACOS, IS_WINDOWS, SYS_PLATFORM
 from ..server import IS_UID_GID_RESOLVABLE, Gateway, HTTPServer
 from ..testing import (
     ANY_INTERFACE_IPV4,
     ANY_INTERFACE_IPV6,
     EPHEMERAL_PORT,
-    get_server_client,
 )
 
 
@@ -42,15 +45,8 @@ non_macos_sock_test = pytest.mark.skipif(
 @pytest.fixture(params=('abstract', 'file'))
 def unix_sock_file(request):
     """Check that bound UNIX socket address is stored in server."""
-    if request.param == 'abstract':
-        yield request.getfixturevalue('unix_abstract_sock')
-        return
-    tmp_sock_fh, tmp_sock_fname = tempfile.mkstemp()
-
-    yield tmp_sock_fname
-
-    os.close(tmp_sock_fh)
-    os.unlink(tmp_sock_fname)
+    name = 'unix_{request.param}_sock'.format(**locals())
+    return request.getfixturevalue(name)
 
 
 @pytest.fixture
@@ -65,6 +61,17 @@ def unix_abstract_sock():
         b'\x00cheroot-test-socket',
         ntob(str(uuid.uuid4())),
     )).decode()
+
+
+@pytest.fixture
+def unix_file_sock():
+    """Yield a unix file socket."""
+    tmp_sock_fh, tmp_sock_fname = tempfile.mkstemp()
+
+    yield tmp_sock_fname
+
+    os.close(tmp_sock_fh)
+    os.unlink(tmp_sock_fname)
 
 
 def test_prepare_makes_server_ready():
@@ -111,6 +118,77 @@ def test_stop_interrupts_serve():
 
 
 @pytest.mark.parametrize(
+    'exc_cls',
+    (
+        IOError,
+        KeyboardInterrupt,
+        OSError,
+        RuntimeError,
+    ),
+)
+def test_server_interrupt(exc_cls):
+    """Check that assigning interrupt stops the server."""
+    interrupt_msg = 'should catch {uuid!s}'.format(uuid=uuid.uuid4())
+    raise_marker_sentinel = object()
+
+    httpserver = HTTPServer(
+        bind_addr=(ANY_INTERFACE_IPV4, EPHEMERAL_PORT),
+        gateway=Gateway,
+    )
+
+    result_q = queue.Queue()
+
+    def serve_thread():
+        # ensure we catch the exception on the serve() thread
+        try:
+            httpserver.serve()
+        except exc_cls as e:
+            if str(e) == interrupt_msg:
+                result_q.put(raise_marker_sentinel)
+
+    httpserver.prepare()
+    serve_thread = threading.Thread(target=serve_thread)
+    serve_thread.start()
+
+    serve_thread.join(0.5)
+    assert serve_thread.is_alive()
+
+    # this exception is raised on the serve() thread,
+    # not in the calling context.
+    httpserver.interrupt = exc_cls(interrupt_msg)
+
+    serve_thread.join(0.5)
+    assert not serve_thread.is_alive()
+    assert result_q.get_nowait() is raise_marker_sentinel
+
+
+def test_serving_is_false_and_stop_returns_after_ctrlc():
+    """Check that stop() interrupts running of serve()."""
+    httpserver = HTTPServer(
+        bind_addr=(ANY_INTERFACE_IPV4, EPHEMERAL_PORT),
+        gateway=Gateway,
+    )
+
+    httpserver.prepare()
+
+    # Simulate a Ctrl-C on the first call to `run`.
+    def raise_keyboard_interrupt(*args, **kwargs):
+        raise KeyboardInterrupt()
+
+    httpserver._connections._selector.select = raise_keyboard_interrupt
+
+    serve_thread = threading.Thread(target=httpserver.serve)
+    serve_thread.start()
+
+    # The thread should exit right away due to the interrupt.
+    serve_thread.join(httpserver.expiration_interval * 2)
+    assert not serve_thread.is_alive()
+
+    assert not httpserver._connections._serving
+    httpserver.stop()
+
+
+@pytest.mark.parametrize(
     'ip_addr',
     (
         ANY_INTERFACE_IPV4,
@@ -135,7 +213,7 @@ def test_bind_addr_unix(http_server, unix_sock_file):
 
 @unix_only_sock_test
 def test_bind_addr_unix_abstract(http_server, unix_abstract_sock):
-    """Check that bound UNIX abstract sockaddr is stored in server."""
+    """Check that bound UNIX abstract socket address is stored in server."""
     httpserver = http_server.send(unix_abstract_sock)
 
     assert httpserver.bind_addr == unix_abstract_sock
@@ -167,27 +245,26 @@ class _TestGateway(Gateway):
 
 
 @pytest.fixture
-def peercreds_enabled_server_and_client(http_server, unix_sock_file):
-    """Construct a test server with `peercreds_enabled`."""
+def peercreds_enabled_server(http_server, unix_sock_file):
+    """Construct a test server with ``peercreds_enabled``."""
     httpserver = http_server.send(unix_sock_file)
     httpserver.gateway = _TestGateway
     httpserver.peercreds_enabled = True
-    return httpserver, get_server_client(httpserver)
+    return httpserver
 
 
 @unix_only_sock_test
 @non_macos_sock_test
-def test_peercreds_unix_sock(peercreds_enabled_server_and_client):
-    """Check that peercred lookup works when enabled."""
-    httpserver, testclient = peercreds_enabled_server_and_client
+def test_peercreds_unix_sock(peercreds_enabled_server):
+    """Check that ``PEERCRED`` lookup works when enabled."""
+    httpserver = peercreds_enabled_server
     bind_addr = httpserver.bind_addr
 
     if isinstance(bind_addr, six.binary_type):
         bind_addr = bind_addr.decode()
 
-    unix_base_uri = 'http+unix://{}'.format(
-        bind_addr.replace('\0', '%00').replace('/', '%2F'),
-    )
+    quoted = urllib.parse.quote(bind_addr, safe='')
+    unix_base_uri = 'http+unix://{quoted}'.format(**locals())
 
     expected_peercreds = os.getpid(), os.getuid(), os.getgid()
     expected_peercreds = '|'.join(map(str, expected_peercreds))
@@ -208,9 +285,9 @@ def test_peercreds_unix_sock(peercreds_enabled_server_and_client):
 )
 @unix_only_sock_test
 @non_macos_sock_test
-def test_peercreds_unix_sock_with_lookup(peercreds_enabled_server_and_client):
-    """Check that peercred resolution works when enabled."""
-    httpserver, testclient = peercreds_enabled_server_and_client
+def test_peercreds_unix_sock_with_lookup(peercreds_enabled_server):
+    """Check that ``PEERCRED`` resolution works when enabled."""
+    httpserver = peercreds_enabled_server
     httpserver.peercreds_resolve_enabled = True
 
     bind_addr = httpserver.bind_addr
@@ -218,9 +295,8 @@ def test_peercreds_unix_sock_with_lookup(peercreds_enabled_server_and_client):
     if isinstance(bind_addr, six.binary_type):
         bind_addr = bind_addr.decode()
 
-    unix_base_uri = 'http+unix://{}'.format(
-        bind_addr.replace('\0', '%00').replace('/', '%2F'),
-    )
+    quoted = urllib.parse.quote(bind_addr, safe='')
+    unix_base_uri = 'http+unix://{quoted}'.format(**locals())
 
     import grp
     import pwd
@@ -233,3 +309,111 @@ def test_peercreds_unix_sock_with_lookup(peercreds_enabled_server_and_client):
         peercreds_text_resp = requests.get(unix_base_uri + PEERCRED_TEXTS_URI)
         peercreds_text_resp.raise_for_status()
         assert peercreds_text_resp.text == expected_textcreds
+
+
+@pytest.mark.skipif(
+    IS_WINDOWS,
+    reason='This regression test is for a Linux bug, '
+    'and the resource module is not available on Windows',
+)
+@pytest.mark.parametrize(
+    'resource_limit',
+    (
+        1024,
+        2048,
+    ),
+    indirect=('resource_limit',),
+)
+@pytest.mark.usefixtures('many_open_sockets')
+def test_high_number_of_file_descriptors(resource_limit):
+    """Test the server does not crash with a high file-descriptor value.
+
+    This test shouldn't cause a server crash when trying to access
+    file-descriptor higher than 1024.
+
+    The earlier implementation used to rely on ``select()`` syscall that
+    doesn't support file descriptors with numbers higher than 1024.
+    """
+    # We want to force the server to use a file-descriptor with
+    # a number above resource_limit
+
+    # Create our server
+    httpserver = HTTPServer(
+        bind_addr=(ANY_INTERFACE_IPV4, EPHEMERAL_PORT), gateway=Gateway,
+    )
+
+    try:
+        # This will trigger a crash if select() is used in the implementation
+        with httpserver._run_in_thread():
+            # allow server to run long enough to invoke select()
+            time.sleep(1.0)
+    except:  # noqa: E722
+        raise  # only needed for `else` to work
+    else:
+        # We use closing here for py2-compat
+        with closing(socket.socket()) as sock:
+            # Check new sockets created are still above our target number
+            assert sock.fileno() >= resource_limit
+    finally:
+        # Stop our server
+        httpserver.stop()
+
+
+if not IS_WINDOWS:
+    test_high_number_of_file_descriptors = pytest.mark.forked(
+        test_high_number_of_file_descriptors,
+    )
+
+
+@pytest.fixture
+def resource_limit(request):
+    """Set the resource limit two times bigger then requested."""
+    resource = pytest.importorskip(
+        'resource',
+        reason='The "resource" module is Unix-specific',
+    )
+
+    # Get current resource limits to restore them later
+    soft_limit, hard_limit = resource.getrlimit(resource.RLIMIT_NOFILE)
+
+    # We have to increase the nofile limit above 1024
+    # Otherwise we see a 'Too many files open' error, instead of
+    # an error due to the file descriptor number being too high
+    resource.setrlimit(
+        resource.RLIMIT_NOFILE,
+        (request.param * 2, hard_limit),
+    )
+
+    try:  # noqa: WPS501
+        yield request.param
+    finally:
+        # Reset the resource limit back to the original soft limit
+        resource.setrlimit(resource.RLIMIT_NOFILE, (soft_limit, hard_limit))
+
+
+@pytest.fixture
+def many_open_sockets(resource_limit):
+    """Allocate a lot of file descriptors by opening dummy sockets."""
+    # Hoard a lot of file descriptors by opening and storing a lot of sockets
+    test_sockets = []
+    # Open a lot of file descriptors, so the next one the server
+    # opens is a high number
+    try:
+        for i in range(resource_limit):
+            sock = socket.socket()
+            test_sockets.append(sock)
+            # NOTE: We used to interrupt the loop early but this doesn't seem
+            # NOTE: to work well in envs with indeterministic runtimes like
+            # NOTE: PyPy. It looks like sometimes it frees some file
+            # NOTE: descriptors in between running this fixture and the actual
+            # NOTE: test code so the early break has been removed to try
+            # NOTE: address that. The approach may need to be rethought if the
+            # NOTE: issue reoccurs. Another approach may be disabling the GC.
+        # Check we opened enough descriptors to reach a high number
+        the_highest_fileno = max(sock.fileno() for sock in test_sockets)
+        assert the_highest_fileno >= resource_limit
+        yield the_highest_fileno
+    finally:
+        # Close our open resources
+        for test_socket in test_sockets:
+            test_socket.close()

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Collection of exceptions raised and/or processed by Cheroot."""
 
 from __future__ import absolute_import, division, print_function
@@ -23,14 +24,14 @@ class FatalSSLAlert(Exception):
 
 
 def plat_specific_errors(*errnames):
-    """Return error numbers for all errors in errnames on this platform.
+    """Return error numbers for all errors in ``errnames`` on this platform.
 
-    The 'errno' module contains different global constants depending on
-    the specific platform (OS). This function will return the list of
-    numeric values for a given list of potential names.
+    The :py:mod:`errno` module contains different global constants
+    depending on the specific platform (OS). This function will return
+    the list of numeric values for a given list of potential names.
     """
-    missing_attr = set([None, ])
-    unique_nums = set(getattr(errno, k, None) for k in errnames)
+    missing_attr = {None}
+    unique_nums = {getattr(errno, k, None) for k in errnames}
     return list(unique_nums - missing_attr)
 
 
@@ -56,3 +57,32 @@ socket_errors_nonblocking = plat_specific_errors(
 if sys.platform == 'darwin':
     socket_errors_to_ignore.extend(plat_specific_errors('EPROTOTYPE'))
     socket_errors_nonblocking.extend(plat_specific_errors('EPROTOTYPE'))
+
+
+acceptable_sock_shutdown_error_codes = {
+    errno.ENOTCONN,
+    errno.EPIPE, errno.ESHUTDOWN,  # corresponds to BrokenPipeError in Python 3
+    errno.ECONNRESET,  # corresponds to ConnectionResetError in Python 3
+}
+"""Errors that may happen during the connection close sequence.
+
+* ENOTCONN — client is no longer connected
+* EPIPE — write on a pipe while the other end has been closed
+* ESHUTDOWN — write on a socket which has been shutdown for writing
+* ECONNRESET — connection is reset by the peer, we received a TCP RST packet
+
+Refs:
+* https://github.com/cherrypy/cheroot/issues/341#issuecomment-735884889
+* https://bugs.python.org/issue30319
+* https://bugs.python.org/issue30329
+* https://github.com/python/cpython/commit/83a2c28
+* https://github.com/python/cpython/blob/c39b52f/Lib/poplib.py#L297-L302
+* https://docs.microsoft.com/windows/win32/api/winsock/nf-winsock-shutdown
+"""
+
+try:  # py3
+    acceptable_sock_shutdown_exceptions = (
+        BrokenPipeError, ConnectionResetError,
+    )
+except NameError:  # py2
+    acceptable_sock_shutdown_exceptions = ()

@@ -99,7 +99,7 @@ class CherootWebCase(webtest.WebCase):
     date_tolerance = 2
 
     def assertEqualDates(self, dt1, dt2, seconds=None):
-        """Assert abs(dt1 - dt2) is within Y seconds."""
+        """Assert ``abs(dt1 - dt2)`` is within ``Y`` seconds."""
         if seconds is None:
             seconds = self.date_tolerance
 
@@ -108,8 +108,10 @@ class CherootWebCase(webtest.WebCase):
         else:
             diff = dt2 - dt1
         if not diff < datetime.timedelta(seconds=seconds):
-            raise AssertionError('%r and %r are not within %r seconds.' %
-                                 (dt1, dt2, seconds))
+            raise AssertionError(
+                '%r and %r are not within %r seconds.' %
+                (dt1, dt2, seconds),
+            )
 
 
 class Request:
@@ -155,9 +157,13 @@ class Controller:
             resp.status = '404 Not Found'
         else:
             output = handler(req, resp)
-            if (output is not None
-                and not any(resp.status.startswith(status_code)
-                            for status_code in ('204', '304'))):
+            if (
+                output is not None
+                and not any(
+                    resp.status.startswith(status_code)
+                    for status_code in ('204', '304')
+                )
+            ):
                 resp.body = output
                 try:
                     resp.headers.setdefault('Content-Length', str(len(output)))

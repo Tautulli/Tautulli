@@ -1,12 +1,19 @@
+# pylint: disable=unused-import
 """Compatibility code for using Cheroot with various versions of Python."""
 
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
+import os
 import platform
 import re
 
 import six
+
+try:
+    import selectors  # lgtm [py/unused-import]
+except ImportError:
+    import selectors2 as selectors  # noqa: F401  # lgtm [py/unused-import]
 
 try:
     import ssl
@@ -14,6 +21,24 @@ try:
     del ssl
 except ImportError:
     IS_ABOVE_OPENSSL10 = None
+
+# contextlib.suppress was added in Python 3.4
+try:
+    from contextlib import suppress
+except ImportError:
+    from contextlib import contextmanager
+
+    @contextmanager
+    def suppress(*exceptions):
+        """Return a context manager that suppresses the `exceptions`."""
+        try:
+            yield
+        except exceptions:
+            pass
+
+
+IS_CI = bool(os.getenv('CI'))
+IS_GITHUB_ACTIONS_WORKFLOW = bool(os.getenv('GITHUB_WORKFLOW'))
 
 
 IS_PYPY = platform.python_implementation() == 'PyPy'
@@ -36,7 +61,7 @@ if not six.PY2:
         return n.encode(encoding)
 
     def ntou(n, encoding='ISO-8859-1'):
-        """Return the native string as unicode with the given encoding."""
+        """Return the native string as Unicode with the given encoding."""
         assert_native(n)
         # In Python 3, the native string type is unicode
         return n
@@ -55,7 +80,7 @@ else:
         return n
 
     def ntou(n, encoding='ISO-8859-1'):
-        """Return the native string as unicode with the given encoding."""
+        """Return the native string as Unicode with the given encoding."""
         assert_native(n)
         # In Python 2, the native string type is bytes.
         # First, check for the special encoding 'escape'. The test suite uses
@@ -78,7 +103,7 @@ else:
 
 
 def assert_native(n):
-    """Check whether the input is of nativ ``str`` type.
+    """Check whether the input is of native :py:class:`str` type.
 
     Raises:
         TypeError: in case of failed check
@@ -89,22 +114,35 @@ def assert_native(n):
 
 
 if not six.PY2:
-    """Python 3 has memoryview builtin."""
+    """Python 3 has :py:class:`memoryview` builtin."""
     # Python 2.7 has it backported, but socket.write() does
     # str(memoryview(b'0' * 100)) -> <memory at 0x7fb6913a5588>
     # instead of accessing it correctly.
     memoryview = memoryview
 else:
-    """Link memoryview to buffer under Python 2."""
+    """Link :py:class:`memoryview` to buffer under Python 2."""
     memoryview = buffer  # noqa: F821
 
 
 def extract_bytes(mv):
-    """Retrieve bytes out of memoryview/buffer or bytes."""
+    r"""Retrieve bytes out of the given input buffer.
+
+    :param mv: input :py:func:`buffer`
+    :type mv: memoryview or bytes
+
+    :return: unwrapped bytes
+    :rtype: bytes
+
+    :raises ValueError: if the input is not one of \
+                        :py:class:`memoryview`/:py:func:`buffer` \
+                        or :py:class:`bytes`
+    """
     if isinstance(mv, memoryview):
         return bytes(mv) if six.PY2 else mv.tobytes()
 
     if isinstance(mv, bytes):
         return mv
 
-    raise ValueError
+    raise ValueError(
+        'extract_bytes() only accepts bytes and memoryview/buffer',
+    )
