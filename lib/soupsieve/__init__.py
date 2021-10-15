@@ -25,17 +25,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-from __future__ import unicode_literals
 from .__meta__ import __version__, __version_info__  # noqa: F401
 from . import css_parser as cp
 from . import css_match as cm
 from . import css_types as ct
-from .util import DEBUG, deprecated, SelectorSyntaxError  # noqa: F401
+from .util import DEBUG, SelectorSyntaxError  # noqa: F401
 
 __all__ = (
     'DEBUG', 'SelectorSyntaxError', 'SoupSieve',
-    'closest', 'comments', 'compile', 'filter', 'icomments',
-    'iselect', 'match', 'select', 'select_one'
+    'closest', 'compile', 'filter', 'iselect',
+    'match', 'select', 'select_one'
 )
 
 SoupSieve = cm.SoupSieve
@@ -45,11 +44,11 @@ def compile(pattern, namespaces=None, flags=0, **kwargs):  # noqa: A001
     """Compile CSS pattern."""
 
     if namespaces is not None:
-        namespaces = ct.Namespaces(**namespaces)
+        namespaces = ct.Namespaces(namespaces)
 
     custom = kwargs.get('custom')
     if custom is not None:
-        custom = ct.CustomSelectors(**custom)
+        custom = ct.CustomSelectors(custom)
 
     if isinstance(pattern, SoupSieve):
         if flags:
@@ -85,21 +84,6 @@ def filter(select, iterable, namespaces=None, flags=0, **kwargs):  # noqa: A001
     """Filter list of nodes."""
 
     return compile(select, namespaces, flags, **kwargs).filter(iterable)
-
-
-@deprecated("'comments' is not related to CSS selectors and will be removed in the future.")
-def comments(tag, limit=0, flags=0, **kwargs):
-    """Get comments only."""
-
-    return [comment for comment in cm.CommentsMatch(tag).get_comments(limit)]
-
-
-@deprecated("'icomments' is not related to CSS selectors and will be removed in the future.")
-def icomments(tag, limit=0, flags=0, **kwargs):
-    """Iterate comments only."""
-
-    for comment in cm.CommentsMatch(tag).get_comments(limit):
-        yield comment
 
 
 def select_one(select, tag, namespaces=None, flags=0, **kwargs):

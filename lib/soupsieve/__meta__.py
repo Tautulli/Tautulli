@@ -1,5 +1,4 @@
 """Meta related things."""
-from __future__ import unicode_literals
 from collections import namedtuple
 import re
 
@@ -154,10 +153,13 @@ class Version(namedtuple("Version", ["major", "minor", "micro", "release", "pre"
         return ver
 
 
-def parse_version(ver, pre=False):
+def parse_version(ver):
     """Parse version into a comparable Version tuple."""
 
     m = RE_VER.match(ver)
+
+    if m is None:
+        raise ValueError("'{}' is not a valid version".format(ver))
 
     # Handle major, minor, micro
     major = int(m.group('major'))
@@ -186,5 +188,5 @@ def parse_version(ver, pre=False):
     return Version(major, minor, micro, release, pre, post, dev)
 
 
-__version_info__ = Version(1, 9, 5, "final")
+__version_info__ = Version(2, 2, 1, "final")
 __version__ = __version_info__._get_canonical()
