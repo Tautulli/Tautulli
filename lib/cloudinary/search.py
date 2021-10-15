@@ -1,7 +1,7 @@
 import json
 from copy import deepcopy
 
-from cloudinary.api import call_json_api
+from cloudinary.api_client.call_api import call_json_api
 
 
 class Search:

@@ -15,10 +15,10 @@ from collections import OrderedDict
 from datetime import datetime, date
 from fractions import Fraction
 from numbers import Number
-from urllib3 import ProxyManager, PoolManager
 
 import six.moves.urllib.parse
-from six import iteritems
+from six import iteritems, string_types
+from urllib3 import ProxyManager, PoolManager
 
 import cloudinary
 from cloudinary import auth_token
@@ -37,7 +37,7 @@ DEFAULT_RESPONSIVE_WIDTH_TRANSFORMATION = {"width": "auto", "crop": "limit"}
 RANGE_VALUE_RE = r'^(?P<value>(\d+\.)?\d+)(?P<modifier>[%pP])?$'
 RANGE_RE = r'^(\d+\.)?\d+[%pP]?\.\.(\d+\.)?\d+[%pP]?$'
 FLOAT_RE = r'^(\d+)\.(\d+)?$'
-REMOTE_URL_RE = r'ftp:|https?:|s3:|gs:|data:([\w-]+\/[\w-]+)?(;[\w-]+=[\w-]+)*;base64,([a-zA-Z0-9\/+\n=]+)$'
+REMOTE_URL_RE = r'ftp:|https?:|s3:|gs:|data:([\w-]+\/[\w-]+(\+[\w-]+)?)?(;[\w-]+=[\w-]+)*;base64,([a-zA-Z0-9\/+\n=]+)$'
 __LAYER_KEYWORD_PARAMS = [("font_weight", "normal"),
                           ("font_style", "normal"),
                           ("text_decoration", "none"),
@@ -63,7 +63,9 @@ __URL_KEYS = [
     'type',
     'url_suffix',
     'use_root_path',
-    'version'
+    'version',
+    'long_url_signature',
+    'signature_algorithm',
 ]
 
 __SIMPLE_UPLOAD_PARAMS = [
@@ -79,10 +81,12 @@ __SIMPLE_UPLOAD_PARAMS = [
     "use_filename",
     "unique_filename",
     "discard_original_filename",
+    "filename_override",
     "invalidate",
     "notification_url",
     "eager_notification_url",
     "eager_async",
+    "eval",
     "proxy",
     "folder",
     "overwrite",
@@ -101,6 +105,7 @@ __SIMPLE_UPLOAD_PARAMS = [
     "auto_tagging",
     "async",
     "cinemagraph_analysis",
+    "accessibility_analysis",
 ]
 
 __SERIALIZED_UPLOAD_PARAMS = [
@@ -121,16 +126,32 @@ __SERIALIZED_UPLOAD_PARAMS = [
 
 upload_params = __SIMPLE_UPLOAD_PARAMS + __SERIALIZED_UPLOAD_PARAMS
 
+SHORT_URL_SIGNATURE_LENGTH = 8
+LONG_URL_SIGNATURE_LENGTH = 32
 
-def compute_hex_hash(s):
+SIGNATURE_SHA1 = "sha1"
+SIGNATURE_SHA256 = "sha256"
+
+signature_algorithms = {
+    SIGNATURE_SHA1: hashlib.sha1,
+    SIGNATURE_SHA256: hashlib.sha256,
+}
+
+
+def compute_hex_hash(s, algorithm=SIGNATURE_SHA1):
     """
-    Compute hash and convert the result to HEX string
+    Computes string hash using specified algorithm and return HEX string representation of hash.
 
-    :param s: string to process
+    :param s:         String to compute hash for
+    :param algorithm: The name of algorithm to use for computing hash
 
-    :return: HEX string
+    :return: HEX string of computed hash value
     """
-    return hashlib.sha1(to_bytes(s)).hexdigest()
+    try:
+        hash_fn = signature_algorithms[algorithm]
+    except KeyError:
+        raise ValueError('Unsupported hash algorithm: {}'.format(algorithm))
+    return hash_fn(to_bytes(s)).hexdigest()
 
 
 def build_array(arg):
@@ -189,7 +210,7 @@ def encode_double_array(array):
     if len(array) > 0 and isinstance(array[0], list):
         return "|".join([",".join([str(i) for i in build_array(inner)]) for inner in array])
     else:
-        return ",".join([str(i) for i in array])
+        return encode_list([str(i) for i in array])
 
 
 def encode_dict(arg):
@@ -203,16 +224,37 @@ def encode_dict(arg):
         return arg
 
 
-def encode_context(context):
+def normalize_context_value(value):
     """
-       :param context: dict of context to be encoded
-       :return: a joined string of all keys and values properly escaped and separated by a pipe character
+    Escape "=" and "|" delimiter characters and json encode lists
+
+    :param value: Value to escape
+    :type value: int or str or list or tuple
+
+    :return: The normalized value
+    :rtype: str
     """
 
+    if isinstance(value, (list, tuple)):
+        value = json_encode(value)
+
+    return str(value).replace("=", "\\=").replace("|", "\\|")
+
+
+def encode_context(context):
+    """
+    Encode metadata fields based on incoming value.
+
+    List and tuple values are encoded to json strings.
+
+    :param context: dict of context to be encoded
+
+    :return: a joined string of all keys and values properly escaped and separated by a pipe character
+    """
     if not isinstance(context, dict):
         return context
 
-    return "|".join(("{}={}".format(k, v.replace("=", "\\=").replace("|", "\\|"))) for k, v in iteritems(context))
+    return "|".join(("{}={}".format(k, normalize_context_value(v))) for k, v in iteritems(context))
 
 
 def json_encode(value):
@@ -224,6 +266,17 @@ def json_encode(value):
     :return: JSON encoded string
     """
     return json.dumps(value, default=__json_serializer, separators=(',', ':'))
+
+
+def encode_date_to_usage_api_format(date_obj):
+    """
+    Encodes date object to `dd-mm-yyyy` format string
+
+    :param date_obj: datetime.date object to encode
+
+    :return: Encoded date as a string
+    """
+    return date_obj.strftime('%d-%m-%Y')
 
 
 def patch_fetch_format(options):
@@ -488,6 +541,19 @@ def process_radius(param):
     return str(param)
 
 
+def process_params(params):
+    processed_params = None
+    if isinstance(params, dict):
+        processed_params = {}
+        for key, value in params.items():
+            if isinstance(value, list) or isinstance(value, tuple):
+                value_list = {"{}[{}]".format(key, i): i_value for i, i_value in enumerate(value)}
+                processed_params.update(value_list)
+            elif value is not None:
+                processed_params[key] = value
+    return processed_params
+
+
 def cleanup_params(params):
     return dict([(k, __safe_value(v)) for (k, v) in params.items() if v is not None and not v == ""])
 
@@ -499,18 +565,19 @@ def sign_request(params, options):
     api_secret = options.get("api_secret", cloudinary.config().api_secret)
     if not api_secret:
         raise ValueError("Must supply api_secret")
+    signature_algorithm = options.get("signature_algorithm", cloudinary.config().signature_algorithm)
 
     params = cleanup_params(params)
-    params["signature"] = api_sign_request(params, api_secret)
+    params["signature"] = api_sign_request(params, api_secret, signature_algorithm)
     params["api_key"] = api_key
 
     return params
 
 
-def api_sign_request(params_to_sign, api_secret):
+def api_sign_request(params_to_sign, api_secret, algorithm=SIGNATURE_SHA1):
     params = [(k + "=" + (",".join(v) if isinstance(v, list) else str(v))) for k, v in params_to_sign.items() if v]
     to_sign = "&".join(sorted(params))
-    return compute_hex_hash(to_sign + api_secret)
+    return compute_hex_hash(to_sign + api_secret, algorithm)
 
 
 def breakpoint_settings_mapper(breakpoint_settings):
@@ -667,6 +734,8 @@ def cloudinary_url(source, **options):
     url_suffix = options.pop("url_suffix", None)
     use_root_path = options.pop("use_root_path", cloudinary.config().use_root_path)
     auth_token = options.pop("auth_token", None)
+    long_url_signature = options.pop("long_url_signature", cloudinary.config().long_url_signature)
+    signature_algorithm = options.pop("signature_algorithm", cloudinary.config().signature_algorithm)
     if auth_token is not False:
         auth_token = merge(cloudinary.config().auth_token, auth_token)
 
@@ -692,9 +761,18 @@ def cloudinary_url(source, **options):
     signature = None
     if sign_url and not auth_token:
         to_sign = "/".join(__compact([transformation, source_to_sign]))
+        if long_url_signature:
+            # Long signature forces SHA256
+            signature_algorithm = SIGNATURE_SHA256
+            chars_length = LONG_URL_SIGNATURE_LENGTH
+        else:
+            chars_length = SHORT_URL_SIGNATURE_LENGTH
+        if signature_algorithm not in signature_algorithms:
+            raise ValueError("Unsupported signature algorithm '{}'".format(signature_algorithm))
+        hash_fn = signature_algorithms[signature_algorithm]
         signature = "s--" + to_string(
             base64.urlsafe_b64encode(
-                hashlib.sha1(to_bytes(to_sign + api_secret)).digest())[0:8]) + "--"
+                hash_fn(to_bytes(to_sign + api_secret)).digest())[0:chars_length]) + "--"
 
     prefix = unsigned_download_url_prefix(
         source, cloud_name, private_cdn, cdn_subdomain, secure_cdn_subdomain,
@@ -708,15 +786,30 @@ def cloudinary_url(source, **options):
     return source, options
 
 
-def cloudinary_api_url(action='upload', **options):
-    cloudinary_prefix = options.get("upload_prefix", cloudinary.config().upload_prefix)\
+def base_api_url(path, **options):
+    cloudinary_prefix = options.get("upload_prefix", cloudinary.config().upload_prefix) \
                         or "https://api.cloudinary.com"
     cloud_name = options.get("cloud_name", cloudinary.config().cloud_name)
+
     if not cloud_name:
         raise ValueError("Must supply cloud_name")
+
+    path = build_array(path)
+
+    return encode_unicode_url("/".join([cloudinary_prefix, cloudinary.API_VERSION, cloud_name] + path))
+
+
+def cloudinary_api_url(action='upload', **options):
     resource_type = options.get("resource_type", "image")
 
-    return encode_unicode_url("/".join([cloudinary_prefix, "v1_1", cloud_name, resource_type, action]))
+    return base_api_url([resource_type, action], **options)
+
+
+def cloudinary_api_download_url(action, params, **options):
+    params = params.copy()
+    params["mode"] = "download"
+    cloudinary_params = sign_request(params, options)
+    return cloudinary_api_url(action, **options) + "?" + urlencode(bracketize_seq(cloudinary_params), True)
 
 
 def cloudinary_scaled_url(source, width, transformation, options):
@@ -817,17 +910,54 @@ def bracketize_seq(params):
 
 
 def download_archive_url(**options):
-    params = options.copy()
-    params.update(mode="download")
-    cloudinary_params = sign_request(archive_params(**params), options)
-    return cloudinary_api_url("generate_archive", **options) + "?" + \
-        urlencode(bracketize_seq(cloudinary_params), True)
+    return cloudinary_api_download_url(action="generate_archive", params=archive_params(**options), **options)
 
 
 def download_zip_url(**options):
     new_options = options.copy()
     new_options.update(target_format="zip")
     return download_archive_url(**new_options)
+
+
+def download_folder(folder_path, **options):
+    """
+    Creates and returns a URL that when invoked creates an archive of a folder.
+    :param folder_path: The full path from the root that is used to generate download url.
+    :type folder_path:  str
+    :param options:     Additional options.
+    :type options:      dict, optional
+    :return:            Signed URL to download the folder.
+    :rtype:             str
+    """
+    options["prefixes"] = folder_path
+    options.setdefault("resource_type", "all")
+
+    return download_archive_url(**options)
+
+
+def download_backedup_asset(asset_id, version_id, **options):
+    """
+    The returned url allows downloading the backedup asset based on the the asset ID and the version ID.
+
+    Parameters asset_id and version_id are returned with api.resource(<PUBLIC_ID1>, versions=True) API call.
+
+    :param  asset_id:   The asset ID of the asset.
+    :type   asset_id:   str
+    :param  version_id: The version ID of the asset.
+    :type   version_id: str
+    :param  options:    Additional options.
+    :type   options:    dict, optional
+    :return:The signed URL for downloading backup version of the asset.
+    :rtype: str
+    """
+    params = {
+        "timestamp": options.get("timestamp", now()),
+        "asset_id": asset_id,
+        "version_id": version_id
+    }
+    cloudinary_params = sign_request(params, options)
+
+    return base_api_url("download_backup", **options) + "?" + urlencode(bracketize_seq(cloudinary_params), True)
 
 
 def generate_auth_token(**options):
@@ -919,8 +1049,8 @@ def build_upload_params(**options):
         "transformation": generate_transformation_string(**options)[0],
         "headers": build_custom_headers(options.get("headers")),
         "eager": build_eager(options.get("eager")),
-        "tags": options.get("tags") and ",".join(build_array(options["tags"])),
-        "allowed_formats": options.get("allowed_formats") and ",".join(build_array(options["allowed_formats"])),
+        "tags": options.get("tags") and encode_list(build_array(options["tags"])),
+        "allowed_formats": options.get("allowed_formats") and encode_list(build_array(options["allowed_formats"])),
         "face_coordinates": encode_double_array(options.get("face_coordinates")),
         "custom_coordinates": encode_double_array(options.get("custom_coordinates")),
         "context": encode_context(options.get("context")),
@@ -935,6 +1065,26 @@ def build_upload_params(**options):
 
     params.update(serialized_params)
 
+    return params
+
+
+def build_multi_and_sprite_params(**options):
+    """
+    Build params for multi, download_multi, generate_sprite, and download_generated_sprite methods
+    """
+    tag = options.get("tag")
+    urls = options.get("urls")
+    if bool(tag) == bool(urls):
+        raise ValueError("Either 'tag' or 'urls' parameter has to be set but not both")
+    params = {
+        "mode": options.get("mode"),
+        "timestamp": now(),
+        "async": options.get("async"),
+        "notification_url": options.get("notification_url"),
+        "tag": tag,
+        "urls": urls,
+        "transformation": generate_transformation_string(fetch_format=options.get("format"), **options)[0]
+    }
     return params
 
 
@@ -1067,22 +1217,38 @@ IF_OPERATORS = {
 
 PREDEFINED_VARS = {
     "aspect_ratio": "ar",
+    "aspectRatio": "ar",
     "current_page": "cp",
+    "currentPage": "cp",
     "face_count": "fc",
+    "faceCount": "fc",
     "height": "h",
     "initial_aspect_ratio": "iar",
+    "initialAspectRatio": "iar",
+    "trimmed_aspect_ratio": "tar",
+    "trimmedAspectRatio": "tar",
     "initial_height": "ih",
+    "initialHeight": "ih",
     "initial_width": "iw",
+    "initialWidth": "iw",
     "page_count": "pc",
+    "pageCount": "pc",
     "page_x": "px",
+    "pageX": "px",
     "page_y": "py",
+    "pageY": "py",
     "tags": "tags",
     "width": "w",
     "duration": "du",
     "initial_duration": "idu",
+    "initialDuration": "idu",
+    "illustration_score": "ils",
+    "illustrationScore": "ils",
+    "context": "ctx"
 }
 
-replaceRE = "((\\|\\||>=|<=|&&|!=|>|=|<|/|-|\\+|\\*|\^)(?=[ _])|(?<!\$)(" + '|'.join(PREDEFINED_VARS.keys()) + "))"
+replaceRE = "((\\|\\||>=|<=|&&|!=|>|=|<|/|-|\\+|\\*|\\^)(?=[ _])|(\\$_*[^_ ]+)|(?<!\\$)(" + \
+            '|'.join(PREDEFINED_VARS.keys()) + "))"
 
 
 def translate_if(match):
@@ -1277,13 +1443,15 @@ def check_property_enabled(f):
     return wrapper
 
 
-def verify_api_response_signature(public_id, version, signature):
+def verify_api_response_signature(public_id, version, signature, algorithm=None):
     """
     Verifies the authenticity of an API response signature
 
     :param public_id: The public id of the asset as returned in the API response
-    :param version: The version of the asset as returned in the API response
+    :param version:   The version of the asset as returned in the API response
     :param signature: Actual signature. Can be retrieved from the X-Cld-Signature header
+    :param algorithm: Name of hashing algorithm to use for calculation of HMACs.
+                      By default uses `cloudinary.config().signature_algorithm`
 
     :return: Boolean result of the validation
     """
@@ -1293,10 +1461,14 @@ def verify_api_response_signature(public_id, version, signature):
     parameters_to_sign = {'public_id': public_id,
                           'version': version}
 
-    return signature == api_sign_request(parameters_to_sign, cloudinary.config().api_secret)
+    return signature == api_sign_request(
+        parameters_to_sign,
+        cloudinary.config().api_secret,
+        algorithm or cloudinary.config().signature_algorithm
+    )
 
 
-def verify_notification_signature(body, timestamp, signature, valid_for=7200):
+def verify_notification_signature(body, timestamp, signature, valid_for=7200, algorithm=None):
     """
     Verifies the authenticity of a notification signature
 
@@ -1304,6 +1476,8 @@ def verify_notification_signature(body, timestamp, signature, valid_for=7200):
     :param timestamp: Unix timestamp. Can be retrieved from the X-Cld-Timestamp header
     :param signature: Actual signature. Can be retrieved from the X-Cld-Signature header
     :param valid_for: The desired time in seconds for considering the request valid
+    :param algorithm: Name of hashing algorithm to use for calculation of HMACs.
+                      By default uses `cloudinary.config().signature_algorithm`
 
     :return: Boolean result of the validation
     """
@@ -1316,7 +1490,9 @@ def verify_notification_signature(body, timestamp, signature, valid_for=7200):
     if not isinstance(body, str):
         raise ValueError('Body should be type of string')
 
-    return signature == compute_hex_hash('{}{}{}'.format(body, timestamp, cloudinary.config().api_secret))
+    return signature == compute_hex_hash(
+        '{}{}{}'.format(body, timestamp, cloudinary.config().api_secret),
+        algorithm or cloudinary.config().signature_algorithm)
 
 
 def get_http_connector(conf, options):
@@ -1332,3 +1508,26 @@ def get_http_connector(conf, options):
         return ProxyManager(conf.api_proxy, **options)
     else:
         return PoolManager(**options)
+
+
+def encode_list(obj):
+    if isinstance(obj, list):
+        return ",".join(obj)
+    return obj
+
+
+def safe_cast(val, casting_fn, default=None):
+    """
+    Attempts to cast a value to another using a given casting function
+    Will return a default value if casting fails (configurable, defaults to None)
+
+    :param val: The value to cast
+    :param casting_fn: The casting function that will receive the value to cast
+    :param default: The return value if casting fails
+
+    :return: Result of casting the value or the value of the default parameter
+    """
+    try:
+        return casting_fn(val)
+    except (ValueError, TypeError):
+        return default

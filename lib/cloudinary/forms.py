@@ -5,7 +5,7 @@ import cloudinary.uploader
 import cloudinary.utils
 from cloudinary import CloudinaryResource
 from django import forms
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 def cl_init_js_callbacks(form, request):
@@ -52,7 +52,7 @@ class CloudinaryInput(forms.TextInput):
 
 class CloudinaryJsFileField(forms.Field):
     default_error_messages = {
-        'required': _(u"No file selected!")
+        "required": _("No file selected!")
     }
 
     def __init__(self, attrs=None, options=None, autosave=True, *args, **kwargs):
@@ -121,7 +121,7 @@ class CloudinaryUnsignedJsFileField(CloudinaryJsFileField):
 
 class CloudinaryFileField(forms.FileField):
     my_default_error_messages = {
-        'required': _(u"No file selected!")
+        "required": _("No file selected!")
     }
     default_error_messages = forms.FileField.default_error_messages.copy()
     default_error_messages.update(my_default_error_messages)

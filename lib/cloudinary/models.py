@@ -107,6 +107,8 @@ class CloudinaryField(models.Field):
         if isinstance(value, UploadedFile):
             options = {"type": self.type, "resource_type": self.resource_type}
             options.update(self.options)
+            if hasattr(value, 'seekable') and value.seekable():
+                value.seek(0)
             instance_value = uploader.upload_resource(value, **options)
             setattr(model_instance, self.attname, instance_value)
             if self.width_field:
