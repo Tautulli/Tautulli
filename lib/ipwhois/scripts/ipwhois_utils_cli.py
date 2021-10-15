@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Philip Hane
+# Copyright (c) 2013-2020 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,9 @@ import argparse
 from collections import OrderedDict
 import json
 from ipwhois.utils import (ipv4_lstrip_zeros, calculate_cidr, get_countries,
-                           ipv4_is_defined, ipv6_is_defined, unique_everseen,
-                           unique_addresses)
+                           ipv4_is_defined, ipv6_is_defined,
+                           ipv4_generate_random, ipv6_generate_random,
+                           unique_everseen, unique_addresses)
 
 # CLI ANSI rendering
 ANSI = {
@@ -85,6 +86,22 @@ parser.add_argument(
     nargs=1,
     metavar='"IP ADDRESS"',
     help='Check if an IPv6 address is defined (in a reserved address range).'
+)
+parser.add_argument(
+    '--ipv4_generate_random',
+    type=int,
+    nargs=1,
+    metavar='TOTAL',
+    help='Generate random, unique IPv4 addresses that are not defined (can be '
+         'looked up using ipwhois).'
+)
+parser.add_argument(
+    '--ipv6_generate_random',
+    type=int,
+    nargs=1,
+    metavar='TOTAL',
+    help='Generate random, unique IPv6 addresses that are not defined (can be '
+         'looked up using ipwhois).'
 )
 parser.add_argument(
     '--unique_everseen',
@@ -219,6 +236,34 @@ elif script_args.ipv6_is_defined:
                 script_args.ipv6_is_defined[0],
                 ANSI['end'] if script_args.colorize else ''
             ))
+
+    except Exception as e:
+
+        print('{0}Error{1}: {2}'.format(ANSI['red'], ANSI['end'], str(e)))
+
+elif script_args.ipv4_generate_random:
+
+    try:
+
+        result = ipv4_generate_random(total=script_args.ipv4_generate_random[0])
+
+        for random_ip in result:
+
+            print(random_ip)
+
+    except Exception as e:
+
+        print('{0}Error{1}: {2}'.format(ANSI['red'], ANSI['end'], str(e)))
+
+elif script_args.ipv6_generate_random:
+
+    try:
+
+        result = ipv6_generate_random(total=script_args.ipv6_generate_random[0])
+
+        for random_ip in result:
+
+            print(random_ip)
 
     except Exception as e:
 
