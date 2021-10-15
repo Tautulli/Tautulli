@@ -1,50 +1,44 @@
-from __future__ import absolute_import
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import argparse
-import collections
 import io
 import keyword
 import re
+import sys
 import tokenize
 from typing import Generator
 from typing import Iterable
 from typing import List
+from typing import NamedTuple
 from typing import Optional
 from typing import Pattern
 from typing import Sequence
 from typing import Tuple
 
+# this is a performance hack.  see https://bugs.python.org/issue43014
+if (
+        sys.version_info < (3, 10) and
+        callable(getattr(tokenize, '_compile', None))
+):  # pragma: no cover (<py310)
+    from functools import lru_cache
+    tokenize._compile = lru_cache()(tokenize._compile)  # type: ignore
 
 ESCAPED_NL = 'ESCAPED_NL'
 UNIMPORTANT_WS = 'UNIMPORTANT_WS'
 NON_CODING_TOKENS = frozenset(('COMMENT', ESCAPED_NL, 'NL', UNIMPORTANT_WS))
 
 
-class Offset(collections.namedtuple('Offset', ('line', 'utf8_byte_offset'))):
-    __slots__ = ()
-
-    def __new__(cls, line=None, utf8_byte_offset=None):
-        # type: (Optional[int], Optional[int]) -> None
-        return super(Offset, cls).__new__(cls, line, utf8_byte_offset)
+class Offset(NamedTuple):
+    line: Optional[int] = None
+    utf8_byte_offset: Optional[int] = None
 
 
-class Token(
-    collections.namedtuple(
-        'Token', ('name', 'src', 'line', 'utf8_byte_offset'),
-    ),
-):
-    __slots__ = ()
-
-    def __new__(cls, name, src, line=None, utf8_byte_offset=None):
-        # type: (str, str, Optional[int], Optional[int]) -> None
-        return super(Token, cls).__new__(
-            cls, name, src, line, utf8_byte_offset,
-        )
+class Token(NamedTuple):
+    name: str
+    src: str
+    line: Optional[int] = None
+    utf8_byte_offset: Optional[int] = None
 
     @property
-    def offset(self):  # type: () -> Offset
+    def offset(self) -> Offset:
         return Offset(self.line, self.utf8_byte_offset)
 
 
@@ -53,8 +47,7 @@ _string_prefixes = frozenset('bfru')
 _escaped_nl_re = re.compile(r'\\(\n|\r\n|\r)')
 
 
-def _re_partition(regex, s):
-    # type: (Pattern[str], str) -> Tuple[str, str, str]
+def _re_partition(regex: Pattern[str], s: str) -> Tuple[str, str, str]:
     match = regex.search(s)
     if match:
         return s[:match.start()], s[slice(*match.span())], s[match.end():]
@@ -62,7 +55,7 @@ def _re_partition(regex, s):
         return (s, '', '')
 
 
-def src_to_tokens(src):  # type: (str) -> List[Token]
+def src_to_tokens(src: str) -> List[Token]:
     tokenize_target = io.StringIO(src)
     lines = ('',) + tuple(tokenize_target)
 
@@ -111,7 +104,7 @@ def src_to_tokens(src):  # type: (str) -> List[Token]
                 tok_name == 'NUMBER' and
                 tokens and
                 tokens[-1].name == 'NUMBER'
-        ):  # pragma: no cover (PY3)
+        ):
             tokens[-1] = tokens[-1]._replace(src=tokens[-1].src + tok_text)
         # produce long literals as a single token in python 3 as well
         elif (
@@ -119,7 +112,7 @@ def src_to_tokens(src):  # type: (str) -> List[Token]
                 tok_text.lower() == 'l' and
                 tokens and
                 tokens[-1].name == 'NUMBER'
-        ):  # pragma: no cover (PY3)
+        ):
             tokens[-1] = tokens[-1]._replace(src=tokens[-1].src + tok_text)
         else:
             tokens.append(Token(tok_name, tok_text, sline, utf8_byte_offset))
@@ -128,25 +121,25 @@ def src_to_tokens(src):  # type: (str) -> List[Token]
     return tokens
 
 
-def tokens_to_src(tokens):  # type: (Iterable[Token]) -> str
+def tokens_to_src(tokens: Iterable[Token]) -> str:
     return ''.join(tok.src for tok in tokens)
 
 
-def reversed_enumerate(tokens):
-    # type: (Sequence[Token]) -> Generator[Tuple[int, Token], None, None]
+def reversed_enumerate(
+        tokens: Sequence[Token],
+) -> Generator[Tuple[int, Token], None, None]:
     for i in reversed(range(len(tokens))):
         yield i, tokens[i]
 
 
-def parse_string_literal(src):  # type: (str) -> Tuple[str, str]
+def parse_string_literal(src: str) -> Tuple[str, str]:
     """parse a string literal's source into (prefix, string)"""
     match = _string_re.match(src)
     assert match is not None
     return match.group(1), match.group(2)
 
 
-def rfind_string_parts(tokens, i):
-    # type: (Sequence[Token], int) -> Tuple[int, ...]
+def rfind_string_parts(tokens: Sequence[Token], i: int) -> Tuple[int, ...]:
     """find the indicies of the string parts of a (joined) string literal
 
     - `i` should start at the end of the string literal
@@ -189,26 +182,19 @@ def rfind_string_parts(tokens, i):
     return tuple(reversed(ret))
 
 
-def main(argv=None):  # type: (Optional[Sequence[str]]) -> int
+def main(argv: Optional[Sequence[str]] = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('filename')
     args = parser.parse_args(argv)
-    with io.open(args.filename) as f:
+    with open(args.filename) as f:
         tokens = src_to_tokens(f.read())
-
-    def no_u_repr(s):  # type: (str) -> str
-        return repr(s).lstrip('u')
 
     for token in tokens:
         if token.name == UNIMPORTANT_WS:
             line, col = '?', '?'
         else:
-            line, col = token.line, token.utf8_byte_offset
-        print(
-            '{}:{} {} {}'.format(
-                line, col, token.name, no_u_repr(token.src),
-            ),
-        )
+            line, col = str(token.line), str(token.utf8_byte_offset)
+        print(f'{line}:{col} {token.name} {token.src!r}')
 
     return 0
 
