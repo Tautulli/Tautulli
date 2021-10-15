@@ -1,9 +1,0 @@
-{"tests": [
-
-{"description":"<!---- >",
-"input":"<!---- >",
-"output":[["Comment","-- >"]],
-"errors":[
-    { "code": "eof-in-comment", "line": 1, "col": 9 }
-]}
-]}
