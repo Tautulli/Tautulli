@@ -12,7 +12,6 @@ import os
 import re
 import shutil
 import stat
-import sys
 import tempfile
 import types
 import weakref
@@ -414,14 +413,12 @@ class Template(object):
                     self, data, filename, path, self.module_writer
                 )
             module = compat.load_module(self.module_id, path)
-            del sys.modules[self.module_id]
             if module._magic_number != codegen.MAGIC_NUMBER:
                 data = util.read_file(filename)
                 _compile_module_file(
                     self, data, filename, path, self.module_writer
                 )
                 module = compat.load_module(self.module_id, path)
-                del sys.modules[self.module_id]
             ModuleInfo(module, path, self, filename, None, None, None)
         else:
             # template filename and no module directory, compile code
