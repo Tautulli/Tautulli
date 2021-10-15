@@ -62,10 +62,13 @@ class LXMLTreeBuilderForXML(TreeBuilder):
     # But instead we build an XMLParser or HTMLParser object to serve
     # as the target of parse messages, and those messages don't include
     # line numbers.
+    # See: https://bugs.launchpad.net/lxml/+bug/1846906
     
     def initialize_soup(self, soup):
         """Let the BeautifulSoup object know about the standard namespace
         mapping.
+
+        :param soup: A `BeautifulSoup`.
         """
         super(LXMLTreeBuilderForXML, self).initialize_soup(soup)
         self._register_namespaces(self.DEFAULT_NSMAPS)
@@ -75,6 +78,8 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         while parsing the document.
 
         This might be useful later on when creating CSS selectors.
+
+        :param mapping: A dictionary mapping namespace prefixes to URIs.
         """
         for key, value in list(mapping.items()):
             if key and key not in self.soup._namespaces:
@@ -84,20 +89,31 @@ class LXMLTreeBuilderForXML(TreeBuilder):
                 self.soup._namespaces[key] = value
 
     def default_parser(self, encoding):
-        # This can either return a parser object or a class, which
-        # will be instantiated with default arguments.
+        """Find the default parser for the given encoding.
+
+        :param encoding: A string.
+        :return: Either a parser object or a class, which
+          will be instantiated with default arguments.
+        """
         if self._default_parser is not None:
             return self._default_parser
         return etree.XMLParser(
             target=self, strip_cdata=False, recover=True, encoding=encoding)
 
     def parser_for(self, encoding):
+        """Instantiate an appropriate parser for the given encoding.
+
+        :param encoding: A string.
+        :return: A parser object such as an `etree.XMLParser`.
+        """
         # Use the default parser.
         parser = self.default_parser(encoding)
 
         if isinstance(parser, Callable):
             # Instantiate the parser with default arguments
-            parser = parser(target=self, strip_cdata=False, encoding=encoding)
+            parser = parser(
+                target=self, strip_cdata=False, recover=True, encoding=encoding
+            )
         return parser
 
     def __init__(self, parser=None, empty_element_tags=None, **kwargs):
@@ -122,17 +138,31 @@ class LXMLTreeBuilderForXML(TreeBuilder):
     def prepare_markup(self, markup, user_specified_encoding=None,
                        exclude_encodings=None,
                        document_declared_encoding=None):
-        """
-        :yield: A series of 4-tuples.
+        """Run any preliminary steps necessary to make incoming markup
+        acceptable to the parser.
+
+        lxml really wants to get a bytestring and convert it to
+        Unicode itself. So instead of using UnicodeDammit to convert
+        the bytestring to Unicode using different encodings, this
+        implementation uses EncodingDetector to iterate over the
+        encodings, and tell lxml to try to parse the document as each
+        one in turn.
+
+        :param markup: Some markup -- hopefully a bytestring.
+        :param user_specified_encoding: The user asked to try this encoding.
+        :param document_declared_encoding: The markup itself claims to be
+            in this encoding.
+        :param exclude_encodings: The user asked _not_ to try any of
+            these encodings.
+
+        :yield: A series of 4-tuples:
          (markup, encoding, declared encoding,
           has undergone character replacement)
 
-        Each 4-tuple represents a strategy for parsing the document.
+         Each 4-tuple represents a strategy for converting the
+         document to Unicode and parsing it. Each strategy will be tried 
+         in turn.
         """
-        # Instead of using UnicodeDammit to convert the bytestring to
-        # Unicode using different encodings, use EncodingDetector to
-        # iterate over the encodings, and tell lxml to try to parse
-        # the document as each one in turn.
         is_html = not self.is_xml
         if is_html:
             self.processing_instruction_class = ProcessingInstruction
@@ -150,9 +180,19 @@ class LXMLTreeBuilderForXML(TreeBuilder):
             yield (markup.encode("utf8"), "utf8",
                    document_declared_encoding, False)
 
-        try_encodings = [user_specified_encoding, document_declared_encoding]
+        # This was provided by the end-user; treat it as a known
+        # definite encoding per the algorithm laid out in the HTML5
+        # spec.  (See the EncodingDetector class for details.)
+        known_definite_encodings = [user_specified_encoding]
+
+        # This was found in the document; treat it as a slightly lower-priority
+        # user encoding.
+        user_encodings = [document_declared_encoding]
         detector = EncodingDetector(
-            markup, try_encodings, is_html, exclude_encodings)
+            markup, known_definite_encodings=known_definite_encodings,
+            user_encodings=user_encodings, is_html=is_html,
+            exclude_encodings=exclude_encodings
+        )
         for encoding in detector.encodings:
             yield (detector.markup, encoding, document_declared_encoding, False)
 

@@ -182,3 +182,45 @@ class HTML5LibBuilderSmokeTest(SoupTest, HTML5TreeBuilderSmokeTest):
         soup = self.soup(markup, store_line_numbers=False)
         self.assertEqual("sourceline", soup.p.sourceline.name)
         self.assertEqual("sourcepos", soup.p.sourcepos.name)
+
+    def test_special_string_containers(self):
+        # The html5lib tree builder doesn't support this standard feature,
+        # because there's no way of knowing, when a string is created,
+        # where in the tree it will eventually end up.
+        pass
+
+    def test_html5_attributes(self):
+        # The html5lib TreeBuilder can convert any entity named in
+        # the HTML5 spec to a sequence of Unicode characters, and
+        # convert those Unicode characters to a (potentially
+        # different) named entity on the way out.
+        #
+        # This is a copy of the same test from
+        # HTMLParserTreeBuilderSmokeTest.  It's not in the superclass
+        # because the lxml HTML TreeBuilder _doesn't_ work this way.
+        for input_element, output_unicode, output_element in (
+                ("&RightArrowLeftArrow;", '\u21c4', b'&rlarr;'),
+                ('&models;', '\u22a7', b'&models;'),
+                ('&Nfr;', '\U0001d511', b'&Nfr;'),
+                ('&ngeqq;', '\u2267\u0338', b'&ngeqq;'),
+                ('&not;', '\xac', b'&not;'),
+                ('&Not;', '\u2aec', b'&Not;'),
+                ('&quot;', '"', b'"'),
+                ('&there4;', '\u2234', b'&there4;'),
+                ('&Therefore;', '\u2234', b'&there4;'),
+                ('&therefore;', '\u2234', b'&there4;'),
+                ("&fjlig;", 'fj', b'fj'),                
+                ("&sqcup;", '\u2294', b'&sqcup;'),
+                ("&sqcups;", '\u2294\ufe00', b'&sqcups;'),
+                ("&apos;", "'", b"'"),
+                ("&verbar;", "|", b"|"),
+        ):
+            markup = '<div>%s</div>' % input_element
+            div = self.soup(markup).div
+            without_element = div.encode()
+            expect = b"<div>%s</div>" % output_unicode.encode("utf8")
+            self.assertEqual(without_element, expect)
+
+            with_element = div.encode(formatter="html")
+            expect = b"<div>%s</div>" % output_element
+            self.assertEqual(with_element, expect)

@@ -8,6 +8,7 @@ import pickle
 import copy
 import functools
 import unittest
+import warnings
 from unittest import TestCase
 from bs4 import BeautifulSoup
 from bs4.element import (
@@ -15,7 +16,10 @@ from bs4.element import (
     Comment,
     ContentMetaAttributeValue,
     Doctype,
+    PYTHON_SPECIFIC_ENCODINGS,
     SoupStrainer,
+    Script,
+    Stylesheet,
     Tag
 )
 
@@ -83,8 +87,22 @@ class SoupTest(unittest.TestCase):
         if compare_parsed_to is None:
             compare_parsed_to = to_parse
 
+        # Verify that the documents come out the same.
         self.assertEqual(obj.decode(), self.document_for(compare_parsed_to))
 
+        # Also run some checks on the BeautifulSoup object itself:
+
+        # Verify that every tag that was opened was eventually closed.
+
+        # There are no tags in the open tag counter.
+        assert all(v==0 for v in list(obj.open_tag_counter.values()))
+
+        # The only tag in the tag stack is the one for the root
+        # document.
+        self.assertEqual(
+            [obj.ROOT_TAG_NAME], [x.name for x in obj.tagStack]
+        )
+        
     def assertConnectedness(self, element):
         """Ensure that next_element and previous_element are properly
         set for all descendants of the given element.
@@ -211,7 +229,41 @@ class SoupTest(unittest.TestCase):
             return child
 
 
-class HTMLTreeBuilderSmokeTest(object):
+class TreeBuilderSmokeTest(object):
+    # Tests that are common to HTML and XML tree builders.
+
+    def test_fuzzed_input(self):
+        # This test centralizes in one place the various fuzz tests
+        # for Beautiful Soup created by the oss-fuzz project.
+        
+        # These strings superficially resemble markup, but they
+        # generally can't be parsed into anything. The best we can
+        # hope for is that parsing these strings won't crash the
+        # parser.
+        #
+        # n.b. This markup is commented out because these fuzz tests
+        # _do_ crash the parser. However the crashes are due to bugs
+        # in html.parser, not Beautiful Soup -- otherwise I'd fix the
+        # bugs!
+        
+        bad_markup = [
+            # https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=28873
+            # https://github.com/guidovranken/python-library-fuzzers/blob/master/corp-html/519e5b4269a01185a0d5e76295251921da2f0700
+            # https://bugs.python.org/issue37747
+            #
+            #b'\n<![\xff\xfe\xfe\xcd\x00',
+
+            #https://github.com/guidovranken/python-library-fuzzers/blob/master/corp-html/de32aa55785be29bbc72a1a8e06b00611fb3d9f8
+            # https://bugs.python.org/issue34480
+            #
+            #b'<![n\x00'
+        ]
+        for markup in bad_markup:
+            with warnings.catch_warnings(record=False):
+                soup = self.soup(markup)
+        
+
+class HTMLTreeBuilderSmokeTest(TreeBuilderSmokeTest):
 
     """A basic test of a treebuilder's competence.
 
@@ -233,6 +285,22 @@ class HTMLTreeBuilderSmokeTest(object):
             new_tag = soup.new_tag(name)
             self.assertEqual(True, new_tag.is_empty_element)
 
+    def test_special_string_containers(self):
+        soup = self.soup(
+            "<style>Some CSS</style><script>Some Javascript</script>"
+        )
+        assert isinstance(soup.style.string, Stylesheet)
+        assert isinstance(soup.script.string, Script)
+
+        soup = self.soup(
+            "<style><!--Some CSS--></style>"
+        )
+        assert isinstance(soup.style.string, Stylesheet)
+        # The contents of the style tag resemble an HTML comment, but
+        # it's not treated as a comment.
+        self.assertEqual("<!--Some CSS-->", soup.style.string)
+        assert isinstance(soup.style.string, Stylesheet)
+        
     def test_pickle_and_unpickle_identity(self):
         # Pickling a tree, then unpickling it, yields a tree identical
         # to the original.
@@ -250,18 +318,21 @@ class HTMLTreeBuilderSmokeTest(object):
         doctype = soup.contents[0]
         self.assertEqual(doctype.__class__, Doctype)
         self.assertEqual(doctype, doctype_fragment)
-        self.assertEqual(str(soup)[:len(doctype_str)], doctype_str)
+        self.assertEqual(
+            soup.encode("utf8")[:len(doctype_str)],
+            doctype_str
+        )
 
         # Make sure that the doctype was correctly associated with the
         # parse tree and that the rest of the document parsed.
         self.assertEqual(soup.p.contents[0], 'foo')
 
-    def _document_with_doctype(self, doctype_fragment):
+    def _document_with_doctype(self, doctype_fragment, doctype_string="DOCTYPE"):
         """Generate and parse a document with the given doctype."""
-        doctype = '<!DOCTYPE %s>' % doctype_fragment
+        doctype = '<!%s %s>' % (doctype_string, doctype_fragment)
         markup = doctype + '\n<p>foo</p>'
         soup = self.soup(markup)
-        return doctype, soup
+        return doctype.encode("utf8"), soup
 
     def test_normal_doctypes(self):
         """Make sure normal, everyday HTML doctypes are handled correctly."""
@@ -274,6 +345,27 @@ class HTMLTreeBuilderSmokeTest(object):
         doctype = soup.contents[0]
         self.assertEqual("", doctype.strip())
 
+    def test_mixed_case_doctype(self):
+        # A lowercase or mixed-case doctype becomes a Doctype.
+        for doctype_fragment in ("doctype", "DocType"):
+            doctype_str, soup = self._document_with_doctype(
+                "html", doctype_fragment
+            )
+
+            # Make sure a Doctype object was created and that the DOCTYPE
+            # is uppercase.
+            doctype = soup.contents[0]
+            self.assertEqual(doctype.__class__, Doctype)
+            self.assertEqual(doctype, "html")
+            self.assertEqual(
+                soup.encode("utf8")[:len(doctype_str)],
+                b"<!DOCTYPE html>"
+            )
+
+            # Make sure that the doctype was correctly associated with the
+            # parse tree and that the rest of the document parsed.
+            self.assertEqual(soup.p.contents[0], 'foo')
+        
     def test_public_doctype_with_url(self):
         doctype = 'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"'
         self.assertDoctypeHandled(doctype)
@@ -532,7 +624,7 @@ Hello, world!
         self.assertSoupEquals("&#10000000000000;", expect)
         self.assertSoupEquals("&#x10000000000000;", expect)
         self.assertSoupEquals("&#1000000000;", expect)
-        
+       
     def test_multipart_strings(self):
         "Mostly to prevent a recurrence of a bug in the html5lib treebuilder."
         soup = self.soup("<html><h2>\nfoo</h2><p></p></html>")
@@ -594,7 +686,7 @@ Hello, world!
         markup = b'<a class="foo bar">'
         soup = self.soup(markup)
         self.assertEqual(['foo', 'bar'], soup.a['class'])
-
+        
     #
     # Generally speaking, tests below this point are more tests of
     # Beautiful Soup than tests of the tree builders. But parsers are
@@ -779,11 +871,44 @@ Hello, world!
         # encoding.
         self.assertEqual('utf8', charset.encode("utf8"))
 
+    def test_python_specific_encodings_not_used_in_charset(self):
+        # You can encode an HTML document using a Python-specific
+        # encoding, but that encoding won't be mentioned _inside_ the
+        # resulting document. Instead, the document will appear to
+        # have no encoding.
+        for markup in [
+            b'<meta charset="utf8"></head>'
+            b'<meta id="encoding" charset="utf-8" />'
+        ]:
+            soup = self.soup(markup)
+            for encoding in PYTHON_SPECIFIC_ENCODINGS:
+                if encoding in (
+                    'idna', 'mbcs', 'oem', 'undefined',
+                    'string_escape', 'string-escape'
+                ):
+                    # For one reason or another, these will raise an
+                    # exception if we actually try to use them, so don't
+                    # bother.
+                    continue
+                encoded = soup.encode(encoding)
+                assert b'meta charset=""' in encoded
+                assert encoding.encode("ascii") not in encoded
+        
     def test_tag_with_no_attributes_can_have_attributes_added(self):
         data = self.soup("<a>text</a>")
         data.a['foo'] = 'bar'
         self.assertEqual('<a foo="bar">text</a>', data.a.decode())
 
+    def test_closing_tag_with_no_opening_tag(self):
+        # Without BeautifulSoup.open_tag_counter, the </span> tag will
+        # cause _popToTag to be called over and over again as we look
+        # for a <span> tag that wasn't there. The result is that 'text2'
+        # will show up outside the body of the document.
+        soup = self.soup("<body><div><p>text1</p></span>text2</div></body>")
+        self.assertEqual(
+            "<body><div><p>text1</p>text2</div></body>", soup.body.decode()
+        )
+        
     def test_worst_case(self):
         """Test the worst case (currently) for linking issues."""
 
@@ -791,7 +916,7 @@ Hello, world!
         self.linkage_validator(soup)
 
 
-class XMLTreeBuilderSmokeTest(object):
+class XMLTreeBuilderSmokeTest(TreeBuilderSmokeTest):
 
     def test_pickle_and_unpickle_identity(self):
         # Pickling a tree, then unpickling it, yields a tree identical
@@ -812,6 +937,25 @@ class XMLTreeBuilderSmokeTest(object):
         soup = self.soup(markup)
         self.assertEqual(markup, soup.encode("utf8"))
 
+    def test_python_specific_encodings_not_used_in_xml_declaration(self):
+        # You can encode an XML document using a Python-specific
+        # encoding, but that encoding won't be mentioned _inside_ the
+        # resulting document.
+        markup = b"""<?xml version="1.0"?>\n<foo/>"""
+        soup = self.soup(markup)
+        for encoding in PYTHON_SPECIFIC_ENCODINGS:
+            if encoding in (
+                'idna', 'mbcs', 'oem', 'undefined',
+                'string_escape', 'string-escape'
+            ):
+                # For one reason or another, these will raise an
+                # exception if we actually try to use them, so don't
+                # bother.
+                continue
+            encoded = soup.encode(encoding)
+            assert b'<?xml version="1.0"?>' in encoded
+            assert encoding.encode("ascii") not in encoded
+
     def test_processing_instruction(self):
         markup = b"""<?xml version="1.0" encoding="utf8"?>\n<?PITarget PIContent?>"""
         soup = self.soup(markup)
@@ -828,7 +972,7 @@ class XMLTreeBuilderSmokeTest(object):
         soup = self.soup(markup)
         self.assertEqual(
             soup.encode("utf-8"), markup)
-
+       
     def test_nested_namespaces(self):
         doc = b"""<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">

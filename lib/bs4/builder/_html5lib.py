@@ -39,7 +39,18 @@ except ImportError as e:
     new_html5lib = True
 
 class HTML5TreeBuilder(HTMLTreeBuilder):
-    """Use html5lib to build a tree."""
+    """Use html5lib to build a tree.
+
+    Note that this TreeBuilder does not support some features common
+    to HTML TreeBuilders. Some of these features could theoretically
+    be implemented, but at the very least it's quite difficult,
+    because html5lib moves the parse tree around as it's being built.
+
+    * This TreeBuilder doesn't use different subclasses of NavigableString
+      based on the name of the tag in which the string was found.
+
+    * You can't use a SoupStrainer to parse only part of a document.
+    """
 
     NAME = "html5lib"
 
@@ -116,6 +127,9 @@ class TreeBuilderForHtml5lib(treebuilder_base.TreeBuilder):
                 "", "html.parser", store_line_numbers=store_line_numbers,
                 **kwargs
             )
+        # TODO: What are **kwargs exactly? Should they be passed in
+        # here in addition to/instead of being passed to the BeautifulSoup
+        # constructor?
         super(TreeBuilderForHtml5lib, self).__init__(namespaceHTMLElements)
 
         # This will be set later to an html5lib.html5parser.HTMLParser
@@ -316,9 +330,7 @@ class Element(treebuilder_base.Node):
         return AttrList(self.element)
 
     def setAttributes(self, attributes):
-
         if attributes is not None and len(attributes) > 0:
-
             converted_attributes = []
             for name, value in list(attributes.items()):
                 if isinstance(name, tuple):
@@ -363,9 +375,9 @@ class Element(treebuilder_base.Node):
 
     def reparentChildren(self, new_parent):
         """Move all of this tag's children into another tag."""
-        # print "MOVE", self.element.contents
-        # print "FROM", self.element
-        # print "TO", new_parent.element
+        # print("MOVE", self.element.contents)
+        # print("FROM", self.element)
+        # print("TO", new_parent.element)
 
         element = self.element
         new_parent_element = new_parent.element
@@ -423,9 +435,9 @@ class Element(treebuilder_base.Node):
         element.contents = []
         element.next_element = final_next_element
 
-        # print "DONE WITH MOVE"
-        # print "FROM", self.element
-        # print "TO", new_parent_element
+        # print("DONE WITH MOVE")
+        # print("FROM", self.element)
+        # print("TO", new_parent_element)
 
     def cloneNode(self):
         tag = self.soup.new_tag(self.element.name, self.namespace)

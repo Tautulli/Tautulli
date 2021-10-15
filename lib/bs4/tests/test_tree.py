@@ -27,13 +27,17 @@ from bs4.element import (
     Doctype,
     Formatter,
     NavigableString,
+    Script,
     SoupStrainer,
+    Stylesheet,
     Tag,
+    TemplateString,
 )
 from bs4.testing import (
     SoupTest,
     skipIf,
 )
+from soupsieve import SelectorSyntaxError
 
 XML_BUILDER_PRESENT = (builder_registry.lookup("xml") is not None)
 LXML_PRESENT = (builder_registry.lookup("lxml") is not None)
@@ -1005,6 +1009,15 @@ class TestTreeModification(SoupTest):
         soup.a.extend(l)
         self.assertEqual("<a><g></g><f></f><e></e><d></d><c></c><b></b></a>", soup.decode())
 
+    def test_extend_with_another_tags_contents(self):
+        data = '<body><div id="d1"><a>1</a><a>2</a><a>3</a><a>4</a></div><div id="d2"></div></body>'
+        soup = self.soup(data)
+        d1 = soup.find('div', id='d1')
+        d2 = soup.find('div', id='d2')
+        d2.extend(d1)
+        self.assertEqual('<div id="d1"></div>', d1.decode())
+        self.assertEqual('<div id="d2"><a>1</a><a>2</a><a>3</a><a>4</a></div>', d2.decode())
+        
     def test_move_tag_to_beginning_of_parent(self):
         data = "<a><b></b><c></c><d></d></a>"
         soup = self.soup(data)
@@ -1117,6 +1130,37 @@ class TestTreeModification(SoupTest):
         self.assertEqual(no.next_element, "no")
         self.assertEqual(no.next_sibling, " business")
 
+    def test_replace_with_errors(self):
+        # Can't replace a tag that's not part of a tree.
+        a_tag = Tag(name="a")
+        self.assertRaises(ValueError, a_tag.replace_with, "won't work")
+
+        # Can't replace a tag with its parent.
+        a_tag = self.soup("<a><b></b></a>").a
+        self.assertRaises(ValueError, a_tag.b.replace_with, a_tag)
+
+        # Or with a list that includes its parent.
+        self.assertRaises(ValueError, a_tag.b.replace_with,
+                          "string1", a_tag, "string2")
+        
+    def test_replace_with_multiple(self):
+        data = "<a><b></b><c></c></a>"
+        soup = self.soup(data)
+        d_tag = soup.new_tag("d")
+        d_tag.string = "Text In D Tag"
+        e_tag = soup.new_tag("e")
+        f_tag = soup.new_tag("f")
+        a_string = "Random Text"
+        soup.c.replace_with(d_tag, e_tag, a_string, f_tag)
+        self.assertEqual(
+            "<a><b></b><d>Text In D Tag</d><e></e>Random Text<f></f></a>",
+            soup.decode()
+        )
+        assert soup.b.next_element == d_tag
+        assert d_tag.string.next_element==e_tag
+        assert e_tag.next_element.string == a_string
+        assert e_tag.next_element.next_element == f_tag
+        
     def test_replace_first_child(self):
         data = "<a><b></b><c></c></a>"
         soup = self.soup(data)
@@ -1275,6 +1319,23 @@ class TestTreeModification(SoupTest):
         a.clear(decompose=True)
         self.assertEqual(0, len(em.contents))
 
+       
+    def test_decompose(self):
+        # Test PageElement.decompose() and PageElement.decomposed
+        soup = self.soup("<p><a>String <em>Italicized</em></a></p><p>Another para</p>")
+        p1, p2 = soup.find_all('p')
+        a = p1.a
+        text = p1.em.string
+        for i in [p1, p2, a, text]:
+            self.assertEqual(False, i.decomposed)
+
+        # This sets p1 and everything beneath it to decomposed.
+        p1.decompose()
+        for i in [p1, a, text]:
+            self.assertEqual(True, i.decomposed)
+        # p2 is unaffected.
+        self.assertEqual(False, p2.decomposed)
+            
     def test_string_set(self):
         """Tag.string = 'string'"""
         soup = self.soup("<a></a> <b><c></c></b>")
@@ -1391,7 +1452,7 @@ class TestElementObjects(SoupTest):
         self.assertEqual(soup.a.get_text(","), "a,r, , t ")
         self.assertEqual(soup.a.get_text(",", strip=True), "a,r,t")
 
-    def test_get_text_ignores_comments(self):
+    def test_get_text_ignores_special_string_containers(self):
         soup = self.soup("foo<!--IGNORE-->bar")
         self.assertEqual(soup.get_text(), "foobar")
 
@@ -1400,9 +1461,50 @@ class TestElementObjects(SoupTest):
         self.assertEqual(
             soup.get_text(types=None), "fooIGNOREbar")
 
-    def test_all_strings_ignores_comments(self):
+        soup = self.soup("foo<style>CSS</style><script>Javascript</script>bar")
+        self.assertEqual(soup.get_text(), "foobar")
+        
+    def test_all_strings_ignores_special_string_containers(self):
         soup = self.soup("foo<!--IGNORE-->bar")
         self.assertEqual(['foo', 'bar'], list(soup.strings))
+
+        soup = self.soup("foo<style>CSS</style><script>Javascript</script>bar")
+        self.assertEqual(['foo', 'bar'], list(soup.strings))
+
+    def test_string_methods_inside_special_string_container_tags(self):
+        # Strings inside tags like <script> are generally ignored by
+        # methods like get_text, because they're not what humans
+        # consider 'text'. But if you call get_text on the <script>
+        # tag itself, those strings _are_ considered to be 'text',
+        # because there's nothing else you might be looking for.
+        
+        style = self.soup("<div>a<style>Some CSS</style></div>")
+        template = self.soup("<div>a<template><p>Templated <b>text</b>.</p><!--With a comment.--></template></div>")
+        script = self.soup("<div>a<script><!--a comment-->Some text</script></div>")
+        
+        self.assertEqual(style.div.get_text(), "a")
+        self.assertEqual(list(style.div.strings), ["a"])
+        self.assertEqual(style.div.style.get_text(), "Some CSS")
+        self.assertEqual(list(style.div.style.strings),
+                         ['Some CSS'])
+        
+        # The comment is not picked up here. That's because it was
+        # parsed into a Comment object, which is not considered
+        # interesting by template.strings.
+        self.assertEqual(template.div.get_text(), "a")
+        self.assertEqual(list(template.div.strings), ["a"])
+        self.assertEqual(template.div.template.get_text(), "Templated text.")
+        self.assertEqual(list(template.div.template.strings),
+                         ["Templated ", "text", "."])
+
+        # The comment is included here, because it didn't get parsed
+        # into a Comment object--it's part of the Script string.
+        self.assertEqual(script.div.get_text(), "a")
+        self.assertEqual(list(script.div.strings), ["a"])
+        self.assertEqual(script.div.script.get_text(),
+                         "<!--a comment-->Some text")
+        self.assertEqual(list(script.div.script.strings),
+                         ['<!--a comment-->Some text'])
 
 class TestCDAtaListAttributes(SoupTest):
 
@@ -1775,71 +1877,7 @@ class TestEncoding(SoupTest):
         else:
             self.assertEqual(b'<b>\\u2603</b>', repr(soup))
 
-class TestFormatter(SoupTest):
-
-    def test_sort_attributes(self):
-        # Test the ability to override Formatter.attributes() to,
-        # e.g., disable the normal sorting of attributes.
-        class UnsortedFormatter(Formatter):
-            def attributes(self, tag):
-                self.called_with = tag
-                for k, v in sorted(tag.attrs.items()):
-                    if k == 'ignore':
-                        continue
-                    yield k,v
-
-        soup = self.soup('<p cval="1" aval="2" ignore="ignored"></p>')
-        formatter = UnsortedFormatter()
-        decoded = soup.decode(formatter=formatter)
-
-        # attributes() was called on the <p> tag. It filtered out one
-        # attribute and sorted the other two.
-        self.assertEqual(formatter.called_with, soup.p)
-        self.assertEqual('<p aval="2" cval="1"></p>', decoded)
-
-
-class TestNavigableStringSubclasses(SoupTest):
-
-    def test_cdata(self):
-        # None of the current builders turn CDATA sections into CData
-        # objects, but you can create them manually.
-        soup = self.soup("")
-        cdata = CData("foo")
-        soup.insert(1, cdata)
-        self.assertEqual(str(soup), "<![CDATA[foo]]>")
-        self.assertEqual(soup.find(text="foo"), "foo")
-        self.assertEqual(soup.contents[0], "foo")
-
-    def test_cdata_is_never_formatted(self):
-        """Text inside a CData object is passed into the formatter.
-
-        But the return value is ignored.
-        """
-
-        self.count = 0
-        def increment(*args):
-            self.count += 1
-            return "BITTER FAILURE"
-
-        soup = self.soup("")
-        cdata = CData("<><><>")
-        soup.insert(1, cdata)
-        self.assertEqual(
-            b"<![CDATA[<><><>]]>", soup.encode(formatter=increment))
-        self.assertEqual(1, self.count)
-
-    def test_doctype_ends_in_newline(self):
-        # Unlike other NavigableString subclasses, a DOCTYPE always ends
-        # in a newline.
-        doctype = Doctype("foo")
-        soup = self.soup("")
-        soup.insert(1, doctype)
-        self.assertEqual(soup.encode(), b"<!DOCTYPE foo>\n")
-
-    def test_declaration(self):
-        d = Declaration("foo")
-        self.assertEqual("<?foo?>", d.output_ready())
-
+        
 class TestSoupSelector(TreeTest):
 
     HTML = """
@@ -1949,7 +1987,7 @@ class TestSoupSelector(TreeTest):
         self.assertEqual(len(self.soup.select('del')), 0)
 
     def test_invalid_tag(self):
-        self.assertRaises(SyntaxError, self.soup.select, 'tag%t')
+        self.assertRaises(SelectorSyntaxError, self.soup.select, 'tag%t')
 
     def test_select_dashed_tag_ids(self):
         self.assertSelects('custom-dashed-tag', ['dash1', 'dash2'])
@@ -2140,7 +2178,7 @@ class TestSoupSelector(TreeTest):
             NotImplementedError, self.soup.select, "a:no-such-pseudoclass")
 
         self.assertRaises(
-            SyntaxError, self.soup.select, "a:nth-of-type(a)")
+            SelectorSyntaxError, self.soup.select, "a:nth-of-type(a)")
 
     def test_nth_of_type(self):
         # Try to select first paragraph
@@ -2196,7 +2234,7 @@ class TestSoupSelector(TreeTest):
         self.assertEqual([], self.soup.select('#inner ~ h2'))
 
     def test_dangling_combinator(self):
-        self.assertRaises(SyntaxError, self.soup.select, 'h1 >')
+        self.assertRaises(SelectorSyntaxError, self.soup.select, 'h1 >')
 
     def test_sibling_combinator_wont_select_same_tag_twice(self):
         self.assertSelects('p[lang] ~ p', ['lang-en-gb', 'lang-en-us', 'lang-fr'])
@@ -2227,8 +2265,8 @@ class TestSoupSelector(TreeTest):
         self.assertSelects('div x,y,  z', ['xid', 'yid', 'zida', 'zidb', 'zidab', 'zidac'])
 
     def test_invalid_multiple_select(self):
-        self.assertRaises(SyntaxError, self.soup.select, ',x, y')
-        self.assertRaises(SyntaxError, self.soup.select, 'x,,y')
+        self.assertRaises(SelectorSyntaxError, self.soup.select, ',x, y')
+        self.assertRaises(SelectorSyntaxError, self.soup.select, 'x,,y')
 
     def test_multiple_select_attrs(self):
         self.assertSelects('p[lang=en], p[lang=en-gb]', ['lang-en', 'lang-en-gb'])
