@@ -764,6 +764,8 @@ class RecentlyAdded(Newsletter):
                 for (index, title), children in groupby(filtered_children,
                                                         key=lambda x: (x['parent_media_index'], x['parent_title'])):
                     episodes = list(children)
+                    #TODO  How do we want to display the episode range in the newsletter
+                    
                     num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in episodes])
 
                     seasons.append({'media_index': index,

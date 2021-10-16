@@ -732,9 +732,14 @@ DOCUMENTATION :: END
 % if metadata:
 <%
     data = defaultdict(None, **metadata)
+    episode = ''
     season = ''
     if data['media_type'] == 'episode':
         season = short_season(data['parent_title'])
+        if data['media_index']:
+            episode = data['media_index']
+        else:
+            episode = format_date_based_show(data['originally_available_at'])
     elif data['media_type'] == 'season':
         season = short_season(data['title'])
 %>
@@ -778,7 +783,7 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'season':
                         ${data['parent_title']}<br />${data['title']}
                         % elif data['media_type'] == 'episode':
-                        ${data['grandparent_title']}<br />${data['title']}<br />${season} &middot; E${data['media_index']}
+                        ${data['grandparent_title']}<br />${data['title']}<br />${season} &middot; E${episode}
                         % elif data['media_type'] == 'artist':
                         ${data['title']}
                         % elif data['media_type'] == 'album':
