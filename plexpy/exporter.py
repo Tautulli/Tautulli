@@ -840,11 +840,16 @@ class Export(object):
                     'name': None,
                     'locked': None
                 },
+                'formats': {
+                    'id': None,
+                    'tag': None
+                },
                 'genres': {
                     'id': None,
                     'tag': None
                 },
                 'guid': None,
+                'hasSonicAnalysis': None,
                 'index': None,
                 'key': None,
                 'labels': {
@@ -862,6 +867,7 @@ class Export(object):
                     'id': None,
                     'tag': None
                 },
+                'musicAnalysisVersion': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
                 'parentGuid': None,
                 'parentKey': None,
@@ -872,6 +878,10 @@ class Export(object):
                 'ratingKey': None,
                 'studio': None,
                 'styles': {
+                    'id': None,
+                    'tag': None
+                },
+                'subformats': {
                     'id': None,
                     'tag': None
                 },
@@ -914,6 +924,7 @@ class Export(object):
                 'grandparentThumb': None,
                 'grandparentTitle': None,
                 'guid': None,
+                'hasSonicAnalysis': None,
                 'index': None,
                 'key': None,
                 'lastRatedAt': helpers.datetime_to_iso,
@@ -1006,6 +1017,7 @@ class Export(object):
                     'id': None,
                     'tag': None
                 },
+                'musicAnalysisVersion': None,
                 'originalTitle': None,
                 'parentGuid': None,
                 'parentIndex': None,
@@ -1419,10 +1431,12 @@ class Export(object):
                     'rating', 'userRating', 'studio', 'year',
                     'summary', 'guid', 'type', 'index',
                     'parentTitle', 'parentRatingKey', 'parentGuid',
+                    'hasSonicAnalysis',
                     'tracks'
                 ],
                 2: [
-                    'collections.tag', 'genres.tag', 'labels.tag', 'moods.tag', 'styles.tag',
+                    'collections.tag', 'formats.tag', 'genres.tag', 'labels.tag',
+                    'moods.tag', 'styles.tag', 'subformats.tag',
                     'fields.name', 'fields.locked'
                 ],
                 3: [
@@ -1443,7 +1457,8 @@ class Export(object):
                     'userRating', 'ratingCount',
                     'summary', 'guid', 'duration', 'durationHuman', 'type', 'trackNumber',
                     'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
-                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
+                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid',
+                    'hasSonicAnalysis'
                 ],
                 2: [
                     'collections.tag', 'moods.tag',
