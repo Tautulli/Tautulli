@@ -1014,6 +1014,134 @@ class DataFactory(object):
 
         return library_stats
 
+    def get_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None):
+        if rating_key is None:
+            return []
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        if query_days and query_days is not None:
+            query_days = map(helpers.cast_to_int, str(query_days).split(','))
+        else:
+            query_days = [1, 7, 30, 0]
+
+        timestamp = helpers.timestamp()
+
+        monitor_db = database.MonitorDatabase()
+
+        item_watch_time_stats = []
+
+        if media_type in ('show', 'artist'):
+            media_type_key = 'session_history.grandparent_rating_key'
+        elif media_type in ('season', 'album'):
+            media_type_key = 'session_history.parent_rating_key'
+        else:  # movie, episode, track
+            media_type_key = 'session_history.rating_key'
+
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+
+        for days in query_days:
+            timestamp_query = timestamp - days * 24 * 60 * 60
+
+            try:
+                if days > 0:
+                    if str(rating_key).isdigit():
+                        query = 'SELECT (SUM(stopped - started) - ' \
+                                'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                                'COUNT(DISTINCT %s) AS total_plays ' \
+                                'FROM session_history ' \
+                                'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                                'WHERE stopped >= %s ' \
+                                'AND %s = ?' % (group_by, timestamp_query, media_type_key)
+                        result = monitor_db.select(query, args=[rating_key])
+                    else:
+                        result = []
+                else:
+                    if str(rating_key).isdigit():
+                        query = 'SELECT (SUM(stopped - started) - ' \
+                                'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                                'COUNT(DISTINCT %s) AS total_plays ' \
+                                'FROM session_history ' \
+                                'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                                'WHERE %s = ?' % (group_by, media_type_key)
+                        result = monitor_db.select(query, args=[rating_key])
+                    else:
+                        result = []
+            except Exception as e:
+                logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
+                result = []
+
+            for item in result:
+                if item['total_time']:
+                    total_time = item['total_time']
+                    total_plays = item['total_plays']
+                else:
+                    total_time = 0
+                    total_plays = 0
+
+                row = {'query_days': days,
+                       'total_time': total_time,
+                       'total_plays': total_plays
+                       }
+
+                item_watch_time_stats.append(row)
+
+        return item_watch_time_stats
+
+    def get_user_stats(self, rating_key=None, media_type=None, grouping=None):
+        if grouping is None:
+            grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
+
+        monitor_db = database.MonitorDatabase()
+
+        user_stats = []
+
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+        
+        if media_type in ('show', 'artist'):
+            media_type_key = 'session_history.grandparent_rating_key'
+        elif media_type in ('season', 'album'):
+            media_type_key = 'session_history.parent_rating_key'
+        else:  # movie, episode, track
+            media_type_key = 'session_history.rating_key'
+
+        try:
+            if str(rating_key).isdigit():
+                query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
+                        'THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
+                        'users.user_id, users.username, users.thumb, users.custom_avatar_url AS custom_thumb, ' \
+                        'COUNT(DISTINCT %s) AS user_count ' \
+                        'FROM session_history ' \
+                        'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
+                        'JOIN users ON users.user_id = session_history.user_id ' \
+                        'WHERE %s = ? ' \
+                        'GROUP BY users.user_id ' \
+                        'ORDER BY user_count DESC' % (group_by, media_type_key)
+                result = monitor_db.select(query, args=[rating_key])
+            else:
+                result = []
+        except Exception as e:
+            logger.warn("Tautulli Libraries :: Unable to execute database query for get_user_stats: %s." % e)
+            result = []
+
+        for item in result:
+            if item['custom_thumb'] and item['custom_thumb'] != item['thumb']:
+                user_thumb = item['custom_thumb']
+            elif item['thumb']:
+                user_thumb = item['thumb']
+            else:
+                user_thumb = common.DEFAULT_USER_THUMB
+
+            row = {'friendly_name': item['friendly_name'],
+                   'user_id': item['user_id'],
+                   'user_thumb': user_thumb,
+                   'username': item['username'],
+                   'total_plays': item['user_count']
+                   }
+            user_stats.append(row)
+
+        return session.mask_session_info(user_stats, mask_metadata=False)
+
     def get_stream_details(self, row_id=None, session_key=None):
         monitor_db = database.MonitorDatabase()
 

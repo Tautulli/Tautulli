@@ -470,32 +470,6 @@ DOCUMENTATION :: END
                         <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading season list...</div>
                     </div>
                 </div>
-                <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
-                        </div>
-                    </div>
-                    <div class="table-card-back">
-                        <div id="watch-time-stats" class="user-overview-stats-wrapper">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span><i class="fa fa-group"></i> User Stats</span>
-                        </div>
-                    </div>
-                    <div class="table-card-back">
-                        <div id="user-stats" class="user-player">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
-                    </div>
-                </div>
                 % elif data['media_type'] == 'season':
                 <div class="col-md-12">
                     <div class="table-card-header">
@@ -505,33 +479,6 @@ DOCUMENTATION :: END
                     </div>
                     <div class="table-card-back">
                         <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading episode list...</div>
-                    </div>
-                </div>
-                % elif data['media_type'] == 'movie':
-                <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
-                        </div>
-                    </div>
-                    <div class="table-card-back">
-                        <div id="watch-time-stats" class="user-overview-stats-wrapper">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="table-card-header">
-                        <div class="header-bar">
-                            <span><i class="fa fa-group"></i> User Stats</span>
-                        </div>
-                    </div>
-                    <div class="table-card-back">
-                        <div id="user-stats" class="user-player">
-                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
-                            <br>
-                        </div>
                     </div>
                 </div>
                 % elif data['media_type'] == 'artist':
@@ -589,6 +536,34 @@ DOCUMENTATION :: END
                     </div>
                     <div class="table-card-back">
                         <div id="children-list" class="children-list"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading playlist items...</div>
+                    </div>
+                </div>
+                % endif
+                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-line-chart"></i> Global Stats</span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="watch-time-stats" class="user-overview-stats-wrapper">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="table-card-header">
+                        <div class="header-bar">
+                            <span><i class="fa fa-group"></i> User Stats</span>
+                        </div>
+                    </div>
+                    <div class="table-card-back">
+                        <div id="user-stats" class="user-player">
+                            <div class='muted'><i class="fa fa-refresh fa-spin"></i> Loading data...</div>
+                            <br>
+                        </div>
                     </div>
                 </div>
                 % endif
@@ -947,11 +922,11 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['media_type'] in ('show', 'movie'):
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
 <script>
     // Populate watch time stats
     $.ajax({
-        url: 'element_watch_time_stats',
+        url: 'item_watch_time_stats',
         async: true,
         data: { rating_key: "${data['rating_key']}", media_type: "${data['media_type']}" },
         complete: function(xhr, status) {
@@ -960,7 +935,7 @@ DOCUMENTATION :: END
     });
     // Populate user stats
     $.ajax({
-        url: 'element_user_stats',
+        url: 'item_user_stats',
         async: true,
         data: { rating_key: "${data['rating_key']}", media_type: "${data['media_type']}" },
         complete: function(xhr, status) {

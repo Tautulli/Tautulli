@@ -458,39 +458,7 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'Flush recently added failed.'}
 
-    ##### Indivial Elements (Might be put under Libraries) #####
-
-    @cherrypy.expose
-    @requireAuth()
-    def element_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
-        if rating_key:
-            element_data = libraries.Libraries()
-            result = element_data.get_element_watch_time_stats(rating_key=rating_key, media_type=media_type)
-        else:
-            result = None
-
-        if result:
-            return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
-        else:
-            logger.warn("Unable to retrieve data for element_watch_time_stats.")
-            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
-
-    @cherrypy.expose
-    @requireAuth()
-    def element_user_stats(self, rating_key=None, media_type=None, **kwargs):
-        if rating_key:
-            element_data = libraries.Libraries()
-            result = element_data.get_element_user_stats(rating_key=rating_key, media_type=media_type)
-        else:
-            result = None
-
-        if result:
-            return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
-        else:
-            logger.warn("Unable to retrieve data for element_user_stats.")
-            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
-
-
+ 
     ##### Libraries #####
 
     @cherrypy.expose
@@ -4526,6 +4494,136 @@ class WebInterface(object):
             return serve_template(templatename="info_collection_list.html", data=result, title=title)
         else:
             return serve_template(templatename="info_collection_list.html", data=None, title=title)
+
+    @cherrypy.expose
+    @requireAuth()
+    def item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
+        if rating_key:
+            item_data = datafactory.DataFactory()
+            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
+        else:
+            result = None
+
+        if result:
+            return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
+        else:
+            logger.warn("Unable to retrieve data for item_watch_time_stats.")
+            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi("get_item_watch_time_stats")
+    def get_item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
+        """  Get the watch time stats for the media item.
+
+            ```
+            Required parameters:
+                rating_key (str):       Rating key of the item
+                media_type (str):       Media type of the item
+
+            Optional parameters:
+                None
+
+        Returns:
+            json:
+                [
+                    {
+                        "query_days": 1,
+                        "total_time": 0,
+                        "total_plays": 0
+                    },
+                    {
+                        "query_days": 7,
+                        "total_time": 0,
+                        "total_plays": 0
+                    },
+                    {
+                        "query_days": 30,
+                        "total_time": 0,
+                        "total_plays": 0
+                    },
+                    {
+                        "query_days": 0,
+                        "total_time": 57776,
+                        "total_plays": 13
+                    }
+                ]
+            ```
+        """
+        if rating_key:
+            item_data = datafactory.DataFactory()
+            stats = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
+        else:
+            stats = None
+
+        if stats:
+            return stats
+        else:
+            logger.warn("Unable to retrieve data for get_item_watch_time_stats.")
+            return stats
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
+        if rating_key:
+            item_data = datafactory.DataFactory()
+            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
+        else:
+            result = None
+
+        if result:
+            return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
+        else:
+            logger.warn("Unable to retrieve data for item_user_stats.")
+            return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi("get_item_user_stats")
+    def get_item_user_stats(self, rating_key=None, media_type=None, **kwargs):
+        """  Get the user stats for the media item.
+
+            ```
+            Required parameters:
+                rating_key (str):       Rating key of the item
+                media_type (str):       Media type of the item
+
+            Optional parameters:
+                None
+
+        Returns:
+            json:
+                [
+                    {
+                        "friendly_name": "User A",
+                        "user_id": 12345678,
+                        "user_thumb": "",
+                        "username": "userA@mail.com",
+                        "total_plays": 6
+                    },
+                    {
+                        "friendly_name": "User B",
+                        "user_id": 12345678,
+                        "user_thumb": "",
+                        "username": "User B",
+                        "total_plays": 5
+                    }
+                ]
+            ```
+        """
+        if rating_key:
+            item_data = datafactory.DataFactory()
+            stats = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
+        else:
+            stats = None
+
+        if stats:
+            return stats
+        else:
+            logger.warn("Unable to retrieve data for get_item_user_stats.")
+            return stats
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
