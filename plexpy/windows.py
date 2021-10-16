@@ -17,7 +17,7 @@
 
 import os
 import sys
-from systray import SysTrayIcon
+from infi.systray import SysTrayIcon
 
 try:
     from shlex import quote as cmd_quote
