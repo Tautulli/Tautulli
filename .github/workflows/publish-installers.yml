@@ -53,7 +53,7 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Cache Dependencies
         uses: actions/cache@v2
