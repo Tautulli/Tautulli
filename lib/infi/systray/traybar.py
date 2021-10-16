@@ -174,9 +174,10 @@ class SysTrayIcon(object):
         # Try and find a custom icon
         hicon = 0
         if self._icon is not None and os.path.isfile(self._icon):
-            icon_flags = LR_LOADFROMFILE | LR_DEFAULTSIZE
+            ico_x = GetSystemMetrics(SM_CXSMICON)
+            ico_y = GetSystemMetrics(SM_CYSMICON)
             icon = encode_for_locale(self._icon)
-            hicon = self._hicon = LoadImage(0, icon, IMAGE_ICON, 0, 0, icon_flags)
+            hicon = self._hicon = LoadImage(0, icon, IMAGE_ICON, ico_x, ico_y, LR_LOADFROMFILE)
             self._icon_shared = False
 
         # Can't find icon file - using default shared icon
