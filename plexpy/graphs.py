@@ -425,7 +425,7 @@ class Graphs(object):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 12
-        timestamp = arrow.get(helpers.timestamp()).shift(months=-time_range).floor('month').timestamp
+        timestamp = arrow.get(helpers.timestamp()).shift(months=-time_range).floor('month').timestamp()
 
         user_cond = ''
         if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
