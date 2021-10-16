@@ -59,13 +59,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles(format('package/requirements-{0}.txt', matrix.os)) }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-package.txt') }}
           restore-keys: ${{ runner.os }}-pip-
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r package/requirements-${{ matrix.os }}.txt
+          pip install -r package/requirements-package.txt
 
       - name: Build Package
         run: |
