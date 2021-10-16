@@ -5,4 +5,7 @@ echo Press enter to continue, or CTRL + C to quit.
 pause
 
 cd ..\
+:: Remove *.pyc files
 del /S *.pyc
+:: Remove __pycache__ folders
+for /d /r . %%d in (__pycache__) do @if exist "%%d" rd /s /q "%%d"
