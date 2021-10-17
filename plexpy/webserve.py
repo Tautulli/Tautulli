@@ -458,7 +458,6 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'Flush recently added failed.'}
 
- 
     ##### Libraries #####
 
     @cherrypy.expose
@@ -4513,7 +4512,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi("get_item_watch_time_stats")
+    @addtoapi()
     def get_item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
         """  Get the watch time stats for the media item.
 
@@ -4525,30 +4524,30 @@ class WebInterface(object):
             Optional parameters:
                 None
 
-        Returns:
-            json:
-                [
-                    {
-                        "query_days": 1,
-                        "total_time": 0,
-                        "total_plays": 0
-                    },
-                    {
-                        "query_days": 7,
-                        "total_time": 0,
-                        "total_plays": 0
-                    },
-                    {
-                        "query_days": 30,
-                        "total_time": 0,
-                        "total_plays": 0
-                    },
-                    {
-                        "query_days": 0,
-                        "total_time": 57776,
-                        "total_plays": 13
-                    }
-                ]
+            Returns:
+                json:
+                    [
+                        {
+                            "query_days": 1,
+                            "total_time": 0,
+                            "total_plays": 0
+                        },
+                        {
+                            "query_days": 7,
+                            "total_time": 0,
+                            "total_plays": 0
+                        },
+                        {
+                            "query_days": 30,
+                            "total_time": 0,
+                            "total_plays": 0
+                        },
+                        {
+                            "query_days": 0,
+                            "total_time": 57776,
+                            "total_plays": 13
+                        }
+                    ]
             ```
         """
         if rating_key:
@@ -4564,7 +4563,7 @@ class WebInterface(object):
             return stats
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
+    @requireAuth()
     def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
@@ -4581,7 +4580,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi("get_item_user_stats")
+    @addtoapi()
     def get_item_user_stats(self, rating_key=None, media_type=None, **kwargs):
         """  Get the user stats for the media item.
 
@@ -4593,24 +4592,24 @@ class WebInterface(object):
             Optional parameters:
                 None
 
-        Returns:
-            json:
-                [
-                    {
-                        "friendly_name": "User A",
-                        "user_id": 12345678,
-                        "user_thumb": "",
-                        "username": "userA@mail.com",
-                        "total_plays": 6
-                    },
-                    {
-                        "friendly_name": "User B",
-                        "user_id": 12345678,
-                        "user_thumb": "",
-                        "username": "User B",
-                        "total_plays": 5
-                    }
-                ]
+            Returns:
+                json:
+                    [
+                        {
+                            "friendly_name": "Jon Snow",
+                            "user_id": 1601089,
+                            "user_thumb": "",
+                            "username": "jsnow@thewinteriscoming.com",
+                            "total_plays": 6
+                        },
+                        {
+                            "friendly_name": "DanyKhaleesi69",
+                            "user_id": 8008135,
+                            "user_thumb": "",
+                            "username": "DanyKhaleesi69",
+                            "total_plays": 5
+                        }
+                    ]
             ```
         """
         if rating_key:
