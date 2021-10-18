@@ -4575,7 +4575,7 @@ class WebInterface(object):
             return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
         else:
             logger.warn("Unable to retrieve data for item_user_stats.")
-            return result
+            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

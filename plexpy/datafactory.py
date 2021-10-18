@@ -1031,6 +1031,8 @@ class DataFactory(object):
 
         item_watch_time_stats = []
 
+        section_ids = set()
+
         if media_type in ('show', 'artist'):
             media_type_key = 'session_history.grandparent_rating_key'
         elif media_type in ('season', 'album'):
@@ -1048,7 +1050,7 @@ class DataFactory(object):
                     if str(rating_key).isdigit():
                         query = 'SELECT (SUM(stopped - started) - ' \
                                 'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
-                                'COUNT(DISTINCT %s) AS total_plays ' \
+                                'COUNT(DISTINCT %s) AS total_plays, section_id ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                                 'WHERE stopped >= %s ' \
@@ -1060,7 +1062,7 @@ class DataFactory(object):
                     if str(rating_key).isdigit():
                         query = 'SELECT (SUM(stopped - started) - ' \
                                 'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
-                                'COUNT(DISTINCT %s) AS total_plays ' \
+                                'COUNT(DISTINCT %s) AS total_plays, section_id ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                                 'WHERE %s = ?' % (group_by, media_type_key)
@@ -1072,6 +1074,8 @@ class DataFactory(object):
                 result = []
 
             for item in result:
+                section_ids.add(item['section_id'])
+
                 if item['total_time']:
                     total_time = item['total_time']
                     total_plays = item['total_plays']
@@ -1086,6 +1090,9 @@ class DataFactory(object):
 
                 item_watch_time_stats.append(row)
 
+        if any(not session.allow_session_library(section_id) for section_id in section_ids):
+            return []
+
         return item_watch_time_stats
 
     def get_user_stats(self, rating_key=None, media_type=None, grouping=None):
@@ -1096,7 +1103,7 @@ class DataFactory(object):
 
         user_stats = []
 
-        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+        section_ids = set()
         
         if media_type in ('show', 'artist'):
             media_type_key = 'session_history.grandparent_rating_key'
@@ -1105,12 +1112,14 @@ class DataFactory(object):
         else:  # movie, episode, track
             media_type_key = 'session_history.rating_key'
 
+        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+
         try:
             if str(rating_key).isdigit():
                 query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
                         'THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
                         'users.user_id, users.username, users.thumb, users.custom_avatar_url AS custom_thumb, ' \
-                        'COUNT(DISTINCT %s) AS user_count ' \
+                        'COUNT(DISTINCT %s) AS user_count, section_id ' \
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
@@ -1125,6 +1134,8 @@ class DataFactory(object):
             result = []
 
         for item in result:
+            section_ids.add(item['section_id'])
+
             if item['custom_thumb'] and item['custom_thumb'] != item['thumb']:
                 user_thumb = item['custom_thumb']
             elif item['thumb']:
@@ -1139,6 +1150,9 @@ class DataFactory(object):
                    'total_plays': item['user_count']
                    }
             user_stats.append(row)
+
+        if any(not session.allow_session_library(section_id) for section_id in section_ids):
+            return []
 
         return session.mask_session_info(user_stats, mask_metadata=False)
 
