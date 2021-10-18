@@ -18,7 +18,7 @@ gntp==1.0.3
 html5lib==1.1
 httpagentparser==1.9.1
 idna==3.3
-importlib-resources==5.2.2
+importlib-resources==5.2.3
 ipwhois==1.2.0
 IPy==1.01
 Mako==1.1.5
