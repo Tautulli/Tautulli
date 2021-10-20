@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -102,6 +102,8 @@ class DataFactory(object):
             'ip_address',
             'machine_id',
             'session_history.media_type',
+            '(CASE WHEN session_history_metadata.live = 1 THEN "live" ELSE session_history.media_type END) \
+             AS media_type_live',
             'session_history_metadata.rating_key',
             'session_history_metadata.parent_rating_key',
             'session_history_metadata.grandparent_rating_key',
@@ -155,6 +157,7 @@ class DataFactory(object):
                 'ip_address',
                 'machine_id',
                 'media_type',
+                '(CASE WHEN live = 1 THEN "live" ELSE media_type END) AS media_type_live',
                 'rating_key',
                 'parent_rating_key',
                 'grandparent_rating_key',
@@ -1267,7 +1270,9 @@ class DataFactory(object):
 
         try:
             query = 'SELECT SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - ' \
-                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration ' \
+                    'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration, ' \
+                    '(CASE WHEN session_history_metadata.live = 1 THEN "live" ELSE session_history.media_type END) ' \
+                    'AS media_type_live ' \
                     'FROM session_history ' \
                     'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                     'JOIN session_history_media_info ON session_history_media_info.id = session_history.id ' \
