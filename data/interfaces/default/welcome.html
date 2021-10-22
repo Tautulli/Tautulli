@@ -43,7 +43,7 @@
     % if plexpy.CONFIG.CHECK_DOCKER_MOUNT and plexpy.DOCKER and not plexpy.DOCKER_MOUNT:
     <div class="row">
         <div class="col-md-12">
-            <div class="alert alert-danger docker-mount" role="alert" style="width: 700px;">
+            <div class="alert alert-danger docker-mount" role="alert" style="width: 700px; z-index: 9999">
                 The <span class="inline-pre">/config</span> volume mount was not configured properly for the Docker container.
                 All data may be cleared when the container is recreated or updated.
             </div>
