@@ -96,7 +96,8 @@ class PmsConnect(object):
 
         self.request_handler = http_handler.HTTPHandler(urls=self.url,
                                                         token=self.token,
-                                                        timeout=self.timeout)
+                                                        timeout=self.timeout,
+                                                        ssl_verify=plexpy.CONFIG.VERIFY_SSL_CERT)
 
     def get_sessions(self, output_format=''):
         """
