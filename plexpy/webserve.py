@@ -42,6 +42,7 @@ from mako.lookup import TemplateLookup
 import mako.template
 import mako.exceptions
 
+import certifi
 import websocket
 
 if sys.version_info >= (3, 6):
@@ -4120,6 +4121,9 @@ class WebInterface(object):
                     {'identifier': '08u2phnlkdshf890bhdlksghnljsahgleikjfg9t'}
             ```
         """
+        # Backwards compatibility for the old "ssl" parameter, now "use_ssl"
+        use_ssl = helpers.cast_to_int(use_ssl) or helpers.cast_to_int(kwargs.get('ssl', 0))
+
         # Attempt to get the pms_identifier from plex.tv if the server is published
         # Works for all PMS SSL settings
         if not identifier and hostname and port:
@@ -4135,7 +4139,7 @@ class WebInterface(object):
             # Fallback to checking /identity endpoint if the server is unpublished
             # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
             if not identifier:
-                scheme = 'https' if helpers.cast_to_int(use_ssl) else 'http'
+                scheme = 'https' if use_ssl else 'http'
                 url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=hostname, port=port)
                 uri = '/identity'
 
@@ -4166,8 +4170,7 @@ class WebInterface(object):
                     ws_url = result['url'].replace('http', 'ws', 1) + '/:/websockets/notifications'
                     header = ['X-Plex-Token: %s' % plexpy.CONFIG.PMS_TOKEN]
                     # Enforce SSL as needed
-                    if plexpy.CONFIG.PMS_SSL and plexpy.CONFIG.PMS_URL[:5] == 'https':
-                        ws_url = ws_url.replace('ws://', 'wss://', 1)
+                    if use_ssl:
                         secure = 'secure '
                         if plexpy.CONFIG.VERIFY_SSL_CERT:
                             sslopt = {'ca_certs': certifi.where()}
