@@ -32,6 +32,10 @@ user_ip_table_options = {
         "loadingRecords": '<i class="fa fa-refresh fa-spin"></i> Loading items...</div>'
     },
     "stateSave": true,
+    "stateSaveParams": function (settings, data) {
+        data.search.search = "";
+        data.start = 0;
+    },
     "stateDuration": 0,
     "pagingType": "full_numbers",
     "processing": false,

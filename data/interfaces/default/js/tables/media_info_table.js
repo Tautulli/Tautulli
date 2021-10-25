@@ -25,6 +25,10 @@ media_info_table_options = {
     },
     "pagingType": "full_numbers",
     "stateSave": true,
+    "stateSaveParams": function (settings, data) {
+        data.search.search = "";
+        data.start = 0;
+    },
     "stateDuration": 0,
     "processing": false,
     "serverSide": true,

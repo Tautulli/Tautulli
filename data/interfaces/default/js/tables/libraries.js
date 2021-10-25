@@ -17,6 +17,10 @@ libraries_list_table_options = {
     "pageLength": 25,
     "order": [ 2, 'asc'],
     "stateSave": true,
+    "stateSaveParams": function (settings, data) {
+        data.search.search = "";
+        data.start = 0;
+    },
     "stateDuration": 0,
     "pagingType": "full_numbers",
     "autoWidth": false,
