@@ -3143,6 +3143,7 @@ class WebInterface(object):
             "https_ip": plexpy.CONFIG.HTTPS_IP,
             "http_base_url": plexpy.CONFIG.HTTP_BASE_URL,
             "anon_redirect": plexpy.CONFIG.ANON_REDIRECT,
+            "anon_redirect_dynamic": checked(plexpy.CONFIG.ANON_REDIRECT_DYNAMIC),
             "api_enabled": checked(plexpy.CONFIG.API_ENABLED),
             "api_key": plexpy.CONFIG.API_KEY,
             "update_db_interval": plexpy.CONFIG.UPDATE_DB_INTERVAL,
@@ -3265,7 +3266,8 @@ class WebInterface(object):
             "allow_guest_access", "cache_images", "http_proxy", "notify_concurrent_by_ip",
             "history_table_activity", "plexpy_auto_update",
             "themoviedb_lookup", "tvmaze_lookup", "musicbrainz_lookup", "http_plex_admin",
-            "newsletter_self_hosted", "newsletter_inline_styles", "sys_tray_icon"
+            "newsletter_self_hosted", "newsletter_inline_styles", "sys_tray_icon",
+            "anon_redirect_dynamic"
         ]
         for checked_config in checked_configs:
             if checked_config not in kwargs:

@@ -775,7 +775,31 @@ def anon_url(*url):
     """
     Return a URL string consisting of the Anonymous redirect URL and an arbitrary number of values appended.
     """
-    return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
+    if plexpy.CONFIG.ANON_REDIRECT_DYNAMIC:
+        cache_time = timestamp()
+        cache_filepath = os.path.join(plexpy.CONFIG.CACHE_DIR, 'anonymizer.json')
+        try:
+            with open(cache_filepath, 'r', encoding='utf-8') as cache_file:
+                cache_data = json.load(cache_file)
+                if cache_time - cache_data['_cache_time'] < 86400:  # 24 hours
+                    anon_redirect = cache_data['anon_redirect']
+                else:
+                    raise
+        except:
+            try:
+                anon_redirect = request.request_content('https://tautulli.com/anonymizer.txt').decode('utf-8')
+                cache_data = {
+                    'anon_redirect': anon_redirect,
+                    '_cache_time': cache_time
+                }
+                with open(cache_filepath, 'w', encoding='utf-8') as cache_file:
+                    json.dump(cache_data, cache_file)
+            except:
+                anon_redirect = plexpy.CONFIG.ANON_REDIRECT
+    else:
+        anon_redirect = plexpy.CONFIG.ANON_REDIRECT
+
+    return '' if None in url else '%s%s' % (anon_redirect, ''.join(str(s) for s in url))
 
 
 def get_img_service(include_self=False):

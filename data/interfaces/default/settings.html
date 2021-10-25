@@ -640,14 +640,25 @@
                             </div>
                         </div>
 
-                        <div class="form-group advanced-setting">
-                            <label for="anon_redirect">Anonymous Redirect</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" name="anon_redirect_dynamic" id="anon_redirect_dynamic" value="1" ${config['anon_redirect_dynamic']} /> Use Dynamic Anonymous Redirect Service
+                            </label>
+                            <p class="help-block">
+                                Allow Tautulli to use the dynamic anonymous redirect service listed <a href="${anon_url('https://tautulli.com/anonymizer.txt')}" target="_blank" rel="noreferrer">here</a>.
+                                Disable to specify your own service.
+                            </p>
+                        </div>
+                        <div id="anon_redirect_options">
+                            <div class="form-group advanced-setting">
+                                <label for="anon_redirect">Anonymous Redirect Service</label>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                    </div>
                                 </div>
+                                <p class="help-block">Backlink protection via anonymizer service, must end in "?". Leave blank to disable.</p>
                             </div>
-                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
                         </div>
 
                         <div class="padded-header">
@@ -2363,6 +2374,7 @@ $(document).ready(function() {
 
     initConfigCheckbox('#api_enabled');
     initConfigCheckbox('#enable_https');
+    initConfigCheckbox('#anon_redirect_dynamic', null, true);
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');
     initConfigCheckbox('#monitor_pms_updates');
