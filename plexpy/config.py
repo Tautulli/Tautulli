@@ -76,7 +76,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
-    'ANON_REDIRECT': (str, 'General', ''),
+    'ANON_REDIRECT': (str, 'General', 'https://url.rw/?'),
     'ANON_REDIRECT_DYNAMIC': (int, 'General', 1),
     'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
@@ -583,3 +583,9 @@ class Config(object):
             self.HTTP_HASHED_PASSWORD = 1
 
             self.CONFIG_VERSION = 20
+
+        if self.CONFIG_VERSION == 20:
+            self.ANON_REDIRECT = self.ANON_REDIRECT.replace('https://www.nullrefer.com/?',
+                                                            'https://url.rw/?')
+
+            self.CONFIG_VERSION = 21
