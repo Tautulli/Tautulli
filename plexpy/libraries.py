@@ -544,6 +544,8 @@ class Libraries(object):
 
             if rating_key:
                 library_children = pms_connect.get_library_children_details(rating_key=rating_key,
+                                                                            section_id=section_id,
+                                                                            section_type=section_type,
                                                                             get_media_info=True)
             elif section_id:
                 library_children = pms_connect.get_library_children_details(section_id=section_id,

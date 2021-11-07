@@ -144,7 +144,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_metadata_children(self, rating_key='', collection=False, output_format=''):
+    def get_metadata_children(self, rating_key='', section_id='', artist=False, collection=False, output_format=''):
         """
         Return metadata for children of the request item.
 
@@ -153,9 +153,14 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/library/{}/{}/children'.format(
-            'collections' if collection else 'metadata', rating_key
-        )
+        if artist:
+            uri = '/library/sections/{}/all?artist.id={}&type=9'.format(
+                section_id, rating_key
+            )
+        else:
+            uri = '/library/{}/{}/children'.format(
+                'collections' if collection else 'metadata', rating_key
+            )
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -2307,6 +2312,10 @@ class PmsConnect(object):
             children_data = self.get_metadata_children(rating_key, collection=True, output_format='xml')
         elif get_grandchildren:
             children_data = self.get_metadata_grandchildren(rating_key, output_format='xml')
+        elif media_type == 'artist':
+            artist_metadata = self.get_metadata_details(rating_key)
+            section_id = artist_metadata['section_id']
+            children_data = self.get_metadata_children(rating_key, section_id, artist=True, output_format='xml')
         else:
             children_data = self.get_metadata_children(rating_key, output_format='xml')
 
@@ -2636,10 +2645,11 @@ class PmsConnect(object):
         else:
             sort_type = ''
 
-        if str(section_id).isdigit():
+        if str(rating_key).isdigit():
+            _artist = section_type == 'album'
+            library_data = self.get_metadata_children(str(rating_key), str(section_id), artist=_artist, output_format='xml')
+        elif str(section_id).isdigit():
             library_data = self.get_library_list(str(section_id), list_type, count, sort_type, label_key, output_format='xml')
-        elif str(rating_key).isdigit():
-            library_data = self.get_metadata_children(str(rating_key), output_format='xml')
         else:
             logger.warn("Tautulli Pmsconnect :: get_library_children called by invalid section_id or rating_key provided.")
             return []
@@ -2988,8 +2998,19 @@ class PmsConnect(object):
                 logger.warn("Tautulli Pmsconnect :: Unable to get grandparent_rating_key for get_rating_keys_list: %s." % e)
                 return {}
 
+        elif media_type == 'artist':
+            try:
+                metadata = self.get_metadata_details(rating_key=rating_key)
+                section_id = metadata['section_id']
+                library_name = metadata['library_name']
+            except Exception as e:
+                logger.warn("Tautulli Pmsconnect :: Unable to get grandparent_rating_key for get_rating_keys_list: %s." % e)
+                return {}
+
+
         # get parent_rating_keys
-        metadata = self.get_metadata_children(str(rating_key), output_format='xml')
+        _artist = media_type in ('artist', 'album', 'track')
+        metadata = self.get_metadata_children(str(rating_key), str(section_id), artist=_artist, output_format='xml')
 
         try:
             xml_head = metadata.getElementsByTagName('MediaContainer')
