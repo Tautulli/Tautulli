@@ -108,7 +108,8 @@ AGENT_IDS = {'growl': 0,
              'webhook': 25,
              'plexmobileapp': 26,
              'lunasea': 27,
-             'microsoftteams': 28
+             'microsoftteams': 28,
+             'gotify': 29
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -149,6 +150,12 @@ def available_notification_agents():
                'name': 'facebook',
                'id': AGENT_IDS['facebook'],
                'class': FACEBOOK,
+               'action_types': ('all',)
+               },
+              {'label': 'Gotify',
+               'name': 'gotify',
+               'id': AGENT_IDS['gotify'],
+               'class': GOTIFY,
                'action_types': ('all',)
                },
               {'label': 'GroupMe',
@@ -1558,6 +1565,131 @@ class FACEBOOK(Notifier):
                           'value': self.config['music_provider'],
                           'name': 'facebook_music_provider',
                           'description': 'Select the source for music links on the info cards. Leave blank to disable.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
+                          }
+                         ]
+
+        return config_option
+
+
+class GOTIFY(Notifier):
+    """
+    Gotify notifications
+    """
+    NAME = 'Gotify'
+    _DEFAULT_CONFIG = {'host': '',
+                       'app_token': '',
+                       'priority': 0,
+                       'incl_subject': 1,
+                       'incl_poster': 0,
+                       'incl_url': 1,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        data = {
+            'extras': {
+                'client::display': {
+                    'contentType': 'text/markdown'
+                }
+            },
+            'message': body,
+            'priority': self.config['priority']
+        }
+
+        if self.config['incl_subject']:
+            data['title'] = subject
+
+        headers = {'X-Gotify-Key': self.config['app_token']}
+
+        if kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            if self.config['incl_url']:
+                if pretty_metadata.media_type == 'movie':
+                    provider = self.config['movie_provider']
+                elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                    provider = self.config['tv_provider']
+                elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                    provider = self.config['music_provider']
+                else:
+                    provider = None
+
+                provider_link = pretty_metadata.get_provider_link(provider)
+                data['extras']['client::notification'] = {'click': {'url': provider_link}}
+
+            if self.config['incl_poster']:
+                poster_url = pretty_metadata.get_poster_url()
+                data['message'] += '\n\n![]({})'.format(poster_url)
+
+        return self.make_request('{}/message'.format(self.config['host']), headers=headers, json=data)
+
+    def _return_config_options(self):
+        config_option = [{'label': 'Gotify Host Address',
+                          'value': self.config['host'],
+                          'name': 'gotify_host',
+                          'description': 'Host running Gotify (e.g. http://localhost:8080).',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Gotify App Token',
+                          'value': self.config['app_token'],
+                          'name': 'gotify_app_token',
+                          'description': 'Your Gotify app token.',
+                          'input_type': 'token'
+                          },
+                         {'label': 'Priority',
+                          'value': self.config['priority'],
+                          'name': 'gotify_priority',
+                          'description': 'Set the notification priority.',
+                          'input_type': 'select',
+                          'select_options': {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7}
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'gotify_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'gotify_incl_poster',
+                          'description': 'Include a poster with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Open URL on Notification Click (Android Only)',
+                          'value': self.config['incl_url'],
+                          'name': 'gotify_incl_url',
+                          'description': 'Open a URL instead of the Gotify app when clicking on the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'gotify_movie_provider',
+                          'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'gotify_tv_provider',
+                          'description': 'Select the source for tv show links in the notification. Leave blank to disable.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'gotify_music_provider',
+                          'description': 'Select the source for music links in the notification. Leave blank to disable.<br>'
                                          'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
                                          'may need to be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'select',
@@ -3617,7 +3749,7 @@ class TAUTULLIREMOTEAPP(Notifier):
 
         headers = {'Content-Type': 'application/json'}
 
-        return self.make_request("https://onesignal.com/api/v1/notifications", headers=headers, json=payload)
+        return self.make_request('https://onesignal.com/api/v1/notifications', headers=headers, json=payload)
 
     def get_devices(self):
         db = database.MonitorDatabase()
