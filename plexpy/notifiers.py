@@ -107,7 +107,8 @@ AGENT_IDS = {'growl': 0,
              'zapier': 24,
              'webhook': 25,
              'plexmobileapp': 26,
-             'lunasea': 27
+             'lunasea': 27,
+             'microsoftteams': 28
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
@@ -184,6 +185,12 @@ def available_notification_agents():
                'name': 'lunasea',
                'id': AGENT_IDS['lunasea'],
                'class': LUNASEA,
+               'action_types': ('all',)
+               },
+              {'label': 'Microsoft Teams',
+               'name': 'microsoftteams',
+               'id': AGENT_IDS['microsoftteams'],
+               'class': MICROSOFTTEAMS,
                'action_types': ('all',)
                },
               {'label': 'MQTT',
@@ -1988,6 +1995,218 @@ class LUNASEA(Notifier):
                           'name': 'lunasea_incl_subject',
                           'description': 'Include the subject line with the notifications.',
                           'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+
+
+class MICROSOFTTEAMS(Notifier):
+    """
+    Microsoft Teams Notifications
+    """
+    NAME = 'Microsoft Teams'
+    _DEFAULT_CONFIG = {'hook': '',
+                       'incl_subject': 1,
+                       'incl_card': 0,
+                       'incl_description': 1,
+                       'incl_pmslink': 0,
+                       'poster_size': 2,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        data = {
+            'type': 'message'
+        }
+        attachment = {
+            'contentType': 'application/vnd.microsoft.card.adaptive'
+        }
+        content = {
+            '$schema': 'http://adaptivecards.io/schemas/adaptive-card.json',
+            'type': 'AdaptiveCard',
+            'version': '1.4',
+        }
+
+        card = []
+
+        if self.config['incl_subject']:
+            card.append({
+                'type': 'TextBlock',
+                'size': 'Large',
+                'weight': 'Bolder',
+                'text': subject
+            })
+        card.append({
+            'type': 'TextBlock',
+            'text': body,
+            'wrap': True
+        })
+
+        if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            if pretty_metadata.media_type == 'movie':
+                provider = self.config['movie_provider']
+            elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                provider = self.config['tv_provider']
+            elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                provider = self.config['music_provider']
+            else:
+                provider = None
+
+            poster_url = pretty_metadata.get_poster_url()
+            provider_name = pretty_metadata.get_provider_name(provider)
+            provider_link = pretty_metadata.get_provider_link(provider)
+            title = pretty_metadata.get_title('\u00B7')
+            description = pretty_metadata.get_description()
+            plex_url = pretty_metadata.get_plex_url()
+
+            columns = []
+
+            if poster_url and self.config['poster_size']:
+                columns.append({
+                    'type': 'Column',
+                    'width': 'auto',
+                    'items': [
+                        {
+                            'type': 'Image',
+                            'url': poster_url,
+                            'altText': title,
+                            'size': 'Large',
+                            'height': '{}px'.format(self.config['poster_size'] * 75)
+                        }
+                    ]
+                })
+            columns.append({
+                'type': 'Column',
+                'width': 'stretch',
+                'items': []
+            })
+
+            columns[-1]['items'].append({
+                'type': 'TextBlock',
+                'weight': 'Bolder',
+                'text': title,
+                'wrap': True
+            })
+            if self.config['incl_description']:
+                columns[-1]['items'].append({
+                    'type': 'TextBlock',
+                    'text': description,
+                    'size': 'Small',
+                    'spacing': 'Small',
+                    'wrap': True
+                })
+
+            card.append({
+                'type': 'ColumnSet',
+                'padding': 'Default',
+                'spacing': 'Large',
+                'columns': columns
+            })
+
+            actions = []
+
+            if provider_link:
+                actions.append({
+                    'type': 'Action.OpenUrl',
+                    'title': 'View on {}'.format(provider_name),
+                    'url': provider_link
+                })
+            if self.config['incl_pmslink']:
+                actions.append({
+                    'type': 'Action.OpenUrl',
+                    'title': 'View on Plex',
+                    'url': plex_url
+                })
+
+            if actions:
+                card.append({
+                    'type': 'ActionSet',
+                    'actions': actions
+                })
+
+        content['body'] = card
+        attachment['content'] = content
+        data['attachments'] = [attachment]
+
+        headers = {'Content-type': 'application/json'}
+
+        return self.make_request(self.config['hook'], headers=headers, json=data)
+
+    def _return_config_options(self):
+        config_option = [{'label': 'Teams Webhook URL',
+                          'value': self.config['hook'],
+                          'name': 'microsoftteams_hook',
+                          'description': 'Your Microsoft Teams incoming webhook URL.',
+                          'input_type': 'token'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'microsoftteams_incl_subject',
+                          'description': 'Include the subject line with the notifications.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Rich Metadata Info',
+                          'value': self.config['incl_card'],
+                          'name': 'microsoftteams_incl_card',
+                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
+                                         'data-target="notify_upload_posters">Image Hosting</a> '
+                                         'must be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Plot Summaries',
+                          'value': self.config['incl_description'],
+                          'name': 'microsoftteams_incl_description',
+                          'description': 'Include a plot summary for movies and TV shows on the info card.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.config['incl_pmslink'],
+                          'name': 'microsoftteams_incl_pmslink',
+                          'description': 'Include a second link to the media in Plex Web on the info card.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Poster Size',
+                          'value': self.config['poster_size'],
+                          'name': 'microsoftteams_poster_size',
+                          'description': 'Select the size of the poster on the info card.',
+                          'input_type': 'select',
+                          'select_options': {
+                              0: 'None',
+                              1: 'Small',
+                              2: 'Medium',
+                              3: 'Large'}
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'microsoftteams_movie_provider',
+                          'description': 'Select the source for movie links on the info cards. Leave blank to disable.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'microsoftteams_tv_provider',
+                          'description': 'Select the source for tv show links on the info cards. Leave blank to disable.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'microsoftteams_music_provider',
+                          'description': 'Select the source for music links on the info cards. Leave blank to disable.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
                           }
                          ]
 
