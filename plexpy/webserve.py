@@ -24,7 +24,7 @@ from backports import csv
 from io import open, BytesIO
 import base64
 import json
-import ssl
+import ssl as _ssl
 import linecache
 import os
 import shutil
@@ -4103,7 +4103,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_server_id(self, hostname=None, port=None, identifier=None, use_ssl=0, remote=0, manual=0,
+    def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, manual=0,
                       get_url=False, test_websocket=False, **kwargs):
         """ Get the PMS server identifier.
 
@@ -4113,7 +4113,7 @@ class WebInterface(object):
                 port (int):         32400
 
             Optional parameters:
-                use_ssl (int):      0 or 1
+                ssl (int):          0 or 1
                 remote (int):       0 or 1
 
             Returns:
@@ -4121,8 +4121,7 @@ class WebInterface(object):
                     {'identifier': '08u2phnlkdshf890bhdlksghnljsahgleikjfg9t'}
             ```
         """
-        # Backwards compatibility for the old "ssl" parameter, now "use_ssl"
-        use_ssl = helpers.cast_to_int(use_ssl) or helpers.cast_to_int(kwargs.get('ssl', 0))
+        ssl = helpers.bool_true(ssl)
 
         # Attempt to get the pms_identifier from plex.tv if the server is published
         # Works for all PMS SSL settings
@@ -4139,7 +4138,7 @@ class WebInterface(object):
             # Fallback to checking /identity endpoint if the server is unpublished
             # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
             if not identifier:
-                scheme = 'https' if use_ssl else 'http'
+                scheme = 'https' if ssl else 'http'
                 url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=hostname, port=port)
                 uri = '/identity'
 
@@ -4158,7 +4157,7 @@ class WebInterface(object):
             if helpers.bool_true(get_url):
                 server = self.get_server_resources(pms_ip=hostname,
                                                    pms_port=port,
-                                                   pms_ssl=use_ssl,
+                                                   pms_ssl=ssl,
                                                    pms_is_remote=remote,
                                                    pms_url_manual=manual,
                                                    pms_identifier=identifier)
@@ -4170,17 +4169,17 @@ class WebInterface(object):
                     ws_url = result['url'].replace('http', 'ws', 1) + '/:/websockets/notifications'
                     header = ['X-Plex-Token: %s' % plexpy.CONFIG.PMS_TOKEN]
                     # Enforce SSL as needed
-                    if use_ssl:
+                    if ssl:
                         secure = 'secure '
                         if plexpy.CONFIG.VERIFY_SSL_CERT:
                             sslopt = {'ca_certs': certifi.where()}
                         else:
-                            sslopt = {'cert_reqs': ssl.CERT_NONE}
+                            sslopt = {'cert_reqs': _ssl.CERT_NONE}
                     else:
                         secure = ''
                         sslopt = None
 
-                    logger.debug("Testing %swebsocket connection..." % (secure))
+                    logger.debug("Testing %swebsocket connection..." % secure)
                     try:
                         test_ws = websocket.create_connection(ws_url, header=header, sslopt=sslopt)
                         test_ws.close()
