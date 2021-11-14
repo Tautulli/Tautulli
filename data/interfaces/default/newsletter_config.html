@@ -724,6 +724,9 @@
 
     $('#duplicate-newsletter-item').click(function() {
         var msg = 'Are you sure you want to duplicate this <strong>${newsletter["agent_label"]}</strong> newsletter?';
+        if ($('#set_newsletter_config .form-control[id$=_password]').val()) {
+            msg += '<br><br>Note: Saved passwords will not be copied over and must be re-entered.';
+        }
         var url = 'add_newsletter_config';
         confirmAjaxCall(url, msg, { agent_id: '${newsletter["agent_id"]}' }, null, duplicateCallback);
     });
