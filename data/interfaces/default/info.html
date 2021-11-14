@@ -402,12 +402,15 @@ DOCUMENTATION :: END
                             </div>
                         </div>
                         % if data['tagline']:
-                        <div class="summary-content-summary">
-                            <p><strong> ${data['tagline']} </strong></p>
+                        <div class="summary-content-text summary-content-tagline">
+                            <p>${data['tagline']}</p>
                         </div>
                         % endif
-                        <div class="summary-content-summary">
-                            <p> ${data['summary'] | br, n} </p>
+                        <div class="summary-content-text summary-content-summary">
+                            <p>${data['summary'] | br, n}</p>
+                        </div>
+                        <div class="summary-content-text summary-toggle">
+                            <a href="#" class="show-more">Read more &nbsp;<i class="fa fa-chevron-down"></i></a>
                         </div>
                     </div>
                 </div>
@@ -995,6 +998,21 @@ DOCUMENTATION :: END
         template: '<div class="popover channel-thumbnail-popover" role="tooltip"><div class="arrow" style="top: 50%;"></div><div class="popover-content"></div></div>',
         content: function () {
             return '<div class="channel-thumbnail" style="background-image: url(' + $(this).data('img') + ');" />';
+        }
+    });
+
+    $('.summary-content-summary').hasScrollBar() ? $('.summary-toggle').show() : $('.summary-toggle').hide();
+
+    $('.summary-toggle a').on('click', function() {
+        var $this = $(this);
+        var $content = $this.parent().prev('div.summary-content-summary');
+
+        if ($this.hasClass('show-more')) {
+            $this.html('Read less &nbsp;<i class="fa fa-chevron-up"></i>').toggleClass('show-more').toggleClass('show-less');
+            $content.animate({'height': $content[0].scrollHeight});
+        } else {
+            $this.html('Read more &nbsp;<i class="fa fa-chevron-down"></i>').toggleClass('show-more').toggleClass('show-less');
+            $content.animate({'height': '60px'});
         }
     });
 </script>

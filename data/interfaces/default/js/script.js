@@ -926,3 +926,7 @@ $('.modal').on('hide.bs.modal', function (e) {
         return false;
     }
 });
+
+$.fn.hasScrollBar = function() {
+    return this.get(0).scrollHeight > this.get(0).clientHeight;
+}
