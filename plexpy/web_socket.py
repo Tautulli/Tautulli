@@ -222,7 +222,7 @@ def run():
                 logger.warn("Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
 
                 try:
-                    plexpy.WEBSOCKET = create_connection(uri, header=header)
+                    plexpy.WEBSOCKET = create_connection(uri, header=header, sslopt=sslopt)
                     logger.info("Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
                 except (websocket.WebSocketException, IOError, Exception) as e:

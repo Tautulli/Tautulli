@@ -24,6 +24,7 @@ from backports import csv
 from io import open, BytesIO
 import base64
 import json
+import ssl as _ssl
 import linecache
 import os
 import shutil
@@ -41,6 +42,7 @@ from mako.lookup import TemplateLookup
 import mako.template
 import mako.exceptions
 
+import certifi
 import websocket
 
 if sys.version_info >= (3, 6):
@@ -4121,6 +4123,8 @@ class WebInterface(object):
                     {'identifier': '08u2phnlkdshf890bhdlksghnljsahgleikjfg9t'}
             ```
         """
+        ssl = helpers.bool_true(ssl)
+
         # Attempt to get the pms_identifier from plex.tv if the server is published
         # Works for all PMS SSL settings
         if not identifier and hostname and port:
@@ -4136,7 +4140,7 @@ class WebInterface(object):
             # Fallback to checking /identity endpoint if the server is unpublished
             # Cannot set SSL settings on the PMS if unpublished so 'http' is okay
             if not identifier:
-                scheme = 'https' if helpers.cast_to_int(ssl) else 'http'
+                scheme = 'https' if ssl else 'http'
                 url = '{scheme}://{hostname}:{port}'.format(scheme=scheme, hostname=hostname, port=port)
                 uri = '/identity'
 
@@ -4166,10 +4170,20 @@ class WebInterface(object):
                     # Quick test websocket connection
                     ws_url = result['url'].replace('http', 'ws', 1) + '/:/websockets/notifications'
                     header = ['X-Plex-Token: %s' % plexpy.CONFIG.PMS_TOKEN]
+                    # Enforce SSL as needed
+                    if ssl:
+                        secure = 'secure '
+                        if plexpy.CONFIG.VERIFY_SSL_CERT:
+                            sslopt = {'ca_certs': certifi.where()}
+                        else:
+                            sslopt = {'cert_reqs': _ssl.CERT_NONE}
+                    else:
+                        secure = ''
+                        sslopt = None
 
-                    logger.debug("Testing websocket connection...")
+                    logger.debug("Testing %swebsocket connection..." % secure)
                     try:
-                        test_ws = websocket.create_connection(ws_url, header=header)
+                        test_ws = websocket.create_connection(ws_url, header=header, sslopt=sslopt)
                         test_ws.close()
                         logger.debug("Websocket connection test successful.")
                         result['ws'] = True
