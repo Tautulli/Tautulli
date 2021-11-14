@@ -1844,6 +1844,9 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
 .summary-content-summary {
     height: 60px;
 }
+.summary-content-summary p {
+    margin-bottom: 0;
+}
 .summary-toggle {
     display: none;
     margin-top: 10px;
