@@ -102,7 +102,7 @@ function showMsg(msg, loader, timeout, ms, error) {
 function confirmAjaxCall(url, msg, data, loader_msg, callback) {
     $("#confirm-message").html(msg);
     $('#confirm-modal').modal();
-    $('#confirm-modal').one('click', '#confirm-button', function () {
+    $('#confirm-modal').off('click', '#confirm-button').one('click', '#confirm-button', function () {
         if (loader_msg) {
             showMsg(loader_msg, true, false);
         }
