@@ -68,9 +68,7 @@ class PyJWT:
         key: str = "",
         algorithms: List[str] = None,
         options: Dict = None,
-        audience: Optional[Union[str, List[str]]] = None,
-        issuer: Optional[str] = None,
-        leeway: Union[float, timedelta] = 0,
+        **kwargs,
     ) -> Dict[str, Any]:
         if options is None:
             options = {"verify_signature": True}
@@ -94,6 +92,7 @@ class PyJWT:
             key=key,
             algorithms=algorithms,
             options=options,
+            **kwargs,
         )
 
         try:
@@ -104,7 +103,7 @@ class PyJWT:
             raise DecodeError("Invalid payload string: must be a json object")
 
         merged_options = {**self.options, **options}
-        self._validate_claims(payload, merged_options, audience, issuer, leeway)
+        self._validate_claims(payload, merged_options, **kwargs)
 
         decoded["payload"] = payload
         return decoded
@@ -115,20 +114,18 @@ class PyJWT:
         key: str = "",
         algorithms: List[str] = None,
         options: Dict = None,
-        audience: Optional[Union[str, List[str]]] = None,
-        issuer: Optional[str] = None,
-        leeway: Union[float, timedelta] = 0,
+        **kwargs,
     ) -> Dict[str, Any]:
-        decoded = self.decode_complete(
-            jwt, key, algorithms, options, audience, issuer, leeway
-        )
+        decoded = self.decode_complete(jwt, key, algorithms, options, **kwargs)
         return decoded["payload"]
 
-    def _validate_claims(self, payload, options, audience, issuer, leeway):
+    def _validate_claims(
+        self, payload, options, audience=None, issuer=None, leeway=0, **kwargs
+    ):
         if isinstance(leeway, timedelta):
             leeway = leeway.total_seconds()
 
-        if not isinstance(audience, (str, type(None), Iterable)):
+        if not isinstance(audience, (bytes, str, type(None), Iterable)):
             raise TypeError("audience must be a string, iterable, or None")
 
         self._validate_required_claims(payload, options)

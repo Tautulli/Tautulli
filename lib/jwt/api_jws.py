@@ -113,14 +113,14 @@ class PyJWS:
             key = alg_obj.prepare_key(key)
             signature = alg_obj.sign(signing_input, key)
 
-        except KeyError:
+        except KeyError as e:
             if not has_crypto and algorithm in requires_cryptography:
                 raise NotImplementedError(
                     "Algorithm '%s' could not be found. Do you have cryptography "
                     "installed?" % algorithm
-                )
+                ) from e
             else:
-                raise NotImplementedError("Algorithm not supported")
+                raise NotImplementedError("Algorithm not supported") from e
 
         segments.append(base64url_encode(signature))
 
@@ -134,6 +134,7 @@ class PyJWS:
         key: str = "",
         algorithms: List[str] = None,
         options: Dict = None,
+        **kwargs,
     ) -> Dict[str, Any]:
         if options is None:
             options = {}
@@ -162,8 +163,9 @@ class PyJWS:
         key: str = "",
         algorithms: List[str] = None,
         options: Dict = None,
+        **kwargs,
     ) -> str:
-        decoded = self.decode_complete(jwt, key, algorithms, options)
+        decoded = self.decode_complete(jwt, key, algorithms, options, **kwargs)
         return decoded["payload"]
 
     def get_unverified_header(self, jwt):
@@ -236,8 +238,8 @@ class PyJWS:
             if not alg_obj.verify(signing_input, key, signature):
                 raise InvalidSignatureError("Signature verification failed")
 
-        except KeyError:
-            raise InvalidAlgorithmError("Algorithm not supported")
+        except KeyError as e:
+            raise InvalidAlgorithmError("Algorithm not supported") from e
 
     def _validate_headers(self, headers):
         if "kid" in headers:
