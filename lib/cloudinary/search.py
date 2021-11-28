@@ -1,10 +1,16 @@
 import json
-from copy import deepcopy
 
 from cloudinary.api_client.call_api import call_json_api
+from cloudinary.utils import unique
 
 
 class Search:
+    _KEYS_WITH_UNIQUE_VALUES = {
+        'sort_by': lambda x: next(iter(x)),
+        'aggregate': None,
+        'with_field': None,
+    }
+
     """Build and execute a search query."""
     def __init__(self):
         self.query = {}
@@ -42,7 +48,7 @@ class Search:
         return self
 
     def to_json(self):
-        return json.dumps(self.query)
+        return json.dumps(self.as_dict())
 
     def execute(self, **options):
         """Execute the search and return results."""
@@ -57,4 +63,12 @@ class Search:
         return self
 
     def as_dict(self):
-        return deepcopy(self.query)
+        to_return = {}
+
+        for key, value in self.query.items():
+            if key in self._KEYS_WITH_UNIQUE_VALUES:
+                value = unique(value, self._KEYS_WITH_UNIQUE_VALUES[key])
+
+            to_return[key] = value
+
+        return to_return

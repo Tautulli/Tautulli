@@ -70,6 +70,7 @@ __URL_KEYS = [
 
 __SIMPLE_UPLOAD_PARAMS = [
     "public_id",
+    "public_id_prefix",
     "callback",
     "format",
     "type",
@@ -80,6 +81,8 @@ __SIMPLE_UPLOAD_PARAMS = [
     "colors",
     "use_filename",
     "unique_filename",
+    "display_name",
+    "use_filename_as_display_name",
     "discard_original_filename",
     "filename_override",
     "invalidate",
@@ -89,6 +92,7 @@ __SIMPLE_UPLOAD_PARAMS = [
     "eval",
     "proxy",
     "folder",
+    "asset_folder",
     "overwrite",
     "moderation",
     "raw_convert",
@@ -526,6 +530,9 @@ def process_video_codec_param(param):
             out_param = out_param + ':' + param['profile']
             if 'level' in param:
                 out_param = out_param + ':' + param['level']
+                if param.get('b_frames') is False:
+                    out_param = out_param + ':' + 'bframes_no'
+
     return out_param
 
 
@@ -1089,6 +1096,10 @@ def build_multi_and_sprite_params(**options):
 
 
 def __process_text_options(layer, layer_parameter):
+    text_style = str(layer.get("text_style", ""))
+    if text_style and not text_style.isspace():
+        return text_style
+
     font_family = layer.get("font_family")
     font_size = layer.get("font_size")
     keywords = []
@@ -1247,7 +1258,7 @@ PREDEFINED_VARS = {
     "context": "ctx"
 }
 
-replaceRE = "((\\|\\||>=|<=|&&|!=|>|=|<|/|-|\\+|\\*|\\^)(?=[ _])|(\\$_*[^_ ]+)|(?<!\\$)(" + \
+replaceRE = "((\\|\\||>=|<=|&&|!=|>|=|<|/|-|\\+|\\*|\\^)(?=[ _])|(\\$_*[^_ ]+)|(?<![\\$:])(" + \
             '|'.join(PREDEFINED_VARS.keys()) + "))"
 
 
@@ -1531,3 +1542,28 @@ def safe_cast(val, casting_fn, default=None):
         return casting_fn(val)
     except (ValueError, TypeError):
         return default
+
+
+def __id(x):
+    """
+    Identity function. Returns the passed in values.
+    """
+    return x
+
+
+def unique(collection, key=None):
+    """
+    Removes duplicates from collection using key function
+
+    :param collection: The collection to remove duplicates from
+    :param key: The function to generate key from each element. If not passed, identity function is used
+    """
+    if key is None:
+        key = __id
+
+    to_return = OrderedDict()
+
+    for element in collection:
+        to_return[key(element)] = element
+
+    return list(to_return.values())

@@ -93,6 +93,25 @@ def resources_by_ids(public_ids, **options):
     return call_api("get", uri, params, **options)
 
 
+def resources_by_asset_ids(asset_ids, **options):
+    """Retrieves the resources (assets) indicated in the asset IDs.
+    This method does not return deleted assets even if they have been backed up.
+
+    See: `Get resources by context API reference
+    <https://cloudinary.com/documentation/admin_api#get_resources>`_
+
+    :param asset_ids:   The requested asset IDs.
+    :type asset_ids:    list[str]
+    :param options:     Additional options
+    :type options:      dict, optional
+    :return:            Resources (assets) as indicated in the asset IDs
+    :rtype:             Response
+    """
+    uri = ["resources", 'by_asset_ids']
+    params = dict(only(options, "tags", "moderations", "context"), asset_ids=asset_ids)
+    return call_api("get", uri, params, **options)
+
+
 def resources_by_context(key, value=None, **options):
     """Retrieves resources (assets) with a specified context key.
     This method does not return deleted assets even if they have been backed up.
@@ -123,10 +142,38 @@ def resource(public_id, **options):
     resource_type = options.pop("resource_type", "image")
     upload_type = options.pop("type", "upload")
     uri = ["resources", resource_type, upload_type, public_id]
-    params = only(options, "exif", "faces", "colors", "image_metadata", "cinemagraph_analysis",
-                  "pages", "phash", "coordinates", "max_results", "quality_analysis", "derived_next_cursor",
-                  "accessibility_analysis", "versions")
+    params = _prepare_asset_details_params(**options)
     return call_api("get", uri, params, **options)
+
+
+def resource_by_asset_id(asset_id, **options):
+    """
+    Returns the details of the specified asset and all its derived assets by asset id.
+
+    :param asset_id:    The Asset ID of the asset
+    :type asset_id:     string
+    :param options:     Additional options
+    :type options:      dict, optional
+    :return:            Resource (asset) of a specific asset_id
+    :rtype:             Response
+    """
+    uri = ["resources", asset_id]
+    params = _prepare_asset_details_params(**options)
+    return call_api("get", uri, params, **options)
+
+
+def _prepare_asset_details_params(**options):
+    """
+    Prepares optional parameters for resource_by_asset_id API calls.
+
+    :param options: Additional options
+    :return: Optional parameters
+
+    :internal
+    """
+    return only(options, "exif", "faces", "colors", "image_metadata", "cinemagraph_analysis",
+                "pages", "phash", "coordinates", "max_results", "quality_analysis", "derived_next_cursor",
+                "accessibility_analysis", "versions")
 
 
 def update(public_id, **options):
@@ -595,3 +642,32 @@ def restore_metadata_field_datasource(field_external_id, entries_external_ids, *
     uri = [field_external_id, 'datasource_restore']
     params = {"external_ids": entries_external_ids}
     return call_metadata_api("post", uri, params, **options)
+
+
+def reorder_metadata_field_datasource(field_external_id, order_by, direction=None, **options):
+    """Reorders metadata field datasource. Currently, supports only value.
+
+    :param field_external_id: The ID of the metadata field.
+    :param order_by: Criteria for the order. Currently, supports only value.
+    :param direction: Optional (gets either asc or desc).
+    :param options: Additional options.
+
+    :rtype: Response
+    """
+    uri = [field_external_id, 'datasource', 'order']
+    params = {'order_by': order_by, 'direction': direction}
+    return call_metadata_api('post', uri, params, **options)
+
+
+def reorder_metadata_fields(order_by, direction=None, **options):
+    """Reorders metadata fields.
+
+    :param order_by: Criteria for the order (one of the fields 'label', 'external_id', 'created_at').
+    :param direction: Optional (gets either asc or desc).
+    :param options: Additional options.
+
+    :rtype: Response
+    """
+    uri = ['order']
+    params = {'order_by': order_by, 'direction': direction}
+    return call_metadata_api('put', uri, params, **options)

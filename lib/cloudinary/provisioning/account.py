@@ -97,9 +97,7 @@ def sub_account(sub_account_id, **options):
     return _call_account_api("get", uri, {}, **options)
 
 
-def update_sub_account(sub_account_id, name=None, cloud_name=None, custom_attributes=None,
-                       enabled=None, base_account=None,
-                       **options):
+def update_sub_account(sub_account_id, name=None, cloud_name=None, custom_attributes=None, enabled=None, **options):
     """
     Update a sub account
     :param sub_account_id:      The id of the sub account
@@ -112,8 +110,6 @@ def update_sub_account(sub_account_id, name=None, cloud_name=None, custom_attrib
     :type custom_attributes:    dict, optional
     :param enabled:             Whether to create the account as enabled (default is enabled).
     :type enabled:              bool, optional
-    :param base_account:        ID of sub-account from which to copy settings
-    :type base_account:         str, optional
     :param options:             Generic advanced options dict, see online documentation
     :type options:              dict, optional
     :return:                    Updated sub account
@@ -123,8 +119,7 @@ def update_sub_account(sub_account_id, name=None, cloud_name=None, custom_attrib
     params = {"name": name,
               "cloud_name": cloud_name,
               "custom_attributes": custom_attributes,
-              "enabled": enabled,
-              "base_account": base_account}
+              "enabled": enabled}
     return _call_account_api("put", uri, params=params, **options)
 
 
