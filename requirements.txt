@@ -43,7 +43,7 @@ six==1.16.0
 soupsieve==2.2.1
 tempora==4.1.2
 tokenize-rt==4.1.0
-tzdata==2021.2.post0
+tzdata==2021.5
 tzlocal==4.1
 urllib3==1.26.7
 webencodings==0.5.1
