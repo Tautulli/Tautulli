@@ -443,7 +443,7 @@ class Lexer(object):
 
     def match_control_line(self):
         match = self.match(
-            r"(?<=^)[\t ]*(%(?!%)|##)[\t ]*((?:(?:\\r?\n)|[^\r\n])*)"
+            r"(?<=^)[\t ]*(%(?!%)|##)[\t ]*((?:(?:\\\r?\n)|[^\r\n])*)"
             r"(?:\r?\n|\Z)",
             re.M,
         )
