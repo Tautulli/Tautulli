@@ -1,4 +1,4 @@
-apscheduler==3.8.0
+apscheduler==3.8.1
 importlib-resources==5.2.2
 pyinstaller==4.5.1
 pyopenssl==21.0.0
