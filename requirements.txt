@@ -42,7 +42,7 @@ simplejson==3.17.5
 six==1.16.0
 soupsieve==2.2.1
 tempora==4.1.2
-tokenize-rt==4.1.0
+tokenize-rt==4.2.1
 tzdata==2021.2.post0
 tzlocal==4.1
 urllib3==1.26.7
