@@ -79,13 +79,16 @@ class Media(PlexObject):
             self.make = data.attrib.get('make')
             self.model = data.attrib.get('model')
 
+        parent = self._parent()
+        self._parentKey = parent.key
+
     @property
     def isOptimizedVersion(self):
         """ Returns True if the media is a Plex optimized version. """
         return self.proxyType == utils.SEARCHTYPES['optimizedVersion']
 
     def delete(self):
-        part = self._initpath + '/media/%s' % self.id
+        part = '%s/media/%s' % (self._parentKey, self.id)
         try:
             return self._server.query(part, method=self._server._session.delete)
         except BadRequest:

@@ -734,21 +734,46 @@ class PlexServer(PlexObject):
         notifier.start()
         return notifier
 
-    def transcodeImage(self, media, height, width, opacity=100, saturation=100):
-        """ Returns the URL for a transcoded image from the specified media object.
-            Returns None if no media specified (needed if user tries to pass thumb
-            or art directly).
+    def transcodeImage(self, imageUrl, height, width,
+                       opacity=None, saturation=None, blur=None, background=None,
+                       minSize=True, upscale=True, imageFormat=None):
+        """ Returns the URL for a transcoded image.
 
             Parameters:
+                imageUrl (str): The URL to the image
+                    (eg. returned by :func:`~plexapi.mixins.PosterUrlMixin.thumbUrl`
+                    or :func:`~plexapi.mixins.ArtUrlMixin.artUrl`).
+                    The URL can be an online image.
                 height (int): Height to transcode the image to.
                 width (int): Width to transcode the image to.
-                opacity (int): Opacity of the resulting image (possibly deprecated).
-                saturation (int): Saturating of the resulting image.
+                opacity (int, optional): Change the opacity of the image (0 to 100)
+                saturation (int, optional): Change the saturation of the image (0 to 100).
+                blur (int, optional): The blur to apply to the image in pixels (e.g. 3).
+                background (str, optional): The background hex colour to apply behind the opacity (e.g. '000000').
+                minSize (bool, optional): Maintain smallest dimension. Default True.
+                upscale (bool, optional): Upscale the image if required. Default True.
+                imageFormat (str, optional): 'jpeg' (default) or 'png'.
         """
-        if media:
-            transcode_url = '/photo/:/transcode?height=%s&width=%s&opacity=%s&saturation=%s&url=%s' % (
-                height, width, opacity, saturation, media)
-            return self.url(transcode_url, includeToken=True)
+        params = {
+            'url': imageUrl,
+            'height': height,
+            'width': width,
+            'minSize': int(bool(minSize)),
+            'upscale': int(bool(upscale))
+        }
+        if opacity is not None:
+            params['opacity'] = opacity
+        if saturation is not None:
+            params['saturation'] = saturation
+        if blur is not None:
+            params['blur'] = blur
+        if background is not None:
+            params['background'] = str(background).strip('#')
+        if imageFormat is not None:
+            params['format'] = imageFormat.lower()
+
+        key = '/photo/:/transcode%s' % utils.joinArgs(params)
+        return self.url(key, includeToken=True)
 
     def url(self, key, includeToken=None):
         """ Build a URL string with proper token argument.  Token will be appended to the URL

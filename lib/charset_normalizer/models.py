@@ -284,8 +284,7 @@ class CharsetMatches:
         self._results = sorted(results) if results else []  # type: List[CharsetMatch]
 
     def __iter__(self) -> Iterator[CharsetMatch]:
-        for result in self._results:
-            yield result
+        yield from self._results
 
     def __getitem__(self, item: Union[int, str]) -> CharsetMatch:
         """

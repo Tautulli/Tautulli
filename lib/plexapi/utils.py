@@ -4,7 +4,9 @@ import functools
 import logging
 import os
 import re
+import string
 import time
+import unicodedata
 import warnings
 import zipfile
 from datetime import datetime
@@ -249,6 +251,13 @@ def toList(value, itemcast=None, delim=','):
     value = value or ''
     itemcast = itemcast or str
     return [itemcast(item) for item in value.split(delim) if item != '']
+
+
+def cleanFilename(filename, replace='_'):
+    whitelist = "-_.()[] {}{}".format(string.ascii_letters, string.digits)
+    cleaned_filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode()
+    cleaned_filename = ''.join(c if c in whitelist else replace for c in cleaned_filename)
+    return cleaned_filename
 
 
 def downloadSessionImages(server, filename=None, height=150, width=150,

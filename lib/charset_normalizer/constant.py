@@ -4,6 +4,8 @@ from encodings.aliases import aliases
 from re import IGNORECASE, compile as re_compile
 from typing import Dict, List, Set, Union
 
+from .assets import FREQUENCIES
+
 # Contain for each eligible encoding a list of/item bytes SIG/BOM
 ENCODING_MARKS = OrderedDict(
     [
@@ -30,7 +32,7 @@ TOO_BIG_SEQUENCE = int(10e6)  # type: int
 UTF8_MAXIMAL_ALLOCATION = 1112064  # type: int
 
 UNICODE_RANGES_COMBINED = {
-    "Control character": range(0, 31 + 1),
+    "Control character": range(31 + 1),
     "Basic Latin": range(32, 127 + 1),
     "Latin-1 Supplement": range(128, 255 + 1),
     "Latin Extended-A": range(256, 383 + 1),
@@ -311,6 +313,7 @@ UNICODE_RANGES_COMBINED = {
     "Variation Selectors Supplement": range(917760, 917999 + 1),
 }  # type: Dict[str, range]
 
+
 UNICODE_SECONDARY_RANGE_KEYWORD = [
     "Supplement",
     "Extended",
@@ -352,11 +355,10 @@ IANA_SUPPORTED_SIMILAR = {
     "cp1140": ["cp037", "cp1026", "cp273", "cp500"],
     "cp1250": ["iso8859_2"],
     "cp1251": ["kz1048", "ptcp154"],
-    "cp1252": ["cp1258", "iso8859_15", "iso8859_9", "latin_1"],
+    "cp1252": ["iso8859_15", "iso8859_9", "latin_1"],
     "cp1253": ["iso8859_7"],
-    "cp1254": ["cp1258", "iso8859_15", "iso8859_9", "latin_1"],
+    "cp1254": ["iso8859_15", "iso8859_9", "latin_1"],
     "cp1257": ["iso8859_13"],
-    "cp1258": ["cp1252", "cp1254", "iso8859_9", "latin_1"],
     "cp273": ["cp037", "cp1026", "cp1140", "cp500"],
     "cp437": ["cp850", "cp858", "cp860", "cp861", "cp862", "cp863", "cp865"],
     "cp500": ["cp037", "cp1026", "cp1140", "cp273"],
@@ -494,3 +496,5 @@ KO_NAMES = {"johab", "cp949", "euc_kr"}  # type: Set[str]
 ZH_NAMES = {"big5", "cp950", "big5hkscs", "hz"}  # type: Set[str]
 
 NOT_PRINTABLE_PATTERN = re_compile(r"[0-9\W\n\r\t]+")
+
+LANGUAGE_SUPPORTED_COUNT = len(FREQUENCIES)  # type: int

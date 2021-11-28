@@ -26,47 +26,61 @@ class Library(PlexObject):
 
     def _loadData(self, data):
         self._data = data
-        self._sectionsByID = {}  # cached Section UUIDs
         self.identifier = data.attrib.get('identifier')
         self.mediaTagVersion = data.attrib.get('mediaTagVersion')
         self.title1 = data.attrib.get('title1')
         self.title2 = data.attrib.get('title2')
+        self._sectionsByID = {}  # cached sections by key
+        self._sectionsByTitle = {}  # cached sections by title
+
+    def _loadSections(self):
+        """ Loads and caches all the library sections. """
+        key = '/library/sections'
+        self._sectionsByID = {}
+        self._sectionsByTitle = {}
+        for elem in self._server.query(key):
+            for cls in (MovieSection, ShowSection, MusicSection, PhotoSection):
+                if elem.attrib.get('type') == cls.TYPE:
+                    section = cls(self._server, elem, key)
+                    self._sectionsByID[section.key] = section
+                    self._sectionsByTitle[section.title.lower()] = section
 
     def sections(self):
         """ Returns a list of all media sections in this library. Library sections may be any of
             :class:`~plexapi.library.MovieSection`, :class:`~plexapi.library.ShowSection`,
             :class:`~plexapi.library.MusicSection`, :class:`~plexapi.library.PhotoSection`.
         """
-        key = '/library/sections'
-        sections = []
-        for elem in self._server.query(key):
-            for cls in (MovieSection, ShowSection, MusicSection, PhotoSection):
-                if elem.attrib.get('type') == cls.TYPE:
-                    section = cls(self._server, elem, key)
-                    self._sectionsByID[section.key] = section
-                    sections.append(section)
-        return sections
+        self._loadSections()
+        return list(self._sectionsByID.values())
 
-    def section(self, title=None):
+    def section(self, title):
         """ Returns the :class:`~plexapi.library.LibrarySection` that matches the specified title.
 
             Parameters:
                 title (str): Title of the section to return.
         """
-        for section in self.sections():
-            if section.title.lower() == title.lower():
-                return section
-        raise NotFound('Invalid library section: %s' % title)
+        if not self._sectionsByTitle or title not in self._sectionsByTitle:
+            self._loadSections()
+        try:
+            return self._sectionsByTitle[title.lower()]
+        except KeyError:
+            raise NotFound('Invalid library section: %s' % title) from None
 
     def sectionByID(self, sectionID):
         """ Returns the :class:`~plexapi.library.LibrarySection` that matches the specified sectionID.
 
             Parameters:
                 sectionID (int): ID of the section to return.
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: The library section ID is not found on the server.
         """
         if not self._sectionsByID or sectionID not in self._sectionsByID:
-            self.sections()
-        return self._sectionsByID[sectionID]
+            self._loadSections()
+        try:
+            return self._sectionsByID[sectionID]
+        except KeyError:
+            raise NotFound('Invalid library sectionID: %s' % sectionID) from None
 
     def all(self, **kwargs):
         """ Returns a list of all media from all library sections.
@@ -356,6 +370,9 @@ class LibrarySection(PlexObject):
         self._filterTypes = None
         self._fieldTypes = None
         self._totalViewSize = None
+        self._totalSize = None
+        self._totalDuration = None
+        self._totalStorage = None
 
     def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, **kwargs):
         """ Load the specified key to find and build all items with the specified tag
@@ -394,7 +411,36 @@ class LibrarySection(PlexObject):
     @property
     def totalSize(self):
         """ Returns the total number of items in the library for the default library type. """
-        return self.totalViewSize(includeCollections=False)
+        if self._totalSize is None:
+            self._totalSize = self.totalViewSize(includeCollections=False)
+        return self._totalSize
+
+    @property
+    def totalDuration(self):
+        """ Returns the total duration (in milliseconds) of items in the library. """
+        if self._totalDuration is None:
+            self._getTotalDurationStorage()
+        return self._totalDuration
+
+    @property
+    def totalStorage(self):
+        """ Returns the total storage (in bytes) of items in the library. """
+        if self._totalStorage is None:
+            self._getTotalDurationStorage()
+        return self._totalStorage
+
+    def _getTotalDurationStorage(self):
+        """ Queries the Plex server for the total library duration and storage and caches the values. """
+        data = self._server.query('/media/providers?includeStorage=1')
+        xpath = (
+            './MediaProvider[@identifier="com.plexapp.plugins.library"]'
+            '/Feature[@type="content"]'
+            '/Directory[@id="%s"]'
+        ) % self.key
+        directory = next(iter(data.findall(xpath)), None)
+        if directory:
+            self._totalDuration = utils.cast(int, directory.attrib.get('durationTotal'))
+            self._totalStorage = utils.cast(int, directory.attrib.get('storageTotal'))
 
     def totalViewSize(self, libtype=None, includeCollections=True):
         """ Returns the total number of items in the library for a specified libtype.
@@ -432,8 +478,12 @@ class LibrarySection(PlexObject):
             log.error(msg)
             raise
 
-    def reload(self, key=None):
-        return self._server.library.section(self.title)
+    def reload(self):
+        """ Reload the data for the library section. """
+        self._server.library._loadSections()
+        newLibrary = self._server.library.sectionByID(self.key)
+        self.__dict__.update(newLibrary.__dict__)
+        return self
 
     def edit(self, agent=None, **kwargs):
         """ Edit a library (Note: agent is required). See :class:`~plexapi.library.Library` for example usage.
@@ -445,11 +495,6 @@ class LibrarySection(PlexObject):
             agent = self.agent
         part = '/library/sections/%s?agent=%s&%s' % (self.key, agent, urlencode(kwargs))
         self._server.query(part, method=self._server._session.put)
-
-        # Reload this way since the self.key dont have a full path, but is simply a id.
-        for s in self._server.library.sections():
-            if s.key == self.key:
-                return s
 
     def get(self, title):
         """ Returns the media item with the specified title.

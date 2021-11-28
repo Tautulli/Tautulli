@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from urllib.parse import quote_plus
 
 from plexapi import media, utils, video
@@ -107,34 +108,21 @@ class Photoalbum(PlexPartialObject, ArtMixin, PosterMixin, RatingMixin):
         """ Alias to :func:`~plexapi.photo.Photoalbum.photo`. """
         return self.episode(title)
 
-    def iterParts(self):
-        """ Iterates over the parts of the media item. """
-        for album in self.albums():
-            for photo in album.photos():
-                for part in photo.iterParts():
-                    yield part
-
-    def download(self, savepath=None, keep_original_name=False, showstatus=False):
-        """ Download photo files to specified directory.
+    def download(self, savepath=None, keep_original_name=False, subfolders=False):
+        """ Download all photos and clips from the photo ablum. See :func:`~plexapi.base.Playable.download` for details.
 
             Parameters:
                 savepath (str): Defaults to current working dir.
-                keep_original_name (bool): True to keep the original file name otherwise
-                    a friendlier is generated.
-                showstatus(bool): Display a progressbar.
+                keep_original_name (bool): True to keep the original filename otherwise
+                    a friendlier filename is generated.
+                subfolders (bool): True to separate photos/clips in to photo album folders.
         """
         filepaths = []
-        locations = [i for i in self.iterParts() if i]
-        for location in locations:
-            name = location.file
-            if not keep_original_name:
-                title = self.title.replace(' ', '.')
-                name = '%s.%s' % (title, location.container)
-            url = self._server.url('%s?download=1' % location.key)
-            filepath = utils.download(url, self._server._token, filename=name, showstatus=showstatus,
-                                      savepath=savepath, session=self._server._session)
-            if filepath:
-                filepaths.append(filepath)
+        for album in self.albums():
+            _savepath = os.path.join(savepath, album.title) if subfolders else savepath
+            filepaths += album.download(_savepath, keep_original_name)
+        for photo in self.photos() + self.clips():
+            filepaths += photo.download(savepath, keep_original_name)
         return filepaths
 
     def _getWebURL(self, base=None):
@@ -218,6 +206,12 @@ class Photo(PlexPartialObject, Playable, ArtUrlMixin, PosterUrlMixin, RatingMixi
         self.userRating = utils.cast(float, data.attrib.get('userRating'))
         self.year = utils.cast(int, data.attrib.get('year'))
 
+    def _prettyfilename(self):
+        """ Returns a filename for use in download. """
+        if self.parentTitle:
+            return '%s - %s' % (self.parentTitle, self.title)
+        return self.title
+
     def photoalbum(self):
         """ Return the photo's :class:`~plexapi.photo.Photoalbum`. """
         return self.fetchItem(self.parentKey)
@@ -241,12 +235,6 @@ class Photo(PlexPartialObject, Playable, ArtUrlMixin, PosterUrlMixin, RatingMixi
         """
         return [part.file for item in self.media for part in item.parts if part]
         
-    def iterParts(self):
-        """ Iterates over the parts of the media item. """
-        for item in self.media:
-            for part in item.parts:
-                yield part
-
     def sync(self, resolution, client=None, clientId=None, limit=None, title=None):
         """ Add current photo as sync item for specified device.
             See :func:`~plexapi.myplex.MyPlexAccount.sync` for possible exceptions.
@@ -282,29 +270,6 @@ class Photo(PlexPartialObject, Playable, ArtUrlMixin, PosterUrlMixin, RatingMixi
         sync_item.mediaSettings = MediaSettings.createPhoto(resolution)
 
         return myplex.sync(sync_item, client=client, clientId=clientId)
-
-    def download(self, savepath=None, keep_original_name=False, showstatus=False):
-        """ Download photo files to specified directory.
-
-            Parameters:
-                savepath (str): Defaults to current working dir.
-                keep_original_name (bool): True to keep the original file name otherwise
-                    a friendlier is generated.
-                showstatus(bool): Display a progressbar.
-        """
-        filepaths = []
-        locations = [i for i in self.iterParts() if i]
-        for location in locations:
-            name = location.file
-            if not keep_original_name:
-                title = self.title.replace(' ', '.')
-                name = '%s.%s' % (title, location.container)
-            url = self._server.url('%s?download=1' % location.key)
-            filepath = utils.download(url, self._server._token, filename=name, showstatus=showstatus,
-                                      savepath=savepath, session=self._server._session)
-            if filepath:
-                filepaths.append(filepath)
-        return filepaths
 
     def _getWebURL(self, base=None):
         """ Get the Plex Web URL with the correct parameters. """

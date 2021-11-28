@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from urllib.parse import quote_plus
 
 from plexapi import library, media, utils
@@ -205,23 +206,20 @@ class Artist(Audio, AdvancedSettingsMixin, ArtMixin, PosterMixin, RatingMixin, S
         """ Alias of :func:`~plexapi.audio.Artist.track`. """
         return self.track(title, album, track)
 
-    def download(self, savepath=None, keep_original_name=False, **kwargs):
-        """ Downloads all tracks for the artist to the specified location.
+    def download(self, savepath=None, keep_original_name=False, subfolders=False, **kwargs):
+        """ Download all tracks from the artist. See :func:`~plexapi.base.Playable.download` for details.
 
             Parameters:
-                savepath (str): Title of the track to return.
-                keep_original_name (bool): Set True to keep the original filename as stored in
-                    the Plex server. False will create a new filename with the format
-                    "<Atrist> - <Album> <Track>".
-                kwargs (dict): If specified, a :func:`~plexapi.audio.Track.getStreamURL` will
-                    be returned and the additional arguments passed in will be sent to that
-                    function. If kwargs is not specified, the media items will be downloaded
-                    and saved to disk.
+                savepath (str): Defaults to current working dir.
+                keep_original_name (bool): True to keep the original filename otherwise
+                    a friendlier filename is generated.
+                subfolders (bool): True to separate tracks in to album folders.
+                **kwargs: Additional options passed into :func:`~plexapi.base.PlexObject.getStreamURL`.
         """
         filepaths = []
-        for album in self.albums():
-            for track in album.tracks():
-                filepaths += track.download(savepath, keep_original_name, **kwargs)
+        for track in self.tracks():
+            _savepath = os.path.join(savepath, track.parentTitle) if subfolders else savepath
+            filepaths += track.download(_savepath, keep_original_name, **kwargs)
         return filepaths
 
 
@@ -314,17 +312,13 @@ class Album(Audio, ArtMixin, PosterMixin, RatingMixin, UnmatchMatchMixin,
         return self.fetchItem(self.parentKey)
 
     def download(self, savepath=None, keep_original_name=False, **kwargs):
-        """ Downloads all tracks for the artist to the specified location.
+        """ Download all tracks from the album. See :func:`~plexapi.base.Playable.download` for details.
 
             Parameters:
-                savepath (str): Title of the track to return.
-                keep_original_name (bool): Set True to keep the original filename as stored in
-                    the Plex server. False will create a new filename with the format
-                    "<Atrist> - <Album> <Track>".
-                kwargs (dict): If specified, a :func:`~plexapi.audio.Track.getStreamURL` will
-                    be returned and the additional arguments passed in will be sent to that
-                    function. If kwargs is not specified, the media items will be downloaded
-                    and saved to disk.
+                savepath (str): Defaults to current working dir.
+                keep_original_name (bool): True to keep the original filename otherwise
+                    a friendlier filename is generated.
+                **kwargs: Additional options passed into :func:`~plexapi.base.PlexObject.getStreamURL`.
         """
         filepaths = []
         for track in self.tracks():
@@ -398,7 +392,8 @@ class Track(Audio, Playable, ArtUrlMixin, PosterUrlMixin, RatingMixin,
 
     def _prettyfilename(self):
         """ Returns a filename for use in download. """
-        return '%s - %s %s' % (self.grandparentTitle, self.parentTitle, self.title)
+        return '%s - %s - %s - %s' % (
+            self.grandparentTitle, self.parentTitle, str(self.trackNumber).zfill(2), self.title)
 
     def album(self):
         """ Return the track's :class:`~plexapi.audio.Album`. """

@@ -29,14 +29,18 @@ class AlertListener(threading.Thread):
             callback (func): Callback function to call on received messages. The callback function
                 will be sent a single argument 'data' which will contain a dictionary of data
                 received from the server. :samp:`def my_callback(data): ...`
+            callbackError (func): Callback function to call on errors. The callback function
+                will be sent a single argument 'error' which will contain the Error object.
+                :samp:`def my_callback(error): ...`
     """
     key = '/:/websockets/notifications'
 
-    def __init__(self, server, callback=None):
+    def __init__(self, server, callback=None, callbackError=None):
         super(AlertListener, self).__init__()
         self.daemon = True
         self._server = server
         self._callback = callback
+        self._callbackError = callbackError
         self._ws = None
 
     def run(self):
@@ -84,4 +88,9 @@ class AlertListener(threading.Thread):
             This is to support compatibility with current and previous releases of websocket-client.
         """
         err = args[-1]
-        log.error('AlertListener Error: %s', err)
+        try:
+            log.error('AlertListener Error: %s', err)
+            if self._callbackError:
+                self._callbackError(err)
+        except Exception as err:  # pragma: no cover
+            log.error('AlertListener Error: Error: %s', err)

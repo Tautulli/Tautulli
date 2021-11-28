@@ -681,34 +681,50 @@ class Playable(object):
         client.playMedia(self)
 
     def download(self, savepath=None, keep_original_name=False, **kwargs):
-        """ Downloads this items media to the specified location. Returns a list of
+        """ Downloads the media item to the specified location. Returns a list of
             filepaths that have been saved to disk.
 
             Parameters:
-                savepath (str): Title of the track to return.
-                keep_original_name (bool): Set True to keep the original filename as stored in
-                    the Plex server. False will create a new filename with the format
-                    "<Artist> - <Album> <Track>".
-                kwargs (dict): If specified, a :func:`~plexapi.audio.Track.getStreamURL` will
-                    be returned and the additional arguments passed in will be sent to that
-                    function. If kwargs is not specified, the media items will be downloaded
-                    and saved to disk.
+                savepath (str): Defaults to current working dir.
+                keep_original_name (bool): True to keep the original filename otherwise
+                    a friendlier filename is generated. See filenames below.
+                **kwargs (dict): Additional options passed into :func:`~plexapi.audio.Track.getStreamURL`
+                    to download a transcoded stream, otherwise the media item will be downloaded
+                    as-is and saved to disk.
+
+            **Filenames**
+
+            * Movie: ``<title> (<year>)``
+            * Episode: ``<show title> - s00e00 - <episode title>``
+            * Track: ``<artist title> - <album title> - 00 - <track title>``
+            * Photo: ``<photoalbum title> - <photo/clip title>`` or ``<photo/clip title>``
         """
         filepaths = []
-        locations = [i for i in self.iterParts() if i]
-        for location in locations:
-            filename = location.file
-            if keep_original_name is False:
-                filename = '%s.%s' % (self._prettyfilename(), location.container)
-            # So this seems to be a alot slower but allows transcode.
+        parts = [i for i in self.iterParts() if i]
+
+        for part in parts:
+            if not keep_original_name:
+                filename = utils.cleanFilename('%s.%s' % (self._prettyfilename(), part.container))
+            else:
+                filename = part.file
+
             if kwargs:
+                # So this seems to be a alot slower but allows transcode.
                 download_url = self.getStreamURL(**kwargs)
             else:
-                download_url = self._server.url('%s?download=1' % location.key)
-            filepath = utils.download(download_url, self._server._token, filename=filename,
-                savepath=savepath, session=self._server._session)
+                download_url = self._server.url('%s?download=1' % part.key)
+
+            filepath = utils.download(
+                download_url,
+                self._server._token,
+                filename=filename,
+                savepath=savepath,
+                session=self._server._session
+            )
+
             if filepath:
                 filepaths.append(filepath)
+
         return filepaths
 
     def stop(self, reason=''):

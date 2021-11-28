@@ -70,9 +70,6 @@ class MyPlexAccount(PlexObject):
     PLEXSERVERS = 'https://plex.tv/api/servers/{machineId}'                                     # get
     FRIENDUPDATE = 'https://plex.tv/api/friends/{userId}'                                       # put with args, delete
     REMOVEHOMEUSER = 'https://plex.tv/api/home/users/{userId}'                                  # delete
-    REMOVEINVITE = 'https://plex.tv/api/invites/requested/{userId}?friend=1&server=1&home=1'    # delete
-    REQUESTED = 'https://plex.tv/api/invites/requested'                                         # get
-    REQUESTS = 'https://plex.tv/api/invites/requests'                                           # get
     SIGNIN = 'https://plex.tv/users/sign_in.xml'                                                # get with auth
     WEBHOOKS = 'https://plex.tv/api/v2/user/webhooks'                                           # get, post with data
     OPTOUTS = 'https://plex.tv/api/v2/user/%(userUUID)s/settings/opt_outs'                      # get
@@ -365,24 +362,53 @@ class MyPlexAccount(PlexObject):
         return self.query(url, self._session.post, headers=headers)
 
     def removeFriend(self, user):
-        """ Remove the specified user from all sharing.
+        """ Remove the specified user from your friends.
 
             Parameters:
-                user (str): MyPlexUser, username, email of the user to be added.
+                user (str): :class:`~plexapi.myplex.MyPlexUser`, username, or email of the user to be removed.
         """
-        user = self.user(user)
-        url = self.FRIENDUPDATE if user.friend else self.REMOVEINVITE
-        url = url.format(userId=user.id)
+        user = user if isinstance(user, MyPlexUser) else self.user(user)
+        url = self.FRIENDUPDATE.format(userId=user.id)
         return self.query(url, self._session.delete)
 
     def removeHomeUser(self, user):
-        """ Remove the specified managed user from home.
+        """ Remove the specified user from your home users.
 
             Parameters:
-                user (str): MyPlexUser, username, email of the user to be removed from home.
+                user (str): :class:`~plexapi.myplex.MyPlexUser`, username, or email of the user to be removed.
         """
-        user = self.user(user)
+        user = user if isinstance(user, MyPlexUser) else self.user(user)
         url = self.REMOVEHOMEUSER.format(userId=user.id)
+        return self.query(url, self._session.delete)
+
+    def acceptInvite(self, user):
+        """ Accept a pending firend invite from the specified user.
+
+            Parameters:
+                user (str): :class:`~plexapi.myplex.MyPlexInvite`, username, or email of the friend invite to accept.
+        """
+        invite = user if isinstance(user, MyPlexInvite) else self.pendingInvite(user, includeSent=False)
+        params = {
+            'friend': int(invite.friend),
+            'home': int(invite.home),
+            'server': int(invite.server)
+        }
+        url = MyPlexInvite.REQUESTS + '/%s' % invite.id + utils.joinArgs(params)
+        return self.query(url, self._session.put)
+
+    def cancelInvite(self, user):
+        """ Cancel a pending firend invite for the specified user.
+
+            Parameters:
+                user (str): :class:`~plexapi.myplex.MyPlexInvite`, username, or email of the friend invite to cancel.
+        """
+        invite = user if isinstance(user, MyPlexInvite) else self.pendingInvite(user, includeReceived=False)
+        params = {
+            'friend': int(invite.friend),
+            'home': int(invite.home),
+            'server': int(invite.server)
+        }
+        url = MyPlexInvite.REQUESTED + '/%s' % invite.id + utils.joinArgs(params)
         return self.query(url, self._session.delete)
 
     def updateFriend(self, user, server, sections=None, removeSections=False, allowSync=None, allowCameraUpload=None,
@@ -455,7 +481,7 @@ class MyPlexAccount(PlexObject):
         return response_servers, response_filters
 
     def user(self, username):
-        """ Returns the :class:`~plexapi.myplex.MyPlexUser` that matches the email or username specified.
+        """ Returns the :class:`~plexapi.myplex.MyPlexUser` that matches the specified username or email.
 
             Parameters:
                 username (str): Username, email or id of the user to return.
@@ -467,19 +493,50 @@ class MyPlexAccount(PlexObject):
                 return user
 
             elif (user.username and user.email and user.id and username.lower() in
-                  (user.username.lower(), user.email.lower(), str(user.id))):
+                    (user.username.lower(), user.email.lower(), str(user.id))):
                 return user
 
         raise NotFound('Unable to find user %s' % username)
 
     def users(self):
         """ Returns a list of all :class:`~plexapi.myplex.MyPlexUser` objects connected to your account.
-            This includes both friends and pending invites. You can reference the user.friend to
-            distinguish between the two.
         """
-        friends = [MyPlexUser(self, elem) for elem in self.query(MyPlexUser.key)]
-        requested = [MyPlexUser(self, elem, self.REQUESTED) for elem in self.query(self.REQUESTED)]
-        return friends + requested
+        elem = self.query(MyPlexUser.key)
+        return self.findItems(elem, cls=MyPlexUser)
+
+    def pendingInvite(self, username, includeSent=True, includeReceived=True):
+        """ Returns the :class:`~plexapi.myplex.MyPlexInvite` that matches the specified username or email.
+            Note: This can be a pending invite sent from your account or received to your account.
+
+            Parameters:
+                username (str): Username, email or id of the user to return.
+                includeSent (bool): True to include sent invites.
+                includeReceived (bool): True to include received invites.
+        """
+        username = str(username)
+        for invite in self.pendingInvites(includeSent, includeReceived):
+            if (invite.username and invite.email and invite.id and username.lower() in
+                    (invite.username.lower(), invite.email.lower(), str(invite.id))):
+                return invite
+        
+        raise NotFound('Unable to find invite %s' % username)
+
+    def pendingInvites(self, includeSent=True, includeReceived=True):
+        """ Returns a list of all :class:`~plexapi.myplex.MyPlexInvite` objects connected to your account.
+            Note: This includes all pending invites sent from your account and received to your account.
+
+            Parameters:
+                includeSent (bool): True to include sent invites.
+                includeReceived (bool): True to include received invites.
+        """
+        invites = []
+        if includeSent:
+            elem = self.query(MyPlexInvite.REQUESTED)
+            invites += self.findItems(elem, cls=MyPlexInvite)
+        if includeReceived:
+            elem = self.query(MyPlexInvite.REQUESTS)
+            invites += self.findItems(elem, cls=MyPlexInvite)
+        return invites
 
     def _getSectionIds(self, server, sections):
         """ Converts a list of section objects or names to sectionIds needed for library sharing. """
@@ -731,10 +788,10 @@ class MyPlexUser(PlexObject):
             protected (False): Unknown (possibly SSL enabled?).
             recommendationsPlaylistId (str): Unknown.
             restricted (str): Unknown.
+            servers (List<:class:`~plexapi.myplex.<MyPlexServerShare`>)): Servers shared with the user.
             thumb (str): Link to the users avatar.
             title (str): Seems to be an aliad for username.
             username (str): User's username.
-            servers: Servers shared between user and friend
     """
     TAG = 'User'
     key = 'https://plex.tv/api/users/'
@@ -794,6 +851,43 @@ class MyPlexUser(PlexObject):
         for server in self.servers:
             hist.extend(server.history(maxresults=maxresults, mindate=mindate))
         return hist
+
+
+class MyPlexInvite(PlexObject):
+    """ This object represents pending friend invites.
+
+        Attributes:
+            TAG (str): 'Invite'
+            createdAt (datetime): Datetime the user was invited.
+            email (str): User's email address (user@gmail.com).
+            friend (bool): True or False if the user is invited as a friend.
+            friendlyName (str): The user's friendly name.
+            home (bool): True or False if the user is invited to a Plex Home.
+            id (int): User's Plex account ID.
+            server (bool): True or False if the user is invited to any servers.
+            servers (List<:class:`~plexapi.myplex.<MyPlexServerShare`>)): Servers shared with the user.
+            thumb (str): Link to the users avatar.
+            username (str): User's username.
+    """
+    TAG = 'Invite'
+    REQUESTS = 'https://plex.tv/api/invites/requests'
+    REQUESTED = 'https://plex.tv/api/invites/requested'
+
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        self._data = data
+        self.createdAt = utils.toDatetime(data.attrib.get('createdAt'))
+        self.email = data.attrib.get('email')
+        self.friend = utils.cast(bool, data.attrib.get('friend'))
+        self.friendlyName = data.attrib.get('friendlyName')
+        self.home = utils.cast(bool, data.attrib.get('home'))
+        self.id = utils.cast(int, data.attrib.get('id'))
+        self.server = utils.cast(bool, data.attrib.get('server'))
+        self.servers = self.findItems(data, MyPlexServerShare)
+        self.thumb = data.attrib.get('thumb')
+        self.username = data.attrib.get('username', '')
+        for server in self.servers:
+            server.accountID = self.id
 
 
 class Section(PlexObject):

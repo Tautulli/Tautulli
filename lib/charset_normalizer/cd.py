@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
 
 from .assets import FREQUENCIES
-from .constant import KO_NAMES, TOO_SMALL_SEQUENCE, ZH_NAMES
+from .constant import KO_NAMES, LANGUAGE_SUPPORTED_COUNT, TOO_SMALL_SEQUENCE, ZH_NAMES
 from .md import is_suspiciously_successive_range
 from .models import CoherenceMatches
 from .utils import (
@@ -110,6 +110,23 @@ def mb_encoding_languages(iana_name: str) -> List[str]:
     return []
 
 
+@lru_cache(maxsize=LANGUAGE_SUPPORTED_COUNT)
+def get_target_features(language: str) -> Tuple[bool, bool]:
+    """
+    Determine main aspects from a supported language if it contains accents and if is pure Latin.
+    """
+    target_have_accents = False  # type: bool
+    target_pure_latin = True  # type: bool
+
+    for character in FREQUENCIES[language]:
+        if not target_have_accents and is_accentuated(character):
+            target_have_accents = True
+        if target_pure_latin and is_latin(character) is False:
+            target_pure_latin = False
+
+    return target_have_accents, target_pure_latin
+
+
 def alphabet_languages(
     characters: List[str], ignore_non_latin: bool = False
 ) -> List[str]:
@@ -118,23 +135,11 @@ def alphabet_languages(
     """
     languages = []  # type: List[Tuple[str, float]]
 
-    source_have_accents = False  # type: bool
-
-    for character in characters:
-        if is_accentuated(character):
-            source_have_accents = True
-            break
+    source_have_accents = any(is_accentuated(character) for character in characters)
 
     for language, language_characters in FREQUENCIES.items():
 
-        target_have_accents = False  # type: bool
-        target_pure_latin = True  # type: bool
-
-        for language_character in language_characters:
-            if target_have_accents is False and is_accentuated(language_character):
-                target_have_accents = True
-            if target_pure_latin is True and is_latin(language_character) is False:
-                target_pure_latin = False
+        target_have_accents, target_pure_latin = get_target_features(language)
 
         if ignore_non_latin and target_pure_latin is False:
             continue
@@ -263,8 +268,6 @@ def merge_coherence_ratios(results: List[CoherenceMatches]) -> CoherenceMatches:
     The return type is the same as coherence_ratio.
     """
     per_language_ratios = OrderedDict()  # type: Dict[str, List[float]]
-    merge = []  # type: CoherenceMatches
-
     for result in results:
         for sub_result in result:
             language, ratio = sub_result
@@ -273,17 +276,16 @@ def merge_coherence_ratios(results: List[CoherenceMatches]) -> CoherenceMatches:
                 continue
             per_language_ratios[language].append(ratio)
 
-    for language in per_language_ratios:
-        merge.append(
-            (
-                language,
-                round(
-                    sum(per_language_ratios[language])
-                    / len(per_language_ratios[language]),
-                    4,
-                ),
-            )
+    merge = [
+        (
+            language,
+            round(
+                sum(per_language_ratios[language]) / len(per_language_ratios[language]),
+                4,
+            ),
         )
+        for language in per_language_ratios
+    ]
 
     return sorted(merge, key=lambda x: x[1], reverse=True)
 
@@ -298,14 +300,11 @@ def coherence_ratio(
     """
 
     results = []  # type: List[Tuple[str, float]]
-    lg_inclusion_list = []  # type: List[str]
     ignore_non_latin = False  # type: bool
 
     sufficient_match_count = 0  # type: int
 
-    if lg_inclusion is not None:
-        lg_inclusion_list = lg_inclusion.split(",")
-
+    lg_inclusion_list = lg_inclusion.split(",") if lg_inclusion is not None else []
     if "Latin Based" in lg_inclusion_list:
         ignore_non_latin = True
         lg_inclusion_list.remove("Latin Based")
@@ -314,7 +313,7 @@ def coherence_ratio(
         sequence_frequencies = Counter(layer)  # type: Counter
         most_common = sequence_frequencies.most_common()
 
-        character_count = sum([o for c, o in most_common])  # type: int
+        character_count = sum(o for c, o in most_common)  # type: int
 
         if character_count <= TOO_SMALL_SEQUENCE:
             continue

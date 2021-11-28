@@ -4,6 +4,7 @@ except ImportError:
     import unicodedata  # type: ignore[no-redef]
 
 import importlib
+import logging
 from codecs import IncrementalDecoder
 from encodings.aliases import aliases
 from functools import lru_cache
@@ -122,7 +123,7 @@ def is_emoticon(character: str) -> bool:
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_separator(character: str) -> bool:
-    if character.isspace() or character in ["｜", "+", ",", ";", "<", ">"]:
+    if character.isspace() or character in {"｜", "+", ",", ";", "<", ">"}:
         return True
 
     character_category = unicodedata.category(character)  # type: str
@@ -138,7 +139,7 @@ def is_case_variable(character: str) -> bool:
 def is_private_use_only(character: str) -> bool:
     character_category = unicodedata.category(character)  # type: str
 
-    return "Co" == character_category
+    return character_category == "Co"
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
@@ -193,11 +194,7 @@ def is_thai(character: str) -> bool:
 
 @lru_cache(maxsize=len(UNICODE_RANGES_COMBINED))
 def is_unicode_range_secondary(range_name: str) -> bool:
-    for keyword in UNICODE_SECONDARY_RANGE_KEYWORD:
-        if keyword in range_name:
-            return True
-
-    return False
+    return any(keyword in range_name for keyword in UNICODE_SECONDARY_RANGE_KEYWORD)
 
 
 def any_specified_encoding(sequence: bytes, search_zone: int = 4096) -> Optional[str]:
@@ -211,9 +208,7 @@ def any_specified_encoding(sequence: bytes, search_zone: int = 4096) -> Optional
 
     results = findall(
         RE_POSSIBLE_ENCODING_INDICATION,
-        sequence[: seq_len if seq_len <= search_zone else search_zone].decode(
-            "ascii", errors="ignore"
-        ),
+        sequence[: min(seq_len, search_zone)].decode("ascii", errors="ignore"),
     )  # type: List[str]
 
     if len(results) == 0:
@@ -278,7 +273,7 @@ def iana_name(cp_name: str, strict: bool = True) -> str:
     cp_name = cp_name.lower().replace("-", "_")
 
     for encoding_alias, encoding_iana in aliases.items():
-        if cp_name == encoding_alias or cp_name == encoding_iana:
+        if cp_name in [encoding_alias, encoding_iana]:
             return encoding_iana
 
     if strict:
@@ -314,7 +309,7 @@ def cp_similarity(iana_name_a: str, iana_name_b: str) -> float:
 
     character_match_count = 0  # type: int
 
-    for i in range(0, 255):
+    for i in range(255):
         to_be_decoded = bytes([i])  # type: bytes
         if id_a.decode(to_be_decoded) == id_b.decode(to_be_decoded):
             character_match_count += 1
@@ -331,3 +326,17 @@ def is_cp_similar(iana_name_a: str, iana_name_b: str) -> bool:
         iana_name_a in IANA_SUPPORTED_SIMILAR
         and iana_name_b in IANA_SUPPORTED_SIMILAR[iana_name_a]
     )
+
+
+def set_logging_handler(
+    name: str = "charset_normalizer",
+    level: int = logging.INFO,
+    format_string: str = "%(asctime)s | %(levelname)s | %(message)s",
+) -> None:
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter(format_string))
+    logger.addHandler(handler)
