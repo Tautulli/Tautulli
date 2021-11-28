@@ -64,10 +64,10 @@ def src_to_tokens(src: str) -> List[Token]:
     tokens = []
     last_line = 1
     last_col = 0
+    end_offset = 0
 
-    for (
-            tok_type, tok_text, (sline, scol), (eline, ecol), line,
-    ) in tokenize.generate_tokens(tokenize_target.readline):
+    gen = tokenize.generate_tokens(tokenize_target.readline)
+    for tok_type, tok_text, (sline, scol), (eline, ecol), line in gen:
         if sline > last_line:
             newtok = lines[last_line][last_col:]
             for lineno in range(last_line + 1, sline):
@@ -79,16 +79,25 @@ def src_to_tokens(src: str) -> List[Token]:
             while _escaped_nl_re.search(newtok):
                 ws, nl, newtok = _re_partition(_escaped_nl_re, newtok)
                 if ws:
-                    tokens.append(Token(UNIMPORTANT_WS, ws))
-                tokens.append(Token(ESCAPED_NL, nl))
+                    tokens.append(
+                        Token(UNIMPORTANT_WS, ws, last_line, end_offset),
+                    )
+                    end_offset += len(ws.encode())
+                tokens.append(Token(ESCAPED_NL, nl, last_line, end_offset))
+                end_offset = 0
+                last_line += 1
             if newtok:
-                tokens.append(Token(UNIMPORTANT_WS, newtok))
+                tokens.append(Token(UNIMPORTANT_WS, newtok, sline, 0))
+                end_offset = len(newtok.encode())
+            else:
+                end_offset = 0
 
         elif scol > last_col:
-            tokens.append(Token(UNIMPORTANT_WS, line[last_col:scol]))
+            newtok = line[last_col:scol]
+            tokens.append(Token(UNIMPORTANT_WS, newtok, sline, end_offset))
+            end_offset += len(newtok.encode())
 
         tok_name = tokenize.tok_name[tok_type]
-        utf8_byte_offset = len(line[:scol].encode('UTF-8'))
         # when a string prefix is not recognized, the tokenizer produces a
         # NAME token followed by a STRING token
         if (
@@ -115,8 +124,12 @@ def src_to_tokens(src: str) -> List[Token]:
         ):
             tokens[-1] = tokens[-1]._replace(src=tokens[-1].src + tok_text)
         else:
-            tokens.append(Token(tok_name, tok_text, sline, utf8_byte_offset))
+            tokens.append(Token(tok_name, tok_text, sline, end_offset))
         last_line, last_col = eline, ecol
+        if sline != eline:
+            end_offset = len(lines[last_line][:last_col].encode())
+        else:
+            end_offset += len(tok_text.encode())
 
     return tokens
 
@@ -190,10 +203,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         tokens = src_to_tokens(f.read())
 
     for token in tokens:
-        if token.name == UNIMPORTANT_WS:
-            line, col = '?', '?'
-        else:
-            line, col = str(token.line), str(token.utf8_byte_offset)
+        line, col = str(token.line), str(token.utf8_byte_offset)
         print(f'{line}:{col} {token.name} {token.src!r}')
 
     return 0
