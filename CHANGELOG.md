@@ -1,5 +1,31 @@
 # Changelog
 
+## v2.8.0-beta (2021-11-28)
+
+* History:
+  * Fix: Live TV history filter not working correctly when combined with other filters.
+  * Fix: Direct Stream history filter not remembering the state when reloading the page.
+  * New: Added watch time and user stats to mediaa info pages. (Thanks @herby2212) (#1417, #1471)
+* Notifications:
+  * New: Added Microsoft Teams notification agent. (#1514)
+  * New: Added Gotify notification agent.
+* Newsletters:
+  * Fix: Different album types not shown on newsletter. (#1559)
+* Exporter:
+  * New: Added album formats, subformats, and sonic analysis export fields.
+* UI:
+  * Fix: Docker config volume message overlapping modal windows. (#1567)
+  * Fix: Different album types not shown on artist media info page.
+  * New: Added show more/less toggle for summaries on media info pages. (#1546)
+  * New: Add warning message that passwords are not copied when duplicating a notification or newsletter agent. (#1540)
+  * Change: Do not save datatable page or search states when reloading the page. (#1532)
+* Other:
+  * Fix: Updated Python dependencies. (#1499)
+  * Fix: Some websocket connections not respecting the verify SSL setting. (Thanks @nmaggioni) (#1541)
+  * New: Support for Python 3.10. (#1522)
+  * New: Added dynamic anonymous redirect service setting. (#1526)
+
+
 ## v2.7.7 (2021-10-14)
 
 * Notifications:

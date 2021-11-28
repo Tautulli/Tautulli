@@ -17,5 +17,5 @@
 
 from __future__ import unicode_literals
 
-PLEXPY_BRANCH = "master"
-PLEXPY_RELEASE_VERSION = "v2.7.7"
+PLEXPY_BRANCH = "beta"
+PLEXPY_RELEASE_VERSION = "v2.8.0-beta"
