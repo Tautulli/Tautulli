@@ -1,9 +1,9 @@
 class MQTTMatcher(object):
     """Intended to manage topic filters including wildcards.
 
-    Internally, MQTTMatcher use a prefix tree (trie) to store 
-    values associated with filters, and has an iter_match() 
-    method to iterate efficiently over all filters that match 
+    Internally, MQTTMatcher use a prefix tree (trie) to store
+    values associated with filters, and has an iter_match()
+    method to iterate efficiently over all filters that match
     some topic name."""
 
     class Node(object):
@@ -55,7 +55,7 @@ class MQTTMatcher(object):
                 del parent._children[k]
 
     def iter_match(self, topic):
-        """Return an iterator on all values associated with filters 
+        """Return an iterator on all values associated with filters
         that match the :topic"""
         lst = topic.split('/')
         normal = not topic.startswith('$')
