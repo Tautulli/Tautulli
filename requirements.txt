@@ -21,7 +21,7 @@ idna==3.3
 importlib-resources==5.4.0
 ipwhois==1.2.0
 IPy==1.01
-Mako==1.1.5
+Mako==1.1.6
 MarkupSafe==2.0.1
 musicbrainzngs==0.7.1
 oauthlib==3.1.1
