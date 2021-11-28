@@ -118,7 +118,7 @@ Serializing multiple objects to JSON lines (newline-delimited JSON)::
 
 """
 from __future__ import absolute_import
-__version__ = '3.17.5'
+__version__ = '3.17.6'
 __all__ = [
     'dump', 'dumps', 'load', 'loads',
     'JSONDecoder', 'JSONDecodeError', 'JSONEncoder',
