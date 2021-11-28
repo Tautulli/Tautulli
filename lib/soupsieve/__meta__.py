@@ -79,7 +79,11 @@ class Version(namedtuple("Version", ["major", "minor", "micro", "release", "pre"
 
     """
 
-    def __new__(cls, major, minor, micro, release="final", pre=0, post=0, dev=0):
+    def __new__(
+        cls,
+        major: int, minor: int, micro: int, release: str = "final",
+        pre: int = 0, post: int = 0, dev: int = 0
+    ) -> "Version":
         """Validate version info."""
 
         # Ensure all parts are positive integers.
@@ -115,27 +119,27 @@ class Version(namedtuple("Version", ["major", "minor", "micro", "release", "pre"
 
         return super(Version, cls).__new__(cls, major, minor, micro, release, pre, post, dev)
 
-    def _is_pre(self):
+    def _is_pre(self) -> bool:
         """Is prerelease."""
 
-        return self.pre > 0
+        return bool(self.pre > 0)
 
-    def _is_dev(self):
+    def _is_dev(self) -> bool:
         """Is development."""
 
         return bool(self.release < "alpha")
 
-    def _is_post(self):
+    def _is_post(self) -> bool:
         """Is post."""
 
-        return self.post > 0
+        return bool(self.post > 0)
 
-    def _get_dev_status(self):  # pragma: no cover
+    def _get_dev_status(self) -> str:  # pragma: no cover
         """Get development status string."""
 
         return DEV_STATUS[self.release]
 
-    def _get_canonical(self):
+    def _get_canonical(self) -> str:
         """Get the canonical output string."""
 
         # Assemble major, minor, micro version and append `pre`, `post`, or `dev` if needed..
@@ -153,7 +157,7 @@ class Version(namedtuple("Version", ["major", "minor", "micro", "release", "pre"
         return ver
 
 
-def parse_version(ver):
+def parse_version(ver: str) -> Version:
     """Parse version into a comparable Version tuple."""
 
     m = RE_VER.match(ver)
@@ -188,5 +192,5 @@ def parse_version(ver):
     return Version(major, minor, micro, release, pre, post, dev)
 
 
-__version_info__ = Version(2, 2, 1, "final")
+__version_info__ = Version(2, 3, 1, "final")
 __version__ = __version_info__._get_canonical()

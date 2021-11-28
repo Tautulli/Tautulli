@@ -2,6 +2,7 @@
 from functools import wraps, lru_cache
 import warnings
 import re
+from typing import Callable, Any, Optional, Tuple, List
 
 DEBUG = 0x00001
 
@@ -12,7 +13,7 @@ UC_Z = ord('Z')
 
 
 @lru_cache(maxsize=512)
-def lower(string):
+def lower(string: str) -> str:
     """Lower."""
 
     new_string = []
@@ -25,7 +26,7 @@ def lower(string):
 class SelectorSyntaxError(Exception):
     """Syntax error in a CSS selector."""
 
-    def __init__(self, msg, pattern=None, index=None):
+    def __init__(self, msg: str, pattern: Optional[str] = None, index: Optional[int] = None) -> None:
         """Initialize."""
 
         self.line = None
@@ -37,30 +38,34 @@ class SelectorSyntaxError(Exception):
             self.context, self.line, self.col = get_pattern_context(pattern, index)
             msg = '{}\n  line {}:\n{}'.format(msg, self.line, self.context)
 
-        super(SelectorSyntaxError, self).__init__(msg)
+        super().__init__(msg)
 
 
-def deprecated(message, stacklevel=2):  # pragma: no cover
+def deprecated(message: str, stacklevel: int = 2) -> Callable[..., Any]:  # pragma: no cover
     """
     Raise a `DeprecationWarning` when wrapped function/method is called.
 
-    Borrowed from https://stackoverflow.com/a/48632082/866026
+    Usage:
+
+        @deprecated("This method will be removed in version X; use Y instead.")
+        def some_method()"
+            pass
     """
 
-    def _decorator(func):
+    def _wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def _func(*args, **kwargs):
+        def _deprecated_func(*args: Any, **kwargs: Any) -> Any:
             warnings.warn(
-                "'{}' is deprecated. {}".format(func.__name__, message),
+                f"'{func.__name__}' is deprecated. {message}",
                 category=DeprecationWarning,
                 stacklevel=stacklevel
             )
             return func(*args, **kwargs)
-        return _func
-    return _decorator
+        return _deprecated_func
+    return _wrapper
 
 
-def warn_deprecated(message, stacklevel=2):  # pragma: no cover
+def warn_deprecated(message: str, stacklevel: int = 2) -> None:  # pragma: no cover
     """Warn deprecated."""
 
     warnings.warn(
@@ -70,14 +75,15 @@ def warn_deprecated(message, stacklevel=2):  # pragma: no cover
     )
 
 
-def get_pattern_context(pattern, index):
+def get_pattern_context(pattern: str, index: int) -> Tuple[str, int, int]:
     """Get the pattern context."""
 
     last = 0
     current_line = 1
     col = 1
-    text = []
+    text = []  # type: List[str]
     line = 1
+    offset = None  # type: Optional[int]
 
     # Split pattern by newline and handle the text before the newline
     for m in RE_PATTERN_LINE_SPLIT.finditer(pattern):

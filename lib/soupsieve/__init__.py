@@ -30,6 +30,8 @@ from . import css_parser as cp
 from . import css_match as cm
 from . import css_types as ct
 from .util import DEBUG, SelectorSyntaxError  # noqa: F401
+import bs4  # type: ignore[import]
+from typing import Dict, Optional, Any, List, Iterator, Iterable
 
 __all__ = (
     'DEBUG', 'SelectorSyntaxError', 'SoupSieve',
@@ -40,15 +42,18 @@ __all__ = (
 SoupSieve = cm.SoupSieve
 
 
-def compile(pattern, namespaces=None, flags=0, **kwargs):  # noqa: A001
+def compile(  # noqa: A001
+    pattern: str,
+    namespaces: Optional[Dict[str, str]] = None,
+    flags: int = 0,
+    *,
+    custom: Optional[Dict[str, str]] = None,
+    **kwargs: Any
+) -> cm.SoupSieve:
     """Compile CSS pattern."""
 
-    if namespaces is not None:
-        namespaces = ct.Namespaces(namespaces)
-
-    custom = kwargs.get('custom')
-    if custom is not None:
-        custom = ct.CustomSelectors(custom)
+    ns = ct.Namespaces(namespaces) if namespaces is not None else namespaces  # type: Optional[ct.Namespaces]
+    cs = ct.CustomSelectors(custom) if custom is not None else custom  # type: Optional[ct.CustomSelectors]
 
     if isinstance(pattern, SoupSieve):
         if flags:
@@ -59,53 +64,103 @@ def compile(pattern, namespaces=None, flags=0, **kwargs):  # noqa: A001
             raise ValueError("Cannot process 'custom' argument on a compiled selector list")
         return pattern
 
-    return cp._cached_css_compile(pattern, namespaces, custom, flags)
+    return cp._cached_css_compile(pattern, ns, cs, flags)
 
 
-def purge():
+def purge() -> None:
     """Purge cached patterns."""
 
     cp._purge_cache()
 
 
-def closest(select, tag, namespaces=None, flags=0, **kwargs):
+def closest(
+    select: str,
+    tag: 'bs4.Tag',
+    namespaces: Optional[Dict[str, str]] = None,
+    flags: int = 0,
+    *,
+    custom: Optional[Dict[str, str]] = None,
+    **kwargs: Any
+) -> 'bs4.Tag':
     """Match closest ancestor."""
 
     return compile(select, namespaces, flags, **kwargs).closest(tag)
 
 
-def match(select, tag, namespaces=None, flags=0, **kwargs):
+def match(
+    select: str,
+    tag: 'bs4.Tag',
+    namespaces: Optional[Dict[str, str]] = None,
+    flags: int = 0,
+    *,
+    custom: Optional[Dict[str, str]] = None,
+    **kwargs: Any
+) -> bool:
     """Match node."""
 
     return compile(select, namespaces, flags, **kwargs).match(tag)
 
 
-def filter(select, iterable, namespaces=None, flags=0, **kwargs):  # noqa: A001
+def filter(  # noqa: A001
+    select: str,
+    iterable: Iterable['bs4.Tag'],
+    namespaces: Optional[Dict[str, str]] = None,
+    flags: int = 0,
+    *,
+    custom: Optional[Dict[str, str]] = None,
+    **kwargs: Any
+) -> List['bs4.Tag']:
     """Filter list of nodes."""
 
     return compile(select, namespaces, flags, **kwargs).filter(iterable)
 
 
-def select_one(select, tag, namespaces=None, flags=0, **kwargs):
+def select_one(
+    select: str,
+    tag: 'bs4.Tag',
+    namespaces: Optional[Dict[str, str]] = None,
+    flags: int = 0,
+    *,
+    custom: Optional[Dict[str, str]] = None,
+    **kwargs: Any
+) -> 'bs4.Tag':
     """Select a single tag."""
 
     return compile(select, namespaces, flags, **kwargs).select_one(tag)
 
 
-def select(select, tag, namespaces=None, limit=0, flags=0, **kwargs):
+def select(
+    select: str,
+    tag: 'bs4.Tag',
+    namespaces: Optional[Dict[str, str]] = None,
+    limit: int = 0,
+    flags: int = 0,
+    *,
+    custom: Optional[Dict[str, str]] = None,
+    **kwargs: Any
+) -> List['bs4.Tag']:
     """Select the specified tags."""
 
     return compile(select, namespaces, flags, **kwargs).select(tag, limit)
 
 
-def iselect(select, tag, namespaces=None, limit=0, flags=0, **kwargs):
+def iselect(
+    select: str,
+    tag: 'bs4.Tag',
+    namespaces: Optional[Dict[str, str]] = None,
+    limit: int = 0,
+    flags: int = 0,
+    *,
+    custom: Optional[Dict[str, str]] = None,
+    **kwargs: Any
+) -> Iterator['bs4.Tag']:
     """Iterate the specified tags."""
 
     for el in compile(select, namespaces, flags, **kwargs).iselect(tag, limit):
         yield el
 
 
-def escape(ident):
+def escape(ident: str) -> str:
     """Escape identifier."""
 
     return cp.escape(ident)
