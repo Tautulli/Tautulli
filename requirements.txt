@@ -1,5 +1,5 @@
 appdirs==1.4.4
-apscheduler==3.8.1
+apscheduler==3.8.0
 arrow==1.2.1
 backports.csv==1.0.7
 backports.functools-lru-cache==1.6.4
@@ -44,7 +44,7 @@ soupsieve==2.3.1
 tempora==4.1.2
 tokenize-rt==4.2.1
 tzdata==2021.5
-tzlocal==4.1
+tzlocal==2.1  # apscheduler==3.8.0 requires tzlocal~=2.0
 urllib3==1.26.7
 webencodings==0.5.1
 websocket-client==1.2.1
