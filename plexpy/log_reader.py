@@ -29,19 +29,34 @@ else:
     from plexpy import logger
 
 
-def get_log_tail(window=20, parsed=True, log_type="server"):
+def list_plex_logs():
+    logs_dir = plexpy.CONFIG.PMS_LOGS_FOLDER
 
-    if plexpy.CONFIG.PMS_LOGS_FOLDER:
-        log_file = ""
-        if log_type == "server":
-            log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, 'Plex Media Server.log')
-        elif log_type == "scanner":
-            log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, 'Plex Media Scanner.log')
-    else:
+    if not logs_dir or logs_dir and not os.path.exists(logs_dir):
         return []
 
+    log_files = []
+    for file in os.listdir(logs_dir):
+        if file.startswith('Plex Transcoder Statistics'):
+            # Plex Transcoder Statistics is an XML file
+            continue
+        if os.path.isfile(os.path.join(logs_dir, file)):
+            name, ext = os.path.splitext(file)
+            if ext == '.log' and not name[-1].isdigit():
+                log_files.append(name)
+
+    return log_files
+
+
+def get_log_tail(window=20, parsed=True, log_file=''):
+    if not plexpy.CONFIG.PMS_LOGS_FOLDER:
+        return []
+
+    log_file = (log_file or 'Plex Media Server') + '.log'
+    log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
+
     try:
-        logfile = open(log_file, "r", encoding="utf-8")
+        logfile = open(log_file, 'r', encoding='utf-8')
     except IOError as e:
         logger.error('Unable to open Plex Log file. %s' % e)
         return []
@@ -52,6 +67,8 @@ def get_log_tail(window=20, parsed=True, log_type="server"):
         line_error = False
         clean_lines = []
         for i in log_lines:
+            if not i.strip():
+                continue
             try:
                 log_time = i.split(' [')[0]
                 log_level = i.split('] ', 1)[1].split(' - ', 1)[0]
@@ -74,7 +91,6 @@ def get_log_tail(window=20, parsed=True, log_type="server"):
 
         return raw_lines
 
-    return log_lines
 
 # http://stackoverflow.com/a/13790289/2405162
 def tail(f, lines=1, _buffer=4098):

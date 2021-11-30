@@ -2748,7 +2748,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def logs(self, **kwargs):
-        return serve_template(templatename="logs.html", title="Log")
+        plex_log_files = log_reader.list_plex_logs()
+        return serve_template(templatename="logs.html", title="Log", plex_log_files=plex_log_files)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -2821,7 +2822,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_plex_log(self, **kwargs):
+    def get_plex_log(self, logfile='', **kwargs):
         """ Get the PMS logs.
 
             ```
@@ -2830,7 +2831,8 @@ class WebInterface(object):
 
             Optional parameters:
                 window (int):           The number of tail lines to return
-                log_type (str):         "server" or "scanner"
+                logfile (int):          The name of the Plex log file,
+                                        e.g. "Plex Media Server", "Plex Media Scanner"
 
             Returns:
                 json:
@@ -2843,16 +2845,16 @@ class WebInterface(object):
                      ]
             ```
         """
+        if kwargs.get('log_type'):
+            logfile = 'Plex Media ' + kwargs['log_type'].capitalize()
+
         window = int(kwargs.get('window', plexpy.CONFIG.PMS_LOGS_LINE_CAP))
-        log_lines = []
-        log_type = kwargs.get('log_type', 'server')
 
         try:
-            log_lines = {'data': log_reader.get_log_tail(window=window, parsed=True, log_type=log_type)}
+            return {'data': log_reader.get_log_tail(window=window, parsed=True, log_file=logfile)}
         except:
-            logger.warn("Unable to retrieve Plex Logs.")
-
-        return log_lines
+            logger.warn("Unable to retrieve Plex log file '%'." % logfile)
+            return []
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4952,7 +4954,20 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def download_log(self, logfile='', **kwargs):
-        """ Download the Tautulli log file. """
+        """ Download the Tautulli log file.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                logfile (str):          The name of the Tautulli log file,
+                                        "tautulli", "tautulli_api", "plex_websocket"
+
+            Returns:
+                download
+            ```
+        """
         if logfile == "tautulli_api":
             filename = logger.FILENAME_API
             log = logger.logger_api
@@ -4973,26 +4988,35 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def download_plex_log(self, **kwargs):
-        """ Download the Plex log file. """
-        log_type = kwargs.get('log_type', 'server')
+    def download_plex_log(self, logfile='', **kwargs):
+        """ Download the Plex log file.
 
-        log_file = ""
-        if plexpy.CONFIG.PMS_LOGS_FOLDER:
-            if log_type == "server":
-                log_file = 'Plex Media Server.log'
-                log_file_path = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
-            elif log_type == "scanner":
-                log_file = 'Plex Media Scanner.log'
-                log_file_path = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
-        else:
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                logfile (int):          The name of the Plex log file,
+                                        e.g. "Plex Media Server", "Plex Media Scanner"
+
+            Returns:
+                download
+            ```
+        """
+        if not plexpy.CONFIG.PMS_LOGS_FOLDER:
             return "Plex log folder not set in the settings."
 
+        if kwargs.get('log_type'):
+            logfile = 'Plex Media ' + kwargs['log_type'].capitalize()
+
+        log_file = (logfile or 'Plex Media Server') + '.log'
+        log_file_path = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
 
         if log_file and os.path.isfile(log_file_path):
-            return serve_download(log_file_path, name=log_file)
+            log_file_name = os.path.basename(log_file_path)
+            return serve_download(log_file_path, name=log_file_name)
         else:
-            return "Plex %s log file not found." % log_type
+            return "Plex log file '%s' not found." % log_file
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
