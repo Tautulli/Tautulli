@@ -1884,7 +1884,9 @@ class WebInterface(object):
                 rating_key (int):               4348
                 parent_rating_key (int):        544
                 grandparent_rating_key (int):   351
-                start_date (str):               "YYYY-MM-DD"
+                start_date (str):               History for the exact date, "YYYY-MM-DD"
+                before (str):                   History before and including the date, "YYYY-MM-DD"
+                after (str):                    History after and including the date, "YYYY-MM-DD"
                 section_id (int):               2
                 media_type (str):               "movie", "episode", "track", "live"
                 transcode_decision (str):       "direct play", "copy", "transcode",
@@ -1995,6 +1997,14 @@ class WebInterface(object):
             start_date = helpers.split_strip(kwargs.get('start_date', ''))
             if start_date:
                 custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
+        if 'before' in kwargs:
+            before = helpers.split_strip(kwargs.get('before', ''))
+            if before:
+                custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime")) <', before])
+        if 'after' in kwargs:
+            after = helpers.split_strip(kwargs.get('after', ''))
+            if after:
+                custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime")) >', after])
         if 'reference_id' in kwargs:
             reference_id = helpers.split_strip(kwargs.get('reference_id', ''))
             if reference_id:
