@@ -2015,7 +2015,7 @@ class WebInterface(object):
                 custom_where.append(['session_history.section_id', section_id])
         if 'media_type' in kwargs:
             media_type = helpers.split_strip(kwargs.get('media_type', ''))
-            if media_type:
+            if media_type and 'all' not in media_type:
                 custom_where.append(['media_type_live', media_type])
         if 'transcode_decision' in kwargs:
             transcode_decision = helpers.split_strip(kwargs.get('transcode_decision', ''))
