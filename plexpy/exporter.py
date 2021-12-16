@@ -2509,7 +2509,6 @@ def build_export_docs():
             child_table_rows.append(table_row.format(**child_row))
         return child_table_rows
 
-    contents = []
     sections = []
 
     for media_type, (thumb, art) in export.MEDIA_TYPES.items():
@@ -2569,11 +2568,19 @@ def build_export_docs():
         section = section_head.format(anchor=media_type, section=section_title) + '\n\n'.join(details)
 
         if media_type == 'collection':
-            section += '\n\n* <a id="collection-item">**Note:**</a> Collection `items` can be [Movies](#movie) or [Shows](#show) ' \
-                       'depending on the collection.'
+            section += (
+                '\n\n* <a id="collection-item">**Note:**</a> Collection `items` can be '
+                '[Movies](#movie), '
+                '[Shows](#show), [Seasons](#season), [Episodes](#episode), '
+                '[Artists](#artist), [Albums](#album), or [Tracks](#track) '
+                'depending on the type of collection.'
+            )
         elif media_type == 'playlist':
-            section += '\n\n* <a id="playlist-item">**Note:**</a> Playlist `items` can be [Movies](#movie), [Episodes](#episode), ' \
-                       '[Tracks](#track), or [Photos](#photo) depending on the playlist.'
+            section += (
+                '\n\n* <a id="playlist-item">**Note:**</a> Playlist `items` can be '
+                '[Movies](#movie), [Episodes](#episode), [Tracks](#track), or [Photos](#photo) '
+                'depending on the type of playlist.'
+            )
 
         sections.append(section)
 
