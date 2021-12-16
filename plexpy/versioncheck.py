@@ -24,6 +24,7 @@ import json
 import os
 import platform
 import re
+import shutil
 import subprocess
 import tarfile
 
@@ -327,8 +328,12 @@ def update():
         for line in output.split('\n'):
             if 'Already up-to-date.' in line or 'Already up to date.' in line:
                 logger.info('No update available, not updating')
+                return
             elif line.endswith(('Aborting', 'Aborting.')):
                 logger.error('Unable to update from git: ' + line)
+                return
+
+        clean_pyc()
 
     elif plexpy.INSTALL_TYPE == 'source':
         tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER,
@@ -389,6 +394,8 @@ def update():
                 e
             )
             return
+
+        clean_pyc()
 
 
 def reset_git_install():
@@ -543,3 +550,24 @@ def read_changelog(latest_only=False, since_prev_release=False):
     except IOError as e:
         logger.error('Tautulli Version Checker :: Unable to open changelog file. %s' % e)
         return '<h4>Unable to open changelog file</h4>'
+
+
+def clean_pyc():
+    logger.debug('Cleaning __pycache__ and .pyc files.')
+
+    for root, dirs, files in os.walk(plexpy.PROG_DIR):
+        for _dir in dirs:
+            if _dir.lower() == '__pycache__':
+                dirpath = os.path.join(root, _dir)
+                try:
+                    shutil.rmtree(dirpath)
+                except OSError as e:
+                    logger.error('Failed to remove directory %s: %s', dirpath, e)
+
+        for _file in files:
+            if _file.lower().endswith('.pyc'):
+                filepath = os.path.join(root, _file)
+                try:
+                    os.remove(filepath)
+                except OSError as e:
+                    logger.error('Failed to remove file %s: %s', filepath, e)
