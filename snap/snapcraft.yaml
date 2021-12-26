@@ -62,5 +62,6 @@ apps:
       - home
       - network
       - network-bind
+      - removable-media
     environment:
       TAUTULLI_SNAP: "True"
