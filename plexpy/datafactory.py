@@ -1017,9 +1017,10 @@ class DataFactory(object):
 
         return library_stats
 
-    def get_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None):
+    def get_watch_time_stats(self, rating_key=None, grouping=None, query_days=None):
         if rating_key is None:
             return []
+
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
@@ -1036,13 +1037,6 @@ class DataFactory(object):
 
         section_ids = set()
 
-        if media_type in ('show', 'artist'):
-            media_type_key = 'session_history.grandparent_rating_key'
-        elif media_type in ('season', 'album'):
-            media_type_key = 'session_history.parent_rating_key'
-        else:  # movie, episode, track
-            media_type_key = 'session_history.rating_key'
-
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         for days in query_days:
@@ -1057,8 +1051,10 @@ class DataFactory(object):
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                                 'WHERE stopped >= %s ' \
-                                'AND %s = ?' % (group_by, timestamp_query, media_type_key)
-                        result = monitor_db.select(query, args=[rating_key])
+                                'AND (session_history.grandparent_rating_key = ? ' \
+                                'OR session_history.parent_rating_key = ? ' \
+                                'OR session_history.rating_key = ?)' % (group_by, timestamp_query)
+                        result = monitor_db.select(query, args=[rating_key, rating_key, rating_key])
                     else:
                         result = []
                 else:
@@ -1068,8 +1064,10 @@ class DataFactory(object):
                                 'COUNT(DISTINCT %s) AS total_plays, section_id ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
-                                'WHERE %s = ?' % (group_by, media_type_key)
-                        result = monitor_db.select(query, args=[rating_key])
+                                'WHERE (session_history.grandparent_rating_key = ? ' \
+                                'OR session_history.parent_rating_key = ? ' \
+                                'OR session_history.rating_key = ?)' % group_by
+                        result = monitor_db.select(query, args=[rating_key, rating_key, rating_key])
                     else:
                         result = []
             except Exception as e:
@@ -1098,7 +1096,7 @@ class DataFactory(object):
 
         return item_watch_time_stats
 
-    def get_user_stats(self, rating_key=None, media_type=None, grouping=None):
+    def get_user_stats(self, rating_key=None, grouping=None):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
@@ -1108,13 +1106,6 @@ class DataFactory(object):
 
         section_ids = set()
         
-        if media_type in ('show', 'artist'):
-            media_type_key = 'session_history.grandparent_rating_key'
-        elif media_type in ('season', 'album'):
-            media_type_key = 'session_history.parent_rating_key'
-        else:  # movie, episode, track
-            media_type_key = 'session_history.rating_key'
-
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         try:
@@ -1122,14 +1113,18 @@ class DataFactory(object):
                 query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
                         'THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
                         'users.user_id, users.username, users.thumb, users.custom_avatar_url AS custom_thumb, ' \
-                        'COUNT(DISTINCT %s) AS user_count, section_id ' \
+                        'COUNT(DISTINCT %s) AS total_plays, (SUM(stopped - started) - ' \
+                        'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                        'section_id ' \
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
-                        'WHERE %s = ? ' \
+                        'WHERE (session_history.grandparent_rating_key = ? ' \
+                        'OR session_history.parent_rating_key = ? ' \
+                        'OR session_history.rating_key = ?) ' \
                         'GROUP BY users.user_id ' \
-                        'ORDER BY user_count DESC' % (group_by, media_type_key)
-                result = monitor_db.select(query, args=[rating_key])
+                        'ORDER BY total_plays DESC, total_time DESC' % group_by
+                result = monitor_db.select(query, args=[rating_key, rating_key, rating_key])
             else:
                 result = []
         except Exception as e:
@@ -1150,7 +1145,8 @@ class DataFactory(object):
                    'user_id': item['user_id'],
                    'user_thumb': user_thumb,
                    'username': item['username'],
-                   'total_plays': item['user_count']
+                   'total_plays': item['total_plays'],
+                   'total_time': item['total_time']
                    }
             user_stats.append(row)
 

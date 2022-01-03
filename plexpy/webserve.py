@@ -1060,7 +1060,7 @@ class WebInterface(object):
 
             ```
             Required parameters:
-                section_id (str):               The id of the Plex library section
+                section_id (str):       The id of the Plex library section
 
             Optional parameters:
                 grouping (int):         0 or 1
@@ -1069,12 +1069,14 @@ class WebInterface(object):
                 json:
                     [{"friendly_name": "Jon Snow",
                       "total_plays": 170,
+                      "total_time": 349618
                       "user_id": 133788,
                       "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
                       "username": "LordCommanderSnow"
                       },
                      {"friendly_name": "DanyKhaleesi69",
                       "total_plays": 42,
+                      "total_time": 50185
                       "user_id": 8008135,
                       "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
                       "username: "DanyKhaleesi69"
@@ -4515,10 +4517,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
+    def item_watch_time_stats(self, rating_key=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_watch_time_stats(rating_key=rating_key)
         else:
             result = None
 
@@ -4529,19 +4531,34 @@ class WebInterface(object):
             return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
+    @requireAuth()
+    def item_user_stats(self, rating_key=None, **kwargs):
+        if rating_key:
+            item_data = datafactory.DataFactory()
+            result = item_data.get_user_stats(rating_key=rating_key)
+        else:
+            result = None
+
+        if result:
+            return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
+        else:
+            logger.warn("Unable to retrieve data for item_user_stats.")
+            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
+
+    @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
+    def get_item_watch_time_stats(self, rating_key=None, grouping=None, query_days=None, **kwargs):
         """  Get the watch time stats for the media item.
 
             ```
             Required parameters:
                 rating_key (str):       Rating key of the item
-                media_type (str):       Media type of the item
 
             Optional parameters:
-                None
+                grouping (int):         0 or 1
+                query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
             Returns:
                 json:
@@ -4569,47 +4586,33 @@ class WebInterface(object):
                     ]
             ```
         """
+        grouping = helpers.bool_true(grouping, return_none=True)
+
         if rating_key:
             item_data = datafactory.DataFactory()
-            stats = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_watch_time_stats(rating_key=rating_key, grouping=grouping,
+                                                    query_days=query_days)
+            if result:
+                return result
+            else:
+                logger.warn("Unable to retrieve data for get_item_watch_time_stats.")
+                return result
         else:
-            stats = None
-
-        if stats:
-            return stats
-        else:
-            logger.warn("Unable to retrieve data for get_item_watch_time_stats.")
-            return stats
-
-    @cherrypy.expose
-    @requireAuth()
-    def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
-        if rating_key:
-            item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
-        else:
-            result = None
-
-        if result:
-            return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
-        else:
-            logger.warn("Unable to retrieve data for item_user_stats.")
-            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
+            logger.warn("Item watch time stats requested but no rating_key received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_user_stats(self, rating_key=None, media_type=None, **kwargs):
+    def get_item_user_stats(self, rating_key=None, grouping=None, **kwargs):
         """  Get the user stats for the media item.
 
             ```
             Required parameters:
                 rating_key (str):       Rating key of the item
-                media_type (str):       Media type of the item
 
             Optional parameters:
-                None
+                grouping (int):         0 or 1
 
             Returns:
                 json:
@@ -4619,29 +4622,32 @@ class WebInterface(object):
                             "user_id": 1601089,
                             "user_thumb": "",
                             "username": "jsnow@thewinteriscoming.com",
-                            "total_plays": 6
+                            "total_plays": 6,
+                            "total_time": 28743
                         },
                         {
                             "friendly_name": "DanyKhaleesi69",
                             "user_id": 8008135,
                             "user_thumb": "",
                             "username": "DanyKhaleesi69",
-                            "total_plays": 5
+                            "total_plays": 5,
+                            "total_time": 18583
                         }
                     ]
             ```
         """
+        grouping = helpers.bool_true(grouping, return_none=True)
+
         if rating_key:
             item_data = datafactory.DataFactory()
-            stats = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_user_stats(rating_key=rating_key, grouping=grouping)
+            if result:
+                return result
+            else:
+                logger.warn("Unable to retrieve data for get_item_user_stats.")
+                return result
         else:
-            stats = None
-
-        if stats:
-            return stats
-        else:
-            logger.warn("Unable to retrieve data for get_item_user_stats.")
-            return stats
+            logger.warn("Item user stats requested but no rating_key received.")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
