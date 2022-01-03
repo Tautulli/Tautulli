@@ -564,11 +564,13 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = 'SELECT player, COUNT(DISTINCT %s) as player_count, platform ' \
+                query = 'SELECT player, COUNT(DISTINCT %s) as total_plays, (SUM(stopped - started) - ' \
+                        'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
+                        'platform ' \
                         'FROM session_history ' \
                         'WHERE user_id = ? ' \
                         'GROUP BY player ' \
-                        'ORDER BY player_count DESC' % group_by
+                        'ORDER BY total_plays DESC, total_time DESC' % group_by
                 result = monitor_db.select(query, args=[user_id])
             else:
                 result = []
@@ -584,7 +586,8 @@ class Users(object):
             row = {'player_name': item['player'],
                    'platform': platform,
                    'platform_name': platform_name,
-                   'total_plays': item['player_count'],
+                   'total_plays': item['total_plays'],
+                   'total_time': item['total_time'],
                    'result_id': result_id
                    }
             player_stats.append(row)

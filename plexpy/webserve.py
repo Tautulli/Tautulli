@@ -1069,14 +1069,14 @@ class WebInterface(object):
                 json:
                     [{"friendly_name": "Jon Snow",
                       "total_plays": 170,
-                      "total_time": 349618
+                      "total_time": 349618,
                       "user_id": 133788,
                       "user_thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
                       "username": "LordCommanderSnow"
                       },
                      {"friendly_name": "DanyKhaleesi69",
                       "total_plays": 42,
-                      "total_time": 50185
+                      "total_time": 50185,
                       "user_id": 8008135,
                       "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
                       "username: "DanyKhaleesi69"
@@ -1744,12 +1744,14 @@ class WebInterface(object):
                     [{"platform_type": "Chrome",
                       "player_name": "Plex Web (Chrome)",
                       "result_id": 1,
-                      "total_plays": 170
+                      "total_plays": 170,
+                      "total_time": 349618
                       },
                      {"platform_type": "Chromecast",
                       "player_name": "Chromecast",
                       "result_id": 2,
-                      "total_plays": 42
+                      "total_plays": 42,
+                      "total_time": 50185
                       },
                      {...},
                      {...}
