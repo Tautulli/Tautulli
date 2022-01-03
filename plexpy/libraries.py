@@ -978,13 +978,14 @@ class Libraries(object):
                 query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
                         'THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
                         'users.user_id, users.username, users.thumb, users.custom_avatar_url AS custom_thumb, ' \
-                        'COUNT(DISTINCT %s) AS user_count ' \
+                        'COUNT(DISTINCT %s) AS total_plays, (SUM(stopped - started) - ' \
+                        'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time ' \
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
                         'WHERE section_id = ? ' \
                         'GROUP BY users.user_id ' \
-                        'ORDER BY user_count DESC' % group_by
+                        'ORDER BY total_plays DESC, total_time DESC' % group_by
                 result = monitor_db.select(query, args=[section_id])
             else:
                 result = []
@@ -1004,7 +1005,8 @@ class Libraries(object):
                    'user_id': item['user_id'],
                    'user_thumb': user_thumb,
                    'username': item['username'],
-                   'total_plays': item['user_count']
+                   'total_plays': item['total_plays'],
+                   'total_time': item['total_time']
                    }
             user_stats.append(row)
 
