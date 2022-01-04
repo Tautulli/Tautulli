@@ -38,7 +38,7 @@ SUCCESS_STATUSES = SUPPORTED_REDIRECT_STATUSES + (HTTPStatus.SWITCHING_PROTOCOLS
 CookieJar = SimpleCookieJar()
 
 
-class handshake_response(object):
+class handshake_response:
 
     def __init__(self, status, headers, subprotocol):
         self.status = status

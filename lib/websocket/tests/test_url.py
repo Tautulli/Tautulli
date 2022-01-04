@@ -19,10 +19,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys
 import os
 import unittest
-sys.path[0:0] = [""]
 from websocket._url import get_proxy_info, parse_url, _is_address_in_network, _is_no_proxy_host
 
 

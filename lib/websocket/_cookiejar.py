@@ -23,7 +23,7 @@ limitations under the License.
 import http.cookies
 
 
-class SimpleCookieJar(object):
+class SimpleCookieJar:
     def __init__(self):
         self.jar = dict()
 

@@ -86,7 +86,7 @@ class SSLDispatcher:
             return r[0][0]
 
 
-class WebSocketApp(object):
+class WebSocketApp:
     """
     Higher level of APIs are provided. The interface is like JavaScript WebSocket object.
     """

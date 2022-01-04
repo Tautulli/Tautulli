@@ -19,7 +19,7 @@ limitations under the License.
 __all__ = ["NoLock", "validate_utf8", "extract_err_message", "extract_error_code"]
 
 
-class NoLock(object):
+class NoLock:
 
     def __enter__(self):
         pass

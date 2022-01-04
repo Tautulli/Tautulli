@@ -49,7 +49,7 @@ except:
         pass
 
 
-class proxy_info(object):
+class proxy_info:
 
     def __init__(self, **options):
         self.proxy_host = options.get("http_proxy_host", None)
@@ -211,33 +211,41 @@ def _open_socket(addrinfo_list, sockopt, timeout):
 
 
 def _wrap_sni_socket(sock, sslopt, hostname, check_hostname):
-    context = ssl.SSLContext(sslopt.get('ssl_version', ssl.PROTOCOL_TLS))
+    context = sslopt.get('context', None)
+    if not context:
+        context = ssl.SSLContext(sslopt.get('ssl_version', ssl.PROTOCOL_TLS_CLIENT))
 
-    if sslopt.get('cert_reqs', ssl.CERT_NONE) != ssl.CERT_NONE:
-        cafile = sslopt.get('ca_certs', None)
-        capath = sslopt.get('ca_cert_path', None)
-        if cafile or capath:
-            context.load_verify_locations(cafile=cafile, capath=capath)
-        elif hasattr(context, 'load_default_certs'):
-            context.load_default_certs(ssl.Purpose.SERVER_AUTH)
-    if sslopt.get('certfile', None):
-        context.load_cert_chain(
-            sslopt['certfile'],
-            sslopt.get('keyfile', None),
-            sslopt.get('password', None),
-        )
-    # see
-    # https://github.com/liris/websocket-client/commit/b96a2e8fa765753e82eea531adb19716b52ca3ca#commitcomment-10803153
-    context.verify_mode = sslopt['cert_reqs']
-    if HAVE_CONTEXT_CHECK_HOSTNAME:
-        context.check_hostname = check_hostname
-    if 'ciphers' in sslopt:
-        context.set_ciphers(sslopt['ciphers'])
-    if 'cert_chain' in sslopt:
-        certfile, keyfile, password = sslopt['cert_chain']
-        context.load_cert_chain(certfile, keyfile, password)
-    if 'ecdh_curve' in sslopt:
-        context.set_ecdh_curve(sslopt['ecdh_curve'])
+        if sslopt.get('cert_reqs', ssl.CERT_NONE) != ssl.CERT_NONE:
+            cafile = sslopt.get('ca_certs', None)
+            capath = sslopt.get('ca_cert_path', None)
+            if cafile or capath:
+                context.load_verify_locations(cafile=cafile, capath=capath)
+            elif hasattr(context, 'load_default_certs'):
+                context.load_default_certs(ssl.Purpose.SERVER_AUTH)
+        if sslopt.get('certfile', None):
+            context.load_cert_chain(
+                sslopt['certfile'],
+                sslopt.get('keyfile', None),
+                sslopt.get('password', None),
+            )
+
+        # Python 3.10 switch to PROTOCOL_TLS_CLIENT defaults to "cert_reqs = ssl.CERT_REQUIRED" and "check_hostname = True"
+        # If both disabled, set check_hostname before verify_mode
+        # see https://github.com/liris/websocket-client/commit/b96a2e8fa765753e82eea531adb19716b52ca3ca#commitcomment-10803153
+        if sslopt.get('cert_reqs', ssl.CERT_NONE) == ssl.CERT_NONE and not sslopt.get('check_hostname', False):
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+        else:
+            context.check_hostname = sslopt.get('check_hostname', True)
+            context.verify_mode = sslopt.get('cert_reqs', ssl.CERT_REQUIRED)
+
+        if 'ciphers' in sslopt:
+            context.set_ciphers(sslopt['ciphers'])
+        if 'cert_chain' in sslopt:
+            certfile, keyfile, password = sslopt['cert_chain']
+            context.load_cert_chain(certfile, keyfile, password)
+        if 'ecdh_curve' in sslopt:
+            context.set_ecdh_curve(sslopt['ecdh_curve'])
 
     return context.wrap_socket(
         sock,
@@ -262,12 +270,8 @@ def _ssl_socket(sock, user_sslopt, hostname):
     if sslopt.get('server_hostname', None):
         hostname = sslopt['server_hostname']
 
-    check_hostname = sslopt["cert_reqs"] != ssl.CERT_NONE and sslopt.pop(
-        'check_hostname', True)
+    check_hostname = sslopt.get('check_hostname', True)
     sock = _wrap_sni_socket(sock, sslopt, hostname, check_hostname)
-
-    if not HAVE_CONTEXT_CHECK_HOSTNAME and check_hostname:
-        match_hostname(sock.getpeercert(), hostname)
 
     return sock
 

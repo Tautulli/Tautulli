@@ -23,11 +23,6 @@ try:
     from ssl import SSLError
     from ssl import SSLWantReadError
     from ssl import SSLWantWriteError
-    HAVE_CONTEXT_CHECK_HOSTNAME = False
-    if hasattr(ssl, 'SSLContext') and hasattr(ssl.SSLContext, 'check_hostname'):
-        HAVE_CONTEXT_CHECK_HOSTNAME = True
-
-    __all__.append("HAVE_CONTEXT_CHECK_HOSTNAME")
     HAVE_SSL = True
 except ImportError:
     # dummy class of SSLError for environment without ssl support
