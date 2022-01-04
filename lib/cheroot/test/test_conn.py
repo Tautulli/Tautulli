@@ -17,8 +17,11 @@ import pytest
 from jaraco.text import trim, unwrap
 
 from cheroot.test import helper, webtest
-from cheroot._compat import IS_CI, IS_PYPY, IS_WINDOWS
+from cheroot._compat import IS_CI, IS_MACOS, IS_PYPY, IS_WINDOWS
 import cheroot.server
+
+
+IS_SLOW_ENV = IS_MACOS or IS_WINDOWS
 
 
 timeout = 1
@@ -169,6 +172,7 @@ def testing_server(raw_testing_server, monkeypatch):
 
     # Teardown verification, in case that the server logged an
     # error that wasn't notified to the client or we just made a mistake.
+    # pylint: disable=possibly-unused-variable
     for c_msg, c_level, c_traceback in raw_testing_server.error_log.calls:
         if c_level <= logging.WARNING:
             continue
@@ -651,9 +655,13 @@ def test_broken_connection_during_tcp_fin(
                 mocker.mock_module.Mock(side_effect=exc_instance),
             )
         _close_kernel_socket.fin_spy = mocker.spy(self.socket, 'shutdown')
-        _close_kernel_socket.exception_leaked = True
-        old_close_kernel_socket(self)
-        _close_kernel_socket.exception_leaked = False
+
+        try:
+            old_close_kernel_socket(self)
+        except simulated_exception:
+            _close_kernel_socket.exception_leaked = True
+        else:
+            _close_kernel_socket.exception_leaked = False
 
     monkeypatch.setattr(
         test_client.server_instance.ConnectionClass,
@@ -668,7 +676,8 @@ def test_broken_connection_during_tcp_fin(
     conn.send(('Host: %s' % conn.host).encode('ascii'))
     conn.close()
 
-    for _ in range(10):  # Let the server attempt TCP shutdown
+    # Let the server attempt TCP shutdown:
+    for _ in range(10 * (2 if IS_SLOW_ENV else 1)):
         time.sleep(0.1)
         if hasattr(_close_kernel_socket, 'exception_leaked'):
             break
@@ -867,7 +876,7 @@ def test_100_Continue(test_client):
     conn.endheaders()
     conn.send(b"d'oh")
     response = conn.response_class(conn.sock, method='POST')
-    version, status, reason = response._read_status()
+    _version, status, _reason = response._read_status()
     assert status != 100
     conn.close()
 
@@ -900,7 +909,7 @@ def test_100_Continue(test_client):
 
     # ...get the final response
     response.begin()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 200
     expected_resp_body = ("thanks for '%s'" % body).encode()
@@ -933,7 +942,7 @@ def test_readall_or_close(test_client, max_request_body_size):
     response = conn.response_class(conn.sock, method='POST')
 
     # ...assert and then skip the 100 response
-    version, status, reason = response._read_status()
+    _version, status, _reason = response._read_status()
     assert status == 100
     skip = True
     while skip:
@@ -944,7 +953,7 @@ def test_readall_or_close(test_client, max_request_body_size):
 
     # ...get the final response
     response.begin()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 500
 
@@ -1049,7 +1058,7 @@ def test_Chunked_Encoding(test_client):
     conn.endheaders()
     conn.send(body)
     response = conn.getresponse()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 200
     assert status_line[4:] == 'OK'
@@ -1089,7 +1098,7 @@ def test_Content_Length_in(test_client):
     conn.putheader('Content-Length', '9999')
     conn.endheaders()
     response = conn.getresponse()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 413
     expected_resp_body = (
@@ -1102,7 +1111,7 @@ def test_Content_Length_in(test_client):
 
 def test_Content_Length_not_int(test_client):
     """Test that malicious Content-Length header returns 400."""
-    status_line, actual_headers, actual_resp_body = test_client.post(
+    status_line, _actual_headers, actual_resp_body = test_client.post(
         '/upload',
         headers=[
             ('Content-Type', 'text/plain'),
@@ -1142,7 +1151,7 @@ def test_Content_Length_out(
     conn.endheaders()
 
     response = conn.getresponse()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
 
     assert actual_status == expected_resp_status
@@ -1281,7 +1290,7 @@ def test_invalid_selected_connection(test_client, monkeypatch):
 
     # request a page with connection keep-alive to make sure
     # we'll have a connection to be modified.
-    resp_status, resp_headers, resp_body = test_client.request(
+    resp_status, _resp_headers, _resp_body = test_client.request(
         '/page1', headers=[('Connection', 'Keep-Alive')],
     )
 

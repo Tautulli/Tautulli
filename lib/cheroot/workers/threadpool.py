@@ -108,7 +108,7 @@ class WorkerThread(threading.Thread):
 
         Retrieves incoming connections from thread pool.
         """
-        self.server.stats['Worker Threads'][self.getName()] = self.stats
+        self.server.stats['Worker Threads'][self.name] = self.stats
         try:
             self.ready = True
             while True:
@@ -173,12 +173,12 @@ class ThreadPool:
 
     def start(self):
         """Start the pool of threads."""
-        for i in range(self.min):
+        for _ in range(self.min):
             self._threads.append(WorkerThread(self.server))
         for worker in self._threads:
-            worker.setName(
+            worker.name = (
                 'CP Server {worker_name!s}'.
-                format(worker_name=worker.getName()),
+                format(worker_name=worker.name),
             )
             worker.start()
         for worker in self._threads:
@@ -187,7 +187,7 @@ class ThreadPool:
 
     @property
     def idle(self):  # noqa: D401; irrelevant for properties
-        """Number of worker threads which are idle. Read-only."""
+        """Number of worker threads which are idle. Read-only."""  # noqa: D401
         idles = len([t for t in self._threads if t.conn is None])
         return max(idles - len(self._pending_shutdowns), 0)
 
@@ -226,9 +226,9 @@ class ThreadPool:
 
     def _spawn_worker(self):
         worker = WorkerThread(self.server)
-        worker.setName(
+        worker.name = (
             'CP Server {worker_name!s}'.
-            format(worker_name=worker.getName()),
+            format(worker_name=worker.name),
         )
         worker.start()
         return worker
@@ -251,7 +251,7 @@ class ThreadPool:
         # put shutdown requests on the queue equal to the number of threads
         # to remove. As each request is processed by a worker, that worker
         # will terminate and be culled from the list.
-        for n in range(n_to_remove):
+        for _ in range(n_to_remove):
             self._pending_shutdowns.append(None)
             self._queue.put(_SHUTDOWNREQUEST)
 
@@ -280,8 +280,9 @@ class ThreadPool:
             self._queue.put(_SHUTDOWNREQUEST)
 
         ignored_errors = (
-            # TODO: explain this exception.
-            AssertionError,
+            # Raised when start_response called >1 time w/o exc_info or
+            # wsgi write is called before start_response. See cheroot#261
+            RuntimeError,
             # Ignore repeated Ctrl-C. See cherrypy#691.
             KeyboardInterrupt,
         )
@@ -320,7 +321,7 @@ class ThreadPool:
         return (
             thread
             for thread in threads
-            if thread is not threading.currentThread()
+            if thread is not threading.current_thread()
         )
 
     @property

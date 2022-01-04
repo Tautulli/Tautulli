@@ -87,6 +87,7 @@ def wsgi_app(monkeypatch):
         ('main', 'main'),
     ),
 )
+# pylint: disable=invalid-name
 def test_Aplication_resolve(app_name, app_method, wsgi_app):
     """Check the wsgi application name conversion."""
     if app_name is None:

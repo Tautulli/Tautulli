@@ -12,6 +12,7 @@ import time
 from . import errors
 from ._compat import selectors
 from ._compat import suppress
+from ._compat import IS_WINDOWS
 from .makefile import MakeFile
 
 import six
@@ -152,17 +153,18 @@ class ConnectionManager:
                 conn.socket.fileno(), selectors.EVENT_READ, data=conn,
             )
 
-    def _expire(self):
-        """Expire least recently used connections.
+    def _expire(self, threshold):
+        r"""Expire least recently used connections.
 
-        This happens if there are either too many open connections, or if the
-        connections have been timed out.
+        :param threshold: Connections that have not been used within this \
+                          duration (in seconds), are considered expired and \
+                          are closed and removed.
+        :type threshold: float
 
         This should be called periodically.
         """
         # find any connections still registered with the selector
         # that have not been active recently enough.
-        threshold = time.time() - self.server.timeout
         timed_out_connections = [
             (sock_fd, conn)
             for (sock_fd, conn) in self._selector.connections
@@ -203,11 +205,37 @@ class ConnectionManager:
             self._serving = False
 
     def _run(self, expiration_interval):
+        r"""Run connection handler loop until stop was requested.
+
+        :param expiration_interval: Interval, in seconds, at which \
+                                    connections will be checked for \
+                                    expiration.
+        :type expiration_interval: float
+
+        Use ``expiration_interval`` as ``select()`` timeout
+        to assure expired connections are closed in time.
+
+        On Windows cap the timeout to 0.05 seconds
+        as ``select()`` does not return when a socket is ready.
+        """
         last_expiration_check = time.time()
+        if IS_WINDOWS:
+            # 0.05 seconds are used as an empirically obtained balance between
+            # max connection delay and idle system load. Benchmarks show a
+            # mean processing time per connection of ~0.03 seconds on Linux
+            # and with 0.01 seconds timeout on Windows:
+            # https://github.com/cherrypy/cheroot/pull/352
+            # While this highly depends on system and hardware, 0.05 seconds
+            # max delay should hence usually not significantly increase the
+            # mean time/delay per connection, but significantly reduce idle
+            # system load by reducing socket loops to 1/5 with 0.01 seconds.
+            select_timeout = min(expiration_interval, 0.05)
+        else:
+            select_timeout = expiration_interval
 
         while not self._stop_requested:
             try:
-                active_list = self._selector.select(timeout=0.01)
+                active_list = self._selector.select(timeout=select_timeout)
             except OSError:
                 self._remove_invalid_sockets()
                 continue
@@ -226,7 +254,7 @@ class ConnectionManager:
 
             now = time.time()
             if (now - last_expiration_check) > expiration_interval:
-                self._expire()
+                self._expire(threshold=now - self.server.timeout)
                 last_expiration_check = now
 
     def _remove_invalid_sockets(self):

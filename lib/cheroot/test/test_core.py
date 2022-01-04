@@ -43,6 +43,7 @@ class HelloController(helper.Controller):
 
     def asterisk(req, resp):
         """Render request method value."""
+        # pylint: disable=possibly-unused-variable
         method = req.environ.get('REQUEST_METHOD', 'NO METHOD FOUND')
         tmpl = 'Got asterisk URI path with {method} method'
         return tmpl.format(**locals())

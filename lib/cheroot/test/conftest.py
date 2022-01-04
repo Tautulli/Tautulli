@@ -5,7 +5,7 @@ itself, useless for end-users' app testing.
 """
 
 from __future__ import absolute_import, division, print_function
-__metaclass__ = type
+__metaclass__ = type  # pylint: disable=invalid-name
 
 import threading
 import time
@@ -13,19 +13,21 @@ import time
 import pytest
 
 from ..server import Gateway, HTTPServer
-from ..testing import (  # noqa: F401
+from ..testing import (  # noqa: F401  # pylint: disable=unused-import
     native_server, wsgi_server,
 )
 from ..testing import get_server_client
 
 
 @pytest.fixture
+# pylint: disable=redefined-outer-name
 def wsgi_server_client(wsgi_server):  # noqa: F811
     """Create a test client out of given WSGI server."""
     return get_server_client(wsgi_server)
 
 
 @pytest.fixture
+# pylint: disable=redefined-outer-name
 def native_server_client(native_server):  # noqa: F811
     """Create a test client out of given HTTP server."""
     return get_server_client(native_server)
@@ -43,7 +45,7 @@ def http_server():
         yield httpserver
 
     srv_creator = iter(start_srv())
-    next(srv_creator)
+    next(srv_creator)  # pylint: disable=stop-iteration-return
     yield srv_creator
     try:
         while True:
