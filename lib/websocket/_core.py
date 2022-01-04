@@ -40,7 +40,7 @@ from ._utils import *
 __all__ = ['WebSocket', 'create_connection']
 
 
-class WebSocket(object):
+class WebSocket:
     """
     Low level WebSocket interface.
 
@@ -66,7 +66,7 @@ class WebSocket(object):
         Values for socket.setsockopt.
         sockopt must be tuple and each element is argument of sock.setsockopt.
     sslopt: dict
-        Optional dict object for ssl socket options.
+        Optional dict object for ssl socket options. See FAQ for details.
     fire_cont_frame: bool
         Fire recv event for each cont frame. Default is False.
     enable_multithread: bool
@@ -84,7 +84,7 @@ class WebSocket(object):
         Parameters
         ----------
         sslopt: dict
-            Optional dict object for ssl socket options.
+            Optional dict object for ssl socket options. See FAQ for details.
         """
         self.sock_opt = sock_opt(sockopt, sslopt)
         self.handshake_response = None
@@ -314,6 +314,14 @@ class WebSocket(object):
         return length
 
     def send_binary(self, payload):
+        """
+        Send a binary message (OPCODE_BINARY).
+
+        Parameters
+        ----------
+        payload: bytes
+            payload of message to send.
+        """
         return self.send(payload, ABNF.OPCODE_BINARY)
 
     def ping(self, payload=""):
@@ -381,6 +389,8 @@ class WebSocket(object):
         """
         Receive data with operation code.
 
+        If a valid ping message is received, a pong response is sent.
+
         Parameters
         ----------
         control_frame: bool
@@ -434,7 +444,7 @@ class WebSocket(object):
         """
         return self.frame_buffer.recv_frame()
 
-    def send_close(self, status=STATUS_NORMAL, reason=bytes('', encoding='utf-8')):
+    def send_close(self, status=STATUS_NORMAL, reason=b""):
         """
         Send close data to the server.
 
@@ -443,14 +453,14 @@ class WebSocket(object):
         status: int
             Status code to send. See STATUS_XXX.
         reason: str or bytes
-            The reason to close. This must be string or bytes.
+            The reason to close. This must be string or UTF-8 bytes.
         """
         if status < 0 or status >= ABNF.LENGTH_16:
             raise ValueError("code is invalid range")
         self.connected = False
         self.send(struct.pack('!H', status) + reason, ABNF.OPCODE_CLOSE)
 
-    def close(self, status=STATUS_NORMAL, reason=bytes('', encoding='utf-8'), timeout=3):
+    def close(self, status=STATUS_NORMAL, reason=b"", timeout=3):
         """
         Close Websocket object
 
@@ -459,7 +469,7 @@ class WebSocket(object):
         status: int
             Status code to send. See STATUS_XXX.
         reason: bytes
-            The reason to close.
+            The reason to close in UTF-8.
         timeout: int or float
             Timeout until receive a close frame.
             If None, it will wait forever until receive a close frame.
@@ -575,7 +585,7 @@ def create_connection(url, timeout=None, class_=WebSocket, **options):
         Values for socket.setsockopt.
         sockopt must be a tuple and each element is an argument of sock.setsockopt.
     sslopt: dict
-        Optional dict object for ssl socket options.
+        Optional dict object for ssl socket options. See FAQ for details.
     subprotocols: list
         List of available subprotocols. Default is None.
     skip_utf8_validation: bool

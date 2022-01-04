@@ -23,8 +23,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys
-sys.path[0:0] = [""]
 import os
 import os.path
 import socket
@@ -45,8 +43,11 @@ except ImportError:
     class SSLError(Exception):
         pass
 
-# Skip test to access the internet.
+# Skip test to access the internet unless TEST_WITH_INTERNET == 1
 TEST_WITH_INTERNET = os.environ.get('TEST_WITH_INTERNET', '0') == '1'
+# Skip tests relying on local websockets server unless LOCAL_WS_SERVER_PORT != -1
+LOCAL_WS_SERVER_PORT = os.environ.get('LOCAL_WS_SERVER_PORT', '-1')
+TEST_WITH_LOCAL_SERVER = LOCAL_WS_SERVER_PORT != '-1'
 TRACEABLE = True
 
 
@@ -54,7 +55,7 @@ def create_mask_key(_):
     return "abcd"
 
 
-class SockMock(object):
+class SockMock:
     def __init__(self):
         self.data = []
         self.sent = []
@@ -335,9 +336,9 @@ class WebSocketTest(unittest.TestCase):
             s.sent[0],
             b'\x8a\x90abcd1\x0e\x06\x05\x12\x07C4.,$D\x15\n\n\x17')
 
-    @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
     def testWebSocket(self):
-        s = ws.create_connection("ws://127.0.0.1:8765")
+        s = ws.create_connection("ws://127.0.0.1:" + LOCAL_WS_SERVER_PORT)
         self.assertNotEqual(s, None)
         s.send("Hello, World")
         result = s.next()
@@ -350,9 +351,9 @@ class WebSocketTest(unittest.TestCase):
         self.assertRaises(ValueError, s.send_close, -1, "")
         s.close()
 
-    @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
     def testPingPong(self):
-        s = ws.create_connection("ws://127.0.0.1:8765")
+        s = ws.create_connection("ws://127.0.0.1:" + LOCAL_WS_SERVER_PORT)
         self.assertNotEqual(s, None)
         s.ping("Hello")
         s.pong("Hi")
@@ -377,9 +378,9 @@ class WebSocketTest(unittest.TestCase):
         self.assertEqual(s.getsubprotocol(), None)
         s.abort()
 
-    @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
     def testWebSocketWithCustomHeader(self):
-        s = ws.create_connection("ws://127.0.0.1:8765",
+        s = ws.create_connection("ws://127.0.0.1:" + LOCAL_WS_SERVER_PORT,
                                  headers={"User-Agent": "PythonWebsocketClient"})
         self.assertNotEqual(s, None)
         s.send("Hello, World")
@@ -388,9 +389,9 @@ class WebSocketTest(unittest.TestCase):
         self.assertRaises(ValueError, s.close, -1, "")
         s.close()
 
-    @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
     def testAfterClose(self):
-        s = ws.create_connection("ws://127.0.0.1:8765")
+        s = ws.create_connection("ws://127.0.0.1:" + LOCAL_WS_SERVER_PORT)
         self.assertNotEqual(s, None)
         s.close()
         self.assertRaises(ws.WebSocketConnectionClosedException, s.send, "Hello")
@@ -398,10 +399,10 @@ class WebSocketTest(unittest.TestCase):
 
 
 class SockOptTest(unittest.TestCase):
-    @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
     def testSockOpt(self):
         sockopt = ((socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),)
-        s = ws.create_connection("ws://127.0.0.1:8765", sockopt=sockopt)
+        s = ws.create_connection("ws://127.0.0.1:" + LOCAL_WS_SERVER_PORT, sockopt=sockopt)
         self.assertNotEqual(s.sock.getsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY), 0)
         s.close()
 
@@ -428,9 +429,8 @@ class HandshakeTest(unittest.TestCase):
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
     def testManualHeaders(self):
-        websock3 = ws.WebSocket(sslopt={"cert_reqs": ssl.CERT_NONE,
-                                        "ca_certs": ssl.get_default_verify_paths().capath,
-                                        "ca_cert_path": ssl.get_default_verify_paths().openssl_cafile})
+        websock3 = ws.WebSocket(sslopt={"ca_certs": ssl.get_default_verify_paths().cafile,
+                                        "ca_cert_path": ssl.get_default_verify_paths().capath})
         self.assertRaises(ws._exceptions.WebSocketBadStatusException,
                           websock3.connect, "wss://api.bitfinex.com/ws/2", cookie="chocolate",
                           origin="testing_websockets.com",

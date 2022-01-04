@@ -19,12 +19,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
 import websocket as ws
 from websocket._abnf import *
-import sys
 import unittest
-sys.path[0:0] = [""]
 
 
 class ABNFTest(unittest.TestCase):
@@ -57,7 +54,7 @@ class ABNFTest(unittest.TestCase):
 
     def testMask(self):
         abnf_none_data = ABNF(0,0,0,0, opcode=ABNF.OPCODE_PING, mask=1, data=None)
-        bytes_val = bytes("aaaa", 'utf-8')
+        bytes_val = b"aaaa"
         self.assertEqual(abnf_none_data._get_masked(bytes_val), bytes_val)
         abnf_str_data = ABNF(0,0,0,0, opcode=ABNF.OPCODE_PING, mask=1, data="a")
         self.assertEqual(abnf_str_data._get_masked(bytes_val), b'aaaa\x00')

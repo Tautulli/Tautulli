@@ -22,19 +22,20 @@ limitations under the License.
 import os
 import os.path
 import websocket as ws
-import sys
 import ssl
 import unittest
-sys.path[0:0] = [""]
 
-# Skip test to access the internet.
+# Skip test to access the internet unless TEST_WITH_INTERNET == 1
 TEST_WITH_INTERNET = os.environ.get('TEST_WITH_INTERNET', '0') == '1'
+# Skip tests relying on local websockets server unless LOCAL_WS_SERVER_PORT != -1
+LOCAL_WS_SERVER_PORT = os.environ.get('LOCAL_WS_SERVER_PORT', '-1')
+TEST_WITH_LOCAL_SERVER = LOCAL_WS_SERVER_PORT != '-1'
 TRACEABLE = True
 
 
 class WebSocketAppTest(unittest.TestCase):
 
-    class NotSetYet(object):
+    class NotSetYet:
         """ A marker class for signalling that a value hasn't been set yet.
         """
 
@@ -50,7 +51,7 @@ class WebSocketAppTest(unittest.TestCase):
         WebSocketAppTest.keep_running_close = WebSocketAppTest.NotSetYet()
         WebSocketAppTest.get_mask_key_id = WebSocketAppTest.NotSetYet()
 
-    @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
     def testKeepRunning(self):
         """ A WebSocketApp should keep running as long as its self.keep_running
         is not False (in the boolean context).
@@ -73,7 +74,7 @@ class WebSocketAppTest(unittest.TestCase):
             """
             WebSocketAppTest.keep_running_close = self.keep_running
 
-        app = ws.WebSocketApp('ws://127.0.0.1:8765', on_open=on_open, on_close=on_close, on_message=on_message)
+        app = ws.WebSocketApp('ws://127.0.0.1:' + LOCAL_WS_SERVER_PORT, on_open=on_open, on_close=on_close, on_message=on_message)
         app.run_forever()
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")

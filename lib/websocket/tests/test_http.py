@@ -23,26 +23,25 @@ import os
 import os.path
 import websocket as ws
 from websocket._http import proxy_info, read_headers, _start_proxied_socket, _tunnel, _get_addrinfo_list, connect
-import sys
 import unittest
 import ssl
 import websocket
 import socket
 
 try:
-    from python_socks.sync import Proxy
-    from python_socks._errors import *
+    from python_socks._errors import ProxyError, ProxyTimeoutError, ProxyConnectionError
 except:
     from websocket._http import ProxyError, ProxyTimeoutError, ProxyConnectionError
 
-sys.path[0:0] = [""]
-
-# Skip test to access the internet.
+# Skip test to access the internet unless TEST_WITH_INTERNET == 1
 TEST_WITH_INTERNET = os.environ.get('TEST_WITH_INTERNET', '0') == '1'
 TEST_WITH_PROXY = os.environ.get('TEST_WITH_PROXY', '0') == '1'
+# Skip tests relying on local websockets server unless LOCAL_WS_SERVER_PORT != -1
+LOCAL_WS_SERVER_PORT = os.environ.get('LOCAL_WS_SERVER_PORT', '-1')
+TEST_WITH_LOCAL_SERVER = LOCAL_WS_SERVER_PORT != '-1'
 
 
-class SockMock(object):
+class SockMock:
     def __init__(self):
         self.data = []
         self.sent = []
@@ -106,10 +105,10 @@ class HttpTest(unittest.TestCase):
         if ws._http.HAVE_PYTHON_SOCKS:
             # Need this check, otherwise case where python_socks is not installed triggers
             # websocket._exceptions.WebSocketException: Python Socks is needed for SOCKS proxying but is not available
-            self.assertRaises(ProxyTimeoutError, _start_proxied_socket, "wss://example.com", OptsList(), proxy_info(http_proxy_host="example.com", http_proxy_port="8080", proxy_type="socks4", timeout=1))
-            self.assertRaises(ProxyTimeoutError, _start_proxied_socket, "wss://example.com", OptsList(), proxy_info(http_proxy_host="example.com", http_proxy_port="8080", proxy_type="socks4a", timeout=1))
-            self.assertRaises(ProxyTimeoutError, _start_proxied_socket, "wss://example.com", OptsList(), proxy_info(http_proxy_host="example.com", http_proxy_port="8080", proxy_type="socks5", timeout=1))
-            self.assertRaises(ProxyTimeoutError, _start_proxied_socket, "wss://example.com", OptsList(), proxy_info(http_proxy_host="example.com", http_proxy_port="8080", proxy_type="socks5h", timeout=1))
+            self.assertRaises((ProxyTimeoutError, OSError), _start_proxied_socket, "wss://example.com", OptsList(), proxy_info(http_proxy_host="example.com", http_proxy_port="8080", proxy_type="socks4", timeout=1))
+            self.assertRaises((ProxyTimeoutError, OSError), _start_proxied_socket, "wss://example.com", OptsList(), proxy_info(http_proxy_host="example.com", http_proxy_port="8080", proxy_type="socks4a", timeout=1))
+            self.assertRaises((ProxyTimeoutError, OSError), _start_proxied_socket, "wss://example.com", OptsList(), proxy_info(http_proxy_host="example.com", http_proxy_port="8080", proxy_type="socks5", timeout=1))
+            self.assertRaises((ProxyTimeoutError, OSError), _start_proxied_socket, "wss://example.com", OptsList(), proxy_info(http_proxy_host="example.com", http_proxy_port="8080", proxy_type="socks5h", timeout=1))
             self.assertRaises(ProxyConnectionError, connect, "wss://example.com", OptsList(), proxy_info(http_proxy_host="127.0.0.1", http_proxy_port=9999, proxy_type="socks4", timeout=1), None)
 
         self.assertRaises(TypeError, _get_addrinfo_list, None, 80, True, proxy_info(http_proxy_host="127.0.0.1", http_proxy_port="9999", proxy_type="http"))
@@ -123,9 +122,10 @@ class HttpTest(unittest.TestCase):
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
     @unittest.skipUnless(TEST_WITH_PROXY, "This test requires a HTTP proxy to be running on port 8899")
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
     def testProxyConnect(self):
         ws = websocket.WebSocket()
-        ws.connect("ws://127.0.0.1:8765", http_proxy_host="127.0.0.1", http_proxy_port="8899", proxy_type="http")
+        ws.connect("ws://127.0.0.1:" + LOCAL_WS_SERVER_PORT, http_proxy_host="127.0.0.1", http_proxy_port="8899", proxy_type="http")
         ws.send("Hello, Server")
         server_response = ws.recv()
         self.assertEqual(server_response, "Hello, Server")
@@ -138,10 +138,9 @@ class HttpTest(unittest.TestCase):
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
     def testSSLopt(self):
         ssloptions = {
-            "cert_reqs": ssl.CERT_NONE,
             "check_hostname": False,
             "server_hostname": "ServerName",
-            "ssl_version": ssl.PROTOCOL_TLS,
+            "ssl_version": ssl.PROTOCOL_TLS_CLIENT,
             "ciphers": "TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:\
                         TLS_AES_128_GCM_SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:\
                         ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:\
