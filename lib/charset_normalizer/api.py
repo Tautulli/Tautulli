@@ -68,20 +68,21 @@ def from_bytes(
         )
 
     if explain:
+        previous_logger_level = logger.level  # type: int
         logger.addHandler(explain_handler)
+        logger.setLevel(logging.DEBUG)
 
     length = len(sequences)  # type: int
 
     if length == 0:
-        logger.warning(
-            "Given content is empty, stopping the process very early, returning empty utf_8 str match"
-        )
+        logger.warning("Encoding detection on empty bytes, assuming utf_8 intention.")
         if explain:
             logger.removeHandler(explain_handler)
+            logger.setLevel(previous_logger_level or logging.WARNING)
         return CharsetMatches([CharsetMatch(sequences, "utf_8", 0.0, False, [], "")])
 
     if cp_isolation is not None:
-        logger.warning(
+        logger.debug(
             "cp_isolation is set. use this flag for debugging purpose. "
             "limited list of encoding allowed : %s.",
             ", ".join(cp_isolation),
@@ -91,7 +92,7 @@ def from_bytes(
         cp_isolation = []
 
     if cp_exclusion is not None:
-        logger.warning(
+        logger.debug(
             "cp_exclusion is set. use this flag for debugging purpose. "
             "limited list of encoding excluded : %s.",
             ", ".join(cp_exclusion),
@@ -101,7 +102,7 @@ def from_bytes(
         cp_exclusion = []
 
     if length <= (chunk_size * steps):
-        logger.warning(
+        logger.debug(
             "override steps (%i) and chunk_size (%i) as content does not fit (%i byte(s) given) parameters.",
             steps,
             chunk_size,
@@ -187,7 +188,7 @@ def from_bytes(
         )  # type: bool
 
         if encoding_iana in {"utf_16", "utf_32"} and not bom_or_sig_available:
-            logger.info(
+            logger.debug(
                 "Encoding %s wont be tested as-is because it require a BOM. Will try some sub-encoder LE/BE.",
                 encoding_iana,
             )
@@ -218,7 +219,7 @@ def from_bytes(
                 )
         except (UnicodeDecodeError, LookupError) as e:
             if not isinstance(e, LookupError):
-                logger.warning(
+                logger.debug(
                     "Code page %s does not fit given bytes sequence at ALL. %s",
                     encoding_iana,
                     str(e),
@@ -234,7 +235,7 @@ def from_bytes(
                 break
 
         if similar_soft_failure_test:
-            logger.warning(
+            logger.debug(
                 "%s is deemed too similar to code page %s and was consider unsuited already. Continuing!",
                 encoding_iana,
                 encoding_soft_failed,
@@ -254,7 +255,7 @@ def from_bytes(
         )  # type: bool
 
         if multi_byte_bonus:
-            logger.info(
+            logger.debug(
                 "Code page %s is a multi byte encoding table and it appear that at least one character "
                 "was encoded using n-bytes.",
                 encoding_iana,
@@ -264,6 +265,7 @@ def from_bytes(
 
         max_chunk_gave_up = max(max_chunk_gave_up, 2)
         early_stop_count = 0  # type: int
+        lazy_str_hard_failure = False
 
         md_chunks = []  # type: List[str]
         md_ratios = []
@@ -283,12 +285,13 @@ def from_bytes(
                     errors="ignore" if is_multi_byte_decoder else "strict",
                 )  # type: str
             except UnicodeDecodeError as e:  # Lazy str loading may have missed something there
-                logger.warning(
+                logger.debug(
                     "LazyStr Loading: After MD chunk decode, code page %s does not fit given bytes sequence at ALL. %s",
                     encoding_iana,
                     str(e),
                 )
                 early_stop_count = max_chunk_gave_up
+                lazy_str_hard_failure = True
                 break
 
             # multi-byte bad cutting detector and adjustment
@@ -324,12 +327,30 @@ def from_bytes(
             ):
                 break
 
+        # We might want to check the sequence again with the whole content
+        # Only if initial MD tests passes
+        if (
+            not lazy_str_hard_failure
+            and is_too_large_sequence
+            and not is_multi_byte_decoder
+        ):
+            try:
+                sequences[int(50e3) :].decode(encoding_iana, errors="strict")
+            except UnicodeDecodeError as e:
+                logger.debug(
+                    "LazyStr Loading: After final lookup, code page %s does not fit given bytes sequence at ALL. %s",
+                    encoding_iana,
+                    str(e),
+                )
+                tested_but_hard_failure.append(encoding_iana)
+                continue
+
         mean_mess_ratio = (
             sum(md_ratios) / len(md_ratios) if md_ratios else 0.0
         )  # type: float
         if mean_mess_ratio >= threshold or early_stop_count >= max_chunk_gave_up:
             tested_but_soft_failure.append(encoding_iana)
-            logger.warning(
+            logger.info(
                 "%s was excluded because of initial chaos probing. Gave up %i time(s). "
                 "Computed mean chaos is %f %%.",
                 encoding_iana,
@@ -337,7 +358,10 @@ def from_bytes(
                 round(mean_mess_ratio * 100, ndigits=3),
             )
             # Preparing those fallbacks in case we got nothing.
-            if encoding_iana in ["ascii", "utf_8", specified_encoding]:
+            if (
+                encoding_iana in ["ascii", "utf_8", specified_encoding]
+                and not lazy_str_hard_failure
+            ):
                 fallback_entry = CharsetMatch(
                     sequences, encoding_iana, threshold, False, [], decoded_payload
                 )
@@ -361,7 +385,7 @@ def from_bytes(
             target_languages = mb_encoding_languages(encoding_iana)
 
         if target_languages:
-            logger.info(
+            logger.debug(
                 "{} should target any language(s) of {}".format(
                     encoding_iana, str(target_languages)
                 )
@@ -369,12 +393,15 @@ def from_bytes(
 
         cd_ratios = []
 
-        for chunk in md_chunks:
-            chunk_languages = coherence_ratio(
-                chunk, 0.1, ",".join(target_languages) if target_languages else None
-            )
+        # We shall skip the CD when its about ASCII
+        # Most of the time its not relevant to run "language-detection" on it.
+        if encoding_iana != "ascii":
+            for chunk in md_chunks:
+                chunk_languages = coherence_ratio(
+                    chunk, 0.1, ",".join(target_languages) if target_languages else None
+                )
 
-            cd_ratios.append(chunk_languages)
+                cd_ratios.append(chunk_languages)
 
         cd_ratios_merged = merge_coherence_ratios(cd_ratios)
 
@@ -384,20 +411,6 @@ def from_bytes(
                     cd_ratios_merged, encoding_iana
                 )
             )
-
-        # We might want to check the sequence again with the whole content
-        # Only if initial MD/CD tests passes
-        if is_too_large_sequence and not is_multi_byte_decoder:
-            try:
-                sequences[int(50e3) :].decode(encoding_iana, errors="strict")
-            except UnicodeDecodeError as e:
-                logger.warning(
-                    "LazyStr Loading: After final lookup, code page %s does not fit given bytes sequence at ALL. %s",
-                    encoding_iana,
-                    str(e),
-                )
-                tested_but_hard_failure.append(encoding_iana)
-                continue
 
         results.append(
             CharsetMatch(
@@ -419,6 +432,7 @@ def from_bytes(
             )
             if explain:
                 logger.removeHandler(explain_handler)
+                logger.setLevel(previous_logger_level)
             return CharsetMatches([results[encoding_iana]])
 
         if encoding_iana == sig_encoding:
@@ -428,16 +442,17 @@ def from_bytes(
             )
             if explain:
                 logger.removeHandler(explain_handler)
+                logger.setLevel(previous_logger_level)
             return CharsetMatches([results[encoding_iana]])
 
     if len(results) == 0:
         if fallback_u8 or fallback_ascii or fallback_specified:
-            logger.warning(
+            logger.debug(
                 "Nothing got out of the detection process. Using ASCII/UTF-8/Specified fallback."
             )
 
         if fallback_specified:
-            logger.warning(
+            logger.debug(
                 "%s will be used as a fallback match", fallback_specified.encoding
             )
             results.append(fallback_specified)
@@ -458,6 +473,7 @@ def from_bytes(
 
     if explain:
         logger.removeHandler(explain_handler)
+        logger.setLevel(previous_logger_level)
 
     return results
 
