@@ -7,14 +7,20 @@ import itertools
 
 import more_itertools
 
+from typing import Callable, TypeVar
+
+
+CallableT = TypeVar("CallableT", bound=Callable[..., object])
+
 
 def compose(*funcs):
     """
     Compose any number of unary functions into a single unary function.
 
     >>> import textwrap
-    >>> stripped = str.strip(textwrap.dedent(compose.__doc__))
-    >>> compose(str.strip, textwrap.dedent)(compose.__doc__) == stripped
+    >>> expected = str.strip(textwrap.dedent(compose.__doc__))
+    >>> strip_and_dedent = compose(str.strip, textwrap.dedent)
+    >>> strip_and_dedent(compose.__doc__) == expected
     True
 
     Compose also allows the innermost function to take arbitrary arguments.
@@ -91,7 +97,12 @@ def once(func):
     return wrapper
 
 
-def method_cache(method, cache_wrapper=None):
+def method_cache(
+    method: CallableT,
+    cache_wrapper: Callable[
+        [CallableT], CallableT
+    ] = functools.lru_cache(),  # type: ignore[assignment]
+) -> CallableT:
     """
     Wrap lru_cache to support storing the cache data in the object instances.
 
@@ -158,19 +169,22 @@ def method_cache(method, cache_wrapper=None):
     http://code.activestate.com/recipes/577452-a-memoize-decorator-for-instance-methods/
     for another implementation and additional justification.
     """
-    cache_wrapper = cache_wrapper or functools.lru_cache()
 
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: object, *args: object, **kwargs: object) -> object:
         # it's the first call, replace the method with a cached, bound method
-        bound_method = types.MethodType(method, self)
+        bound_method: CallableT = types.MethodType(  # type: ignore[assignment]
+            method, self
+        )
         cached_method = cache_wrapper(bound_method)
         setattr(self, method.__name__, cached_method)
         return cached_method(*args, **kwargs)
 
     # Support cache clear even before cache has been created.
-    wrapper.cache_clear = lambda: None
+    wrapper.cache_clear = lambda: None  # type: ignore[attr-defined]
 
-    return _special_method_cache(method, cache_wrapper) or wrapper
+    return (  # type: ignore[return-value]
+        _special_method_cache(method, cache_wrapper) or wrapper
+    )
 
 
 def _special_method_cache(method, cache_wrapper):
@@ -210,13 +224,16 @@ def apply(transform):
 
     >>> @apply(reversed)
     ... def get_numbers(start):
+    ...     "doc for get_numbers"
     ...     return range(start, start+3)
     >>> list(get_numbers(4))
     [6, 5, 4]
+    >>> get_numbers.__doc__
+    'doc for get_numbers'
     """
 
     def wrap(func):
-        return compose(transform, func)
+        return functools.wraps(func)(compose(transform, func))
 
     return wrap
 
@@ -232,6 +249,8 @@ def result_invoke(action):
     ... def add_two(a, b):
     ...     return a + b
     >>> x = add_two(2, 3)
+    5
+    >>> x
     5
     """
 

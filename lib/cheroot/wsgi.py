@@ -154,7 +154,7 @@ class Gateway(server.Gateway):
         # "The application may call start_response more than once,
         # if and only if the exc_info argument is provided."
         if self.started_response and not exc_info:
-            raise AssertionError(
+            raise RuntimeError(
                 'WSGI start_response called a second '
                 'time with no exc_info.',
             )
@@ -209,7 +209,7 @@ class Gateway(server.Gateway):
         data from the iterable returned by the WSGI application).
         """
         if not self.started_response:
-            raise AssertionError('WSGI write called before start_response.')
+            raise RuntimeError('WSGI write called before start_response.')
 
         chunklen = len(chunk)
         rbo = self.remaining_bytes_out

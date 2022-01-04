@@ -26,7 +26,7 @@ import time
 import traceback
 import os
 import json
-import unittest
+import unittest  # pylint: disable=deprecated-module,preferred-module
 import warnings
 import functools
 
@@ -434,7 +434,7 @@ def cleanHeaders(headers, method, body, host, port):
     # Add the required Host request header if not present.
     # [This specifies the host:port of the server, not the client.]
     found = False
-    for k, v in headers:
+    for k, _v in headers:
         if k.lower() == 'host':
             found = True
             break
@@ -498,9 +498,9 @@ def openURL(*args, **kwargs):
     opener = functools.partial(_open_url_once, *args, **kwargs)
 
     def on_exception():
-        type_, exc = sys.exc_info()[:2]
+        exc = sys.exc_info()[1]
         if isinstance(exc, raise_subcls):
-            raise
+            raise exc
         time.sleep(0.5)
 
     # Try up to 10 times
@@ -559,6 +559,10 @@ def strip_netloc(url):
     Useful for wrapping an absolute-URI for which only the
     path is expected (such as in calls to :py:meth:`WebCase.getPage`).
 
+    .. testsetup::
+
+       from cheroot.test.webtest import strip_netloc
+
     >>> strip_netloc('https://google.com/foo/bar?bing#baz')
     '/foo/bar?bing'
 
@@ -569,7 +573,7 @@ def strip_netloc(url):
     '/foo/bar?bing'
     """
     parsed = urllib_parse.urlparse(url)
-    scheme, netloc, path, params, query, fragment = parsed
+    _scheme, _netloc, path, params, query, _fragment = parsed
     stripped = '', '', path, params, query, ''
     return urllib_parse.urlunparse(stripped)
 

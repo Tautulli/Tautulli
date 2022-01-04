@@ -5,12 +5,10 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-from contextlib import closing
 import os
 import socket
 import tempfile
 import threading
-import time
 import uuid
 
 import pytest
@@ -18,6 +16,7 @@ import requests
 import requests_unixsocket
 import six
 
+from pypytools.gc.custom import DefaultGc
 from six.moves import queue, urllib
 
 from .._compat import bton, ntob
@@ -28,6 +27,9 @@ from ..testing import (
     ANY_INTERFACE_IPV6,
     EPHEMERAL_PORT,
 )
+
+
+IS_SLOW_ENV = IS_MACOS or IS_WINDOWS
 
 
 unix_only_sock_test = pytest.mark.skipif(
@@ -181,7 +183,9 @@ def test_serving_is_false_and_stop_returns_after_ctrlc():
     serve_thread.start()
 
     # The thread should exit right away due to the interrupt.
-    serve_thread.join(httpserver.expiration_interval * 2)
+    serve_thread.join(
+        httpserver.expiration_interval * (4 if IS_SLOW_ENV else 2),
+    )
     assert not serve_thread.is_alive()
 
     assert not httpserver._connections._serving
@@ -263,6 +267,7 @@ def test_peercreds_unix_sock(peercreds_enabled_server):
     if isinstance(bind_addr, six.binary_type):
         bind_addr = bind_addr.decode()
 
+    # pylint: disable=possibly-unused-variable
     quoted = urllib.parse.quote(bind_addr, safe='')
     unix_base_uri = 'http+unix://{quoted}'.format(**locals())
 
@@ -295,6 +300,7 @@ def test_peercreds_unix_sock_with_lookup(peercreds_enabled_server):
     if isinstance(bind_addr, six.binary_type):
         bind_addr = bind_addr.decode()
 
+    # pylint: disable=possibly-unused-variable
     quoted = urllib.parse.quote(bind_addr, safe='')
     unix_base_uri = 'http+unix://{quoted}'.format(**locals())
 
@@ -325,7 +331,7 @@ def test_peercreds_unix_sock_with_lookup(peercreds_enabled_server):
     indirect=('resource_limit',),
 )
 @pytest.mark.usefixtures('many_open_sockets')
-def test_high_number_of_file_descriptors(resource_limit):
+def test_high_number_of_file_descriptors(native_server_client, resource_limit):
     """Test the server does not crash with a high file-descriptor value.
 
     This test shouldn't cause a server crash when trying to access
@@ -337,32 +343,37 @@ def test_high_number_of_file_descriptors(resource_limit):
     # We want to force the server to use a file-descriptor with
     # a number above resource_limit
 
-    # Create our server
-    httpserver = HTTPServer(
-        bind_addr=(ANY_INTERFACE_IPV4, EPHEMERAL_PORT), gateway=Gateway,
-    )
+    # Patch the method that processes
+    _old_process_conn = native_server_client.server_instance.process_conn
 
-    try:
-        # This will trigger a crash if select() is used in the implementation
-        with httpserver._run_in_thread():
-            # allow server to run long enough to invoke select()
-            time.sleep(1.0)
-    except:  # noqa: E722
-        raise  # only needed for `else` to work
-    else:
-        # We use closing here for py2-compat
-        with closing(socket.socket()) as sock:
-            # Check new sockets created are still above our target number
-            assert sock.fileno() >= resource_limit
-    finally:
-        # Stop our server
-        httpserver.stop()
+    def native_process_conn(conn):
+        native_process_conn.filenos.add(conn.socket.fileno())
+        return _old_process_conn(conn)
+    native_process_conn.filenos = set()
+    native_server_client.server_instance.process_conn = native_process_conn
+
+    # Trigger a crash if select() is used in the implementation
+    native_server_client.connect('/')
+
+    # Ensure that at least one connection got accepted, otherwise the
+    # follow-up check wouldn't make sense
+    assert len(native_process_conn.filenos) > 0
+
+    # Check at least one of the sockets created are above the target number
+    assert any(fn >= resource_limit for fn in native_process_conn.filenos)
 
 
 if not IS_WINDOWS:
     test_high_number_of_file_descriptors = pytest.mark.forked(
         test_high_number_of_file_descriptors,
     )
+
+
+@pytest.fixture
+def _garbage_bin():
+    """Disable garbage collection when this fixture is in use."""
+    with DefaultGc().nogc():
+        yield
 
 
 @pytest.fixture
@@ -392,25 +403,26 @@ def resource_limit(request):
 
 
 @pytest.fixture
-def many_open_sockets(resource_limit):
+def many_open_sockets(request, resource_limit):
     """Allocate a lot of file descriptors by opening dummy sockets."""
+    # NOTE: `@pytest.mark.usefixtures` doesn't work on fixtures which
+    # NOTE: forces us to invoke this one dynamically to avoid having an
+    # NOTE: unused argument.
+    request.getfixturevalue('_garbage_bin')
+
     # Hoard a lot of file descriptors by opening and storing a lot of sockets
     test_sockets = []
     # Open a lot of file descriptors, so the next one the server
     # opens is a high number
     try:
-        for i in range(resource_limit):
+        for _ in range(resource_limit):
             sock = socket.socket()
             test_sockets.append(sock)
-            # NOTE: We used to interrupt the loop early but this doesn't seem
-            # NOTE: to work well in envs with indeterministic runtimes like
-            # NOTE: PyPy. It looks like sometimes it frees some file
-            # NOTE: descriptors in between running this fixture and the actual
-            # NOTE: test code so the early break has been removed to try
-            # NOTE: address that. The approach may need to be rethought if the
-            # NOTE: issue reoccurs. Another approach may be disabling the GC.
+            # If we reach a high enough number, we don't need to open more
+            if sock.fileno() >= resource_limit:
+                break
         # Check we opened enough descriptors to reach a high number
-        the_highest_fileno = max(sock.fileno() for sock in test_sockets)
+        the_highest_fileno = test_sockets[-1].fileno()
         assert the_highest_fileno >= resource_limit
         yield the_highest_fileno
     finally:
