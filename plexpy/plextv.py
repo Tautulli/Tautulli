@@ -277,13 +277,14 @@ class PlexTV(object):
 
         return request
 
-    def get_plextv_resources(self, include_https=False, output_format=''):
+    def get_plextv_resources(self, include_https=False, return_response=False, output_format=''):
         if include_https:
             uri = '/api/resources?includeHttps=1'
         else:
             uri = '/api/resources'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
+                                                    return_response=return_response,
                                                     output_format=output_format)
 
         return request

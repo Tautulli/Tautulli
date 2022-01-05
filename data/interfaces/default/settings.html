@@ -2737,12 +2737,8 @@ $(document).ready(function() {
     });
 
     $.ajax({
-        url: "https://plex.tv/api/resources",
+        url: "check_pms_token",
         type: 'GET',
-        dataType: 'json',
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-Plex-Token', $('#pms_token').val());
-        },
         statusCode: {
             401: function (xhr, status) {
                 $("#updatebar").hide();

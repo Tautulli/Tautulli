@@ -3417,6 +3417,15 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    def check_pms_token(self, **kwargs):
+        plex_tv = plextv.PlexTV()
+        response = plex_tv.get_plextv_resources(return_response=True)
+        if not response.ok:
+            cherrypy.response.status = 401
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
     def get_server_resources(self, **kwargs):
         return plextv.get_server_resources(return_server=True, **kwargs)
 
