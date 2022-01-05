@@ -271,51 +271,6 @@ class API2(object):
 
         return templog
 
-    def get_settings(self, key=''):
-        """ Gets all settings from the config file.
-
-            ```
-            Required parameters:
-                None
-
-            Optional parameters:
-                key (str):      Name of a config section to return
-
-            Returns:
-                json:
-                    {"General": {"api_enabled": true, ...}
-                     "Advanced": {"cache_sizemb": "32", ...},
-                     ...
-                     }
-            ```
-        """
-
-        interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
-        interface_list = [name for name in os.listdir(interface_dir) if
-                          os.path.isdir(os.path.join(interface_dir, name))]
-
-        conf = plexpy.CONFIG._config
-        config = {}
-
-        # Truthify the dict
-        for k, v in conf.items():
-            if isinstance(v, dict):
-                d = {}
-                for kk, vv in v.items():
-                    if vv == '0' or vv == '1':
-                        d[kk] = bool(vv)
-                    else:
-                        d[kk] = vv
-                config[k] = d
-            if k == 'General':
-                config[k]['interface'] = interface_dir
-                config[k]['interface_list'] = interface_list
-
-        if key:
-            return config.get(key)
-
-        return config
-
     def sql(self, query=''):
         """ Query the Tautulli database with raw SQL. Automatically makes a backup of
             the database if the latest backup is older then 24h. `api_sql` must be
