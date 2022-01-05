@@ -111,9 +111,9 @@
                             Tautulli requires a Plex.tv account. Click the button below to sign in on Plex.tv. You may need to allow popups in your browser.
                         </p>
                     </div>
-                    <input type="hidden" name="pms_token" id="pms_token" value="" data-validate="validatePMStoken">
+                    <input type="hidden" id="pms_token_validated" value="0" data-validate="validatePMStoken">
                     <input type="hidden" name="pms_client_id" id="pms_client_id" value="${config['pms_client_id']}">
-                    <a class="btn btn-dark" id="sign-in-plex" href="#" role="button">Sign In with Plex</a>
+                    <button id="sign-in-plex" class="btn btn-form" type="button">Sign In with Plex</button>
                     <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
 
@@ -308,7 +308,7 @@
         var valid_pms_token = el.val();
         var retValue = {};
 
-        if (valid_pms_token === "") {
+        if (valid_pms_token === 0) {
             retValue.status = false;
             retValue.msg = "Please authenticate.";
             $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Please authenticate.');
@@ -477,13 +477,9 @@ $(document).ready(function() {
     });
     var select_pms = $select_pms[0].selectize;
 
-    function getServerOptions(token) {
-        /* Set token and returns server options */
+    function getServerOptions() {
         $.ajax({
             url: 'discover',
-            data: {
-                token: token
-            },
             success: function (result) {
                 if (result) {
                     var existing_ip = $('#pms_ip').val();
@@ -557,11 +553,12 @@ $(document).ready(function() {
     });
 
     function OAuthPreFunction() {
-        $("#pms_token").val('');
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
     }
     function OAuthSuccessCallback(authToken) {
-        $("#pms_token").val(authToken);
+        $.post('save_pms_token', { token: authToken }, function () {
+            $("#pms_token_validated").val(1);
+        });
         $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
         authenticated = true;
         getServerOptions(authToken);

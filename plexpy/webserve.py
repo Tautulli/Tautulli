@@ -214,7 +214,6 @@ class WebInterface(object):
             "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
-            "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_name": plexpy.CONFIG.PMS_NAME,
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
@@ -229,8 +228,16 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    def save_pms_token(self, token=None, **kwargs):
+        if token is not None:
+            plexpy.CONFIG.PMS_TOKEN = token
+            plexpy.CONFIG.write()
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
     @addtoapi("get_server_list")
-    def discover(self, token=None, include_cloud=True, all_servers=True, **kwargs):
+    def discover(self, include_cloud=True, all_servers=True, **kwargs):
         """ Get all your servers that are published to Plex.tv.
 
             ```
@@ -255,11 +262,6 @@ class WebInterface(object):
                      ]
             ```
         """
-        if token:
-            # Need to set token so result doesn't return http 401
-            plexpy.CONFIG.__setattr__('PMS_TOKEN', token)
-            plexpy.CONFIG.write()
-
         include_cloud = not (include_cloud == 'false')
         all_servers = not (all_servers == 'false')
 
@@ -3182,7 +3184,6 @@ class WebInterface(object):
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_logs_folder": plexpy.CONFIG.PMS_LOGS_FOLDER,
             "pms_port": plexpy.CONFIG.PMS_PORT,
-            "pms_token": plexpy.CONFIG.PMS_TOKEN,
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
             "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,

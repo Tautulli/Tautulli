@@ -969,20 +969,11 @@
                             <label for="pms_token">Plex.tv Account Token</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="input-group">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
-                                        </span>
-                                        <input type="password" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required readonly>
-                                        <span class="input-group-btn">
-                                            <button id="sign-in-plex" class="btn btn-form" type="button">Fetch Token</button>
-                                        </span>
-                                    </div>
-                                    <span class="form-control-feedback" id="token_verify" aria-hidden="true" style="right: 80px;"></span>
+                                    <button id="sign-in-plex" class="btn btn-form" type="button">Fetch New Token</button>
+                                    <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                                 </div>
-                                <div id="pms_token_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Token for Plex.tv authentication.</p>
+                            <p class="help-block">Fetch a new Plex.tv account authentication token.</p>
                         </div>
                         <input type="hidden" id="pms_client_id" name="pms_client_id" value="${config['pms_client_id']}">
 
@@ -1622,7 +1613,7 @@
 </div>
 <div id="token_error_bar" style="display: none;">
     <i class="fa fa-exclamation-triangle"></i> Your Plex.tv token is no longer valid.<br>
-    Please <a data-tab-destination="plex_media_server" data-target="pms_token">fetch a new token</a>.
+    Please <a data-tab-destination="plex_media_server" data-target="sign-in-plex">fetch a new token</a>.
 </div>
 </%def>
 
@@ -2630,12 +2621,9 @@ $(document).ready(function() {
     });
     var select_pms = $select_pms[0].selectize;
 
-    function getServerOptions(token) {
+    function getServerOptions() {
         $.ajax({
             url: 'discover',
-            data: {
-                token: token
-            },
             success: function (result) {
                 if (result) {
                     var existing_ip = $('#pms_ip').val();
@@ -2748,16 +2736,16 @@ $(document).ready(function() {
     });
 
     function OAuthPreFunction() {
-        $("#token_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
+        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
     }
     function OAuthSuccessCallback(authToken) {
-        $("#pms_token").val(authToken);
-        $("#token_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
-        $('#token_error_bar').hide();
+        $.post('save_pms_token', { token: authToken });
+        $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
+        $("#token_error_bar").hide();
         getServerOptions(authToken);
     }
     function OAuthErrorCallback() {
-        $("#token_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');
     }
 
     $('#sign-in-plex').click(function() {
