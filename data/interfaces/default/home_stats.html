@@ -43,6 +43,9 @@ player                  Returns the player name for the associated stat.
 
 == Only if 'stat_id' is 'last_watched' ==
 last_watch              Returns the time the media item was last watched.
+media_type              Returns the type of media of the media item.
+media_index             Returns the index of the media item in its season.
+parent_media_index      Returns the index of the parent media item of the media item.
 
 == Only if 'stat_id' is 'most_concurrent' ==
 count                   Returns the count of the most concurrent streams.
@@ -53,6 +56,7 @@ DOCUMENTATION :: END
 </%doc>
 
 <%!
+    import plexpy
     from plexpy.helpers import cast_to_int, page
 
     # Human readable duration
@@ -62,6 +66,11 @@ DOCUMENTATION :: END
             m += 1
         h, m = divmod(m, 60)
         return str(h).zfill(1) + ':' + str(m).zfill(2)
+
+    # Formatting media index for representation
+    def fi(media_index, parent_media_index):
+        return 'S' + str(parent_media_index).zfill(2) + 'E' + str(media_index).zfill(2) if plexpy.CONFIG.IDENTIFIER_LAST_WATCHED else ''
+    
 %>
 
 % if data and any(top_stat['rows'] for top_stat in data):
@@ -187,6 +196,8 @@ DOCUMENTATION :: END
                                     ${row['users_watched']}
                                     % elif stat_id == 'most_concurrent':
                                     ${row['count']}
+                                    % elif stat_id == 'last_watched' and row['media_type'] == 'episode':
+                                    ${fi(row['media_index'], row['parent_media_index'])}
                                     % endif
                                 </div>
                             </li>
