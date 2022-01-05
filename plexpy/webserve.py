@@ -3426,6 +3426,14 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    def get_pms_downloads(self, update_channel, **kwargs):
+        plex_tv = plextv.PlexTV()
+        downloads = plex_tv.get_plex_downloads(update_channel=update_channel)
+        return downloads
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
     def get_server_resources(self, **kwargs):
         return plextv.get_server_resources(return_server=True, **kwargs)
 
@@ -3471,8 +3479,7 @@ class WebInterface(object):
                     plexpy.CONFIG.PMS_PLATFORM, plexpy.CONFIG.PMS_PLATFORM),
                 'pms_update_channel': plexpy.CONFIG.PMS_UPDATE_CHANNEL,
                 'pms_update_distro': plexpy.CONFIG.PMS_UPDATE_DISTRO,
-                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD,
-                'plex_update_channel': 'plexpass' if update_channel == 'beta' else 'public'}
+                'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -6423,7 +6430,7 @@ class WebInterface(object):
             ```
         """
         plex_tv = plextv.PlexTV()
-        result = plex_tv.get_plex_downloads()
+        result = plex_tv.get_plex_update()
         return result
 
     @cherrypy.expose

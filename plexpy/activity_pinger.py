@@ -261,7 +261,7 @@ def check_server_updates():
         logger.info("Tautulli Monitor :: Checking for PMS updates...")
 
         plex_tv = plextv.PlexTV()
-        download_info = plex_tv.get_plex_downloads()
+        download_info = plex_tv.get_plex_update()
 
         if download_info:
             logger.info("Tautulli Monitor :: Current PMS version: %s", plexpy.CONFIG.PMS_VERSION)

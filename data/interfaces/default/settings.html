@@ -2934,27 +2934,18 @@ $(document).ready(function() {
             var update_channel = update_params.pms_update_channel;
             var update_distro = update_params.pms_update_distro;
             var update_distro_build = update_params.pms_update_distro_build;
-            var plex_update_channel = update_params.plex_update_channel;
 
             $('#pms_update_channel option[value=beta]').remove();
             if (plexpass) {
-                var selected = (update_channel == 'beta') ? true : false;
-                $('#pms_update_channel')
-                    .append($('<option></option>')
-                    .text('Beta')
-                    .val('beta')
-                    .prop('selected', selected));
+                $('#pms_update_channel').append($('<option></option>').text('Beta').val('beta'))
             }
-
-            var download_url = 'https://plex.tv/api/downloads/' + (plex_update_channel === 'plexpass' ? '5' : '1') + '.json?channel=' + plex_update_channel;
+            $('#pms_update_channel option[value=' + update_channel + ']').prop('selected', true);
 
             $.ajax({
-                url: download_url,
+                url: 'get_pms_downloads',
                 type: 'GET',
+                data: { update_channel: update_channel },
                 dataType: 'json',
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader('X-Plex-Token', $('#pms_token').val());
-                },
                 success: function (downloads) {
                     var platform_downloads = downloads.computer[platform] || downloads.nas[platform];
                     if (platform_downloads) {
