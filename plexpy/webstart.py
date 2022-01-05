@@ -127,6 +127,8 @@ def initialize(options):
             basic_auth_enabled = False
             cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth, priority=2)
     else:
+        logger.warn("Tautulli WebStart :: Web server authentication is disabled!")
+
         plexpy.AUTH_ENABLED = False
         basic_auth_enabled = False
 
