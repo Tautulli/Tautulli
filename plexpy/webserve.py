@@ -382,6 +382,9 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
+        if not (plexpy.CONFIG.HTTP_PASSWORD and plexpy.CONFIG.PMS_XML_SHORTCUTS):
+            return
+
         kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
 
         if helpers.bool_true(plextv):
