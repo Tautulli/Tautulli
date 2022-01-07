@@ -45,7 +45,7 @@ tempora==4.1.2
 tokenize-rt==4.2.1
 tzdata==2021.5
 tzlocal==2.1  # apscheduler==3.8.0 requires tzlocal~=2.0
-urllib3==1.26.7
+urllib3==1.26.8
 webencodings==0.5.1
 websocket-client==1.2.3
 xmltodict==0.12.0
