@@ -2665,10 +2665,17 @@ $(document).ready(function() {
                 },
                 cache: true,
                 async: true,
-                timeout: 10000,
+                timeout: 30000,
                 error: function (jqXHR, textStatus, errorThrown) {
                     $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
                     $("#pms_ip_group").addClass("has-error");
+                    var msg = 'Could not verify your server.'
+                    if (textStatus === 'timeout') {
+                        msg += ' Server took too long to respond.'
+                    } else {
+                        msg += ' Error: ' + jqXHR.status
+                    }
+                    showMsg('<i class="fa fa-exclamation-circle"></i> ' + msg, false, true, 5000, true)
                 },
                 success: function(xhr, status) {
                     var result = xhr;
@@ -2706,7 +2713,7 @@ $(document).ready(function() {
         } else {
             $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
             $("#pms_ip_group").addClass("has-error");
-            showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
+            showMsg('<i class="fa fa-exclamation-circle"></i> Plex IP address and port cannot be blank.', false, true, 5000, true)
         }
     }
 
