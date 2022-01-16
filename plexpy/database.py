@@ -332,10 +332,11 @@ def optimize_db():
     optimize()
 
 
-def db_filename(filename=FILENAME):
+def db_filename(filename=None):
     """ Returns the filepath to the db """
-
-    return os.path.join(plexpy.DATA_DIR, filename)
+    if filename is None:
+        return os.path.join(plexpy.DATA_DIR, FILENAME)
+    return filename
 
 
 def make_backup(cleanup=False, scheduler=False):
@@ -404,9 +405,9 @@ def dict_factory(cursor, row):
 
 class MonitorDatabase(object):
 
-    def __init__(self, filename=FILENAME):
-        self.filename = filename
-        self.connection = sqlite3.connect(db_filename(filename), timeout=20)
+    def __init__(self, filename=None):
+        self.filename = db_filename(filename)
+        self.connection = sqlite3.connect(self.filename, timeout=20)
         # Set database synchronous mode (default NORMAL)
         self.connection.execute("PRAGMA synchronous = %s" % plexpy.CONFIG.SYNCHRONOUS_MODE)
         # Set database journal mode (default WAL)

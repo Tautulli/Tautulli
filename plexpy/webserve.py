@@ -4852,16 +4852,26 @@ class WebInterface(object):
     def download_database(self, **kwargs):
         """ Download the Tautulli database file. """
         database_file = database.FILENAME
+        database_copy = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file)
 
         try:
             db = database.MonitorDatabase()
             db.connection.execute('begin immediate')
-            shutil.copyfile(plexpy.DB_FILE, os.path.join(plexpy.CONFIG.CACHE_DIR, database_file))
+            shutil.copyfile(plexpy.DB_FILE, database_copy)
             db.connection.rollback()
         except:
             pass
 
-        return serve_download(os.path.join(plexpy.CONFIG.CACHE_DIR, database_file), name=database_file)
+        # Remove tokens
+        db = database.MonitorDatabase(database_copy)
+        try:
+            db.action('UPDATE users SET user_token = NULL, server_token = NULL')
+        except:
+            logger.error('Failed to remove tokens from downloaded database.')
+            cherrypy.response.status = 500
+            return 'Error downloading database. Check the logs.'
+
+        return serve_download(database_copy, name=database_file)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
