@@ -75,7 +75,6 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_DISTRO_BUILD': (str, 'PMS', ''),
     'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
-    'PMS_XML_SHORTCUTS': (int, 'Advanced', 0),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
     'ANON_REDIRECT': (str, 'General', ''),
     'ANON_REDIRECT_DYNAMIC': (int, 'General', 1),

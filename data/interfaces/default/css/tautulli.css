@@ -3680,10 +3680,6 @@ a.no-highlight:hover {
 .login-container .form-group {
     margin-bottom: 20px;
 }
-.login-container .form-group label {
-    font-weight: 400;
-    color: #999;
-}
 .login-container .form-control {
     height: 38px;
     line-height: 1.5em;

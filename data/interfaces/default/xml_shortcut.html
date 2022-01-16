@@ -1,0 +1,65 @@
+﻿<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tautulli - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="${http_root}css/bootstrap3/bootstrap.min.css" rel="stylesheet">
+    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.all.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.v4-shims.min.css" rel="stylesheet">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.6.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.6.0">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.6.0">
+</head>
+
+<body style="margin: 0; overflow: auto;">
+<div class="login-body-container">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="login-container">
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <div id="sign-in-alert" class="alert alert-danger login-alert"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <div class="form-group">
+                            <label for="xml_url">Plex XML URL</label>
+                            <input id="xml_url" class="form-control" type="text" value="${url}" />
+                        </div>
+                        <span class="remember-group">
+                            Sign in with Plex to view the XML
+                        </span>
+                        <button id="sign-in-plex" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="${http_root}js/jquery-3.6.0.min.js"></script>
+<script src="${http_root}js/platform.min.js"></script>
+<script src="${http_root}js/script.js${cache_param}"></script>
+<script>
+    function OAuthSuccessCallback(authToken) {
+        var url = new URL($('#xml_url').val());
+        url.searchParams.append('X-Plex-Token', authToken);
+        window.location.href = url.toString();
+    }
+    function OAuthErrorCallback() {
+        $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
+    }
+
+    $('#sign-in-plex').click(function() {
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback);
+    });
+</script>
+</body>
+</html>

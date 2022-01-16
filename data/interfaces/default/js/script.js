@@ -555,12 +555,9 @@ $.fn.slideToggleBool = function(bool, options) {
 };
 
 function openPlexXML(endpoint, plextv, params) {
-    var data = $.extend({endpoint: endpoint, plextv: plextv}, params);
-    $.getJSON('return_plex_xml_url', data, function(xml_url) {
-        if (xml_url) {
-            window.open(xml_url, '_blank');
-        }
-    });
+    var data = $.extend({endpoint: endpoint, plextv: plextv || false}, params);
+    var query = new URLSearchParams(data)
+    window.open('open_plex_xml?' + query.toString(), '_blank');
 }
 
 function PopupCenter(url, title, w, h) {

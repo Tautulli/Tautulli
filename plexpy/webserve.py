@@ -379,26 +379,18 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to terminate session.'}
 
     @cherrypy.expose
-    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def return_plex_xml_url(self, endpoint='', plextv=False, **kwargs):
-        if not (plexpy.CONFIG.HTTP_PASSWORD and plexpy.CONFIG.PMS_XML_SHORTCUTS):
-            return
-
-        kwargs['X-Plex-Token'] = plexpy.CONFIG.PMS_TOKEN
-
+    def open_plex_xml(self, endpoint='', plextv=False, **kwargs):
         if helpers.bool_true(plextv):
             base_url = 'https://plex.tv'
         else:
-            if plexpy.CONFIG.PMS_URL_OVERRIDE:
-                base_url = plexpy.CONFIG.PMS_URL_OVERRIDE
-            else:
-                base_url = plexpy.CONFIG.PMS_URL
+            base_url = plexpy.CONFIG.PMS_URL_OVERRIDE or plexpy.CONFIG.PMS_URL
 
         if '{machine_id}' in endpoint:
             endpoint = endpoint.format(machine_id=plexpy.CONFIG.PMS_IDENTIFIER)
 
-        return base_url + endpoint + '?' + urlencode(kwargs)
+        url = base_url + endpoint + ('?' + urlencode(kwargs) if kwargs else '')
+        return serve_template(templatename="xml_shortcut.html", title="Plex XML", url=url)
 
     @cherrypy.expose
     @requireAuth()
