@@ -4848,8 +4848,8 @@ class WebInterface(object):
 
         try:
             cfg = config.Config(config_copy)
-            cfg.PMS_TOKEN = ''
-            cfg.JWT_SECRET = ''
+            for key in config._DO_NOT_DOWNLOAD_KEYS:
+                setattr(cfg, key, '')
             cfg.write()
         except:
             cherrypy.response.status = 500
