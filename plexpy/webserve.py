@@ -4838,13 +4838,24 @@ class WebInterface(object):
     def download_config(self, **kwargs):
         """ Download the Tautulli configuration file. """
         config_file = config.FILENAME
+        config_copy = os.path.join(plexpy.CONFIG.CACHE_DIR, config_file)
 
         try:
             plexpy.CONFIG.write()
+            shutil.copyfile(plexpy.CONFIG_FILE, config_copy)
         except:
             pass
 
-        return serve_download(plexpy.CONFIG_FILE, name=config_file)
+        try:
+            cfg = config.Config(config_copy)
+            cfg.PMS_TOKEN = ''
+            cfg.JWT_SECRET = ''
+            cfg.write()
+        except:
+            cherrypy.response.status = 500
+            return 'Error downloading config. Check the logs.'
+
+        return serve_download(config_copy, name=config_file)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
