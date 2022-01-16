@@ -3094,7 +3094,7 @@ class WebInterface(object):
     def toggleVerbose(self, **kwargs):
         plexpy.VERBOSE = not plexpy.VERBOSE
 
-        plexpy.CONFIG.__setattr__('VERBOSE_LOGS', plexpy.VERBOSE)
+        plexpy.CONFIG.VERBOSE_LOGS = plexpy.VERBOSE
         plexpy.CONFIG.write()
 
         logger.initLogger(console=not plexpy.QUIET, log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
@@ -3137,10 +3137,10 @@ class WebInterface(object):
         settings_dict = {}
 
         for setting in config.SETTINGS:
-            settings_dict[setting.lower()] = plexpy.CONFIG.__getattr__(setting)
+            settings_dict[setting.lower()] = getattr(plexpy.CONFIG, setting)
 
         for setting in config.CHECKED_SETTINGS:
-            settings_dict[setting.lower()] = checked(plexpy.CONFIG.__getattr__(setting))
+            settings_dict[setting.lower()] = checked(getattr(plexpy.CONFIG, setting))
 
         # Initialise blank passwords so we do not expose them in the html forms
         # but users are still able to clear them
@@ -4300,7 +4300,7 @@ class WebInterface(object):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 
         # Show changelog after updating
-        plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 1)
+        plexpy.CONFIG.UPDATE_SHOW_CHANGELOG = 1
         plexpy.CONFIG.write()
         return self.do_state_change('update', 'Updating', 120)
 
@@ -4312,8 +4312,8 @@ class WebInterface(object):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 
         # Set the new git remote and branch
-        plexpy.CONFIG.__setattr__('GIT_REMOTE', git_remote)
-        plexpy.CONFIG.__setattr__('GIT_BRANCH', git_branch)
+        plexpy.CONFIG.GIT_REMOTE = git_remote
+        plexpy.CONFIG.GIT_BRANCH = git_branch
         plexpy.CONFIG.write()
         return self.do_state_change('checkout', 'Switching Git Branches', 120)
 
@@ -4341,7 +4341,7 @@ class WebInterface(object):
 
         # Set update changelog shown status
         if helpers.bool_true(update_shown):
-            plexpy.CONFIG.__setattr__('UPDATE_SHOW_CHANGELOG', 0)
+            plexpy.CONFIG.UPDATE_SHOW_CHANGELOG = 0
             plexpy.CONFIG.write()
 
         return versioncheck.read_changelog(latest_only=latest_only, since_prev_release=since_prev_release)
