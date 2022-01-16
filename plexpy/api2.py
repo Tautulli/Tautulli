@@ -289,32 +289,33 @@ class API2(object):
                      }
             ```
         """
-
         interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
         interface_list = [name for name in os.listdir(interface_dir) if
                           os.path.isdir(os.path.join(interface_dir, name))]
 
         conf = plexpy.CONFIG._config
-        config = {}
+        settings = {}
 
         # Truthify the dict
         for k, v in conf.items():
             if isinstance(v, dict):
                 d = {}
                 for kk, vv in v.items():
+                    if kk.upper() in config._DO_NOT_DOWNLOAD_KEYS:
+                        vv = None
                     if vv == '0' or vv == '1':
                         d[kk] = bool(vv)
                     else:
                         d[kk] = vv
-                config[k] = d
+                settings[k] = d
             if k == 'General':
-                config[k]['interface'] = interface_dir
-                config[k]['interface_list'] = interface_list
+                settings[k]['interface'] = interface_dir
+                settings[k]['interface_list'] = interface_list
 
         if key:
-            return config.get(key)
+            return settings.get(key)
 
-        return config
+        return settings
 
     def sql(self, query=''):
         """ Query the Tautulli database with raw SQL. Automatically makes a backup of
