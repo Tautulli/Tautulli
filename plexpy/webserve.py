@@ -6304,6 +6304,37 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
+    def get_tautulli_info(self, **kwargs):
+        """ Get info about the Tautulli server.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"tautulli_install_type": "git",
+                     "tautulli_version": "v2.8.1",
+                     "tautulli_branch": "master",
+                     "tautulli_commit": "2410eb33805aaac4bd1c5dad0f71e4f15afaf742",
+                     "tautulli_platform": "Windows",
+                     "tautulli_platform_release": "10",
+                     "tautulli_platform_version": "10.0.19043",
+                     "tautulli_platform_linux_distro": "",
+                     "tautulli_platform_device_name": "Winterfell-Server",
+                     "tautulli_python_version": "3.10.0"
+                     }
+            ```
+        """
+        return plexpy.get_tautulli_info()
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
     def get_pms_update(self, **kwargs):
         """ Check for updates to the Plex Media Server.
 
