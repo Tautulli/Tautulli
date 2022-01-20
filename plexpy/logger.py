@@ -121,17 +121,17 @@ class RegexFilter(logging.Filter):
     """
     Base class for regex log filter
     """
+    REGEX = re.compile(r'')
+
     def __init__(self):
         super(RegexFilter, self).__init__()
-
-        self.regex = re.compile(r'')
 
     def filter(self, record):
         if not plexpy.CONFIG.LOG_BLACKLIST:
             return True
 
         try:
-            matches = self.regex.findall(record.msg)
+            matches = self.REGEX.findall(record.msg)
             for match in matches:
                 record.msg = self.replace(record.msg, match)
 
@@ -139,7 +139,7 @@ class RegexFilter(logging.Filter):
             for arg in record.args:
                 try:
                     arg_str = str(arg)
-                    matches = self.regex.findall(arg_str)
+                    matches = self.REGEX.findall(arg_str)
                     if matches:
                         for match in matches:
                             arg_str = self.replace(arg_str, match)
@@ -161,11 +161,11 @@ class PublicIPFilter(RegexFilter):
     """
     Log filter for public IP addresses
     """
-    def __init__(self):
-        super(PublicIPFilter, self).__init__()
-
-        # Currently only checking for ipv4 addresses
-        self.regex = re.compile(r'[0-9]+(?:[.-][0-9]+){3}(?!\d*-[a-z0-9]{6})')
+    REGEX = re.compile(
+        r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)[.-]){3}'
+        r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+        r'(?!\d*-[a-z0-9]{6})'
+    )
 
     def replace(self, text, ip):
         if helpers.is_public_ip(ip.replace('-', '.')):
@@ -178,12 +178,11 @@ class EmailFilter(RegexFilter):
     """
     Log filter for email addresses
     """
-    def __init__(self):
-        super(EmailFilter, self).__init__()
-
-        self.regex = re.compile(r'([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@'
-                                r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)',
-                                re.IGNORECASE)
+    REGEX = re.compile(
+        r'([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@'
+        r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)',
+        re.IGNORECASE
+    )
 
     def replace(self, text, email):
         email_parts = email.partition('@')
@@ -194,10 +193,9 @@ class PlexTokenFilter(RegexFilter):
     """
     Log filter for X-Plex-Token
     """
-    def __init__(self):
-        super(PlexTokenFilter, self).__init__()
-
-        self.regex = re.compile(r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9]+)')
+    REGEX = re.compile(
+        r'X-Plex-Token(?:=|%3D)([a-zA-Z0-9\-_]+)'
+    )
 
     def replace(self, text, token):
         return text.replace(token, 16 * '*')
