@@ -207,7 +207,6 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def welcome(self, **kwargs):
         config = {
-            "pms_client_id": plexpy.CONFIG.PMS_CLIENT_ID,
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_port": plexpy.CONFIG.PMS_PORT,
@@ -228,10 +227,12 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    def save_pms_token(self, token=None, **kwargs):
+    def save_pms_token(self, token=None, client_id=None, **kwargs):
         if token is not None:
             plexpy.CONFIG.PMS_TOKEN = token
-            plexpy.CONFIG.write()
+        if client_id is not None:
+            plexpy.CONFIG.PMS_CLIENT_ID = client_id
+        plexpy.CONFIG.write()
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

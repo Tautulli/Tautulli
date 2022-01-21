@@ -112,7 +112,7 @@
                         </p>
                     </div>
                     <input type="hidden" id="pms_token_validated" value="0" data-validate="validatePMStoken">
-                    <input type="hidden" name="pms_client_id" id="pms_client_id" value="${config['pms_client_id']}">
+                    <input type="hidden" name="pms_client_id" id="pms_client_id" value="">
                     <button id="sign-in-plex" class="btn btn-form" type="button">Sign In with Plex</button>
                     <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
@@ -556,7 +556,7 @@ $(document).ready(function() {
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
     }
     function OAuthSuccessCallback(authToken) {
-        $.post('save_pms_token', { token: authToken }, function () {
+        $.post('save_pms_token', { token: authToken, client_id: $('#pms_client_id').val() }, function () {
             $("#pms_token_validated").val(1);
         });
         $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');

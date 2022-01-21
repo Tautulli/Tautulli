@@ -2746,7 +2746,7 @@ $(document).ready(function() {
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
     }
     function OAuthSuccessCallback(authToken) {
-        $.post('save_pms_token', { token: authToken }, function() {
+        $.post('save_pms_token', { token: authToken, client_id: $('#pms_client_id').val() }, function() {
             showMsg('<i class="fa fa-check"></i> Saved new Plex.tv token.', false, true, 5000);
         });
         $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
