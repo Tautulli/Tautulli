@@ -126,6 +126,11 @@ class Net:
         self.timeout = timeout
 
         self.dns_resolver = dns.resolver.Resolver()
+        if hasattr(self.dns_resolver, "resolve"):
+            self.dns_resolve = getattr(self.dns_resolver, "resolve")
+        else:
+            self.dns_resolve = getattr(self.dns_resolver, "query")
+        
         self.dns_resolver.timeout = timeout
         self.dns_resolver.lifetime = timeout
 
@@ -220,7 +225,7 @@ class Net:
         try:
 
             log.debug('ASN query for {0}'.format(self.dns_zone))
-            data = self.dns_resolver.query(self.dns_zone, 'TXT')
+            data = self.dns_resolve(self.dns_zone, 'TXT')
             return list(data)
 
         except (dns.resolver.NXDOMAIN, dns.resolver.NoNameservers,
@@ -262,7 +267,7 @@ class Net:
         try:
 
             log.debug('ASN verbose query for {0}'.format(zone))
-            data = self.dns_resolver.query(zone, 'TXT')
+            data = self.dns_resolve(zone, 'TXT')
             return str(data[0])
 
         except (dns.resolver.NXDOMAIN, dns.resolver.NoNameservers,

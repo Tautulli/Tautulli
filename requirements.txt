@@ -11,7 +11,7 @@ cheroot==8.6.0
 cherrypy==18.6.1
 cloudinary==1.28.0
 distro==1.6.0
-dnspython==2.0.0  # ipwhois requires dnspython<=2.0.0
+dnspython==2.0.0
 facebook-sdk==3.1.0
 future==0.18.2
 gntp==1.0.3
@@ -19,7 +19,7 @@ html5lib==1.1
 httpagentparser==1.9.1
 idna==3.3
 importlib-resources==5.4.0
-ipwhois==1.2.0
+git+https://github.com/Tautulli/ipwhois.git@master#egg=ipwhois
 IPy==1.01
 Mako==1.1.6
 MarkupSafe==2.0.1
