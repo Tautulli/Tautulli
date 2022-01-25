@@ -82,6 +82,28 @@ class Library(PlexObject):
         except KeyError:
             raise NotFound('Invalid library sectionID: %s' % sectionID) from None
 
+    def hubs(self, sectionID=None, identifier=None, **kwargs):
+        """ Returns a list of :class:`~plexapi.library.Hub` across all library sections.
+
+            Parameters:
+                sectionID (int or str or list, optional):
+                    IDs of the sections to limit results or "playlists".
+                identifier (str or list, optional):
+                    Names of identifiers to limit results.
+                    Available on `Hub` instances as the `hubIdentifier` attribute.
+                    Examples: 'home.continue' or 'home.ondeck'
+        """
+        if sectionID:
+            if not isinstance(sectionID, list):
+                sectionID = [sectionID]
+            kwargs['contentDirectoryID'] = ",".join(map(str, sectionID))
+        if identifier:
+            if not isinstance(identifier, list):
+                identifier = [identifier]
+            kwargs['identifier'] = ",".join(identifier)
+        key = '/hubs%s' % utils.joinArgs(kwargs)
+        return self.fetchItems(key)
+
     def all(self, **kwargs):
         """ Returns a list of all media from all library sections.
             This may be a very large dataset to retrieve.
@@ -169,7 +191,7 @@ class Library(PlexObject):
                 name (str): Name of the library
                 agent (str): Example com.plexapp.agents.imdb
                 type (str): movie, show, # check me
-                location (str): /path/to/files
+                location (str or list): /path/to/files, ["/path/to/files", "/path/to/morefiles"]
                 language (str): Two letter language fx en
                 kwargs (dict): Advanced options should be passed as a dict. where the id is the key.
 
@@ -308,8 +330,16 @@ class Library(PlexObject):
                   40:South Africa, 41:Spain, 42:Sweden, 43:Switzerland, 44:Taiwan, 45:Trinidad,
                   46:United Kingdom, 47:United States, 48:Uruguay, 49:Venezuela.
         """
-        part = '/library/sections?name=%s&type=%s&agent=%s&scanner=%s&language=%s&location=%s' % (
-            quote_plus(name), type, agent, quote_plus(scanner), language, quote_plus(location))  # noqa E126
+        if isinstance(location, str):
+            location = [location]
+        locations = []
+        for path in location:
+            if not self._server.isBrowsable(path):
+                raise BadRequest('Path: %s does not exist.' % path)
+            locations.append(('location', path))
+
+        part = '/library/sections?name=%s&type=%s&agent=%s&scanner=%s&language=%s&%s' % (
+            quote_plus(name), type, agent, quote_plus(scanner), language, urlencode(locations, doseq=True)) # noqa E126
         if kwargs:
             part += urlencode(kwargs)
         return self._server.query(part, method=self._server._session.post)
@@ -486,15 +516,75 @@ class LibrarySection(PlexObject):
         return self
 
     def edit(self, agent=None, **kwargs):
-        """ Edit a library (Note: agent is required). See :class:`~plexapi.library.Library` for example usage.
+        """ Edit a library. See :class:`~plexapi.library.Library` for example usage.
 
             Parameters:
+                agent (str, optional): The library agent.
                 kwargs (dict): Dict of settings to edit.
         """
         if not agent:
             agent = self.agent
-        part = '/library/sections/%s?agent=%s&%s' % (self.key, agent, urlencode(kwargs))
+
+        locations = []
+        if kwargs.get('location'):
+            if isinstance(kwargs['location'], str):
+                kwargs['location'] = [kwargs['location']]
+            for path in kwargs.pop('location'):
+                if not self._server.isBrowsable(path):
+                    raise BadRequest('Path: %s does not exist.' % path)
+                locations.append(('location', path))
+
+        params = list(kwargs.items()) + locations
+
+        part = '/library/sections/%s?agent=%s&%s' % (self.key, agent, urlencode(params, doseq=True))
         self._server.query(part, method=self._server._session.put)
+
+    def addLocations(self, location):
+        """ Add a location to a library.
+        
+            Parameters:
+                location (str or list): A single folder path, list of paths.
+
+            Example:
+
+                .. code-block:: python
+
+                LibrarySection.addLocations('/path/1')
+                LibrarySection.addLocations(['/path/1', 'path/2', '/path/3'])
+        """
+        locations = self.locations
+        if isinstance(location, str):
+            location = [location]
+        for path in location:
+            if not self._server.isBrowsable(path):
+                raise BadRequest('Path: %s does not exist.' % path)
+            locations.append(path)
+        self.edit(location=locations)
+
+    def removeLocations(self, location):
+        """ Remove a location from a library.
+        
+            Parameters:
+                location (str or list): A single folder path, list of paths.
+
+            Example:
+
+                .. code-block:: python
+
+                LibrarySection.removeLocations('/path/1')
+                LibrarySection.removeLocations(['/path/1', 'path/2', '/path/3'])
+        """
+        locations = self.locations
+        if isinstance(location, str):
+            location = [location]
+        for path in location:
+            if path in locations:
+                locations.remove(path)
+            else:
+                raise BadRequest('Path: %s does not exist in the library.' % location)
+        if len(locations) == 0:
+            raise BadRequest('You are unable to remove all locations from a library.')
+        self.edit(location=locations)
 
     def get(self, title):
         """ Returns the media item with the specified title.
@@ -510,9 +600,7 @@ class LibrarySection(PlexObject):
 
     def getGuid(self, guid):
         """ Returns the media item with the specified external IMDB, TMDB, or TVDB ID.
-            Note: This search uses a PlexAPI operator so performance may be slow. All items from the
-            entire Plex library need to be retrieved for each guid search. It is recommended to create
-            your own lookup dictionary if you are searching for a lot of external guids.
+            Note: Only available for the Plex Movie and Plex TV Series agents.
 
             Parameters:
                 guid (str): The external guid of the item to return.
@@ -525,20 +613,23 @@ class LibrarySection(PlexObject):
 
                 .. code-block:: python
 
-                    # This will retrieve all items in the entire library 3 times
                     result1 = library.getGuid('imdb://tt0944947')
                     result2 = library.getGuid('tmdb://1399')
                     result3 = library.getGuid('tvdb://121361')
 
-                    # This will only retrieve all items in the library once to create a lookup dictionary
+                    # Alternatively, create your own guid lookup dictionary for faster performance
                     guidLookup = {guid.id: item for item in library.all() for guid in item.guids}
                     result1 = guidLookup['imdb://tt0944947']
                     result2 = guidLookup['tmdb://1399']
                     result3 = guidLookup['tvdb://121361']
 
         """
-        key = '/library/sections/%s/all?includeGuids=1' % self.key
-        return self.fetchItem(key, Guid__id__iexact=guid)
+        try:
+            dummy = self.search(maxresults=1)[0]
+            match = dummy.matches(agent=self.agent, title=guid.replace('://', '-'))
+            return self.search(guid=match[0].guid)[0]
+        except IndexError:
+            raise NotFound("Guid '%s' is not found in the library" % guid) from None
 
     def all(self, libtype=None, **kwargs):
         """ Returns a list of all items from this library section.
@@ -556,13 +647,13 @@ class LibrarySection(PlexObject):
     def hubs(self):
         """ Returns a list of available :class:`~plexapi.library.Hub` for this library section.
         """
-        key = '/hubs/sections/%s' % self.key
+        key = '/hubs/sections/%s?includeStations=1' % self.key
         return self.fetchItems(key)
 
     def agents(self):
         """ Returns a list of available :class:`~plexapi.media.Agent` for this library section.
         """
-        return self._server.agents(utils.searchType(self.type))
+        return self._server.agents(self.type)
 
     def settings(self):
         """ Returns a list of all library settings. """
@@ -605,6 +696,36 @@ class LibrarySection(PlexObject):
                 data[key % setting.id] = setting.default
 
         self.edit(**data)
+
+    def _lockUnlockAllField(self, field, libtype=None, locked=True):
+        """ Lock or unlock a field for all items in the library. """
+        libtype = libtype or self.TYPE
+        args = {
+            'type': utils.searchType(libtype),
+            '%s.locked' % field: int(locked)
+        }
+        key = '/library/sections/%s/all%s' % (self.key, utils.joinArgs(args))
+        self._server.query(key, method=self._server._session.put)
+
+    def lockAllField(self, field, libtype=None):
+        """ Lock a field for all items in the library.
+        
+            Parameters:
+                field (str): The field to lock (e.g. thumb, rating, collection).
+                libtype (str, optional): The library type to lock (movie, show, season, episode,
+                    artist, album, track, photoalbum, photo). Default is the main library type.
+        """
+        self._lockUnlockAllField(field, libtype=libtype, locked=True)
+
+    def unlockAllField(self, field, libtype=None):
+        """ Unlock a field for all items in the library.
+        
+            Parameters:
+                field (str): The field to unlock (e.g. thumb, rating, collection).
+                libtype (str, optional): The library type to lock (movie, show, season, episode,
+                    artist, album, track, photoalbum, photo). Default is the main library type.
+        """
+        self._lockUnlockAllField(field, libtype=libtype, locked=False)
 
     def timeline(self):
         """ Returns a timeline query for this library section. """
@@ -1718,9 +1839,8 @@ class MusicSection(LibrarySection):
         return self.fetchItems(key)
 
     def stations(self):
-        """ Returns a list of :class:`~plexapi.audio.Album` objects in this section. """
-        key = '/hubs/sections/%s?includeStations=1' % self.key
-        return self.fetchItems(key, cls=Station)
+        """ Returns a list of :class:`~plexapi.playlist.Playlist` stations in this section. """
+        return next((hub.items for hub in self.hubs() if hub.context == 'hub.music.stations'), None)
 
     def searchArtists(self, **kwargs):
         """ Search for an artist. See :func:`~plexapi.library.LibrarySection.search` for usage. """
@@ -1934,6 +2054,7 @@ class Hub(PlexObject):
             context (str): The context of the hub.
             hubKey (str): API URL for these specific hub items.
             hubIdentifier (str): The identifier of the hub.
+            items (list): List of items in the hub.
             key (str): API URL for the hub.
             more (bool): True if there are more items to load (call reload() to fetch all items).
             size (int): The number of items in the hub.
@@ -2084,39 +2205,6 @@ class Place(HubMediaTag):
             TAGTYPE (int): 400
     """
     TAGTYPE = 400
-
-
-@utils.registerPlexObject
-class Station(PlexObject):
-    """ Represents the Station area in the MusicSection.
-
-        Attributes:
-            TITLE (str): 'Stations'
-            TYPE (str): 'station'
-            hubIdentifier (str): Unknown.
-            size (int): Number of items found.
-            title (str): Title of this Hub.
-            type (str): Type of items in the Hub.
-            more (str): Unknown.
-            style (str): Unknown
-            items (str): List of items in the Hub.
-    """
-    TITLE = 'Stations'
-    TYPE = 'station'
-
-    def _loadData(self, data):
-        """ Load attribute values from Plex XML response. """
-        self._data = data
-        self.hubIdentifier = data.attrib.get('hubIdentifier')
-        self.size = utils.cast(int, data.attrib.get('size'))
-        self.title = data.attrib.get('title')
-        self.type = data.attrib.get('type')
-        self.more = data.attrib.get('more')
-        self.style = data.attrib.get('style')
-        self.items = self.findItems(data)
-
-    def __len__(self):
-        return self.size
 
 
 class FilteringType(PlexObject):

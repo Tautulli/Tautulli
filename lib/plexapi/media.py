@@ -6,6 +6,7 @@ from urllib.parse import quote_plus
 from plexapi import log, settings, utils
 from plexapi.base import PlexObject
 from plexapi.exceptions import BadRequest
+from plexapi.utils import deprecated
 
 
 @utils.registerPlexObject
@@ -1058,31 +1059,50 @@ class Agent(PlexObject):
         self.hasAttribution = data.attrib.get('hasAttribution')
         self.hasPrefs = data.attrib.get('hasPrefs')
         self.identifier = data.attrib.get('identifier')
+        self.name = data.attrib.get('name')
         self.primary = data.attrib.get('primary')
         self.shortIdentifier = self.identifier.rsplit('.', 1)[1]
-        if 'mediaType' in self._initpath:
-            self.name = data.attrib.get('name')
-            self.languageCode = []
-            for code in data:
-                self.languageCode += [code.attrib.get('code')]
-        else:
-            self.mediaTypes = [AgentMediaType(server=self._server, data=d) for d in data]
 
-    def _settings(self):
+        if 'mediaType' in self._initpath:
+            self.languageCodes = self.listAttrs(data, 'code', etag='Language')
+            self.mediaTypes = []
+        else:
+            self.languageCodes = []
+            self.mediaTypes = self.findItems(data, cls=AgentMediaType)
+
+    @property
+    @deprecated('use "languageCodes" instead')
+    def languageCode(self):
+        return self.languageCodes
+
+    def settings(self):
         key = '/:/plugins/%s/prefs' % self.identifier
         data = self._server.query(key)
         return self.findItems(data, cls=settings.Setting)
 
+    @deprecated('use "settings" instead')
+    def _settings(self):
+        return self.settings()
+
 
 class AgentMediaType(Agent):
+    """ Represents a single Agent MediaType.
+
+        Attributes:
+            TAG (str): 'MediaType'
+    """
+    TAG = 'MediaType'
 
     def __repr__(self):
         uid = self._clean(self.firstAttr('name'))
         return '<%s>' % ':'.join([p for p in [self.__class__.__name__, uid] if p])
 
     def _loadData(self, data):
+        self.languageCodes = self.listAttrs(data, 'code', etag='Language')
         self.mediaType = utils.cast(int, data.attrib.get('mediaType'))
         self.name = data.attrib.get('name')
-        self.languageCode = []
-        for code in data:
-            self.languageCode += [code.attrib.get('code')]
+
+    @property
+    @deprecated('use "languageCodes" instead')
+    def languageCode(self):
+        return self.languageCodes
