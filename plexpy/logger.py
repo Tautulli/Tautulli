@@ -31,9 +31,10 @@ import traceback
 import plexpy
 if plexpy.PYTHON2:
     import helpers
+    import users
     from config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 else:
-    from plexpy import helpers
+    from plexpy import helpers, users
     from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
@@ -88,9 +89,6 @@ class BlacklistFilter(logging.Filter):
     """
     Log filter for blacklisted tokens and passwords
     """
-    def __init__(self):
-        super(BlacklistFilter, self).__init__()
-
     def filter(self, record):
         if not plexpy.CONFIG.LOG_BLACKLIST:
             return True
@@ -117,14 +115,45 @@ class BlacklistFilter(logging.Filter):
         return True
 
 
+class UsernameFilter(logging.Filter):
+    """
+    Log filter for usernames
+    """
+    def filter(self, record):
+        if not plexpy.CONFIG.LOG_BLACKLIST_USERNAMES:
+            return True
+
+        for item in users.Users().get_users():
+            username = item['username']
+            friendly_name = item['friendly_name']
+
+            try:
+                record.msg = self.replace(record.msg, username)
+                record.msg = self.replace(record.msg, friendly_name)
+
+                args = []
+                for arg in record.args:
+                    if isinstance(arg, str):
+                        arg = self.replace(arg, username)
+                        arg = self.replace(arg, friendly_name)
+                    args.append(arg)
+                record.args = tuple(args)
+            except:
+                pass
+
+        return True
+
+    @staticmethod
+    def replace(text, match):
+        mask = match[:2] + 8 * '*' + match[-1]
+        return re.sub(r'\b{}\b'.format(match), mask, text, flags=re.IGNORECASE)
+
+
 class RegexFilter(logging.Filter):
     """
     Base class for regex log filter
     """
     REGEX = re.compile(r'')
-
-    def __init__(self):
-        super(RegexFilter, self).__init__()
 
     def filter(self, record):
         if not plexpy.CONFIG.LOG_BLACKLIST:
@@ -179,14 +208,14 @@ class EmailFilter(RegexFilter):
     Log filter for email addresses
     """
     REGEX = re.compile(
-        r'([a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@'
-        r'(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)',
+        r'([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)',
         re.IGNORECASE
     )
 
     def replace(self, text, email):
         email_parts = email.partition('@')
-        return text.replace(email, 16 * '*' + email_parts[1] + 8 * '*')
+        mask = email_parts[0][:2] + 8 * '*' + email_parts[0][-1] + email_parts[1] + 8 * '*'
+        return text.replace(email, mask)
 
 
 class PlexTokenFilter(RegexFilter):
@@ -289,6 +318,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
                        logger_plex_websocket.handlers + \
                        cherrypy.log.error_log.handlers
         for handler in log_handlers:
+            handler.addFilter(UsernameFilter())
             handler.addFilter(BlacklistFilter())
             handler.addFilter(PublicIPFilter())
             handler.addFilter(EmailFilter())
