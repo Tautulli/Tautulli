@@ -30,6 +30,7 @@ except ImportError:  # pragma: no cover
 
 import dns.wire
 import dns.exception
+import dns.immutable
 
 # fullcompare() result values
 
@@ -215,9 +216,10 @@ class IDNA2008Codec(IDNACodec):
         if not have_idna_2008:
             raise NoIDNA2008
         try:
+            ulabel = idna.ulabel(label)
             if self.uts_46:
-                label = idna.uts46_remap(label, False, False)
-            return _escapify(idna.ulabel(label))
+                ulabel = idna.uts46_remap(ulabel, False, self.transitional)
+            return _escapify(ulabel)
         except (idna.IDNAError, UnicodeError) as e:
             raise IDNAException(idna_exception=e)
 
@@ -304,6 +306,7 @@ def _maybe_convert_to_binary(label):
     raise ValueError  # pragma: no cover
 
 
+@dns.immutable.immutable
 class Name:
 
     """A DNS name.
@@ -320,16 +323,8 @@ class Name:
         """
 
         labels = [_maybe_convert_to_binary(x) for x in labels]
-        super().__setattr__('labels', tuple(labels))
+        self.labels = tuple(labels)
         _validate_labels(self.labels)
-
-    def __setattr__(self, name, value):
-        # Names are immutable
-        raise TypeError("object doesn't support attribute assignment")
-
-    def __delattr__(self, name):
-        # Names are immutable
-        raise TypeError("object doesn't support attribute deletion")
 
     def __copy__(self):
         return Name(self.labels)
@@ -458,7 +453,7 @@ class Name:
         Returns a ``bool``.
         """
 
-        (nr, o, nl) = self.fullcompare(other)
+        (nr, _, _) = self.fullcompare(other)
         if nr == NAMERELN_SUBDOMAIN or nr == NAMERELN_EQUAL:
             return True
         return False
@@ -472,7 +467,7 @@ class Name:
         Returns a ``bool``.
         """
 
-        (nr, o, nl) = self.fullcompare(other)
+        (nr, _, _) = self.fullcompare(other)
         if nr == NAMERELN_SUPERDOMAIN or nr == NAMERELN_EQUAL:
             return True
         return False

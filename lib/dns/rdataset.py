@@ -22,6 +22,7 @@ import random
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdatatype
 import dns.rdataclass
 import dns.rdata
@@ -79,15 +80,15 @@ class Rdataset(dns.set.Set):
         TTL or the specified TTL.  If the set contains no rdatas, set the TTL
         to the specified TTL.
 
-        *ttl*, an ``int``.
+        *ttl*, an ``int`` or ``str``.
         """
-
+        ttl = dns.ttl.make(ttl)
         if len(self) == 0:
             self.ttl = ttl
         elif ttl < self.ttl:
             self.ttl = ttl
 
-    def add(self, rd, ttl=None):
+    def add(self, rd, ttl=None):  # pylint: disable=arguments-differ
         """Add the specified rdata to the rdataset.
 
         If the optional *ttl* parameter is supplied, then
@@ -176,8 +177,8 @@ class Rdataset(dns.set.Set):
         return not self.__eq__(other)
 
     def to_text(self, name=None, origin=None, relativize=True,
-                override_rdclass=None, **kw):
-        """Convert the rdataset into DNS master file format.
+                override_rdclass=None, want_comments=False, **kw):
+        """Convert the rdataset into DNS zone file format.
 
         See ``dns.name.Name.choose_relativity`` for more information
         on how *origin* and *relativize* determine the way names
@@ -194,6 +195,12 @@ class Rdataset(dns.set.Set):
 
         *relativize*, a ``bool``.  If ``True``, names will be relativized
         to *origin*.
+
+        *override_rdclass*, a ``dns.rdataclass.RdataClass`` or ``None``.
+        If not ``None``, use this class instead of the Rdataset's class.
+
+        *want_comments*, a ``bool``.  If ``True``, emit comments for rdata
+        which have them.  The default is ``False``.
         """
 
         if name is not None:
@@ -219,11 +226,16 @@ class Rdataset(dns.set.Set):
                                          dns.rdatatype.to_text(self.rdtype)))
         else:
             for rd in self:
-                s.write('%s%s%d %s %s %s\n' %
+                extra = ''
+                if want_comments:
+                    if rd.rdcomment:
+                        extra = f' ;{rd.rdcomment}'
+                s.write('%s%s%d %s %s %s%s\n' %
                         (ntext, pad, self.ttl, dns.rdataclass.to_text(rdclass),
                          dns.rdatatype.to_text(self.rdtype),
                          rd.to_text(origin=origin, relativize=relativize,
-                         **kw)))
+                                    **kw),
+                         extra))
         #
         # We strip off the final \n for the caller's convenience in printing
         #
@@ -260,7 +272,7 @@ class Rdataset(dns.set.Set):
             want_shuffle = False
         else:
             rdclass = self.rdclass
-        file.seek(0, 2)
+        file.seek(0, io.SEEK_END)
         if len(self) == 0:
             name.to_wire(file, compress, origin)
             stuff = struct.pack("!HHIH", self.rdtype, rdclass, 0, 0)
@@ -284,7 +296,7 @@ class Rdataset(dns.set.Set):
                 file.seek(start - 2)
                 stuff = struct.pack("!H", end - start)
                 file.write(stuff)
-                file.seek(0, 2)
+                file.seek(0, io.SEEK_END)
             return len(self)
 
     def match(self, rdclass, rdtype, covers):
@@ -297,14 +309,100 @@ class Rdataset(dns.set.Set):
             return True
         return False
 
+    def processing_order(self):
+        """Return rdatas in a valid processing order according to the type's
+        specification.  For example, MX records are in preference order from
+        lowest to highest preferences, with items of the same perference
+        shuffled.
 
-def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None):
+        For types that do not define a processing order, the rdatas are
+        simply shuffled.
+        """
+        if len(self) == 0:
+            return []
+        else:
+            return self[0]._processing_order(iter(self))
+
+
+@dns.immutable.immutable
+class ImmutableRdataset(Rdataset):
+
+    """An immutable DNS rdataset."""
+
+    _clone_class = Rdataset
+
+    def __init__(self, rdataset):
+        """Create an immutable rdataset from the specified rdataset."""
+
+        super().__init__(rdataset.rdclass, rdataset.rdtype, rdataset.covers,
+                         rdataset.ttl)
+        self.items = dns.immutable.Dict(rdataset.items)
+
+    def update_ttl(self, ttl):
+        raise TypeError('immutable')
+
+    def add(self, rd, ttl=None):
+        raise TypeError('immutable')
+
+    def union_update(self, other):
+        raise TypeError('immutable')
+
+    def intersection_update(self, other):
+        raise TypeError('immutable')
+
+    def update(self, other):
+        raise TypeError('immutable')
+
+    def __delitem__(self, i):
+        raise TypeError('immutable')
+
+    def __ior__(self, other):
+        raise TypeError('immutable')
+
+    def __iand__(self, other):
+        raise TypeError('immutable')
+
+    def __iadd__(self, other):
+        raise TypeError('immutable')
+
+    def __isub__(self, other):
+        raise TypeError('immutable')
+
+    def clear(self):
+        raise TypeError('immutable')
+
+    def __copy__(self):
+        return ImmutableRdataset(super().copy())
+
+    def copy(self):
+        return ImmutableRdataset(super().copy())
+
+    def union(self, other):
+        return ImmutableRdataset(super().union(other))
+
+    def intersection(self, other):
+        return ImmutableRdataset(super().intersection(other))
+
+    def difference(self, other):
+        return ImmutableRdataset(super().difference(other))
+
+
+def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None,
+                   origin=None, relativize=True, relativize_to=None):
     """Create an rdataset with the specified class, type, and TTL, and with
     the specified list of rdatas in text format.
 
     *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
     encoder/decoder to use; if ``None``, the default IDNA 2003
     encoder/decoder is used.
+
+    *origin*, a ``dns.name.Name`` (or ``None``), the
+    origin to use for relative names.
+
+    *relativize*, a ``bool``.  If true, name will be relativized.
+
+    *relativize_to*, a ``dns.name.Name`` (or ``None``), the origin to use
+    when relativizing names.  If not set, the *origin* value will be used.
 
     Returns a ``dns.rdataset.Rdataset`` object.
     """
@@ -314,7 +412,8 @@ def from_text_list(rdclass, rdtype, ttl, text_rdatas, idna_codec=None):
     r = Rdataset(rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:
-        rd = dns.rdata.from_text(r.rdclass, r.rdtype, t, idna_codec=idna_codec)
+        rd = dns.rdata.from_text(r.rdclass, r.rdtype, t, origin, relativize,
+                                 relativize_to, idna_codec)
         r.add(rd)
     return r
 

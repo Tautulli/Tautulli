@@ -16,8 +16,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.nsbase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class CNAME(dns.rdtypes.nsbase.NSBase):
 
     """CNAME record

@@ -18,10 +18,12 @@
 """NS-like base classes."""
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.name
 
 
+@dns.immutable.immutable
 class NSBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like an NS record."""
@@ -30,7 +32,7 @@ class NSBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, target):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'target', target)
+        self.target = self._as_name(target)
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)
@@ -40,7 +42,6 @@ class NSBase(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         target = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, target)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
@@ -52,6 +53,7 @@ class NSBase(dns.rdata.Rdata):
         return cls(rdclass, rdtype, target)
 
 
+@dns.immutable.immutable
 class UncompressedNS(NSBase):
 
     """Base class for rdata that is like an NS record, but whose name

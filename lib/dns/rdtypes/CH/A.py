@@ -15,9 +15,12 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.mxbase
 import struct
 
+import dns.rdtypes.mxbase
+import dns.immutable
+
+@dns.immutable.immutable
 class A(dns.rdata.Rdata):
 
     """A record for Chaosnet"""
@@ -29,8 +32,8 @@ class A(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, domain, address):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'domain', domain)
-        object.__setattr__(self, 'address', address)
+        self.domain = self._as_name(domain)
+        self.address = self._as_uint16(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         domain = self.domain.choose_relativity(origin, relativize)
@@ -41,7 +44,6 @@ class A(dns.rdata.Rdata):
                   relativize_to=None):
         domain = tok.get_name(origin, relativize, relativize_to)
         address = tok.get_uint16(base=8)
-        tok.get_eol()
         return cls(rdclass, rdtype, domain, address)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

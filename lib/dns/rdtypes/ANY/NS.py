@@ -16,8 +16,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.nsbase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class NS(dns.rdtypes.nsbase.NSBase):
 
     """NS record"""

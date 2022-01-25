@@ -72,14 +72,22 @@ class RdataType(dns.enum.IntEnum):
     NSEC3 = 50
     NSEC3PARAM = 51
     TLSA = 52
+    SMIMEA = 53
     HIP = 55
     NINFO = 56
     CDS = 59
     CDNSKEY = 60
     OPENPGPKEY = 61
     CSYNC = 62
+    ZONEMD = 63
+    SVCB = 64
+    HTTPS = 65
     SPF = 99
     UNSPEC = 103
+    NID = 104
+    L32 = 105
+    L64 = 106
+    LP = 107
     EUI48 = 108
     EUI64 = 109
     TKEY = 249
@@ -92,7 +100,7 @@ class RdataType(dns.enum.IntEnum):
     URI = 256
     CAA = 257
     AVC = 258
-    AMTRELAY = 259
+    AMTRELAY = 260
     TA = 32768
     DLV = 32769
 
@@ -114,8 +122,6 @@ class RdataType(dns.enum.IntEnum):
 
 _registered_by_text = {}
 _registered_by_value = {}
-
-globals().update(RdataType.__members__)
 
 _metatypes = {RdataType.OPT}
 
@@ -219,3 +225,89 @@ def register_type(rdtype, rdtype_text, is_singleton=False):
     _registered_by_value[rdtype] = rdtype_text
     if is_singleton:
         _singletons.add(rdtype)
+
+### BEGIN generated RdataType constants
+
+TYPE0 = RdataType.TYPE0
+NONE = RdataType.NONE
+A = RdataType.A
+NS = RdataType.NS
+MD = RdataType.MD
+MF = RdataType.MF
+CNAME = RdataType.CNAME
+SOA = RdataType.SOA
+MB = RdataType.MB
+MG = RdataType.MG
+MR = RdataType.MR
+NULL = RdataType.NULL
+WKS = RdataType.WKS
+PTR = RdataType.PTR
+HINFO = RdataType.HINFO
+MINFO = RdataType.MINFO
+MX = RdataType.MX
+TXT = RdataType.TXT
+RP = RdataType.RP
+AFSDB = RdataType.AFSDB
+X25 = RdataType.X25
+ISDN = RdataType.ISDN
+RT = RdataType.RT
+NSAP = RdataType.NSAP
+NSAP_PTR = RdataType.NSAP_PTR
+SIG = RdataType.SIG
+KEY = RdataType.KEY
+PX = RdataType.PX
+GPOS = RdataType.GPOS
+AAAA = RdataType.AAAA
+LOC = RdataType.LOC
+NXT = RdataType.NXT
+SRV = RdataType.SRV
+NAPTR = RdataType.NAPTR
+KX = RdataType.KX
+CERT = RdataType.CERT
+A6 = RdataType.A6
+DNAME = RdataType.DNAME
+OPT = RdataType.OPT
+APL = RdataType.APL
+DS = RdataType.DS
+SSHFP = RdataType.SSHFP
+IPSECKEY = RdataType.IPSECKEY
+RRSIG = RdataType.RRSIG
+NSEC = RdataType.NSEC
+DNSKEY = RdataType.DNSKEY
+DHCID = RdataType.DHCID
+NSEC3 = RdataType.NSEC3
+NSEC3PARAM = RdataType.NSEC3PARAM
+TLSA = RdataType.TLSA
+SMIMEA = RdataType.SMIMEA
+HIP = RdataType.HIP
+NINFO = RdataType.NINFO
+CDS = RdataType.CDS
+CDNSKEY = RdataType.CDNSKEY
+OPENPGPKEY = RdataType.OPENPGPKEY
+CSYNC = RdataType.CSYNC
+ZONEMD = RdataType.ZONEMD
+SVCB = RdataType.SVCB
+HTTPS = RdataType.HTTPS
+SPF = RdataType.SPF
+UNSPEC = RdataType.UNSPEC
+NID = RdataType.NID
+L32 = RdataType.L32
+L64 = RdataType.L64
+LP = RdataType.LP
+EUI48 = RdataType.EUI48
+EUI64 = RdataType.EUI64
+TKEY = RdataType.TKEY
+TSIG = RdataType.TSIG
+IXFR = RdataType.IXFR
+AXFR = RdataType.AXFR
+MAILB = RdataType.MAILB
+MAILA = RdataType.MAILA
+ANY = RdataType.ANY
+URI = RdataType.URI
+CAA = RdataType.CAA
+AVC = RdataType.AVC
+AMTRELAY = RdataType.AMTRELAY
+TA = RdataType.TA
+DLV = RdataType.DLV
+
+### END generated RdataType constants

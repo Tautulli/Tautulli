@@ -37,17 +37,12 @@ class Flag(enum.IntFlag):
     #: Checking Disabled
     CD = 0x0010
 
-globals().update(Flag.__members__)
-
 
 # EDNS flags
 
 class EDNSFlag(enum.IntFlag):
     #: DNSSEC answer OK
     DO = 0x8000
-
-
-globals().update(EDNSFlag.__members__)
 
 
 def _from_text(text, enum_class):
@@ -104,3 +99,21 @@ def edns_to_text(flags):
     """
 
     return _to_text(flags, EDNSFlag)
+
+### BEGIN generated Flag constants
+
+QR = Flag.QR
+AA = Flag.AA
+TC = Flag.TC
+RD = Flag.RD
+RA = Flag.RA
+AD = Flag.AD
+CD = Flag.CD
+
+### END generated Flag constants
+
+### BEGIN generated EDNSFlag constants
+
+DO = EDNSFlag.DO
+
+### END generated EDNSFlag constants

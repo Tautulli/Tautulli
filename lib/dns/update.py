@@ -38,8 +38,6 @@ class UpdateSection(dns.enum.IntEnum):
     def _maximum(cls):
         return 3
 
-globals().update(UpdateSection.__members__)
-
 
 class UpdateMessage(dns.message.Message):
 
@@ -310,3 +308,12 @@ class UpdateMessage(dns.message.Message):
 
 # backwards compatibility
 Update = UpdateMessage
+
+### BEGIN generated UpdateSection constants
+
+ZONE = UpdateSection.ZONE
+PREREQ = UpdateSection.PREREQ
+UPDATE = UpdateSection.UPDATE
+ADDITIONAL = UpdateSection.ADDITIONAL
+
+### END generated UpdateSection constants

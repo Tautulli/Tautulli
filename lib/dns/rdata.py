@@ -23,43 +23,68 @@ import binascii
 import io
 import inspect
 import itertools
+import random
 
 import dns.wire
 import dns.exception
+import dns.immutable
+import dns.ipv4
+import dns.ipv6
 import dns.name
 import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
+import dns.ttl
 
 _chunksize = 32
 
+# We currently allow comparisons for rdata with relative names for backwards
+# compatibility, but in the future we will not, as these kinds of comparisons
+# can lead to subtle bugs if code is not carefully written.
+#
+# This switch allows the future behavior to be turned on so code can be
+# tested with it.
+_allow_relative_comparisons = True
 
-def _wordbreak(data, chunksize=_chunksize):
+
+class NoRelativeRdataOrdering(dns.exception.DNSException):
+    """An attempt was made to do an ordered comparison of one or more
+    rdata with relative names.  The only reliable way of sorting rdata
+    is to use non-relativized rdata.
+
+    """
+
+
+def _wordbreak(data, chunksize=_chunksize, separator=b' '):
     """Break a binary string into chunks of chunksize characters separated by
     a space.
     """
 
     if not chunksize:
         return data.decode()
-    return b' '.join([data[i:i + chunksize]
-                      for i
-                      in range(0, len(data), chunksize)]).decode()
+    return separator.join([data[i:i + chunksize]
+                           for i
+                           in range(0, len(data), chunksize)]).decode()
 
 
-def _hexify(data, chunksize=_chunksize):
+# pylint: disable=unused-argument
+
+def _hexify(data, chunksize=_chunksize, separator=b' ', **kw):
     """Convert a binary string into its hex encoding, broken up into chunks
-    of chunksize characters separated by a space.
+    of chunksize characters separated by a separator.
     """
 
-    return _wordbreak(binascii.hexlify(data), chunksize)
+    return _wordbreak(binascii.hexlify(data), chunksize, separator)
 
 
-def _base64ify(data, chunksize=_chunksize):
+def _base64ify(data, chunksize=_chunksize, separator=b' ', **kw):
     """Convert a binary string into its base64 encoding, broken up into chunks
-    of chunksize characters separated by a space.
+    of chunksize characters separated by a separator.
     """
 
-    return _wordbreak(base64.b64encode(data), chunksize)
+    return _wordbreak(base64.b64encode(data), chunksize, separator)
+
+# pylint: enable=unused-argument
 
 __escaped = b'"\\'
 
@@ -92,26 +117,15 @@ def _truncate_bitmap(what):
             return what[0: i + 1]
     return what[0:1]
 
-def _constify(o):
-    """
-    Convert mutable types to immutable types.
-    """
-    if isinstance(o, bytearray):
-        return bytes(o)
-    if isinstance(o, tuple):
-        try:
-            hash(o)
-            return o
-        except Exception:
-            return tuple(_constify(elt) for elt in o)
-    if isinstance(o, list):
-        return tuple(_constify(elt) for elt in o)
-    return o
+# So we don't have to edit all the rdata classes...
+_constify = dns.immutable.constify
 
+
+@dns.immutable.immutable
 class Rdata:
     """Base class for all DNS rdata types."""
 
-    __slots__ = ['rdclass', 'rdtype']
+    __slots__ = ['rdclass', 'rdtype', 'rdcomment']
 
     def __init__(self, rdclass, rdtype):
         """Initialize an rdata.
@@ -121,16 +135,9 @@ class Rdata:
         *rdtype*, an ``int`` is the rdatatype of the Rdata.
         """
 
-        object.__setattr__(self, 'rdclass', rdclass)
-        object.__setattr__(self, 'rdtype', rdtype)
-
-    def __setattr__(self, name, value):
-        # Rdatas are immutable
-        raise TypeError("object doesn't support attribute assignment")
-
-    def __delattr__(self, name):
-        # Rdatas are immutable
-        raise TypeError("object doesn't support attribute deletion")
+        self.rdclass = self._as_rdataclass(rdclass)
+        self.rdtype = self._as_rdatatype(rdtype)
+        self.rdcomment = None
 
     def _get_all_slots(self):
         return itertools.chain.from_iterable(getattr(cls, '__slots__', [])
@@ -153,6 +160,10 @@ class Rdata:
     def __setstate__(self, state):
         for slot, val in state.items():
             object.__setattr__(self, slot, val)
+        if not hasattr(self, 'rdcomment'):
+            # Pickled rdata from 2.0.x might not have a rdcomment, so add
+            # it if needed.
+            object.__setattr__(self, 'rdcomment', None)
 
     def covers(self):
         """Return the type a Rdata covers.
@@ -184,10 +195,10 @@ class Rdata:
         Returns a ``str``.
         """
 
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     def to_wire(self, file=None, compress=None, origin=None,
                 canonicalize=False):
@@ -237,12 +248,42 @@ class Rdata:
         """Compare an rdata with another rdata of the same rdtype and
         rdclass.
 
-        Return < 0 if self < other in the DNSSEC ordering, 0 if self
-        == other, and > 0 if self > other.
-
+        For rdata with only absolute names:
+            Return < 0 if self < other in the DNSSEC ordering, 0 if self
+            == other, and > 0 if self > other.
+        For rdata with at least one relative names:
+            The rdata sorts before any rdata with only absolute names.
+            When compared with another relative rdata, all names are
+            made absolute as if they were relative to the root, as the
+            proper origin is not available.  While this creates a stable
+            ordering, it is NOT guaranteed to be the DNSSEC ordering.
+            In the future, all ordering comparisons for rdata with
+            relative names will be disallowed.
         """
-        our = self.to_digestable(dns.name.root)
-        their = other.to_digestable(dns.name.root)
+        try:
+            our = self.to_digestable()
+            our_relative = False
+        except dns.name.NeedAbsoluteNameOrOrigin:
+            if _allow_relative_comparisons:
+                our = self.to_digestable(dns.name.root)
+            our_relative = True
+        try:
+            their = other.to_digestable()
+            their_relative = False
+        except dns.name.NeedAbsoluteNameOrOrigin:
+            if _allow_relative_comparisons:
+                their = other.to_digestable(dns.name.root)
+            their_relative = True
+        if _allow_relative_comparisons:
+            if our_relative != their_relative:
+                # For the purpose of comparison, all rdata with at least one
+                # relative name is less than an rdata with only absolute names.
+                if our_relative:
+                    return -1
+                else:
+                    return 1
+        elif our_relative or their_relative:
+            raise NoRelativeRdataOrdering
         if our == their:
             return 0
         elif our > their:
@@ -255,14 +296,28 @@ class Rdata:
             return False
         if self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return False
-        return self._cmp(other) == 0
+        our_relative = False
+        their_relative = False
+        try:
+            our = self.to_digestable()
+        except dns.name.NeedAbsoluteNameOrOrigin:
+            our = self.to_digestable(dns.name.root)
+            our_relative = True
+        try:
+            their = other.to_digestable()
+        except dns.name.NeedAbsoluteNameOrOrigin:
+            their = other.to_digestable(dns.name.root)
+            their_relative = True
+        if our_relative != their_relative:
+            return False
+        return our == their
 
     def __ne__(self, other):
         if not isinstance(other, Rdata):
             return True
         if self.rdclass != other.rdclass or self.rdtype != other.rdtype:
             return True
-        return self._cmp(other) != 0
+        return not self.__eq__(other)
 
     def __lt__(self, other):
         if not isinstance(other, Rdata) or \
@@ -295,11 +350,11 @@ class Rdata:
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        raise NotImplementedError
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        raise NotImplementedError  # pragma: no cover
 
     def replace(self, **kwargs):
         """
@@ -319,6 +374,8 @@ class Rdata:
         # Ensure that all of the arguments correspond to valid fields.
         # Don't allow rdclass or rdtype to be changed, though.
         for key in kwargs:
+            if key == 'rdcomment':
+                continue
             if key not in parameters:
                 raise AttributeError("'{}' object has no attribute '{}'"
                                      .format(self.__class__.__name__, key))
@@ -331,12 +388,148 @@ class Rdata:
         args = (kwargs.get(key, getattr(self, key)) for key in parameters)
 
         # Create, validate, and return the new object.
-        #
-        # Note that if we make constructors do validation in the future,
-        # this validation can go away.
         rd = self.__class__(*args)
-        dns.rdata.from_text(rd.rdclass, rd.rdtype, rd.to_text())
+        # The comment is not set in the constructor, so give it special
+        # handling.
+        rdcomment = kwargs.get('rdcomment', self.rdcomment)
+        if rdcomment is not None:
+            object.__setattr__(rd, 'rdcomment', rdcomment)
         return rd
+
+    # Type checking and conversion helpers.  These are class methods as
+    # they don't touch object state and may be useful to others.
+
+    @classmethod
+    def _as_rdataclass(cls, value):
+        return dns.rdataclass.RdataClass.make(value)
+
+    @classmethod
+    def _as_rdatatype(cls, value):
+        return dns.rdatatype.RdataType.make(value)
+
+    @classmethod
+    def _as_bytes(cls, value, encode=False, max_length=None, empty_ok=True):
+        if encode and isinstance(value, str):
+            value = value.encode()
+        elif isinstance(value, bytearray):
+            value = bytes(value)
+        elif not isinstance(value, bytes):
+            raise ValueError('not bytes')
+        if max_length is not None and len(value) > max_length:
+            raise ValueError('too long')
+        if not empty_ok and len(value) == 0:
+            raise ValueError('empty bytes not allowed')
+        return value
+
+    @classmethod
+    def _as_name(cls, value):
+        # Note that proper name conversion (e.g. with origin and IDNA
+        # awareness) is expected to be done via from_text.  This is just
+        # a simple thing for people invoking the constructor directly.
+        if isinstance(value, str):
+            return dns.name.from_text(value)
+        elif not isinstance(value, dns.name.Name):
+            raise ValueError('not a name')
+        return value
+
+    @classmethod
+    def _as_uint8(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if value < 0 or value > 255:
+            raise ValueError('not a uint8')
+        return value
+
+    @classmethod
+    def _as_uint16(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if value < 0 or value > 65535:
+            raise ValueError('not a uint16')
+        return value
+
+    @classmethod
+    def _as_uint32(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if value < 0 or value > 4294967295:
+            raise ValueError('not a uint32')
+        return value
+
+    @classmethod
+    def _as_uint48(cls, value):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if value < 0 or value > 281474976710655:
+            raise ValueError('not a uint48')
+        return value
+
+    @classmethod
+    def _as_int(cls, value, low=None, high=None):
+        if not isinstance(value, int):
+            raise ValueError('not an integer')
+        if low is not None and value < low:
+            raise ValueError('value too small')
+        if high is not None and value > high:
+            raise ValueError('value too large')
+        return value
+
+    @classmethod
+    def _as_ipv4_address(cls, value):
+        if isinstance(value, str):
+            # call to check validity
+            dns.ipv4.inet_aton(value)
+            return value
+        elif isinstance(value, bytes):
+            return dns.ipv4.inet_ntoa(value)
+        else:
+            raise ValueError('not an IPv4 address')
+
+    @classmethod
+    def _as_ipv6_address(cls, value):
+        if isinstance(value, str):
+            # call to check validity
+            dns.ipv6.inet_aton(value)
+            return value
+        elif isinstance(value, bytes):
+            return dns.ipv6.inet_ntoa(value)
+        else:
+            raise ValueError('not an IPv6 address')
+
+    @classmethod
+    def _as_bool(cls, value):
+        if isinstance(value, bool):
+            return value
+        else:
+            raise ValueError('not a boolean')
+
+    @classmethod
+    def _as_ttl(cls, value):
+        if isinstance(value, int):
+            return cls._as_int(value, 0, dns.ttl.MAX_TTL)
+        elif isinstance(value, str):
+            return dns.ttl.from_text(value)
+        else:
+            raise ValueError('not a TTL')
+
+    @classmethod
+    def _as_tuple(cls, value, as_value):
+        try:
+            # For user convenience, if value is a singleton of the list
+            # element type, wrap it in a tuple.
+            return (as_value(value),)
+        except Exception:
+            # Otherwise, check each element of the iterable *value*
+            # against *as_value*.
+            return tuple(as_value(v) for v in value)
+
+    # Processing order
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        items = list(iterable)
+        random.shuffle(items)
+        return items
 
 
 class GenericRdata(Rdata):
@@ -354,7 +547,7 @@ class GenericRdata(Rdata):
         object.__setattr__(self, 'data', data)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return r'\# %d ' % len(self.data) + _hexify(self.data)
+        return r'\# %d ' % len(self.data) + _hexify(self.data, **kw)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
@@ -364,13 +557,7 @@ class GenericRdata(Rdata):
             raise dns.exception.SyntaxError(
                 r'generic rdata does not start with \#')
         length = tok.get_int()
-        chunks = []
-        while 1:
-            token = tok.get()
-            if token.is_eol_or_eof():
-                break
-            chunks.append(token.value.encode())
-        hex = b''.join(chunks)
+        hex = tok.concatenate_remaining_identifiers().encode()
         data = binascii.unhexlify(hex)
         if len(data) != length:
             raise dns.exception.SyntaxError(
@@ -453,29 +640,45 @@ def from_text(rdclass, rdtype, tok, origin=None, relativize=True,
     Returns an instance of the chosen Rdata subclass.
 
     """
-
     if isinstance(tok, str):
         tok = dns.tokenizer.Tokenizer(tok, idna_codec=idna_codec)
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
-    if cls != GenericRdata:
-        # peek at first token
-        token = tok.get()
-        tok.unget(token)
-        if token.is_identifier() and \
-           token.value == r'\#':
-            #
-            # Known type using the generic syntax.  Extract the
-            # wire form from the generic syntax, and then run
-            # from_wire on it.
-            #
-            rdata = GenericRdata.from_text(rdclass, rdtype, tok, origin,
-                                           relativize, relativize_to)
-            return from_wire(rdclass, rdtype, rdata.data, 0, len(rdata.data),
-                             origin)
-    return cls.from_text(rdclass, rdtype, tok, origin, relativize,
-                         relativize_to)
+    with dns.exception.ExceptionWrapper(dns.exception.SyntaxError):
+        rdata = None
+        if cls != GenericRdata:
+            # peek at first token
+            token = tok.get()
+            tok.unget(token)
+            if token.is_identifier() and \
+               token.value == r'\#':
+                #
+                # Known type using the generic syntax.  Extract the
+                # wire form from the generic syntax, and then run
+                # from_wire on it.
+                #
+                grdata = GenericRdata.from_text(rdclass, rdtype, tok, origin,
+                                                relativize, relativize_to)
+                rdata = from_wire(rdclass, rdtype, grdata.data, 0,
+                                  len(grdata.data), origin)
+                #
+                # If this comparison isn't equal, then there must have been
+                # compressed names in the wire format, which is an error,
+                # there being no reasonable context to decompress with.
+                #
+                rwire = rdata.to_wire()
+                if rwire != grdata.data:
+                    raise dns.exception.SyntaxError('compressed data in '
+                                                    'generic syntax form '
+                                                    'of known rdatatype')
+        if rdata is None:
+            rdata = cls.from_text(rdclass, rdtype, tok, origin, relativize,
+                                  relativize_to)
+        token = tok.get_eol_as_token()
+        if token.comment is not None:
+            object.__setattr__(rdata, 'rdcomment', token.comment)
+        return rdata
 
 
 def from_wire_parser(rdclass, rdtype, parser, origin=None):
@@ -505,7 +708,8 @@ def from_wire_parser(rdclass, rdtype, parser, origin=None):
     rdclass = dns.rdataclass.RdataClass.make(rdclass)
     rdtype = dns.rdatatype.RdataType.make(rdtype)
     cls = get_rdata_class(rdclass, rdtype)
-    return cls.from_wire_parser(rdclass, rdtype, parser, origin)
+    with dns.exception.ExceptionWrapper(dns.exception.FormError):
+        return cls.from_wire_parser(rdclass, rdtype, parser, origin)
 
 
 def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
@@ -543,7 +747,7 @@ def from_wire(rdclass, rdtype, wire, current, rdlen, origin=None):
 class RdatatypeExists(dns.exception.DNSException):
     """DNS rdatatype already exists."""
     supp_kwargs = {'rdclass', 'rdtype'}
-    fmt = "The rdata type with class {rdclass} and rdtype {rdtype} " + \
+    fmt = "The rdata type with class {rdclass:d} and rdtype {rdtype:d} " + \
         "already exists."
 
 

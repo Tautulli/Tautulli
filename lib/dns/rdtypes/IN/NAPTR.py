@@ -18,8 +18,10 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.name
 import dns.rdata
+import dns.rdtypes.util
 
 
 def _write_string(file, s):
@@ -29,12 +31,7 @@ def _write_string(file, s):
     file.write(s)
 
 
-def _sanitize(value):
-    if isinstance(value, str):
-        return value.encode()
-    return value
-
-
+@dns.immutable.immutable
 class NAPTR(dns.rdata.Rdata):
 
     """NAPTR record"""
@@ -47,12 +44,12 @@ class NAPTR(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, order, preference, flags, service,
                  regexp, replacement):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'flags', _sanitize(flags))
-        object.__setattr__(self, 'service', _sanitize(service))
-        object.__setattr__(self, 'regexp', _sanitize(regexp))
-        object.__setattr__(self, 'order', order)
-        object.__setattr__(self, 'preference', preference)
-        object.__setattr__(self, 'replacement', replacement)
+        self.flags = self._as_bytes(flags, True, 255)
+        self.service = self._as_bytes(service, True, 255)
+        self.regexp = self._as_bytes(regexp, True, 255)
+        self.order = self._as_uint16(order)
+        self.preference = self._as_uint16(preference)
+        self.replacement = self._as_name(replacement)
 
     def to_text(self, origin=None, relativize=True, **kw):
         replacement = self.replacement.choose_relativity(origin, relativize)
@@ -72,7 +69,6 @@ class NAPTR(dns.rdata.Rdata):
         service = tok.get_string()
         regexp = tok.get_string()
         replacement = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, order, preference, flags, service,
                    regexp, replacement)
 
@@ -88,9 +84,16 @@ class NAPTR(dns.rdata.Rdata):
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         (order, preference) = parser.get_struct('!HH')
         strings = []
-        for i in range(3):
+        for _ in range(3):
             s = parser.get_counted_bytes()
             strings.append(s)
         replacement = parser.get_name(origin)
         return cls(rdclass, rdtype, order, preference, strings[0], strings[1],
                    strings[2], replacement)
+
+    def _processing_priority(self):
+        return (self.order, self.preference)
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        return dns.rdtypes.util.priority_processing_order(iterable)

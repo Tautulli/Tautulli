@@ -121,7 +121,13 @@ def inet_aton(text, ignore_scope=False):
         elif l > 2:
             raise dns.exception.SyntaxError
 
-    if text == b'::':
+    if text == b'':
+        raise dns.exception.SyntaxError
+    elif text.endswith(b':') and not text.endswith(b'::'):
+        raise dns.exception.SyntaxError
+    elif text.startswith(b':') and not text.startswith(b'::'):
+        raise dns.exception.SyntaxError
+    elif text == b'::':
         text = b'0::'
     #
     # Get rid of the icky dot-quad syntax if we have it.
@@ -129,9 +135,9 @@ def inet_aton(text, ignore_scope=False):
     m = _v4_ending.match(text)
     if m is not None:
         b = dns.ipv4.inet_aton(m.group(2))
-        text = (u"{}:{:02x}{:02x}:{:02x}{:02x}".format(m.group(1).decode(),
-                                                       b[0], b[1], b[2],
-                                                       b[3])).encode()
+        text = ("{}:{:02x}{:02x}:{:02x}{:02x}".format(m.group(1).decode(),
+                                                      b[0], b[1], b[2],
+                                                      b[3])).encode()
     #
     # Try to turn '::<whatever>' into ':<whatever>'; if no match try to
     # turn '<whatever>::' into '<whatever>:'
@@ -157,7 +163,7 @@ def inet_aton(text, ignore_scope=False):
             if seen_empty:
                 raise dns.exception.SyntaxError
             seen_empty = True
-            for i in range(0, 8 - l + 1):
+            for _ in range(0, 8 - l + 1):
                 canonical.append(b'0000')
         else:
             lc = len(c)

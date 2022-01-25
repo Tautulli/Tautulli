@@ -162,7 +162,7 @@ def low_level_address_tuple(high_tuple, af=None):
             return (addrpart, port, 0, int(scope))
         try:
             return (addrpart, port, 0, socket.if_nametoindex(scope))
-        except AttributeError:
+        except AttributeError:  # pragma: no cover  (we can't really test this)
             ai_flags = socket.AI_NUMERICHOST
             ((*_, tup), *_) = socket.getaddrinfo(address, port, flags=ai_flags)
             return tup

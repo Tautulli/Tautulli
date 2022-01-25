@@ -20,6 +20,7 @@ import enum
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.dnssec
 import dns.rdata
 
@@ -31,9 +32,8 @@ class Flag(enum.IntFlag):
     REVOKE = 0x0080
     ZONE = 0x0100
 
-globals().update(Flag.__members__)
 
-
+@dns.immutable.immutable
 class DNSKEYBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like a DNSKEY record"""
@@ -42,21 +42,21 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'flags', flags)
-        object.__setattr__(self, 'protocol', protocol)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'key', key)
+        self.flags = self._as_uint16(flags)
+        self.protocol = self._as_uint8(protocol)
+        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.key = self._as_bytes(key)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return '%d %d %d %s' % (self.flags, self.protocol, self.algorithm,
-                                dns.rdata._base64ify(self.key))
+                                dns.rdata._base64ify(self.key, **kw))
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         flags = tok.get_uint16()
         protocol = tok.get_uint8()
-        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
+        algorithm = tok.get_string()
         b64 = tok.concatenate_remaining_identifiers().encode()
         key = base64.b64decode(b64)
         return cls(rdclass, rdtype, flags, protocol, algorithm, key)
@@ -72,3 +72,11 @@ class DNSKEYBase(dns.rdata.Rdata):
         key = parser.get_remaining()
         return cls(rdclass, rdtype, header[0], header[1], header[2],
                    key)
+
+### BEGIN generated Flag constants
+
+SEP = Flag.SEP
+REVOKE = Flag.REVOKE
+ZONE = Flag.ZONE
+
+### END generated Flag constants

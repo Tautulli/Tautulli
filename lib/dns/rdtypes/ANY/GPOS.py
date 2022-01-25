@@ -18,6 +18,7 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
@@ -41,12 +42,7 @@ def _validate_float_string(what):
         raise dns.exception.FormError
 
 
-def _sanitize(value):
-    if isinstance(value, str):
-        return value.encode()
-    return value
-
-
+@dns.immutable.immutable
 class GPOS(dns.rdata.Rdata):
 
     """GPOS record"""
@@ -66,15 +62,15 @@ class GPOS(dns.rdata.Rdata):
         if isinstance(altitude, float) or \
            isinstance(altitude, int):
             altitude = str(altitude)
-        latitude = _sanitize(latitude)
-        longitude = _sanitize(longitude)
-        altitude = _sanitize(altitude)
+        latitude = self._as_bytes(latitude, True, 255)
+        longitude = self._as_bytes(longitude, True, 255)
+        altitude = self._as_bytes(altitude, True, 255)
         _validate_float_string(latitude)
         _validate_float_string(longitude)
         _validate_float_string(altitude)
-        object.__setattr__(self, 'latitude', latitude)
-        object.__setattr__(self, 'longitude', longitude)
-        object.__setattr__(self, 'altitude', altitude)
+        self.latitude = latitude
+        self.longitude = longitude
+        self.altitude = altitude
         flat = self.float_latitude
         if flat < -90.0 or flat > 90.0:
             raise dns.exception.FormError('bad latitude')
@@ -93,7 +89,6 @@ class GPOS(dns.rdata.Rdata):
         latitude = tok.get_string()
         longitude = tok.get_string()
         altitude = tok.get_string()
-        tok.get_eol()
         return cls(rdclass, rdtype, latitude, longitude, altitude)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

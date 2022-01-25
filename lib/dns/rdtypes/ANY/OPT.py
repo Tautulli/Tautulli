@@ -18,10 +18,15 @@
 import struct
 
 import dns.edns
+import dns.immutable
 import dns.exception
 import dns.rdata
 
 
+# We don't implement from_text, and that's ok.
+# pylint: disable=abstract-method
+
+@dns.immutable.immutable
 class OPT(dns.rdata.Rdata):
 
     """OPT record"""
@@ -40,7 +45,11 @@ class OPT(dns.rdata.Rdata):
         """
 
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'options', dns.rdata._constify(options))
+        def as_option(option):
+            if not isinstance(option, dns.edns.Option):
+                raise ValueError('option is not a dns.edns.option')
+            return option
+        self.options = self._as_tuple(options, as_option)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         for opt in self.options:

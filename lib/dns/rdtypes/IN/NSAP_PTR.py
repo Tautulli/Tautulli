@@ -16,8 +16,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.nsbase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class NSAP_PTR(dns.rdtypes.nsbase.UncompressedNS):
 
     """NSAP-PTR record"""
