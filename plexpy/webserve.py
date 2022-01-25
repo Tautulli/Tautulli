@@ -1920,6 +1920,7 @@ class WebInterface(object):
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "live": 0,
+                          "location": "wan",
                           "machine_id": "lmd93nkn12k29j2lnm",
                           "media_index": 17,
                           "media_type": "episode",
@@ -1934,7 +1935,9 @@ class WebInterface(object):
                           "player": "Castle-PC",
                           "rating_key": 4348,
                           "reference_id": 1123,
+                          "relayed": 0,
                           "row_id": 1124,
+                          "secure": 1,
                           "session_key": null,
                           "started": 1462688107,
                           "state": null,
@@ -2130,7 +2133,10 @@ class WebInterface(object):
         if not helpers.is_valid_ip(ip_address):
             ip_address = None
 
-        return serve_template(templatename="ip_address_modal.html", title="IP Address Details", data=ip_address)
+        public = helpers.is_public_ip(ip_address)
+
+        return serve_template(templatename="ip_address_modal.html", title="IP Address Details",
+                              data=ip_address, public=public, kwargs=kwargs)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
