@@ -130,6 +130,22 @@ __SERIALIZED_UPLOAD_PARAMS = [
 
 upload_params = __SIMPLE_UPLOAD_PARAMS + __SERIALIZED_UPLOAD_PARAMS
 
+_SIMPLE_TRANSFORMATION_PARAMS = {
+        "ac": "audio_codec",
+        "af": "audio_frequency",
+        "br": "bit_rate",
+        "cs": "color_space",
+        "d": "default_image",
+        "dl": "delay",
+        "dn": "density",
+        "f": "fetch_format",
+        "g": "gravity",
+        "p": "prefix",
+        "pg": "page",
+        "sp": "streaming_profile",
+        "vs": "video_sampling",
+    }
+
 SHORT_URL_SIGNATURE_LENGTH = 8
 LONG_URL_SIGNATURE_LENGTH = 32
 
@@ -402,23 +418,8 @@ def generate_transformation_string(**options):
         "vc": video_codec,
         "z": normalize_expression(options.pop('zoom', None))
     }
-    simple_params = {
-        "ac": "audio_codec",
-        "af": "audio_frequency",
-        "br": "bit_rate",
-        "cs": "color_space",
-        "d": "default_image",
-        "dl": "delay",
-        "dn": "density",
-        "f": "fetch_format",
-        "g": "gravity",
-        "p": "prefix",
-        "pg": "page",
-        "sp": "streaming_profile",
-        "vs": "video_sampling",
-    }
 
-    for param, option in simple_params.items():
+    for param, option in _SIMPLE_TRANSFORMATION_PARAMS.items():
         params[param] = options.pop(option, None)
 
     variables = options.pop('variables', {})
@@ -545,7 +546,7 @@ def process_radius(param):
             raise ValueError("Invalid radius param")
         return ':'.join(normalize_expression(t) for t in param)
 
-    return str(param)
+    return normalize_expression(str(param))
 
 
 def process_params(params):
