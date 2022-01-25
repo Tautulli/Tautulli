@@ -175,8 +175,11 @@ class PlayQueue(PlexObject):
             args["uri"] = "library:///directory/{uri_args}".format(uri_args=uri_args)
             args["type"] = items[0].listType
         elif items.type == "playlist":
-            args["playlistID"] = items.ratingKey
             args["type"] = items.playlistType
+            if items.radio:
+                args["uri"] = f"server://{server.machineIdentifier}/{server.library.identifier}{items.key}"
+            else:
+                args["playlistID"] = items.ratingKey
         else:
             uuid = items.section().uuid
             args["type"] = items.listType
@@ -186,6 +189,42 @@ class PlayQueue(PlexObject):
             args["key"] = startItem.key
 
         path = "/playQueues{args}".format(args=utils.joinArgs(args))
+        data = server.query(path, method=server._session.post)
+        c = cls(server, data, initpath=path)
+        c.playQueueType = args["type"]
+        c._server = server
+        return c
+
+    @classmethod
+    def fromStationKey(cls, server, key):
+        """Create and return a new :class:`~plexapi.playqueue.PlayQueue`.
+
+        This is a convenience method to create a `PlayQueue` for
+        radio stations when only the `key` string is available.
+
+        Parameters:
+            server (:class:`~plexapi.server.PlexServer`): Server you are connected to.
+            key (str): A station key as provided by :func:`~plexapi.library.LibrarySection.hubs()`
+                or :func:`~plexapi.audio.Artist.station()`
+
+        Example:
+
+            .. code-block:: python
+
+                from plexapi.playqueue import PlayQueue
+                music = server.library.section("Music")
+                artist = music.get("Artist Name")
+                station = artist.station()
+                key = station.key  # "/library/metadata/12855/station/8bd39616-dbdb-459e-b8da-f46d0b170af4?type=10"
+                pq = PlayQueue.fromStationKey(server, key)
+                client = server.clients()[0]
+                client.playMedia(pq)
+        """
+        args = {
+            "type": "audio",
+            "uri": f"server://{server.machineIdentifier}/{server.library.identifier}{key}"
+        }
+        path = f"/playQueues{utils.joinArgs(args)}"
         data = server.query(path, method=server._session.post)
         c = cls(server, data, initpath=path)
         c.playQueueType = args["type"]

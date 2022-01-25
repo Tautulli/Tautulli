@@ -29,7 +29,11 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
             icon (str): Icon URI string for smart playlists.
             key (str): API URL (/playlist/<ratingkey>).
             leafCount (int): Number of items in the playlist view.
+            librarySectionID (int): Library section identifier (radio only)
+            librarySectionKey (str): Library section key (radio only)
+            librarySectionTitle (str): Library section title (radio only)
             playlistType (str): 'audio', 'video', or 'photo'
+            radio (bool): If this playlist represents a radio station
             ratingKey (int): Unique key identifying the playlist.
             smart (bool): True if the playlist is a smart playlist.
             summary (str): Summary of the playlist.
@@ -54,7 +58,11 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
         self.icon = data.attrib.get('icon')
         self.key = data.attrib.get('key', '').replace('/items', '')  # FIX_BUG_50
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
+        self.librarySectionID = utils.cast(int, data.attrib.get('librarySectionID'))
+        self.librarySectionKey = data.attrib.get('librarySectionKey')
+        self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.playlistType = data.attrib.get('playlistType')
+        self.radio = utils.cast(bool, data.attrib.get('radio', 0))
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
         self.smart = utils.cast(bool, data.attrib.get('smart'))
         self.summary = data.attrib.get('summary')
@@ -169,6 +177,8 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
 
     def items(self):
         """ Returns a list of all items in the playlist. """
+        if self.radio:
+            return []
         if self._items is None:
             key = '%s/items' % self.key
             items = self.fetchItems(key)
