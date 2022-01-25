@@ -4,7 +4,7 @@ pyinstaller==4.7
 pyopenssl==21.0.0
 pycryptodomex==3.13.0
 
-pyobjc-framework-Cocoa==8.1; platform_system == "Darwin"
+pyobjc-framework-Cocoa==8.2; platform_system == "Darwin"
 pyobjc-core==8.2; platform_system == "Darwin"
 
 pywin32==303; platform_system == "Windows"
