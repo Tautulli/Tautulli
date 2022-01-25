@@ -213,9 +213,10 @@ def _collapse_string_to_ranges(
             if first == last:
                 ret.append(escape_re_range_char(first))
             else:
+                sep = "" if ord(last) == ord(first) + 1 else "-"
                 ret.append(
-                    "{}-{}".format(
-                        escape_re_range_char(first), escape_re_range_char(last)
+                    "{}{}{}".format(
+                        escape_re_range_char(first), sep, escape_re_range_char(last)
                     )
                 )
     else:
