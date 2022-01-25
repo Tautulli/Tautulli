@@ -14,6 +14,8 @@ def delimited_list(
     expr: Union[str, ParserElement],
     delim: Union[str, ParserElement] = ",",
     combine: bool = False,
+    min: OptionalType[int] = None,
+    max: OptionalType[int] = None,
     *,
     allow_trailing_delim: bool = False,
 ) -> ParserElement:
@@ -38,7 +40,7 @@ def delimited_list(
         expr = ParserElement._literalStringClass(expr)
 
     dlName = "{expr} [{delim} {expr}]...{end}".format(
-        expr=str(expr.streamline()),
+        expr=str(expr.copy().streamline()),
         delim=str(delim),
         end=" [{}]".format(str(delim)) if allow_trailing_delim else "",
     )
@@ -46,7 +48,15 @@ def delimited_list(
     if not combine:
         delim = Suppress(delim)
 
-    delimited_list_expr = expr + ZeroOrMore(delim + expr)
+    if min is not None:
+        if min < 1:
+            raise ValueError("min must be greater than 0")
+        min -= 1
+    if max is not None:
+        if min is not None and max <= min:
+            raise ValueError("max must be greater than, or equal to min")
+        max -= 1
+    delimited_list_expr = expr + (delim + expr)[min, max]
 
     if allow_trailing_delim:
         delimited_list_expr += Opt(delim)
@@ -175,7 +185,7 @@ def match_previous_expr(expr: ParserElement) -> ParserElement:
         def must_match_these_tokens(s, l, t):
             theseTokens = _flatten(t.as_list())
             if theseTokens != matchTokens:
-                raise ParseException("", 0, "")
+                raise ParseException(s, l, "Expected {}, found{}".format(matchTokens, theseTokens))
 
         rep.set_parse_action(must_match_these_tokens, callDuringTry=True)
 
@@ -247,7 +257,7 @@ def one_of(
         masks = lambda a, b: b.startswith(a)
         parseElementClass = Keyword if asKeyword else Literal
 
-    symbols = []
+    symbols: List[str] = []
     if isinstance(strs, str_type):
         symbols = strs.split()
     elif isinstance(strs, Iterable):

@@ -462,8 +462,10 @@ class ParseResults:
         return (
             "["
             + ", ".join(
-                str(i) if isinstance(i, ParseResults) else repr(i)
-                for i in self._toklist
+                [
+                    str(i) if isinstance(i, ParseResults) else repr(i)
+                    for i in self._toklist
+                ]
             )
             + "]"
         )
