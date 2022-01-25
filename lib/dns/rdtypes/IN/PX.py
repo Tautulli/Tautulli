@@ -18,10 +18,13 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
+import dns.rdtypes.util
 import dns.name
 
 
+@dns.immutable.immutable
 class PX(dns.rdata.Rdata):
 
     """PX record."""
@@ -32,9 +35,9 @@ class PX(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, preference, map822, mapx400):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'preference', preference)
-        object.__setattr__(self, 'map822', map822)
-        object.__setattr__(self, 'mapx400', mapx400)
+        self.preference = self._as_uint16(preference)
+        self.map822 = self._as_name(map822)
+        self.mapx400 = self._as_name(mapx400)
 
     def to_text(self, origin=None, relativize=True, **kw):
         map822 = self.map822.choose_relativity(origin, relativize)
@@ -47,7 +50,6 @@ class PX(dns.rdata.Rdata):
         preference = tok.get_uint16()
         map822 = tok.get_name(origin, relativize, relativize_to)
         mapx400 = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, preference, map822, mapx400)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
@@ -62,3 +64,10 @@ class PX(dns.rdata.Rdata):
         map822 = parser.get_name(origin)
         mapx400 = parser.get_name(origin)
         return cls(rdclass, rdtype, preference, map822, mapx400)
+
+    def _processing_priority(self):
+        return self.preference
+
+    @classmethod
+    def _processing_order(cls, iterable):
+        return dns.rdtypes.util.priority_processing_order(iterable)

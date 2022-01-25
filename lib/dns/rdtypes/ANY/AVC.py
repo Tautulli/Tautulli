@@ -16,8 +16,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.txtbase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class AVC(dns.rdtypes.txtbase.TXTBase):
 
     """AVC record"""

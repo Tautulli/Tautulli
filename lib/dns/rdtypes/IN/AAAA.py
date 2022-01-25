@@ -16,11 +16,13 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.exception
+import dns.immutable
 import dns.ipv6
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class AAAA(dns.rdata.Rdata):
 
     """AAAA record."""
@@ -29,9 +31,7 @@ class AAAA(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address):
         super().__init__(rdclass, rdtype)
-        # check that it's OK
-        dns.ipv6.inet_aton(address)
-        object.__setattr__(self, 'address', address)
+        self.address = self._as_ipv6_address(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return self.address
@@ -40,7 +40,6 @@ class AAAA(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         address = tok.get_identifier()
-        tok.get_eol()
         return cls(rdclass, rdtype, address)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
@@ -48,5 +47,5 @@ class AAAA(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        address = dns.ipv6.inet_ntoa(parser.get_remaining())
+        address = parser.get_remaining()
         return cls(rdclass, rdtype, address)

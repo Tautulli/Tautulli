@@ -19,12 +19,18 @@ import socket
 import struct
 
 import dns.ipv4
+import dns.immutable
 import dns.rdata
 
-_proto_tcp = socket.getprotobyname('tcp')
-_proto_udp = socket.getprotobyname('udp')
+try:
+    _proto_tcp = socket.getprotobyname('tcp')
+    _proto_udp = socket.getprotobyname('udp')
+except OSError:
+    # Fall back to defaults in case /etc/protocols is unavailable.
+    _proto_tcp = 6
+    _proto_udp = 17
 
-
+@dns.immutable.immutable
 class WKS(dns.rdata.Rdata):
 
     """WKS record"""
@@ -35,14 +41,13 @@ class WKS(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, address, protocol, bitmap):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'address', address)
-        object.__setattr__(self, 'protocol', protocol)
-        object.__setattr__(self, 'bitmap', dns.rdata._constify(bitmap))
+        self.address = self._as_ipv4_address(address)
+        self.protocol = self._as_uint8(protocol)
+        self.bitmap = self._as_bytes(bitmap)
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []
-        for i in range(0, len(self.bitmap)):
-            byte = self.bitmap[i]
+        for i, byte in enumerate(self.bitmap):
             for j in range(0, 8):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
@@ -59,12 +64,10 @@ class WKS(dns.rdata.Rdata):
         else:
             protocol = socket.getprotobyname(protocol)
         bitmap = bytearray()
-        while 1:
-            token = tok.get().unescape()
-            if token.is_eol_or_eof():
-                break
-            if token.value.isdigit():
-                serv = int(token.value)
+        for token in tok.get_remaining():
+            value = token.unescape().value
+            if value.isdigit():
+                serv = int(value)
             else:
                 if protocol != _proto_udp and protocol != _proto_tcp:
                     raise NotImplementedError("protocol must be TCP or UDP")
@@ -72,11 +75,11 @@ class WKS(dns.rdata.Rdata):
                     protocol_text = "udp"
                 else:
                     protocol_text = "tcp"
-                serv = socket.getservbyname(token.value, protocol_text)
+                serv = socket.getservbyname(value, protocol_text)
             i = serv // 8
             l = len(bitmap)
             if l < i + 1:
-                for j in range(l, i + 1):
+                for _ in range(l, i + 1):
                     bitmap.append(0)
             bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
@@ -90,7 +93,7 @@ class WKS(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        address = dns.ipv4.inet_ntoa(parser.get_bytes(4))
+        address = parser.get_bytes(4)
         protocol = parser.get_uint8()
         bitmap = parser.get_remaining()
         return cls(rdclass, rdtype, address, protocol, bitmap)

@@ -42,6 +42,9 @@ class Parser:
     def get_uint32(self):
         return struct.unpack('!I', self.get_bytes(4))[0]
 
+    def get_uint48(self):
+        return int.from_bytes(self.get_bytes(6), 'big')
+
     def get_struct(self, format):
         return struct.unpack(format, self.get_bytes(struct.calcsize(format)))
 

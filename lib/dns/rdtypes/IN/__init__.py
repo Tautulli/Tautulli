@@ -22,6 +22,7 @@ __all__ = [
     'AAAA',
     'APL',
     'DHCID',
+    'HTTPS',
     'IPSECKEY',
     'KX',
     'NAPTR',
@@ -29,5 +30,6 @@ __all__ = [
     'NSAP_PTR',
     'PX',
     'SRV',
+    'SVCB',
     'WKS',
 ]

@@ -17,8 +17,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.euibase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class EUI48(dns.rdtypes.euibase.EUIBase):
 
     """EUI48 record"""

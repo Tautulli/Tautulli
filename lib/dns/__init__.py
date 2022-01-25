@@ -27,6 +27,7 @@ __all__ = [
     'entropy',
     'exception',
     'flags',
+    'immutable',
     'inet',
     'ipv4',
     'ipv6',
@@ -48,14 +49,18 @@ __all__ = [
     'serial',
     'set',
     'tokenizer',
+    'transaction',
     'tsig',
     'tsigkeyring',
     'ttl',
     'rdtypes',
     'update',
     'version',
+    'versioned',
     'wire',
+    'xfr',
     'zone',
+    'zonefile',
 ]
 
 from dns.version import version as __version__  # noqa

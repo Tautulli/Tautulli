@@ -75,7 +75,7 @@ class IntEnum(enum.IntEnum):
 
     @classmethod
     def _maximum(cls):
-        raise NotImplementedError
+        raise NotImplementedError  # pragma: no cover
 
     @classmethod
     def _short_name(cls):

@@ -20,10 +20,12 @@ import base64
 import binascii
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.rdatatype
 
 
+@dns.immutable.immutable
 class HIP(dns.rdata.Rdata):
 
     """HIP record"""
@@ -34,10 +36,10 @@ class HIP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'hit', hit)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'key', key)
-        object.__setattr__(self, 'servers', dns.rdata._constify(servers))
+        self.hit = self._as_bytes(hit, True, 255)
+        self.algorithm = self._as_uint8(algorithm)
+        self.key = self._as_bytes(key, True)
+        self.servers = self._as_tuple(servers, self._as_name)
 
     def to_text(self, origin=None, relativize=True, **kw):
         hit = binascii.hexlify(self.hit).decode()
@@ -55,14 +57,9 @@ class HIP(dns.rdata.Rdata):
                   relativize_to=None):
         algorithm = tok.get_uint8()
         hit = binascii.unhexlify(tok.get_string().encode())
-        if len(hit) > 255:
-            raise dns.exception.SyntaxError("HIT too long")
         key = base64.b64decode(tok.get_string().encode())
         servers = []
-        while 1:
-            token = tok.get()
-            if token.is_eol_or_eof():
-                break
+        for token in tok.get_remaining():
             server = tok.as_name(token, origin, relativize, relativize_to)
             servers.append(server)
         return cls(rdclass, rdtype, hit, algorithm, key, servers)

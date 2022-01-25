@@ -72,7 +72,6 @@ class Rcode(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownRcode
 
-globals().update(Rcode.__members__)
 
 class UnknownRcode(dns.exception.DNSException):
     """A DNS rcode is unknown."""
@@ -104,8 +103,6 @@ def from_flags(flags, ednsflags):
     """
 
     value = (flags & 0x000f) | ((ednsflags >> 20) & 0xff0)
-    if value < 0 or value > 4095:
-        raise ValueError('rcode must be >= 0 and <= 4095')
     return value
 
 
@@ -139,3 +136,29 @@ def to_text(value, tsig=False):
     if tsig and value == Rcode.BADVERS:
         return 'BADSIG'
     return Rcode.to_text(value)
+
+### BEGIN generated Rcode constants
+
+NOERROR = Rcode.NOERROR
+FORMERR = Rcode.FORMERR
+SERVFAIL = Rcode.SERVFAIL
+NXDOMAIN = Rcode.NXDOMAIN
+NOTIMP = Rcode.NOTIMP
+REFUSED = Rcode.REFUSED
+YXDOMAIN = Rcode.YXDOMAIN
+YXRRSET = Rcode.YXRRSET
+NXRRSET = Rcode.NXRRSET
+NOTAUTH = Rcode.NOTAUTH
+NOTZONE = Rcode.NOTZONE
+DSOTYPENI = Rcode.DSOTYPENI
+BADVERS = Rcode.BADVERS
+BADSIG = Rcode.BADSIG
+BADKEY = Rcode.BADKEY
+BADTIME = Rcode.BADTIME
+BADMODE = Rcode.BADMODE
+BADNAME = Rcode.BADNAME
+BADALG = Rcode.BADALG
+BADTRUNC = Rcode.BADTRUNC
+BADCOOKIE = Rcode.BADCOOKIE
+
+### END generated Rcode constants

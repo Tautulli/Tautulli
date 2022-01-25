@@ -16,9 +16,13 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.dnskeybase
+import dns.immutable
+
+# pylint: disable=unused-import
 from dns.rdtypes.dnskeybase import SEP, REVOKE, ZONE  # noqa: F401
+# pylint: enable=unused-import
 
-
+@dns.immutable.immutable
 class CDNSKEY(dns.rdtypes.dnskeybase.DNSKEYBase):
 
     """CDNSKEY record"""

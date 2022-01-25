@@ -16,8 +16,10 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.mxbase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class KX(dns.rdtypes.mxbase.UncompressedDowncasingMX):
 
     """KX record"""

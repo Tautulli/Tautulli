@@ -17,8 +17,10 @@
 import binascii
 
 import dns.rdata
+import dns.immutable
 
 
+@dns.immutable.immutable
 class EUIBase(dns.rdata.Rdata):
 
     """EUIxx record"""
@@ -32,19 +34,18 @@ class EUIBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, eui):
         super().__init__(rdclass, rdtype)
-        if len(eui) != self.byte_len:
+        self.eui = self._as_bytes(eui)
+        if len(self.eui) != self.byte_len:
             raise dns.exception.FormError('EUI%s rdata has to have %s bytes'
                                           % (self.byte_len * 8, self.byte_len))
-        object.__setattr__(self, 'eui', eui)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return dns.rdata._hexify(self.eui, chunksize=2).replace(' ', '-')
+        return dns.rdata._hexify(self.eui, chunksize=2, separator=b'-', **kw)
 
     @classmethod
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         text = tok.get_string()
-        tok.get_eol()
         if len(text) != cls.text_len:
             raise dns.exception.SyntaxError(
                 'Input text must have %s characters' % cls.text_len)

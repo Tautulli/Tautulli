@@ -20,6 +20,7 @@ import binascii
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.rdatatype
 import dns.rdtypes.util
@@ -37,10 +38,12 @@ SHA1 = 1
 OPTOUT = 1
 
 
+@dns.immutable.immutable
 class Bitmap(dns.rdtypes.util.Bitmap):
     type_name = 'NSEC3'
 
 
+@dns.immutable.immutable
 class NSEC3(dns.rdata.Rdata):
 
     """NSEC3 record"""
@@ -50,15 +53,14 @@ class NSEC3(dns.rdata.Rdata):
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt,
                  next, windows):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'flags', flags)
-        object.__setattr__(self, 'iterations', iterations)
-        if isinstance(salt, str):
-            object.__setattr__(self, 'salt', salt.encode())
-        else:
-            object.__setattr__(self, 'salt', salt)
-        object.__setattr__(self, 'next', next)
-        object.__setattr__(self, 'windows', dns.rdata._constify(windows))
+        self.algorithm = self._as_uint8(algorithm)
+        self.flags = self._as_uint8(flags)
+        self.iterations = self._as_uint16(iterations)
+        self.salt = self._as_bytes(salt, True, 255)
+        self.next = self._as_bytes(next, True, 255)
+        if not isinstance(windows, Bitmap):
+            windows = Bitmap(windows)
+        self.windows = tuple(windows.windows)
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = base64.b32encode(self.next).translate(
@@ -85,9 +87,9 @@ class NSEC3(dns.rdata.Rdata):
         next = tok.get_string().encode(
             'ascii').upper().translate(b32_hex_to_normal)
         next = base64.b32decode(next)
-        windows = Bitmap().from_text(tok)
+        bitmap = Bitmap.from_text(tok)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
-                   windows)
+                   bitmap)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.salt)
@@ -104,6 +106,6 @@ class NSEC3(dns.rdata.Rdata):
         (algorithm, flags, iterations) = parser.get_struct('!BBH')
         salt = parser.get_counted_bytes()
         next = parser.get_counted_bytes()
-        windows = Bitmap().from_wire_parser(parser)
+        bitmap = Bitmap.from_wire_parser(parser)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next,
-                   windows)
+                   bitmap)

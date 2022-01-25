@@ -15,12 +15,16 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+import base64
 import struct
 
 import dns.exception
+import dns.immutable
+import dns.rcode
 import dns.rdata
 
 
+@dns.immutable.immutable
 class TSIG(dns.rdata.Rdata):
 
     """TSIG record"""
@@ -52,20 +56,45 @@ class TSIG(dns.rdata.Rdata):
         """
 
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'time_signed', time_signed)
-        object.__setattr__(self, 'fudge', fudge)
-        object.__setattr__(self, 'mac', dns.rdata._constify(mac))
-        object.__setattr__(self, 'original_id', original_id)
-        object.__setattr__(self, 'error', error)
-        object.__setattr__(self, 'other', dns.rdata._constify(other))
+        self.algorithm = self._as_name(algorithm)
+        self.time_signed = self._as_uint48(time_signed)
+        self.fudge = self._as_uint16(fudge)
+        self.mac = self._as_bytes(mac)
+        self.original_id = self._as_uint16(original_id)
+        self.error = dns.rcode.Rcode.make(error)
+        self.other = self._as_bytes(other)
 
     def to_text(self, origin=None, relativize=True, **kw):
         algorithm = self.algorithm.choose_relativity(origin, relativize)
-        return f"{algorithm} {self.fudge} {self.time_signed} " + \
+        error = dns.rcode.to_text(self.error, True)
+        text = f"{algorithm} {self.time_signed} {self.fudge} " + \
                f"{len(self.mac)} {dns.rdata._base64ify(self.mac, 0)} " + \
-               f"{self.original_id} {self.error} " + \
-               f"{len(self.other)} {dns.rdata._base64ify(self.other, 0)}"
+               f"{self.original_id} {error} {len(self.other)}"
+        if self.other:
+            text += f" {dns.rdata._base64ify(self.other, 0)}"
+        return text
+
+    @classmethod
+    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
+                  relativize_to=None):
+        algorithm = tok.get_name(relativize=False)
+        time_signed = tok.get_uint48()
+        fudge = tok.get_uint16()
+        mac_len = tok.get_uint16()
+        mac = base64.b64decode(tok.get_string())
+        if len(mac) != mac_len:
+            raise SyntaxError('invalid MAC')
+        original_id = tok.get_uint16()
+        error = dns.rcode.from_text(tok.get_string())
+        other_len = tok.get_uint16()
+        if other_len > 0:
+            other = base64.b64decode(tok.get_string())
+            if len(other) != other_len:
+                raise SyntaxError('invalid other data')
+        else:
+            other = b''
+        return cls(rdclass, rdtype, algorithm, time_signed, fudge, mac,
+                   original_id, error, other)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         self.algorithm.to_wire(file, None, origin, False)
@@ -81,9 +110,9 @@ class TSIG(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        algorithm = parser.get_name(origin)
-        (time_hi, time_lo, fudge) = parser.get_struct('!HIH')
-        time_signed = (time_hi << 32) + time_lo
+        algorithm = parser.get_name()
+        time_signed = parser.get_uint48()
+        fudge = parser.get_uint16()
         mac = parser.get_counted_bytes(2)
         (original_id, error) = parser.get_struct('!HH')
         other = parser.get_counted_bytes(2)

@@ -16,10 +16,12 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.name
 
 
+@dns.immutable.immutable
 class RP(dns.rdata.Rdata):
 
     """RP record"""
@@ -30,8 +32,8 @@ class RP(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, mbox, txt):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'mbox', mbox)
-        object.__setattr__(self, 'txt', txt)
+        self.mbox = self._as_name(mbox)
+        self.txt = self._as_name(txt)
 
     def to_text(self, origin=None, relativize=True, **kw):
         mbox = self.mbox.choose_relativity(origin, relativize)
@@ -43,7 +45,6 @@ class RP(dns.rdata.Rdata):
                   relativize_to=None):
         mbox = tok.get_name(origin, relativize, relativize_to)
         txt = tok.get_name(origin, relativize, relativize_to)
-        tok.get_eol()
         return cls(rdclass, rdtype, mbox, txt)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

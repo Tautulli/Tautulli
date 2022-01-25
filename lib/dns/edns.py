@@ -23,6 +23,8 @@ import struct
 
 import dns.enum
 import dns.inet
+import dns.rdata
+
 
 class OptionType(dns.enum.IntEnum):
     #: NSID
@@ -45,12 +47,13 @@ class OptionType(dns.enum.IntEnum):
     PADDING = 12
     #: CHAIN
     CHAIN = 13
+    #: EDE (extended-dns-error)
+    EDE = 15
 
     @classmethod
     def _maximum(cls):
         return 65535
 
-globals().update(OptionType.__members__)
 
 class Option:
 
@@ -61,7 +64,7 @@ class Option:
 
         *otype*, an ``int``, is the option type.
         """
-        self.otype = otype
+        self.otype = OptionType.make(otype)
 
     def to_wire(self, file=None):
         """Convert an option to wire format.
@@ -149,7 +152,7 @@ class GenericOption(Option):
 
     def __init__(self, otype, data):
         super().__init__(otype)
-        self.data = data
+        self.data = dns.rdata.Rdata._as_bytes(data, True)
 
     def to_wire(self, file=None):
         if file:
@@ -186,12 +189,18 @@ class ECSOption(Option):
             self.family = 2
             if srclen is None:
                 srclen = 56
+            address = dns.rdata.Rdata._as_ipv6_address(address)
+            srclen = dns.rdata.Rdata._as_int(srclen, 0, 128)
+            scopelen = dns.rdata.Rdata._as_int(scopelen, 0, 128)
         elif af == socket.AF_INET:
             self.family = 1
             if srclen is None:
                 srclen = 24
-        else:
-            raise ValueError('Bad ip family')
+            address = dns.rdata.Rdata._as_ipv4_address(address)
+            srclen = dns.rdata.Rdata._as_int(srclen, 0, 32)
+            scopelen = dns.rdata.Rdata._as_int(scopelen, 0, 32)
+        else:  # pragma: no cover   (this will never happen)
+            raise ValueError('Bad address family')
 
         self.address = address
         self.srclen = srclen
@@ -293,9 +302,94 @@ class ECSOption(Option):
         return cls(addr, src, scope)
 
 
+class EDECode(dns.enum.IntEnum):
+    OTHER = 0
+    UNSUPPORTED_DNSKEY_ALGORITHM = 1
+    UNSUPPORTED_DS_DIGEST_TYPE = 2
+    STALE_ANSWER = 3
+    FORGED_ANSWER = 4
+    DNSSEC_INDETERMINATE = 5
+    DNSSEC_BOGUS = 6
+    SIGNATURE_EXPIRED = 7
+    SIGNATURE_NOT_YET_VALID = 8
+    DNSKEY_MISSING = 9
+    RRSIGS_MISSING = 10
+    NO_ZONE_KEY_BIT_SET = 11
+    NSEC_MISSING = 12
+    CACHED_ERROR = 13
+    NOT_READY = 14
+    BLOCKED = 15
+    CENSORED = 16
+    FILTERED = 17
+    PROHIBITED = 18
+    STALE_NXDOMAIN_ANSWER = 19
+    NOT_AUTHORITATIVE = 20
+    NOT_SUPPORTED = 21
+    NO_REACHABLE_AUTHORITY = 22
+    NETWORK_ERROR = 23
+    INVALID_DATA = 24
+
+    @classmethod
+    def _maximum(cls):
+        return 65535
+
+
+class EDEOption(Option):
+    """Extended DNS Error (EDE, RFC8914)"""
+
+    def __init__(self, code, text=None):
+        """*code*, a ``dns.edns.EDECode`` or ``str``, the info code of the
+        extended error.
+
+        *text*, a ``str`` or ``None``, specifying additional information about
+        the error.
+        """
+
+        super().__init__(OptionType.EDE)
+
+        self.code = EDECode.make(code)
+        if text is not None and not isinstance(text, str):
+            raise ValueError('text must be string or None')
+
+        self.code = code
+        self.text = text
+
+    def to_text(self):
+        output = f'EDE {self.code}'
+        if self.text is not None:
+            output += f': {self.text}'
+        return output
+
+    def to_wire(self, file=None):
+        value = struct.pack('!H', self.code)
+        if self.text is not None:
+            value += self.text.encode('utf8')
+
+        if file:
+            file.write(value)
+        else:
+            return value
+
+    @classmethod
+    def from_wire_parser(cls, otype, parser):
+        code = parser.get_uint16()
+        text = parser.get_remaining()
+
+        if text:
+            if text[-1] == 0:  # text MAY be null-terminated
+                text = text[:-1]
+            text = text.decode('utf8')
+        else:
+            text = None
+
+        return cls(code, text)
+
+
 _type_to_class = {
-    OptionType.ECS: ECSOption
+    OptionType.ECS: ECSOption,
+    OptionType.EDE: EDEOption,
 }
+
 
 def get_option_class(otype):
     """Return the class for the specified option type.
@@ -342,3 +436,29 @@ def option_from_wire(otype, wire, current, olen):
     parser = dns.wire.Parser(wire, current)
     with parser.restrict_to(olen):
         return option_from_wire_parser(otype, parser)
+
+def register_type(implementation, otype):
+    """Register the implementation of an option type.
+
+    *implementation*, a ``class``, is a subclass of ``dns.edns.Option``.
+
+    *otype*, an ``int``, is the option type.
+    """
+
+    _type_to_class[otype] = implementation
+
+### BEGIN generated OptionType constants
+
+NSID = OptionType.NSID
+DAU = OptionType.DAU
+DHU = OptionType.DHU
+N3U = OptionType.N3U
+ECS = OptionType.ECS
+EXPIRE = OptionType.EXPIRE
+COOKIE = OptionType.COOKIE
+KEEPALIVE = OptionType.KEEPALIVE
+PADDING = OptionType.PADDING
+CHAIN = OptionType.CHAIN
+EDE = OptionType.EDE
+
+### END generated OptionType constants

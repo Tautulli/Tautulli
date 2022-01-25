@@ -4,10 +4,13 @@
 
 import socket
 import asyncio
+import sys
 
 import dns._asyncbackend
 import dns.exception
 
+
+_is_win32 = sys.platform == 'win32'
 
 def _get_running_loop():
     try:
@@ -25,16 +28,16 @@ class _DatagramProtocol:
         self.transport = transport
 
     def datagram_received(self, data, addr):
-        if self.recvfrom:
+        if self.recvfrom and not self.recvfrom.done():
             self.recvfrom.set_result((data, addr))
             self.recvfrom = None
 
     def error_received(self, exc):  # pragma: no cover
-        if self.recvfrom:
+        if self.recvfrom and not self.recvfrom.done():
             self.recvfrom.set_exception(exc)
 
     def connection_lost(self, exc):
-        if self.recvfrom:
+        if self.recvfrom and not self.recvfrom.done():
             self.recvfrom.set_exception(exc)
 
     def close(self):
@@ -79,21 +82,19 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
         return self.transport.get_extra_info('sockname')
 
 
-class StreamSocket(dns._asyncbackend.DatagramSocket):
+class StreamSocket(dns._asyncbackend.StreamSocket):
     def __init__(self, af, reader, writer):
         self.family = af
         self.reader = reader
         self.writer = writer
 
     async def sendall(self, what, timeout):
-        self.writer.write(what),
+        self.writer.write(what)
         return await _maybe_wait_for(self.writer.drain(), timeout)
-        raise dns.exception.Timeout(timeout=timeout)
 
-    async def recv(self, count, timeout):
-        return await _maybe_wait_for(self.reader.read(count),
+    async def recv(self, size, timeout):
+        return await _maybe_wait_for(self.reader.read(size),
                                      timeout)
-        raise dns.exception.Timeout(timeout=timeout)
 
     async def close(self):
         self.writer.close()
@@ -116,11 +117,16 @@ class Backend(dns._asyncbackend.Backend):
     async def make_socket(self, af, socktype, proto=0,
                           source=None, destination=None, timeout=None,
                           ssl_context=None, server_hostname=None):
+        if destination is None and socktype == socket.SOCK_DGRAM and \
+           _is_win32:
+            raise NotImplementedError('destinationless datagram sockets '
+                                      'are not supported by asyncio '
+                                      'on Windows')
         loop = _get_running_loop()
         if socktype == socket.SOCK_DGRAM:
             transport, protocol = await loop.create_datagram_endpoint(
                 _DatagramProtocol, source, family=af,
-                proto=proto)
+                proto=proto, remote_addr=destination)
             return DatagramSocket(af, transport, protocol)
         elif socktype == socket.SOCK_STREAM:
             (r, w) = await _maybe_wait_for(
@@ -138,3 +144,6 @@ class Backend(dns._asyncbackend.Backend):
 
     async def sleep(self, interval):
         await asyncio.sleep(interval)
+
+    def datagram_connection_required(self):
+        return _is_win32

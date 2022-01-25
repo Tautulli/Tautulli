@@ -28,11 +28,12 @@ def from_text(text):
     Returns a tuple of three ``int`` values ``(start, stop, step)``.
     """
 
-    # TODO, figure out the bounds on start, stop and step.
+    start = -1
+    stop = -1
     step = 1
     cur = ''
     state = 0
-    # state   0 1 2 3 4
+    # state   0   1   2
     #         x - y / z
 
     if text and text[0] == '-':
@@ -42,28 +43,27 @@ def from_text(text):
         if c == '-' and state == 0:
             start = int(cur)
             cur = ''
-            state = 2
+            state = 1
         elif c == '/':
             stop = int(cur)
             cur = ''
-            state = 4
+            state = 2
         elif c.isdigit():
             cur += c
         else:
             raise dns.exception.SyntaxError("Could not parse %s" % (c))
 
-    if state in (1, 3):
-        raise dns.exception.SyntaxError()
-
-    if state == 2:
+    if state == 0:
+        raise dns.exception.SyntaxError("no stop value specified")
+    elif state == 1:
         stop = int(cur)
-
-    if state == 4:
+    else:
+        assert state == 2
         step = int(cur)
 
     assert step >= 1
     assert start >= 0
-    assert start <= stop
-    # TODO, can start == stop?
+    if start > stop:
+        raise dns.exception.SyntaxError('start must be <= stop')
 
     return (start, stop, step)

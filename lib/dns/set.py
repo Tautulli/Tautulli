@@ -84,9 +84,13 @@ class Set:
         subclasses.
         """
 
-        cls = self.__class__
+        if hasattr(self, '_clone_class'):
+            cls = self._clone_class
+        else:
+            cls = self.__class__
         obj = cls.__new__(cls)
-        obj.items = self.items.copy()
+        obj.items = odict()
+        obj.items.update(self.items)
         return obj
 
     def __copy__(self):

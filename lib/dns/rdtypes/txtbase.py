@@ -20,10 +20,12 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class TXTBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like a TXT record (see RFC 1035)."""
@@ -40,16 +42,8 @@ class TXTBase(dns.rdata.Rdata):
         *strings*, a tuple of ``bytes``
         """
         super().__init__(rdclass, rdtype)
-        if isinstance(strings, (bytes, str)):
-            strings = (strings,)
-        encoded_strings = []
-        for string in strings:
-            if isinstance(string, str):
-                string = string.encode()
-            else:
-                string = dns.rdata._constify(string)
-            encoded_strings.append(string)
-        object.__setattr__(self, 'strings', tuple(encoded_strings))
+        self.strings = self._as_tuple(strings,
+                                      lambda x: self._as_bytes(x, True, 255))
 
     def to_text(self, origin=None, relativize=True, **kw):
         txt = ''
@@ -63,11 +57,12 @@ class TXTBase(dns.rdata.Rdata):
     def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
                   relativize_to=None):
         strings = []
-        while 1:
-            token = tok.get().unescape_to_bytes()
-            if token.is_eol_or_eof():
-                break
-            if not (token.is_quoted_string() or token.is_identifier()):
+        for token in tok.get_remaining():
+            token = token.unescape_to_bytes()
+            # The 'if' below is always true in the current code, but we
+            # are leaving this check in in case things change some day.
+            if not (token.is_quoted_string() or
+                    token.is_identifier()):  # pragma: no cover
                 raise dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:
                 raise dns.exception.SyntaxError("string too long")

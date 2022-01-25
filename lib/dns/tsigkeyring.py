@@ -55,5 +55,10 @@ def to_text(keyring):
         if isinstance(key, bytes):
             textring[name] = b64encode(key)
         else:
-            textring[name] = (key.algorithm.to_text(), b64encode(key.secret))
+            if isinstance(key.secret, bytes):
+                text_secret = b64encode(key.secret)
+            else:
+                text_secret = str(key.secret)
+
+            textring[name] = (key.algorithm.to_text(), text_secret)
     return textring

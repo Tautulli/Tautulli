@@ -21,6 +21,7 @@ import struct
 import time
 
 import dns.dnssec
+import dns.immutable
 import dns.exception
 import dns.rdata
 import dns.rdatatype
@@ -50,6 +51,7 @@ def posixtime_to_sigtime(what):
     return time.strftime('%Y%m%d%H%M%S', time.gmtime(what))
 
 
+@dns.immutable.immutable
 class RRSIG(dns.rdata.Rdata):
 
     """RRSIG record"""
@@ -62,15 +64,15 @@ class RRSIG(dns.rdata.Rdata):
                  original_ttl, expiration, inception, key_tag, signer,
                  signature):
         super().__init__(rdclass, rdtype)
-        object.__setattr__(self, 'type_covered', type_covered)
-        object.__setattr__(self, 'algorithm', algorithm)
-        object.__setattr__(self, 'labels', labels)
-        object.__setattr__(self, 'original_ttl', original_ttl)
-        object.__setattr__(self, 'expiration', expiration)
-        object.__setattr__(self, 'inception', inception)
-        object.__setattr__(self, 'key_tag', key_tag)
-        object.__setattr__(self, 'signer', signer)
-        object.__setattr__(self, 'signature', signature)
+        self.type_covered = self._as_rdatatype(type_covered)
+        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.labels = self._as_uint8(labels)
+        self.original_ttl = self._as_ttl(original_ttl)
+        self.expiration = self._as_uint32(expiration)
+        self.inception = self._as_uint32(inception)
+        self.key_tag = self._as_uint16(key_tag)
+        self.signer = self._as_name(signer)
+        self.signature = self._as_bytes(signature)
 
     def covers(self):
         return self.type_covered
@@ -85,7 +87,7 @@ class RRSIG(dns.rdata.Rdata):
             posixtime_to_sigtime(self.inception),
             self.key_tag,
             self.signer.choose_relativity(origin, relativize),
-            dns.rdata._base64ify(self.signature)
+            dns.rdata._base64ify(self.signature, **kw)
         )
 
     @classmethod

@@ -48,7 +48,6 @@ class RdataClass(dns.enum.IntEnum):
     def _unknown_exception_class(cls):
         return UnknownRdataclass
 
-globals().update(RdataClass.__members__)
 
 _metaclasses = {RdataClass.NONE, RdataClass.ANY}
 
@@ -100,3 +99,17 @@ def is_metaclass(rdclass):
     if rdclass in _metaclasses:
         return True
     return False
+
+### BEGIN generated RdataClass constants
+
+RESERVED0 = RdataClass.RESERVED0
+IN = RdataClass.IN
+INTERNET = RdataClass.INTERNET
+CH = RdataClass.CH
+CHAOS = RdataClass.CHAOS
+HS = RdataClass.HS
+HESIOD = RdataClass.HESIOD
+NONE = RdataClass.NONE
+ANY = RdataClass.ANY
+
+### END generated RdataClass constants
