@@ -1,5 +1,25 @@
 # Changelog
 
+## v2.9.0-beta (2022-01-25)
+
+* UI:
+  * Fix: Favicon missing from the newsletter authentication page.
+  * New: Added intermediary login page to the Plex XML shortcuts.
+  * New: Added setting to mask usernames in logs (enabled by default).
+  * New: Added location, secure connection, and Plex Relay details to IP address modal.
+  * Change: Remove Plex token from the settings page.
+  * Change: Increase verifying server timeout to 30 seconds.
+* API:
+  * New: Added get_tautulli_info API command.
+  * New: Added location, secure, and relayed to get_history API response.
+  * Change: Null pms_token and jwt_token in the response of the get_settings API command.
+* Other:
+  * Fix: Better validation of config when saving settings.
+  * Change: Proxy Plex token check and Plex downloads json through the Tautulli server.
+  * Change: Remove tokens from downloaded database and config files.
+  * Change: Do not import pms_token or jwt_secret when importing a config file.
+
+
 ## v2.8.1 (2022-01-04)
 
 * API:
