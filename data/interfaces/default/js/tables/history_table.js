@@ -106,7 +106,7 @@ history_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
                     isPrivateIP(cellData).then(function () {
-                        $(td).html(cellData || 'n/a');
+                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">'+ cellData + '</a>');
                     }, function () {
                         external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
                         $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">'+ external_ip + cellData + '</a>');
@@ -379,7 +379,10 @@ $('.history_table').on('click', '> tbody > tr > td.modal-control-ip', function (
     var rowData = row.data();
 
     $.get('get_ip_address_details', {
-        ip_address: rowData['ip_address']
+        ip_address: rowData['ip_address'],
+        location: rowData['location'],
+        secure: rowData['secure'],
+        relayed: rowData['relayed']
     }).then(function (jqXHR) {
         $("#ip-info-modal").html(jqXHR);
     });
@@ -575,7 +578,10 @@ function createChildTable(row, rowData) {
         var childRowData = childRow.data();
 
         $.get('get_ip_address_details', {
-            ip_address: childRowData['ip_address']
+            ip_address: childRowData['ip_address'],
+            location: rowData['location'],
+            secure: rowData['secure'],
+            relayed: rowData['relayed']
         }).then(function (jqXHR) {
             $("#ip-info-modal").html(jqXHR);
         });

@@ -315,7 +315,8 @@ DOCUMENTATION :: END
                                         % if data['relayed']:
                                         <span data-toggle="tooltip" title="Plex Relay"><i class="fa fa-exclamation-circle"></i></span>
                                         % else:
-                                        <a href="#" class="external_ip-modal" data-toggle="modal" data-target="#ip-info-modal" data-ip="${data['ip_address']}">
+                                        <a href="#" class="external_ip-modal" data-toggle="modal" data-target="#ip-info-modal"
+                                            data-ip="${data['ip_address']}" data-location="${data['location']}" data-secure="${data['secure']}" data-relayed="${data['relayed']}">
                                             <span id="external_ip-${sk}" class="external-ip-tooltip" data-toggle="tooltip" title="Lookup External IP" style="display: none;"><i class="fa fa-map-marker"></i></span>
                                         </a>
                                         <script>

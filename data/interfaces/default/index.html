@@ -701,7 +701,10 @@
 
     $('#currentActivity').on('click', '.external_ip-modal', function () {
         $.get('get_ip_address_details', {
-            ip_address: $(this).data('ip')
+            ip_address: $(this).data('ip'),
+            location: $(this).data('location'),
+            secure: $(this).data('secure'),
+            relayed: $(this).data('relayed')
         }).then(function (jqXHR) {
             $("#ip-info-modal").html(jqXHR);
         });
