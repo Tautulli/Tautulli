@@ -191,15 +191,31 @@ class PublicIPFilter(RegexFilter):
     Log filter for public IP addresses
     """
     REGEX = re.compile(
-        r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)[.-]){3}'
+        r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)[.]){3}'
         r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
         r'(?!\d*-[a-z0-9]{6})'
     )
 
     def replace(self, text, ip):
+        if helpers.is_public_ip(ip):
+            return text.replace(ip, '.'.join(['***'] * 4))
+        return text
+
+
+class PlexDirectIPFilter(RegexFilter):
+    """
+    Log filter for IP addresses in plex.direct URL
+    """
+    REGEX = re.compile(
+        r'(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)[-]){3}'
+        r'(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)'
+        r'(?!\d*-[a-z0-9]{6})'
+        r'(?=\.[a-z0-9]+\.plex\.direct)'
+    )
+
+    def replace(self, text, ip):
         if helpers.is_public_ip(ip.replace('-', '.')):
-            partition = '-' if '-' in ip else '.'
-            return text.replace(ip, partition.join(['***'] * 4))
+            return text.replace(ip, '-'.join(['***'] * 4))
         return text
 
 
@@ -321,6 +337,7 @@ def initLogger(console=False, log_dir=False, verbose=False):
             handler.addFilter(UsernameFilter())
             handler.addFilter(BlacklistFilter())
             handler.addFilter(PublicIPFilter())
+            handler.addFilter(PlexDirectIPFilter())
             handler.addFilter(EmailFilter())
             handler.addFilter(PlexTokenFilter())
 
