@@ -705,7 +705,7 @@ def sanitize(obj):
 
 def is_public_ip(host):
     ip = is_valid_ip(get_ip(host))
-    if ip and ip.iptype() == 'PUBLIC':
+    if ip and (ip.iptype() == 'PUBLIC' or ip.version() == 6):
         return True
     return False
 
