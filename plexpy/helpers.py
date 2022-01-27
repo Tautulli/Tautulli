@@ -705,7 +705,11 @@ def sanitize(obj):
 
 def is_public_ip(host):
     ip = is_valid_ip(get_ip(host))
-    if ip and (ip.iptype() == 'PUBLIC' or ip.version() == 6):
+    ip_version = ip.version()
+    ip_type = ip.iptype()
+    if ip and ip_type != 'LOOPBACK' and (
+            ip_version == 4 and ip_type == 'PUBLIC' or
+            ip_version == 6 and 'LOCAL' not in ip_type):
         return True
     return False
 
