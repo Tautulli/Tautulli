@@ -841,6 +841,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         season_num, season_num00 = num, num00
 
         episode_num, episode_num00 = '', ''
+        disc_num, disc_num00 = '', ''
         track_num, track_num00 = '', ''
 
         child_count = len(child_num)
@@ -864,6 +865,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         episode_num, episode_num00 = num, num00
         track_num, track_num00 = num, num00
 
+        disc_num, disc_num00 = '', ''
+
         child_count = 1
         grandchild_count = len(grandchild_num)
 
@@ -878,6 +881,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         season_num00 = str(notify_params['parent_media_index']).zfill(2)
         episode_num = str(notify_params['media_index']).zfill(1)
         episode_num00 = str(notify_params['media_index']).zfill(2)
+        disc_num = str(notify_params['parent_media_index']).zfill(1)
+        disc_num00 = str(notify_params['parent_media_index']).zfill(2)
         track_num = str(notify_params['media_index']).zfill(1)
         track_num00 = str(notify_params['media_index']).zfill(2)
         child_count = 1
@@ -1046,6 +1051,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'season_num00': season_num00,
         'episode_num': episode_num,
         'episode_num00': episode_num00,
+        'disc_num': disc_num,
+        'disc_num00': disc_num00,
         'track_num': track_num,
         'track_num00': track_num00,
         'season_count': child_count,

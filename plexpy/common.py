@@ -502,6 +502,8 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Season Number 00', 'type': 'int', 'value': 'season_num00', 'description': 'The two digit season number.', 'example': 'e.g. 01, or 01-03'},
              {'name': 'Episode Number', 'type': 'int', 'value': 'episode_num', 'description': 'The episode number.', 'example': 'e.g. 6, or 6-10'},
              {'name': 'Episode Number 00', 'type': 'int', 'value': 'episode_num00', 'description': 'The two digit episode number.', 'example': 'e.g. 06, or 06-10'},
+             {'name': 'Disc Number', 'type': 'int', 'value': 'disc_num', 'description': 'The disc number.', 'example': 'e.g. 2'},
+             {'name': 'Disc Number 00', 'type': 'int', 'value': 'disc_num00', 'description': 'The two digit disc number.', 'example': 'e.g. 02'},
              {'name': 'Track Number', 'type': 'int', 'value': 'track_num', 'description': 'The track number.', 'example': 'e.g. 4, or 4-10'},
              {'name': 'Track Number 00', 'type': 'int', 'value': 'track_num00', 'description': 'The two digit track number.', 'example': 'e.g. 04, or 04-10'},
              {'name': 'Season Count', 'type': 'int', 'value': 'season_count', 'description': 'The number of seasons in a grouped recently added notification.'},
