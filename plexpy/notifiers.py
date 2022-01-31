@@ -3869,7 +3869,7 @@ class TELEGRAM(Notifier):
                        'chat_id': '',
                        'disable_web_preview': 0,
                        'silent_notification': 0,
-                       'html_support': 1,
+                       'html_support': 0,
                        'incl_subject': 1,
                        'incl_poster': 0
                        }
@@ -3884,6 +3884,8 @@ class TELEGRAM(Notifier):
 
         if self.config['html_support']:
             data['parse_mode'] = 'HTML'
+        else:
+            data['parse_mode'] = 'MarkdownV2'
 
         if self.config['incl_poster'] and kwargs.get('parameters'):
             # Grab formatted metadata
@@ -3963,7 +3965,7 @@ class TELEGRAM(Notifier):
                          {'label': 'Enable HTML Support',
                           'value': self.config['html_support'],
                           'name': 'telegram_html_support',
-                          'description': 'Style your messages using these HTML tags: b, i, a[href], code, pre.',
+                          'description': 'Enable to style your messages using HTML. Disable to use Markdown instead.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Disable Web Page Previews',
