@@ -1928,14 +1928,13 @@ class Export(object):
         self.file_size += os.path.getsize(filepath)
 
     def _exported_images(self, title):
-        images_dirpath = get_export_dirpath(self.directory, images_directory=title)
+        dirpath = get_export_dirpath(self.directory)
 
-        if os.path.exists(images_dirpath):
-            for f in os.listdir(images_dirpath):
-                if f.endswith('.thumb.jpg'):
-                    self.exported_thumb = True
-                elif f.endswith('.art.jpg'):
-                    self.exported_art = True
+        for root, dirs, files in os.walk(dirpath):
+            if any(f.endswith('.thumb.jpg') for f in files):
+                self.exported_thumb = True
+            elif any(f.endswith('.art.jpg') for f in files):
+                self.exported_art = True
 
     def _media_type(self, obj):
         return 'photoalbum' if self.is_photoalbum(obj) else obj.type
