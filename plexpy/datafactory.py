@@ -1910,7 +1910,7 @@ class DataFactory(object):
             monitor_db = database.MonitorDatabase()
 
             query = 'UPDATE session_history SET section_id = ? WHERE rating_key = ?'
-            args = [metadata['section_id'], old_rating_key]
+            args = [metadata['section_id'], new_rating_key]
             monitor_db.action(query=query, args=args)
 
             # Update the session_history_metadata table
