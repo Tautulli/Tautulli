@@ -3941,10 +3941,10 @@ class TELEGRAM(Notifier):
                                          ' on Telegram to get one.',
                           'input_type': 'token'
                           },
-                         {'label': 'Telegram Chat ID, Group ID, or Channel Username',
+                         {'label': 'Telegram Chat ID, Group ID, or Channel ID/Username',
                           'value': self.config['chat_id'],
                           'name': 'telegram_chat_id',
-                          'description': 'Your Telegram Chat ID, Group ID, or @channelusername. '
+                          'description': 'Your Telegram Chat ID, Group ID, Channel ID or @channelusername. '
                                          'Contact <a href="' + helpers.anon_url('https://telegram.me/myidbot') +
                                          '" target="_blank">@myidbot</a>'
                                          ' on Telegram to get an ID.',
