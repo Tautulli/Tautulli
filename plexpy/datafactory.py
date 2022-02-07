@@ -1885,9 +1885,7 @@ class DataFactory(object):
                         args = [old_key]
 
                         if _UPDATE_METADATA_IDS['grandparent_rating_key_ids']:
-                            query += (
-                                'AND id NOT IN (%s)' % ','.join(_UPDATE_METADATA_IDS['grandparent_rating_key_ids'])
-                            )
+                            query += 'AND id NOT IN (%s)' % ','.join(_UPDATE_METADATA_IDS['grandparent_rating_key_ids'])
 
                         ids = [str(row['id']) for row in monitor_db.select(query, args)]
                         if ids:
@@ -1915,9 +1913,7 @@ class DataFactory(object):
                         args = [old_key]
 
                         if _UPDATE_METADATA_IDS['parent_rating_key_ids']:
-                            query += (
-                                'AND id NOT IN (%s)' % ','.join(_UPDATE_METADATA_IDS['parent_rating_key_ids'])
-                            )
+                            query += 'AND id NOT IN (%s)' % ','.join(_UPDATE_METADATA_IDS['parent_rating_key_ids'])
 
                         ids = [str(row['id']) for row in monitor_db.select(query, args)]
                         if ids:
@@ -1945,9 +1941,7 @@ class DataFactory(object):
                         args = [old_key]
 
                         if _UPDATE_METADATA_IDS['rating_key_ids']:
-                            query += (
-                                'AND id NOT IN (%s)' % ','.join(_UPDATE_METADATA_IDS['rating_key_ids'])
-                            )
+                            query += 'AND id NOT IN (%s)' % ','.join(_UPDATE_METADATA_IDS['rating_key_ids'])
 
                         ids = [str(row['id']) for row in monitor_db.select(query, args)]
                         if ids:
@@ -1964,11 +1958,6 @@ class DataFactory(object):
                             'UPDATE session_history_media_info SET rating_key = ? '
                             'WHERE id IN (%s)' % ','.join(ids),
                             [new_key]
-                        )
-                        monitor_db.action(
-                            'INSERT INTO update_metadata (rating_key_id) '
-                            'VALUES %s' % ','.join(['(?)'] * len(ids)),
-                            ids
                         )
 
                         # update session_history_metadata table
