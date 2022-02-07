@@ -5145,7 +5145,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def update_metadata_details(self, old_rating_key, new_rating_key, media_type, **kwargs):
+    def update_metadata_details(self, old_rating_key, new_rating_key, media_type, single_update=False, **kwargs):
         """ Update the metadata in the Tautulli database by matching rating keys.
             Also updates all parents or children of the media item if it is a show/season/episode
             or artist/album/track.
@@ -5163,6 +5163,8 @@ class WebInterface(object):
                 None
             ```
         """
+        single_update = helpers.bool_true(single_update)
+
         if new_rating_key:
             data_factory = datafactory.DataFactory()
             pms_connect = pmsconnect.PmsConnect()
@@ -5172,7 +5174,8 @@ class WebInterface(object):
 
             result = data_factory.update_metadata(old_key_list=old_key_list,
                                                   new_key_list=new_key_list,
-                                                  media_type=media_type)
+                                                  media_type=media_type,
+                                                  single_update=single_update)
 
         if result:
             return {'message': result}
