@@ -17,11 +17,12 @@ from fractions import Fraction
 from numbers import Number
 
 import six.moves.urllib.parse
-from six import iteritems, string_types
+from six import iteritems
 from urllib3 import ProxyManager, PoolManager
 
 import cloudinary
 from cloudinary import auth_token
+from cloudinary.api_client.tcp_keep_alive_manager import TCPKeepAlivePoolManager, TCPKeepAliveProxyManager
 from cloudinary.compat import PY3, to_bytes, to_bytearray, to_string, string_types, urlparse
 
 VAR_NAME_RE = r'(\$\([a-zA-Z]\w+\))'
@@ -1509,7 +1510,7 @@ def verify_notification_signature(body, timestamp, signature, valid_for=7200, al
 
 def get_http_connector(conf, options):
     """
-    Used to create http connector, depends on api_proxy configuration parameter
+    Used to create http connector, depends on api_proxy and disable_tcp_keep_alive configuration parameters.
 
     :param conf: configuration object
     :param options: additional options
@@ -1517,9 +1518,15 @@ def get_http_connector(conf, options):
     :return: ProxyManager if api_proxy is set, otherwise PoolManager object
     """
     if conf.api_proxy:
-        return ProxyManager(conf.api_proxy, **options)
-    else:
+        if conf.disable_tcp_keep_alive:
+            return ProxyManager(conf.api_proxy, **options)
+
+        return TCPKeepAliveProxyManager(conf.api_proxy, **options)
+
+    if conf.disable_tcp_keep_alive:
         return PoolManager(**options)
+
+    return TCPKeepAlivePoolManager(**options)
 
 
 def encode_list(obj):
