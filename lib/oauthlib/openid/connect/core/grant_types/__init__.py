@@ -10,3 +10,4 @@ from .dispatchers import (
 )
 from .hybrid import HybridGrant
 from .implicit import ImplicitGrant
+from .refresh_token import RefreshTokenGrant

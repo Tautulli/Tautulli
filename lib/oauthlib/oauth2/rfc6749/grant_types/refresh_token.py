@@ -63,7 +63,7 @@ class RefreshTokenGrant(GrantTypeBase):
                                            refresh_token=self.issue_new_refresh_tokens)
 
         for modifier in self._token_modifiers:
-            token = modifier(token)
+            token = modifier(token, token_handler, request)
 
         self.request_validator.save_token(token, request)
 

@@ -10,6 +10,7 @@ import logging
 from oauthlib import common
 
 from .. import errors
+from ..utils import is_secure_transport
 from .base import GrantTypeBase
 
 log = logging.getLogger(__name__)
@@ -272,6 +273,8 @@ class AuthorizationCodeGrant(GrantTypeBase):
         grant = self.create_authorization_code(request)
         for modifier in self._code_modifiers:
             grant = modifier(grant, token_handler, request)
+        if 'access_token' in grant:
+            self.request_validator.save_token(grant, request)
         log.debug('Saving grant %r for %r.', grant, request)
         self.request_validator.save_authorization_code(
             request.client_id, grant, request)
@@ -310,6 +313,7 @@ class AuthorizationCodeGrant(GrantTypeBase):
         self.request_validator.save_token(token, request)
         self.request_validator.invalidate_authorization_code(
             request.client_id, request.code, request)
+        headers.update(self._create_cors_headers(request))
         return headers, json.dumps(token), 200
 
     def validate_authorization_request(self, request):
@@ -543,3 +547,20 @@ class AuthorizationCodeGrant(GrantTypeBase):
         if challenge_method in self._code_challenge_methods:
             return self._code_challenge_methods[challenge_method](verifier, challenge)
         raise NotImplementedError('Unknown challenge_method %s' % challenge_method)
+
+    def _create_cors_headers(self, request):
+        """If CORS is allowed, create the appropriate headers."""
+        if 'origin' not in request.headers:
+            return {}
+
+        origin = request.headers['origin']
+        if not is_secure_transport(origin):
+            log.debug('Origin "%s" is not HTTPS, CORS not allowed.', origin)
+            return {}
+        elif not self.request_validator.is_origin_allowed(
+            request.client_id, origin, request):
+            log.debug('Invalid origin "%s", CORS not allowed.', origin)
+            return {}
+        else:
+            log.debug('Valid origin "%s", injecting CORS headers.', origin)
+            return {'Access-Control-Allow-Origin': origin}

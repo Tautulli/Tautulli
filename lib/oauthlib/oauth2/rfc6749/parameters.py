@@ -23,7 +23,7 @@ from .utils import is_secure_transport, list_to_scope, scope_to_list
 
 
 def prepare_grant_uri(uri, client_id, response_type, redirect_uri=None,
-                      scope=None, state=None, **kwargs):
+                      scope=None, state=None, code_challenge=None, code_challenge_method='plain', **kwargs):
     """Prepare the authorization grant request URI.
 
     The client constructs the request URI by adding the following
@@ -45,6 +45,11 @@ def prepare_grant_uri(uri, client_id, response_type, redirect_uri=None,
                   back to the client.  The parameter SHOULD be used for
                   preventing cross-site request forgery as described in
                   `Section 10.12`_.
+    :param code_challenge: PKCE paramater. A challenge derived from the 
+                           code_verifier that is sent in the authorization 
+                           request, to be verified against later.
+    :param code_challenge_method: PKCE parameter. A method that was used to derive the 
+                                  code_challenge. Defaults to "plain" if not present in the request.
     :param kwargs: Extra arguments to embed in the grant/authorization URL.
 
     An example of an authorization code grant authorization URL:
@@ -52,6 +57,7 @@ def prepare_grant_uri(uri, client_id, response_type, redirect_uri=None,
     .. code-block:: http
 
         GET /authorize?response_type=code&client_id=s6BhdRkqt3&state=xyz
+            &code_challenge=kjasBS523KdkAILD2k78NdcJSk2k3KHG6&code_challenge_method=S256
             &redirect_uri=https%3A%2F%2Fclient%2Eexample%2Ecom%2Fcb HTTP/1.1
         Host: server.example.com
 
@@ -73,6 +79,9 @@ def prepare_grant_uri(uri, client_id, response_type, redirect_uri=None,
         params.append(('scope', list_to_scope(scope)))
     if state:
         params.append(('state', state))
+    if code_challenge is not None:
+        params.append(('code_challenge', code_challenge))
+        params.append(('code_challenge_method', code_challenge_method))
 
     for k in kwargs:
         if kwargs[k]:
@@ -81,7 +90,7 @@ def prepare_grant_uri(uri, client_id, response_type, redirect_uri=None,
     return add_params_to_uri(uri, params)
 
 
-def prepare_token_request(grant_type, body='', include_client_id=True, **kwargs):
+def prepare_token_request(grant_type, body='', include_client_id=True, code_verifier=None, **kwargs):
     """Prepare the access token request.
 
     The client makes a request to the token endpoint by adding the
@@ -116,6 +125,9 @@ def prepare_token_request(grant_type, body='', include_client_id=True, **kwargs)
                          authorization request as described in
                          `Section 4.1.1`_, and their values MUST be identical. *
 
+    :param code_verifier: PKCE parameter. A cryptographically random string that is used to correlate the
+                          authorization request to the token request.
+
     :param kwargs: Extra arguments to embed in the request body.
 
     Parameters marked with a `*` above are not explicit arguments in the
@@ -141,6 +153,10 @@ def prepare_token_request(grant_type, body='', include_client_id=True, **kwargs)
     if include_client_id:
         if client_id is not None:
             params.append(('client_id', client_id))
+
+    # use code_verifier if code_challenge was passed in the authorization request
+    if code_verifier is not None:
+        params.append(('code_verifier', code_verifier))
 
     # the kwargs iteration below only supports including boolean truth (truthy)
     # values, but some servers may require an empty string for `client_secret`
