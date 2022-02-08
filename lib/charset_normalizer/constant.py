@@ -498,3 +498,6 @@ ZH_NAMES = {"big5", "cp950", "big5hkscs", "hz"}  # type: Set[str]
 NOT_PRINTABLE_PATTERN = re_compile(r"[0-9\W\n\r\t]+")
 
 LANGUAGE_SUPPORTED_COUNT = len(FREQUENCIES)  # type: int
+
+# Logging LEVEL bellow DEBUG
+TRACE = 5  # type: int

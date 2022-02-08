@@ -8,6 +8,10 @@ for consuming OAuth 2.0 RFC6749.
 """
 import time
 import warnings
+import secrets
+import re
+import hashlib
+import base64
 
 from oauthlib.common import generate_token
 from oauthlib.oauth2.rfc6749 import tokens
@@ -61,6 +65,9 @@ class Client:
                  state=None,
                  redirect_url=None,
                  state_generator=generate_token,
+                 code_verifier=None,
+                 code_challenge=None,
+                 code_challenge_method=None,
                  **kwargs):
         """Initialize a client with commonly used attributes.
 
@@ -99,6 +106,15 @@ class Client:
 
         :param state_generator: A no argument state generation callable. Defaults
         to :py:meth:`oauthlib.common.generate_token`.
+
+        :param code_verifier: PKCE parameter. A cryptographically random string that is used to correlate the
+        authorization request to the token request.
+
+        :param code_challenge: PKCE parameter. A challenge derived from the code verifier that is sent in the
+        authorization request, to be verified against later.
+
+        :param code_challenge_method: PKCE parameter. A method that was used to derive code challenge.
+        Defaults to "plain" if not present in the request.
         """
 
         self.client_id = client_id
@@ -113,6 +129,9 @@ class Client:
         self.state_generator = state_generator
         self.state = state
         self.redirect_url = redirect_url
+        self.code_verifier = code_verifier
+        self.code_challenge = code_challenge
+        self.code_challenge_method = code_challenge_method
         self.code = None
         self.expires_in = None
         self._expires_at = None
@@ -471,6 +490,91 @@ class Client:
             raise ValueError("Invalid token placement.")
         return uri, headers, body
 
+    def create_code_verifier(self, length):
+        """Create PKCE **code_verifier** used in computing **code_challenge**. 
+
+           :param length: REQUIRED. The length of the code_verifier.
+
+            The client first creates a code verifier, "code_verifier", for each
+            OAuth 2.0 [RFC6749] Authorization Request, in the following manner:
+
+            code_verifier = high-entropy cryptographic random STRING using the
+            unreserved characters [A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"
+            from Section 2.3 of [RFC3986], with a minimum length of 43 characters
+            and a maximum length of 128 characters.
+            
+            .. _`Section 4.1`: https://tools.ietf.org/html/rfc7636#section-4.1
+        """
+        code_verifier = None
+
+        if not length >= 43:
+            raise ValueError("Length must be greater than or equal to 43")
+
+        if not length <= 128:
+            raise ValueError("Length must be less than or equal to 128")
+
+        allowed_characters = re.compile('^[A-Zaa-z0-9-._~]')
+        code_verifier = secrets.token_urlsafe(length)
+
+        if not re.search(allowed_characters, code_verifier):
+            raise ValueError("code_verifier contains invalid characters")
+
+        self.code_verifier = code_verifier
+
+        return code_verifier
+
+    def create_code_challenge(self, code_verifier, code_challenge_method=None):
+        """Create PKCE **code_challenge** derived from the  **code_verifier**.
+
+           :param code_verifier: REQUIRED. The **code_verifier** generated from create_code_verifier().
+           :param code_challenge_method: OPTIONAL. The method used to derive the **code_challenge**. Acceptable
+                values include "S256". DEFAULT is "plain".
+
+
+            The client then creates a code challenge derived from the code
+               verifier by using one of the following transformations on the code
+               verifier:
+
+               plain
+                  code_challenge = code_verifier
+
+               S256
+                  code_challenge = BASE64URL-ENCODE(SHA256(ASCII(code_verifier)))
+
+               If the client is capable of using "S256", it MUST use "S256", as
+               "S256" is Mandatory To Implement (MTI) on the server.  Clients are
+               permitted to use "plain" only if they cannot support "S256" for some
+               technical reason and know via out-of-band configuration that the
+               server supports "plain".
+
+               The plain transformation is for compatibility with existing
+               deployments and for constrained environments that can't use the S256
+               transformation.
+
+            .. _`Section 4.2`: https://tools.ietf.org/html/rfc7636#section-4.2
+        """
+        code_challenge = None
+
+        if code_verifier == None:
+            raise ValueError("Invalid code_verifier")
+
+        if code_challenge_method == None:
+            code_challenge_method = "plain"
+            self.code_challenge_method = code_challenge_method
+            code_challenge = code_verifier
+            self.code_challenge = code_challenge
+
+        if code_challenge_method == "S256":
+            h = hashlib.sha256()
+            h.update(code_verifier.encode(encoding='ascii'))
+            sha256_val = h.digest()
+            code_challenge = bytes.decode(base64.urlsafe_b64encode(sha256_val))
+            # replace '+' with '-', '/' with '_', and remove trailing '='
+            code_challenge = code_challenge.replace("+", "-").replace("/", "_").replace("=", "")
+            self.code_challenge = code_challenge
+
+        return code_challenge
+
     def _add_mac_token(self, uri, http_method='GET', body=None,
                        headers=None, token_placement=AUTH_HEADER, ext=None, **kwargs):
         """Add a MAC token to the request authorization header.
@@ -513,7 +617,10 @@ class Client:
             self._expires_at = time.time() + int(self.expires_in)
 
         if 'expires_at' in response:
-            self._expires_at = int(response.get('expires_at'))
+            try:
+                self._expires_at = int(response.get('expires_at'))
+            except:
+                self._expires_at = None
 
         if 'mac_key' in response:
             self.mac_key = response.get('mac_key')

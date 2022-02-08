@@ -189,6 +189,7 @@ class OAuth2Session(requests.Session):
         proxies=None,
         include_client_id=None,
         client_secret=None,
+        cert=None,
         **kwargs
     ):
         """Generic method for fetching an access token from the token endpoint.
@@ -229,6 +230,10 @@ class OAuth2Session(requests.Session):
                               `auth` tuple. If the value is `None`, it will be
                               omitted from the request, however if the value is
                               an empty string, an empty string will be sent.
+        :param cert: Client certificate to send for OAuth 2.0 Mutual-TLS Client
+                     Authentication (draft-ietf-oauth-mtls). Can either be the
+                     path of a file containing the private key and certificate or
+                     a tuple of two filenames for certificate and key.
         :param kwargs: Extra parameters to include in the token request.
         :return: A token dict
         """
@@ -341,6 +346,7 @@ class OAuth2Session(requests.Session):
             auth=auth,
             verify=verify,
             proxies=proxies,
+            cert=cert,
             **request_kwargs
         )
 

@@ -103,15 +103,12 @@ class OAuth2Error(Exception):
             value "Bearer".  This scheme MUST be followed by one or more
             auth-param values.
             """
-            authvalues = [
-                "Bearer",
-                'error="{}"'.format(self.error)
-            ]
+            authvalues = ['error="{}"'.format(self.error)]
             if self.description:
                 authvalues.append('error_description="{}"'.format(self.description))
             if self.uri:
                 authvalues.append('error_uri="{}"'.format(self.uri))
-            return {"WWW-Authenticate": ", ".join(authvalues)}
+            return {"WWW-Authenticate": "Bearer " + ", ".join(authvalues)}
         return {}
 
 

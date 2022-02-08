@@ -54,7 +54,8 @@ class MetadataEndpoint(BaseEndpoint):
         """Create metadata response
         """
         headers = {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
         }
         return headers, json.dumps(self.claims), 200
 
