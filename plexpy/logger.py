@@ -127,6 +127,9 @@ class UsernameFilter(logging.Filter):
             username = item['username']
             friendly_name = item['friendly_name']
 
+            if username == 'Local':
+                continue
+
             try:
                 record.msg = self.replace(record.msg, username)
                 record.msg = self.replace(record.msg, friendly_name)
