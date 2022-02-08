@@ -1,6 +1,12 @@
 # Changelog
 
-## v2.9.0-beta (2022-01-25)
+## v2.9.1 (2022-02-07)
+
+* Other:
+  * Fix: Incorrect changelog version number and date.
+
+
+## v2.9.0 (2022-02-07)
 
 * Notification:
   * New: Added track disc number notification parameter. 
