@@ -18,6 +18,5 @@
     ],
     "theme_color": "#282a2d",
     "background_color": "#282a2d",
-    "display": "standalone",
-    "orientation": "any"
+    "display": "standalone"
 }
