@@ -759,7 +759,7 @@ class Arrow:
             >>> start = datetime(2013, 5, 5, 12, 30)
             >>> end = datetime(2013, 5, 5, 17, 15)
             >>> for r in arrow.Arrow.interval('hour', start, end, 2):
-            ...     print r
+            ...     print(r)
             ...
             (<Arrow [2013-05-05T12:00:00+00:00]>, <Arrow [2013-05-05T13:59:59.999999+00:00]>)
             (<Arrow [2013-05-05T14:00:00+00:00]>, <Arrow [2013-05-05T15:59:59.999999+00:00]>)
@@ -1384,7 +1384,7 @@ class Arrow:
                 search_string = search_string.format(r"\d+")
 
                 # Create search pattern and find within string
-                pattern = re.compile(fr"{search_string}")
+                pattern = re.compile(fr"(^|\b|\d){search_string}")
                 match = pattern.search(input_string)
 
                 # If there is no match continue to next iteration
