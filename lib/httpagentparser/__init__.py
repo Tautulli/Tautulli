@@ -8,7 +8,7 @@ Tries to
     * assist python web apps to detect clients.
 """
 
-__version__ = '1.9.1'
+__version__ = '1.9.2'
 
 
 class DetectorsHub(dict):
@@ -671,11 +671,21 @@ def detect(agent, fill_none=False):
     return result
 
 
-def simple_detect(agent):
+UNKNOWN_OS_NAME = 'Unknown OS'
+UNKNOWN_BROWSER_NAME = 'Unknown Browser'
+
+
+def simple_detect_tuple(agent, parsed_agent=None):
     """
-    -> (os, browser) # tuple of strings
+    @params:
+        agent::str
+        parsed_agent::dict
+            The result of detect, used to save calculations
+
+    @return:
+        (os_name, os_version, browser_name, browser_version)::Tuple(str)
     """
-    result = detect(agent)
+    result = parsed_agent or detect(agent)
     os_list = []
     if 'flavor' in result:
         os_list.append(result['flavor']['name'])
@@ -684,11 +694,26 @@ def simple_detect(agent):
     if 'os' in result:
         os_list.append(result['os']['name'])
 
-    os = os_list and " ".join(os_list) or "Unknown OS"
+    os = os_list and " ".join(os_list) or UNKNOWN_OS_NAME
     os_version = os_list and (result.get('flavor') and result['flavor'].get('version')) or \
         (result.get('dist') and result['dist'].get('version')) or (result.get('os') and result['os'].get('version')) or ""
-    browser = 'browser' in result and result['browser'].get('name') or 'Unknown Browser'
+    browser = 'browser' in result and result['browser'].get('name') or UNKNOWN_BROWSER_NAME
     browser_version = 'browser' in result and result['browser'].get('version') or ""
+
+    return os, os_version, browser, browser_version
+
+
+def simple_detect(agent, parsed_agent=None):
+    """
+    @params:
+        agent::str
+        parsed_agent::dict
+            The result of detect, used to save calculations
+
+    @return:
+        (os_name_version, browser_name_version)::Tuple(str)
+    """
+    os, os_version, browser, browser_version = simple_detect_tuple(agent, parsed_agent=parsed_agent)
     if browser_version:
         browser = " ".join((browser, browser_version))
     if os_version:
