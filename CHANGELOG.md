@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.9.2 (2022-02-08)
+
+* Notification:
+  * New: Added support for additional Telegram HTML tags.
+  * Removed: Revert Telegram defaulting to MarkdownV2 and only support HTML. (#1635)
+* Other:
+  * Fix: The Local user being masked in the logs.
+
+
 ## v2.9.1 (2022-02-07)
 
 * Other:
