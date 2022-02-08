@@ -277,18 +277,48 @@ def explode(public_id, **options):
     return call_api("explode", params, **options)
 
 
-# options may include 'exclusive' (boolean) which causes clearing this tag from all other resources
 def add_tag(tag, public_ids=None, **options):
+    """
+    Adds a single tag or a list of tags or a comma-separated tags to the assets.
+
+    :param tag:         The tag or tags to assign. Can specify multiple tags in a single string,
+                        separated by commas - "t1,t2,t3" or list of tags - ["t1","t2","t3"].
+    :param public_ids:  A list of public IDs (up to 1000).
+    :param options:     Configuration options may include 'exclusive' (boolean) which causes
+                        clearing this tag from all other assets.
+
+    :return:            Dictionary with a list of public IDs that were updated.
+    """
     exclusive = options.pop("exclusive", None)
     command = "set_exclusive" if exclusive else "add"
     return call_tags_api(tag, command, public_ids, **options)
 
 
 def remove_tag(tag, public_ids=None, **options):
+    """
+    Removes a single tag or a list of tags or a comma-separated tags from the assets.
+
+    :param tag:         The tag or tags to assign. Can specify multiple tags in a single string,
+                        separated by commas - "t1,t2,t3" or list of tags - ["t1","t2","t3"].
+    :param public_ids:  A list of public IDs (up to 1000).
+    :param options:     Additional options.
+
+    :return:            Dictionary with a list of public IDs that were updated.
+    """
     return call_tags_api(tag, "remove", public_ids, **options)
 
 
 def replace_tag(tag, public_ids=None, **options):
+    """
+    Replaces all existing tags with a single tag or a list of tags or a comma-separated tags of the assets.
+
+    :param tag:         The tag or tags to assign. Can specify multiple tags in a single string,
+                        separated by commas - "t1,t2,t3" or list of tags - ["t1","t2","t3"].
+    :param public_ids:  A list of public IDs (up to 1000).
+    :param options:     Additional options.
+
+    :return:            Dictionary with a list of public IDs that were updated.
+    """
     return call_tags_api(tag, "replace", public_ids, **options)
 
 

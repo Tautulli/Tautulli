@@ -38,7 +38,7 @@ CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAA
 URI_SCHEME = "cloudinary"
 API_VERSION = "v1_1"
 
-VERSION = "1.28.1"
+VERSION = "1.29.0"
 
 USER_AGENT = "CloudinaryPython/{} (Python {})".format(VERSION, python_version())
 """ :const: USER_AGENT """
