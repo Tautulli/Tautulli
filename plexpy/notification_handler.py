@@ -1375,12 +1375,16 @@ def strip_tag(data, agent_id=None):
         data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     elif agent_id == 13:
-        # Allow tags b, i, code, pre, a[href] for Telegram
-        whitelist = {'b': [],
-                     'i': [],
-                     'code': [],
-                     'pre': [],
-                     'a': ['href']}
+        # Allow tags for Telegram
+        # https://core.telegram.org/bots/api#html-style
+        whitelist = {'b': [], 'strong': [],
+                     'i': [], 'em': [],
+                     'u': [], 'ins': [],
+                     's': [], 'strike': [], 'del': [],
+                     'span': ['class'], 'tg-spoiler': [],
+                     'a': ['href'],
+                     'code': ['class'],
+                     'pre': []}
         data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     elif agent_id in (10, 14, 20, 25):

@@ -3963,7 +3963,9 @@ class TELEGRAM(Notifier):
                          {'label': 'Enable HTML Support',
                           'value': self.config['html_support'],
                           'name': 'telegram_html_support',
-                          'description': 'Style your messages using these HTML tags: b, i, a[href], code, pre.',
+                          'description': 'Enable to style your messages using these HTML tags:<br>'
+                                         'b, strong, i, em, u, ins, s, strike, del, span[class], '
+                                         'tg-spoiler, a[href], code[class], pre',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Disable Web Page Previews',
