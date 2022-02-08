@@ -177,7 +177,7 @@ class Artist(Audio, AdvancedSettingsMixin, ArtMixin, PosterMixin, RatingMixin, S
 
     def albums(self, **kwargs):
         """ Returns a list of :class:`~plexapi.audio.Album` objects by the artist. """
-        key = '/library/metadata/%s/children' % self.ratingKey
+        key = f"/library/sections/{self.librarySectionID}/all?artist.id={self.ratingKey}&type=9"
         return self.fetchItems(key, Album, **kwargs)
 
     def track(self, title=None, album=None, track=None):
