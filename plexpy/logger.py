@@ -123,7 +123,12 @@ class UsernameFilter(logging.Filter):
         if not plexpy.CONFIG.LOG_BLACKLIST_USERNAMES:
             return True
 
-        for item in users.Users().get_users():
+        if not plexpy._INITIALIZED:
+            return True
+
+        items = users.Users().get_users() or []
+
+        for item in items:
             username = item['username']
             friendly_name = item['friendly_name']
 
