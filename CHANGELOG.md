@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.9.3 (2022-02-09)
+
+* UI:
+  * Fix: Setup wizard looping.
+* Other:
+  * Fix: Logger username masking preventing Tautulli from starting on new installs.
+
+
 ## v2.9.2 (2022-02-08)
 
 * Notification:
