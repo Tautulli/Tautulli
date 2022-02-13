@@ -25,15 +25,8 @@ var hc_additions_by_day_options = {
     },
     plotOptions: {
         series: {
+            allowPointSelect: false,
             threshold: 0,
-            cursor: 'pointer',
-            point: {
-                events: {
-                    click: function () {
-                        selectHandler(this.category, this.series.name);
-                    }
-                }
-            },
             events: {
                 legendItemClick: function(event) {
                     syncGraphs(this, this.chart.renderTo.id, this.name, event.browserEvent);
