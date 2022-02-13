@@ -5893,6 +5893,8 @@ class WebInterface(object):
                              "transcode_hw_full_pipeline": 0,
                              "transcode_hw_requested": 0,
                              "transcode_key": "",
+                             "transcode_max_offset_available": 0,
+                             "transcode_min_offset_available": 0,
                              "transcode_progress": 0,
                              "transcode_protocol": "",
                              "transcode_speed": "",
