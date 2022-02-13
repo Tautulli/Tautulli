@@ -3261,6 +3261,10 @@ class WebInterface(object):
 
         all_settings = config.SETTINGS + config.CHECKED_SETTINGS
         kwargs = {k: v for k, v in kwargs.items() if k.upper() in all_settings}
+
+        if first_run:
+            kwargs['first_run_complete'] = 1
+
         plexpy.CONFIG.process_kwargs(kwargs)
 
         # Write the config
