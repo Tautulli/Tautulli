@@ -427,6 +427,10 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
+        join_statement = ' AS lsi JOIN library_sections AS ls ON ' \
+	                     'lsi.section_id = ls.section_id AND lsi.library_name = ls.section_name ' \
+                         'AND ls.is_active = 1 AND ls.deleted_section = 0 '
+
         try:
             if growth:
                 query = 'SELECT ' \
@@ -438,7 +442,7 @@ class Graphs(object):
                             'SUM(CASE WHEN media_type = "artist" THEN 1 ELSE 0 END) AS artist_count, ' \
                             'SUM(CASE WHEN media_type = "album" THEN 1 ELSE 0 END) AS album_count, ' \
                             'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
-                        'FROM library_stats_items ' \
+                        'FROM library_stats_items %s' \
                         'WHERE added_at < %s ' \
                         'UNION ALL ' \
                         'SELECT raM.date_added, ' \
@@ -450,7 +454,7 @@ class Graphs(object):
                             '0 AS album_count, ' \
                             'SUM(CASE WHEN raM.media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '    FROM library_stats_items ' \
+                            '    FROM library_stats_items %s' \
                             '    WHERE (media_type = "movie" OR media_type = "episode" or media_type = "track") AND added_at >= %s) AS raM ' \
                         'GROUP BY raM.date_added ' \
                         'UNION ALL ' \
@@ -463,7 +467,7 @@ class Graphs(object):
                             '0 AS album_count, ' \
                             '0 AS track_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '    FROM library_stats_items ' \
+                            '    FROM library_stats_items %s' \
                             '    WHERE NOT grandparent_rating_key = "" AND (media_type = "episode" OR media_type = "track") AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                         'GROUP BY raG.date_added ' \
@@ -477,11 +481,14 @@ class Graphs(object):
                             'SUM(CASE WHEN NOT raS.parent_rating_key = "" AND media_type = "track" THEN 1 ELSE 0 END) AS album_count, ' \
                             '0 AS track_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '   FROM library_stats_items ' \
+                            '   FROM library_stats_items %s' \
                             '   WHERE NOT parent_rating_key = "" AND (media_type = "episode" OR media_type = "track") AND added_at >= %s ' \
                             '   GROUP BY parent_rating_key) AS raS ' \
                         'GROUP BY raS.date_added ' \
-                        'ORDER BY date_added' % (timestamp, timestamp, timestamp, timestamp)
+                        'ORDER BY date_added' % (join_statement, timestamp,
+                                                join_statement, timestamp,
+                                                join_statement, timestamp,
+                                                join_statement, timestamp)
 
                 result = monitor_db.select(query)
             else:
@@ -494,7 +501,7 @@ class Graphs(object):
                             '0 AS album_count, ' \
                             'SUM(CASE WHEN raM.media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '    FROM library_stats_items ' \
+                            '    FROM library_stats_items %s' \
                             '    WHERE (media_type = "movie" OR media_type = "episode" or media_type = "track") AND added_at >= %s) AS raM ' \
                         'GROUP BY raM.date_added ' \
                         'UNION ALL ' \
@@ -507,7 +514,7 @@ class Graphs(object):
                             '0 AS album_count, ' \
                             '0 AS track_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '    FROM library_stats_items ' \
+                            '    FROM library_stats_items %s' \
                             '    WHERE NOT grandparent_rating_key = "" AND (media_type = "episode" OR media_type = "track") AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                         'GROUP BY raG.date_added ' \
@@ -521,11 +528,13 @@ class Graphs(object):
                             'SUM(CASE WHEN NOT raS.parent_rating_key = "" AND media_type = "track" THEN 1 ELSE 0 END) AS album_count, ' \
                             '0 AS track_count ' \
                             'FROM (SELECT *, date(added_at, "unixepoch", "localtime") AS date_added ' \
-                            '   FROM library_stats_items ' \
+                            '   FROM library_stats_items %s' \
                             '   WHERE NOT parent_rating_key = "" AND (media_type = "episode" OR media_type = "track") AND added_at >= %s ' \
                             '   GROUP BY parent_rating_key) AS raS ' \
                         'GROUP BY raS.date_added ' \
-                        'ORDER BY date_added' % (timestamp, timestamp, timestamp)
+                        'ORDER BY date_added' % (join_statement, timestamp,
+                                                join_statement, timestamp,
+                                                join_statement, timestamp)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -654,7 +663,9 @@ class Graphs(object):
                         'SUM(CASE WHEN media_type = "artist" THEN 1 ELSE 0 END) AS artist_count, ' \
                         'SUM(CASE WHEN media_type = "album" THEN 1 ELSE 0 END) AS album_count, ' \
                         'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
-                    'FROM library_stats_items ' \
+                    'FROM library_stats_items AS lsi JOIN library_sections AS ls ON ' \
+	                    'lsi.section_id = ls.section_id AND lsi.library_name = ls.section_name ' \
+                        'AND ls.is_active = 1 AND ls.deleted_section = 0 ' \
                     'WHERE added_at >= %s' % timestamp
 
             result = monitor_db.select(query)
@@ -733,6 +744,10 @@ class Graphs(object):
                                 'WHEN media_info LIKE \'%"video_resolution": "480"%\' THEN "5_480" ' \
                                 'WHEN media_info LIKE \'%"video_resolution": "sd"%\' THEN "6_SD" ELSE "7_Unknown" END) AS resolution '
 
+        join_statement = ' AS lsi JOIN library_sections AS ls ON ' \
+	                     'lsi.section_id = ls.section_id AND lsi.library_name = ls.section_name ' \
+                         'AND ls.is_active = 1 AND ls.deleted_section = 0 '
+
         try:
             query = 'SELECT ' \
                         'ra.resolution, ' \
@@ -748,7 +763,7 @@ class Graphs(object):
                             '0 AS season_count, ' \
                             'SUM(CASE WHEN raM.media_type = "episode" THEN 1 ELSE 0 END) AS episode_count ' \
                             'FROM (SELECT *, %s ' \
-                                'FROM library_stats_items ' \
+                                'FROM library_stats_items %s' \
                                 'WHERE (media_type = "movie" OR media_type = "episode") AND added_at >= %s) AS raM ' \
                             'GROUP BY raM.resolution ' \
                         'UNION ALL ' \
@@ -759,7 +774,7 @@ class Graphs(object):
                             '0 AS season_count, ' \
                             '0 AS episode_count ' \
                             'FROM (SELECT *, %s ' \
-                                'FROM library_stats_items ' \
+                                'FROM library_stats_items %s' \
                             '    WHERE NOT grandparent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                             '    GROUP BY grandparent_rating_key) AS raG ' \
                             'GROUP BY raG.resolution ' \
@@ -771,14 +786,14 @@ class Graphs(object):
                             'SUM(CASE WHEN NOT raS.parent_rating_key = "" THEN 1 ELSE 0 END) AS season_count, ' \
                             '0 AS episode_count ' \
                             'FROM (SELECT *, %s ' \
-                                'FROM library_stats_items ' \
+                                'FROM library_stats_items %s' \
                                 'WHERE NOT parent_rating_key = "" AND media_type = "episode" AND added_at >= %s ' \
                                 'GROUP BY parent_rating_key) AS raS ' \
                             'GROUP BY raS.resolution) AS ra ' \
                     'GROUP BY resolution ' \
-                    'ORDER BY resolution' % (resolution_identifier, timestamp,
-                                            resolution_identifier, timestamp,
-                                            resolution_identifier, timestamp)
+                    'ORDER BY resolution' % (resolution_identifier, join_statement, timestamp,
+                                            resolution_identifier, join_statement, timestamp,
+                                            resolution_identifier, join_statement, timestamp)
 
             result = monitor_db.select(query)
 
