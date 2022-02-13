@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.9.4 (2022-02-12)
+
+* UI:
+  * Fix: Setup wizard appearing when restarting after saving settings.
+* Other:
+  * Fix: Stop Tautulli from starting multiple instances on Windows after a clean reinstall. Check the startup items in Windows Task Manager if it is still occurring.
+
+
 ## v2.9.3 (2022-02-09)
 
 * UI:
