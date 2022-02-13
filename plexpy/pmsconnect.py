@@ -1732,7 +1732,11 @@ class PmsConnect(object):
 
             transcode_info = session.getElementsByTagName('TranscodeSession')[0]
 
-            transcode_progress = helpers.get_xml_attr(transcode_info, 'progress')
+            # transcode_info's 'progress' field is relative to the transcode's starting point, so will be inaccurate if an
+            # item is resumed partway through. Instead calculate the percentage using the maxOffsetAvailable and duration.
+            transcode_max_offset = helpers.cast_to_float(helpers.get_xml_attr(transcode_info, 'maxOffsetAvailable'))
+            transcode_duration = helpers.cast_to_float(helpers.get_xml_attr(transcode_info, 'duration'))
+            transcode_progress = ((transcode_max_offset * 1000) / transcode_duration) * 100
             transcode_speed = helpers.get_xml_attr(transcode_info, 'speed')
 
             transcode_details = {'transcode_key': helpers.get_xml_attr(transcode_info, 'key'),
