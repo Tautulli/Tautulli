@@ -698,3 +698,9 @@ class Config(object):
             self.HTTP_HASHED_PASSWORD = 1
 
             self.CONFIG_VERSION = 20
+
+        if self.CONFIG_VERSION == 20:
+            if self.PMS_UUID:
+                self.FIRST_RUN_COMPLETE = 1
+
+            self.CONFIG_VERSION = 21
