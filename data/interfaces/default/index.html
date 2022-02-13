@@ -590,8 +590,10 @@
                         }
 
                         // Update the progress bars
-                        $('#buffer-bar-' + key).css({width: parseInt(s.transcode_progress) + '%'}).html(s.transcode_progress + '%')
-                            .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
+                        var duration = parseInt(s.duration);
+                        var transcode_progress = duration ? Math.round(s.transcode_max_offset_available * 1000 / duration * 100) : s.transcode_progress;
+                        $('#buffer-bar-' + key).css({width: parseInt(transcode_progress) + '%'}).html(transcode_progress + '%')
+                            .attr('data-original-title', 'Transcoder Progress ' + transcode_progress + '%');
                         if (s.live !== 1) {
                             var progress_bar = $('#progress-bar-' + key);
                             progress_bar.data('state', s.state);

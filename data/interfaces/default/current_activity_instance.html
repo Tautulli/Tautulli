@@ -62,7 +62,7 @@ DOCUMENTATION :: END
 % if session is not None:
 <%
     from collections import defaultdict
-    from plexpy.helpers import cast_to_int, page, short_season
+    from plexpy.helpers import cast_to_int, get_percent, page, short_season
     from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES, EXTRA_TYPES
     import plexpy
 %>
@@ -392,7 +392,8 @@ DOCUMENTATION :: END
                 % if data['live']:
                 <div id="progress-bar-${sk}" class="progress-bar" style="width: 100%" data-state="live" data-toggle="tooltip" title="Stream Progress Live">Live</div>
                 % else:
-                <div id="buffer-bar-${sk}" class="buffer-bar" style="width: ${data['transcode_progress']}%" data-toggle="tooltip" title="Transcoder Progress ${data['transcode_progress']}%">${data['transcode_progress']}%</div>
+                <%  transcode_progress = get_percent(data['transcode_max_offset_available'] * 1000, data['duration']) or data['transcode_progress'] %>
+                <div id="buffer-bar-${sk}" class="buffer-bar" style="width: ${transcode_progress}%" data-toggle="tooltip" title="Transcoder Progress ${transcode_progress}%">${transcode_progress}%</div>
                 <div id="progress-bar-${sk}" class="progress-bar" style="width: ${data['progress_percent']}%" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-stream_duration="${data['stream_duration']}" data-state="${data['state']}" data-toggle="tooltip" title="Stream Progress ${data['progress_percent']}%">${data['progress_percent']}%</div>
                 % endif
             </div>
