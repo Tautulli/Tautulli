@@ -2719,11 +2719,21 @@ class PmsConnect(object):
                 if get_media_info:
                     item_media = item.getElementsByTagName('Media')
                     for media in item_media:
+                        _videoProfile = helpers.get_xml_attr(media, 'videoProfile')
+                        if _videoProfile == 'main 10':
+                            media_metadata = PmsConnect().get_metadata(
+                                str(helpers.get_xml_attr(item, 'ratingKey')), output_format='xml')
+                            _stream = media_metadata.getElementsByTagName('Stream')[0]
+                            if _stream.hasAttribute('DOVIProfile'):
+                                _videoProfile = 'main 10 HDR DV'
+                            else: 
+                                _videoProfile = 'main 10 HDR'
+
                         media_info = {'container': helpers.get_xml_attr(media, 'container'),
                                       'bitrate': helpers.get_xml_attr(media, 'bitrate'),
                                       'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
                                       'video_resolution': helpers.get_xml_attr(media, 'videoResolution').lower(),
-                                      'video_profile': helpers.get_xml_attr(media, 'videoProfile'),
+                                      'video_profile': _videoProfile,
                                       'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                       'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
                                       'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),
