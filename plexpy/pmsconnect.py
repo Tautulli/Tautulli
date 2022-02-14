@@ -2721,7 +2721,7 @@ class PmsConnect(object):
                     for media in item_media:
                         _videoProfile = helpers.get_xml_attr(media, 'videoProfile')
                         if _videoProfile == 'main 10':
-                            media_metadata = PmsConnect().get_metadata(
+                            media_metadata = self.get_metadata(
                                 str(helpers.get_xml_attr(item, 'ratingKey')), output_format='xml')
                             _stream = media_metadata.getElementsByTagName('Stream')[0]
                             if _stream.hasAttribute('DOVIProfile'):
