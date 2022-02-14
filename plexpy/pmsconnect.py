@@ -2723,6 +2723,7 @@ class PmsConnect(object):
                                       'bitrate': helpers.get_xml_attr(media, 'bitrate'),
                                       'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
                                       'video_resolution': helpers.get_xml_attr(media, 'videoResolution').lower(),
+                                      'video_profile': helpers.get_xml_attr(media, 'videoProfile'),
                                       'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                       'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
                                       'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),

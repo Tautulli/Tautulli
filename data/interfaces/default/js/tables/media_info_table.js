@@ -175,7 +175,7 @@ media_info_table_options = {
         },
         {
             "targets": [6],
-            "data": "video_framerate",
+            "data": "video_profile",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
                     $(td).html(cellData);
@@ -186,7 +186,7 @@ media_info_table_options = {
         },
         {
             "targets": [7],
-            "data": "audio_codec",
+            "data": "video_framerate",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
                     $(td).html(cellData);
@@ -197,6 +197,17 @@ media_info_table_options = {
         },
         {
             "targets": [8],
+            "data": "audio_codec",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "8%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [9],
             "data": "audio_channels",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -207,7 +218,7 @@ media_info_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [9],
+            "targets": [10],
             "data": "file_size",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -223,7 +234,7 @@ media_info_table_options = {
             "searchable": false
         },
         {
-            "targets": [10],
+            "targets": [11],
             "data": "last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -236,7 +247,7 @@ media_info_table_options = {
             "searchable": false
         },
         {
-            "targets": [11],
+            "targets": [12],
             "data": "play_count",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -453,6 +464,7 @@ function childTableFormatMedia(rowData) {
                 '<th align="left" id="bitrate">Bitrate</th>' +
                 '<th align="left" id="video_codec">Video Codec</th>' +
                 '<th align="left" id="video_resolution">Video Resolution</th>' +
+                '<th align="left" id="video_profile">Video Profile</th>' +
                 '<th align="left" id="video_resolution">Video Framerate</th>' +
                 '<th align="left" id="audio_codec">Audio Codec</th>' +
                 '<th align="left" id="audio_channels">Audio Channels</th>' +

@@ -16,6 +16,8 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
+
+from sqlalchemy import true
 from future.builtins import str
 from future.builtins import next
 from future.builtins import object
@@ -582,6 +584,7 @@ class Libraries(object):
                        'bitrate': item.get('bitrate', ''),
                        'video_codec': item.get('video_codec', ''),
                        'video_resolution': item.get('video_resolution', ''),
+                       'video_profile': item.get('video_profile', ''),
                        'video_framerate': item.get('video_framerate', ''),
                        'audio_codec': item.get('audio_codec', ''),
                        'audio_channels': item.get('audio_channels', ''),
