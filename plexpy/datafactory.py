@@ -1031,6 +1031,30 @@ class DataFactory(object):
 
         library_stats = {k: list(v) for k, v in groupby(library_stats, key=lambda x: x['section_type'])}
 
+        if plexpy.CONFIG.TOTAL_ELEMENT_COUNT:        
+            for type in library_stats:
+                total_count = 0
+                total_child_count = 0
+                total_grandchild_count = 0
+
+                _libraries = library_stats.get(type)
+
+                for library in _libraries:
+                    total_count = total_count + library['count'] if library['count'] != None else total_count
+                    total_child_count = total_child_count + library['child_count'] if library['child_count'] != None else total_child_count
+                    total_grandchild_count = total_grandchild_count + library['grandchild_count'] if library['grandchild_count'] != None else total_grandchild_count
+                
+                #Set the art and thumb to tautulli default -> How to best access it?
+                _library = {'section_id': '0',
+                        'section_name': 'Total',
+                        'section_type': type,
+                        'count': total_count,
+                        'child_count': total_child_count,
+                        'grandchild_count': total_grandchild_count
+                        }
+                
+                _libraries.append(_library)
+
         return library_stats
 
     def get_watch_time_stats(self, rating_key=None, grouping=None, query_days=None):

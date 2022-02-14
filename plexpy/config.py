@@ -191,6 +191,7 @@ _CONFIG_DEFINITIONS = {
     'SYNCHRONOUS_MODE': (str, 'Advanced', 'NORMAL'),
     'THEMOVIEDB_APIKEY': (str, 'General', 'e9a6655bae34bf694a0f3e33338dc28e'),
     'THEMOVIEDB_LOOKUP': (int, 'General', 0),
+    'TOTAL_ELEMENT_COUNT': (int, 'Monitoring', 0), 
     'TVMAZE_LOOKUP': (int, 'General', 0),
     'TV_WATCHED_PERCENT': (int, 'Monitoring', 85),
     'UPDATE_DB_INTERVAL': (int, 'General', 24),
@@ -335,6 +336,7 @@ CHECKED_SETTINGS = [
     'REFRESH_USERS_ON_STARTUP',
     'SYS_TRAY_ICON',
     'THEMOVIEDB_LOOKUP',
+    'TOTAL_ELEMENT_COUNT',
     'TVMAZE_LOOKUP',
     'WEEK_START_MONDAY',
 ]
@@ -704,3 +706,8 @@ class Config(object):
                 self.FIRST_RUN_COMPLETE = 1
 
             self.CONFIG_VERSION = 21
+
+        if self.CONFIG_VERSION == 21:
+            self.TOTAL_ELEMENT_COUNT = 0
+      
+            self.CONFIG_VERSION = 22

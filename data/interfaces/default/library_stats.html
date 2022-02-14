@@ -59,9 +59,13 @@ DOCUMENTATION :: END
                                 data-art="${section.get('art')}" data-thumb="${section.get('thumb')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
+                                    % if section['section_id'] == '0':
+                                    ${section['section_name']}
+                                    % else:
                                     <a href="${page('library', section['section_id'])}" title="${section['section_name']}">
                                         ${section['section_name']}
                                     </a>
+                                    % endif
                                 </div>
                                 % if headers[section_type][1][0]:
                                 <div class="sub-count">
