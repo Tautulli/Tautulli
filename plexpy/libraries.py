@@ -16,8 +16,6 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
-
-from sqlalchemy import true
 from future.builtins import str
 from future.builtins import next
 from future.builtins import object
