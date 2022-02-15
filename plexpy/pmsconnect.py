@@ -2726,8 +2726,13 @@ class PmsConnect(object):
                             _stream = media_metadata.getElementsByTagName('Stream')[0]
                             if _stream.hasAttribute('DOVIProfile'):
                                 _videoProfile = 'main 10 HDR DV'
-                            else: 
+                            elif _stream.hasAttribute('chromaLocation') and (_stream.getAttribute('colorTrc') == 'bt2020-10' 
+                                    or _stream.getAttribute('colorTrc') == 'arib-std-b67'):
+                                _videoProfile = 'main 10 HDR HLG'
+                            elif helpers.cast_to_int(_stream.getAttribute('bitDepth')) > 8 and _stream.getAttribute('colorSpace') == 'bt2020nc':
                                 _videoProfile = 'main 10 HDR'
+                            else:
+                                _videoProfile = 'main 10 SDR'
 
                         media_info = {'container': helpers.get_xml_attr(media, 'container'),
                                       'bitrate': helpers.get_xml_attr(media, 'bitrate'),
