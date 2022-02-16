@@ -1048,6 +1048,8 @@ class DataFactory(object):
                 _library = {'section_id': '0',
                         'section_name': 'Total',
                         'section_type': type,
+                        'thumb': common.DEFAULT_COVER_THUMB,
+                        'art': common.DEFAULT_ART,
                         'count': total_count,
                         'child_count': total_child_count,
                         'grandchild_count': total_grandchild_count
