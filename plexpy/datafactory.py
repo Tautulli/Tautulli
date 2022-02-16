@@ -1044,7 +1044,6 @@ class DataFactory(object):
                     total_child_count = total_child_count + library['child_count'] if library['child_count'] != None else total_child_count
                     total_grandchild_count = total_grandchild_count + library['grandchild_count'] if library['grandchild_count'] != None else total_grandchild_count
                 
-                #Set the art and thumb to tautulli default -> How to best access it?
                 _library = {'section_id': '0',
                         'section_name': 'Total',
                         'section_type': type,
