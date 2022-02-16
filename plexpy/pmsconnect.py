@@ -2724,15 +2724,26 @@ class PmsConnect(object):
                             media_metadata = self.get_metadata(
                                 str(helpers.get_xml_attr(item, 'ratingKey')), output_format='xml')
                             _stream = media_metadata.getElementsByTagName('Stream')[0]
-                            if _stream.hasAttribute('DOVIProfile'):
-                                _videoProfile = 'main 10 HDR DV'
-                            elif _stream.hasAttribute('chromaLocation') and (_stream.getAttribute('colorTrc') == 'bt2020-10' 
-                                    or _stream.getAttribute('colorTrc') == 'arib-std-b67'):
-                                _videoProfile = 'main 10 HDR HLG'
-                            elif helpers.cast_to_int(_stream.getAttribute('bitDepth')) > 8 and _stream.getAttribute('colorSpace') == 'bt2020nc':
-                                _videoProfile = 'main 10 HDR'
+                            _plexVersion = helpers.cast_to_int(plexpy.CONFIG.PMS_VERSION.split('-')[0].translate(str.maketrans('', '', '.')))
+                            #HDR details got introduced with PMS version 1.25.6.5545
+                            if _plexVersion >= 12565545:
+                                displayTitle = str(_stream.getAttribute('extendedDisplayTitle')).lower()
+                                if 'dolby vision' in displayTitle:
+                                    _videoProfile = 'main 10 DV'
+                                elif 'hlg' in displayTitle:
+                                    _videoProfile = 'main 10 HLG'
+                                elif 'hdr' in displayTitle:
+                                    _videoProfile = 'main 10 HDR'
+                                else:
+                                    _videoProfile = 'main 10 SDR'
                             else:
-                                _videoProfile = 'main 10 SDR'
+                                if _stream.hasAttribute('DOVIProfile'):
+                                    _videoProfile = 'main 10 HDR DV'
+                                elif helpers.cast_to_int(_stream.getAttribute('bitDepth')) > 8 and _stream.getAttribute('colorSpace') == 'bt2020nc':
+                                    #Exact HDR version needs PMS version 1.25.6.5545 or higher
+                                    _videoProfile = 'main 10 HDR*'
+                                else:
+                                    _videoProfile = 'main 10 SDR'
 
                         media_info = {'container': helpers.get_xml_attr(media, 'container'),
                                       'bitrate': helpers.get_xml_attr(media, 'bitrate'),
