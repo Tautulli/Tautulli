@@ -2719,37 +2719,38 @@ class PmsConnect(object):
                 if get_media_info:
                     item_media = item.getElementsByTagName('Media')
                     for media in item_media:
-                        _videoProfile = helpers.get_xml_attr(media, 'videoProfile')
-                        if _videoProfile == 'main 10':
+                        _videoDynRange = []
+                        if media_type in ['movie', 'episode'] and helpers.get_xml_attr(media, 'videoCodec') == 'hevc':
                             media_metadata = self.get_metadata(
                                 str(helpers.get_xml_attr(item, 'ratingKey')), output_format='xml')
                             _stream = media_metadata.getElementsByTagName('Stream')[0]
-                            _plexVersion = helpers.cast_to_int(plexpy.CONFIG.PMS_VERSION.split('-')[0].translate(str.maketrans('', '', '.')))
                             #HDR details got introduced with PMS version 1.25.6.5545
-                            if _plexVersion >= 12565545:
+                            if helpers.version_to_tuple(plexpy.CONFIG.PMS_VERSION) >= helpers.version_to_tuple('1.25.6.5545'):
                                 displayTitle = str(_stream.getAttribute('extendedDisplayTitle')).lower()
                                 if 'dolby vision' in displayTitle:
-                                    _videoProfile = 'main 10 DV'
-                                elif 'hlg' in displayTitle:
-                                    _videoProfile = 'main 10 HLG'
-                                elif 'hdr' in displayTitle:
-                                    _videoProfile = 'main 10 HDR'
-                                else:
-                                    _videoProfile = 'main 10 SDR'
+                                    _videoDynRange.append('Dolby Vision')
+                                if 'hlg' in displayTitle:
+                                    _videoDynRange.append('HLG')
+                                if 'hdr10' in displayTitle:
+                                    _videoDynRange.append('HDR10')
+                                if len(_videoDynRange) == 0:
+                                    _videoDynRange.append('SDR')
                             else:
                                 if _stream.hasAttribute('DOVIProfile'):
-                                    _videoProfile = 'main 10 HDR DV'
-                                elif helpers.cast_to_int(_stream.getAttribute('bitDepth')) > 8 and _stream.getAttribute('colorSpace') == 'bt2020nc':
+                                    _videoDynRange.append('Dolby Vision')
+                                if helpers.cast_to_int(_stream.getAttribute('bitDepth')) > 8 and _stream.getAttribute('colorSpace') == 'bt2020nc':
                                     #Exact HDR version needs PMS version 1.25.6.5545 or higher
-                                    _videoProfile = 'main 10 HDR*'
-                                else:
-                                    _videoProfile = 'main 10 SDR'
+                                    _videoDynRange.append('HDR*')
+                                if len(_videoDynRange) == 0:
+                                    _videoDynRange.append('SDR')
+                            
+                            _videoDynRange = '/'.join(_videoDynRange)
 
                         media_info = {'container': helpers.get_xml_attr(media, 'container'),
                                       'bitrate': helpers.get_xml_attr(media, 'bitrate'),
                                       'video_codec': helpers.get_xml_attr(media, 'videoCodec'),
                                       'video_resolution': helpers.get_xml_attr(media, 'videoResolution').lower(),
-                                      'video_profile': _videoProfile,
+                                      'video_dynamic_range': _videoDynRange,
                                       'video_framerate': helpers.get_xml_attr(media, 'videoFrameRate'),
                                       'audio_codec': helpers.get_xml_attr(media, 'audioCodec'),
                                       'audio_channels': helpers.get_xml_attr(media, 'audioChannels'),

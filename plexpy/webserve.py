@@ -824,7 +824,7 @@ class WebInterface(object):
                           ("bitrate", True, True),
                           ("video_codec", True, True),
                           ("video_resolution", True, True),
-                          ("video_profile", True, True),
+                          ("video_dynamic_range", True, True),
                           ("video_framerate", True, True),
                           ("audio_codec", True, True),
                           ("audio_channels", True, True),

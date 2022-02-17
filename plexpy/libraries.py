@@ -582,7 +582,7 @@ class Libraries(object):
                        'bitrate': item.get('bitrate', ''),
                        'video_codec': item.get('video_codec', ''),
                        'video_resolution': item.get('video_resolution', ''),
-                       'video_profile': item.get('video_profile', ''),
+                       'video_dynamic_range': item.get('video_dynamic_range', ''),
                        'video_framerate': item.get('video_framerate', ''),
                        'audio_codec': item.get('audio_codec', ''),
                        'audio_channels': item.get('audio_channels', ''),

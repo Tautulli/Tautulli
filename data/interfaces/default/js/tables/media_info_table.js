@@ -175,7 +175,7 @@ media_info_table_options = {
         },
         {
             "targets": [6],
-            "data": "video_profile",
+            "data": "video_dynamic_range",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
                     $(td).html(cellData);
@@ -464,7 +464,7 @@ function childTableFormatMedia(rowData) {
                 '<th align="left" id="bitrate">Bitrate</th>' +
                 '<th align="left" id="video_codec">Video Codec</th>' +
                 '<th align="left" id="video_resolution">Video Resolution</th>' +
-                '<th align="left" id="video_profile">Video Profile</th>' +
+                '<th align="left" id="video_dynamic_range">Video Dyn. Range</th>' +
                 '<th align="left" id="video_resolution">Video Framerate</th>' +
                 '<th align="left" id="audio_codec">Audio Codec</th>' +
                 '<th align="left" id="audio_channels">Audio Channels</th>' +
