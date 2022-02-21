@@ -752,7 +752,7 @@ class RecentlyAdded(Newsletter):
                     continue
 
                 show_metadata = pms_connect.get_metadata_details(show_rating_key, media_info=False)
-                children = pms_connect.get_item_children(show_rating_key, get_grandchildren=True)
+                children = pms_connect.get_item_children(show_rating_key, media_type=media_type, get_grandchildren=True)
                 filtered_children = [i for i in children['children_list']
                                      if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
                 filtered_children.sort(key=lambda x: helpers.cast_to_int(x['parent_media_index']))
@@ -802,7 +802,7 @@ class RecentlyAdded(Newsletter):
                     continue
 
                 artist_metadata = pms_connect.get_metadata_details(artist_rating_key, media_info=False)
-                children = pms_connect.get_item_children(artist_rating_key)
+                children = pms_connect.get_item_children(artist_rating_key, media_type=media_type)
                 filtered_children = [i for i in children['children_list']
                                      if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
                 filtered_children.sort(key=lambda x: x['added_at'])
