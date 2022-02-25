@@ -704,3 +704,9 @@ class Config(object):
                 self.FIRST_RUN_COMPLETE = 1
 
             self.CONFIG_VERSION = 21
+
+        if self.CONFIG_VERSION == 21:
+            if not self.ANON_REDIRECT_DYNAMIC and not self.ANON_REDIRECT:
+                self.ANON_REDIRECT_DYNAMIC = 1
+
+            self.CONFIG_VERSION = 22
