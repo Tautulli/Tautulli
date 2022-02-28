@@ -680,6 +680,13 @@ textarea.form-control:focus {
 .btn-form:focus {
     color: #eee;
 }
+.btn-filter.active,
+.btn-filter.active.focus {
+  background-color: #b7800a !important;
+}
+.btn-filter.active:hover {
+  background-color: #896007 !important;
+}
 .form-control-feedback {
     color: #E5A00D;
     margin: 5px 40px 5px 0;
