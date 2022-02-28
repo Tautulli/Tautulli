@@ -130,20 +130,17 @@ class UsernameFilter(logging.Filter):
 
         for item in items:
             username = item['username']
-            friendly_name = item['friendly_name']
 
-            if username == 'Local':
+            if username.lower() in ('local', 'guest'):
                 continue
 
             try:
                 record.msg = self.replace(record.msg, username)
-                record.msg = self.replace(record.msg, friendly_name)
 
                 args = []
                 for arg in record.args:
                     if isinstance(arg, str):
                         arg = self.replace(arg, username)
-                        arg = self.replace(arg, friendly_name)
                     args.append(arg)
                 record.args = tuple(args)
             except:
@@ -154,7 +151,7 @@ class UsernameFilter(logging.Filter):
     @staticmethod
     def replace(text, match):
         mask = match[:2] + 8 * '*' + match[-1]
-        return re.sub(r'\b{}\b'.format(match), mask, text, flags=re.IGNORECASE)
+        return re.sub(re.escape(match), mask, text, flags=re.IGNORECASE)
 
 
 class RegexFilter(logging.Filter):
