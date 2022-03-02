@@ -22,7 +22,7 @@ jobs:
           #- s390x  # broken at the moment
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Prepare
         id: prepare
