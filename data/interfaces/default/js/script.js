@@ -619,7 +619,7 @@ function getPlexHeaders(clientID) {
         'X-Plex-Platform-Version': p.version,
         'X-Plex-Model': 'Plex OAuth',
         'X-Plex-Device': p.os,
-        'X-Plex-Device-Name': p.name,
+        'X-Plex-Device-Name': p.name + ' (Tautulli)',
         'X-Plex-Device-Screen-Resolution': window.screen.width + 'x' + window.screen.height,
         'X-Plex-Language': 'en'
     };
