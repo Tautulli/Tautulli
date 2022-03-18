@@ -42,7 +42,7 @@ six==1.16.0
 soupsieve==2.3.1
 tempora==5.0.1
 tokenize-rt==4.2.1
-tzdata==2021.5
+tzdata==2022.1
 tzlocal==2.1  # apscheduler==3.8.0 requires tzlocal~=2.0
 urllib3==1.26.8
 webencodings==0.5.1
