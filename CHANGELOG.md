@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.9.5 (2022-03-26)
+
+* Note:
+  * Updated Snap packages are currently unavailable due to an upstream issue.
+* Activity:
+  * Change: Improve calculation for transcode progress bar percentage on the activity cards.
+* History:
+  * Fix: Live TV history filter not working. (#1691) 
+* Newsletter:
+  * Fix: Newsletter not showing different album types. (#1559) 
+* UI:
+  * Fix: Display season summary on the media info page if available with a fallback to show summary. (#1657)
+  * Change: Colour active filter buttons to improve contrast. (#1663)
+* API:
+  * New: Added transcode offset keys to get_activity command.
+* Other:
+  * Fix: Reschedule backup task after changing backup interval. (#1662)
+  * Fix: Dynamic anonymous redirect setting not being enabled by default after the setup wizard.
+  * Fix: Usernames with special characters not being filtered in the logs.
+
+
 ## v2.9.4 (2022-02-12)
 
 * UI:
