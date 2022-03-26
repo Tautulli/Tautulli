@@ -99,13 +99,9 @@ def refresh_libraries():
                 'section_id NOT IN ({})'.format(', '.join(['?'] * len(section_ids)))
         monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
 
-        if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
-            plexpy.CONFIG.write()
-        else:
-            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
-            plexpy.CONFIG.write()
+        new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+        plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+        plexpy.CONFIG.write()
 
         logger.info("Tautulli Libraries :: Libraries list refreshed.")
         return True

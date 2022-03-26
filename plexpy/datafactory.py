@@ -988,9 +988,6 @@ class DataFactory(object):
         if session.get_session_shared_libraries():
             library_cards = session.get_session_shared_libraries()
 
-        if 'first_run_wizard' in library_cards:
-            return None
-
         library_stats = []
 
         try:

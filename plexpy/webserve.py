@@ -3171,14 +3171,16 @@ class WebInterface(object):
         # First run from the setup wizard
         if kwargs.pop('first_run', None):
             first_run = True
+            server_changed = True
 
-        for checked_config in config.CHECKED_SETTINGS:
-            checked_config = checked_config.lower()
-            if checked_config not in kwargs:
-                # checked items should be zero or one. if they were not sent then the item was not checked
-                kwargs[checked_config] = 0
-            else:
-                kwargs[checked_config] = 1
+        if not first_run:
+            for checked_config in config.CHECKED_SETTINGS:
+                checked_config = checked_config.lower()
+                if checked_config not in kwargs:
+                    # checked items should be zero or one. if they were not sent then the item was not checked
+                    kwargs[checked_config] = 0
+                else:
+                    kwargs[checked_config] = 1
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password') == '    ':
@@ -3237,9 +3239,6 @@ class WebInterface(object):
                     del kwargs[k]
             kwargs['home_stats_cards'] = kwargs['home_stats_cards'].split(',')
 
-            if kwargs['home_stats_cards'] == ['first_run_wizard']:
-                kwargs['home_stats_cards'] = plexpy.CONFIG.HOME_STATS_CARDS
-
         # Remove config with 'hlcard-' prefix and change home_library_cards to list
         if kwargs.get('home_library_cards'):
             for k in list(kwargs.keys()):
@@ -3247,11 +3246,8 @@ class WebInterface(object):
                     del kwargs[k]
             kwargs['home_library_cards'] = kwargs['home_library_cards'].split(',')
 
-            if kwargs['home_library_cards'] == ['first_run_wizard']:
-                refresh_libraries = True
-
         # If we change the server, make sure we grab the new url and refresh libraries and users lists.
-        if kwargs.pop('server_changed', None):
+        if kwargs.pop('server_changed', None) or server_changed:
             server_changed = True
             refresh_users = True
             refresh_libraries = True
