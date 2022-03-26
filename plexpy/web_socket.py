@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -178,9 +178,9 @@ def run():
 
     # Set authentication token (if one is available)
     if plexpy.CONFIG.PMS_TOKEN:
-        header = ["X-Plex-Token: %s" % plexpy.CONFIG.PMS_TOKEN]
+        header = {"X-Plex-Token": plexpy.CONFIG.PMS_TOKEN}
     else:
-        header = []
+        header = None
 
     global ws_shutdown
     ws_shutdown = False
