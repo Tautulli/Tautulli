@@ -291,7 +291,7 @@
         var valid_pms_token = el.val();
         var retValue = {};
 
-        if (valid_pms_token === 0) {
+        if (valid_pms_token !== "1") {
             retValue.status = false;
             retValue.msg = "Please authenticate.";
             $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Please authenticate.');
