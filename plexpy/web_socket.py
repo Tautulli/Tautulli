@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -182,6 +182,8 @@ def run():
     else:
         header = None
 
+    timeout = plexpy.CONFIG.PMS_TIMEOUT
+
     global ws_shutdown
     ws_shutdown = False
     reconnects = 0
@@ -189,7 +191,7 @@ def run():
     # Try an open the websocket connection
     logger.info("Tautulli WebSocket :: Opening %swebsocket." % secure)
     try:
-        plexpy.WEBSOCKET = create_connection(uri, header=header, sslopt=sslopt)
+        plexpy.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
         logger.info("Tautulli WebSocket :: Ready")
         plexpy.WS_CONNECTED = True
     except (websocket.WebSocketException, IOError, Exception) as e:
@@ -222,7 +224,7 @@ def run():
                 logger.warn("Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
 
                 try:
-                    plexpy.WEBSOCKET = create_connection(uri, header=header, sslopt=sslopt)
+                    plexpy.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
                     logger.info("Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
                 except (websocket.WebSocketException, IOError, Exception) as e:
