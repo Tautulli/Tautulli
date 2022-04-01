@@ -126,7 +126,11 @@ class UsernameFilter(logging.Filter):
         if not plexpy._INITIALIZED:
             return True
 
-        items = users.Users().get_users() or []
+        items = sorted(
+            users.Users().get_users(),
+            key=lambda x: len(x['username']),
+            reverse=True
+        )
 
         for item in items:
             username = item['username']
@@ -339,11 +343,11 @@ def initLogger(console=False, log_dir=False, verbose=False):
                        logger_plex_websocket.handlers + \
                        cherrypy.log.error_log.handlers
         for handler in log_handlers:
-            handler.addFilter(UsernameFilter())
             handler.addFilter(BlacklistFilter())
             handler.addFilter(PublicIPFilter())
             handler.addFilter(PlexDirectIPFilter())
             handler.addFilter(EmailFilter())
+            handler.addFilter(UsernameFilter())
             handler.addFilter(PlexTokenFilter())
 
     # Install exception hooks

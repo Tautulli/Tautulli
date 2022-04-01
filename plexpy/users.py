@@ -668,7 +668,7 @@ class Users(object):
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_users: %s." % e)
-            return None
+            return []
 
         users = []
         for item in result:
