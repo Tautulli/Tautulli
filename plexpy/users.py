@@ -127,6 +127,7 @@ class Users(object):
                    'users.username',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name',
+                   'users.email',
                    'users.thumb AS user_thumb',
                    'users.custom_avatar_url AS custom_thumb',
                    'COUNT(DISTINCT %s) AS plays' % group_by,
@@ -202,6 +203,7 @@ class Users(object):
                    'user_id': item['user_id'],
                    'username': item['username'],
                    'friendly_name': item['friendly_name'],
+                   'email': item['email'],
                    'user_thumb': user_thumb,
                    'plays': item['plays'],
                    'duration': item['duration'],

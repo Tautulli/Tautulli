@@ -1305,6 +1305,8 @@ class WebInterface(object):
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("user_thumb", False, False),
                           ("friendly_name", True, True),
+                          ("username", True, True),
+                          ("email", True, True),
                           ("last_seen", True, False),
                           ("ip_address", True, True),
                           ("platform", True, True),
