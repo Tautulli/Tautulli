@@ -1084,7 +1084,7 @@ class DISCORD(Notifier):
             else:
                 attachment['image'] = {'url': poster_url}
 
-            if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
+            if self.config['incl_description']:
                 attachment['description'] = description[:2045] + (description[2045:] and '...')
 
             fields = []
@@ -1153,10 +1153,10 @@ class DISCORD(Notifier):
                                          'must be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'checkbox'
                           },
-                         {'label': 'Include Plot Summaries',
+                         {'label': 'Include Summary',
                           'value': self.config['incl_description'],
                           'name': 'discord_incl_description',
-                          'description': 'Include a plot summary for movies and TV shows on the info card.',
+                          'description': 'Include a summary for the media on the info card.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Link to Plex Web',
@@ -2298,10 +2298,10 @@ class MICROSOFTTEAMS(Notifier):
                                          'must be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'checkbox'
                           },
-                         {'label': 'Include Plot Summaries',
+                         {'label': 'Include Summary',
                           'value': self.config['incl_description'],
                           'name': 'microsoftteams_incl_description',
-                          'description': 'Include a plot summary for movies and TV shows on the info card.',
+                          'description': 'Include a summary for the media on the info card.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Link to Plex Web',
@@ -3548,7 +3548,7 @@ class SLACK(Notifier):
             else:
                 attachment['image_url'] = poster_url
 
-            if self.config['incl_description'] or pretty_metadata.media_type in ('artist', 'album', 'track'):
+            if self.config['incl_description']:
                 attachment['text'] = description
 
             fields = []
@@ -3616,10 +3616,10 @@ class SLACK(Notifier):
                                          'must be enabled under the 3rd Party APIs settings tab.',
                           'input_type': 'checkbox'
                           },
-                         {'label': 'Include Plot Summaries',
+                         {'label': 'Include Summary',
                           'value': self.config['incl_description'],
                           'name': 'slack_incl_description',
-                          'description': 'Include a plot summary for movies and TV shows on the info card.',
+                          'description': 'Include a summary for the media on the info card.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Link to Plex Web',
