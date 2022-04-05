@@ -91,7 +91,7 @@ _CONFIG_DEFINITIONS = {
     'CACHE_SIZEMB': (int, 'Advanced', 32),
     'CHECK_DOCKER_MOUNT': (int, 'Advanced', 1),
     'CHECK_GITHUB': (int, 'General', 1),
-    'CHECK_GITHUB_INTERVAL': (int, 'General', 360),
+    'CHECK_GITHUB_INTERVAL': (int, 'General', 6),
     'CHECK_GITHUB_ON_STARTUP': (int, 'General', 1),
     'CHECK_GITHUB_CACHE_SECONDS': (int, 'Advanced', 3600),
     'CLEANUP_FILES': (int, 'General', 0),
@@ -676,10 +676,11 @@ class Config(object):
             self.CONFIG_VERSION = 18
 
         if self.CONFIG_VERSION == 18:
-            self.CHECK_GITHUB_INTERVAL = (
-                    int(self.CHECK_GITHUB_INTERVAL // 60)
-                    + (self.CHECK_GITHUB_INTERVAL % 60 > 0)
-            )
+            if self.CHECK_GITHUB_INTERVAL > 24:
+                self.CHECK_GITHUB_INTERVAL = (
+                        int(self.CHECK_GITHUB_INTERVAL // 60)
+                        + (self.CHECK_GITHUB_INTERVAL % 60 > 0)
+                )
 
             self.CONFIG_VERSION = 19
 
