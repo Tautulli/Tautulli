@@ -48,7 +48,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Upload Snap Package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Tautulli-snap-package-${{ matrix.architecture }}
           path: ${{ steps.build.outputs.snap }}
