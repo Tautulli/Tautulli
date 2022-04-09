@@ -84,6 +84,10 @@ def refresh_users():
                 else:
                     item['custom_avatar_url'] = item['thumb']
 
+            # Check if title is the same as the username
+            if item['title'] == item['username']:
+                item['title'] = None
+
             monitor_db.upsert('users', key_dict=keys_dict, value_dict=item)
 
         query = 'UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})'.format(', '.join(['?'] * len(user_ids)))

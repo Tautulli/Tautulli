@@ -714,8 +714,9 @@ def dbcheck():
     c_db.execute(
         'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
         'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
-        'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_active INTEGER DEFAULT 1, is_admin INTEGER DEFAULT 0, '
-        'is_home_user INTEGER DEFAULT NULL, is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, '
+        'thumb TEXT, custom_avatar_url TEXT, title TEXT, email TEXT, '
+        'is_active INTEGER DEFAULT 1, is_admin INTEGER DEFAULT 0, is_home_user INTEGER DEFAULT NULL, '
+        'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, '
         'do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, '
         'allow_guest INTEGER DEFAULT 0, user_token TEXT, server_token TEXT, shared_libraries TEXT, '
         'filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT)'
@@ -1907,6 +1908,15 @@ def dbcheck():
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
             'ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1'
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute('SELECT title FROM users')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table users.")
+        c_db.execute(
+            'ALTER TABLE users ADD COLUMN title TEXT'
         )
 
     # Upgrade notify_log table from earlier versions

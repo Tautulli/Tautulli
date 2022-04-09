@@ -357,6 +357,7 @@ class PlexTV(object):
         for a in xml_head:
             own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
                            "username": helpers.get_xml_attr(a, 'username'),
+                           "title": helpers.get_xml_attr(a, 'title'),
                            "thumb": helpers.get_xml_attr(a, 'thumb'),
                            "email": helpers.get_xml_attr(a, 'email'),
                            "is_active": 1,
@@ -384,7 +385,8 @@ class PlexTV(object):
 
         for a in xml_head:
             friend = {"user_id": helpers.get_xml_attr(a, 'id'),
-                      "username": helpers.get_xml_attr(a, 'title'),
+                      "username": helpers.get_xml_attr(a, 'username'),
+                      "title": helpers.get_xml_attr(a, 'title'),
                       "thumb": helpers.get_xml_attr(a, 'thumb'),
                       "email": helpers.get_xml_attr(a, 'email'),
                       "is_active": 1,
