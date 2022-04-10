@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.9.6 (2022-04-10)
+
+* Activity:
+  * New: Improved display of dynamic range on the activity cards. (Thanks @herby2212)
+* Notifications:
+  * Change: Make include summary option apply to all media types for Discord and Slack notifications.
+* UI:
+  * Fix: Validating Plex login in the setup wizard. (#1697)
+  * New: Added hidden username, email, and full name columns to users table. 
+* Other:
+  * Fix: Apply pms_timeout setting to websocket connection.
+  * Fix: Importing of Plex username instead of the full name. (#1710)
+
+
 ## v2.9.5 (2022-03-26)
 
 * Note:
