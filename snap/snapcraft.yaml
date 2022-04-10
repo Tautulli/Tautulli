@@ -10,6 +10,11 @@ description: >
 base: core18
 confinement: strict
 
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+
 parts:
   tautulli:
     plugin: dump
