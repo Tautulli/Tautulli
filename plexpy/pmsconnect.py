@@ -1401,6 +1401,7 @@ class PmsConnect(object):
                                             'video_color_range': helpers.get_xml_attr(stream, 'colorRange'),
                                             'video_color_space': helpers.get_xml_attr(stream, 'colorSpace'),
                                             'video_color_trc': helpers.get_xml_attr(stream, 'colorTrc'),
+                                            'video_dynamic_range': self.get_dynamic_range(stream),
                                             'video_frame_rate': helpers.get_xml_attr(stream, 'frameRate'),
                                             'video_ref_frames': helpers.get_xml_attr(stream, 'refFrames'),
                                             'video_height': helpers.get_xml_attr(stream, 'height'),
@@ -1857,6 +1858,7 @@ class PmsConnect(object):
                              'stream_video_color_space': helpers.get_xml_attr(video_stream_info, 'colorSpace'),
                              'stream_video_color_trc': helpers.get_xml_attr(video_stream_info, 'colorTrc'),
                              'stream_video_codec_level': helpers.get_xml_attr(video_stream_info, 'level'),
+                             'stream_video_dynamic_range': self.get_dynamic_range(video_stream_info),
                              'stream_video_ref_frames': helpers.get_xml_attr(video_stream_info, 'refFrames'),
                              'stream_video_language': helpers.get_xml_attr(video_stream_info, 'language'),
                              'stream_video_language_code': helpers.get_xml_attr(video_stream_info, 'languageCode'),
@@ -1872,6 +1874,7 @@ class PmsConnect(object):
                              'stream_video_color_space': '',
                              'stream_video_color_trc': '',
                              'stream_video_codec_level': '',
+                             'stream_video_dynamic_range': '',
                              'stream_video_ref_frames': '',
                              'stream_video_language': '',
                              'stream_video_language_code': '',
@@ -2064,6 +2067,7 @@ class PmsConnect(object):
                                     'video_color_range': '',
                                     'video_color_space': '',
                                     'video_color_trc': '',
+                                    'video_dynamic_range': '',
                                     'video_frame_rate': '',
                                     'video_ref_frames': '',
                                     'video_height': '',
@@ -2151,23 +2155,6 @@ class PmsConnect(object):
             stream_details['stream_video_full_resolution'] = common.VIDEO_RESOLUTION_OVERRIDES.get(
                 stream_details['stream_video_resolution'],
                 stream_details['stream_video_resolution'] + (video_details['stream_video_scan_type'][:1] or 'p'))
-
-            if helpers.cast_to_int(source_video_details.get('video_bit_depth')) > 8 \
-                    and source_video_details.get('video_color_space') == 'bt2020nc':
-                stream_details['video_dynamic_range'] = 'HDR'
-            else:
-                stream_details['video_dynamic_range'] = 'SDR'
-
-            if stream_details['video_dynamic_range'] == 'HDR' \
-                    and video_details['stream_video_decision'] != 'transcode' \
-                    or helpers.cast_to_int(video_details['stream_video_bit_depth']) > 8 \
-                    and video_details['stream_video_color_space'] == 'bt2020nc':
-                stream_details['stream_video_dynamic_range'] = 'HDR'
-            else:
-                stream_details['stream_video_dynamic_range'] = 'SDR'
-        else:
-            stream_details['video_dynamic_range'] = ''
-            stream_details['stream_video_dynamic_range'] = ''
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
@@ -3182,3 +3169,39 @@ class PmsConnect(object):
                 return 'public'
 
         return plexpy.CONFIG.PMS_UPDATE_CHANNEL
+
+    @staticmethod
+    def get_dynamic_range(stream):
+        extended_display_title = helpers.get_xml_attr(stream, 'extendedDisplayTitle')
+        bit_depth = helpers.cast_to_int(helpers.get_xml_attr(stream, 'bitDepth'))
+        color_space = helpers.get_xml_attr(stream, 'colorSpace')
+        DOVI_profile = helpers.get_xml_attr(stream, 'DOVIProfile')
+
+        HDR = bool(bit_depth > 8 and 'bt2020' in color_space)
+        DV = bool(DOVI_profile)
+
+        if not HDR and not DV:
+            return 'SDR'
+
+        video_dynamic_range = []
+
+        # HDR details got introduced with PMS version 1.25.6.5545
+        if helpers.version_to_tuple(plexpy.CONFIG.PMS_VERSION) >= helpers.version_to_tuple('1.25.6.5545'):
+            if 'Dolby Vision' in extended_display_title:
+                video_dynamic_range.append('Dolby Vision')
+            if 'HLG' in extended_display_title:
+                video_dynamic_range.append('HLG')
+            if 'HDR10' in extended_display_title:
+                video_dynamic_range.append('HDR10')
+            elif 'HDR' in extended_display_title:
+                video_dynamic_range.append('HDR')
+        else:
+            if DV:
+                video_dynamic_range.append('Dolby Vision')
+            elif HDR:
+                # Exact HDR version needs PMS version 1.25.6.5545 or newer
+                video_dynamic_range.append('HDR')
+
+        if not video_dynamic_range:
+            return 'SDR'
+        return '/'.join(video_dynamic_range)

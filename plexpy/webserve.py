@@ -5349,6 +5349,7 @@ class WebInterface(object):
                                              "video_color_range": "tv",
                                              "video_color_space": "bt709",
                                              "video_color_trc": "",
+                                             "video_dynamic_range": "SDR",
                                              "video_frame_rate": "23.976",
                                              "video_height": "1078",
                                              "video_language": "",

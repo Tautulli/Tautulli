@@ -483,8 +483,8 @@
 
                         var video_decision = '';
                         if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.stream_video_decision) {
-                            var v_bd =  (s.video_dynamic_range === 'HDR') ? ' ' + s.video_dynamic_range : '';
-                            var sv_bd =  (s.video_dynamic_range === 'HDR') ? ' ' + s.stream_video_dynamic_range : '';
+                            var v_bd =  (s.video_dynamic_range !== 'SDR') ? ' ' + s.video_dynamic_range : '';
+                            var sv_bd =  (s.stream_video_dynamic_range !== 'SDR' || v_bd) ? ' ' + s.stream_video_dynamic_range : '';
                             var v_res= '';
                             switch (s.video_resolution.toLowerCase()) {
                                 case 'sd':
