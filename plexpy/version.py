@@ -18,4 +18,4 @@
 from __future__ import unicode_literals
 
 PLEXPY_BRANCH = "master"
-PLEXPY_RELEASE_VERSION = "v2.9.6"
+PLEXPY_RELEASE_VERSION = "v2.9.7"

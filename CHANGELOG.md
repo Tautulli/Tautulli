@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.9.7 (2022-04-11)
+
+* UI:
+  * Fix: Managed user missing the username in the Users table. 
+
+
 ## v2.9.6 (2022-04-10)
 
 * Activity:
