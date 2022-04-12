@@ -234,9 +234,9 @@ class Users(object):
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
                    'transcode_decision': item['transcode_decision'],
-                   'do_notify': helpers.checked(item['do_notify']),
-                   'keep_history': helpers.checked(item['keep_history']),
-                   'allow_guest': helpers.checked(item['allow_guest']),
+                   'do_notify': item['do_notify'],
+                   'keep_history': item['keep_history'],
+                   'allow_guest': item['allow_guest'],
                    'is_active': item['is_active']
                    }
 

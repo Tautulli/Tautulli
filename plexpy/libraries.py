@@ -432,9 +432,9 @@ class Libraries(object):
                    'live': item['live'],
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
-                   'do_notify': helpers.checked(item['do_notify']),
-                   'do_notify_created': helpers.checked(item['do_notify_created']),
-                   'keep_history': helpers.checked(item['keep_history']),
+                   'do_notify': item['do_notify'],
+                   'do_notify_created': item['do_notify_created'],
+                   'keep_history': item['keep_history'],
                    'is_active': item['is_active']
                    }
 
