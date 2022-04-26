@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -217,6 +217,7 @@ def initialize(config_file):
         if not PYTHON2:
             os.environ['PLEXAPI_CONFIG_PATH'] = os.path.join(DATA_DIR, 'plexapi.config.ini')
             os.environ['PLEXAPI_LOG_PATH'] = os.path.join(CONFIG.LOG_DIR, 'plexapi.log')
+            os.environ['PLEXAPI_LOG_LEVEL'] = 'DEBUG'
             plex.initialize_plexapi()
 
         if DOCKER:
