@@ -155,6 +155,8 @@ def get_collections(section_id=None):
 
     collections_list = []
     for collection in collections:
+        collection._autoReload = False
+
         collection_mode = collection.collectionMode
         if collection_mode is None:
             collection_mode = -1
@@ -254,6 +256,8 @@ def get_playlists(section_id=None, user_id=None):
 
     playlists_list = []
     for playlist in playlists:
+        playlist._autoReload = False
+
         playlist_dict = {
             'addedAt': helpers.datetime_to_iso(playlist.addedAt),
             'composite': playlist.composite,
