@@ -3187,7 +3187,7 @@ class PmsConnect(object):
 
         # HDR details got introduced with PMS version 1.25.6.5545
         if helpers.version_to_tuple(plexpy.CONFIG.PMS_VERSION) >= helpers.version_to_tuple('1.25.6.5545'):
-            if 'Dolby Vision' in extended_display_title:
+            if 'Dolby Vision' in extended_display_title or 'DoVi' in extended_display_title:
                 video_dynamic_range.append('Dolby Vision')
             if 'HLG' in extended_display_title:
                 video_dynamic_range.append('HLG')
