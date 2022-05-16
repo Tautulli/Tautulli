@@ -1744,13 +1744,15 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"platform_type": "Chrome",
+                    [{"platform": "Chrome",
+                      "platform_name": "chrome",
                       "player_name": "Plex Web (Chrome)",
                       "result_id": 1,
                       "total_plays": 170,
                       "total_time": 349618
                       },
-                     {"platform_type": "Chromecast",
+                     {"platform": "Chromecast",
+                      "platform_name": "chromecast",
                       "player_name": "Chromecast",
                       "result_id": 2,
                       "total_plays": 42,
@@ -6195,7 +6197,6 @@ class WebInterface(object):
                           "live": 0,
                           "media_type": "episode",
                           "platform": "",
-                          "platform_type": "",
                           "rating_key": 1219,
                           "row_id": 1116,
                           "section_id": 2,
