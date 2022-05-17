@@ -1545,7 +1545,7 @@ def is_hdr(bit_depth, color_space):
 
 
 def version_to_tuple(version):
-    return tuple(cast_to_int(v) for v in version.strip('v').split('.'))
+    return tuple(cast_to_int(v) for v in version.strip('v').replace('-', '.').split('.'))
 
 
 # https://stackoverflow.com/a/1855118

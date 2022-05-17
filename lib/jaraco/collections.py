@@ -573,12 +573,16 @@ class DictStack(list, collections.abc.Mapping):
     2
     >>> stack['c']
     2
+    >>> len(stack)
+    3
     >>> stack.push(dict(a=3))
     >>> stack['a']
     3
     >>> set(stack.keys()) == set(['a', 'b', 'c'])
     True
-    >>> dict(**stack) == dict(a=3, c=2, b=2)
+    >>> set(stack.items()) == set([('a', 3), ('b', 2), ('c', 2)])
+    True
+    >>> dict(**stack) == dict(stack) == dict(a=3, c=2, b=2)
     True
     >>> d = stack.pop()
     >>> stack['a']
@@ -587,18 +591,27 @@ class DictStack(list, collections.abc.Mapping):
     >>> stack['a']
     1
     >>> stack.get('b', None)
+    >>> 'c' in stack
+    True
     """
 
-    def keys(self):
-        return list(set(itertools.chain.from_iterable(c.keys() for c in self)))
+    def __iter__(self):
+        dicts = list.__iter__(self)
+        return iter(set(itertools.chain.from_iterable(c.keys() for c in dicts)))
 
     def __getitem__(self, key):
-        for scope in reversed(self):
+        for scope in reversed(tuple(list.__iter__(self))):
             if key in scope:
                 return scope[key]
         raise KeyError(key)
 
     push = list.append
+
+    def __contains__(self, other):
+        return collections.abc.Mapping.__contains__(self, other)
+
+    def __len__(self):
+        return len(list(iter(self)))
 
 
 class BijectiveMap(dict):

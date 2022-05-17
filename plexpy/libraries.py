@@ -99,13 +99,9 @@ def refresh_libraries():
                 'section_id NOT IN ({})'.format(', '.join(['?'] * len(section_ids)))
         monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
 
-        if plexpy.CONFIG.HOME_LIBRARY_CARDS == ['first_run_wizard']:
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', library_keys)
-            plexpy.CONFIG.write()
-        else:
-            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
-            plexpy.CONFIG.write()
+        new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+        plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+        plexpy.CONFIG.write()
 
         logger.info("Tautulli Libraries :: Libraries list refreshed.")
         return True
@@ -159,6 +155,8 @@ def get_collections(section_id=None):
 
     collections_list = []
     for collection in collections:
+        collection._autoReload = False
+
         collection_mode = collection.collectionMode
         if collection_mode is None:
             collection_mode = -1
@@ -258,6 +256,8 @@ def get_playlists(section_id=None, user_id=None):
 
     playlists_list = []
     for playlist in playlists:
+        playlist._autoReload = False
+
         playlist_dict = {
             'addedAt': helpers.datetime_to_iso(playlist.addedAt),
             'composite': playlist.composite,
@@ -436,9 +436,9 @@ class Libraries(object):
                    'live': item['live'],
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
-                   'do_notify': helpers.checked(item['do_notify']),
-                   'do_notify_created': helpers.checked(item['do_notify_created']),
-                   'keep_history': helpers.checked(item['keep_history']),
+                   'do_notify': item['do_notify'],
+                   'do_notify_created': item['do_notify_created'],
+                   'keep_history': item['keep_history'],
                    'is_active': item['is_active']
                    }
 

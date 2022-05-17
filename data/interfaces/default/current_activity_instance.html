@@ -231,11 +231,14 @@ DOCUMENTATION :: END
                                 <div class="sub-value" id="video_decision-${sk}">
                                     % if data['media_type'] in ('movie', 'episode', 'clip') and data['stream_video_decision']:
                                         <%
-                                            if data['video_dynamic_range'] == 'HDR':
+                                            if data['video_dynamic_range'] != 'SDR':
                                                 video_dynamic_range = ' ' + data['video_dynamic_range']
+                                            else:
+                                                video_dynamic_range = ''
+                                            if data['stream_video_dynamic_range'] != 'SDR' or video_dynamic_range:
                                                 stream_video_dynamic_range = ' ' + data['stream_video_dynamic_range']
                                             else:
-                                                video_dynamic_range = stream_video_dynamic_range = ''
+                                                stream_video_dynamic_range = ''
                                         %>
                                         % if data['stream_video_decision'] == 'transcode':
                                         <%

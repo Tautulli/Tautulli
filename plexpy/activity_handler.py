@@ -164,13 +164,13 @@ class ActivityHandler(object):
             # Retrieve the session data from our temp table
             db_session = ap.get_session_by_key(session_key=self.get_session_key())
 
-            plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_stop'})
-
             # Write it to the history table
             monitor_proc = activity_processor.ActivityProcessor()
             row_id = monitor_proc.write_session_history(session=db_session)
 
             if row_id:
+                plexpy.NOTIFY_QUEUE.put({'stream_data': db_session.copy(), 'notify_action': 'on_stop'})
+
                 schedule_callback('session_key-{}'.format(self.get_session_key()), remove_job=True)
 
                 # Remove the session from our temp session table
@@ -604,6 +604,8 @@ def force_stop_stream(session_key, title, user):
     row_id = ap.write_session_history(session=session)
 
     if row_id:
+        plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_stop'})
+
         # If session is written to the database successfully, remove the session from the session table
         logger.info("Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                     % (session['session_key'], session['rating_key']))

@@ -495,13 +495,13 @@ class WebInterface(object):
                         [{"child_count": 3745,
                           "content_rating": "TV-MA",
                           "count": 62,
-                          "do_notify": "Checked",
-                          "do_notify_created": "Checked",
+                          "do_notify": 1,
+                          "do_notify_created": 1,
                           "duration": 1578037,
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "histroy_row_id": 1128,
                           "is_active": 1,
-                          "keep_history": "Checked",
+                          "keep_history": 1,
                           "labels": [],
                           "last_accessed": 1462693216,
                           "last_played": "Game of Thrones - The Red Woman",
@@ -1264,15 +1264,16 @@ class WebInterface(object):
                      "recordsTotal": 10,
                      "recordsFiltered": 10,
                      "data":
-                        [{"allow_guest": "Checked",
-                          "do_notify": "Checked",
+                        [{"allow_guest": 1,
+                          "do_notify": 1,
                           "duration": 2998290,
+                          "email": "Jon.Snow.1337@CastleBlack.com",
                           "friendly_name": "Jon Snow",
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "history_row_id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "is_active": 1,
-                          "keep_history": "Checked",
+                          "keep_history": 1,
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
                           "live": 0,
@@ -1287,6 +1288,7 @@ class WebInterface(object):
                           "rating_key": 153037,
                           "row_id": 1,
                           "thumb": "/library/metadata/153036/thumb/1462175062",
+                          "title": "Jon Snow",
                           "transcode_decision": "transcode",
                           "user_id": 133788,
                           "user_thumb": "https://plex.tv/users/568gwwoib5t98a3a/avatar",
@@ -1305,6 +1307,9 @@ class WebInterface(object):
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("user_thumb", False, False),
                           ("friendly_name", True, True),
+                          ("username", True, True),
+                          ("title", True, True),
+                          ("email", True, True),
                           ("last_seen", True, False),
                           ("ip_address", True, True),
                           ("platform", True, True),
@@ -3171,14 +3176,16 @@ class WebInterface(object):
         # First run from the setup wizard
         if kwargs.pop('first_run', None):
             first_run = True
+            server_changed = True
 
-        for checked_config in config.CHECKED_SETTINGS:
-            checked_config = checked_config.lower()
-            if checked_config not in kwargs:
-                # checked items should be zero or one. if they were not sent then the item was not checked
-                kwargs[checked_config] = 0
-            else:
-                kwargs[checked_config] = 1
+        if not first_run:
+            for checked_config in config.CHECKED_SETTINGS:
+                checked_config = checked_config.lower()
+                if checked_config not in kwargs:
+                    # checked items should be zero or one. if they were not sent then the item was not checked
+                    kwargs[checked_config] = 0
+                else:
+                    kwargs[checked_config] = 1
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password') == '    ':
@@ -3237,9 +3244,6 @@ class WebInterface(object):
                     del kwargs[k]
             kwargs['home_stats_cards'] = kwargs['home_stats_cards'].split(',')
 
-            if kwargs['home_stats_cards'] == ['first_run_wizard']:
-                kwargs['home_stats_cards'] = plexpy.CONFIG.HOME_STATS_CARDS
-
         # Remove config with 'hlcard-' prefix and change home_library_cards to list
         if kwargs.get('home_library_cards'):
             for k in list(kwargs.keys()):
@@ -3247,11 +3251,8 @@ class WebInterface(object):
                     del kwargs[k]
             kwargs['home_library_cards'] = kwargs['home_library_cards'].split(',')
 
-            if kwargs['home_library_cards'] == ['first_run_wizard']:
-                refresh_libraries = True
-
         # If we change the server, make sure we grab the new url and refresh libraries and users lists.
-        if kwargs.pop('server_changed', None):
+        if kwargs.pop('server_changed', None) or server_changed:
             server_changed = True
             refresh_users = True
             refresh_libraries = True
@@ -5347,6 +5348,7 @@ class WebInterface(object):
                                              "video_color_range": "tv",
                                              "video_color_space": "bt709",
                                              "video_color_trc": "",
+                                             "video_dynamic_range": "SDR",
                                              "video_frame_rate": "23.976",
                                              "video_height": "1078",
                                              "video_language": "",

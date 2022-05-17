@@ -91,7 +91,7 @@ _CONFIG_DEFINITIONS = {
     'CACHE_SIZEMB': (int, 'Advanced', 32),
     'CHECK_DOCKER_MOUNT': (int, 'Advanced', 1),
     'CHECK_GITHUB': (int, 'General', 1),
-    'CHECK_GITHUB_INTERVAL': (int, 'General', 360),
+    'CHECK_GITHUB_INTERVAL': (int, 'General', 6),
     'CHECK_GITHUB_ON_STARTUP': (int, 'General', 1),
     'CHECK_GITHUB_CACHE_SECONDS': (int, 'Advanced', 3600),
     'CLEANUP_FILES': (int, 'General', 0),
@@ -116,7 +116,7 @@ _CONFIG_DEFINITIONS = {
     'GROUP_HISTORY_TABLES': (int, 'General', 1),
     'HISTORY_TABLE_ACTIVITY': (int, 'General', 1),
     'HOME_SECTIONS': (list, 'General', ['current_activity', 'watch_stats', 'library_stats', 'recently_added']),
-    'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
+    'HOME_LIBRARY_CARDS': (list, 'General', []),
     'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music',
         'popular_music', 'last_watched', 'top_libraries', 'top_users', 'top_platforms', 'most_concurrent']),
     'HOME_REFRESH_INTERVAL': (int, 'General', 10),
@@ -601,14 +601,6 @@ class Config(object):
             self.CONFIG_VERSION = 4
 
         if self.CONFIG_VERSION == 4:
-            if not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS:
-                home_sections = self.HOME_SECTIONS
-                home_sections.remove('watch_stats')
-                self.HOME_SECTIONS = home_sections
-            if not len(self.HOME_LIBRARY_CARDS) and 'library_stats' in self.HOME_SECTIONS:
-                home_sections = self.HOME_SECTIONS
-                home_sections.remove('library_stats')
-                self.HOME_SECTIONS = home_sections
 
             self.CONFIG_VERSION = 5
 
@@ -684,10 +676,11 @@ class Config(object):
             self.CONFIG_VERSION = 18
 
         if self.CONFIG_VERSION == 18:
-            self.CHECK_GITHUB_INTERVAL = (
-                    int(self.CHECK_GITHUB_INTERVAL // 60)
-                    + (self.CHECK_GITHUB_INTERVAL % 60 > 0)
-            )
+            if self.CHECK_GITHUB_INTERVAL > 24:
+                self.CHECK_GITHUB_INTERVAL = (
+                        int(self.CHECK_GITHUB_INTERVAL // 60)
+                        + (self.CHECK_GITHUB_INTERVAL % 60 > 0)
+                )
 
             self.CONFIG_VERSION = 19
 

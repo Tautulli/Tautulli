@@ -112,7 +112,7 @@ class DataFactory(object):
             'secure',
             'relayed',
             'session_history.media_type',
-            '(CASE WHEN session_history_metadata.live = 1 THEN "live" ELSE session_history.media_type END) \
+            '(CASE WHEN session_history_metadata.live = 1 THEN \'live\' ELSE session_history.media_type END) \
              AS media_type_live',
             'session_history_metadata.rating_key',
             'session_history_metadata.parent_rating_key',
@@ -170,7 +170,7 @@ class DataFactory(object):
                 'secure',
                 'relayed',
                 'media_type',
-                '(CASE WHEN live = 1 THEN "live" ELSE media_type END) AS media_type_live',
+                '(CASE WHEN live = 1 THEN \'live\' ELSE media_type END) AS media_type_live',
                 'rating_key',
                 'parent_rating_key',
                 'grandparent_rating_key',
@@ -987,9 +987,6 @@ class DataFactory(object):
 
         if session.get_session_shared_libraries():
             library_cards = session.get_session_shared_libraries()
-
-        if 'first_run_wizard' in library_cards:
-            return None
 
         library_stats = []
 

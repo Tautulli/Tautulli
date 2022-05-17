@@ -84,6 +84,14 @@ def refresh_users():
                 else:
                     item['custom_avatar_url'] = item['thumb']
 
+            # Check if title is the same as the username
+            if item['title'] == item['username']:
+                item['title'] = None
+
+            # Check if username is blank (Managed Users)
+            if not item['username']:
+                item['username'] = item['title']
+
             monitor_db.upsert('users', key_dict=keys_dict, value_dict=item)
 
         query = 'UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})'.format(', '.join(['?'] * len(user_ids)))
@@ -127,6 +135,8 @@ class Users(object):
                    'users.username',
                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name',
+                   'users.title',
+                   'users.email',
                    'users.thumb AS user_thumb',
                    'users.custom_avatar_url AS custom_thumb',
                    'COUNT(DISTINCT %s) AS plays' % group_by,
@@ -202,6 +212,8 @@ class Users(object):
                    'user_id': item['user_id'],
                    'username': item['username'],
                    'friendly_name': item['friendly_name'],
+                   'title': item['title'],
+                   'email': item['email'],
                    'user_thumb': user_thumb,
                    'plays': item['plays'],
                    'duration': item['duration'],
@@ -222,9 +234,9 @@ class Users(object):
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
                    'transcode_decision': item['transcode_decision'],
-                   'do_notify': helpers.checked(item['do_notify']),
-                   'keep_history': helpers.checked(item['keep_history']),
-                   'allow_guest': helpers.checked(item['allow_guest']),
+                   'do_notify': item['do_notify'],
+                   'keep_history': item['keep_history'],
+                   'allow_guest': item['allow_guest'],
                    'is_active': item['is_active']
                    }
 
@@ -668,7 +680,7 @@ class Users(object):
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_users: %s." % e)
-            return None
+            return []
 
         users = []
         for item in result:

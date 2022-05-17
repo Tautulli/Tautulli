@@ -50,8 +50,8 @@ users_list_table_options = {
                 $(td).html('<div class="edit-user-toggles">' + 
                     '<button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
-                    '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + rowData['keep_history'] + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
-                    '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + rowData['allow_guest'] + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + (rowData['allow_guest'] ? 'checked' : '') + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
             "width": "7%",
@@ -90,6 +90,42 @@ users_list_table_options = {
         },
         {
             "targets": [3],
+            "data": "username",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "visible": false,
+            "width": "10%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [4],
+            "data": "title",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "visible": false,
+            "width": "10%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [5],
+            "data": "email",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "visible": false,
+            "width": "10%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [6],
             "data": "last_seen",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -103,7 +139,7 @@ users_list_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [4],
+            "targets": [7],
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
@@ -121,7 +157,7 @@ users_list_table_options = {
             "className": "no-wrap modal-control-ip"
         },
         {
-            "targets": [5],
+            "targets": [8],
             "data": "platform",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -134,7 +170,7 @@ users_list_table_options = {
             "className": "no-wrap modal-control"
         },
         {
-            "targets": [6],
+            "targets": [9],
             "data":"player",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -155,7 +191,7 @@ users_list_table_options = {
             "className": "no-wrap modal-control"
         },
         {
-            "targets": [7],
+            "targets": [10],
             "data":"last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -196,7 +232,7 @@ users_list_table_options = {
             "className": "datatable-wrap"
         },
         {
-            "targets": [8],
+            "targets": [11],
             "data": "plays",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -208,7 +244,7 @@ users_list_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [9],
+            "targets": [12],
             "data": "duration",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
