@@ -84,7 +84,7 @@ class _DocumentNav:
 
         # Fail on unexpected types.
         if not cls.is_tag(tag):
-            raise TypeError("Expected a BeautifulSoup 'Tag', but instead recieved type {}".format(type(tag)))
+            raise TypeError("Expected a BeautifulSoup 'Tag', but instead received type {}".format(type(tag)))
 
     @staticmethod
     def is_doc(obj: 'bs4.Tag') -> bool:
