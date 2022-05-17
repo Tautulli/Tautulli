@@ -55,6 +55,9 @@ class Traversable(Protocol):
     """
     An object with a subset of pathlib.Path methods suitable for
     traversing directories and opening files.
+
+    Any exceptions that occur when accessing the backing resource
+    may propagate unaltered.
     """
 
     @abc.abstractmethod
@@ -90,9 +93,13 @@ class Traversable(Protocol):
         """
 
     @abc.abstractmethod
-    def joinpath(self, child: StrPath) -> "Traversable":
+    def joinpath(self, *descendants: StrPath) -> "Traversable":
         """
-        Return Traversable child in self
+        Return Traversable resolved with any descendants applied.
+
+        Each descendant should be a path segment relative to self
+        and each may contain multiple levels separated by
+        ``posixpath.sep`` (``/``).
         """
 
     def __truediv__(self, child: StrPath) -> "Traversable":

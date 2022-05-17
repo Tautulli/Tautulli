@@ -8,6 +8,7 @@ __all__ = [
 import warnings
 import re
 from bs4.builder import (
+    DetectsXMLParsedAsHTML,
     PERMISSIVE,
     HTML,
     HTML_5,
@@ -70,6 +71,11 @@ class HTML5TreeBuilder(HTMLTreeBuilder):
         # UnicodeDammit.
         if exclude_encodings:
             warnings.warn("You provided a value for exclude_encoding, but the html5lib tree builder doesn't support exclude_encoding.")
+
+        # html5lib only parses HTML, so if it's given XML that's worth
+        # noting.
+        DetectsXMLParsedAsHTML.warn_if_markup_looks_like_xml(markup)
+
         yield (markup, None, None, False)
 
     # These methods are defined by Beautiful Soup.
@@ -242,8 +248,8 @@ class AttrList(object):
     def __setitem__(self, name, value):
         # If this attribute is a multi-valued attribute for this element,
         # turn its value into a list.
-        list_attr = self.element.cdata_list_attributes
-        if (name in list_attr['*']
+        list_attr = self.element.cdata_list_attributes or {}
+        if (name in list_attr.get('*')
             or (self.element.name in list_attr
                 and name in list_attr[self.element.name])):
             # A node that is being cloned may have already undergone

@@ -2,7 +2,7 @@
 _handshake.py
 websocket - WebSocket client library for Python
 
-Copyright 2021 engn33r
+Copyright 2022 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -47,8 +47,8 @@ class handshake_response:
         CookieJar.add(headers.get("set-cookie"))
 
 
-def handshake(sock, hostname, port, resource, **options):
-    headers, key = _get_handshake_headers(resource, hostname, port, options)
+def handshake(sock, url, hostname, port, resource, **options):
+    headers, key = _get_handshake_headers(resource, url, hostname, port, options)
 
     header_str = "\r\n".join(headers)
     send(sock, header_str)
@@ -72,7 +72,7 @@ def _pack_hostname(hostname):
     return hostname
 
 
-def _get_handshake_headers(resource, host, port, options):
+def _get_handshake_headers(resource, url, host, port, options):
     headers = [
         "GET %s HTTP/1.1" % resource,
         "Upgrade: websocket"
@@ -86,9 +86,14 @@ def _get_handshake_headers(resource, host, port, options):
     else:
         headers.append("Host: %s" % hostport)
 
+    # scheme indicates whether http or https is used in Origin
+    # The same approach is used in parse_url of _url.py to set default port
+    scheme, url = url.split(":", 1)
     if "suppress_origin" not in options or not options["suppress_origin"]:
         if "origin" in options and options["origin"] is not None:
             headers.append("Origin: %s" % options["origin"])
+        elif scheme == "wss":
+            headers.append("Origin: https://%s" % hostport)
         else:
             headers.append("Origin: http://%s" % hostport)
 

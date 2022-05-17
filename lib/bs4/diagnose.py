@@ -4,7 +4,7 @@
 __license__ = "MIT"
 
 import cProfile
-from io import StringIO
+from io import BytesIO
 from html.parser import HTMLParser
 import bs4
 from bs4 import BeautifulSoup, __version__
@@ -103,7 +103,13 @@ def lxml_trace(data, html=True, **kwargs):
        if False, lxml's XML parser will be used.
     """
     from lxml import etree
-    for event, element in etree.iterparse(StringIO(data), html=html, **kwargs):
+    recover = kwargs.pop('recover', True)
+    if isinstance(data, str):
+        data = data.encode("utf8")
+    reader = BytesIO(data)
+    for event, element in etree.iterparse(
+        reader, html=html, recover=recover, **kwargs
+    ):
         print(("%s, %4s, %s" % (event, element.tag, element.text)))
 
 class AnnouncingParser(HTMLParser):

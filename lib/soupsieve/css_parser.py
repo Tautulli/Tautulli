@@ -562,7 +562,7 @@ class CSSParser:
         selector = self.custom.get(pseudo)
         if selector is None:
             raise SelectorSyntaxError(
-                "Undefined custom selector '{}' found at postion {}".format(pseudo, m.end(0)),
+                "Undefined custom selector '{}' found at position {}".format(pseudo, m.end(0)),
                 self.pattern,
                 m.end(0)
             )
@@ -828,7 +828,7 @@ class CSSParser:
         if not has_selector:
             if not is_forgive or combinator != COMMA_COMBINATOR:
                 raise SelectorSyntaxError(
-                    "The combinator '{}' at postion {}, must have a selector before it".format(combinator, index),
+                    "The combinator '{}' at position {}, must have a selector before it".format(combinator, index),
                     self.pattern,
                     index
                 )
@@ -1007,7 +1007,7 @@ class CSSParser:
                     if not has_selector:
                         if not is_forgive:
                             raise SelectorSyntaxError(
-                                "Expected a selector at postion {}".format(m.start(0)),
+                                "Expected a selector at position {}".format(m.start(0)),
                                 self.pattern,
                                 m.start(0)
                             )
@@ -1017,7 +1017,7 @@ class CSSParser:
                         break
                     else:
                         raise SelectorSyntaxError(
-                            "Unmatched pseudo-class close at postion {}".format(m.start(0)),
+                            "Unmatched pseudo-class close at position {}".format(m.start(0)),
                             self.pattern,
                             m.start(0)
                         )

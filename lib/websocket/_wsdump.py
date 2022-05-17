@@ -4,7 +4,7 @@
 wsdump.py
 websocket - WebSocket client library for Python
 
-Copyright 2021 engn33r
+Copyright 2022 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ class VAction(argparse.Action):
 def parse_args():
     parser = argparse.ArgumentParser(description="WebSocket Simple Dump Tool")
     parser.add_argument("url", metavar="ws_url",
-                        help="websocket url. ex. ws://echo.websocket.org/")
+                        help="websocket url. ex. ws://echo.websocket.events/")
     parser.add_argument("-p", "--proxy",
                         help="proxy url. ex. http://127.0.0.1:8080")
     parser.add_argument("-v", "--verbose", default=0, nargs='?', action=VAction,
