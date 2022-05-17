@@ -92,7 +92,7 @@ jobs:
             Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
 
       - name: Upload Installer
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Tautulli-${{ matrix.os }}-installer
           path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.${{ matrix.ext }}
