@@ -371,6 +371,7 @@ class Export(object):
                 'studio': None,
                 'summary': None,
                 'tagline': None,
+                'theme': None,
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
@@ -490,6 +491,10 @@ class Export(object):
                 },
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'lastRatedAt': helpers.datetime_to_iso,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'leafCount': None,
@@ -571,6 +576,10 @@ class Export(object):
                 'hasPreviewThumbnails': None,
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'lastRatedAt': helpers.datetime_to_iso,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'librarySectionID': None,
@@ -792,6 +801,10 @@ class Export(object):
                 'guid': None,
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'lastRatedAt': helpers.datetime_to_iso,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'librarySectionID': None,
@@ -813,6 +826,7 @@ class Export(object):
                     'tag': None
                 },
                 'summary': None,
+                'theme': None,
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
@@ -872,6 +886,7 @@ class Export(object):
                 'parentGuid': None,
                 'parentKey': None,
                 'parentRatingKey': None,
+                'parentTheme': None,
                 'parentThumb': None,
                 'parentTitle': None,
                 'rating': None,
@@ -921,12 +936,17 @@ class Export(object):
                 'grandparentGuid': None,
                 'grandparentKey': None,
                 'grandparentRatingKey': None,
+                'grandparentTheme': None,
                 'grandparentThumb': None,
                 'grandparentTitle': None,
                 'guid': None,
                 'hasSonicAnalysis': None,
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'lastRatedAt': helpers.datetime_to_iso,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'librarySectionID': None,
@@ -1027,6 +1047,7 @@ class Export(object):
                 'parentTitle': None,
                 'ratingCount': None,
                 'ratingKey': None,
+                'skipCount': None,
                 'summary': None,
                 'thumb': None,
                 'thumbBlurHash': None,
@@ -1143,6 +1164,7 @@ class Export(object):
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'childCount': None,
+                'collectionFilterBasedOnUser': None,
                 'collectionMode': None,
                 'collectionSort': None,
                 'contentRating': None,
@@ -1166,6 +1188,7 @@ class Export(object):
                 'ratingKey': None,
                 'subtype': None,
                 'summary': None,
+                'theme': None,
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
