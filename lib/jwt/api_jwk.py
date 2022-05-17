@@ -11,7 +11,7 @@ class PyJWK:
 
         kty = self._jwk_data.get("kty", None)
         if not kty:
-            raise InvalidKeyError("kty is not found: %s" % self._jwk_data)
+            raise InvalidKeyError(f"kty is not found: {self._jwk_data}")
 
         if not algorithm and isinstance(self._jwk_data, dict):
             algorithm = self._jwk_data.get("alg", None)
@@ -29,25 +29,25 @@ class PyJWK:
                 elif crv == "secp256k1":
                     algorithm = "ES256K"
                 else:
-                    raise InvalidKeyError("Unsupported crv: %s" % crv)
+                    raise InvalidKeyError(f"Unsupported crv: {crv}")
             elif kty == "RSA":
                 algorithm = "RS256"
             elif kty == "oct":
                 algorithm = "HS256"
             elif kty == "OKP":
                 if not crv:
-                    raise InvalidKeyError("crv is not found: %s" % self._jwk_data)
+                    raise InvalidKeyError(f"crv is not found: {self._jwk_data}")
                 if crv == "Ed25519":
                     algorithm = "EdDSA"
                 else:
-                    raise InvalidKeyError("Unsupported crv: %s" % crv)
+                    raise InvalidKeyError(f"Unsupported crv: {crv}")
             else:
-                raise InvalidKeyError("Unsupported kty: %s" % kty)
+                raise InvalidKeyError(f"Unsupported kty: {kty}")
 
         self.Algorithm = self._algorithms.get(algorithm)
 
         if not self.Algorithm:
-            raise PyJWKError("Unable to find a algorithm for key: %s" % self._jwk_data)
+            raise PyJWKError(f"Unable to find a algorithm for key: {self._jwk_data}")
 
         self.key = self.Algorithm.from_jwk(self._jwk_data)
 
@@ -95,3 +95,9 @@ class PyJWKSet:
     def from_json(data):
         obj = json.loads(data)
         return PyJWKSet.from_dict(obj)
+
+    def __getitem__(self, kid):
+        for key in self.keys:
+            if key.key_id == kid:
+                return key
+        raise KeyError(f"keyset has no key for kid: {kid}")

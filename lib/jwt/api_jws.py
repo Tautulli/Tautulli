@@ -80,34 +80,54 @@ class PyJWS:
         algorithm: Optional[str] = "HS256",
         headers: Optional[Dict] = None,
         json_encoder: Optional[Type[json.JSONEncoder]] = None,
+        is_payload_detached: bool = False,
     ) -> str:
         segments = []
 
         if algorithm is None:
             algorithm = "none"
 
-        # Prefer headers["alg"] if present to algorithm parameter.
-        if headers and "alg" in headers and headers["alg"]:
-            algorithm = headers["alg"]
+        # Prefer headers values if present to function parameters.
+        if headers:
+            headers_alg = headers.get("alg")
+            if headers_alg:
+                algorithm = headers["alg"]
+
+            headers_b64 = headers.get("b64")
+            if headers_b64 is False:
+                is_payload_detached = True
 
         # Header
-        header = {"typ": self.header_typ, "alg": algorithm}
+        header = {"typ": self.header_typ, "alg": algorithm}  # type: Dict[str, Any]
 
         if headers:
             self._validate_headers(headers)
             header.update(headers)
-            if not header["typ"]:
-                del header["typ"]
+
+        if not header["typ"]:
+            del header["typ"]
+
+        if is_payload_detached:
+            header["b64"] = False
+        elif "b64" in header:
+            # True is the standard value for b64, so no need for it
+            del header["b64"]
 
         json_header = json.dumps(
             header, separators=(",", ":"), cls=json_encoder
         ).encode()
 
         segments.append(base64url_encode(json_header))
-        segments.append(base64url_encode(payload))
+
+        if is_payload_detached:
+            msg_payload = payload
+        else:
+            msg_payload = base64url_encode(payload)
+        segments.append(msg_payload)
 
         # Segments
         signing_input = b".".join(segments)
+
         try:
             alg_obj = self._algorithms[algorithm]
             key = alg_obj.prepare_key(key)
@@ -116,14 +136,15 @@ class PyJWS:
         except KeyError as e:
             if not has_crypto and algorithm in requires_cryptography:
                 raise NotImplementedError(
-                    "Algorithm '%s' could not be found. Do you have cryptography "
-                    "installed?" % algorithm
+                    f"Algorithm '{algorithm}' could not be found. Do you have cryptography installed?"
                 ) from e
-            else:
-                raise NotImplementedError("Algorithm not supported") from e
+            raise NotImplementedError("Algorithm not supported") from e
 
         segments.append(base64url_encode(signature))
 
+        # Don't put the payload content inside the encoded token when detached
+        if is_payload_detached:
+            segments[1] = b""
         encoded_string = b".".join(segments)
 
         return encoded_string.decode("utf-8")
@@ -132,8 +153,9 @@ class PyJWS:
         self,
         jwt: str,
         key: str = "",
-        algorithms: List[str] = None,
-        options: Dict = None,
+        algorithms: Optional[List[str]] = None,
+        options: Optional[Dict] = None,
+        detached_payload: Optional[bytes] = None,
         **kwargs,
     ) -> Dict[str, Any]:
         if options is None:
@@ -148,6 +170,14 @@ class PyJWS:
 
         payload, signing_input, header, signature = self._load(jwt)
 
+        if header.get("b64", True) is False:
+            if detached_payload is None:
+                raise DecodeError(
+                    'It is required that you pass in a value for the "detached_payload" argument to decode a message having the b64 header set to false.'
+                )
+            payload = detached_payload
+            signing_input = b".".join([signing_input.rsplit(b".", 1)[0], payload])
+
         if verify_signature:
             self._verify_signature(signing_input, header, signature, key, algorithms)
 
@@ -161,8 +191,8 @@ class PyJWS:
         self,
         jwt: str,
         key: str = "",
-        algorithms: List[str] = None,
-        options: Dict = None,
+        algorithms: Optional[List[str]] = None,
+        options: Optional[Dict] = None,
         **kwargs,
     ) -> str:
         decoded = self.decode_complete(jwt, key, algorithms, options, **kwargs)
@@ -200,7 +230,7 @@ class PyJWS:
         try:
             header = json.loads(header_data)
         except ValueError as e:
-            raise DecodeError("Invalid header string: %s" % e) from e
+            raise DecodeError(f"Invalid header string: {e}") from e
 
         if not isinstance(header, Mapping):
             raise DecodeError("Invalid header string: must be a json object")
