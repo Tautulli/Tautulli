@@ -116,7 +116,7 @@ jobs:
 
       - name: Download Installers
         if: env.WORKFLOW_CONCLUSION == 'success'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - name: Get Changelog
         id: get_changelog
