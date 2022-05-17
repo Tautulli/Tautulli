@@ -44,6 +44,7 @@ from bs4.element import (
 from bs4.dammit import EntitySubstitution, UnicodeDammit
 
 from bs4.builder import (
+    DetectsXMLParsedAsHTML,
     HTML,
     HTMLTreeBuilder,
     STRICT,
@@ -52,7 +53,7 @@ from bs4.builder import (
 
 HTMLPARSER = 'html.parser'
 
-class BeautifulSoupHTMLParser(HTMLParser):
+class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
     """A subclass of the Python standard library's HTMLParser class, which
     listens for HTMLParser events and translates them into calls
     to Beautiful Soup's tree construction API.
@@ -88,6 +89,8 @@ class BeautifulSoupHTMLParser(HTMLParser):
         # will ignore, assuming they ever show up.
         self.already_closed_empty_element = []
 
+        self._initialize_xml_detector()
+        
     def error(self, msg):
         """In Python 3, HTMLParser subclasses must implement error(), although
         this requirement doesn't appear to be documented.
@@ -167,6 +170,9 @@ class BeautifulSoupHTMLParser(HTMLParser):
             # But we might encounter an explicit closing tag for this tag
             # later on. If so, we want to ignore it.
             self.already_closed_empty_element.append(name)
+
+        if self._root_tag is None:
+            self._root_tag_encountered(name)
             
     def handle_endtag(self, name, check_already_closed=True):
         """Handle a closing tag, e.g. '</tag>'
@@ -185,7 +191,7 @@ class BeautifulSoupHTMLParser(HTMLParser):
             self.already_closed_empty_element.remove(name)
         else:
             self.soup.handle_endtag(name)
-
+            
     def handle_data(self, data):
         """Handle some textual data that shows up between tags."""
         self.soup.handle_data(data)
@@ -288,6 +294,7 @@ class BeautifulSoupHTMLParser(HTMLParser):
         """
         self.soup.endData()
         self.soup.handle_data(data)
+        self._document_might_be_xml(data)
         self.soup.endData(ProcessingInstruction)
 
 
