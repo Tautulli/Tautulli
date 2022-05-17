@@ -2,7 +2,6 @@ import re
 
 from bleach import callbacks as linkify_callbacks
 from bleach import html5lib_shim
-from bleach.utils import alphabetize_attributes
 
 
 #: List of default callbacks
@@ -155,7 +154,7 @@ class Linker:
             omit_optional_tags=False,
             # linkify does not sanitize
             sanitize=False,
-            # linkify alphabetizes
+            # linkify preserves attr order
             alphabetical_attributes=False,
         )
 
@@ -228,7 +227,7 @@ class LinkifyFilter(html5lib_shim.Filter):
         :arg re email_re: email matching regex
 
         """
-        super(LinkifyFilter, self).__init__(source)
+        super().__init__(source)
 
         self.callbacks = callbacks or []
         self.skip_tags = skip_tags or []
@@ -316,7 +315,6 @@ class LinkifyFilter(html5lib_shim.Filter):
                     else:
                         # Add an "a" tag for the new link
                         _text = attrs.pop("_text", "")
-                        attrs = alphabetize_attributes(attrs)
                         new_tokens.extend(
                             [
                                 {"type": "StartTag", "name": "a", "data": attrs},
@@ -332,8 +330,7 @@ class LinkifyFilter(html5lib_shim.Filter):
                     if end < len(text):
                         new_tokens.append({"type": "Characters", "data": text[end:]})
 
-                    for new_token in new_tokens:
-                        yield new_token
+                    yield from new_tokens
 
                     continue
 
@@ -439,8 +436,6 @@ class LinkifyFilter(html5lib_shim.Filter):
                             new_tokens.append({"type": "Characters", "data": prefix})
 
                         _text = attrs.pop("_text", "")
-                        attrs = alphabetize_attributes(attrs)
-
                         new_tokens.extend(
                             [
                                 {"type": "StartTag", "name": "a", "data": attrs},
@@ -460,8 +455,7 @@ class LinkifyFilter(html5lib_shim.Filter):
                     if end < len(text):
                         new_tokens.append({"type": "Characters", "data": text[end:]})
 
-                    for new_token in new_tokens:
-                        yield new_token
+                    yield from new_tokens
 
                     continue
 
@@ -493,14 +487,13 @@ class LinkifyFilter(html5lib_shim.Filter):
 
         else:
             new_text = attrs.pop("_text", "")
-            a_token["data"] = alphabetize_attributes(attrs)
+            a_token["data"] = attrs
 
             if text == new_text:
                 # The callbacks didn't change the text, so we yield the new "a"
                 # token, then whatever else was there, then the end "a" token
                 yield a_token
-                for mem in token_buffer[1:]:
-                    yield mem
+                yield from token_buffer[1:]
 
             else:
                 # If the callbacks changed the text, then we're going to drop
@@ -516,7 +509,7 @@ class LinkifyFilter(html5lib_shim.Filter):
 
         token_buffer = []
 
-        for token in super(LinkifyFilter, self).__iter__():
+        for token in super().__iter__():
             if in_a:
                 # Handle the case where we're in an "a" tag--we want to buffer tokens
                 # until we hit an end "a" tag.
@@ -524,8 +517,7 @@ class LinkifyFilter(html5lib_shim.Filter):
                     # Add the end tag to the token buffer and then handle them
                     # and yield anything returned
                     token_buffer.append(token)
-                    for new_token in self.handle_a_tag(token_buffer):
-                        yield new_token
+                    yield from self.handle_a_tag(token_buffer)
 
                     # Clear "a" related state and continue since we've yielded all
                     # the tokens we're going to yield

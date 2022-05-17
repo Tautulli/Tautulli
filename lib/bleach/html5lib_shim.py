@@ -36,6 +36,8 @@ from bleach._vendor.html5lib.filters.base import (
 )  # noqa: E402 module level import not at top of file
 from bleach._vendor.html5lib.filters.sanitizer import (
     allowed_protocols,
+    allowed_css_properties,
+    allowed_svg_properties,
 )  # noqa: E402 module level import not at top of file
 from bleach._vendor.html5lib.filters.sanitizer import (
     Filter as SanitizerFilter,
@@ -68,8 +70,10 @@ TAG_TOKEN_TYPES = {
     constants.tokenTypes["EndTag"],
     constants.tokenTypes["EmptyTag"],
 }
-CHARACTERS_TYPE = constants.tokenTypes["Characters"]
-PARSEERROR_TYPE = constants.tokenTypes["ParseError"]
+TAG_TOKEN_TYPE_START = constants.tokenTypes["StartTag"]
+TAG_TOKEN_TYPE_END = constants.tokenTypes["EndTag"]
+TAG_TOKEN_TYPE_CHARACTERS = constants.tokenTypes["Characters"]
+TAG_TOKEN_TYPE_PARSEERROR = constants.tokenTypes["ParseError"]
 
 
 #: List of valid HTML tags, from WHATWG HTML Living Standard as of 2018-10-17
@@ -190,6 +194,48 @@ HTML_TAGS = [
 ]
 
 
+#: List of block level HTML tags, as per https://github.com/mozilla/bleach/issues/369
+#: from mozilla on 2019.07.11
+#: https://developer.mozilla.org/en-US/docs/Web/HTML/Block-level_elements#Elements
+HTML_TAGS_BLOCK_LEVEL = frozenset(
+    [
+        "address",
+        "article",
+        "aside",
+        "blockquote",
+        "details",
+        "dialog",
+        "dd",
+        "div",
+        "dl",
+        "dt",
+        "fieldset",
+        "figcaption",
+        "figure",
+        "footer",
+        "form",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "header",
+        "hgroup",
+        "hr",
+        "li",
+        "main",
+        "nav",
+        "ol",
+        "p",
+        "pre",
+        "section",
+        "table",
+        "ul",
+    ]
+)
+
+
 class InputStreamWithMemory:
     """Wraps an HTMLInputStream to remember characters since last <
 
@@ -257,17 +303,20 @@ class BleachHTMLTokenizer(HTMLTokenizer):
     """Tokenizer that doesn't consume character entities"""
 
     def __init__(self, consume_entities=False, **kwargs):
-        super(BleachHTMLTokenizer, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.consume_entities = consume_entities
 
         # Wrap the stream with one that remembers the history
         self.stream = InputStreamWithMemory(self.stream)
 
+        # Remember the last token emitted; needed for block element spacing
+        self.emitted_last_token = None
+
     def __iter__(self):
         last_error_token = None
 
-        for token in super(BleachHTMLTokenizer, self).__iter__():
+        for token in super().__iter__():
             if last_error_token is not None:
                 if (
                     last_error_token["data"] == "invalid-character-in-attribute-name"
@@ -309,12 +358,12 @@ class BleachHTMLTokenizer(HTMLTokenizer):
                     # If this is not an allowed tag, then we convert it to
                     # characters and it'll get escaped in the sanitizer.
                     token["data"] = self.stream.get_tag()
-                    token["type"] = CHARACTERS_TYPE
+                    token["type"] = TAG_TOKEN_TYPE_CHARACTERS
 
                     last_error_token = None
                     yield token
 
-                elif token["type"] == PARSEERROR_TYPE:
+                elif token["type"] == TAG_TOKEN_TYPE_PARSEERROR:
                     # If the token is a parse error, then let the last_error_token
                     # go, and make token the new last_error_token
                     yield last_error_token
@@ -329,7 +378,7 @@ class BleachHTMLTokenizer(HTMLTokenizer):
 
             # If the token is a ParseError, we hold on to it so we can get the
             # next token and potentially fix it.
-            if token["type"] == PARSEERROR_TYPE:
+            if token["type"] == TAG_TOKEN_TYPE_PARSEERROR:
                 last_error_token = token
                 continue
 
@@ -342,9 +391,7 @@ class BleachHTMLTokenizer(HTMLTokenizer):
         # If this tokenizer is set to consume entities, then we can let the
         # superclass do its thing.
         if self.consume_entities:
-            return super(BleachHTMLTokenizer, self).consumeEntity(
-                allowedChar, fromAttribute
-            )
+            return super().consumeEntity(allowedChar, fromAttribute)
 
         # If this tokenizer is set to not consume entities, then we don't want
         # to consume and convert them, so this overrides the html5lib tokenizer's
@@ -356,7 +403,7 @@ class BleachHTMLTokenizer(HTMLTokenizer):
             self.currentToken["data"][-1][1] += "&"
 
         else:
-            self.tokenQueue.append({"type": CHARACTERS_TYPE, "data": "&"})
+            self.tokenQueue.append({"type": TAG_TOKEN_TYPE_CHARACTERS, "data": "&"})
 
     def tagOpenState(self):
         # This state marks a < that is either a StartTag, EndTag, EmptyTag,
@@ -364,7 +411,7 @@ class BleachHTMLTokenizer(HTMLTokenizer):
         # we've collected so far and we do that by calling start_tag() on
         # the input stream wrapper.
         self.stream.start_tag()
-        return super(BleachHTMLTokenizer, self).tagOpenState()
+        return super().tagOpenState()
 
     def emitCurrentToken(self):
         token = self.currentToken
@@ -378,9 +425,19 @@ class BleachHTMLTokenizer(HTMLTokenizer):
             # allowed list, then it gets stripped or escaped. In both of these
             # cases it gets converted to a Characters token.
             if self.parser.strip:
-                # If we're stripping the token, we just throw in an empty
-                # string token.
-                new_data = ""
+                if (
+                    self.emitted_last_token
+                    and token["type"] == TAG_TOKEN_TYPE_START
+                    and token["name"].lower() in HTML_TAGS_BLOCK_LEVEL
+                ):
+                    # If this is a block level tag we're stripping, we drop it
+                    # for a newline because that's what a browser would parse
+                    # it as
+                    new_data = "\n"
+                else:
+                    # For all other things being stripped, we throw in an empty
+                    # string token
+                    new_data = ""
 
             else:
                 # If we're escaping the token, we want to escape the exact
@@ -390,14 +447,15 @@ class BleachHTMLTokenizer(HTMLTokenizer):
                 # string and use that.
                 new_data = self.stream.get_tag()
 
-            new_token = {"type": CHARACTERS_TYPE, "data": new_data}
+            new_token = {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": new_data}
 
-            self.currentToken = new_token
+            self.currentToken = self.emitted_last_token = new_token
             self.tokenQueue.append(new_token)
             self.state = self.dataState
             return
 
-        super(BleachHTMLTokenizer, self).emitCurrentToken()
+        self.emitted_last_token = self.currentToken
+        super().emitCurrentToken()
 
 
 class BleachHTMLParser(HTMLParser):
@@ -416,7 +474,7 @@ class BleachHTMLParser(HTMLParser):
         self.tags = [tag.lower() for tag in tags] if tags is not None else None
         self.strip = strip
         self.consume_entities = consume_entities
-        super(BleachHTMLParser, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def _parse(
         self, stream, innerHTML=False, container="div", scripting=True, **kwargs
@@ -514,13 +572,13 @@ def convert_entities(text):
 def match_entity(stream):
     """Returns first entity in stream or None if no entity exists
 
-    Note: For Bleach purposes, entities must start with a "&" and end with
-    a ";". This ignoresambiguous character entities that have no ";" at the
-    end.
+    Note: For Bleach purposes, entities must start with a "&" and end with a
+    ";". This ignores ambiguous character entities that have no ";" at the end.
 
     :arg stream: the character stream
 
-    :returns: ``None`` or the entity string without "&" or ";"
+    :returns: the entity string without "&" or ";" if it's a valid character
+        entity; ``None`` otherwise
 
     """
     # Nix the & at the beginning
@@ -559,9 +617,11 @@ def match_entity(stream):
     # Handle character entities
     while stream and stream[0] not in end_characters:
         c = stream.pop(0)
-        if not ENTITIES_TRIE.has_keys_with_prefix(possible_entity):
-            break
         possible_entity += c
+        if not ENTITIES_TRIE.has_keys_with_prefix(possible_entity):
+            # If it's not a prefix, then it's not an entity and we're
+            # out
+            return None
 
     if possible_entity and stream and stream[0] == ";":
         return possible_entity
@@ -642,15 +702,14 @@ class BleachHTMLSerializer(HTMLSerializer):
         in_tag = False
         after_equals = False
 
-        for stoken in super(BleachHTMLSerializer, self).serialize(treewalker, encoding):
+        for stoken in super().serialize(treewalker, encoding):
             if in_tag:
                 if stoken == ">":
                     in_tag = False
 
                 elif after_equals:
                     if stoken != '"':
-                        for part in self.escape_base_amp(stoken):
-                            yield part
+                        yield from self.escape_base_amp(stoken)
 
                         after_equals = False
                         continue
