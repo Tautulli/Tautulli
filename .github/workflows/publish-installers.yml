@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: Set Release Version
         id: get_version
@@ -107,7 +107,7 @@ jobs:
         uses: technote-space/workflow-conclusion-action@v2.2
 
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3.0.2
 
       - name: Set Release Version
         id: get_version
