@@ -1,6 +1,6 @@
 apscheduler==3.9.1
 importlib-resources==5.7.1
-pyinstaller==4.9
+pyinstaller==5.0.1
 pyopenssl==22.0.0
 pycryptodomex==3.14.1
 
