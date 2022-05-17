@@ -63,7 +63,7 @@ class TKEY(dns.rdata.Rdata):
         error = tok.get_uint16()
         key_b64 = tok.get_string().encode()
         key = base64.b64decode(key_b64)
-        other_b64 = tok.concatenate_remaining_identifiers().encode()
+        other_b64 = tok.concatenate_remaining_identifiers(True).encode()
         other = base64.b64decode(other_b64)
 
         return cls(rdclass, rdtype, algorithm, inception, expiration, mode,

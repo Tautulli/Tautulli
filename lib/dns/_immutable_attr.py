@@ -49,7 +49,7 @@ def _immutable_init(f):
             f(*args, **kwargs)
         finally:
             if not previous:
-                # If we started the initialzation, establish immutability
+                # If we started the initialization, establish immutability
                 # by removing the attribute that allows mutation
                 object.__delattr__(args[0], '_immutable_init')
     nf.__signature__ = inspect.signature(f)

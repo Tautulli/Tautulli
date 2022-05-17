@@ -108,7 +108,7 @@ def key_id(key):
         return total & 0xffff
 
 class DSDigest(dns.enum.IntEnum):
-    """DNSSEC Delgation Signer Digest Algorithm"""
+    """DNSSEC Delegation Signer Digest Algorithm"""
 
     SHA1 = 1
     SHA256 = 2

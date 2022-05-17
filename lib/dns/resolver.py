@@ -145,7 +145,7 @@ class LifetimeTimeout(dns.exception.Timeout):
     """The resolution lifetime expired."""
 
     msg = "The resolution lifetime expired."
-    fmt = "%s after {timeout} seconds: {errors}" % msg[:-1]
+    fmt = "%s after {timeout:.3f} seconds: {errors}" % msg[:-1]
     supp_kwargs = {'timeout', 'errors'}
 
     def _fmt_kwargs(self, **kwargs):
@@ -1018,7 +1018,7 @@ class Resolver(BaseResolver):
         *source_port*, an ``int``, the port from which to send the message.
 
         *lifetime*, a ``float``, how many seconds a query should run
-         before timing out.
+        before timing out.
 
         *search*, a ``bool`` or ``None``, determines whether the
         search list configured in the system's resolver configuration
@@ -1101,7 +1101,7 @@ class Resolver(BaseResolver):
         """Query nameservers to find the answer to the question.
 
         This method calls resolve() with ``search=True``, and is
-        provided for backwards compatbility with prior versions of
+        provided for backwards compatibility with prior versions of
         dnspython.  See the documentation for the resolve() method for
         further details.
         """
@@ -1200,7 +1200,7 @@ def query(qname, rdtype=dns.rdatatype.A, rdclass=dns.rdataclass.IN,
     """Query nameservers to find the answer to the question.
 
     This method calls resolve() with ``search=True``, and is
-    provided for backwards compatbility with prior versions of
+    provided for backwards compatibility with prior versions of
     dnspython.  See the documentation for the resolve() method for
     further details.
     """
@@ -1253,7 +1253,7 @@ def zone_for_name(name, rdclass=dns.rdataclass.IN, tcp=False, resolver=None,
     root servers in your network and they are misconfigured.)
 
     Raises ``dns.resolver.LifetimeTimeout`` if the answer could not be
-    found in the alotted lifetime.
+    found in the allotted lifetime.
 
     Returns a ``dns.name.Name``.
     """

@@ -20,6 +20,7 @@
 import base64
 
 import dns.name
+import dns.tsig
 
 
 def from_text(textring):

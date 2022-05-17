@@ -389,7 +389,7 @@ class Transaction:
             if rdataset.rdclass != self.manager.get_class():
                 raise ValueError(f'{method} has objects of wrong RdataClass')
             if rdataset.rdtype == dns.rdatatype.SOA:
-                (_, _, origin) = self.manager.origin_information()
+                (_, _, origin) = self._origin_information()
                 if name != origin:
                     raise ValueError(f'{method} has non-origin SOA')
             self._raise_if_not_empty(method, args)
@@ -560,7 +560,7 @@ class Transaction:
         *commit*, a bool.  If ``True``, commit the transaction, otherwise
         roll it back.
 
-        If committing adn the commit fails, then roll back and raise an
+        If committing and the commit fails, then roll back and raise an
         exception.
         """
         raise NotImplementedError  # pragma: no cover
@@ -585,3 +585,12 @@ class Transaction:
         Returns a node or ``None``.
         """
         raise NotImplementedError  # pragma: no cover
+
+    #
+    # Low-level API with a default implementation, in case a subclass needs
+    # to override.
+    #
+
+    def _origin_information(self):
+        # This is only used by _add()
+        return self.manager.origin_information()
