@@ -2,7 +2,7 @@
 _http.py
 websocket - WebSocket client library for Python
 
-Copyright 2021 engn33r
+Copyright 2022 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -186,12 +186,10 @@ def _open_socket(addrinfo_list, sockopt, timeout):
             except socket.error as error:
                 error.remote_ip = str(address[0])
                 try:
-                    eConnRefused = (errno.ECONNREFUSED, errno.WSAECONNREFUSED)
+                    eConnRefused = (errno.ECONNREFUSED, errno.WSAECONNREFUSED, errno.ENETUNREACH)
                 except:
-                    eConnRefused = (errno.ECONNREFUSED, )
-                if error.errno == errno.EINTR:
-                    continue
-                elif error.errno in eConnRefused:
+                    eConnRefused = (errno.ECONNREFUSED, errno.ENETUNREACH)
+                if error.errno in eConnRefused:
                     err = error
                     continue
                 else:

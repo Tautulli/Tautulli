@@ -2,7 +2,7 @@
 _url.py
 websocket - WebSocket client library for Python
 
-Copyright 2021 engn33r
+Copyright 2022 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

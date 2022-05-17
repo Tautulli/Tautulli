@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*-
 #
-"""
-
-"""
+import os
+import os.path
+import socket
+import websocket as ws
+import unittest
+from websocket._handshake import _create_sec_websocket_key, \
+    _validate as _validate_header
+from websocket._http import read_headers
+from websocket._utils import validate_utf8
+from base64 import decodebytes as base64decode
 
 """
 test_websocket.py
 websocket - WebSocket client library for Python
 
-Copyright 2021 engn33r
+Copyright 2022 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,18 +29,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-import os
-import os.path
-import socket
-import websocket as ws
-from websocket._handshake import _create_sec_websocket_key, \
-    _validate as _validate_header
-from websocket._http import read_headers
-from websocket._utils import validate_utf8
-from base64 import decodebytes as base64decode
-
-import unittest
 
 try:
     import ssl
@@ -201,14 +196,16 @@ class WebSocketTest(unittest.TestCase):
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
     def testIter(self):
         count = 2
-        for _ in ws.create_connection('wss://stream.meetup.com/2/rsvps'):
+        s = ws.create_connection('wss://api.bitfinex.com/ws/2')
+        s.send('{"event": "subscribe", "channel": "ticker"}')
+        for _ in s:
             count -= 1
             if count == 0:
                 break
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
     def testNext(self):
-        sock = ws.create_connection('wss://stream.meetup.com/2/rsvps')
+        sock = ws.create_connection('wss://api.bitfinex.com/ws/2')
         self.assertEqual(str, type(next(sock)))
 
     def testInternalRecvStrict(self):
@@ -383,6 +380,7 @@ class WebSocketTest(unittest.TestCase):
         s = ws.create_connection("ws://127.0.0.1:" + LOCAL_WS_SERVER_PORT,
                                  headers={"User-Agent": "PythonWebsocketClient"})
         self.assertNotEqual(s, None)
+        self.assertEqual(s.getsubprotocol(), None)
         s.send("Hello, World")
         result = s.recv()
         self.assertEqual(result, "Hello, World")

@@ -1,12 +1,18 @@
-"""
-
-"""
+import selectors
+import sys
+import threading
+import time
+import traceback
+from ._abnf import ABNF
+from ._core import WebSocket, getdefaulttimeout
+from ._exceptions import *
+from . import _logging
 
 """
 _app.py
 websocket - WebSocket client library for Python
 
-Copyright 2021 engn33r
+Copyright 2022 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,16 +26,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import selectors
-import sys
-import threading
-import time
-import traceback
-from ._abnf import ABNF
-from ._core import WebSocket, getdefaulttimeout
-from ._exceptions import *
-from . import _logging
-
 
 __all__ = ["WebSocketApp"]
 
@@ -86,6 +82,20 @@ class SSLDispatcher:
             return r[0][0]
 
 
+class WrappedDispatcher:
+    """
+    WrappedDispatcher
+    """
+    def __init__(self, app, ping_timeout, dispatcher):
+        self.app = app
+        self.ping_timeout = ping_timeout
+        self.dispatcher = dispatcher
+
+    def read(self, sock, read_callback, check_callback):
+        self.dispatcher.read(sock, read_callback)
+        self.ping_timeout and self.dispatcher.timeout(self.ping_timeout, check_callback)
+
+
 class WebSocketApp:
     """
     Higher level of APIs are provided. The interface is like JavaScript WebSocket object.
@@ -97,7 +107,8 @@ class WebSocketApp:
                  on_cont_message=None,
                  keep_running=True, get_mask_key=None, cookie=None,
                  subprotocols=None,
-                 on_data=None):
+                 on_data=None,
+                 socket=None):
         """
         WebSocketApp initialization
 
@@ -153,6 +164,8 @@ class WebSocketApp:
             Cookie value.
         subprotocols: list
             List of available sub protocols. Default is None.
+        socket: socket
+            Pre-initialized stream socket.
         """
         self.url = url
         self.header = header if header is not None else []
@@ -172,6 +185,7 @@ class WebSocketApp:
         self.last_ping_tm = 0
         self.last_pong_tm = 0
         self.subprotocols = subprotocols
+        self.prepared_socket = socket
 
     def send(self, data, opcode=ABNF.OPCODE_TEXT):
         """
@@ -258,7 +272,8 @@ class WebSocketApp:
         Returns
         -------
         teardown: bool
-            False if caught KeyboardInterrupt, True if other exception was raised during a loop
+            False if the `WebSocketApp` is closed or caught KeyboardInterrupt,
+            True if any other exception was raised during a loop.
         """
 
         if ping_timeout is not None and ping_timeout <= 0:
@@ -315,9 +330,8 @@ class WebSocketApp:
                 http_proxy_port=http_proxy_port, http_no_proxy=http_no_proxy,
                 http_proxy_auth=http_proxy_auth, subprotocols=self.subprotocols,
                 host=host, origin=origin, suppress_origin=suppress_origin,
-                proxy_type=proxy_type)
-            if not dispatcher:
-                dispatcher = self.create_dispatcher(ping_timeout)
+                proxy_type=proxy_type, socket=self.prepared_socket)
+            dispatcher = self.create_dispatcher(ping_timeout, dispatcher)
 
             self._callback(self.on_open)
 
@@ -367,6 +381,7 @@ class WebSocketApp:
                 return True
 
             dispatcher.read(self.sock.sock, read, check)
+            return False
         except (Exception, KeyboardInterrupt, SystemExit) as e:
             self._callback(self.on_error, e)
             if isinstance(e, SystemExit):
@@ -375,7 +390,9 @@ class WebSocketApp:
             teardown()
             return not isinstance(e, KeyboardInterrupt)
 
-    def create_dispatcher(self, ping_timeout):
+    def create_dispatcher(self, ping_timeout, dispatcher=None):
+        if dispatcher:  # If custom dispatcher is set, use WrappedDispatcher
+            return WrappedDispatcher(self, ping_timeout, dispatcher)
         timeout = ping_timeout or 10
         if self.sock.is_ssl():
             return SSLDispatcher(self, timeout)

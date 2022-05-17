@@ -1,12 +1,16 @@
-"""
+import errno
+import selectors
+import socket
 
-"""
+from ._exceptions import *
+from ._ssl_compat import *
+from ._utils import *
 
 """
 _socket.py
 websocket - WebSocket client library for Python
 
-Copyright 2021 engn33r
+Copyright 2022 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,13 +24,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import errno
-import selectors
-import socket
-
-from ._exceptions import *
-from ._ssl_compat import *
-from ._utils import *
 
 DEFAULT_SOCKET_OPTION = [(socket.SOL_TCP, socket.TCP_NODELAY, 1)]
 if hasattr(socket, "SO_KEEPALIVE"):
@@ -92,9 +89,7 @@ def recv(sock, bufsize):
             pass
         except socket.error as exc:
             error_code = extract_error_code(exc)
-            if error_code is None:
-                raise
-            if error_code != errno.EAGAIN or error_code != errno.EWOULDBLOCK:
+            if error_code != errno.EAGAIN and error_code != errno.EWOULDBLOCK:
                 raise
 
         sel = selectors.DefaultSelector()
@@ -111,6 +106,8 @@ def recv(sock, bufsize):
             bytes_ = sock.recv(bufsize)
         else:
             bytes_ = _recv()
+    except TimeoutError:
+        raise WebSocketTimeoutException("Connection timed out")
     except socket.timeout as e:
         message = extract_err_message(e)
         raise WebSocketTimeoutException(message)
