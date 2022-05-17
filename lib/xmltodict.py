@@ -15,7 +15,12 @@ except ImportError:  # pragma no cover
     except ImportError:
         from io import StringIO
 
-from collections import OrderedDict
+_dict = dict
+import platform
+if tuple(map(int, platform.python_version_tuple()[:2])) < (3, 7):
+    from collections import OrderedDict as _dict
+
+from inspect import isgenerator
 
 try:  # pragma no cover
     _basestring = basestring
@@ -27,7 +32,7 @@ except NameError:  # pragma no cover
     _unicode = str
 
 __author__ = 'Martin Blech'
-__version__ = '0.12.0'
+__version__ = '0.13.0'
 __license__ = 'MIT'
 
 
@@ -45,11 +50,12 @@ class _DictSAXHandler(object):
                  force_cdata=False,
                  cdata_separator='',
                  postprocessor=None,
-                 dict_constructor=OrderedDict,
+                 dict_constructor=_dict,
                  strip_whitespace=True,
                  namespace_separator=':',
                  namespaces=None,
-                 force_list=None):
+                 force_list=None,
+                 comment_key='#comment'):
         self.path = []
         self.stack = []
         self.data = []
@@ -66,17 +72,21 @@ class _DictSAXHandler(object):
         self.strip_whitespace = strip_whitespace
         self.namespace_separator = namespace_separator
         self.namespaces = namespaces
-        self.namespace_declarations = OrderedDict()
+        self.namespace_declarations = dict_constructor()
         self.force_list = force_list
+        self.comment_key = comment_key
 
     def _build_name(self, full_name):
-        if not self.namespaces:
+        if self.namespaces is None:
             return full_name
         i = full_name.rfind(self.namespace_separator)
         if i == -1:
             return full_name
         namespace, name = full_name[:i], full_name[i+1:]
-        short_namespace = self.namespaces.get(namespace, namespace)
+        try:
+            short_namespace = self.namespaces[namespace]
+        except KeyError:
+            short_namespace = namespace
         if not short_namespace:
             return name
         else:
@@ -95,7 +105,7 @@ class _DictSAXHandler(object):
         attrs = self._attrs_to_dict(attrs)
         if attrs and self.namespace_declarations:
             attrs['xmlns'] = self.namespace_declarations
-            self.namespace_declarations = OrderedDict()
+            self.namespace_declarations = self.dict_constructor()
         self.path.append((name, attrs or None))
         if len(self.path) > self.item_depth:
             self.stack.append((self.item, self.data))
@@ -126,7 +136,7 @@ class _DictSAXHandler(object):
             should_continue = self.item_callback(self.path, item)
             if not should_continue:
                 raise ParsingInterrupted()
-        if len(self.stack):
+        if self.stack:
             data = (None if not self.data
                     else self.cdata_separator.join(self.data))
             item = self.item
@@ -151,6 +161,11 @@ class _DictSAXHandler(object):
             self.data = [data]
         else:
             self.data.append(data)
+
+    def comments(self, data):
+        if self.strip_whitespace:
+            data = data.strip()
+        self.item = self.push_data(self.item, self.comment_key, data)
 
     def push_data(self, item, key, data):
         if self.postprocessor is not None:
@@ -185,10 +200,10 @@ class _DictSAXHandler(object):
 
 
 def parse(xml_input, encoding=None, expat=expat, process_namespaces=False,
-          namespace_separator=':', disable_entities=True, **kwargs):
+          namespace_separator=':', disable_entities=True, process_comments=False, **kwargs):
     """Parse the given XML input and convert it into a dictionary.
 
-    `xml_input` can either be a `string` or a file-like object.
+    `xml_input` can either be a `string`, a file-like object, or a generator of strings.
 
     If `xml_attribs` is `True`, element attributes are put in the dictionary
     among regular child elements, using `@` as a prefix to avoid collisions. If
@@ -243,21 +258,21 @@ def parse(xml_input, encoding=None, expat=expat, process_namespaces=False,
         ...         return key, value
         >>> xmltodict.parse('<a><b>1</b><b>2</b><b>x</b></a>',
         ...                 postprocessor=postprocessor)
-        OrderedDict([(u'a', OrderedDict([(u'b:int', [1, 2]), (u'b', u'x')]))])
+        {'a': {'b:int': [1, 2], 'b': 'x'}}
 
     You can pass an alternate version of `expat` (such as `defusedexpat`) by
     using the `expat` parameter. E.g:
 
         >>> import defusedexpat
         >>> xmltodict.parse('<a>hello</a>', expat=defusedexpat.pyexpat)
-        OrderedDict([(u'a', u'hello')])
+        {'a': 'hello'}
 
     You can use the force_list argument to force lists to be created even
     when there is only a single child of a given level of hierarchy. The
     force_list argument is a tuple of keys. If the key for a given level
     of hierarchy is in the force_list argument, that level of hierarchy
     will have a list as a child (even if there is only one sub-element).
-    The index_keys operation takes precendence over this. This is applied
+    The index_keys operation takes precedence over this. This is applied
     after any user-supplied postprocessor has already run.
 
         For example, given this input:
@@ -287,6 +302,36 @@ def parse(xml_input, encoding=None, expat=expat, process_namespaces=False,
         `force_list` can also be a callable that receives `path`, `key` and
         `value`. This is helpful in cases where the logic that decides whether
         a list should be forced is more complex.
+
+
+        If `process_comment` is `True` then comment will be added with comment_key
+        (default=`'#comment'`) to then tag which contains comment
+
+            For example, given this input:
+            <a>
+              <b>
+                <!-- b comment -->
+                <c>
+                    <!-- c comment -->
+                    1
+                </c>
+                <d>2</d>
+              </b>
+            </a>
+
+            If called with process_comment=True, it will produce
+            this dictionary:
+            'a': {
+                'b': {
+                    '#comment': 'b comment',
+                    'c': {
+
+                        '#comment': 'c comment',
+                        '#text': '1',
+                    },
+                    'd': '2',
+                },
+            }
     """
     handler = _DictSAXHandler(namespace_separator=namespace_separator,
                               **kwargs)
@@ -309,6 +354,8 @@ def parse(xml_input, encoding=None, expat=expat, process_namespaces=False,
     parser.StartElementHandler = handler.startElement
     parser.EndElementHandler = handler.endElement
     parser.CharacterDataHandler = handler.characters
+    if process_comments:
+        parser.CommentHandler = handler.comments
     parser.buffer_text = True
     if disable_entities:
         try:
@@ -323,6 +370,10 @@ def parse(xml_input, encoding=None, expat=expat, process_namespaces=False,
             parser.ExternalEntityRefHandler = lambda *x: 1
     if hasattr(xml_input, 'read'):
         parser.ParseFile(xml_input)
+    elif isgenerator(xml_input):
+        for chunk in xml_input:
+            parser.Parse(chunk,False)
+        parser.Parse(b'',True)
     else:
         parser.Parse(xml_input, True)
     return handler.item
@@ -353,7 +404,8 @@ def _emit(key, value, content_handler,
           indent='\t',
           namespace_separator=':',
           namespaces=None,
-          full_document=True):
+          full_document=True,
+          expand_iter=None):
     key = _process_namespace(key, namespaces, namespace_separator, attr_prefix)
     if preprocessor is not None:
         result = preprocessor(key, value)
@@ -368,18 +420,21 @@ def _emit(key, value, content_handler,
         if full_document and depth == 0 and index > 0:
             raise ValueError('document with multiple roots')
         if v is None:
-            v = OrderedDict()
+            v = _dict()
         elif isinstance(v, bool):
             if v:
                 v = _unicode('true')
             else:
                 v = _unicode('false')
         elif not isinstance(v, dict):
-            v = _unicode(v)
+            if expand_iter and hasattr(v, '__iter__') and not isinstance(v, _basestring):
+                v = _dict(((expand_iter, v),))
+            else:
+                v = _unicode(v)
         if isinstance(v, _basestring):
-            v = OrderedDict(((cdata_key, v),))
+            v = _dict(((cdata_key, v),))
         cdata = None
-        attrs = OrderedDict()
+        attrs = _dict()
         children = []
         for ik, iv in v.items():
             if ik == cdata_key:
@@ -407,7 +462,8 @@ def _emit(key, value, content_handler,
             _emit(child_key, child_value, content_handler,
                   attr_prefix, cdata_key, depth+1, preprocessor,
                   pretty, newl, indent, namespaces=namespaces,
-                  namespace_separator=namespace_separator)
+                  namespace_separator=namespace_separator,
+                  expand_iter=expand_iter)
         if cdata is not None:
             content_handler.characters(cdata)
         if pretty and children:
