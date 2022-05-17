@@ -183,6 +183,11 @@ class Zone(dns.transaction.TransactionManager):
                     "name parameter must be a subdomain of the zone origin")
             if self.relativize:
                 name = name.relativize(self.origin)
+        elif not self.relativize:
+            # We have a relative name in a non-relative zone, so derelativize.
+            if self.origin is None:
+                raise KeyError('no zone origin is defined')
+            name = name.derelativize(self.origin)
         return name
 
     def __getitem__(self, key):
@@ -870,11 +875,20 @@ class Version:
 
     def _validate_name(self, name):
         if name.is_absolute():
-            if not name.is_subdomain(self.zone.origin):
+            if self.origin is None:
+                # This should probably never happen as other code (e.g.
+                # _rr_line) will notice the lack of an origin before us, but
+                # we check just in case!
+                raise KeyError('no zone origin is defined')
+            if not name.is_subdomain(self.origin):
                 raise KeyError("name is not a subdomain of the zone origin")
             if self.zone.relativize:
-                # XXXRTH should it be an error if self.origin is still None?
                 name = name.relativize(self.origin)
+        elif not self.zone.relativize:
+            # We have a relative name in a non-relative zone, so derelativize.
+            if self.origin is None:
+                raise KeyError('no zone origin is defined')
+            name = name.derelativize(self.origin)
         return name
 
     def get_node(self, name):
@@ -1029,6 +1043,18 @@ class Transaction(dns.transaction.Transaction):
 
     def _get_node(self, name):
         return self.version.get_node(name)
+
+    def _origin_information(self):
+        (absolute, relativize, effective) = self.manager.origin_information()
+        if absolute is None and self.version.origin is not None:
+            # No origin has been committed yet, but we've learned one as part of
+            # this txn.  Use it.
+            absolute = self.version.origin
+            if relativize:
+                effective = dns.name.empty
+            else:
+                effective = absolute
+        return (absolute, relativize, effective)
 
 
 def from_text(text, origin=None, rdclass=dns.rdataclass.IN,

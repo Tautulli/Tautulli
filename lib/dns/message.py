@@ -509,7 +509,7 @@ class Message:
         expected to return a key.
 
         *keyname*, a ``dns.name.Name``, ``str`` or ``None``, the name of
-        thes TSIG key to use; defaults to ``None``.  If *keyring* is a
+        this TSIG key to use; defaults to ``None``.  If *keyring* is a
         ``dict``, the key must be defined in it.  If *keyring* is a
         ``dns.tsig.Key``, this is ignored.
 

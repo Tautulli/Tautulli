@@ -1085,10 +1085,10 @@ def inbound_xfr(where, txn_manager, query=None,
 
     *udp_mode*, a ``dns.query.UDPMode``, determines how UDP is used
     for IXFRs.  The default is ``dns.UDPMode.NEVER``, i.e. only use
-    TCP.  Other possibilites are ``dns.UDPMode.TRY_FIRST``, which
+    TCP.  Other possibilities are ``dns.UDPMode.TRY_FIRST``, which
     means "try UDP but fallback to TCP if needed", and
     ``dns.UDPMode.ONLY``, which means "try UDP and raise
-    ``dns.xfr.UseTCP`` if it does not succeeed.
+    ``dns.xfr.UseTCP`` if it does not succeed.
 
     Raises on errors.
     """

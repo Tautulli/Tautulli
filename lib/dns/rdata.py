@@ -557,7 +557,7 @@ class GenericRdata(Rdata):
             raise dns.exception.SyntaxError(
                 r'generic rdata does not start with \#')
         length = tok.get_int()
-        hex = tok.concatenate_remaining_identifiers().encode()
+        hex = tok.concatenate_remaining_identifiers(True).encode()
         data = binascii.unhexlify(hex)
         if len(data) != length:
             raise dns.exception.SyntaxError(

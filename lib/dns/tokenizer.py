@@ -600,8 +600,11 @@ class Tokenizer:
                 break
         return tokens
 
-    def concatenate_remaining_identifiers(self):
+    def concatenate_remaining_identifiers(self, allow_empty=False):
         """Read the remaining tokens on the line, which should be identifiers.
+
+        Raises dns.exception.SyntaxError if there are no remaining tokens,
+        unless `allow_empty=True` is given.
 
         Raises dns.exception.SyntaxError if a token is seen that is not an
         identifier.
@@ -618,6 +621,8 @@ class Tokenizer:
             if not token.is_identifier():
                 raise dns.exception.SyntaxError
             s += token.value
+        if not (allow_empty or s):
+            raise dns.exception.SyntaxError('expecting another identifier')
         return s
 
     def as_name(self, token, origin=None, relativize=False, relativize_to=None):

@@ -25,7 +25,7 @@ def query(qname : str, rdtype : Union[int,str] = 0,
           tcp=False, source=None, raise_on_no_answer=True,
           source_port=0, lifetime : Optional[float]=None):
     ...
-def resolve_address(self, ipaddr: str, *args: Any, **kwargs: Optional[Dict]):
+def resolve_address(ipaddr: str, *args: Any, **kwargs: Optional[Dict]):
     ...
 class LRUCache:
     def __init__(self, max_size=1000):
@@ -59,3 +59,8 @@ class Resolver:
               raise_on_no_answer=True, source_port : int = 0,
               lifetime : Optional[float]=None):
         ...
+default_resolver: typing.Optional[Resolver]
+def reset_default_resolver() -> None:
+    ...
+def get_default_resolver() -> Resolver:
+    ...

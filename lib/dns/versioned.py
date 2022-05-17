@@ -131,7 +131,7 @@ class Zone(dns.zone.Zone):
             #
             # We only wake one sleeper at a time, so it's important
             # that no event waiter can exit this method (e.g. via
-            # cancelation) without returning a transaction or waking
+            # cancellation) without returning a transaction or waking
             # someone else up.
             #
             # This is not a problem with Threading module threads as

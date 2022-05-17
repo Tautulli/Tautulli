@@ -312,7 +312,7 @@ class Rdataset(dns.set.Set):
     def processing_order(self):
         """Return rdatas in a valid processing order according to the type's
         specification.  For example, MX records are in preference order from
-        lowest to highest preferences, with items of the same perference
+        lowest to highest preferences, with items of the same preference
         shuffled.
 
         For types that do not define a processing order, the rdatas are
