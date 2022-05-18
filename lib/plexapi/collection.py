@@ -5,14 +5,24 @@ from plexapi import media, utils
 from plexapi.base import PlexPartialObject
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
 from plexapi.library import LibrarySection
-from plexapi.mixins import AdvancedSettingsMixin, ArtMixin, PosterMixin, RatingMixin
-from plexapi.mixins import LabelMixin, SmartFilterMixin
+from plexapi.mixins import (
+    AdvancedSettingsMixin, SmartFilterMixin, HubsMixin, RatingMixin,
+    ArtMixin, PosterMixin, ThemeMixin,
+    ContentRatingMixin, SortTitleMixin, SummaryMixin, TitleMixin,
+    LabelMixin
+)
 from plexapi.playqueue import PlayQueue
 from plexapi.utils import deprecated
 
 
 @utils.registerPlexObject
-class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin, RatingMixin, LabelMixin, SmartFilterMixin):
+class Collection(
+    PlexPartialObject,
+    AdvancedSettingsMixin, SmartFilterMixin, HubsMixin, RatingMixin,
+    ArtMixin, PosterMixin, ThemeMixin,
+    ContentRatingMixin, SortTitleMixin, SummaryMixin, TitleMixin,
+    LabelMixin
+):
     """ Represents a single Collection.
 
         Attributes:
@@ -22,9 +32,10 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
             art (str): URL to artwork image (/library/metadata/<ratingKey>/art/<artid>).
             artBlurHash (str): BlurHash string for artwork image.
             childCount (int): Number of items in the collection.
-            collectionMode (str): How the items in the collection are displayed.
+            collectionFilterBasedOnUser (int): Which user's activity is used for the collection filtering.
+            collectionMode (int): How the items in the collection are displayed.
             collectionPublished (bool): True if the collection is published to the Plex homepage.
-            collectionSort (str): How to sort the items in the collection.
+            collectionSort (int): How to sort the items in the collection.
             content (str): The filter URI string for smart collections.
             contentRating (str) Content rating (PG-13; NR; TV-G).
             fields (List<:class:`~plexapi.media.Field`>): List of field objects.
@@ -43,12 +54,13 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
             smart (bool): True if the collection is a smart collection.
             subtype (str): Media type of the items in the collection (movie, show, artist, or album).
             summary (str): Summary of the collection.
+            theme (str): URL to theme resource (/library/metadata/<ratingkey>/theme/<themeid>).
             thumb (str): URL to thumbnail image (/library/metadata/<ratingKey>/thumb/<thumbid>).
             thumbBlurHash (str): BlurHash string for thumbnail image.
             title (str): Name of the collection.
             titleSort (str): Title to use when sorting (defaults to title).
             type (str): 'collection'
-            updatedAt (datatime): Datetime the collection was updated.
+            updatedAt (datetime): Datetime the collection was updated.
             userRating (float): Rating of the collection (0.0 - 10.0) equaling (0 stars - 5 stars).
     """
     TAG = 'Directory'
@@ -60,6 +72,7 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
         self.art = data.attrib.get('art')
         self.artBlurHash = data.attrib.get('artBlurHash')
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
+        self.collectionFilterBasedOnUser = utils.cast(int, data.attrib.get('collectionFilterBasedOnUser', '0'))
         self.collectionMode = utils.cast(int, data.attrib.get('collectionMode', '-1'))
         self.collectionPublished = utils.cast(bool, data.attrib.get('collectionPublished', '0'))
         self.collectionSort = utils.cast(int, data.attrib.get('collectionSort', '0'))
@@ -81,6 +94,7 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
         self.smart = utils.cast(bool, data.attrib.get('smart', '0'))
         self.subtype = data.attrib.get('subtype')
         self.summary = data.attrib.get('summary')
+        self.theme = data.attrib.get('theme')
         self.thumb = data.attrib.get('thumb')
         self.thumbBlurHash = data.attrib.get('thumbBlurHash')
         self.title = data.attrib.get('title')
@@ -184,6 +198,32 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
         """ Alias to :func:`~plexapi.library.Collection.item`. """
         return self.item(title)
 
+    def filterUserUpdate(self, user=None):
+        """ Update the collection filtering user advanced setting.
+
+            Parameters:
+                user (str): One of the following values:
+                    "admin" (Always the server admin user),
+                    "user" (User currently viewing the content)
+
+            Example:
+
+                .. code-block:: python
+
+                    collection.updateMode(user="user")
+        """
+        if not self.smart:
+            raise BadRequest('Cannot change collection filtering user for a non-smart collection.')
+
+        user_dict = {
+            'admin': 0,
+            'user': 1
+        }
+        key = user_dict.get(user)
+        if key is None:
+            raise BadRequest('Unknown collection filtering user: %s. Options %s' % (user, list(user_dict)))
+        self.editAdvanced(collectionFilterBasedOnUser=key)
+
     def modeUpdate(self, mode=None):
         """ Update the collection mode advanced setting.
 
@@ -208,7 +248,7 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
         }
         key = mode_dict.get(mode)
         if key is None:
-            raise BadRequest('Unknown collection mode : %s. Options %s' % (mode, list(mode_dict)))
+            raise BadRequest('Unknown collection mode: %s. Options %s' % (mode, list(mode_dict)))
         self.editAdvanced(collectionMode=key)
 
     def sortUpdate(self, sort=None):
@@ -216,7 +256,7 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
 
             Parameters:
                 sort (str): One of the following values:
-                    "realease" (Order Collection by realease dates),
+                    "release" (Order Collection by release dates),
                     "alpha" (Order Collection alphabetically),
                     "custom" (Custom collection order)
 
@@ -226,6 +266,9 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
 
                     collection.updateSort(mode="alpha")
         """
+        if self.smart:
+            raise BadRequest('Cannot change collection order for a smart collection.')
+
         sort_dict = {
             'release': 0,
             'alpha': 1,
@@ -340,6 +383,7 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
         }))
         self._server.query(key, method=self._server._session.put)
 
+    @deprecated('use editTitle, editSortTitle, editContentRating, and editSummary instead')
     def edit(self, title=None, titleSort=None, contentRating=None, summary=None, **kwargs):
         """ Edit the collection.
         
@@ -364,7 +408,7 @@ class Collection(PlexPartialObject, AdvancedSettingsMixin, ArtMixin, PosterMixin
             args['summary.locked'] = 1
 
         args.update(kwargs)
-        super(Collection, self).edit(**args)
+        self._edit(**args)
 
     def delete(self):
         """ Delete the collection. """

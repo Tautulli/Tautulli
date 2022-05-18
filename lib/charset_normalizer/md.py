@@ -314,7 +314,7 @@ class SuperWeirdWordPlugin(MessDetectorPlugin):
             self._buffer = ""
             self._buffer_accent_count = 0
         elif (
-            character not in {"<", ">", "-", "="}
+            character not in {"<", ">", "-", "=", "~", "|", "_"}
             and character.isdigit() is False
             and is_symbol(character)
         ):

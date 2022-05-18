@@ -14,7 +14,7 @@ class PlexSonosClient(PlexClient):
         speakers linked to your Plex account. It also requires remote access to
         be working properly.
 
-        More details on the Sonos integration are avaialble here:
+        More details on the Sonos integration are available here:
         https://support.plex.tv/articles/218237558-requirements-for-using-plex-for-sonos/
 
         The Sonos API emulates the Plex player control API closely:
@@ -38,7 +38,7 @@ class PlexSonosClient(PlexClient):
             server (:class:`~plexapi.server.PlexServer`): Server this client is connected to.
             session (:class:`~requests.Session`): Session object used for connection.
             title (str): Name of this Sonos speaker.
-            token (str): X-Plex-Token used for authenication
+            token (str): X-Plex-Token used for authentication
             _baseurl (str): Address of public Plex Sonos API endpoint.
             _commandId (int): Counter for commands sent to Plex API.
             _token (str): Token associated with linked Plex account.
