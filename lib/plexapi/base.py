@@ -53,7 +53,9 @@ class PlexObject(object):
         if data is not None:
             self._loadData(data)
         self._details_key = self._buildDetailsKey()
-        self._autoReload = False
+        self._overwriteNone = True
+        self._edits = None  # Save batch edits for a single API call
+        self._autoReload = True  # Automatically reload the object when accessing a missing attribute
 
     def __repr__(self):
         uid = self._clean(self.firstAttr('_baseurl', 'key', 'id', 'playQueueID', 'uri'))
@@ -65,9 +67,9 @@ class PlexObject(object):
         if attr in _DONT_OVERWRITE_SESSION_KEYS and value == []:
             value = getattr(self, attr, [])
 
-        autoReload = self.__dict__.get('_autoReload')
-        # Don't overwrite an attr with None unless it's a private variable or not auto reload
-        if value is not None or attr.startswith('_') or attr not in self.__dict__ or not autoReload:
+        overwriteNone = self.__dict__.get('_overwriteNone')
+        # Don't overwrite an attr with None unless it's a private variable or overwrite None is True
+        if value is not None or attr.startswith('_') or attr not in self.__dict__ or overwriteNone:
             self.__dict__[attr] = value
 
     def _clean(self, value):
@@ -169,9 +171,14 @@ class PlexObject(object):
             raise BadRequest('ekey was not provided')
         if isinstance(ekey, int):
             ekey = '/library/metadata/%s' % ekey
-        for elem in self._server.query(ekey):
+        data = self._server.query(ekey)
+        librarySectionID = utils.cast(int, data.attrib.get('librarySectionID'))
+        for elem in data:
             if self._checkAttrs(elem, **kwargs):
-                return self._buildItem(elem, cls, ekey)
+                item = self._buildItem(elem, cls, ekey)
+                if librarySectionID:
+                    item.librarySectionID = librarySectionID
+                return item
         clsname = cls.__name__ if cls else 'None'
         raise NotFound('Unable to find elem: cls=%s, attrs=%s' % (clsname, kwargs))
 
@@ -196,7 +203,7 @@ class PlexObject(object):
             Any XML attribute can be filtered when fetching results. Filtering is done before
             the Python objects are built to help keep things speedy. For example, passing in
             ``viewCount=0`` will only return matching items where the view count is ``0``.
-            Note that case matters when specifying attributes. Attributes futher down in the XML
+            Note that case matters when specifying attributes. Attributes further down in the XML
             tree can be filtered by *prepending* the attribute with each element tag ``Tag__``.
 
             Examples:
@@ -228,12 +235,12 @@ class PlexObject(object):
             * ``__exists`` (*bool*): Value is or is not present in the attrs.
             * ``__gt``: Value is greater than specified arg.
             * ``__gte``: Value is greater than or equal to specified arg.
-            * ``__icontains``: Case insensative value contains specified arg.
-            * ``__iendswith``: Case insensative value ends with specified arg.
-            * ``__iexact``: Case insensative value matches specified arg.
+            * ``__icontains``: Case insensitive value contains specified arg.
+            * ``__iendswith``: Case insensitive value ends with specified arg.
+            * ``__iexact``: Case insensitive value matches specified arg.
             * ``__in``: Value is in a specified list or tuple.
-            * ``__iregex``: Case insensative value matches the specified regular expression.
-            * ``__istartswith``: Case insensative value starts with specified arg.
+            * ``__iregex``: Case insensitive value matches the specified regular expression.
+            * ``__istartswith``: Case insensitive value starts with specified arg.
             * ``__lt``: Value is less than specified arg.
             * ``__lte``: Value is less than or equal to specified arg.
             * ``__regex``: Value matches the specified regular expression.
@@ -276,9 +283,9 @@ class PlexObject(object):
             kwargs['etag'] = cls.TAG
         if cls and cls.TYPE and 'type' not in kwargs:
             kwargs['type'] = cls.TYPE
-        # rtag to iter on a specific root tag
+        # rtag to iter on a specific root tag using breadth-first search
         if rtag:
-            data = next(data.iter(rtag), [])
+            data = next(utils.iterXMLBFS(data, rtag), [])
         # loop through all data elements to find matches
         items = []
         for elem in data:
@@ -298,9 +305,9 @@ class PlexObject(object):
     def listAttrs(self, data, attr, rtag=None, **kwargs):
         """ Return a list of values from matching attribute. """
         results = []
-        # rtag to iter on a specific root tag
+        # rtag to iter on a specific root tag using breadth-first search
         if rtag:
-            data = next(data.iter(rtag), [])
+            data = next(utils.iterXMLBFS(data, rtag), [])
         for elem in data:
             kwargs['%s__exists' % attr] = True
             if self._checkAttrs(elem, **kwargs):
@@ -340,7 +347,7 @@ class PlexObject(object):
         """
         return self._reload(key=key, **kwargs)
 
-    def _reload(self, key=None, _autoReload=False, **kwargs):
+    def _reload(self, key=None, _overwriteNone=True, **kwargs):
         """ Perform the actual reload. """
         details_key = self._buildDetailsKey(**kwargs) if kwargs else self._details_key
         key = key or details_key or self.key
@@ -348,9 +355,9 @@ class PlexObject(object):
             raise Unsupported('Cannot reload an object not built from a URL.')
         self._initpath = key
         data = self._server.query(key)
-        self._autoReload = _autoReload
+        self._overwriteNone = _overwriteNone
         self._loadData(data[0])
-        self._autoReload = False
+        self._overwriteNone = True
         return self
 
     def _checkAttrs(self, elem, **kwargs):
@@ -392,7 +399,7 @@ class PlexObject(object):
         # check were looking for the tag
         if attr.lower() == 'etag':
             return [elem.tag]
-        # loop through attrs so we can perform case-insensative match
+        # loop through attrs so we can perform case-insensitive match
         for _attr, value in elem.attrib.items():
             if attr.lower() == _attr.lower():
                 return [value]
@@ -413,6 +420,10 @@ class PlexObject(object):
 
     def _loadData(self, data):
         raise NotImplementedError('Abstract method not implemented.')
+
+    @property
+    def _searchType(self):
+        return self.TYPE
 
 
 class PlexPartialObject(PlexObject):
@@ -455,20 +466,21 @@ class PlexPartialObject(PlexObject):
     def __getattribute__(self, attr):
         # Dragons inside.. :-/
         value = super(PlexPartialObject, self).__getattribute__(attr)
-        # Check a few cases where we dont want to reload
+        # Check a few cases where we don't want to reload
         if attr in _DONT_RELOAD_FOR_KEYS: return value
         if attr in _DONT_OVERWRITE_SESSION_KEYS: return value
         if attr in USER_DONT_RELOAD_FOR_KEYS: return value
         if attr.startswith('_'): return value
         if value not in (None, []): return value
         if self.isFullObject(): return value
+        if self._autoReload is False: return value
         # Log the reload.
         clsname = self.__class__.__name__
         title = self.__dict__.get('title', self.__dict__.get('name'))
         objname = "%s '%s'" % (clsname, title) if title else clsname
         log.debug("Reloading %s for attr '%s'", objname, attr)
         # Reload and return the value
-        self._reload(_autoReload=True)
+        self._reload()
         return super(PlexPartialObject, self).__getattribute__(attr)
 
     def analyze(self):
@@ -507,44 +519,79 @@ class PlexPartialObject(PlexObject):
 
     def _edit(self, **kwargs):
         """ Actually edit an object. """
+        if isinstance(self._edits, dict):
+            self._edits.update(kwargs)
+            return self
+
         if 'id' not in kwargs:
             kwargs['id'] = self.ratingKey
         if 'type' not in kwargs:
-            kwargs['type'] = utils.searchType(self.type)
+            kwargs['type'] = utils.searchType(self._searchType)
 
-        part = '/library/sections/%s/all?%s' % (self.librarySectionID,
-                                                urlencode(kwargs))
+        part = '/library/sections/%s/all%s' % (self.librarySectionID,
+                                               utils.joinArgs(kwargs))
         self._server.query(part, method=self._server._session.put)
+        return self
 
     def edit(self, **kwargs):
         """ Edit an object.
+            Note: This is a low level method and you need to know all the field/tag keys.
+            See :class:`~plexapi.mixins.EditFieldMixin` and :class:`~plexapi.mixins.EditTagsMixin`
+            for individual field and tag editing methods.
 
             Parameters:
                 kwargs (dict): Dict of settings to edit.
 
             Example:
-                {'type': 1,
-                 'id': movie.ratingKey,
-                 'collection[0].tag.tag': 'Super',
-                 'collection.locked': 0}
-        """
-        self._edit(**kwargs)
 
-    def _edit_tags(self, tag, items, locked=True, remove=False):
-        """ Helper to edit tags.
+                .. code-block:: python
 
-            Parameters:
-                tag (str): Tag name.
-                items (list): List of tags to add.
-                locked (bool): True to lock the field.
-                remove (bool): True to remove the tags in items.
+                    edits = {
+                        'type': 1,
+                        'id': movie.ratingKey,
+                        'title.value': 'A new title',
+                        'title.locked': 1,
+                        'summary.value': 'This is a summary.',
+                        'summary.locked': 1,
+                        'collection[0].tag.tag': 'A tag',
+                        'collection.locked': 1}
+                    }
+                    movie.edit(**edits)
+
         """
-        if not isinstance(items, list):
-            items = [items]
-        value = getattr(self, utils.tag_plural(tag))
-        existing_tags = [t.tag for t in value if t and remove is False]
-        tag_edits = utils.tag_helper(tag, existing_tags + items, locked, remove)
-        self.edit(**tag_edits)
+        return self._edit(**kwargs)
+
+    def batchEdits(self):
+        """ Enable batch editing mode to save API calls.
+            Must call :func:`~plexapi.base.PlexPartialObject.saveEdits` at the end to save all the edits.
+            See :class:`~plexapi.mixins.EditFieldMixin` and :class:`~plexapi.mixins.EditTagsMixin`
+            for individual field and tag editing methods.
+
+            Example:
+
+                .. code-block:: python
+
+                    # Batch editing multiple fields and tags in a single API call
+                    Movie.batchEdits()
+                    Movie.editTitle('A New Title').editSummary('A new summary').editTagline('A new tagline') \\
+                        .addCollection('New Collection').removeGenre('Action').addLabel('Favorite')
+                    Movie.saveEdits()
+
+        """
+        self._edits = {}
+        return self
+
+    def saveEdits(self):
+        """ Save all the batch edits and automatically reload the object.
+            See :func:`~plexapi.base.PlexPartialObject.batchEdits` for details.
+        """
+        if not isinstance(self._edits, dict):
+            raise BadRequest('Batch editing mode not enabled. Must call `batchEdits()` first.')
+
+        edits = self._edits
+        self._edits = None
+        self._edit(**edits)
+        return self.reload()
 
     def refresh(self):
         """ Refreshing a Library or individual item causes the metadata for the item to be
@@ -709,7 +756,7 @@ class Playable(object):
                 filename = part.file
 
             if kwargs:
-                # So this seems to be a alot slower but allows transcode.
+                # So this seems to be a a lot slower but allows transcode.
                 download_url = self.getStreamURL(**kwargs)
             else:
                 download_url = self._server.url('%s?download=1' % part.key)
@@ -746,7 +793,7 @@ class Playable(object):
         key = '/:/progress?key=%s&identifier=com.plexapp.plugins.library&time=%d&state=%s' % (self.ratingKey,
                                                                                               time, state)
         self._server.query(key)
-        self._reload(_autoReload=True)
+        self._reload(_overwriteNone=False)
 
     def updateTimeline(self, time, state='stopped', duration=None):
         """ Set the timeline progress for this video.
@@ -764,7 +811,7 @@ class Playable(object):
         key = '/:/timeline?ratingKey=%s&key=%s&identifier=com.plexapp.plugins.library&time=%d&state=%s%s'
         key %= (self.ratingKey, self.key, time, state, durationStr)
         self._server.query(key)
-        self._reload(_autoReload=True)
+        self._reload(_overwriteNone=False)
 
 
 class MediaContainer(PlexObject):

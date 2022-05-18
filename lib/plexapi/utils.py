@@ -9,6 +9,7 @@ import time
 import unicodedata
 import warnings
 import zipfile
+from collections import deque
 from datetime import datetime
 from getpass import getpass
 from threading import Event, Thread
@@ -55,7 +56,7 @@ class SecretsFilter(logging.Filter):
 
 def registerPlexObject(cls):
     """ Registry of library types we may come across when parsing XML. This allows us to
-        define a few helper functions to dynamically convery the XML into objects. See
+        define a few helper functions to dynamically convert the XML into objects. See
         buildItem() below for an example.
     """
     etype = getattr(cls, 'STREAMTYPE', getattr(cls, 'TAGTYPE', cls.TYPE))
@@ -72,7 +73,7 @@ def cast(func, value):
         only support str, int, float, bool. Should be extended if needed.
 
         Parameters:
-            func (func): Calback function to used cast to type (int, bool, float).
+            func (func): Callback function to used cast to type (int, bool, float).
             value (any): value to be cast and returned.
     """
     if value is not None:
@@ -114,7 +115,7 @@ def lowerFirst(s):
 
 
 def rget(obj, attrstr, default=None, delim='.'):  # pragma: no cover
-    """ Returns the value at the specified attrstr location within a nexted tree of
+    """ Returns the value at the specified attrstr location within a nested tree of
         dicts, lists, tuples, functions, classes, etc. The lookup is done recursively
         for each key in attrstr (split by by the delimiter) This function is heavily
         influenced by the lookups used in Django templates.
@@ -194,7 +195,7 @@ def threaded(callback, listargs):
         args += [results, len(results)]
         results.append(None)
         threads.append(Thread(target=callback, args=args, kwargs=dict(job_is_done_event=job_is_done_event)))
-        threads[-1].setDaemon(True)
+        threads[-1].daemon = True
         threads[-1].start()
     while not job_is_done_event.is_set():
         if all(not t.is_alive() for t in threads):
@@ -304,7 +305,7 @@ def download(url, token, filename=None, savepath=None, session=None, chunksize=4
             filename (str): Filename of the downloaded file, default None.
             savepath (str): Defaults to current working dir.
             chunksize (int): What chunksize read/write at the time.
-            mocked (bool): Helper to do evertything except write the file.
+            mocked (bool): Helper to do everything except write the file.
             unpack (bool): Unpack the zip file.
             showstatus(bool): Display a progressbar.
 
@@ -359,40 +360,6 @@ def download(url, token, filename=None, savepath=None, session=None, chunksize=4
             handle.extractall(savepath)
 
     return fullpath
-
-
-def tag_singular(tag):
-    if tag == 'countries':
-        return 'country'
-    elif tag == 'similar':
-        return 'similar'
-    else:
-        return tag[:-1]
-
-
-def tag_plural(tag):
-    if tag == 'country':
-        return 'countries'
-    elif tag == 'similar':
-        return 'similar'
-    else:
-        return tag + 's'
-
-
-def tag_helper(tag, items, locked=True, remove=False):
-    """ Simple tag helper for editing a object. """
-    if not isinstance(items, list):
-        items = [items]
-    data = {}
-    if not remove:
-        for i, item in enumerate(items):
-            tagname = '%s[%s].tag.tag' % (tag, i)
-            data[tagname] = item
-    if remove:
-        tagname = '%s[].tag.tag-' % tag
-        data[tagname] = ','.join(items)
-    data['%s.locked' % tag] = 1 if locked else 0
-    return data
 
 
 def getMyPlexAccount(opts=None):  # pragma: no cover
@@ -485,7 +452,7 @@ def getAgentIdentifier(section, agent):
         if agent in identifiers:
             return ag.identifier
         agents += identifiers
-    raise NotFound('Couldnt find "%s" in agents list (%s)' %
+    raise NotFound('Could not find "%s" in agents list (%s)' %
                    (agent, ', '.join(agents)))
 
 
@@ -506,3 +473,15 @@ def deprecated(message, stacklevel=2):
             return func(*args, **kwargs)
         return wrapper
     return decorator
+
+
+def iterXMLBFS(root, tag=None):
+    """ Iterate through an XML tree using a breadth-first search.
+        If tag is specified, only return nodes with that tag.
+    """
+    queue = deque([root])
+    while queue:
+        node = queue.popleft()
+        if tag is None or node.tag == tag:
+            yield node
+        queue.extend(list(node))

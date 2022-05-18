@@ -6,13 +6,17 @@ from plexapi import media, utils
 from plexapi.base import Playable, PlexPartialObject
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
 from plexapi.library import LibrarySection
-from plexapi.mixins import ArtMixin, PosterMixin, SmartFilterMixin
+from plexapi.mixins import SmartFilterMixin, ArtMixin, PosterMixin
 from plexapi.playqueue import PlayQueue
 from plexapi.utils import deprecated
 
 
 @utils.registerPlexObject
-class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMixin):
+class Playlist(
+    PlexPartialObject, Playable,
+    SmartFilterMixin,
+    ArtMixin, PosterMixin
+):
     """ Represents a single Playlist.
 
         Attributes:
@@ -39,7 +43,7 @@ class Playlist(PlexPartialObject, Playable, ArtMixin, PosterMixin, SmartFilterMi
             summary (str): Summary of the playlist.
             title (str): Name of the playlist.
             type (str): 'playlist'
-            updatedAt (datatime): Datetime the playlist was updated.
+            updatedAt (datetime): Datetime the playlist was updated.
     """
     TAG = 'Playlist'
     TYPE = 'playlist'

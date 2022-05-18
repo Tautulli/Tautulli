@@ -39,7 +39,7 @@ class Media(PlexObject):
 
             <Photo_only_attributes>: The following attributes are only available for photos.
 
-                * aperture (str): The apeture used to take the photo.
+                * aperture (str): The aperture used to take the photo.
                 * exposure (str): The exposure used to take the photo.
                 * iso (int): The iso used to take the photo.
                 * lens (str): The lens used to take the photo.
@@ -93,7 +93,7 @@ class Media(PlexObject):
         try:
             return self._server.query(part, method=self._server._session.delete)
         except BadRequest:
-            log.error("Failed to delete %s. This could be because you havn't allowed "
+            log.error("Failed to delete %s. This could be because you haven't allowed "
                       "items to be deleted" % part)
             raise
 
@@ -224,7 +224,7 @@ class MediaPartStream(PlexObject):
             id (int): The unique ID for this stream on the server.
             index (int): The index of the stream.
             language (str): The language of the stream (ex: English, ไทย).
-            languageCode (str): The Ascii language code of the stream (ex: eng, tha).
+            languageCode (str): The ASCII language code of the stream (ex: eng, tha).
             requiredBandwidths (str): The required bandwidths to stream the file.
             selected (bool): True if this stream is selected.
             streamType (int): The stream type (1= :class:`~plexapi.media.VideoStream`,
@@ -283,8 +283,8 @@ class VideoStream(MediaPartStream):
             duration (int): The duration of video stream in milliseconds.
             frameRate (float): The frame rate of the video stream (ex: 23.976).
             frameRateMode (str): The frame rate mode of the video stream.
-            hasScallingMatrix (bool): True if video stream has a scaling matrix.
-            height (int): The hight of the video stream in pixels (ex: 1080).
+            hasScalingMatrix (bool): True if video stream has a scaling matrix.
+            height (int): The height of the video stream in pixels (ex: 1080).
             level (int): The codec encoding level of the video stream (ex: 41).
             profile (str): The profile of the video stream (ex: asp).
             pixelAspectRatio (str): The pixel aspect ratio of the video stream.
@@ -323,7 +323,7 @@ class VideoStream(MediaPartStream):
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.frameRate = utils.cast(float, data.attrib.get('frameRate'))
         self.frameRateMode = data.attrib.get('frameRateMode')
-        self.hasScallingMatrix = utils.cast(bool, data.attrib.get('hasScallingMatrix'))
+        self.hasScalingMatrix = utils.cast(bool, data.attrib.get('hasScalingMatrix'))
         self.height = utils.cast(int, data.attrib.get('height'))
         self.level = utils.cast(int, data.attrib.get('level'))
         self.profile = data.attrib.get('profile')
@@ -400,7 +400,7 @@ class SubtitleStream(MediaPartStream):
             container (str): The container of the subtitle stream.
             forced (bool): True if this is a forced subtitle.
             format (str): The format of the subtitle stream (ex: srt).
-            headerCommpression (str): The header compression of the subtitle stream.
+            headerCompression (str): The header compression of the subtitle stream.
             transient (str): Unknown.
     """
     TAG = 'Stream'
@@ -468,7 +468,7 @@ class TranscodeSession(PlexObject):
             audioDecision (str): The transcode decision for the audio stream.
             complete (bool): True if the transcode is complete.
             container (str): The container of the transcoded media.
-            context (str): The context for the transcode sesson.
+            context (str): The context for the transcode session.
             duration (int): The duration of the transcoded media in milliseconds.
             height (int): The height of the transcoded media in pixels.
             key (str): API URL (ex: /transcode/sessions/<id>).
@@ -572,7 +572,7 @@ class Optimized(PlexObject):
         """
         key = '%s/%s/items' % (self._initpath, self.id)
         return self.fetchItems(key)
-        
+
     def remove(self):
         """ Remove an Optimized item"""
         key = '%s/%s' % (self._initpath, self.id)
@@ -893,7 +893,7 @@ class Guid(GuidTag):
 @utils.registerPlexObject
 class Review(PlexObject):
     """ Represents a single Review for a Movie.
-    
+
         Attributes:
             TAG (str): 'Review'
             filter (str): filter for reviews?
@@ -917,19 +917,17 @@ class Review(PlexObject):
         self.text = data.attrib.get('text')
 
 
-class BaseImage(PlexObject):
-    """ Base class for all Art, Banner, and Poster objects.
+class BaseResource(PlexObject):
+    """ Base class for all Art, Banner, Poster, and Theme objects.
 
         Attributes:
-            TAG (str): 'Photo'
+            TAG (str): 'Photo' or 'Track'
             key (str): API URL (/library/metadata/<ratingkey>).
-            provider (str): The source of the poster or art.
-            ratingKey (str): Unique key identifying the poster or art.
-            selected (bool): True if the poster or art is currently selected.
-            thumb (str): The URL to retrieve the poster or art thumbnail.
+            provider (str): The source of the art or poster, None for Theme objects.
+            ratingKey (str): Unique key identifying the resource.
+            selected (bool): True if the resource is currently selected.
+            thumb (str): The URL to retrieve the resource thumbnail.
     """
-    TAG = 'Photo'
-
     def _loadData(self, data):
         self._data = data
         self.key = data.attrib.get('key')
@@ -947,16 +945,24 @@ class BaseImage(PlexObject):
             pass
 
 
-class Art(BaseImage):
+class Art(BaseResource):
     """ Represents a single Art object. """
+    TAG = 'Photo'
 
 
-class Banner(BaseImage):
+class Banner(BaseResource):
     """ Represents a single Banner object. """
+    TAG = 'Photo'
 
 
-class Poster(BaseImage):
+class Poster(BaseResource):
     """ Represents a single Poster object. """
+    TAG = 'Photo'
+
+
+class Theme(BaseResource):
+    """ Represents a single Theme object. """
+    TAG = 'Track'
 
 
 @utils.registerPlexObject
@@ -1106,3 +1112,41 @@ class AgentMediaType(Agent):
     @deprecated('use "languageCodes" instead')
     def languageCode(self):
         return self.languageCodes
+
+
+@utils.registerPlexObject
+class Availability(PlexObject):
+    """ Represents a single online streaming service Availability.
+
+        Attributes:
+            TAG (str): 'Availability'
+            country (str): The streaming service country.
+            offerType (str): Subscription, buy, or rent from the streaming service.
+            platform (str): The platform slug for the streaming service.
+            platformColorThumb (str): Thumbnail icon for the streaming service.
+            platformInfo (str): The streaming service platform info.
+            platformUrl (str): The URL to the media on the streaming service.
+            price (float): The price to buy or rent from the streaming service.
+            priceDescription (str): The display price to buy or rent from the streaming service.
+            quality (str): The video quality on the streaming service.
+            title (str): The title of the streaming service.
+            url (str): The Plex availability URL.
+    """
+    TAG = 'Availability'
+
+    def __repr__(self):
+        return f'<{self.__class__.__name__}:{self.platform}:{self.offerType}>'
+
+    def _loadData(self, data):
+        self._data = data
+        self.country = data.attrib.get('country')
+        self.offerType = data.attrib.get('offerType')
+        self.platform = data.attrib.get('platform')
+        self.platformColorThumb = data.attrib.get('platformColorThumb')
+        self.platformInfo = data.attrib.get('platformInfo')
+        self.platformUrl = data.attrib.get('platformUrl')
+        self.price = utils.cast(float, data.attrib.get('price'))
+        self.priceDescription = data.attrib.get('priceDescription')
+        self.quality = data.attrib.get('quality')
+        self.title = data.attrib.get('title')
+        self.url = data.attrib.get('url')

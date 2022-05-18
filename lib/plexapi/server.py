@@ -314,7 +314,7 @@ class PlexServer(PlexObject):
     def myPlexAccount(self):
         """ Returns a :class:`~plexapi.myplex.MyPlexAccount` object using the same
             token to access this server. If you are not the owner of this PlexServer
-            you're likley to recieve an authentication error calling this.
+            you're likely to receive an authentication error calling this.
         """
         if self._myPlexAccount is None:
             from plexapi.myplex import MyPlexAccount
@@ -323,7 +323,7 @@ class PlexServer(PlexObject):
 
     def _myPlexClientPorts(self):
         """ Sometimes the PlexServer does not properly advertise port numbers required
-            to connect. This attemps to look up device port number from plex.tv.
+            to connect. This attempts to look up device port number from plex.tv.
             See issue #126: Make PlexServer.clients() more user friendly.
               https://github.com/pkkid/python-plexapi/issues/126
         """
@@ -393,7 +393,6 @@ class PlexServer(PlexObject):
         """
         if isinstance(path, Path):
             path = path.path
-        path = os.path.normpath(path)
         paths = [p.path for p in self.browse(os.path.dirname(path), includeFiles=False)]
         return path in paths
 
@@ -524,14 +523,39 @@ class PlexServer(PlexObject):
         filepath = utils.download(url, self._token, None, savepath, self._session, unpack=unpack)
         return filepath
 
+    def butlerTasks(self):
+        """ Return a list of :class:`~plexapi.base.ButlerTask` objects. """
+        return self.fetchItems('/butler')
+
+    def runButlerTask(self, task):
+        """ Manually run a butler task immediately instead of waiting for the scheduled task to run.
+            Note: The butler task is run asynchronously. Check Plex Web to monitor activity.
+        
+            Parameters:
+                task (str): The name of the task to run. (e.g. 'BackupDatabase')
+
+            Example:
+
+                .. code-block:: python
+
+                    availableTasks = [task.name for task in plex.butlerTasks()]
+                    print("Available butler tasks:", availableTasks)
+        """
+        validTasks = [task.name for task in self.butlerTasks()]
+        if task not in validTasks:
+            raise BadRequest(
+                f'Invalid butler task: {task}. Available tasks are: {validTasks}'
+            )
+        self.query(f'/butler/{task}', method=self._session.post)
+
     @deprecated('use "checkForUpdate" instead')
     def check_for_update(self, force=True, download=False):
-        return self.checkForUpdate()
+        return self.checkForUpdate(force=force, download=download)
 
     def checkForUpdate(self, force=True, download=False):
         """ Returns a :class:`~plexapi.base.Release` object containing release info.
 
-           Parameters:
+            Parameters:
                 force (bool): Force server to check for new releases
                 download (bool): Download if a update is available.
         """
@@ -730,7 +754,7 @@ class PlexServer(PlexObject):
         return self.fetchItems('/transcode/sessions')
 
     def startAlertListener(self, callback=None):
-        """ Creates a websocket connection to the Plex Server to optionally recieve
+        """ Creates a websocket connection to the Plex Server to optionally receive
             notifications. These often include messages from Plex about media scans
             as well as updates to currently running Transcode Sessions.
 
@@ -738,7 +762,7 @@ class PlexServer(PlexObject):
             >> pip install websocket-client
 
             Parameters:
-                callback (func): Callback function to call on recieved messages.
+                callback (func): Callback function to call on received messages.
 
             Raises:
                 :exc:`~plexapi.exception.Unsupported`: Websocket-client not installed.
@@ -1078,7 +1102,7 @@ class SystemDevice(PlexObject):
         Attributes:
             TAG (str): 'Device'
             clientIdentifier (str): The unique identifier for the device.
-            createdAt (datatime): Datetime the device was created.
+            createdAt (datetime): Datetime the device was created.
             id (int): The ID of the device (not the same as :class:`~plexapi.myplex.MyPlexDevice` ID).
             key (str): API URL (/devices/<id>)
             name (str): The name of the device.
@@ -1102,11 +1126,11 @@ class StatisticsBandwidth(PlexObject):
         Attributes:
             TAG (str): 'StatisticsBandwidth'
             accountID (int): The associated :class:`~plexapi.server.SystemAccount` ID.
-            at (datatime): Datetime of the bandwidth data.
-            bytes (int): The total number of bytes for the specified timespan.
+            at (datetime): Datetime of the bandwidth data.
+            bytes (int): The total number of bytes for the specified time span.
             deviceID (int): The associated :class:`~plexapi.server.SystemDevice` ID.
-            lan (bool): True or False wheter the bandwidth is local or remote.
-            timespan (int): The timespan for the bandwidth data.
+            lan (bool): True or False whether the bandwidth is local or remote.
+            timespan (int): The time span for the bandwidth data.
                 1: months, 2: weeks, 3: days, 4: hours, 6: seconds.
 
     """
@@ -1143,12 +1167,12 @@ class StatisticsResources(PlexObject):
 
         Attributes:
             TAG (str): 'StatisticsResources'
-            at (datatime): Datetime of the resource data.
+            at (datetime): Datetime of the resource data.
             hostCpuUtilization (float): The system CPU usage %.
             hostMemoryUtilization (float): The Plex Media Server CPU usage %.
             processCpuUtilization (float): The system RAM usage %.
             processMemoryUtilization (float): The Plex Media Server RAM usage %.
-            timespan (int): The timespan for the resource data (6: seconds).
+            timespan (int): The time span for the resource data (6: seconds).
     """
     TAG = 'StatisticsResources'
 
@@ -1166,3 +1190,28 @@ class StatisticsResources(PlexObject):
             self.__class__.__name__,
             self._clean(int(self.at.timestamp()))
         ] if p])
+
+
+@utils.registerPlexObject
+class ButlerTask(PlexObject):
+    """ Represents a single scheduled butler task.
+    
+        Attributes:
+            TAG (str): 'ButlerTask'
+            description (str): The description of the task.
+            enabled (bool): Whether the task is enabled.
+            interval (int): The interval the task is run in days.
+            name (str): The name of the task.
+            scheduleRandomized (bool): Whether the task schedule is randomized.
+            title (str): The title of the task.
+    """
+    TAG = 'ButlerTask'
+
+    def _loadData(self, data):
+        self._data = data
+        self.description = data.attrib.get('description')
+        self.enabled = utils.cast(bool, data.attrib.get('enabled'))
+        self.interval = utils.cast(int, data.attrib.get('interval'))
+        self.name = data.attrib.get('name')
+        self.scheduleRandomized = utils.cast(bool, data.attrib.get('scheduleRandomized'))
+        self.title = data.attrib.get('title')

@@ -2,12 +2,17 @@
 import os
 from urllib.parse import quote_plus, urlencode
 
-from plexapi import library, media, utils
+from plexapi import media, utils
 from plexapi.base import Playable, PlexPartialObject
 from plexapi.exceptions import BadRequest
-from plexapi.mixins import AdvancedSettingsMixin, ArtUrlMixin, ArtMixin, BannerMixin, PosterUrlMixin, PosterMixin
-from plexapi.mixins import RatingMixin, SplitMergeMixin, UnmatchMatchMixin
-from plexapi.mixins import CollectionMixin, CountryMixin, DirectorMixin, GenreMixin, LabelMixin, ProducerMixin, WriterMixin
+from plexapi.mixins import (
+    AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, RatingMixin,
+    ArtUrlMixin, ArtMixin, BannerMixin, PosterUrlMixin, PosterMixin, ThemeUrlMixin, ThemeMixin,
+    ContentRatingMixin, OriginallyAvailableMixin, OriginalTitleMixin, SortTitleMixin, StudioMixin,
+    SummaryMixin, TaglineMixin, TitleMixin,
+    CollectionMixin, CountryMixin, DirectorMixin, GenreMixin, LabelMixin, ProducerMixin, WriterMixin,
+    WatchlistMixin
+)
 
 
 class Video(PlexPartialObject):
@@ -35,7 +40,7 @@ class Video(PlexPartialObject):
             title (str): Name of the movie, show, season, episode, or clip.
             titleSort (str): Title to use when sorting (defaults to title).
             type (str): 'movie', 'show', 'season', 'episode', or 'clip'.
-            updatedAt (datatime): Datetime the item was updated.
+            updatedAt (datetime): Datetime the item was updated.
             userRating (float): Rating of the item (0.0 - 10.0) equaling (0 stars - 5 stars).
             viewCount (int): Count of times the item was played.
     """
@@ -76,7 +81,7 @@ class Video(PlexPartialObject):
         return self._server.url(part, includeToken=True) if part else None
 
     def markWatched(self):
-        """ Mark the video as palyed. """
+        """ Mark the video as played. """
         key = '/:/scrobble?key=%s&identifier=com.plexapp.plugins.library' % self.ratingKey
         self._server.query(key)
 
@@ -106,6 +111,15 @@ class Video(PlexPartialObject):
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """
         return self.title
+
+    def audioStreams(self):
+        """ Returns a list of :class:`~plexapi.media.AudioStream` objects for all MediaParts. """
+        streams = []
+
+        parts = self.iterParts()
+        for part in parts:
+            streams += part.audioStreams()
+        return streams
 
     def subtitleStreams(self):
         """ Returns a list of :class:`~plexapi.media.SubtitleStream` objects for all MediaParts. """
@@ -261,8 +275,15 @@ class Video(PlexPartialObject):
 
 
 @utils.registerPlexObject
-class Movie(Video, Playable, AdvancedSettingsMixin, ArtMixin, PosterMixin, RatingMixin, SplitMergeMixin, UnmatchMatchMixin,
-        CollectionMixin, CountryMixin, DirectorMixin, GenreMixin, LabelMixin, ProducerMixin, WriterMixin):
+class Movie(
+    Video, Playable,
+    AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, RatingMixin,
+    ArtMixin, PosterMixin, ThemeMixin,
+    ContentRatingMixin, OriginallyAvailableMixin, OriginalTitleMixin, SortTitleMixin, StudioMixin,
+    SummaryMixin, TaglineMixin, TitleMixin,
+    CollectionMixin, CountryMixin, DirectorMixin, GenreMixin, LabelMixin, ProducerMixin, WriterMixin,
+    WatchlistMixin
+):
     """ Represents a single Movie.
 
         Attributes:
@@ -280,7 +301,7 @@ class Movie(Video, Playable, AdvancedSettingsMixin, ArtMixin, PosterMixin, Ratin
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
-            languageOverride (str): Setting that indicates if a languge is used to override metadata
+            languageOverride (str): Setting that indicates if a language is used to override metadata
                 (eg. en-CA, None = Library default).
             media (List<:class:`~plexapi.media.Media`>): List of media objects.
             originallyAvailableAt (datetime): Datetime the movie was released.
@@ -293,6 +314,7 @@ class Movie(Video, Playable, AdvancedSettingsMixin, ArtMixin, PosterMixin, Ratin
             similar (List<:class:`~plexapi.media.Similar`>): List of Similar objects.
             studio (str): Studio that created movie (Di Bonaventura Pictures; 21 Laps Entertainment).
             tagline (str): Movie tag line (Back 2 Work; Who says men can't change?).
+            theme (str): URL to theme resource (/library/metadata/<ratingkey>/theme/<themeid>).
             useOriginalTitle (int): Setting that indicates if the original title is used for the movie
                 (-1 = Library default, 0 = No, 1 = Yes).
             viewOffset (int): View offset in milliseconds.
@@ -331,6 +353,7 @@ class Movie(Video, Playable, AdvancedSettingsMixin, ArtMixin, PosterMixin, Ratin
         self.similar = self.findItems(data, media.Similar)
         self.studio = data.attrib.get('studio')
         self.tagline = data.attrib.get('tagline')
+        self.theme = data.attrib.get('theme')
         self.useOriginalTitle = utils.cast(int, data.attrib.get('useOriginalTitle', '-1'))
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.writers = self.findItems(data, media.Writer)
@@ -365,20 +388,17 @@ class Movie(Video, Playable, AdvancedSettingsMixin, ArtMixin, PosterMixin, Ratin
         data = self._server.query(self._details_key)
         return self.findItems(data, media.Review, rtag='Video')
 
-    def extras(self):
-        """ Returns a list of :class:`~plexapi.video.Extra` objects. """
-        data = self._server.query(self._details_key)
-        return self.findItems(data, Extra, rtag='Extras')
-
-    def hubs(self):
-        """ Returns a list of :class:`~plexapi.library.Hub` objects. """
-        data = self._server.query(self._details_key)
-        return self.findItems(data, library.Hub, rtag='Related')
-
 
 @utils.registerPlexObject
-class Show(Video, AdvancedSettingsMixin, ArtMixin, BannerMixin, PosterMixin, RatingMixin, SplitMergeMixin, UnmatchMatchMixin,
-        CollectionMixin, GenreMixin, LabelMixin):
+class Show(
+    Video,
+    AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, RatingMixin,
+    ArtMixin, BannerMixin, PosterMixin, ThemeMixin,
+    ContentRatingMixin, OriginallyAvailableMixin, OriginalTitleMixin, SortTitleMixin, StudioMixin,
+    SummaryMixin, TaglineMixin, TitleMixin,
+    CollectionMixin, GenreMixin, LabelMixin,
+    WatchlistMixin
+):
     """ Represents a single Show (including all seasons and episodes).
 
         Attributes:
@@ -407,7 +427,7 @@ class Show(Video, AdvancedSettingsMixin, ArtMixin, BannerMixin, PosterMixin, Rat
             index (int): Plex index number for the show.
             key (str): API URL (/library/metadata/<ratingkey>).
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
-            languageOverride (str): Setting that indicates if a languge is used to override metadata
+            languageOverride (str): Setting that indicates if a language is used to override metadata
                 (eg. en-CA, None = Library default).
             leafCount (int): Number of items in the show view.
             locations (List<str>): List of folder paths where the show is found on disk.
@@ -482,11 +502,6 @@ class Show(Video, AdvancedSettingsMixin, ArtMixin, BannerMixin, PosterMixin, Rat
     def isWatched(self):
         """ Returns True if the show is fully watched. """
         return bool(self.viewedLeafCount == self.leafCount)
-
-    def hubs(self):
-        """ Returns a list of :class:`~plexapi.library.Hub` objects. """
-        data = self._server.query(self._details_key)
-        return self.findItems(data, library.Hub, rtag='Related')
 
     def onDeck(self):
         """ Returns show's On Deck :class:`~plexapi.video.Video` object or `None`.
@@ -574,7 +589,13 @@ class Show(Video, AdvancedSettingsMixin, ArtMixin, BannerMixin, PosterMixin, Rat
 
 
 @utils.registerPlexObject
-class Season(Video, ArtMixin, PosterMixin, RatingMixin, CollectionMixin):
+class Season(
+    Video,
+    ExtrasMixin, RatingMixin,
+    ArtMixin, PosterMixin, ThemeUrlMixin,
+    SummaryMixin, TitleMixin,
+    CollectionMixin, LabelMixin
+):
     """ Represents a single Show Season (including all episodes).
 
         Attributes:
@@ -584,6 +605,7 @@ class Season(Video, ArtMixin, PosterMixin, RatingMixin, CollectionMixin):
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             index (int): Season number.
             key (str): API URL (/library/metadata/<ratingkey>).
+            labels (List<:class:`~plexapi.media.Label`>): List of label objects.
             leafCount (int): Number of items in the season view.
             parentGuid (str): Plex GUID for the show (plex://show/5d9c086fe9d5a1001f4d9fe6).
             parentIndex (int): Plex index number for the show.
@@ -607,6 +629,7 @@ class Season(Video, ArtMixin, PosterMixin, RatingMixin, CollectionMixin):
         self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
+        self.labels = self.findItems(data, media.Label)
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
         self.parentGuid = data.attrib.get('parentGuid')
         self.parentIndex = utils.cast(int, data.attrib.get('parentIndex'))
@@ -709,8 +732,13 @@ class Season(Video, ArtMixin, PosterMixin, RatingMixin, CollectionMixin):
 
 
 @utils.registerPlexObject
-class Episode(Video, Playable, ArtMixin, PosterMixin, RatingMixin,
-        CollectionMixin, DirectorMixin, WriterMixin):
+class Episode(
+    Video, Playable,
+    ExtrasMixin, RatingMixin,
+    ArtMixin, PosterMixin, ThemeUrlMixin,
+    ContentRatingMixin, OriginallyAvailableMixin, SortTitleMixin, SummaryMixin, TitleMixin,
+    CollectionMixin, DirectorMixin, LabelMixin, WriterMixin
+):
     """ Represents a single Shows Episode.
 
         Attributes:
@@ -733,6 +761,7 @@ class Episode(Video, Playable, ArtMixin, PosterMixin, RatingMixin,
             grandparentTitle (str): Name of the show for the episode.
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             index (int): Episode number.
+            labels (List<:class:`~plexapi.media.Label`>): List of label objects.
             markers (List<:class:`~plexapi.media.Marker`>): List of marker objects.
             media (List<:class:`~plexapi.media.Media`>): List of media objects.
             originallyAvailableAt (datetime): Datetime the episode was released.
@@ -777,6 +806,7 @@ class Episode(Video, Playable, ArtMixin, PosterMixin, RatingMixin,
         self.grandparentTitle = data.attrib.get('grandparentTitle')
         self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
+        self.labels = self.findItems(data, media.Label)
         self.markers = self.findItems(data, media.Marker)
         self.media = self.findItems(data, media.Media)
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
@@ -879,7 +909,10 @@ class Episode(Video, Playable, ArtMixin, PosterMixin, RatingMixin,
 
 
 @utils.registerPlexObject
-class Clip(Video, Playable, ArtUrlMixin, PosterUrlMixin):
+class Clip(
+    Video, Playable,
+    ArtUrlMixin, PosterUrlMixin
+):
     """ Represents a single Clip.
 
         Attributes:

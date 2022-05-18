@@ -71,7 +71,7 @@ class Settings(PlexObject):
         return self.groups().get(group, [])
 
     def save(self):
-        """ Save any outstanding settnig changes to the :class:`~plexapi.server.PlexServer`. This
+        """ Save any outstanding setting changes to the :class:`~plexapi.server.PlexServer`. This
             performs a full reload() of Settings after complete.
         """
         params = {}
@@ -100,7 +100,7 @@ class Setting(PlexObject):
             hidden (bool): True if this is a hidden setting.
             advanced (bool): True if this is an advanced setting.
             group (str): Group name this setting is categorized as.
-            enumValues (list,dict): List or dictionary of valis values for this setting.
+            enumValues (list,dict): List or dictionary of valid values for this setting.
     """
     _bool_cast = lambda x: bool(x == 'true' or x == '1')
     _bool_str = lambda x: str(x).lower()
@@ -143,7 +143,7 @@ class Setting(PlexObject):
         return enumstr.split('|')
 
     def set(self, value):
-        """ Set a new value for this setitng. NOTE: You must call plex.settings.save() for before
+        """ Set a new value for this setting. NOTE: You must call plex.settings.save() for before
             any changes to setting values are persisted to the :class:`~plexapi.server.PlexServer`.
         """
         # check a few things up front
