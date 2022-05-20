@@ -480,7 +480,7 @@ class PlexPartialObject(PlexObject):
         objname = "%s '%s'" % (clsname, title) if title else clsname
         log.debug("Reloading %s for attr '%s'", objname, attr)
         # Reload and return the value
-        self._reload()
+        self._reload(_overwriteNone=False)
         return super(PlexPartialObject, self).__getattribute__(attr)
 
     def analyze(self):
