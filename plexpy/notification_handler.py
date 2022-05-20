@@ -35,7 +35,6 @@ import os
 import re
 from string import Formatter
 import threading
-import time
 
 import musicbrainzngs
 
@@ -1140,7 +1139,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'subtitle_language': notify_params['subtitle_language'],
         'subtitle_language_code': notify_params['subtitle_language_code'],
         'file': notify_params['file'],
-        'filename': os.path.basename(notify_params['file']),
+        'filename': os.path.basename(notify_params['file'].replace('\\', os.sep)),
         'file_size': helpers.human_file_size(notify_params['file_size']),
         'indexes': notify_params['indexes'],
         'guid': notify_params['guid'],
