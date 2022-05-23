@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.10.0 (2022-05-23)
+
+* Activity:
+  * Fix: Detection of Dolby Vision missing for PMS 1.26.1.
+* Notifications:
+  * Fix: Parsing of filename notification parameter incorrect for Windows PMS.
+* Exporter:
+  * New: Added additional theme and label export fields.
+* UI:
+  * Fix: Slow loading of collections and playlists tables.
+  * Change: Update default user thumbnail image to match Plex Web.
+* API:
+  * Change: Values for get_users_table and get_libraries_table return an integer instead of "Checked". 
+
+
 ## v2.9.7 (2022-04-11)
 
 * UI:
