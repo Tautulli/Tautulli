@@ -393,7 +393,7 @@ class Users(object):
                           'last_seen': None
                           }
 
-        if user_id is None and not user and not email:
+        if user_id in (None, '') and not user and not email:
             return default_return
 
         user_details = self.get_user_details(user_id=user_id, user=user, email=email,
