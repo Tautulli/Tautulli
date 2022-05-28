@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -674,7 +674,7 @@ class Users(object):
         try:
             query = 'SELECT id AS row_id, user_id, username, friendly_name, thumb, custom_avatar_url, email, ' \
                     'is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                    'do_notify, keep_history, allow_guest, server_token, shared_libraries, ' \
+                    'do_notify, keep_history, allow_guest, shared_libraries, ' \
                     'filter_all, filter_movies, filter_tv, filter_music, filter_photos ' \
                     'FROM users WHERE deleted_user = 0'
             result = monitor_db.select(query=query)
@@ -698,7 +698,6 @@ class Users(object):
                     'do_notify': item['do_notify'],
                     'keep_history': item['keep_history'],
                     'allow_guest': item['allow_guest'],
-                    'server_token': item['server_token'],
                     'shared_libraries': item['shared_libraries'],
                     'filter_all': item['filter_all'],
                     'filter_movies': item['filter_movies'],
