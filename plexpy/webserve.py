@@ -6064,7 +6064,7 @@ class WebInterface(object):
                       "is_restricted": 0,
                       "keep_history": 1,
                       "row_id": 1,
-                      "shared_libraries": "1;2;3",
+                      "shared_libraries": ["1", "2", "3"],
                       "thumb": "https://plex.tv/users/k10w42309cynaopq/avatar",
                       "user_id": "133788",
                       "username": "Jon Snow"

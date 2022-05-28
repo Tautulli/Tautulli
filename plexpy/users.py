@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -684,6 +684,8 @@ class Users(object):
 
         users = []
         for item in result:
+            shared_libraries = tuple(item['shared_libraries'].split(';')) if item['shared_libraries'] else ()
+
             user = {'row_id': item['row_id'],
                     'user_id': item['user_id'],
                     'username': item['username'],
@@ -698,7 +700,7 @@ class Users(object):
                     'do_notify': item['do_notify'],
                     'keep_history': item['keep_history'],
                     'allow_guest': item['allow_guest'],
-                    'shared_libraries': item['shared_libraries'],
+                    'shared_libraries': shared_libraries,
                     'filter_all': item['filter_all'],
                     'filter_movies': item['filter_movies'],
                     'filter_tv': item['filter_tv'],
