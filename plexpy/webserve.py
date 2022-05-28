@@ -6402,15 +6402,16 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    {"code": 'US",
+                    {"city": "Mountain View",
+                     "code": "US",
+                     "continent": "NA",
                      "country": "United States",
-                     "region": "California",
-                     "city": "Mountain View",
-                     "postal_code": "94035",
-                     "timezone": "America/Los_Angeles",
                      "latitude": 37.386,
                      "longitude": -122.0838,
-                     "accuracy": 1000
+                     "postal_code": "94035",
+                     "region": "California",
+                     "timezone": "America/Los_Angeles",
+                     "accuracy": null
                      }
             ```
         """

@@ -930,15 +930,15 @@ class PlexTV(object):
             if len(coordinates) == 2:
                 latitude, longitude = [helpers.cast_to_float(c) for c in coordinates]
 
-            geo_info = {"code": helpers.get_xml_attr(a, 'code') or None,
+            geo_info = {"city": helpers.get_xml_attr(a, 'city') or None,
+                        "code": helpers.get_xml_attr(a, 'code') or None,
+                        "continent": helpers.get_xml_attr(a, 'continent_code') or None,
                         "country": helpers.get_xml_attr(a, 'country') or None,
-                        "region": helpers.get_xml_attr(a, 'subdivisions') or None,
-                        "city": helpers.get_xml_attr(a, 'city') or None,
-                        "postal_code": helpers.get_xml_attr(a, 'postal_code') or None,
-                        "timezone": helpers.get_xml_attr(a, 'time_zone') or None,
                         "latitude": latitude,
                         "longitude": longitude,
-                        "continent": None,  # keep for backwards compatibility with GeoLite2
+                        "postal_code": helpers.get_xml_attr(a, 'postal_code') or None,
+                        "region": helpers.get_xml_attr(a, 'subdivisions') or None,
+                        "timezone": helpers.get_xml_attr(a, 'time_zone') or None,
                         "accuracy": None   # keep for backwards compatibility with GeoLite2
                         }
 

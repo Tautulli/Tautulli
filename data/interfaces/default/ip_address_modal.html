@@ -40,6 +40,7 @@
             <div id="ip_error" class="col-sm-12 text-muted"></div>
             <div class="col-sm-6">
                 <ul class="list-unstyled">
+                    <li>Continent: <strong><span id="continent"></span></strong></li>
                     <li>Country: <strong><span id="country"></span></strong></li>
                     <li>Region: <strong><span id="region"></span></strong></li>
                     <li>City: <strong><span id="city"></span></strong></li>
@@ -103,6 +104,7 @@
                     $('#ip_error').html('<i class="fa fa-exclamation-circle"></i> ' + result.message).show();
                 } else {
                     var data = result.data;
+                    $('#continent').html(data.continent);
                     $('#country').html(data.country);
                     $('#region').html(data.region);
                     $('#city').html(data.city);
