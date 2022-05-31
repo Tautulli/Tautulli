@@ -130,7 +130,7 @@ class SyncList(PlexObject):
                 self.items.append(item)
 
 
-class Status(object):
+class Status:
     """ Represents a current status of specific :class:`~plexapi.sync.SyncItem`.
 
         Attributes:
@@ -168,7 +168,7 @@ class Status(object):
         ))
 
 
-class MediaSettings(object):
+class MediaSettings:
     """ Transcoding settings used for all media within :class:`~plexapi.sync.SyncItem`.
 
         Attributes:
@@ -239,7 +239,7 @@ class MediaSettings(object):
             raise BadRequest('Unexpected photo quality')
 
 
-class Policy(object):
+class Policy:
     """ Policy of syncing the media (how many items to sync and process watched media or not).
 
         Attributes:

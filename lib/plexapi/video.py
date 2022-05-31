@@ -702,7 +702,7 @@ class Season(
 
     def show(self):
         """ Return the season's :class:`~plexapi.video.Show`. """
-        return self.fetchItem(self.parentRatingKey)
+        return self.fetchItem(self.parentKey)
 
     def watched(self):
         """ Returns list of watched :class:`~plexapi.video.Episode` objects. """
@@ -872,7 +872,7 @@ class Episode(
     def seasonNumber(self):
         """ Returns the episode's season number. """
         if self._seasonNumber is None:
-            self._seasonNumber = self.parentIndex if self.parentIndex else self.season().seasonNumber
+            self._seasonNumber = self.parentIndex if isinstance(self.parentIndex, int) else self.season().seasonNumber
         return utils.cast(int, self._seasonNumber)
 
     @property
@@ -901,7 +901,7 @@ class Episode(
 
     def show(self):
         """" Return the episode's :class:`~plexapi.video.Show`. """
-        return self.fetchItem(self.grandparentRatingKey)
+        return self.fetchItem(self.grandparentKey)
 
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """
