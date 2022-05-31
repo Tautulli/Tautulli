@@ -8,7 +8,7 @@ from plexapi.exceptions import BadRequest, NotFound
 from plexapi.utils import deprecated
 
 
-class AdvancedSettingsMixin(object):
+class AdvancedSettingsMixin:
     """ Mixin for Plex objects that can have advanced settings. """
 
     def preferences(self):
@@ -60,7 +60,7 @@ class AdvancedSettingsMixin(object):
         self._server.query(url, method=self._server._session.put)
 
 
-class SmartFilterMixin(object):
+class SmartFilterMixin:
     """ Mixing for Plex objects that can have smart filters. """
 
     def _parseFilters(self, content):
@@ -120,7 +120,7 @@ class SmartFilterMixin(object):
         return {filterOp: rules}
 
 
-class SplitMergeMixin(object):
+class SplitMergeMixin:
     """ Mixin for Plex objects that can be split and merged. """
 
     def split(self):
@@ -141,7 +141,7 @@ class SplitMergeMixin(object):
         return self._server.query(key, method=self._server._session.put)
 
 
-class UnmatchMatchMixin(object):
+class UnmatchMatchMixin:
     """ Mixin for Plex objects that can be unmatched and matched. """
 
     def unmatch(self):
@@ -234,7 +234,7 @@ class UnmatchMatchMixin(object):
         self._server.query(data, method=self._server._session.put)
 
 
-class ExtrasMixin(object):
+class ExtrasMixin:
     """ Mixin for Plex objects that can have extras. """
 
     def extras(self):
@@ -244,7 +244,7 @@ class ExtrasMixin(object):
         return self.findItems(data, Extra, rtag='Extras')
 
 
-class HubsMixin(object):
+class HubsMixin:
     """ Mixin for Plex objects that can have related hubs. """
 
     def hubs(self):
@@ -254,7 +254,7 @@ class HubsMixin(object):
         return self.findItems(data, Hub, rtag='Related')
 
 
-class RatingMixin(object):
+class RatingMixin:
     """ Mixin for Plex objects that can have user star ratings. """
 
     def rate(self, rating=None):
@@ -274,7 +274,7 @@ class RatingMixin(object):
         self._server.query(key, method=self._server._session.put)
 
 
-class ArtUrlMixin(object):
+class ArtUrlMixin:
     """ Mixin for Plex objects that can have a background artwork url. """
     
     @property
@@ -323,7 +323,7 @@ class ArtMixin(ArtUrlMixin):
         return self._edit(**{'art.locked': 0})
 
 
-class BannerUrlMixin(object):
+class BannerUrlMixin:
     """ Mixin for Plex objects that can have a banner url. """
 
     @property
@@ -372,7 +372,7 @@ class BannerMixin(BannerUrlMixin):
         return self._edit(**{'banner.locked': 0})
 
 
-class PosterUrlMixin(object):
+class PosterUrlMixin:
     """ Mixin for Plex objects that can have a poster url. """
 
     @property
@@ -426,7 +426,7 @@ class PosterMixin(PosterUrlMixin):
         return self._edit(**{'thumb.locked': 0})
 
 
-class ThemeUrlMixin(object):
+class ThemeUrlMixin:
     """ Mixin for Plex objects that can have a theme url. """
 
     @property
@@ -475,7 +475,7 @@ class ThemeMixin(ThemeUrlMixin):
         self._edit(**{'theme.locked': 0})
 
 
-class EditFieldMixin(object):
+class EditFieldMixin:
     """ Mixin for editing Plex object fields. """
     
     def editField(self, field, value, locked=True, **kwargs):
@@ -667,7 +667,7 @@ class PhotoCapturedTimeMixin(EditFieldMixin):
         return self.editField('originallyAvailableAt', capturedTime, locked=locked)
 
 
-class EditTagsMixin(object):
+class EditTagsMixin:
     """ Mixin for editing Plex object tags. """
 
     @deprecated('use "editTags" instead')
@@ -986,7 +986,7 @@ class WriterMixin(EditTagsMixin):
         return self.editTags('writer', writers, locked=locked, remove=True)
 
 
-class WatchlistMixin(object):
+class WatchlistMixin:
     """ Mixin for Plex objects that can be added to a user's watchlist. """
 
     def onWatchlist(self, account=None):

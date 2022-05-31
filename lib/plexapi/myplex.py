@@ -1333,7 +1333,7 @@ class MyPlexDevice(PlexObject):
         return self._server.syncItems(client=self)
 
 
-class MyPlexPinLogin(object):
+class MyPlexPinLogin:
     """
         MyPlex PIN login class which supports getting the four character PIN which the user must
         enter on https://plex.tv/link to authenticate the client and provide an access token to
