@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 #  This file is part of Tautulli.
 #
@@ -643,13 +643,22 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         rating_key=plex_web_rating_key)
 
     # Check external guids
-    for guid in notify_params['guids']:
+    if notify_params['media_type'] == 'episode':
+        guids = notify_params['grandparent_guids']
+    elif notify_params['media_type'] in ('season', 'track'):
+        guids = notify_params['parent_guids']
+    else:
+        guids = notify_params['guids']
+
+    for guid in guids:
         if 'imdb://' in guid:
             notify_params['imdb_id'] = guid.split('imdb://')[1]
         elif 'tmdb://' in guid:
             notify_params['themoviedb_id'] = guid.split('tmdb://')[1]
         elif 'tvdb://' in guid:
             notify_params['thetvdb_id'] = guid.split('tvdb://')[1]
+        elif 'mbid://' in guid:
+            notify_params['musicbrainz_id'] = guid.split('mbid://')[1]
 
     # Get media IDs from guid and build URLs
     if 'plex://' in notify_params['guid']:
@@ -684,6 +693,12 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     if 'lastfm://' in notify_params['guid']:
         notify_params['lastfm_id'] = '/'.join(notify_params['guid'].split('lastfm://')[1].split('?')[0].split('/')[:2])
         notify_params['lastfm_url'] = 'https://www.last.fm/music/' + notify_params['lastfm_id']
+
+    if 'mbid://' in notify_params['guid'] or notify_params['musicbrainz_id']:
+        if notify_params['media_type'] == 'artist':
+            notify_params['musicbrainz_url'] = 'https://musicbrainz.org/artist/' + notify_params['musicbrainz_id']
+        else:
+            notify_params['musicbrainz_url'] = 'https://musicbrainz.org/release/' + notify_params['musicbrainz_id']
 
     # Get TheMovieDB info (for movies and tv only)
     if plexpy.CONFIG.THEMOVIEDB_LOOKUP and notify_params['media_type'] in ('movie', 'show', 'season', 'episode'):
