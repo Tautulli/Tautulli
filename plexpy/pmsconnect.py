@@ -787,6 +787,8 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'parent_guids': [],
+                        'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -841,6 +843,8 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'parent_guids': [],
+                        'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -897,7 +901,9 @@ class PmsConnect(object):
                         'genres': show_details.get('genres', []),
                         'labels': show_details.get('labels', []),
                         'collections': show_details.get('collections', []),
-                        'guids': show_details.get('guids', []),
+                        'guids': guids,
+                        'parent_guids': show_details.get('guids', []),
+                        'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                        helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -916,6 +922,7 @@ class PmsConnect(object):
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             parent_media_index = helpers.get_xml_attr(metadata_main, 'parentIndex')
             parent_thumb = helpers.get_xml_attr(metadata_main, 'parentThumb')
+            season_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
 
             if not plex_guid and not parent_rating_key:
                 # Try getting the parent_rating_key from the parent_thumb
@@ -970,7 +977,9 @@ class PmsConnect(object):
                         'genres': show_details.get('genres', []),
                         'labels': show_details.get('labels', []),
                         'collections': show_details.get('collections', []),
-                        'guids': show_details.get('guids', []),
+                        'guids': guids,
+                        'parent_guids': season_details.get('guids', []),
+                        'grandparent_guids': show_details.get('guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                        helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -1021,6 +1030,8 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'parent_guids': [],
+                        'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -1072,6 +1083,8 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'parent_guids': artist_details.get('guids', []),
+                        'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                        helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -1125,7 +1138,9 @@ class PmsConnect(object):
                         'genres': album_details.get('genres', []),
                         'labels': album_details.get('labels', []),
                         'collections': album_details.get('collections', []),
-                        'guids': album_details.get('guids', []),
+                        'guids': guids,
+                        'parent_guids': album_details.get('guids', []),
+                        'grandparent_guids': album_details.get('parent_guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'title'),
                                                        track_artist),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -1176,6 +1191,8 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'parent_guids': [],
+                        'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
@@ -1226,7 +1243,9 @@ class PmsConnect(object):
                         'genres': photo_album_details.get('genres', []),
                         'labels': photo_album_details.get('labels', []),
                         'collections': photo_album_details.get('collections', []),
-                        'guids': photo_album_details.get('guids', []),
+                        'guids': [],
+                        'parent_guids': photo_album_details.get('guids', []),
+                        'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle') or library_name,
                                                        helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
@@ -1281,6 +1300,8 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'parent_guids': [],
+                        'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'childCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
@@ -1351,6 +1372,8 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'parent_guids': [],
+                        'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'extra_type': helpers.get_xml_attr(metadata_main, 'extraType'),
                         'sub_type': helpers.get_xml_attr(metadata_main, 'subtype'),
