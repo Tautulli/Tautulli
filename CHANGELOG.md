@@ -1,5 +1,18 @@
 # Changelog
 
+## v2.10.1 (2022-06-01)
+
+* Notifications:
+  * New: Added support for MusicBrainz (mbid://) guids in notification parameters without MusicBrainz lookup enabled. Requires Plex Media Server 1.27.0 or newer with refreshed Plex Music agent metadata.
+* Mobile App:
+  * Fix: OneSignal validation failing when registering a device.
+* API:
+  * New: Added grandparent_guids and parent_guids to get_metadata API command.
+  * Change: Updated continent in get_geoip_lookup API command.
+  * Change: Removed server_token from from get_users API command.
+  * Change: shared_libraries changed to a list instead of a string for get_users API command.
+
+
 ## v2.10.0 (2022-05-23)
 
 * Activity:
