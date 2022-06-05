@@ -1876,12 +1876,15 @@ class PmsConnect(object):
             video_details = {'stream_video_bitrate': helpers.get_xml_attr(video_stream_info, 'bitrate'),
                              'stream_video_bit_depth': helpers.get_xml_attr(video_stream_info, 'bitDepth'),
                              'stream_video_chroma_subsampling': helpers.get_xml_attr(video_stream_info, 'chromaSubsampling'),
+                             'stream_video_codec': helpers.get_xml_attr(video_stream_info, 'codec'),
+                             'stream_video_codec_level': helpers.get_xml_attr(video_stream_info, 'level'),
                              'stream_video_color_primaries': helpers.get_xml_attr(video_stream_info, 'colorPrimaries'),
                              'stream_video_color_range': helpers.get_xml_attr(video_stream_info, 'colorRange'),
                              'stream_video_color_space': helpers.get_xml_attr(video_stream_info, 'colorSpace'),
                              'stream_video_color_trc': helpers.get_xml_attr(video_stream_info, 'colorTrc'),
-                             'stream_video_codec_level': helpers.get_xml_attr(video_stream_info, 'level'),
                              'stream_video_dynamic_range': self.get_dynamic_range(video_stream_info),
+                             'stream_video_height': helpers.get_xml_attr(video_stream_info, 'height'),
+                             'stream_video_width': helpers.get_xml_attr(video_stream_info, 'width'),
                              'stream_video_ref_frames': helpers.get_xml_attr(video_stream_info, 'refFrames'),
                              'stream_video_language': helpers.get_xml_attr(video_stream_info, 'language'),
                              'stream_video_language_code': helpers.get_xml_attr(video_stream_info, 'languageCode'),
@@ -1892,12 +1895,15 @@ class PmsConnect(object):
             video_details = {'stream_video_bitrate': '',
                              'stream_video_bit_depth': '',
                              'stream_video_chroma_subsampling': '',
+                             'stream_video_codec': '',
+                             'stream_video_codec_level': '',
                              'stream_video_color_primaries': '',
                              'stream_video_color_range': '',
                              'stream_video_color_space': '',
                              'stream_video_color_trc': '',
-                             'stream_video_codec_level': '',
                              'stream_video_dynamic_range': '',
+                             'stream_video_height': '',
+                             'stream_video_width': '',
                              'stream_video_ref_frames': '',
                              'stream_video_language': '',
                              'stream_video_language_code': '',
@@ -1907,10 +1913,16 @@ class PmsConnect(object):
 
         if audio_stream_info:
             audio_id = helpers.get_xml_attr(audio_stream_info, 'id')
+            stream_audio_channels = helpers.get_xml_attr(audio_stream_info, 'channels')
+            stream_audio_channel_layouts_ = helpers.get_xml_attr(audio_stream_info, 'audioChannelLayout')
             audio_details = {'stream_audio_bitrate': helpers.get_xml_attr(audio_stream_info, 'bitrate'),
                              'stream_audio_bitrate_mode': helpers.get_xml_attr(audio_stream_info, 'bitrateMode'),
+                             'stream_audio_channels': stream_audio_channels,
+                             'stream_audio_channel_layout': stream_audio_channel_layouts_ or common.AUDIO_CHANNELS.get(
+                                 stream_audio_channels, stream_audio_channels),
+                             'stream_audio_codec': helpers.get_xml_attr(audio_stream_info, 'codec'),
                              'stream_audio_sample_rate': helpers.get_xml_attr(audio_stream_info, 'samplingRate'),
-                             'stream_audio_channel_layout_': helpers.get_xml_attr(audio_stream_info, 'audioChannelLayout'),
+                             'stream_audio_channel_layout_': stream_audio_channel_layouts_,
                              'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
                              'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision') or 'direct play'
@@ -1918,6 +1930,9 @@ class PmsConnect(object):
         else:
             audio_details = {'stream_audio_bitrate': '',
                              'stream_audio_bitrate_mode': '',
+                             'stream_audio_channels': '',
+                             'stream_audio_channel_layout': '',
+                             'stream_audio_codec': '',
                              'stream_audio_sample_rate': '',
                              'stream_audio_channel_layout_': '',
                              'stream_audio_language': '',
@@ -1960,25 +1975,16 @@ class PmsConnect(object):
         else:
             bif_thumb = ''
 
-        stream_video_width = helpers.get_xml_attr(stream_media_info, 'width')
-        if helpers.cast_to_int(stream_video_width) >= 3840:
+        if helpers.cast_to_int(video_details['stream_video_width']) >= 3840:
             stream_video_resolution = '4k'
         else:
             stream_video_resolution = helpers.get_xml_attr(stream_media_info, 'videoResolution').lower().rstrip('ip')
 
-        stream_audio_channels = helpers.get_xml_attr(stream_media_info, 'audioChannels')
-
         stream_details = {'stream_container': helpers.get_xml_attr(stream_media_info, 'container'),
                           'stream_bitrate': helpers.get_xml_attr(stream_media_info, 'bitrate'),
                           'stream_aspect_ratio': helpers.get_xml_attr(stream_media_info, 'aspectRatio'),
-                          'stream_audio_codec': helpers.get_xml_attr(stream_media_info, 'audioCodec'),
-                          'stream_audio_channels': stream_audio_channels,
-                          'stream_audio_channel_layout': audio_details.get('stream_audio_channel_layout_') or common.AUDIO_CHANNELS.get(stream_audio_channels, stream_audio_channels),
-                          'stream_video_codec': helpers.get_xml_attr(stream_media_info, 'videoCodec'),
                           'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
                           'stream_video_resolution': stream_video_resolution,
-                          'stream_video_height': helpers.get_xml_attr(stream_media_info, 'height'),
-                          'stream_video_width': helpers.get_xml_attr(stream_media_info, 'width'),
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration') or helpers.get_xml_attr(session, 'duration'),
                           'stream_container_decision': 'direct play' if sync_id else helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
                           'optimized_version': int(helpers.get_xml_attr(stream_media_info, 'proxyType') == '42'),
@@ -2142,12 +2148,12 @@ class PmsConnect(object):
             stream_details['stream_container'] = transcode_details['transcode_container']
 
             video_details['stream_video_decision'] = transcode_details['video_decision']
-            stream_details['stream_video_codec'] = transcode_details['transcode_video_codec']
+            video_details['stream_video_codec'] = transcode_details['transcode_video_codec']
 
             audio_details['stream_audio_decision'] = transcode_details['audio_decision']
-            stream_details['stream_audio_codec'] = transcode_details['transcode_audio_codec']
-            stream_details['stream_audio_channels'] = transcode_details['transcode_audio_channels']
-            stream_details['stream_audio_channel_layout'] = common.AUDIO_CHANNELS.get(
+            audio_details['stream_audio_codec'] = transcode_details['transcode_audio_codec']
+            audio_details['stream_audio_channels'] = transcode_details['transcode_audio_channels']
+            audio_details['stream_audio_channel_layout'] = common.AUDIO_CHANNELS.get(
                 transcode_details['transcode_audio_channels'], transcode_details['transcode_audio_channels'])
 
         # Generate a combined transcode decision value
@@ -2162,14 +2168,14 @@ class PmsConnect(object):
         stream_details['container_decision'] = stream_details['stream_container_decision']
 
         # Override * in audio codecs
-        if stream_details['stream_audio_codec'] == '*':
-            stream_details['stream_audio_codec'] = source_audio_details.get('audio_codec', '')
+        if audio_details['stream_audio_codec'] == '*':
+            audio_details['stream_audio_codec'] = source_audio_details.get('audio_codec', '')
         if transcode_details['transcode_audio_codec'] == '*':
             transcode_details['transcode_audio_codec'] = source_audio_details.get('audio_codec', '')
 
         # Override * in video codecs
-        if stream_details['stream_video_codec'] == '*':
-            stream_details['stream_video_codec'] = source_video_details.get('video_codec', '')
+        if video_details['stream_video_codec'] == '*':
+            video_details['stream_video_codec'] = source_video_details.get('video_codec', '')
         if transcode_details['transcode_video_codec'] == '*':
             transcode_details['transcode_video_codec'] = source_video_details.get('video_codec', '')
 
