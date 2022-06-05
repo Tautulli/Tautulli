@@ -732,7 +732,8 @@ class DataFactory(object):
                 try:
                     query = 'SELECT sh.user, sh.user_id, u.thumb AS user_thumb, u.custom_avatar_url AS custom_thumb, ' \
                             'sh.started, ' \
-                            '(CASE WHEN u.friendly_name IS NULL THEN u.username ELSE u.friendly_name END) ' \
+                            '(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = ""' \
+                            '   THEN u.username ELSE u.friendly_name END) ' \
                             '   AS friendly_name, ' \
                             'MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration ' \
                             'FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
@@ -837,7 +838,8 @@ class DataFactory(object):
                             'sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, ' \
                             'sh.user, sh.user_id, u.custom_avatar_url as user_thumb, sh.player, sh.section_id, ' \
                             'shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, ' \
-                            '(CASE WHEN u.friendly_name IS NULL THEN u.username ELSE u.friendly_name END) ' \
+                            '(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = ""' \
+                            '   THEN u.username ELSE u.friendly_name END) ' \
                             '   AS friendly_name, ' \
                             'MAX(sh.started) AS last_watch, ' \
                             '((CASE WHEN sh.view_offset IS NULL THEN 0.1 ELSE sh.view_offset * 1.0 END) / ' \
