@@ -213,7 +213,7 @@ DOCUMENTATION :: END
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
                             % elif data['media_type'] in ('artist', 'album', 'track', 'playlist', 'photo_album', 'photo', 'clip'):
-                            <div class="summary-poster-face-track" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 500, 500, fallback='cover')});">
+                            <div class="summary-poster-face-track" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 300, fallback='cover')});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
