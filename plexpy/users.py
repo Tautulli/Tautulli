@@ -361,6 +361,10 @@ class Users(object):
         if str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
+            user = monitor_db.select_single('SELECT username FROM users WHERE user_id = ?', [user_id])
+            if user.get('username') == friendly_name:
+                friendly_name = None
+
             key_dict = {'user_id': user_id}
             value_dict = {'friendly_name': friendly_name,
                           'custom_avatar_url': custom_thumb,
