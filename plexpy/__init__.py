@@ -2047,7 +2047,7 @@ def dbcheck():
     # Upgrade newsletters table from earlier versions
     try:
         result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="newsletters"').fetchone()
-        if '"cron"\tTEXT NOT NULL DEFAULT "0 0 * * 0"' in result[0]:
+        if 'TEXT NOT NULL DEFAULT "0 0 * * 0"' in result[0]:
             logger.debug("Altering database. Updating default cron value in newsletters table.")
             c_db.execute(
                 'CREATE TABLE newsletters_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
