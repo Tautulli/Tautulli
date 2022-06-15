@@ -557,7 +557,7 @@ class Chrome(Browser):
         part = agent.split(word + self.version_markers[0])[-1]
         version = part.split(self.version_markers[1])[0]
         if '+' in version:
-            version = part.split('+')[0]
+            version = version.split('+')[0]
         return version.strip()
 
 class YaBrowser(Browser):
@@ -569,7 +569,7 @@ class YaBrowser(Browser):
         part = agent.split(word + self.version_markers[0])[-1]
         version = part.split(self.version_markers[1])[0]
         if '+' in version:
-            version = part.split('+')[0]
+            version = version.split('+')[0]
         return version.strip()
 
 class ChromeiOS(Browser):
