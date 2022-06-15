@@ -402,7 +402,8 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                                        body=body_string,
                                                        notify_action=notify_action,
                                                        parameters=parameters,
-                                                       agent_id=notifier_config['agent_id'])
+                                                       agent_id=notifier_config['agent_id'],
+                                                       as_json=notifier_config['config']['as_json'])
 
     # Set the notification state in the db
     notification_id = set_notify_state(session=stream_data or timeline_data,
@@ -1259,7 +1260,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
     return available_params
 
 
-def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None, test=False):
+def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None, test=False, as_json=False):
     # Default subject and body text
     if agent_id == 15:
         default_subject = default_body = ''
@@ -1320,7 +1321,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             logger.exception("Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
             script_args = []
 
-    elif agent_id == 25:
+    elif agent_id == 25 or as_json:
         if subject:
             try:
                 subject = json.loads(subject)

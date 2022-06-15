@@ -2368,7 +2368,8 @@ class MQTT(Notifier):
                        'qos': 1,
                        'retain': 0,
                        'keep_alive': 60,
-                       'incl_subject': 1
+                       'incl_subject': 1,
+                       'as_json': 0
                        }
 
     def agent_notify(self, subject='', body='', action='', parameters={}, **kwargs):
@@ -2483,6 +2484,12 @@ class MQTT(Notifier):
                                          'The default is to wrap the notification subject and body in a JSON object, '
                                          'and send that as the MQTT payload. By unchecking this option, the body will '
                                          'be sent as the bare payload, with no additional escaping.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Send Message as JSON',
+                          'value': self.config['as_json'],
+                          'name': 'mqtt_as_json',
+                          'description': 'Parse and send the subject and body as JSON, instead of as a raw string.',
                           'input_type': 'checkbox'
                           },
                          ]
