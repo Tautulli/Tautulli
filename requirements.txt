@@ -19,7 +19,7 @@ html5lib==1.1
 httpagentparser==1.9.2
 idna==3.3
 importlib-metadata==4.11.4
-importlib-resources==5.7.1
+importlib-resources==5.8.0
 git+https://github.com/Tautulli/ipwhois.git@master#egg=ipwhois
 IPy==1.01
 Mako==1.2.0
