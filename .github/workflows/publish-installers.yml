@@ -72,7 +72,7 @@ jobs:
           pyinstaller -y ./package/Tautulli-${{ matrix.os }}.spec
 
       - name: Create Windows Installer
-        uses: joncloud/makensis-action@v3.6
+        uses: joncloud/makensis-action@v3.7
         if: matrix.os == 'windows'
         with:
           script-file: ./package/Tautulli.nsi
