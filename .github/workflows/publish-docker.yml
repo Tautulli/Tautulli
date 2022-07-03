@@ -94,7 +94,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get Build Job Status
-        uses: technote-space/workflow-conclusion-action@v2.2
+        uses: technote-space/workflow-conclusion-action@v3.0
 
       - name: Combine Job Status
         id: status
