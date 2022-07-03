@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.10.2 (2022-07-03)
+
+* Activity:
+  * Fix: Incorrect audio stream info shown on the activity card when playing a secondary audio track.
+* UI:
+  * Fix: Usernames not showing on the home statistics cards.
+  * Fix: Do not save a user's friendly name if it is the same as the username.
+  * Change: Update library icons to the latest Plex style.
+
+
 ## v2.10.1 (2022-06-01)
 
 * Notifications:
