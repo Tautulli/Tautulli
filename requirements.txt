@@ -8,7 +8,7 @@ beautifulsoup4==4.11.1
 bleach==5.0.0
 certifi==2022.5.18.1
 cheroot==8.6.0
-cherrypy==18.6.1
+cherrypy==18.7.0
 cloudinary==1.29.0
 distro==1.7.0
 dnspython==2.2.1
