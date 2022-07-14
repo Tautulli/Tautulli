@@ -2367,17 +2367,25 @@ class MQTT(Notifier):
                        'topic': '',
                        'qos': 1,
                        'retain': 0,
-                       'keep_alive': 60
+                       'keep_alive': 60,
+                       'as_json': 0
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
-        if not self.config['topic']:
+        topic = self.config['topic']
+        if not topic:
             logger.error("Tautulli Notifiers :: MQTT topic not specified.")
             return
 
+        topic = topic.format(**kwargs.get('parameters', {}))
+
+        if self.config['as_json']:
+            subject = json.loads(subject)
+            body = json.loads(body)
+
         data = {'subject': subject,
                 'body': body,
-                'topic': self.config['topic']}
+                'topic': topic}
 
         auth = {}
         if self.config['username']:
@@ -2390,7 +2398,7 @@ class MQTT(Notifier):
         logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
 
         paho.mqtt.publish.single(
-            self.config['topic'], payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
+            topic, payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
             hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
             keepalive=self.config['keep_alive'], auth=auth or None, protocol=protocol
         )
@@ -2443,7 +2451,9 @@ class MQTT(Notifier):
                          {'label': 'Topic',
                           'value': self.config['topic'],
                           'name': 'mqtt_topic',
-                          'description': 'The topic to publish notifications to.',
+                          'description': 'The topic to publish notifications to. You can include'
+                                         ' <a href="#notify-text-sub-modal" data-toggle="modal">notification parameters</a>'
+                                         ' to be substituted.',
                           'input_type': 'text'
                           },
                          {'label': 'Quality of Service',
@@ -2467,7 +2477,13 @@ class MQTT(Notifier):
                           'name': 'mqtt_keep_alive',
                           'description': 'Maximum period in seconds before timing out the connection with the broker.',
                           'input_type': 'number'
-                          }
+                          },
+                         {'label': 'Send Message as JSON',
+                          'value': self.config['as_json'],
+                          'name': 'mqtt_as_json',
+                          'description': 'Parse and send the subject and body as JSON instead of as a raw string.',
+                          'input_type': 'checkbox'
+                          },
                          ]
 
         return config_option
