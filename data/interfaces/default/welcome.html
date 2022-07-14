@@ -541,10 +541,10 @@ $(document).ready(function() {
     function OAuthSuccessCallback(authToken) {
         $.post('save_pms_token', { token: authToken, client_id: $('#pms_client_id').val() }, function () {
             $("#pms_token_validated").val(1);
+            getServerOptions();
         });
         $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
         authenticated = true;
-        getServerOptions(authToken);
     }
     function OAuthErrorCallback() {
         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');

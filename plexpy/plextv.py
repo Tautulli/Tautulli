@@ -164,7 +164,6 @@ class PlexTV(object):
 
             if not self.token:
                 logger.error("Tautulli PlexTV :: PlexTV called, but no token provided.")
-                return
 
         self.request_handler = http_handler.HTTPHandler(urls=self.urls,
                                                         token=self.token,
