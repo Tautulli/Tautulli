@@ -5321,6 +5321,7 @@ class WebInterface(object):
                      "grandparent_rating_key": "1219",
                      "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
                      "grandparent_title": "Game of Thrones",
+                     "grandparent_year": "2011",
                      "guid": "plex://episode/5d9c1276e9d5a1001f4ff2fa",
                      "guids": [
                          "imdb://tt3658014",
@@ -5424,6 +5425,7 @@ class WebInterface(object):
                      "parent_rating_key": "153036",
                      "parent_thumb": "/library/metadata/153036/thumb/1462175062",
                      "parent_title": "Season 6",
+                     "parent_year": "2016",
                      "rating": "",
                      "rating_image": "",
                      "rating_key": "153037",
