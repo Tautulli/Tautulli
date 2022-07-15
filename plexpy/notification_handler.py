@@ -862,6 +862,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         child_count = len(child_num)
         grandchild_count = ''
 
+        show_year = notify_params['year']
+
     elif ((manual_trigger or plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT)
           and notify_params['media_type'] in ('season', 'album')):
         show_name = notify_params['parent_title']
@@ -885,6 +887,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         child_count = 1
         grandchild_count = len(grandchild_num)
 
+        show_year = notify_params['parent_year']
+
     else:
         show_name = notify_params['grandparent_title']
         season_name = notify_params['parent_title']
@@ -902,6 +906,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         track_num00 = str(notify_params['media_index']).zfill(2)
         child_count = 1
         grandchild_count = 1
+        show_year = notify_params['grandparent_year']
 
     rating = notify_params['rating'] or notify_params['audience_rating']
 
@@ -1075,6 +1080,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'album_count': child_count,
         'track_count': grandchild_count,
         'year': notify_params['year'],
+        'show_year': show_year,
         'release_date': arrow.get(notify_params['originally_available_at']).format(date_format)
             if notify_params['originally_available_at'] else '',
         'air_date': arrow.get(notify_params['originally_available_at']).format(date_format)
