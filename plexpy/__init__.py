@@ -2433,24 +2433,40 @@ def dbcheck():
             'ALTER TABLE exports ADD COLUMN total_items INTEGER DEFAULT 0'
         )
 
-    # Upgrade image_hash_lookup table from earlier versions
+    # Fix unique constraints
+    try:
+        c_db.execute('DELETE FROM tvmaze_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM tvmaze_lookup GROUP BY rating_key)')
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        c_db.execute('DELETE FROM themoviedb_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM themoviedb_lookup GROUP BY rating_key)')
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        c_db.execute('DELETE FROM musicbrainz_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM musicbrainz_lookup GROUP BY rating_key)')
+    except sqlite3.OperationalError:
+        pass
+
     try:
         c_db.execute('DELETE FROM image_hash_lookup '
                      'WHERE id NOT IN (SELECT MIN(id) FROM image_hash_lookup GROUP BY img_hash)')
     except sqlite3.OperationalError:
         pass
 
-    # Upgrade imgur_lookup table from earlier versions
-    try:
-        c_db.execute('DELETE FROM imgur_lookup '
-                     'WHERE id NOT IN (SELECT MIN(id) FROM imgur_lookup GROUP BY img_hash)')
-    except sqlite3.OperationalError:
-        pass
-
-    # Upgrade cloudinary_lookup table from earlier versions
     try:
         c_db.execute('DELETE FROM cloudinary_lookup '
                      'WHERE id NOT IN (SELECT MIN(id) FROM cloudinary_lookup GROUP BY img_hash)')
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        c_db.execute('DELETE FROM imgur_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM imgur_lookup GROUP BY img_hash)')
     except sqlite3.OperationalError:
         pass
 
