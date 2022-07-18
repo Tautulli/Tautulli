@@ -60,6 +60,7 @@ def refresh_users():
 
         # Keep track of user_id to update is_active status
         user_ids = [0]  # Local user always considered active
+        new_users = []
 
         for item in result:
             user_ids.append(helpers.cast_to_int(item['user_id']))
@@ -92,10 +93,16 @@ def refresh_users():
             if not item['username']:
                 item['username'] = item['title']
 
-            monitor_db.upsert('users', key_dict=keys_dict, value_dict=item)
+            result = monitor_db.upsert('users', key_dict=keys_dict, value_dict=item)
+
+            if result == 'insert':
+                new_users.append(item['username'])
 
         query = 'UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})'.format(', '.join(['?'] * len(user_ids)))
         monitor_db.action(query=query, args=user_ids)
+
+        # Add new users to loger username filter
+        logger.filter_usernames(new_users)
 
         logger.info("Tautulli Users :: Users list refreshed.")
         return True

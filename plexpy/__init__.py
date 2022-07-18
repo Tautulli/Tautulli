@@ -548,6 +548,8 @@ def start():
     global _STARTED
 
     if _INITIALIZED:
+        logger.filter_usernames()
+
         # Start refreshes on a separate thread
         threading.Thread(target=startup_refresh).start()
 
