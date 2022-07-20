@@ -1,1 +1,0 @@
-"""Cheroot test suite."""
