@@ -1,0 +1,2484 @@
+<%inherit file="base.html"/>
+<%!
+    import os
+    import sys
+
+    import plexpy
+    from plexpy import common, notifiers, newsletters
+    from plexpy.helpers import anon_url, checked
+
+    docker_setting = 'disabled' if plexpy.DOCKER else ''
+    docker_msg = '<span class="docker-setting small">(Controlled by Docker Container)</span>' if plexpy.DOCKER else ''
+
+    available_notification_agents = sorted(notifiers.available_notification_agents(), key=lambda k: k['label'].lower())
+    available_newsletter_agents = sorted(newsletters.available_newsletter_agents(), key=lambda k: k['label'].lower())
+%>
+<%def name="headIncludes()">
+</%def>
+
+<%def name="headerIncludes()">
+<link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
+<link href="${http_root}css/selectize.min.css" rel="stylesheet" />
+<link href="${http_root}css/tautulli-dataTables.css" rel="stylesheet" />
+</%def>
+
+<%def name="body()">
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class='card-back-full'>
+                <div class="header-bar">
+                    <span><i class="fa fa-cogs"></i> Settings</span>
+                </div>
+                <div class="button-bar">
+                    % if config['show_advanced_settings'] == 1:
+                    <button id="menu_link_show_advanced_settings" class="btn btn-dark active"><i class="fa fa-wrench"></i> Hide Advanced</button>
+                    % else:
+                    <button id="menu_link_show_advanced_settings" class="btn btn-dark"><i class="fa fa-wrench"></i> Show Advanced</button>
+                    % endif
+                    % if config['check_github']:
+                    <button id="menu_link_update_check" class="btn btn-dark"><i class="fa fa-arrow-alt-circle-up"></i> Check for Updates</button>
+                    % endif
+                    <button id="menu_link_restart" class="btn btn-dark"><i class="fa fa-refresh"></i> Restart</button>
+                    <button id="menu_link_shutdown" class="btn btn-dark"><i class="fa fa-power-off"></i> Shutdown</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Nav tabs -->
+        <div class="col-md-3">
+            <ul class="nav-settings list-unstyled" role="tablist">
+                <li role="presentation" class="active"><a href="#tabs-help_info" aria-controls="tabs-help_info" role="tab" data-toggle="tab">Help & Info</a></li>
+                <li role="presentation"><a href="#tabs-general" aria-controls="tabs-general" role="tab" data-toggle="tab">General</a></li>
+                <li role="presentation"><a href="#tabs-homepage" aria-controls="tabs-homepage" role="tab" data-toggle="tab">Homepage</a></li>
+                <li role="presentation"><a href="#tabs-web_interface" aria-controls="tabs-web_interface" role="tab" data-toggle="tab">Web Interface</a></li>
+                <li role="presentation"><a href="#tabs-PlexTV_accounts" aria-controls="tabs-PlexTV_accounts" role="tab" data-toggle="tab">Plex.TV Accounts</a></li>
+                <li role="presentation"><a href="#tabs-plex_media_servers" aria-controls="tabs-plex_media_servers" role="tab" data-toggle="tab">Plex Media Servers</a></li>
+                <li role="presentation"><a href="#tabs-notifications" aria-controls="tabs-notifications" role="tab" data-toggle="tab">Notifications & Newsletters</a></li>
+                <li role="presentation"><a href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
+                <li role="presentation"><a href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
+                <li role="presentation"><a href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
+                <li role="presentation"><a href="#tabs-android_app" aria-controls="tabs-android_app" role="tab" data-toggle="tab">Tautulli Remote Android App <sup><small>beta</small></sup></a></li>
+            </ul>
+        </div>
+        <div class="col-md-9">
+            <form action="configUpdate" method="post" class="form" id="configUpdate" data-parsley-validate>
+                <input type="hidden" id="show_advanced_settings" name="show_advanced_settings" value="${config['show_advanced_settings']}" required>
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="tabs-help_info">
+                        % if common.RELEASE:
+                        <div class="padded-header">
+                            <h3>Version ${common.RELEASE} <small><a id="changelog-modal-link" href="#"><i class="fa fa-info-circle"></i> Changelog</a></small></h3>
+                        </div>
+                        % endif
+                        <div class="padded-header">
+                            <h3>Tautulli Configuration</h3>
+                        </div>
+                        <div id="plexpy-configuration-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading configuration table...</div>
+                            <br>
+                        </div>
+                        <div class="padded-header">
+                            <h3>Tautulli Scheduled Tasks</h3>
+                        </div>
+                        <div id="plexpy-scheduler-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading scheduler table...</div>
+                            <br>
+                        </div>
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-general">
+
+                        <div class="padded-header">
+                            <h3>Display Settings</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date_format">Date Format</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="date_format" name="date_format" value="${config['date_format']}" data-parsley-trigger="change" required>
+                                </div>
+                            </div>
+                            <p class="help-block">Set your preferred date format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="date_format">Time Format</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" id="time_format" name="time_format" value="${config['time_format']}" data-parsley-trigger="change" required>
+                                </div>
+                            </div>
+                            <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="week_start_monday" name="week_start_monday" value="1" ${config['week_start_monday']}> Week Starting on Monday
+                            </label>
+                            <p class="help-block">Change the "<em>Play by day of week</em>" graph to start on Monday. Default is start on Sunday.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Play History
+                            </label>
+                            <p class="help-block">Group play history for the same item and user as a single entry when progress is less than the watched percent.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="history_table_activity" name="history_table_activity" value="1" ${config['history_table_activity']}> Current Activity in History Tables
+                            </label>
+                            <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="get_file_sizes" name="get_file_sizes" value="1" ${config['get_file_sizes']}> Calculate Total File Sizes
+                            </label>
+                            <p class="help-block">Enable if you want Tautulli to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>History Logging</h3>
+                        </div>
+
+                        <div class="form-group advanced-setting">
+                            <label for="logging_ignore_interval">Ignore Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="logging_ignore_interval" name="logging_ignore_interval" value="${config['logging_ignore_interval']}" size="5" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#logging_ignore_interval_error" required>
+                                </div>
+                                <div id="logging_ignore_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="movie_watched_percent">Movie Watched Percent</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="movie_watched_percent" name="movie_watched_percent" value="${config['movie_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#movie_watched_percent_error" required>
+                                </div>
+                                <div id="movie_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the percentage for a movie to be considered as watched. Minimum 50, Maximum 95.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="tv_watched_percent">TV Episode Watched Percent</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="tv_watched_percent" name="tv_watched_percent" value="${config['tv_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#tv_watched_percent_error" required>
+                                </div>
+                                <div id="tv_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the percentage for a TV episode to be considered as watched. Minimum 50, Maximum 95.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="music_watched_percent">Music Listened Percent</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="music_watched_percent" name="music_watched_percent" value="${config['music_watched_percent']}" size="5" data-parsley-range="[50,95]" data-parsley-trigger="change" data-parsley-errors-container="#music_watched_percent_error" required>
+                                </div>
+                                <div id="music_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the percentage for a music track to be considered as listened. Minimum 50, Maximum 95.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label>Flush Temporary Sessions</label>
+                            <p class="help-block">
+                                Attempt to fix history logging by flushing out all of the temporary sessions in the database.<br />
+                                Warning: This will reset all currently active sessions. For emergency use only when history logging is stuck!
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="delete_temp_sessions">Flush</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Updates</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="check_github" name="check_github" value="1" ${config['check_github']}> Enable Updates
+                            </label>
+                            <p class="help-block">Check for Tautulli updates periodically.</p>
+                        </div>
+                        <div id="git_update_options">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']}> Update Automatically
+                                </label>
+                                <p class="help-block">Update Tautulli automatically if an update is available.</p>
+                            </div>
+                            <div class="form-group advanced-setting">
+                                <label for="git_token">GitHub API Token</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="git_token" name="git_token" value="${config['git_token']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">Optional: Use your own GitHub API token when checking for updates.
+                            </div>
+                        </div>
+
+                        % if plexpy.INSTALL_TYPE == 'git':
+                        <div class="form-group advanced-setting">
+                            <label for="git_branch">Git Remote / Branch</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="input-group git-group">
+                                        <input type="text" class="form-control" id="git_remote" name="git_remote" value="${config['git_remote']}" data-parsley-trigger="change" ${docker_setting}>
+                                        <select class="form-control" id="git_branch" name="git_branch" ${docker_setting}>
+                                            <% branches = ('master', 'beta', 'nightly') %>
+                                            % for branch in branches:
+                                            <option value="${branch}" ${'selected' if config['git_branch'] == branch else ''}>${branch}</option>
+                                            % endfor
+                                            % if config['git_branch'] not in branches:
+                                            <option value="${config['git_branch']}" selected>${config['git_branch']}</option>
+                                            % endif
+                                        </select>
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="switch_git_branch" ${docker_setting}>Checkout Branch</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">The git tracking remote and branch (default "origin/master"). Select to switch the git branch (requires restart).</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="git_path">Git Path</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="git_path" name="git_path" value="${config['git_path']}" size="30" ${docker_setting}>
+                                </div>
+                            </div>
+                            <p class="help-block">Optional: The path to your git environment variable. Leave blank for default.</p>
+                        </div>
+                        % endif
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-homepage">
+
+                        <div class="padded-header">
+                            <h3>Activity</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="home_refresh_interval">Activity Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="home_refresh_interval" name="home_refresh_interval" value="${config['home_refresh_interval']}" size="5" data-parsley-min="2" data-parsley-trigger="change" data-parsley-errors-container="#home_refresh_interval_error" required>
+                                </div>
+                                <div id="home_refresh_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the interval (in seconds) to refresh the current activity on the homepage. Minimum 2.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Sections</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Select the sections to show on the homepage.
+                            Drag the items below to reorder your homepage content.
+                        </p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled" id="sortable_home_sections" data-parsley-trigger="change">
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-server_status" name="hsec-server_status" value="server_status"> Server Status
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-current_activity" name="hsec-current_activity" value="current_activity"> Current Activity
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-watch_stats" name="hsec-watch_stats" value="watch_stats"> Watch Statistics
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-library_stats" name="hsec-library_stats" value="library_stats"> Library Statistics
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
+                                            <input type="checkbox" id="hsec-recently_added" name="hsec-recently_added" value="recently_added"> Recently Added
+                                        </label>
+                                    </li>
+                                </ul>
+                                <input type="text" id="home_sections" name="home_sections" style="display: none;"/>
+                            </div>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Watch Statistics</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <p class="help-block">
+                                Select the cards to show in the watch statistics on the home page.
+                                Drag the items below to reorder your homepage content.
+                            </p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled" id="sortable_home_stats_cards" data-parsley-trigger="change">
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_movies" name="hscard-top_movies" value="top_movies"> Most Watched Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_movies" name="hscard-popular_movies" value="popular_movies"> Most Popular Movie
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_tv" name="hscard-top_tv" value="top_tv"> Most Watched TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_tv" name="hscard-popular_tv" value="popular_tv"> Most Popular TV
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_music" name="hscard-top_music" value="top_music"> Most Listened to Artist
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-popular_music" name="hscard-popular_music" value="popular_music"> Most Popular Artist
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-last_watched" name="hscard-last_watched" value="last_watched"> Last Watched
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_users" name="hscard-top_users" value="top_users"> Most Active User
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-top_platforms" name="hscard-top_platforms" value="top_platforms"> Most Active Platform
+                                            </label>
+                                        </li>
+                                        <li class="card card-sortable">
+                                            <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                            <label>
+                                                <input type="checkbox" id="hscard-most_concurrent" name="hscard-most_concurrent" value="most_concurrent"> Most Concurrent Streams
+                                            </label>
+                                        </li>
+                                    </ul>
+                                    <input type="text" id="home_stats_cards" name="home_stats_cards" style="display: none;" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Library Statistics</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <p class="help-block">
+                                Select the cards to show in the library statistics on the home page.
+                                Drag the items below to reorder your homepage content.
+                            </p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled" id="sortable_home_library_cards" data-parsley-trigger="change"></ul>
+                                    <input type="text" id="home_library_cards" name="home_library_cards" style="display: none;" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-web_interface">
+
+                        <div class="padded-header">
+                            <h3>Web Interface</h3>
+                        </div>
+
+                        <p class="help-block">Note: Web interface changes require a restart.</p>
+                        % if os.name == 'nt':
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="http-settings" name="win_sys_tray" id="win_sys_tray" value="1" ${config['win_sys_tray']}> Enable System Tray Icon
+                            </label>
+                            <p class="help-block">Show Tautulli shortcut in the system tray.</p>
+                        </div>
+                        % endif
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="launch_browser" id="launch_browser" value="1" ${config['launch_browser']}> Launch Browser on Startup
+                            </label>
+                            <p class="help-block">Launch browser pointed to Tautulli on startup.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="http_host">HTTP Host</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control http-settings" id="http_host" name="http_host" value="${config['http_host']}" data-parsley-trigger="change" required ${docker_setting}>
+                                </div>
+                            </div>
+                            <p class="help-block">localhost or an IP address to bind the web server to. Default 0.0.0.0 to bind to all interfaces.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="http_port">HTTP Port</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control http-settings" data-parsley-type="integer" id="http_port" name="http_port" value="${config['http_port']}" data-parsley-trigger="change" data-parsley-errors-container="#http_port_error" required ${docker_setting}>
+                                </div>
+                                <div id="http_port_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Port to bind web server to. Note that ports below 1024 may require root.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="http_base_url">Public Tautulli Domain</label>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control" id="http_base_url" name="http_base_url" value="${config['http_base_url']}" placeholder="http://mydomain.com" data-parsley-trigger="change" data-parsley-pattern="^https?:\/\/\S+$" data-parsley-errors-container="#http_base_url_error"  data-parsley-error-message="Invalid URL">
+                                </div>
+                                <div id="http_base_url_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                Set your public Tautulli domain for self-hosted notification images and newsletters. (e.g. http://mydomain.com)
+                            </p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="http_root">HTTP Root</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control http-settings" id="http_root" name="http_root" value="${config['http_root']}" data-parsley-trigger="change">
+                                </div>
+                            </div>
+                            <p class="help-block">The base URL of the web server. Used for reverse proxies.</p>
+                        </div>
+                       <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" class="http-settings" name="http_proxy" id="http_proxy" value="1" ${config['http_proxy']}> Enable HTTP Proxy
+                            </label>
+                            <p class="help-block">Respect the X-Forwarded-Proto header. Used for reverse proxies with SSL.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" class="http-settings" name="enable_https" id="enable_https" value="1" ${config['enable_https']} /> Enable HTTPS
+                            </label>
+                            <p class="help-block">Enable HTTPS for web server for encrypted communication.</p>
+                        </div>
+                        <div id="https_options">
+                            <div class="checkbox advanced-setting">
+                                <label>
+                                    <input type="checkbox" class="http-settings" name="https_create_cert" id="https_create_cert" value="1" ${config['https_create_cert']} /> Create Self-signed Certificate
+                                </label>
+                                <p class="help-block">Check to have Tautulli create a self-signed SSL certificate. Uncheck if you want to use your own certificate.</p>
+                            </div>
+                            <div id="https_options_self-signed">
+                                <div class="form-group advanced-setting">
+                                    <label for="https_domain">HTTPS Domains</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control http-settings" id="https_domain" name="https_domain" value="${config['https_domain']}">
+                                        </div>
+                                    </div>
+                                    <p class="help-block">The domain names used to access Tautulli, separated by commas (,).</p>
+                                </div>
+                                <div class="form-group advanced-setting">
+                                    <label for="https_ip">HTTPS IPs</label>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <input type="text" class="form-control http-settings" id="https_ip" name="https_ip" value="${config['https_ip']}">
+                                        </div>
+                                    </div>
+                                    <p class="help-block">The IP addresses used to access Tautulli, separated by commas (,).</p>
+                                </div>
+                            </div>
+                            <div class="form-group advanced-setting">
+                                <label for="https_cert">HTTPS Certificate</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_cert" name="https_cert" value="${config['https_cert']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL certificate.</p>
+                            </div>
+                            <div class="form-group advanced-setting">
+                                <label for="https_cert_chain">HTTPS Certificate Chain</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_cert_chain" name="https_cert_chain" value="${config['https_cert_chain']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL certificate chain.</p>
+                            </div>
+                            <div class="form-group advanced-setting">
+                                <label for="https_key">HTTPS Key</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control http-settings" id="https_key" name="https_key" value="${config['https_key']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">The location of the SSL key.</p>
+                            </div>
+                        </div>
+
+                        <div class="form-group advanced-setting">
+                            <label for="anon_redirect">Anonymous Redirect</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Authentication</h3>
+                        </div>
+
+                        <p class="help-block">Note: Authentication changes require a restart.</p>
+                        <div class="form-group">
+                            <label for="http_username">HTTP Username</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control auth-settings" id="http_username" name="http_username" value="${config['http_username']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Username for web server authentication. Leave empty to disable.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="http_password">HTTP Password</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="${config['http_password']}" size="30" autocomplete="new-password">
+                                </div>
+                                <div id="http_hash_password_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
+                        </div>
+
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" name="http_hash_password" id="http_hash_password" value="1" ${config['http_hash_password']} data-parsley-trigger="change"> Hash Password in the Config File
+                            </label>
+                            <span id="hashPasswordCheck" class="settings-warning"></span>
+                            <p class="help-block">Store a hashed password in the config file.<br />Warning: Your password cannot be recovered if forgotten!</p>
+                        </div>
+                        <input type="text" id="http_hashed_password" name="http_hashed_password" value="${config['http_hashed_password']}" style="display: none;" data-parsley-trigger="change" data-parsley-type="integer" data-parsley-range="[0, 1]"
+                               data-parsley-errors-container="#http_hash_password_error" data-parsley-error-message="Cannot un-hash password, please set a new password." data-parsley-no-focus required>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" class="auth-settings" name="http_basic_auth" id="http_basic_auth" value="1" ${config['http_basic_auth']} data-parsley-trigger="change"> Use Basic Authentication
+                            </label>
+                            <p class="help-block">Use basic HTTP authentication instead of the HTML login form.</p>
+                        </div>
+
+                        <input type="checkbox" name="auth_changed" id="auth_changed" value="1" style="display: none;">
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
+                            </label>
+                            <span id="allowPlexCheck" class="settings-warning"></span>
+                            <p class="help-block">Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="allow_guest_access" name="allow_guest_access" value="1" ${config['allow_guest_access']}> Allow Guest Access to Tautulli
+                            </label>
+                            <span id="allowGuestCheck" class="settings-warning"></span>
+                            <p class="help-block">Allow shared users to login to Tautulli using their Plex.tv account. Individual user access needs to be enabled from Users > Edit Mode.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>API</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="api_enabled" name="api_enabled" value="1" ${config['api_enabled']}> Enable API
+                            </label>
+                            <p class="help-block">Allow remote applications to interface with Tautulli.</p>
+                        </div>
+                        <div id="apioptions">
+                            <div class="form-group">
+                                <label for="api_key">API key</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="input-group">
+                                            <input class="form-control" type="text" name="api_key" id="api_key" value="${config['api_key']}" size="20" readonly>
+                                            <span class="input-group-btn">
+                                                <button class="btn btn-form" type="button" id="generate_api">Generate</button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="help-block">Current API key: <strong>${config['api_key']}</strong></p>
+                            </div>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-PlexTV_accounts">
+
+                        <div class="padded-header">
+                            <h3>Plex.TV Account Management</h3>
+                        </div>
+
+                        <div id="plextv-accounts-table">
+                            <div class='container-fluid'>
+                                <div class="table-card-header">
+                                    <div class="header-bar">
+                                        <span id="accounts-xml"><i class="fa fa-users"></i>&nbsp;Accounts</span>
+                                    </div>
+                                    <div class="button-bar">
+                                        <button class="btn btn-dark" id="refresh-account-list"><i class="fa fa-refresh"></i> Refresh</button>
+                                        <button class="btn btn-dark" id="sign-in-plex"><i class="fa fa-plus"></i> Fetch</button>
+                                    </div>
+                                </div>
+                                <div class="table-card-back">
+                                    <table class="config-accounts-table display" id="config-accounts-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="delete-account"></th>
+                                                <th class="username">User Name</th>
+                                                <th class="isAdmin">Admin</th>
+                                                <th class="usertoken">Token</th>
+                                           </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <br>
+                        </div>
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-plex_media_servers">
+
+                        <div class="padded-header">
+                            <h3 id="resources-xml">Plex Media Server Settings</h3>
+                        </div>
+
+                        <div id="plexpy-servers-table">
+                            <div class='container-fluid'>
+                                <div class="table-card-header">
+                                    <div class="header-bar">
+                                        <span id="servers-xml"><i class="fa fa-server"></i>&nbsp;Servers</span>
+                                    </div>
+                                    <div class="button-bar">
+                                        <button class="btn btn-dark refresh-servers-button" id="refresh-servers-list"><i class="fa fa-refresh"></i> Refresh</button>
+                                    </div>
+                                </div>
+                                <div class="table-card-back">
+                                    <table class="config-servers-table display" id="config-servers-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="status_tooltip"></th>
+                                                <th class="pms_is_enabled">Enable</th>
+                                                <th class="pms_name">Server</th>
+                                                <th class="pms_ip">Hostname</th>
+                                                <th class="pms_port">Port</th>
+                                                <th class="pms_is_remote">Remote</th>
+                                                <th class="pms_is_cloud">Cloud</th>
+                                                <th class="pms_is_deleted">Deleted</th>
+                                                <th class="pms_version">PMS Version</th>
+                                                <th class="pms_platform">Platform</th>
+                                                <th class="config-settings"></th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <br>
+                        </div>
+
+                        <div class="form-group advanced-setting">
+                            <label for="pms_logs_folder">Logs Folder</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="pms_logs_folder" name="pms_logs_folder" value="${config['pms_logs_folder']}" size="30" data-parsley-trigger="change" data-parsley-pattern="^[^\~\%]" data-parsley-errors-container="#pms_logs_folder_error"  data-parsley-error-message="Shortcuts are not recognized.">
+                                </div>
+                                <div id="pms_logs_folder_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                Optional: Set your Plex logs folder to use Tautulli as a log viewer. Plex logs are not needed for Tautulli to function.
+                                A complete folder path is required, shortcuts are not recognized, and the logs must be accessible from the machine where Tautulli is installed.
+                                <a href="${anon_url('https://support.plex.tv/hc/en-us/articles/200250417-Plex-Media-Server-Log-Files')}" target="_blank">Click here</a> for help.
+                            </p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="cache_images" name="cache_images" value="1" ${config['cache_images']}> Cache Plex Images
+                            </label>
+                            <p class="help-block">
+                                Enable to cache images from Plex to reduce API calls and improve loading times.<br />
+                                Note: Video preview thumbnails (BIF) are not cached.
+                            </p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Server Monitoring</h3>
+                        </div>
+
+                        <div class="form-group advanced-setting">
+                            <label for="refresh_servers_interval">Servers List Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_servers_interval" name="refresh_servers_interval" value="${config['refresh_servers_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_servers_interval_error" required>
+                                </div>
+                                <div id="refresh_servers_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) Tautulli will request an updated servers list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
+                        </div>
+
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="refresh_servers_on_startup" name="refresh_servers_on_startup" value="1" ${config['refresh_servers_on_startup']}> Refresh Servers List on Startup
+                            </label>
+                            <p class="help-block">Refresh the servers list when Tautulli starts.</p>
+                        </div>
+
+                        <div data-group="refresh_users_interval" class="form-group advanced-setting">
+                            <label for="refresh_users_interval">Users List Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_users_interval" name="refresh_users_interval" value="${config['refresh_users_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_users_interval_error" required>
+                                </div>
+                                <div id="refresh_users_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) Tautulli will request an updated friends list from Plex.tv. Minimum 1, maximum 24, default 12.</p>
+                        </div>
+
+                        <div data-group="refresh_users_on_startup" class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1"  ${'checked' if config['refresh_users_on_startup'] else ''}> Refresh Users List on Startup
+                            </label>
+                            <p class="help-block">Refresh the users list when Tautulli starts.</p>
+                        </div>
+
+                        <div data-group="monitor_rclone" class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="monitor_rclone" name="monitor_rclone" value="1"  ${'checked' if config['monitor_rclone'] else ''}> Enable rclone Mount Monitoring
+                            </label>
+                            <p class="help-block">Activate the rclone mount monitoring feature. With this activated, you can set the rclone mount monitoring parameters in the server configuration.</p>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-notifications">
+
+                        <div class="padded-header">
+                            <h3>Current Activity Notifications</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="buffer_threshold">Buffer Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="buffer_threshold" name="buffer_threshold" value="${config['buffer_threshold']}" data-parsley-range="[0,50]" data-parsley-trigger="change" data-parsley-errors-container="#buffer_threshold_error" required>
+                                </div>
+                                <div id="buffer_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                The number of buffer events required before triggering the first notification.
+                                Buffer events increment on each incoming websocket message if the play state is buffering.
+                                <br>
+                                Note: Buffer warnings only work on certain Plex clients. Some clients can send excessive buffer messages or no messages at all.
+                                This notification may be unreliable and not indicative of a real problem.
+                            </p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="buffer_wait">Buffer Wait</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="buffer_wait" name="buffer_wait" value="${config['buffer_wait']}" data-parsley-min="0" data-parsley-trigger="change" data-parsley-errors-container="#buffer_wait_error" required>
+                                </div>
+                                <div id="buffer_wait_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The value (in seconds) Tautulli should wait before triggering the next buffer warning. 0 to always trigger.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" name="notify_consecutive" id="notify_consecutive" value="1" ${config['notify_consecutive']}> Allow Consecutive Notifications
+                            </label>
+                            <p class="help-block">Enable to allow sending of consecutive notifications (i.e. both watched &amp; stopped notifications).</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" name="notify_concurrent_by_ip" id="notify_concurrent_by_ip" value="1" ${config['notify_concurrent_by_ip']}> User Concurrent Streams Notifications by IP Address
+                            </label>
+                            <p class="help-block">Enable to only send a notification of concurrent streams by a single user from different IP addresses.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="notify_concurrent_threshold">User Concurrent Stream Threshold</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_concurrent_threshold" name="notify_concurrent_threshold" value="${config['notify_concurrent_threshold']}" data-parsley-min="2" data-parsley-trigger="change" data-parsley-errors-container="#notify_concurrent_threshold_error" required>
+                                </div>
+                                <div id="notify_concurrent_threshold_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The number of concurrent streams by a single user for Tautulli to trigger a notification. Minimum 2.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Recently Added Notifications</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_group_recently_added_parent" id="notify_group_recently_added_parent" value="1" ${config['notify_group_recently_added_parent']}> Group Notifications by Season or Album
+                            </label>
+                            <p class="help-block">
+                                Enable to only send one season or album notification when multiple episodes or tracks are added. Movies, single episodes, and single tracks are unaffected.<br />
+                                Note: An episode/track range can be shown (e.g. 01-12), but all other episode/track metadata will be unavailable.
+                            </p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_group_recently_added_grandparent" id="notify_group_recently_added_grandparent" value="1" ${config['notify_group_recently_added_grandparent']}> Group Notifications by TV Show or Artist
+                            </label>
+                            <p class="help-block">
+                                Enable to only send one TV show or artist notification when multiple seasons or albums are added. Movies, single episodes, and single tracks are unaffected.<br />
+                                Note: A season range can be shown (e.g. 1-3), but all other season/episode/album/track metadata will be unavailable.
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label for="notify_recently_added_delay">Notification Delay</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="notify_recently_added_delay" name="notify_recently_added_delay" value="${config['notify_recently_added_delay']}" size="5" data-parsley-min="60" data-parsley-trigger="change" data-parsley-errors-container="#notify_recently_added_delay_error" required>
+                                </div>
+                                <div id="notify_recently_added_delay_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Set the delay (in seconds) to wait for consecutive recently added items to group together and to allow metadata to be processed before sending the notification. Minimum 60 seconds.</p>
+                        </div>
+                        <!--<div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="notify_recently_added_upgrade" id="notify_recently_added_upgrade" value="1" ${config['notify_recently_added_upgrade']}> Send a Notification for New Versions <span class="settings-warning">[Not working]</span>
+                            </label>
+                            <p class="help-block">
+                                Enable to send another recently added notification when adding a new version of existing media.<br />
+                                Note: If multiple versions are available, Tautulli will assume the higher quality one is newer.
+                            </p>
+                        </div>-->
+
+                        <div class="padded-header">
+                            <h3>Newsletters</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="newsletter_self_hosted" name="newsletter_self_hosted" value="1" ${config['newsletter_self_hosted']}> Self-Hosted Newsletters
+                            </label>
+                            <p class="help-block">Enable to host newsletters on your own domain. This will generate a link to an HTML page where you can view the newsletter.</p>
+                        </div>
+                        <div id="self_host_newsletter_options" style="overlfow: hidden; display: ${'block' if config['newsletter_self_hosted'] == 'checked' else 'none'}">
+                            <div class="form-group">
+                                <p class="help-block" id="self_host_newsletter_message">
+                                    Note: The <span class="inline-pre">${http_root}newsletter</span> endpoint on your domain must be publicly accessible from the internet.
+                                </p>
+                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                            </div>
+                            <div class="form-group">
+                                <label for="newsletter_auth">Newsletter Authentication</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <select class="form-control" id="newsletter_auth" name="newsletter_auth">
+                                            <option value="0" ${'selected' if config['newsletter_auth'] == 0 else ''}>Disabled</option>
+                                            <option value="1" ${'selected' if config['newsletter_auth'] == 1 else ''}>Password</option>
+                                            <option value="2" ${'selected' if config['newsletter_auth'] == 2 else ''}>Tautulli Guest Access</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <p class="help-block">Select the authentication method to use for self-hosted newsletters.</p>
+                                <p class="help-block settings-warning newsletter-guest-access-warning">Warning: Guest Access is not enabled under <a data-tab-destination="tabs-web_interface" data-target="#allow_guest_access">Web Interface</a>.</p>
+                            </div>
+                            <div class="form-group" id="newsletter_password_option">
+                                <label for="newsletter_password">Newsletter Password</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="newsletter_password" name="newsletter_password" value="${config['newsletter_password']}">
+                                    </div>
+                                </div>
+                                <p class="help-block">Enter the password that will be required to view self-hosted newsletters.</p>
+                            </div>
+                        </div>
+
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="newsletter_inline_styles" name="newsletter_inline_styles" value="1" ${config['newsletter_inline_styles']}> Use Inline Styles Template
+                            </label>
+                            <p class="help-block">
+                                Enable to use newsletter templates with inline CSS styles. Inline styles render better in email clients, but are larger in size which may cause long newsletters to be clipped.<br>
+                                Note: This setting does not affect custom templates. CSS styles will depend on your own template.
+                            </p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="newsletter_dir">Custom Newsletter Templates Folder</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="newsletter_custom_dir" name="newsletter_custom_dir" value="${config['newsletter_custom_dir']}">
+                                </div>
+                            </div>
+                            <p class="help-block">Optional: Enter the full path to your custom newsletter templates folder. Leave blank for default.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label for="newsletter_dir">Newsletter Output Directory</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="newsletter_dir" name="newsletter_dir" value="${config['newsletter_dir']}" ${docker_setting}>
+                                </div>
+                            </div>
+                            <p class="help-block">Enter the full path to where newsletter files will be saved.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>3rd Party APIs</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="notify_upload_posters">Image Hosting</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="${'input-group' if config['notify_upload_posters'] in (1, 3) else ''}">
+                                        <select class="form-control" id="notify_upload_posters" name="notify_upload_posters">
+                                            <option value="0" ${'selected' if config['notify_upload_posters'] == 0 else ''}>Disabled</option>
+                                            <option value="1" ${'selected' if config['notify_upload_posters'] == 1 else ''}>Imgur</option>
+                                            <option value="3" ${'selected' if config['notify_upload_posters'] == 3 else ''}>Cloudinary</option>
+                                            <option value="2" ${'selected' if config['notify_upload_posters'] == 2 else ''}>Self-hosted on public domain</option>
+                                        </select>
+                                        % if config['notify_upload_posters'] in (1, 3):
+                                        <span class="input-group-btn" id="delete_all_uploads_container">
+                                            <button class="btn btn-form" type="button" id="delete_all_uploads">Delete All Uploads</button>
+                                        </span>
+                                        % endif
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">Select where to host Plex images for notifications and newsletters.</p>
+                        </div>
+                        <div id="imgur_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
+                            <div class="form-group">
+                                <p class="help-block" id="imgur_upload_message">
+                                    You can register a new Imgur application <a href="${anon_url('https://api.imgur.com/oauth2/addclient')}" target="_blank">here</a>.<br>
+                                    Warning: Imgur uploads are rate-limited and newsletters may exceed the limit. Please use Cloudinary for newsletters instead.
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="imgur_client_id">Imgur Client ID</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="imgur_client_id" name="imgur_client_id" value="${config['imgur_client_id']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">Enter your Imgur API Client ID.</p>
+                            </div>
+                        </div>
+                        <div id="self_host_image_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 2 else 'block'}">
+                            <div class="form-group">
+                                <p class="help-block" id="self_host_image_message">Note: The <span class="inline-pre">${http_root}image</span> endpoint on your domain must be publicly accessible from the internet.</p>
+                                <p class="help-block settings-warning base-url-warning">Warning: Public Tautulli domain not set under <a data-tab-destination="tabs-web_interface" data-target="#http_base_url">Web Interface</a>.</p>
+                            </div>
+                        </div>
+                        <div id="cloudinary_upload_options" style="overlfow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
+                            <div class="form-group">
+                                <p class="help-block" id="imgur_upload_message">
+                                    You can sign up for Cloudinary <a href="${anon_url('https://cloudinary.com')}" target="_blank">here</a>.<br>
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="cloudinary_cloud_name">Cloudinary Cloud Name</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="cloudinary_cloud_name" name="cloudinary_cloud_name" value="${config['cloudinary_cloud_name']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">
+                                    Enter your Cloudinary Cloud Name.
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="cloudinary_api_key">Cloudinary API Key</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="cloudinary_api_key" name="cloudinary_api_key" value="${config['cloudinary_api_key']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">
+                                    Enter your Cloudinary API Key.
+                                </p>
+                            </div>
+                            <div class="form-group">
+                                <label for="cloudinary_api_secret">Cloudinary API Secret</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="cloudinary_api_secret" name="cloudinary_api_secret" value="${config['cloudinary_api_secret']}" data-parsley-trigger="change">
+                                    </div>
+                                </div>
+                                <p class="help-block">
+                                    Enter your Cloudinary API Secret.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="themoviedb_lookup" id="themoviedb_lookup" value="1" ${config['themoviedb_lookup']}> Lookup TheMovieDB Links
+                            </label>
+                            <p class="help-block">Enable to lookup links to TheMovieDB (and IMDb if needed) for movies and TV shows when available.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="tvmaze_lookup" id="tvmaze_lookup" value="1" ${config['tvmaze_lookup']}> Lookup TVmaze Links
+                            </label>
+                            <p class="help-block">Enable to lookup links to TVmaze (and IMDb if needed) for TV shows when available.</p>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-notification_agents">
+
+                        <div class="padded-header">
+                            <h3>Notification Agents</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Add a new notification agent, or configure an existing notification agent by clicking the settings icon on the right.
+                        </p>
+                        <p class="help-block">
+                            Please see the <a target='_blank' href='${anon_url('https://github.com/%s/%s-Wiki/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}'>Notification Agents Guide</a> for instructions on setting up each notification agent.
+                        </p>
+                        <br />
+                        <div id="plexpy-notifiers-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading notification agents...</div>
+                            <br>
+                        </div>
+
+                     </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-newsletter_agents">
+
+                        <div class="padded-header">
+                            <h3>Newsletter Agents</h3>
+                        </div>
+
+                        <p class="help-block">
+                            Add a new newsletter agent, or configure an existing newsletter agent by clicking the settings icon on the right.
+                        </p>
+                        <p class="help-block settings-warning" id="newsletter_upload_warning">
+                            Warning: The <a data-tab-destination="tabs-notifications" data-target="#notify_upload_posters">Image Hosting</a> setting must be enabled for images to display on the newsletter.</span>
+                        </p>
+                        <br/>
+                        <div id="plexpy-newsletters-table">
+                            <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading newsletter agents...</div>
+                            <br>
+                        </div>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-import_backups">
+
+                        <div class="padded-header">
+                            <h3>Database Import</h3>
+                        </div>
+
+                        <p class="help-block">Click a button below to import an existing database from another app.</p>
+                        <div class="btn-group">
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
+                            <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="tautulli">Tautulli</button>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Backup</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="backup_interval">Backup Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_interval" name="backup_interval" value="${config['backup_interval']}" size="5" data-parsley-range="[1,24]" data-parsley-trigger="change" data-parsley-errors-container="#backup_interval_error" required>
+                                </div>
+                                <div id="backup_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) Tautulli will backup the database and configuration file. Minimum 1, maximum 24, default 6.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="backup_interval">Backup Days</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="backup_days" name="backup_days" value="${config['backup_days']}" size="5" data-parsley-min="1" data-parsley-trigger="change" data-parsley-errors-container="#backup_days_error" required>
+                                </div>
+                                <div id="backup_days_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">
+                                The number of days to keep scheduled backups. Minimum 1, default 3.<br />
+                                Note: Manual backups are not removed automatically.
+                            </p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Directories</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="log_dir">Log Directory</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="log_dir" name="log_dir" value="${config['log_dir']}" ${docker_setting}>
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_logs">Clear Logs</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="backup_dir">Backup Directory</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="backup_dir" name="backup_dir" value="${config['backup_dir']}" ${docker_setting}>
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="backup_config">Backup Config</button>
+                                        <button class="btn btn-form" type="button" id="backup_database">Backup Database</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="cache_dir">Cache Directory</label> ${docker_msg | n}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control directory-settings" id="cache_dir" name="cache_dir" value="${config['cache_dir']}" ${docker_setting}>
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="clear_cache">Clear All Cache</button>
+                                        <button class="btn btn-form" type="button" id="clear_image_cache">Clear Image Cache</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-android_app">
+
+                        <div class="padded-header">
+                            <h3>Tautulli Remote Android App</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Get the App</label>
+                            <p class="help-block">
+                                Get the <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank">Tautulli Remote</a> app on Google Play<sup>TM</sup> to access Tautulli from your Android device!<br />
+                                <span class="google-play-badge">
+                                    <a href="${anon_url('https://play.google.com/store/apps/details?id=com.williamcomartin.plexpyremote')}" target="_blank"><img alt="Get it on Google Play" src="images/en-play-badge.png" /></a>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="form-group">
+                            <label>Registered Devices</label>
+                            <p class="help-block">Register a new device using a QR code, or configure an existing device by clicking the settings icon on the right.</p>
+                            <p id="app_api_msg" style="color: #eb8600;">The API must be enabled under <a data-tab-destination="tabs-web_interface" data-target="#api_enabled">Web Interface</a> to use the app.</p>
+                            <div class="row">
+                                <div id="plexpy-mobile-devices-table" class="col-md-12">
+                                    <div class='text-muted'><i class="fa fa-refresh fa-spin"></i> Loading registered devices...</div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</%def>
+
+<%def name="modalIncludes()">
+<div id="queue-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="queue-modal"></div>
+<div id="guidelines-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="guidelines-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Guidelines</h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                    <strong>Please read the <a href="${anon_url('https://github.com/%s/%s-Issues/blob/master/README.md' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">guidelines</a>
+                        in the README document <br />before submitting a new <span id="guidelines-type"></span>!</strong>
+                    <br /><br />
+                    Your post may be removed for failure to follow the guidelines.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" target="_blank" id="guidelines-continue" class="btn btn-bright">Continue</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="support-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="support-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Support</h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                    <strong>Please read the <a href="${anon_url('https://github.com/%s/%s-Wiki/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank">FAQ</a>
+                        before asking for help!</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" target="_blank" id="support-continue" class="btn btn-bright">Continue</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="dateTimeOptionsModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="dateTimeOptionsModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <i class="fa fa-remove"></i>
+                </button>
+                <h4 class="modal-title">Date &amp; Time Format Options</h4>
+            </div>
+            <div class="modal-body">
+                % for category in common.DATE_TIME_FORMATS:
+                <table class="notification-params time-options">
+                    <thead>
+                        <tr>
+                            <th colspan="3">
+                                ${category['category']}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        % for parameter in category['parameters']:
+                        <tr>
+                            <td><strong>${parameter['value']}</strong></td>
+                            <td>${parameter['description']}</td>
+                            <td>${parameter['example']}</td>
+                        </tr>
+                        % endfor
+                    </tbody>
+                </table>
+                % endfor
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+<div id="app-import-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="app-import-modal"></div>
+<div id="add-notifier-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add-notifier-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Add a Notification Agent</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <ul class="stacked-configs list-unstyled">
+                                % for agent in sorted(available_notification_agents, key=lambda k: k['label'].lower()):
+                                <li class="new-notification-agent pointer" data-id="${agent['id']}">
+                                    <span>${agent['label']}</span>
+                                </li>
+                                % endfor
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="add-newsletter-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="add-newsletter-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Add a Newsletter Agent</h4>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <ul class="stacked-configs list-unstyled">
+                                % for agent in available_newsletter_agents:
+                                <li class="new-newsletter-agent pointer" data-id="${agent['id']}">
+                                    <span>${agent['label']}</span>
+                                </li>
+                                % endfor
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="plextv-account-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="plextv-account-modal"></div>
+<div id="server-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="server-config-modal"></div>
+<div id="notifier-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="notifier-config-modal"></div>
+<div id="newsletter-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="newsletter-config-modal"></div>
+<div id="notify-text-sub-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="notify-text-sub-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <i class="fa fa-remove"></i>
+                </button>
+                <h4 class="modal-title">Notification Parameters</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p class="help-block">
+                        If the value for a selected parameter cannot be provided, it will display as blank.
+                    </p>
+                    % for category in common.NOTIFICATION_PARAMETERS:
+                    <table class="notification-params">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    ${category['category']}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            % for parameter in category['parameters']:
+                            <tr>
+                                <td><strong>{${parameter['value']}}</strong></td>
+                                <td>
+                                    ${parameter['description']}
+                                    % if parameter.get('example'):
+                                    <span class="small-muted">(${parameter['example']})</span>
+                                    % endif
+                                    % if parameter.get('help_text'):
+                                    <p class="small-muted">(${parameter['help_text']})</p>
+                                    % endif
+                                </td>
+                            </tr>
+                            % endfor
+                        </tbody>
+                    </table>
+                    % endfor
+                </div>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+<div id="notify-text-tags-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-tags-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Notification Exclusion Tags</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">
+                            Note: Tags separate the <em>media type</em> that triggered the notifications (i.e. a complete show added to Plex vs. a single episode added to Plex).
+                            They <em>do not</em> separate the notification parameters (i.e. <span class="inline-pre">{show_name}</span> vs. <span class="inline-pre">{episode_name}</span>.
+                        </p>
+                        <p class="help-block">
+                            Note: Nesting tags inside each other is not supported.
+                        </p>
+                    </div>
+                    <div>
+                        <h4>Movie Tag</h4>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">All text inside <span class="inline-pre">&lt;movie&gt;&lt;/movie&gt;</span> tags will only be sent when the media type is movie.</p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{title}&lt;movie&gt;({year})&lt;/movie&gt; was recently added to Plex</pre>
+                    </div>
+                    <div>
+                        <h4>Show / Season / Episode Tags</h4>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">
+                            All text inside <span class="inline-pre">&lt;show&gt;&lt;/show&gt;</span>/<span class="inline-pre">&lt;season&gt;&lt;/season&gt;</span>/<span class="inline-pre">&lt;episode&gt;&lt;/episode&gt;</span>
+                            tags will only be sent when the media type is show/season/episode.
+                        </p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{show_name}&lt;season&gt; - Season {season_num}&lt;/season&gt;&lt;episode&gt; - S{season_num}E{episode_num} - {episode_name}&lt;/episode&gt; was recently added to Plex.</pre>
+                    </div>
+                    <div>
+                        <h4>Artist / Album / Track Tag</h4>
+                    </div>
+                    <div>
+                        <p class="help-block">
+                            All text inside <span class="inline-pre">&lt;artist&gt;&lt;/artist&gt;</span>/<span class="inline-pre">&lt;album&gt;&lt;/album&gt;</span>/<span class="inline-pre">&lt;track&gt;&lt;/track&gt;</span>
+                            tags will only be sent when the media type is artist/album/track.
+                        </p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{artist_name}&lt;album&gt; - {album_name}&lt;/album&gt;&lt;track&gt; - {album_name} - {track_name}&lt;/track&gt; was recently added to Plex.</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="notify-text-modifiers-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notify-text-modifiers-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Notification Text Modifiers</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <div>
+                        <h4>Case Modifiers</h4>
+                    </div>
+                    <div>
+                        <p class="help-block">Notification parameters with the <span class="inline-pre">!u</span> modifier will be converted to uppercase.</p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{video_codec}   --> hevc
+{video_codec!u} --> HEVC</pre>
+                    </div>
+                    <div>
+                        <p class="help-block">Notification parameters with the <span class="inline-pre">!l</span> modifier will be converted to lowercase.</p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{content_rating}   --> TV-PG
+{content_rating!l} --> tv-pg</pre>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">Notification parameters with the <span class="inline-pre">!c</span> modifier will be converted to title case.</p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{media_type}   --> movie
+{media_type!c} --> Movie</pre>
+                    </div>
+                    <div>
+                        <h4>List Slicing</h4>
+                    </div>
+                    <div>
+                        <p class="help-block">
+                            Notification parameters which have a list of items can be sliced with a slice formatter <span class="inline-pre">:[X:Y]</span> to limit the number of items.
+                            Note: the first item in the list is numbered <span class="inline-pre">0</span>.
+                        </p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{actors:[0]}   --> Only include the 1st actor (Actors: 0)
+{actors:[:4]}  --> Only the first 4 actors (Actors: 0, 1, 2, 3)
+{actors:[2:]}  --> Only the 3rd to last actors (Actors: 2, 3, 4, ...)
+{actors:[1:5]} --> Only the 2nd to 5th actors (Actors: 1, 2, 3, 4)</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="notifier-text-preview-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="notifier-text-preview-modal">
+</div>
+<div id="newsletter-text-sub-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="newsletter-text-sub-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    <i class="fa fa-remove"></i>
+                </button>
+                <h4 class="modal-title">Newsletter Parameters</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p class="help-block">
+                        If the value for a selected parameter cannot be provided, it will display as blank.
+                    </p>
+                    % for category in common.NEWSLETTER_PARAMETERS:
+                    <table class="notification-params">
+                        <thead>
+                            <tr>
+                                <th colspan="2">
+                                    ${category['category']}
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            % for parameter in category['parameters']:
+                            <tr>
+                                <td><strong>{${parameter['value']}}</strong></td>
+                                <td>
+                                    ${parameter['description']}
+                                    % if parameter.get('example'):
+                                    <span class="small-muted">(${parameter['example']})</span>
+                                    % endif
+                                    % if parameter.get('help_text'):
+                                    <p class="small-muted">(${parameter['help_text']})</p>
+                                    % endif
+                                </td>
+                            </tr>
+                            % endfor
+                        </tbody>
+                    </table>
+                    % endfor
+                </div>
+            </div>
+            <div class="modal-footer"></div>
+        </div>
+    </div>
+</div>
+<div id="changelog-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Changelog</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="restart-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="restart-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Restart</h4>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+                    You have changed settings that require Tautulli to restart.<br />Click the restart button below to restart now.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modal_link_restart" class="btn btn-bright"><i class="fa fa-refresh"></i> Restart</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="api-qr-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="api-qr-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Register Tautulli Android App</h4>
+            </div>
+            <div class="modal-body">
+                <label>Instructions</label>
+                <p class="help-block">
+                    Scan the QR code below with the Tautulli Android app to automatically register it with the server (make sure the Tautulli Address below is correct)
+                    or manually enter the connection info and device token into the app settings.
+                </p>
+                <label>QR Code</label>
+                <pre id="api_qr_code" style="text-align: center"></pre>
+                <label>Tautulli Address</label>
+                <input type="text" class="form-control" id="api_qr_address">
+                <p class="help-block" id="api_qr_localhost" style="display: none;">
+                    Note: <span class="inline-pre">127.0.0.1</span> and <span class="inline-pre">localhost</span> will not work.
+                    Please enter an internal or external IP address, or hostname or domain instead.
+                </p>
+                <p class="help-block" id="api_qr_private" style="display: none;">
+                    Note: This is a private IP address. Tautulli will not be reachable outside of your home network.
+                    Access Tautulli via an externally address or manually enter the address above to generate the QR code for remote access.
+                </p>
+                <p class="help-block" id="api_qr_https" style="display: none;">
+                    Note: This URL is not secure. Requests between the app and the server will not be encrypted.
+                    Enable HTTPS to connect the app securely.
+                </p>
+                <label>Device Token</label>
+                <input type="text" class="form-control" id="api_qr_token" readonly>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Cancel">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="mobile-device-config-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="mobile-device-config-modal"></div>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script src="${http_root}js/parsley.min.js"></script>
+<script src="${http_root}js/Sortable.min.js"></script>
+<script src="${http_root}js/selectize.min.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/jquery.qrcode.min.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/tables/servers_table.js${cache_param}"></script>
+<script src="${http_root}js/tables/accounts_table.js${cache_param}"></script>
+<script>
+    function getConfigurationTable() {
+        $.ajax({
+            url: 'get_configuration_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-configuration-table").html(xhr.responseText);
+                if ("${kwargs.get('install_geoip')}" == 'true') {
+                    $('#install_geoip_db').removeClass('no-highlight').css('color','#e9a049');
+                } else if ("${kwargs.get('reinstall_geoip')}" == 'true') {
+                    $('#reinstall_geoip_db').removeClass('no-highlight').css('color','#e9a049');
+                }
+            }
+        });
+    }
+
+    function getSchedulerTable() {
+        $.ajax({
+            url: 'get_scheduler_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-scheduler-table").html(xhr.responseText);
+            }
+        });
+    }
+
+    $('#refresh-account-list').on('click', function () {
+        $('#refresh-account-list > .fa-refresh').addClass('fa-spin');
+        document.getElementById('config-accounts-table').dataset.loader = 'Refreshing Accounts...';
+        doAjaxCall('refresh_accounts_table', '#config-accounts-table', '', true, true,
+                function refreshAccountsTable() {
+                    config_accounts_table.ajax.reload();
+                    config_accounts_table.draw;
+                    $('#refresh-account-list > .fa-refresh').removeClass('fa-spin');
+                }
+        );
+        return false;
+    });
+
+    function getAccountsTable() {
+        accounts_table_options.ajax = {url: 'get_accounts_table'};
+        accounts_table_options.order = [[1, "asc"]];
+        config_accounts_table = $('#config-accounts-table').DataTable(accounts_table_options);
+        config_accounts_table.draw;
+    }
+
+    // Load PlexTV account modal
+    $('#config-accounts-table tbody').on('click', 'tr .delete-account', function () {
+        var token = config_accounts_table.row(this).data().usertoken;
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading PlexTV Account Configuration', false);
+        $.ajax({
+            url: 'get_plextv_account_modal',
+            data: { token: token },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#plextv-account-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> PlexTV Account Configuration Loaded', false, true, 2000);
+            }
+        });
+    });
+
+    $('#config-accounts-table tbody').on('change', 'tr .isAdmin', function () {
+        var checked = this.checked;
+        var token = this.dataset.token;
+        $.ajax({
+            url: 'set_account_admin',
+            data: { token: token,
+                    checked: checked
+                   },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                config_servers_table.ajax.reload();
+                config_servers_table.draw;
+            }
+        });
+        return false;
+    });
+
+    $('#refresh-servers-list').on('click', function () {
+        $('#refresh-servers-list > .fa-refresh').addClass('fa-spin');
+        document.getElementById('config-servers-table').dataset.loader = 'Refreshing Servers...';
+        doAjaxCall('refresh_servers_table', '#config-servers-table', '', true, true,
+                function refreshServersTable() {
+                    config_servers_table.ajax.reload();
+                    config_servers_table.draw;
+                    $('#refresh-servers-list > .fa-refresh').removeClass('fa-spin');
+                }
+        );
+        return false;
+    });
+
+    function getServersTable() {
+        servers_table_options.ajax = {url: 'get_servers_table'};
+        servers_table_options.order = [[1, "desc"], [2, "asc"]];
+        config_servers_table = $('#config-servers-table').DataTable(servers_table_options);
+        config_servers_table.draw;
+        $('.trigger-tooltip').tooltip();
+    }
+
+    function loadServerConfig(server_id) {
+        var show_advanced_settings = document.getElementById('show_advanced_settings').value;
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading Server Configuration', false);
+        $.ajax({
+            url: 'get_server_config_modal',
+            data: { server_id: server_id,
+                    show_advanced_settings: show_advanced_settings
+                   },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#server-config-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> Server Configuration Loaded', false, true, 2000);
+            }
+        });
+    }
+
+    // Load server config modal
+    $('#config-servers-table tbody').on('click', 'tr .config-settings', function () {
+        var server_id = this.parentNode.id;
+        loadServerConfig(server_id);
+    });
+
+    function getNotifiersTable() {
+        $.ajax({
+            url: 'get_notifiers_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-notifiers-table").html(xhr.responseText);
+            }
+        });
+    }
+
+    function loadNotifierConfig(notifier_id) {
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading Configuration', false);
+        $.ajax({
+            url: 'get_notifier_config_modal',
+            data: { notifier_id: notifier_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#notifier-config-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> Configuration Loaded', false, true, 2000);
+            }
+        });
+    }
+
+    function getNewslettersTable() {
+        $.ajax({
+            url: 'get_newsletters_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-newsletters-table").html(xhr.responseText);
+            }
+        });
+    }
+
+    function loadNewsletterConfig(newsletter_id) {
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading Configuration', false);
+        $.ajax({
+            url: 'get_newsletter_config_modal',
+            data: { newsletter_id: newsletter_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#newsletter-config-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> Configuration Loaded', false, true, 2000);
+            }
+        });
+    }
+
+    function getMobileDevicesTable() {
+        $.ajax({
+            url: 'get_mobile_devices_table',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#plexpy-mobile-devices-table").html(xhr.responseText);
+            }
+        });
+    }
+
+    function loadMobileDeviceConfig(mobile_device_id) {
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Loading Configuration', false);
+        $.ajax({
+            url: 'get_mobile_device_config_modal',
+            data: { mobile_device_id: mobile_device_id },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#mobile-device-config-modal").html(xhr.responseText).modal('show');
+                showMsg('<i class="fa fa-check"></i> Configuration Loaded', false, true, 2000);
+            }
+        });
+    }
+
+    // Sortable home_library_cards
+    function set_home_library_cards() {
+        var home_library_cards = [];
+        var hlcards = $('[id^=hlcard-]').serializeArray();
+        $.each(hlcards, function(i, card) {
+            home_library_cards.push(card.value);
+        });
+        $('#home_library_cards').val(home_library_cards);
+        $('#home_library_cards').draw;
+    }
+
+    function getLibrarySections() {
+        $.ajax({
+            url: 'get_library_sections',
+            data: { },
+            async: true,
+            complete: function (data) {
+                libraries_info = $.parseJSON(data.responseText);
+                $('#sortable_home_library_cards').empty();
+                libraries_list = libraries_info.library_sections;
+                for (var i in libraries_list) {
+                    var serverName = libraries_list[i].server_name;
+                    var title = libraries_list[i].section_name;
+                    var key = libraries_list[i].library_id;
+                    $('#sortable_home_library_cards').append(
+                        '<li class="card card-sortable" id="card-hlcard-' + key + '">' +
+                            '<div class="card-handle"><i class="fa fa-bars"></i></div>' +
+                            '<label>' +
+                                '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + serverName + ' :: ' + title +
+                            '</label>' +
+                        '</li>'
+                    );
+                    document.getElementById('hlcard-' + key).dataset.server_id = libraries_list[i].server_id;
+                }
+                var config_cards = libraries_info.home_library_cards;
+                config_cards.reverse().forEach(function (item) {
+                    $('#hlcard-' + item).prop('checked', !$(this).prop('checked'));
+                    $('#hlcard-' + item).closest('li.card').prependTo('#sortable_home_library_cards');
+                });
+                $('[id^=hlcard-]').change(function() { set_home_library_cards(); });
+                set_home_library_cards()
+            }
+        });
+    }
+
+    // Alert the user that their changes require a restart.
+    function postSaveChecks() {
+        if (authChanged || httpChanged || directoryChanged) {
+          $('#restart-modal').modal('show');
+        }
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
+        getConfigurationTable();
+        getAccountsTable();
+        getServersTable();
+        getLibrarySections();
+        getSchedulerTable();
+        getNotifiersTable();
+        getNewslettersTable();
+        getMobileDevicesTable();
+        settingsChanged = false;
+    }
+
+$(document).ready(function() {
+
+    // Javascript to enable link to tab
+    var hash = document.location.hash;
+    var prefix = "tab_";
+    if (hash) {
+        $('.nav-settings a[href='+hash.replace(prefix,"")+']').tab('show');
+    }
+
+    // Change hash for page-reload
+    $('.nav-settings a').on('shown.bs.tab', function (e) {
+        window.location.hash = e.target.hash.replace("#", "#" + prefix);
+    });
+
+    // Global Variables
+    settingsChanged = false;
+    serversChanged = false;
+    authChanged = false;
+    httpChanged = false;
+    directoryChanged = false;
+
+    // Alert if leaving the page without saving changes to settings
+    window.onbeforeunload = confirmExit;
+    function confirmExit() {
+        if (settingsChanged) {
+            return "Settings were changed without saving!";
+        }
+    }
+
+    var configForm = $("#configUpdate");
+    configForm.change(function () {
+        settingsChanged = true;
+    });
+
+    function saveSettings() {
+        if (configForm.parsley().validate()) {
+            doAjaxCall('configUpdate', $(this), 'tabs', true, true, postSaveChecks);
+            return false;
+        } else {
+            showMsg('<i class="fa fa-exclamation-circle"></i> Please verify your settings.', false, true, 5000, true)
+        }
+    }
+
+    function advancedSettings() {
+        var advanced_button = $('#menu_link_show_advanced_settings');
+        if (advanced_button.hasClass('active')) {
+            $('.advanced-setting').show();
+        } else {
+            $('.advanced-setting').hide();
+        }
+    }
+
+    $('.save-button').click(function() {
+        saveSettings();
+    });
+
+    initConfigCheckbox('#api_enabled');
+    initConfigCheckbox('#enable_https');
+    initConfigCheckbox('#https_create_cert');
+    initConfigCheckbox('#check_github');
+    initConfigCheckbox('#newsletter_self_hosted');
+
+    $('#menu_link_shutdown').click(function() {
+        $('#confirm-message').text("Are you sure you want to shutdown Tautulli?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            window.location.href = 'shutdown';
+        });
+    });
+
+    $('#menu_link_restart').click(function() {
+        $("#confirm-message").text("Are you sure you want to restart Tautulli?");
+        $('#confirm-modal').modal();
+        $('#confirm-modal').one('click', '#confirm-button', function () {
+            window.location.href = 'restart';
+        });
+    });
+
+    $('#menu_link_update_check').click(function() {
+        $(this).html('<i class="fa fa-spin fa-refresh"></i> Checking').prop('disabled', true);
+        checkUpdate(function () {
+            $('#menu_link_update_check').html('<i class="fa fa-arrow-alt-circle-up"></i> Check for Updates')
+                    .prop('disabled', false);
+        });
+    });
+
+    $('#modal_link_restart').click(function() {
+        window.location.href = 'restart';
+    });
+
+    $('#menu_link_show_advanced_settings').click(function() {
+        $(this).toggleClass('active');
+        if ($(this).hasClass('active')) {
+            $(this).html('<i class="fa fa-wrench"></i> Hide Advanced');
+            $('#show_advanced_settings').val(1);
+        } else {
+            $(this).html('<i class="fa fa-wrench"></i> Show Advanced');
+            $('#show_advanced_settings').val(0);
+        }
+        advancedSettings()
+    });
+
+    advancedSettings();
+    getConfigurationTable();
+    getAccountsTable();
+    getServersTable();
+    getLibrarySections();
+    getSchedulerTable();
+    getNotifiersTable();
+    getNewslettersTable();
+    getMobileDevicesTable();
+
+    $('#changelog-modal-link').on('click', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: 'get_changelog',
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#changelog-modal .modal-body").html(xhr.responseText);
+                $('#changelog-modal').modal();
+            }
+        });
+    });
+
+    $("#backup_config").click(function () {
+        var msg = 'Are you sure you want to create a backup of the Tautulli config?';
+        var url = 'backup_config';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#backup_database").click(function () {
+        var msg = 'Are you sure you want to create a backup of the Tautulli database?';
+        var url = 'backup_db';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_cache").click(function () {
+        var msg = 'Are you sure you want to clear the Tautulli cache?';
+        var url = 'delete_cache';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_image_cache").click(function () {
+        var msg = 'Are you sure you want to clear the Tautulli image cache?';
+        var url = 'delete_image_cache';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#clear_logs").click(function () {
+        var msg = 'Are you sure you want to clear the Tautulli logs?';
+        var url = 'delete_logs';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#delete_temp_sessions").click(function () {
+        var msg = 'Are you sure you want to flush the temporary sessions?<br /><strong>This will reset all currently active sessions.</strong>';
+        var url = 'delete_temp_sessions';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#switch_git_branch").click(function () {
+        var current_remote = "${config['git_remote']}";
+        var current_branch = "${config['git_branch']}";
+        var new_remote = $("#git_remote").val();
+        var new_branch = $("#git_branch option:selected").val();
+
+        if (new_remote === current_remote && new_branch === current_branch) {
+            showMsg('<i class="fa fa-exclamation-circle"></i> Already on the ' + current_remote + ' ' + current_branch + ' branch.', false, true, 5000, true)
+        } else {
+            var msg = 'Are you sure you want to switch to the <strong>' + new_remote + '/' + new_branch + '</strong> branch?' +
+                '<br />Switching branches may cause Tautulli to become unstable.<br /><br />Tautulli will restart.';
+            $('#confirm-message').html(msg);
+            $('#confirm-modal').modal();
+            $('#confirm-modal').one('click', '#confirm-button', function () {
+                settingsChanged = false;
+                window.location.href = 'checkout_git_branch?git_remote=' + new_remote + '&git_branch=' + new_branch;
+            });
+        }
+    });
+
+    $('#api_key').click(function(){ $('#api_key').select() });
+    $("#generate_api").click(function() {
+        $.get('generate_api_key',
+            function (apikey) {
+                $('#api_key').val(apikey);
+        });
+    });
+
+    $( ".http-settings" ).change(function() {
+        httpChanged = true;
+    });
+
+    $( ".auth-settings" ).change(function() {
+        authChanged = true;
+        $("#auth_changed").prop('checked', true);
+    });
+
+    $( ".directory-settings" ).change(function() {
+        directoryChanged = true;
+    });
+
+    function OAuthPreFunction() {
+        $("#token_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
+    }
+
+    function OAuthSuccessCallback(authToken) {
+        $.ajax({
+            url: 'add_plextv_account',
+            data: {token: authToken},
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $('#sign-in-plex > .fa-plus').removeClass('fa-refresh fa-spin');
+                showMsg('<i class="fa fa-check"></i> PlexTV Account Added or Updated.', false, true, 2000);
+                getAccountsTable();
+                getServersTable();
+                getLibrarySections();
+            }
+        });
+    }
+
+    function OAuthErrorCallback() {
+        $("#token_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+        showMsg('<i class="fa fa-check"></i> PlexTV Account error.', false, true, 2000);
+    }
+
+    $('#sign-in-plex').click(function() {
+        $('#sign-in-plex > .fa-plus').addClass('fa-refresh fa-spin');
+        showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Fetching PlexTV Account', false);
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
+        return false;
+    });
+
+    // Load database import modal
+    $(".toggle-app-import-modal").click(function() {
+        $.ajax({
+            url: 'import_database_tool',
+            data: { app: $(this).data('app') },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#app-import-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    // Sortable home_sections
+    function set_home_sections() {
+        var home_sections = [];
+        var hsecs = $('[id^=hsec-]').serializeArray();
+        $.each(hsecs, function(i, sec) {
+            home_sections.push(sec.value);
+        });
+        $('#home_sections').val(home_sections);
+    }
+
+    var sec_cards = ${config['home_sections'] | n};
+    sec_cards.reverse().forEach(function (item) {
+        $('#hsec-' + item).prop('checked', !$(this).prop('checked'));
+        $('#hsec-' + item).closest('li.card').prependTo('#sortable_home_sections');
+    });
+
+    Sortable.create(sortable_home_sections, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_sections();
+        }
+    });
+
+    $('[id^=hsec-]').change(function() { set_home_sections(); });
+    set_home_sections();
+
+    // Sortable home_stats_cards
+    function set_home_stats_cards() {
+        var home_stats_cards = [];
+        var hscards = $('[id^=hscard-]').serializeArray();
+        $.each(hscards, function(i, card) {
+            home_stats_cards.push(card.value);
+        });
+        $('#home_stats_cards').val(home_stats_cards);
+    }
+
+    var config_cards = ${config['home_stats_cards'] | n};
+    config_cards.reverse().forEach(function (item) {
+        $('#hscard-' + item).prop('checked', !$(this).prop('checked'));
+        $('#hscard-' + item).closest('li.card').prependTo('#sortable_home_stats_cards');
+    });
+
+    Sortable.create(sortable_home_stats_cards, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_stats_cards();
+        }
+    });
+
+    $('[id^=hscard-]').change(function() { set_home_stats_cards(); });
+    set_home_stats_cards();
+
+    Sortable.create(sortable_home_library_cards, {
+        animation: 250,
+        onSort: function(elem, ui) {
+            set_home_library_cards();
+        }
+    });
+
+    function allowPlexAdminCheck () {
+        if ($("#http_basic_auth").is(":checked")) {
+            $("#http_plex_admin").attr("checked", false).attr("disabled", true);
+            $("#allowPlexCheck").html("Plex admin login cannot be enabled with basic authentication.");
+        } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+            $("#http_plex_admin").attr("checked", false).attr("disabled", true);
+            $("#allowPlexCheck").html("You must set an admin username and password above to allow Plex admin login.");
+        } else {
+            $("#http_plex_admin").attr("disabled", false);
+            $("#allowPlexCheck").html("");
+        }
+    }
+    allowPlexAdminCheck();
+
+    $('#http_username, #http_password, #http_basic_auth').change(function () {
+        allowPlexAdminCheck();
+    });
+
+    function allowGuestAccessCheck () {
+        if ($("#http_basic_auth").is(":checked")) {
+            $("#allow_guest_access").attr("checked", false).attr("disabled", true);
+            $("#allowGuestCheck").html("Guest access cannot be enabled with basic authentication.");
+        } else if ($('#http_username').val() == '' || $('#http_password').val() == '') {
+            $("#allow_guest_access").attr("checked", false).attr("disabled", true);
+            $("#allowGuestCheck").html("You must set an admin username and password above to allow guest access.");
+        } else {
+            $("#allow_guest_access").attr("disabled", false);
+            $("#allowGuestCheck").html("");
+        }
+        newsletterPasswordEnabled();
+    }
+    allowGuestAccessCheck();
+
+    $('#http_username, #http_password, #http_basic_auth').change(function () {
+        allowGuestAccessCheck();
+    });
+
+    function hashPasswordCheck () {
+        if ($("#http_basic_auth").is(":checked")) {
+            $("#http_hash_password").attr("checked", false).attr("disabled", true);
+            $("#hashPasswordCheck").html("Password cannot be hashed with basic authentication.");
+        } else {
+            $("#http_hash_password").attr("disabled", false);
+            $("#hashPasswordCheck").html("");
+        }
+        if (!($("#http_hash_password").is(":checked")) && $("#http_hashed_password").val() == "1" && $("#http_password").val() == "    ") {
+            $("#http_hashed_password").val(-1);
+        } else if ($("#http_hash_password").is(":checked") && $("#http_hashed_password").val() == "-1" && $("#http_password").val() == "    ") {
+            $("#http_hashed_password").val(1);
+            $("#http_hash_password_error").html("");
+        }
+    }
+    hashPasswordCheck();
+
+    $('#http_password, #http_hash_password, #http_basic_auth').change(function () {
+        hashPasswordCheck();
+    });
+
+    $('#http_password').change(function () {
+        $("#http_hashed_password").val($("#http_hash_password").is(":checked") ? 1 : 0);
+        $("#http_hash_password_error").html("");
+    });
+
+    // Add a new notification agent
+    $('.new-notification-agent').click(function () {
+        $.ajax({
+            url: 'add_notifier_config',
+            data: { agent_id: $(this).data('id') },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
+                $('#add-notifier-modal').modal('hide');
+                if (result.result === 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                    loadNotifierConfig(result.notifier_id);
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                }
+                getNotifiersTable();
+            }
+        });
+    });
+
+    // Add a new newsletter agent
+    $('.new-newsletter-agent').click(function () {
+        $.ajax({
+            url: 'add_newsletter_config',
+            data: { agent_id: $(this).data('id') },
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
+                $('#add-newsletter-modal').modal('hide');
+                if (result.result === 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 5000);
+                    loadNewsletterConfig(result.newsletter_id);
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 5000, true);
+                }
+                getNewslettersTable();
+            }
+        });
+    });
+
+    $('#http_base_url').change(function () {
+       $(this).val($(this).val().replace(/\/*$/, ''));
+    });
+
+    function apiEnabled() {
+        var api_enabled = $('#api_enabled').prop('checked');
+        $('#app_api_msg').toggle(!(api_enabled));
+    }
+    apiEnabled();
+    $('#api_enabled').click(function () {
+        apiEnabled();
+    });
+
+    function imageUpload() {
+        var upload_val = $('#notify_upload_posters').val();
+        if (upload_val === '1') {
+            $('#imgur_upload_options').slideDown();
+        } else {
+            $('#imgur_upload_options').slideUp();
+        }
+        if (upload_val === '2') {
+            $('#self_host_image_options').slideDown();
+        } else {
+            $('#self_host_image_options').slideUp();
+        }
+        if (upload_val === '3') {
+            $('#cloudinary_upload_options').slideDown();
+        } else {
+            $('#cloudinary_upload_options').slideUp();
+        }
+        var parent;
+        if (upload_val === '1' || upload_val === '3') {
+            parent = $('#notify_upload_posters').parent();
+            if ($('#delete_all_uploads_container').length === 0){
+                parent.addClass('input-group');
+                parent.append(
+                    '<span class="input-group-btn" id="delete_all_uploads_container">' +
+                    '<button class="btn btn-form" type="button" id="delete_all_uploads">Delete All Uploads</button>' +
+                    '</span>');
+            }
+        } else {
+            parent = $('#notify_upload_posters').parent();
+            parent.removeClass('input-group');
+            $('#delete_all_uploads_container').remove();
+        }
+    }
+    $('#notify_upload_posters').change(function () {
+        imageUpload();
+    });
+
+    $('body').on('click', '#delete_all_uploads', function () {
+        var image_hosting_option = $('#notify_upload_posters').find(':selected');
+        var name = image_hosting_option.text();
+
+        var msg = 'Are you sure you want to delete all uploaded images on <strong>' + name + '</strong>?' +
+            '<br />All previous links to the images will no longer work. This cannot be undone!';
+        var url = 'delete_hosted_images';
+        var data = { service: name, delete_all: true };
+        confirmAjaxCall(url, msg, data, false);
+    });
+
+    function baseURLSet() {
+        if ($('#http_base_url').val()) {
+            $('.base-url-warning').hide();
+        } else {
+            $('.base-url-warning').show();
+        }
+    }
+    baseURLSet();
+
+    $('#http_base_url').change(function () {
+       baseURLSet();
+    });
+
+    function newsletterUploadEnabled() {
+        if ($('#notify_upload_posters').val() === '0') {
+            $('#newsletter_upload_warning').show();
+        } else {
+            $('#newsletter_upload_warning').hide();
+        }
+    }
+    newsletterUploadEnabled();
+
+    $('#notify_upload_posters, #newsletter_self_hosted').change(function () {
+        baseURLSet();
+        newsletterUploadEnabled();
+    });
+
+    function newsletterPasswordEnabled() {
+        if ($('#newsletter_auth').val() === '1') {
+            $('#newsletter_password_option').slideDown();
+        } else {
+            $('#newsletter_password_option').slideUp();
+        }
+        if ($('#newsletter_auth').val() === '2' && !($('#allow_guest_access').is(':checked'))) {
+            $('.newsletter-guest-access-warning').show();
+        } else {
+            $('.newsletter-guest-access-warning').hide();
+        }
+    }
+    newsletterPasswordEnabled();
+
+    $('#newsletter_auth').change(function () {
+        newsletterPasswordEnabled();
+    });
+
+    $('#allow_guest_access').click(function () {
+        newsletterPasswordEnabled();
+    })
+
+    $('body').on('click', 'a[data-tab-destination]', function () {
+        var tab = $(this).data('tab-destination');
+        $("a[href=#" + tab + "]").click();
+        var scroll_destination = $(this).data('target');
+        if (scroll_destination) {
+            if ($(scroll_destination).closest('.advanced-setting').length && !$('#menu_link_show_advanced_settings').hasClass('active')) {
+                $('#menu_link_show_advanced_settings').click()
+            }
+            var body_container = $('.body-container')
+            var scroll_pos = scroll_destination ? body_container.scrollTop() + $(scroll_destination).offset().top - 100 : 0;
+            body_container.animate({scrollTop: scroll_pos});
+        }
+    });
+
+    $('#resources-xml').on('tripleclick', function () {
+        openPlexXML('/api/resources', true, false, {includeHttps: 1});
+    });
+
+});
+</script>
+</%def>

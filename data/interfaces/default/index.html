@@ -1,0 +1,935 @@
+<%inherit file="base.html"/>
+
+<%def name="headIncludes()">
+<link href="${http_root}css/jquery.scrollbar.css" rel="stylesheet">
+</%def>
+
+<%def name="body()">
+<% from plexpy import PLEX_SERVER_UP %>
+<div class="container-fluid">
+    % for section in config['home_sections']:
+    % if section == 'server_status':
+    % if _session['access_level'] >= 3:
+    <div class="row">
+        <div class="col-md-12">
+            <div id="server-status" class="server-status">
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading server status...</div>
+                <br>
+            </div>
+        </div>
+    </div>
+    % endif
+    % elif section == 'current_activity':
+    <div class="row">
+        <div class="col-md-12">
+            <div class="padded-header" id="current-activity-header">
+                <h3><span id="sessions-xml">Activity</span> &nbsp;&nbsp;
+                    <small>
+                        <span id="currentActivityHeader" style="display: none;">
+                            Streams: <span id="currentActivityHeader-streams"></span> |
+                            Bandwidth: <span id="currentActivityHeader-bandwidth"></span>
+                            <span id="currentActivityHeader-bandwidth-tooltip" data-toggle="tooltip" title="Streaming Brain Estimate (Required Bandwidth)"><i class="fa fa-info-circle"></i></span>
+                        </span>
+                    </small>
+                </h3>
+            </div>
+            <div id="currentActivity">
+                % if PLEX_SERVER_UP:
+                <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i> Checking for activity...</div>
+                % elif config['pms_is_cloud']:
+                <div id="dashboard-no-activity" class="text-muted">Plex Cloud server is sleeping.</div>
+                % else:
+                <div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.
+                    % if _session['user_group'] == 'admin':
+                    Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.
+                    % endif
+                </div>
+                % endif
+            </div>
+        </div>
+    </div>
+    % elif section == 'watch_stats':
+    <div class="row">
+        <div class="col-md-12">
+            <div class="home-padded-header padded-header">
+                <h3 class="pull-left">Watch Statistics</h3>
+                <div class="button-bar">
+                    <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles" style="margin-right: 3px">
+                        <label class="btn btn-dark">
+                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="plays" autocomplete="off"> Play Count
+                        </label>
+                        <label class="btn btn-dark">
+                            <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="duration" autocomplete="off"> Play Duration
+                        </label>
+                    </div>
+                    <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-days-selection">
+                        <span class="input-group-addon btn-dark inactive">Last</span>
+                        <input type="number" class="form-control number-input" name="watched-stats-days" id="watched-stats-days" value="30" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
+                        <span class="input-group-addon btn-dark inactive">days</span>
+                    </div>
+                    <div class="btn-group" id="server-selection">
+                        <label>
+                            <select name="watched-stats-server" id="watched-stats-server" class="btn" style="color: inherit;">
+                                <option value="">All Servers</option>
+                                <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div id="home-stats" class="home-platforms">
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                <br>
+            </div>
+        </div>
+    </div>
+    % elif section == 'library_stats':
+    <div class="row">
+        <div class="col-md-12">
+            <div id="library-stats" class="library-platforms">
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i> Loading stats...</div>
+                <br>
+            </div>
+        </div>
+    </div>
+    % elif section == 'recently_added':
+    <div class="row">
+        <div class="col-md-12">
+            <div class="home-padded-header padded-header">
+                <h3 class="pull-left"><span id="recently-added-xml">Recently Added</span></h3>
+                <div class="button-bar">
+                    <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
+                        <label class="btn btn-dark" id="recently-added-label-all">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="all" autocomplete="off"> All
+                        </label>
+                        <label class="btn btn-dark" id="recently-added-label-movies">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
+                        </label>
+                        <label class="btn btn-dark" id="recently-added-label-tv">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
+                        </label>
+                        <label class="btn btn-dark" id="recently-added-label-music">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-artist" value="artist" autocomplete="off"> Music
+                        </label>
+                        <label class="btn btn-dark" id="recently-added-label-other_video">
+                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-other_video" value="other_video" autocomplete="off"> Videos
+                        </label>
+                    </div>
+                    <div class="input-group pull-left" style="width: 1px;" id="recently-added-count-selection">
+                        <input type="number" class="form-control number-input" name="recently-added-count" id="recently-added-count" value="50" min="1" max="50" data-default="50" data-toggle="tooltip" title="Min: 1 item<br>Max: 50 items" />
+                        <span class="input-group-addon btn-dark inactive">items</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div id="recentlyAdded" style="margin-right: -15px;">
+                <div class="text-muted">No plex servers are enabled or online.
+                <br>
+            </div>
+        </div>
+    </div>
+    % endif
+    % endfor
+</div>
+</%def>
+
+<%def name="modalIncludes()">
+
+% if _session['user_group'] == 'admin' and config['update_show_changelog']:
+<% from plexpy.common import RELEASE %>
+<div id="changelog-modal" class="modal fade wide" tabindex="-1" role="dialog" aria-labelledby="changelog-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Tautulli Updated to <strong>${RELEASE}</strong></h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-target="#donate-modal" data-toggle="modal" style="float: left;"><i class="fa fa-fw fa-heart"></i> Donate</button>
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+
+% if _session['user_group'] == 'admin':
+<div id="terminate-session-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="terminate-session-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Terminate Session</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <p>Are you sure you want to terminate this session?</p>
+                <p>
+                    <strong>
+                        <span id="terminate-user"></span><br />
+                        <span id="terminate-title"></span><br />
+                        <span id="terminate-subtitle"></span>
+                    </strong>
+                </p>
+                <br />
+                <label for="terminate-message">Terminate Message</label>
+                <div class="row">
+                    <div class="col-md-8" style="float: none; margin: 0 auto;">
+                        <input type="text" class="form-control" id="terminate-message" name="terminate-message" value="" placeholder="The server owner has ended the stream." style="text-align: center;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-terminate-session">Terminate</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade wide" id="raw-stream-info-modal" tabindex="-1" role="dialog" aria-labelledby="raw-stream-info-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Raw Stream Info: <strong><span id="raw-stream-info-title"></span> (<span id="raw-stream-info-user"></span>)</strong></h4>
+            </div>
+            <div class="modal-body">
+                <pre id="raw-stream-info"></pre>
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-bright" data-dismiss="modal" value="Close">
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+
+<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+</div>
+
+</%def>
+
+<%def name="javascriptIncludes()">
+<% from plexpy import PLEX_SERVER_UP %>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/jquery.scrollbar.min.js"></script>
+<script src="${http_root}js/jquery.mousewheel.min.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/tables/servers_table.js${cache_param}"></script>
+<script>
+    var date_format = 'YYYY-MM-DD';
+    var time_format = 'hh:mm a';
+    $.ajax({
+        url: 'get_date_formats',
+        type: 'GET',
+        success: function (data) {
+            date_format = data.date_format;
+            time_format = data.time_format;
+        }
+    });
+
+    function lockScroll(elem) {
+        $(elem).each(function (i, instance)  {
+            var childHeight = $(instance).children('.scoller-content').height();
+            var height = $(instance).height();
+            var scrollHeight = $(instance).get(0).scrollHeight;
+
+            if (childHeight > height) {
+                $(instance).on('mousewheel', function(e, d) {
+                    if(($(instance).scrollTop() >= (scrollHeight - height)) && d < 0 || ($(instance).scrollTop() <= 0) && d > 0) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
+    }
+</script>
+% if 'server_status' in config['home_sections'] and _session['access_level'] >= 3:
+<script>
+    function ServerStatus() {
+        showMsg("Loading Server statistics...", true, false, 0);
+
+        $.ajax({
+            url: 'server_status',
+            type: 'GET',
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#server-status").html(xhr.responseText);
+                $('#ajaxMsg').fadeOut();
+            }
+        });
+    }
+
+    ServerStatus();
+</script>
+% endif
+% if 'current_activity' in config['home_sections'] and PLEX_SERVER_UP:
+<script>
+    var defaultHandler = {
+        get: function(target, name) {
+            return target.hasOwnProperty(name) ? target[name] : 'Unknown';
+        }
+    };
+
+    var create_instances = [];
+    var activity_ready = true;
+
+     $('#currentActivityHeader-bandwidth-tooltip').tooltip({ container: 'body', placement: 'right', delay: 50 });
+
+    function getCurrentActivity() {
+        activity_ready = false;
+
+        $.ajax({
+            url: 'get_activity',
+            type: 'GET',
+            cache: false,
+            async: true,
+            error: function (xhr, status, error) {
+                console.log(status + ': ' + error);
+                activity_ready = true;
+            },
+            complete: function (xhr, status) {
+                $('#dashboard-checking-activity').remove();
+
+                var current_activity;
+                try {
+                    current_activity = $.parseJSON(xhr.responseText);
+                } catch (e) {
+                    console.log(status + ': ' + e);
+                    current_activity = null;
+                }
+
+                if (!(current_activity)) {
+                    % if _session['user_group'] == 'admin':
+                    var msg_settings = ' Check the <a href="logs">logs</a> and verify your server connection in the <a href="settings#tab_tabs-plex_media_server">settings</a>.';
+                    % else:
+                    var msg_settings = '';
+                    % endif
+                    $('#currentActivityHeader').hide();
+                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">There was an error communicating with your Plex Server.' + msg_settings + '</div>');
+                    return
+                }
+
+                var stream_count = parseInt(current_activity.stream_count);
+                var sessions = current_activity.sessions;
+
+                if (stream_count) {
+                    $('#dashboard-no-activity').remove();
+
+                    // Update the header stream counts
+                    var sc_dp = current_activity.stream_count_direct_play,
+                        sc_ds = current_activity.stream_count_direct_stream,
+                        sc_tc = current_activity.stream_count_transcode,
+                        total_bw = current_activity.total_bandwidth,
+                        lan_bw = current_activity.lan_bandwidth,
+                        wan_bw = current_activity.wan_bandwidth;
+                    var streams_header = stream_count + ' stream' + (stream_count > 1 ? 's' : '') + ' (';
+                    if (sc_dp) {
+                        streams_header += sc_dp + ' direct play' + (sc_dp > 1 ? 's' : '') + ', ';
+                    }
+                    if (sc_ds) {
+                        streams_header += sc_ds + ' direct stream' + (sc_ds > 1 ? 's' : '') + ', ';
+                    }
+                    if (sc_tc) {
+                        streams_header += sc_tc + ' transcode' + (sc_tc > 1 ? 's' : '') + ', ';
+                    }
+                    streams_header = streams_header.replace(/, $/, '') + ')';
+                    $('#currentActivityHeader-streams').text(streams_header);
+
+                    var bandwidth_header = ((total_bw > 1000) ? ((total_bw / 1000).toFixed(1) + ' Mbps') : (total_bw + ' kbps'));
+                    var lan_wan_bandwidth_header = '';
+                    if (lan_bw) {
+                        lan_wan_bandwidth_header += 'LAN: ' + ((lan_bw > 1000) ? ((lan_bw / 1000).toFixed(1) + ' Mbps') : (lan_bw + ' kbps')) + ', ';
+                    }
+                    if (wan_bw) {
+                        lan_wan_bandwidth_header += 'WAN: ' + ((wan_bw > 1000) ? ((wan_bw / 1000).toFixed(1) + ' Mbps') : (wan_bw + ' kbps')) + ', ';
+                    }
+                    if (lan_wan_bandwidth_header) {
+                        bandwidth_header += ' (' + lan_wan_bandwidth_header.replace(/, $/, '') + ')';
+                    }
+                    $('#currentActivityHeader-bandwidth').text(bandwidth_header);
+
+                    $('#currentActivityHeader').show();
+
+                    sessions.forEach(function (session) {
+                        var s = (typeof Proxy === "function") ? new Proxy(session, defaultHandler) : session;
+                        var key = s.server_id + '-' + s.session_key;
+                        var session_key = s.session_key;
+                        var session_id = s.session_id;
+                        var server_id = s.server_id;
+                        var instance = $('#activity-instance-' + key);
+
+                        // Create a new instance if it doesn't exist
+                        if (!(instance.length)) {
+                            create_instances.push(key);
+                            getActivityInstance(server_id, session_key);
+                            return;
+                        }
+
+                        // Update play state icon
+                        var state_icon = '';
+                        switch (s.state) {
+                            case 'playing':
+                                state_icon = '<i class="fa fa-fw fa-play"></i>&nbsp;';
+                                break;
+                            case 'paused':
+                                state_icon = '<i class="fa fa-fw fa-pause"></i>&nbsp;';
+                                break;
+                            case 'buffering':
+                                state_icon = '<i class="fa fa-fw fa-spinner"></i>&nbsp;';
+                                break;
+                            default:
+                                state_icon = '<i class="fa fa-fw fa-question-circle"></i>&nbsp;';
+                        }
+                        $('#play-state-' + key).html(state_icon).attr('title', capitalizeFirstLetter(s.state));
+
+                        // Switching tracks can be under the same session key, so need to update the info.
+                        if (s.media_type === 'track') {
+                            // Update if artist changed
+                            if (s.grandparent_rating_key !== instance.data('grandparent_rating_key')) {
+                                $('#background-' + key).css('background-image', 'url(pms_image_proxy?server_id=' + s.server_id + '&img=' + s.art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art&refresh=true)');
+                                $('#metadata-grandparent_title-' + key)
+                                    .attr('href', 'info?server_id=' + s.server_id +'&rating_key=' + s.grandparent_rating_key)
+                                    .attr('title', s.original_title || s.grandparent_title)
+                                    .text(s.original_title || s.grandparent_title);
+                            }
+                            // Update cover if album changed
+                            if (s.parent_rating_key !== instance.data('parent_rating_key')) {
+                                $('#poster-' + key).css('background-image', 'url(pms_image_proxy?server_id=' + s.server_id + '&img=' + s.parent_thumb + '&width=300&height=300&fallback=poster&refresh=true)');
+                                $('#poster-' + key + '-bg').css('background-image', 'url(pms_image_proxy?server_id=' + s.server_id + '&img=' + s.parent_thumb + '&width=300&height=300&opacity=60&background=282828&blur=3&fallback=poster&refresh=true)');
+                                $('#poster-url-' + key)
+                                    .attr('href', 'info?server_id=' + s.server_id + '&rating_key=' + s.parent_rating_key)
+                                    .attr('title', s.parent_title);
+                                $('#metadata-parent_title-' + key)
+                                    .attr('href', 'info?server_id=' + s.server_id + '&rating_key=' + s.parent_rating_key)
+                                    .attr('title', s.parent_title)
+                                    .text(s.parent_title);
+                            }
+                            // Update cover if track changed
+                            if (s.rating_key !== instance.data('rating_key')) {
+                                $('#metadata-grandparent_title-' + key)
+                                    .attr('href', 'info?+rating_key=' + s.grandparent_rating_key)
+                                    .attr('title', s.original_title || s.grandparent_title)
+                                    .text(s.original_title || s.grandparent_title);
+                                $('#metadata-title-' + key)
+                                    .attr('href', 'info?server_id=' + s.server_id + '&rating_key=' + s.rating_key)
+                                    .attr('title', s.title)
+                                    .text(s.title);
+                            }
+                        }
+
+                        // Update the transcode state
+                        var transcode_decision = '';
+                        if (s.transcode_decision === 'transcode') {
+                            var throttled = (s.transcode_throttled === 1) ? ' (Throttled)' : ' (Speed: ' + s.transcode_speed + ')';
+                            transcode_decision = 'Transcode' + throttled;
+                        } else if (s.transcode_decision === 'copy') {
+                            transcode_decision = 'Direct Stream';
+                        } else {
+                            transcode_decision = 'Direct Play';
+                        }
+                        $('#transcode_decision-' + key).html(transcode_decision);
+
+                        var transcode_container = '';
+                        if (s.stream_container_decision === 'transcode') {
+                            transcode_container = 'Transcode (' + s.container.toUpperCase() + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_container.toUpperCase() + ')';
+                        } else {
+                            transcode_container = 'Direct Play (' + s.container.toUpperCase() + ')';
+                        }
+                        $('#transcode_container-' + key).html(transcode_container);
+
+                        var video_decision = '';
+                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.stream_video_decision) {
+                            var v_res= '';
+                            switch (s.video_resolution.toLowerCase()) {
+                                case 'sd':
+                                    v_res = 'SD';
+                                    break;
+                                case '4k':
+                                    v_res = '4k';
+                                    break;
+                                default:
+                                    v_res = s.video_resolution + 'p'
+                            }
+                            var sv_res = '';
+                            switch (s.stream_video_resolution.toLowerCase()) {
+                                case 'sd':
+                                    sv_res = 'SD';
+                                    break;
+                                case '4k':
+                                    sv_res = '4k';
+                                    break;
+                                default:
+                                    sv_res = s.stream_video_resolution + 'p'
+                            }
+                            if (s.stream_video_decision === 'transcode') {
+                                var hw_d = (s.transcode_hw_decoding === 1) ? ' (HW)' : '';
+                                var hw_e = (s.transcode_hw_encoding === 1) ? ' (HW)' : '';
+                                video_decision = 'Transcode (' + s.video_codec.toUpperCase() + hw_d + ' ' + v_res + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_video_codec.toUpperCase() + hw_e + ' ' + sv_res + ')';
+                            } else if (s.stream_video_decision === 'copy') {
+                                video_decision = 'Direct Stream (' + s.stream_video_codec.toUpperCase() + ' ' + sv_res + ')';
+                            } else {
+                                video_decision = 'Direct Play (' + s.video_codec.toUpperCase() + ' ' + v_res + ')';
+                            }
+                        } else if (s.media_type === 'photo') {
+                            video_decision = 'Direct Play (' + s.width + 'x' + s.height + ')';
+                        }
+                        $('#video_decision-' + key).html(video_decision);
+
+                        var audio_decision = '';
+                        if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.stream_audio_decision) {
+                            var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
+                            var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
+                            if (s.stream_audio_decision === 'transcode') {
+                                audio_decision = 'Transcode (' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' <i class="fa fa-long-arrow-right"></i> ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                            } else if (s.stream_audio_decision === 'copy') {
+                                audio_decision = 'Direct Stream (' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                            } else {
+                                audio_decision = 'Direct Play (' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ')';
+                            }
+                        }
+                        $('#audio_decision-' + key).html(audio_decision);
+
+                        var subtitle_decision = 'None';
+                        if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.subtitles === 1) {
+                            if (s.stream_subtitle_decision === 'transcode') {
+                                subtitle_decision = 'Transcode (' + s.subtitle_codec.toUpperCase() + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_subtitle_codec.toUpperCase() + ')';
+                            } else if (s.stream_subtitle_decision === 'copy') {
+                                subtitle_decision = 'Direct Stream (' + s.subtitle_codec.toUpperCase() + ')';
+                            } else if (s.stream_subtitle_decision === 'burn') {
+                                subtitle_decision = 'Burn (' + s.subtitle_codec.toUpperCase() + ')';
+                            } else {
+                                subtitle_decision = 'Direct Play (' + ((s.synced_version === '1') ? s.stream_subtitle_codec.toUpperCase() : s.subtitle_codec.toUpperCase()) + ')';
+                            }
+                        }
+                        $('#subtitle_decision-' + key).html(subtitle_decision);
+
+                        // Update the stream quality profile and bandwidth
+                        if (s.media_type !== 'photo' && s.quality_profile !== 'Unknown') {
+                            var br = parseInt(s.stream_bitrate) || '';
+                            if (br) {
+                                if (br > 1000) {
+                                    br = ' (' + (br / 1000).toFixed(1) + ' Mbps)';
+                                } else {
+                                    br = ' (' + br + ' kbps)';
+                                }
+                            }
+                            $('#stream_quality-' + key).html(s.quality_profile + br);
+                        } else {
+                            $('#stream_quality-' + key).html(s.quality_profile);
+                        }
+                        $('#optimized_version-' + key).html(s.optimized_version_profile + ' (' + s.optimized_version_title + ')');
+                        $('#synced_quality_profile-' + key).html(s.synced_quality_profile);
+
+                        $('#location-' + key).html(s.location.toUpperCase());
+
+                        if (s.media_type !== 'photo' && s.bandwidth !== 'Unknown') {
+                            var bw = parseInt(s.bandwidth) || 0;
+                            if (bw > 1000) {
+                                bw = (bw / 1000).toFixed(1) + ' Mbps';
+                            } else {
+                                bw = bw + ' kbps'
+                            }
+                            $('#stream-bandwidth-' + key).html(bw);
+                        }
+
+                        // Update the stream progress times
+                        $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));
+                        var stream_view_offset = $('#stream-view-offset-' + key);
+                        stream_view_offset.data('state', s.state);
+                        if (stream_view_offset.data('last_view_offset') !== s.view_offset) {
+                            stream_view_offset.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        }
+
+                        // Update the progress bars, percent - 3 because of 3px padding-right
+                        $('#buffer-bar-' + key).width(parseInt(s.transcode_progress) - 3 + '%').html(s.transcode_progress + '%')
+                            .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
+                        var progress_bar = $('#progress-bar-' + key);
+                        progress_bar.data('state', s.state);
+                        if (progress_bar.data('last_view_offset') !== s.view_offset) {
+                            progress_bar.data('last_view_offset', s.view_offset).data('view_offset', s.view_offset);
+                        }
+
+                        // Add temporary class so we know which instances are still active
+                        instance.addClass('updated-temp');
+                    });
+
+                    // Remove finished instances
+                    $('div[id^=activity-instance-]').each(function (i, instance) {
+                        if ($(instance).hasClass('updated-temp')) {
+                            $(instance).removeClass('updated-temp');
+                        } else {
+                            $(instance).find('[data-toggle=tooltip]').tooltip('destroy');
+                            $(instance).remove();
+                        }
+                    });
+
+                } else {
+                    $('#currentActivityHeader').hide();
+                    $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">Nothing is currently being played.</div>');
+                }
+
+                activity_ready = true;
+            }
+        });
+    }
+
+    function getActivityInstance(server_id, session_key) {
+        $.ajax({
+            url: 'get_current_activity_instance',
+            type: 'GET',
+            cache: false,
+            async: true,
+            data: {
+                session_key: session_key,
+                server_id: server_id
+            },
+            complete: function(xhr, status) {
+                $('#currentActivity').append(xhr.responseText);
+                $('#activity-instance-' + server_id + '-' + session_key + ' .dashboard-activity-info-scroller').scrollbar();
+                $('#activity-instance-' + server_id + '-' + session_key + ' [data-toggle=tooltip]').tooltip({ container: 'body', placement: 'right', delay: 50 });
+                $('#terminate-button-' + server_id + '-' + session_key).tooltip('destroy').tooltip({ container: 'body', placement: 'left', delay: 50 });
+                lockScroll('#activity-instance-' + server_id + '-' + session_key + ' .dashboard-activity-info-scroller');
+
+                var index = create_instances.indexOf(server_id + '-' + session_key);
+                if (index > -1) {
+                    create_instances.splice(index, 1);
+                }
+            }
+        });
+    }
+
+    getCurrentActivity();
+    setInterval(function () {
+        if (!(create_instances.length) && activity_ready) {
+            getCurrentActivity();
+        }
+    }, ${config['home_refresh_interval'] * 1000});
+
+    setInterval(function(){
+        $('.progress_time_offset').each(function () {
+            if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
+                var view_offset = parseInt($(this).data('view_offset'));
+                var stream_duration = parseInt($(this).data('stream_duration'));
+                var timestamp = millisecondsToMinutes(Math.min(view_offset, stream_duration), false);
+                $(this).html(timestamp).data('view_offset', Math.min(view_offset + 1000, stream_duration))
+            }
+        });
+        $('.progress-bar').each(function () {
+            if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
+                var view_offset = parseInt($(this).data('view_offset'));
+                var stream_duration = parseInt($(this).data('stream_duration'));
+                var progress_percent = Math.floor(view_offset / stream_duration * 100);
+                progress_percent = (progress_percent >= 0) ? Math.min(progress_percent, 100) : 100;
+                $(this).width(progress_percent - 3 + '%').html(progress_percent + '%')
+                    .attr('data-original-title', 'Stream Progress ' + progress_percent + '%')
+                    .data('view_offset', Math.min(view_offset + 1000, stream_duration));
+            }
+        });
+    }, 1000);
+
+    $('#currentActivity').on('click', '.external_ip-modal', function () {
+        $.get('get_ip_address_details', {
+            ip_address: $(this).data('ip')
+        }).then(function (jqXHR) {
+            $("#ip-info-modal").html(jqXHR);
+        });
+    });
+
+    $('#currentActivity').on('click', '.raw-stream-info-modal', function () {
+        $.ajax({
+            url: 'get_activity',
+            type: 'GET',
+            cache: false,
+            async: true,
+            data: {
+                session_key: $(this).data('session_key')
+            },
+            error: function (xhr, status, error) {
+                console.log(status + ': ' + error);
+            },
+            complete: function (xhr, status) {
+                var session = $.parseJSON(xhr.responseText);
+                $('#raw-stream-info-title').text(session.full_title);
+                $('#raw-stream-info-user').text(session.friendly_name);
+                $('#raw-stream-info').text(JSON.stringify(session, Object.keys(session).sort(), 4));
+            }
+        });
+    });
+
+    % if _session['user_group'] == 'admin':
+    // Terminate session
+    $('#currentActivity').on('click', '.dashboard-activity-terminate-session', function (e) {
+        e.preventDefault();
+        var session_id = $(this).data('id');
+        var server_id = $(this).data('server_id');
+        var session_key = $(this).data('session_key');
+        var instance = $('#activity-instance-' + server_id + '-' + session_key);
+
+        $('#terminate-user').text(instance.find('.dashboard-activity-metadata-user').text());
+        $('#terminate-title').text(instance.find('.dashboard-activity-metadata-title').text());
+        $('#terminate-subtitle').text(instance.find('.dashboard-activity-metadata-subtitle').text());
+
+        $('#terminate-session-modal').modal();
+        $('#terminate-session-modal').one('click', '#confirm-terminate-session', function () {
+            var message = $('#terminate-message').val();
+
+            showMsg('Terminating session', true);
+
+            $.ajax({
+                url: 'terminate_session',
+                data: {
+                    session_key: session_key,
+                    session_id: session_id,
+                    server_id: server_id,
+                    message: message
+                },
+                async: true,
+                success: function (data) {
+                    if (data.result === 'success') {
+                        setTimeout(function() {
+                            getCurrentActivity();
+                            showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                        }, 2500);
+                    } else {
+                        showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
+                    }
+                }
+            });
+        });
+    });
+
+    $('#sessions-xml').on('tripleclick', function () {
+        openPlexXML('/status/sessions');
+    });
+    % endif
+</script>
+% endif
+% if 'watch_stats' in config['home_sections']:
+<script>
+    function getHomeStats(time_range, stats_type, selected_server_id) {
+        showMsg("Loading watch statistics...", true, false, 0);
+
+        $.ajax({
+            url: 'home_stats',
+            type: 'GET',
+            cache: false,
+            async: true,
+            data: {
+                time_range: time_range,
+                stats_type: stats_type,
+                server_id: selected_server_id
+            },
+            complete: function (xhr, status) {
+                $("#home-stats").html(xhr.responseText);
+                $('#ajaxMsg').fadeOut();
+                lockScroll('#home-stats .dashboard-stats-info-scroller');
+            }
+        });
+    }
+
+    var stats_type = getLocalStorage('home_stats_type', 'plays');
+    var time_range = getLocalStorage('home_stats_days', 30);
+
+    $('#watched-stats-' + stats_type).prop('checked', true);
+    $('#watched-stats-' + stats_type).closest('label').addClass('active');
+    $('#watched-stats-days').val(time_range);
+
+    var selected_server_id  =  null;
+    getHomeStats(time_range, stats_type, selected_server_id);
+
+    $('input[name=watched-stats-type]').change(function () {
+        stats_type = $(this).filter(':checked').val();
+        setLocalStorage('home_stats_type', stats_type);
+        getHomeStats(time_range, stats_type);
+    });
+    $('#watched-stats-days').change(function () {
+        forceMinMax($(this));
+        time_range = $(this).val();
+        setLocalStorage('home_stats_days', time_range);
+        getHomeStats(time_range, stats_type, selected_server_id);
+    });
+
+    $('#watched-stats-days').tooltip({ container: 'body', placement: 'top', html: true });
+
+    // Load server ids and names (for the selector)
+    function getHomeStatsServers() {
+        $.ajax({
+            url: 'get_server_names',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var select = $('#watched-stats-server');
+                data.sort(function (a, b) {
+                    return a.pms_name.localeCompare(b.pms_name);
+                });
+                data.forEach(function (item) {
+                    select.append('<option value="' + item.server_id + '">' +
+                        item.pms_name + '</option>');
+                });
+            }
+        });
+    };
+    getHomeStatsServers();
+
+    $('#watched-stats-server').on('change', function () {
+        selected_server_id = $(this).val() || null;
+        getHomeStats(time_range, stats_type, selected_server_id);
+    });
+
+
+</script>
+% endif
+% if 'library_stats' in config['home_sections']:
+<script>
+    function getLibraryStats() {
+        $.ajax({
+            url: 'library_stats',
+            type: 'GET',
+            cache: false,
+            async: true,
+            data: { },
+            complete: function (xhr, status) {
+                $("#library-stats").html(xhr.responseText);
+            }
+        });
+    }
+    getLibraryStats();
+</script>
+% endif
+% if 'recently_added' in config['home_sections'] and PLEX_SERVER_UP:
+<script>
+    function recentlyAdded(recently_added_count, recently_added_type) {
+        showMsg("Loading recently added items...", true, false, 0);
+
+        $.ajax({
+            url: 'get_recently_added',
+            type: 'GET',
+            async: true,
+            data: {
+                count: recently_added_count,
+                media_type: recently_added_type
+            },
+            complete: function (xhr, status) {
+                $("#recentlyAdded").html(xhr.responseText);
+                $('#ajaxMsg').fadeOut();
+                highlightAddedScrollerButton();
+            }
+        });
+    }
+
+    var recently_added_count = getLocalStorage('home_stats_recently_added_count', 50);
+    var recently_added_type = getLocalStorage('home_stats_recently_added_type', 'all');;
+
+    $('#recently-added-toggle-' + recently_added_type).prop('checked', true);
+    $('#recently-added-toggle-' + recently_added_type).closest('label').addClass('active');
+    $('#recently-added-count').val(recently_added_count);
+
+    recentlyAdded(recently_added_count, recently_added_type);
+
+    function highlightAddedScrollerButton() {
+        $("[id^='recently-added-row-scroller-']").each(function() {
+            var server_id = $(this).data("server_id");
+            var numElems = $(this).find("li:visible").length;
+            $(this).width(numElems * 175);
+            if ($(this).width() > $("body").find(".container-fluid").width()) {
+                $("#recently-added-page-right-" + server_id).removeClass("disabled");
+            } else {
+                $("#recently-added-page-right-" + server_id).addClass("disabled");
+            }
+        })
+    }
+
+    $(window).resize(function () {
+        highlightAddedScrollerButton();
+    });
+
+    function resetScroller() {
+        $("[id^='recently-added-row-scroller-']").each(function() {
+            var server_id = $(this).data("server_id");
+            leftTotal = 0;
+            $(this).animate({ left: leftTotal }, 1000);
+            $("#recently-added-page-left-" + server_id).addClass("disabled").blur();
+        })
+    }
+
+    var leftTotal = 0;
+    $(document).on('click', '.paginate', function (e) {
+        e.preventDefault();
+        var server_id = $(this).data("server_id");
+        var scroller = $("#recently-added-row-scroller-" + server_id);
+        var containerWidth = $("body").find(".container-fluid").width();
+        var scrollAmount = $(this).data("id") * parseInt((containerWidth - 15) / 175) * 175;
+        var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
+
+        leftTotal = Math.max(Math.min(leftTotal + scrollAmount, 0), leftMax);
+        scroller.animate({ left: leftTotal }, 250);
+
+        if (leftTotal === 0) {
+            $("#recently-added-page-left-" + server_id).addClass("disabled").blur();
+        } else {
+            $("#recently-added-page-left-" + server_id).removeClass("disabled");
+        }
+
+        if (leftTotal === leftMax) {
+            $("#recently-added-page-right-" + server_id).addClass("disabled").blur();
+        } else {
+            $("#recently-added-page-right-" + server_id).removeClass("disabled");
+        }
+    });
+
+    $('#recently-added-toggles').on('change', function () {
+        $('#recently-added-toggles > label').removeClass('active');
+        selected_filter = $('input[name=recently-added-toggle]:checked', '#recently-added-toggles');
+        $(selected_filter).closest('label').addClass('active');
+        recently_added_type = $(selected_filter).val();
+        resetScroller();
+        setLocalStorage('home_stats_recently_added_type', recently_added_type);
+        recentlyAdded(recently_added_count, recently_added_type);
+    });
+
+    $('#recently-added-count').change(function () {
+        forceMinMax($(this));
+        recently_added_count = $(this).val();
+        resetScroller();
+        setLocalStorage('home_stats_recently_added_count', recently_added_count);
+        recentlyAdded(recently_added_count, recently_added_type);
+    });
+
+    $('#recently-added-count').tooltip({ container: 'body', placement: 'top', html: true });
+
+    $('#recently-added-xml').on('tripleclick', function () {
+        openPlexXML('/library/recentlyAdded', false, false, {'X-Plex-Container-Start': 0, 'X-Plex-Container-Size': recently_added_count});
+    });
+</script>
+% endif
+% if _session['user_group'] == 'admin' and config['update_show_changelog']:
+<script>
+    $.ajax({
+        url: 'get_changelog',
+        data: {
+            since_prev_release: true,
+            update_shown: true
+        },
+        cache: false,
+        async: true,
+        complete: function (xhr, status) {
+            $("#changelog-modal .modal-body").html(xhr.responseText);
+            $('#changelog-modal').modal();
+        }
+    });
+</script>
+% endif
+</%def>

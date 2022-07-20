@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="3086px" height="1000px" viewBox="0 0 3086 1000" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:sketch="http://www.bohemiancoding.com/sketch/ns">
+    <!-- Generator: Sketch 3.2.2 (9983) - http://www.bohemiancoding.com/sketch -->
+    <title>plex-logo-light</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <radialGradient cx="89.2670157%" cy="49.76%" fx="89.2670157%" fy="49.76%" r="92.4996161%" id="radialGradient-1">
+            <stop stop-color="#F9BE03" offset="0%"></stop>
+            <stop stop-color="#CC7C19" offset="100%"></stop>
+        </radialGradient>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+        <g id="plex-logo-light" sketch:type="MSArtboardGroup">
+            <g sketch:type="MSLayerGroup">
+                <path d="M3085.99,0 L2795.989,0 L2505.99,500 L2795.989,1000 L3085.737,1000 L2795.989,500.25 L3085.99,0" id="X" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+                <path d="M2186,0 L2476.00071,0 L2796,500.25 L2476.00071,1000.5 L2186,1000.5 L2505.99929,500.25 L2186,0" id="chevron" fill="url(#radialGradient-1)" sketch:type="MSShapeGroup"></path>
+                <path d="M2085.947,1000 L1508.874,1000 L1508.874,0 L2085.947,0 L2085.947,173.737 L1721.339,173.737 L1721.339,393.299 L2060.594,393.299 L2060.594,567.03 L1721.339,567.03 L1721.339,824.895 L2085.947,824.895 L2085.947,1000" id="E" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+                <path d="M791.276,1000 L791.276,0 L1003.316,0 L1003.316,824.895 L1408.925,824.895 L1408.925,1000 L791.276,1000" id="L" fill="#FFFFFF" sketch:type="MSShapeGroup"></path>
+                <g id="P" fill="#FFFFFF" sketch:type="MSShapeGroup">
+                    <path d="M589.947,558.824 C522.679,615.831 427.037,644.325 303.009,644.325 L212.04,644.325 L212.04,1000 L0,1000 L0,643.947829 L0,470.337388 L290,470.697418 C467.563171,468.627777 476.842468,359.878967 476.842468,322.200012 C476.842468,287.221283 476.842468,175.445374 319,173.699997 L0,173.703242 L0,0 L319.424,0 C440.717,0 532.939,26.107 596.101,78.321 C659.253,130.534 690.834,208.392 690.834,311.902 C690.834,419.527 657.202,501.83 589.947,558.824 Z" id="Path"></path>
+                    <rect id="Path" x="0" y="110" width="212.2" height="429"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

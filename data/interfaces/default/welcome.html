@@ -1,0 +1,343 @@
+﻿<%
+    import plexpy
+    from plexpy import common, helpers
+%>
+
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tautulli - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
+    <link href="${http_root}css/bootstrap-wizard.css" rel="stylesheet">
+    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/tautulli-dataTables.css" rel="stylesheet">
+    <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.all.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.v4-shims.min.css" rel="stylesheet">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.0">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.0.0">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.0.0">
+
+    <!-- ICONS -->
+    <!-- Android >M39 icon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="${http_root}images/favicon/android-chrome-192x192.png?v=2.0.0">
+    <link rel="manifest" href="${http_root}json/Android-manifest.json?v=2.0.0">
+    <meta name="theme-color" content="#1f1f1f">
+    <!-- Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.0">
+    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.0.0" color="#1f1f1f">
+    <meta name="apple-mobile-web-app-title" content="Tautulli">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="viewport" content="initial-scale=1">
+    <meta name="format-detection" content="telephone=no">
+    <!-- IE10 icon -->
+    <meta name="application-name" content="Tautulli">
+    <meta name="msapplication-TileColor" content="#1f1f1f">
+    <meta name="msapplication-TileImage" content="${http_root}images/favicon/mstile-144x144.png?v=2.0.0">
+    <meta name="msapplication-config" content="${http_root}xml/IEconfig.xml?v=2.0.0" />
+</head>
+
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="wizard" id="setup-wizard" data-title="Tautulli Setup Wizard">
+            <form>
+                <!-- Welcome Tab -->
+                <div class="wizard-card" data-cardname="card1">
+                    <div style="float: right;">
+                        <img src="${http_root}images/logo-tautulli-45.png" height="45" alt="Tautulli">
+                    </div>
+                    <h3 style="line-height: 50px;">Welcome!</h3>
+                    <div class="wizard-input-section">
+                        <p class="welcome-message">
+                            Thanks for taking the time to try out Tautulli. Hope you find it useful.
+                        </p>
+                        <p class="welcome-message">
+                            Tautulli requires a permanent internet connection to ensure a reliable experience.
+                        </p>
+                        <p class="welcome-message">
+                            This wizard will help you get set up, to continue press Next.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- PlexTV Authorization Tab -->
+                <div class="wizard-card" data-cardname="card2">
+                    <h3>Plex Authentication</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Tautulli requires a Plex.tv account. Click the button below to sign in on Plex.tv. You may need to allow popups in your browser.
+                        </p>
+                    </div>
+                    <a class="btn btn-dark" id="sign-in-plex" href="#" role="button">Sign In with Plex</a>
+                    <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
+                </div>
+
+                <!-- Plex Media Servers Tab -->
+                <div class="wizard-card" data-cardname="card3">
+                    <h3>Plex Media Server</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            <span>This is a list of the Plex Media Servers discovered from your Plex.TV account.</span>
+                            <br>
+                            <span>Select the servers that you would like to enable for monitoring by clicking the Enabled checkbox.</span>
+                        </p>
+                        <div class="table-card-header">
+                            <div class="header-bar">
+                                <span id="servers-xml"><i class="fa fa-server"></i>&nbsp;&nbsp;Servers</span>
+                            </div>
+                            <div class="button-bar">
+                                <div class="btn-group">
+                                    <button class="btn btn-dark refresh-servers-button" id="refresh-servers-list"><i class="fa fa-refresh"></i>&nbsp;Refresh</button>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <table class="config-servers-table display" id="config-servers-table">
+                            <thead>
+                                <tr>
+                                    <th class="pms_is_enabled">Enabled</th>
+                                    <th class="pms_name">Server</th>
+                                    <th class="pms_ip">Hostname</th>
+                                    <th class="pms_port">Port</th>
+                                    <th class="pms_is_remote" style="text-align: center;">Remote</th>
+                                    <th class="pms_is_cloud" style="text-align: center;">Cloud</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Activity Logging Tab -->
+                <div class="wizard-card" data-cardname="card4">
+                    <h3>Activity Logging</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Tautulli will keep a history of all streaming activity on your Plex server.
+                        </p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <label for="logging_ignore_interval">Ignore Interval</label>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <input type="text" class="form-control pms-monitoring" id="logging_ignore_interval" name="logging_ignore_interval" placeholder="120" value="${config['logging_ignore_interval']}" data-validate="validateIgnoreInterval" required>
+                            </div>
+                            <span style="margin-left: 10px; line-height: 35px; display: none;" id="ignore-int-status"></span>
+                        </div>
+                        <p class="help-block">The interval (in seconds) an item must be in a playing state before logging it. 0 to disable.</p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Additional options to disable history logging for certain libraries or users can be found by editing them
+                            on the <strong>Libraries</strong> or <strong>Users</strong> pages.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Notifications Tab -->
+                <div class="wizard-card" data-cardname="card5">
+                    <h3>Notifications</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            Tautulli can send a wide variety of notifications to alert you of activity on your Plex server.
+                        </p>
+                        <p class="help-block">
+                            To set up a notification agent, navigate to the <strong>Settings</strong> page
+                            and to the <strong>Notification Agents</strong> tab after you have completed this setup wizard.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Database Import Tab -->
+                <div class="wizard-card" data-cardname="card6">
+                    <h3>Database Import</h3>
+                    <div class="wizard-input-section">
+                        <p class="help-block">
+                            If you have an existing PlexWatch/Plexivity or Tautulli database, you can import the data into Tautulli.
+                        </p>
+                        <p class="help-block">
+                            To import a database, navigate to the <strong>Settings</strong> page
+                            and to the <strong>Import & Backups</strong> tab after you have completed this setup wizard.
+                        </p>
+                    </div>
+
+                <!-- Required fields but hidden -->
+                <div style="display: none;">
+                    <input type="checkbox" name="first_run" id="first_run" value="1" checked>
+                    <input type="checkbox" name="group_history_tables" id="group_history_tables" value="1" checked>
+                    <input type="checkbox" name="history_table_activity" id="history_table_activity" value="1" checked>
+                    <input type="checkbox" name="launch_browser" id="launch_browser" value="1" checked>
+                    <input type="checkbox" name="api_enabled" id="api_enabled" value="1" checked>
+                    <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" checked>
+                    <input type="checkbox" name="check_github" id="check_github" value="1" checked>
+                    <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" checked>
+                    <input type="checkbox" name="cache_images" id="cache_images" value="1" checked>
+                    <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
+                </div>
+
+                </div>
+
+            </form>
+
+            <div class="wizard-success">
+                <h3>Setup Complete!</h3>
+                <br/>
+                <p>Setup is now complete. For more configuration options please visit the Settings menu on the home page.</p>
+                <br/>
+                <i class="fa fa-refresh fa-spin"></i>&nbspWaiting <span class="countdown">5</span> seconds to ensure authentication token is registered...
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="${http_root}js/jquery-2.1.4.min.js"></script>
+<script src="${http_root}js/bootstrap.min.js"></script>
+<script src="${http_root}js/selectize.min.js"></script>
+<script src="${http_root}js/platform.min.js"></script>
+<script src="${http_root}js/script.js${cache_param}"></script>
+<script src="${http_root}js/bootstrap-wizard.min.js"></script>
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/tables/servers_table.js${cache_param}"></script>
+<script>
+
+    function validatePMStoken(el) {
+        var valid_pms_token = el.val();
+        var retValue = {};
+
+        if (valid_pms_token == "") {
+            retValue.status = false;
+            retValue.msg = "Please authenticate.";
+            $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Please authenticate.');
+            $('#pms-token-status').fadeIn('fast').delay(2000).fadeOut('fast');
+        } else {
+            retValue.status = true;
+        }
+
+        return retValue;
+    }
+
+    function validateIgnoreInterval(el) {
+        var valid_ignore_int = el.val();
+        var retValue = {};
+
+        if (!isPositiveInt(valid_ignore_int)) {
+            retValue.status = false;
+            retValue.msg = "Please enter a valid integer.";
+            $("#ignore-int-status").html('<i class="fa fa-exclamation-circle"></i> Please enter a valid ignore interval.');
+            $('#ignore-int-status').fadeIn('fast').delay(2000).fadeOut('fast');
+        } else {
+            retValue.status = true;
+        }
+
+        return retValue;
+    }
+
+    function isPositiveInt(n) {
+        return $.isNumeric(n) && (Math.floor(n) == n) && (n >= 0);
+    }
+
+    function setupComplete() {
+        window.location.replace('${http_root}');
+    }
+
+$(document).ready(function() {
+
+    $.fn.wizard.logging = false;
+    var options = {
+        keyboard : false,
+        contentHeight : 500,
+        contentWidth : 820,
+        backdrop: 'static',
+        buttons: {submitText: 'Finish'},
+        submitUrl: "setupComplete"
+    };
+    var wizard = $("#setup-wizard").wizard(options);
+    wizard.show();
+
+    // Change button classes
+    wizard.find('.wizard-back').addClass('btn-dark');
+    wizard.on('incrementCard', function(wizard) {
+        wizard.find('.wizard-next.btn-success').removeClass('btn-success').addClass('btn-bright');
+    });
+    wizard.on('decrementCard', function(wizard) {
+        wizard.find('.wizard-next').removeClass('btn-bright').text('Next');
+    });
+
+    wizard.on("submit", function(wizard) {
+        // Probably should not success before we know, but hopefully validation is good enough.
+        wizard.submitSuccess();
+        $.ajax({
+            type: "POST",
+            url: wizard.args.submitUrl,
+            data: wizard.serialize(),
+            dataType: "json",
+            complete: function(xhr, status) {
+                $(".countdown").countdown(function () { setupComplete(); }, 5, "");
+            }
+        })
+    });
+
+    var authenticated = false;
+    var token = '';
+
+    function OAuthPreFunction() {
+        token = '';
+        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
+    }
+
+    function OAuthSuccessCallback(authToken) {
+        $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
+        authenticated = true;
+        token = authToken;
+        getServersTable();
+    }
+
+    function OAuthErrorCallback() {
+        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');
+    }
+
+    $('#sign-in-plex').click(function() {
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
+    });
+
+    function getServersTable() {
+        servers_table_options.ajax = {url: 'discover',
+                                      data: {token: token},
+                                      scrollY: '100px',
+                                      scrollCollapse: true,
+                                      paging: false
+                                      };
+        servers_table_options.language.loadingRecords = '<i class="fa fa-refresh fa-spin"></i> Discovering Servers...';
+        $('#config-servers-table').DataTable(servers_table_options);
+    }
+
+    $('#refresh-servers-list').click(function () {
+            $('#refresh-servers-list > .fa-refresh').addClass('fa-spin');
+            doAjaxCall('refresh_servers_table', '#config-servers-table', '', true, true,
+                    function refreshServersTable() {
+                        getServersTable();
+                        $("#config-servers-table").draw;
+                        $('#refresh-servers-list > .fa-refresh').removeClass('fa-spin');
+                    }
+            );
+            return false;
+    });
+
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           user_platform_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+== Global keys ==
+result_id               Returns a unique identifier for the result.
+player_name             Returns the name of the player.
+platform                Returns the name of the platform
+platform_name           Returns the id name of the platform
+total_plays             Returns the play count for the player.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data:
+% for a in data:
+<ul class="list-unstyled">
+    <div class="user-player-instance">
+        <li>
+            <div id="user-player-image-${a['result_id']}">
+                <div class="user-player-instance-box svg-icon platform-${a['platform_name']}"></div>
+            </div>
+            <div class="user-player-instance-name">
+                ${a['player_name']}
+            </div>
+            <div class="user-player-instance-playcount">
+                <h3>${a['total_plays']}</h3>
+                <p> plays</p>
+            </div>
+        </li>
+    </div>
+</ul>
+% endfor
+% else:
+<div class="text-muted">No stats to show.</div><br>
+% endif

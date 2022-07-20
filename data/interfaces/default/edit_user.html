@@ -1,0 +1,139 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           edit_user.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+user_id             Returns the user id of the user.
+username            Returns the user's username.
+friendly_name       Returns the friendly name of the user.
+email               Returns the user's email address.
+user_thumb          Returns the thumbnail for the user.
+is_home_user        Returns bool value for whether the user is part of a Plex Home.
+is_allow_sync       Returns bool value for whether the user has sync rights.
+is_restricted       Returns bool value for whether the user account is restricted.
+do_notify           Returns bool value for whether to send notifications for the user.
+keep_history        Returns bool value for whether to keep history for the user.
+allow_guest         Returns bool value for whether to allow guest access for the user.
+
+DOCUMENTATION :: END
+</%doc>
+
+<%!
+    from plexpy import helpers
+    from plexpy.common import GUEST_ACCESS_LEVELS
+%>
+
+% if data != None:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title">Edit user <strong>${data['username']}</strong></h4>
+        </div>
+        <div class="modal-body" id="modal-text">
+            <fieldset>
+                <div class="form-group">
+                    <label for="friendly_name">Friendly Name</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${data['friendly_name']}" size="30">
+                        </div>
+                    </div>
+                    <p class="help-block">Replace all occurrences of the username with this name.</p>
+                </div>
+                <div class="form-group">
+                    <label for="profile_url">Profile Picture URL</label>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="custom_avatar_url" name="custom_avatar_url" value="${data['user_thumb']}">
+                        </div>
+                    </div>
+                    <p class="help-block">Change the users profile picture in Tautulli. To reset to default, leave this field empty and save.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
+                    </label>
+                    <p class="help-block">Uncheck this if you do not want to keep any history on this user's activity.</p>
+                </div>
+                <div class="input-group">
+                % if data['is_admin']:
+                    <label for="allow_guest">Admin Account</label>
+                    <p class="help-block">This user is an Administrator and has full access to all functions.</p>
+                % else:
+                    <label for="allow_guest">Guest Access Level</label>
+                    <select class="form-control" id="allow_guest" name="allow_guest">
+                        % for value, label in GUEST_ACCESS_LEVELS.items():
+                        <option value="${value}" ${'selected' if data['allow_guest'] == value else ''}>${label}</option>
+                        % endfor
+                    </select>
+                    <p class="help-block">Select the user's guest access level to Tautulli.</p>
+                % endif
+                </div>
+                % if data['user_id']:
+                <div class="form-group">
+                    <button class="btn btn-danger" id="delete-all-history">Purge</button>
+                    <p class="help-block">DANGER ZONE! Click the purge button to remove all history logged for this user. This is permanent!</p>
+                </div>
+                % endif
+            </fieldset>
+        </div>
+        <div class="modal-footer">
+            <div>
+                <span id="edit-user-status-message"></span>
+                <input type="button" id="save_user" class="btn btn-bright" value="Save">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Set user options
+    $("#save_user").on('click', function () {
+        var friendly_name = $("input#friendly_name").val();
+        var custom_thumb = $("#custom_avatar_url").val();
+        var allow_guest = $("#allow_guest").val();
+        var keep_history = 0;
+        if ($("#keep_history").is(":checked")) {
+            keep_history = 1;
+        }
+
+        $.ajax({
+            url: 'edit_user',
+            data: {
+                user_id: '${data["user_id"]}',
+                friendly_name: friendly_name,
+                custom_thumb: custom_thumb,
+                keep_history: keep_history,
+                allow_guest: allow_guest
+            },
+            cache: false,
+            async: true,
+            success: function(data) {
+                location.reload();
+            }
+        });
+    });
+
+    $('#delete-all-history').click(function () {
+        var msg = 'Are you REALLY sure you want to purge all history for the <strong>${data["username"]}</strong> user?<br>' +
+            'This is permanent and cannot be undone!';
+        var url = 'delete_all_user_history';
+        confirmAjaxCall(url, msg, { user_id: '${data["user_id"]}' }, null, function () { location.reload(); });
+    });
+
+    $(document).ready(function() {
+        // Move #confirm-modal-purge to parent container
+        if (!($('#edit-user-modal').next().is('#confirm-modal-purge'))) {
+            $('#confirm-modal-purge').appendTo($('#edit-user-modal').parent());
+        }
+        $('#edit-user-modal > #confirm-modal-purge').remove();
+    });
+</script>
+% endif

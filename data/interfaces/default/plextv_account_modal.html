@@ -1,0 +1,124 @@
+% if account:
+<%!
+    import json
+    from plexpy.helpers import anon_url, checked
+
+%>
+
+<div id="plextv-account" class="modal-dialog" role="document">
+    <div class="modal-content">
+        <form action="set_account_config" method="post" class="form" id="set_account_config" data-parsley-validate>
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="plextv-account-modal-header">${account.username} &nbsp;<small><span class="user_id">(UserID: ${account.user_id})</span></small></h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div id="account-servers-table">
+                    <div class='container-fluid'>
+                        <div class="table-card-header">
+                            <div class="header-bar">
+                                <span id="servers-xml"><i class="fa fa-server"></i>&nbsp;Servers Owned By This Account</span>
+                            </div>
+                        </div>
+                        <div class="table-card-back">
+                            <table class="config-servers-table display" id="servers-table">
+                                <thead>
+                                    <tr>
+                                        <th class="status_tooltip">Status</th>
+                                        <th class="pms_name">Server Name</th>
+                                        <th class="pms_ip">Hostname</th>
+                                        <th class="pms_port">Port</th>
+                                        <th class="pms_is_remote">Remote</th>
+                                        <th class="pms_is_cloud">Cloud</th>
+                                        <th class="pms_is_deleted">Deleted</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <br>
+                </div>
+
+                <div class='container-fluid'>
+                    <p class='help-block'>
+                        <strong>Deleting</strong> this account will leave the servers owned by this account defined but in a deleted status. History is retained.
+                    </p>
+
+                    <p class='help-block'>
+                        <strong>Purging</strong> this account will remove all history for all servers owned by this account and delete the servers from the database.
+                    </p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <p>
+                    <input type="button" class="btn btn-danger btn-edit" id="delete-account-button" style="float:left;" value="Delete">
+                    <input type="button" class="btn btn-danger btn-edit" id="purge-account-button" style="float:left;" value="Purge">
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $('#plextv-account-modal').unbind('hidden.bs.modal');
+
+    function getAccountServers(token) {
+        servers_table_options.ajax = {url: 'get_servers_table', data: {token: token} };
+        servers_table_options.order = [[1, "desc"], [2, "asc"]];
+        servers_table = $('#servers-table').DataTable(servers_table_options);
+        servers_table.draw;
+        $('.trigger-tooltip').tooltip();
+    }
+
+    $('#delete-account-button').click(function () {
+        var msg = 'Are you sure you want to delete the <strong>${account.username}</strong> PlexTV Account?<br>This will <strong>keep</strong> the servers, server history, and place the servers in deleted status.<br>This is reversible.';
+        var url = 'delete_plextv_account';
+        confirmAjaxCall(url, msg, { token: '${account.token}', keep_history: true }, null,
+                function () {
+                    $('#plextv-account-modal').modal('hide');
+                    config_accounts_table = $('#config-accounts-table').DataTable();
+                    config_accounts_table.ajax.reload();
+                    config_servers_table.ajax.reload();
+                }
+         );
+    });
+
+    $('#purge-account-button').click(function () {
+        var msg = 'Are you sure you want to purge the <strong>${account.username}</strong> PlexTV Account?<br>This will <strong>delete</strong> all servers owned by this account, the server history, and delete the server from the database.<br><br><strong>This is irreversible!</strong>';
+        var url = 'delete_plextv_account';
+        confirmAjaxCall(url, msg, { token: '${account.token}', keep_history: false }, null,
+                function () {
+                    $('#plextv-account-modal').modal('hide');
+                    config_accounts_table = $('#config-accounts-table').DataTable();
+                    config_accounts_table.ajax.reload();
+                    config_servers_table.ajax.reload();
+                }
+         );
+    });
+
+    var token = "${account.token}";
+    getAccountServers(token);
+
+</script>
+% else:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title" id="plextv-account-modal-header">Error</h4>
+        </div>
+        <div class="modal-body" style="text-align: center">
+            <strong>
+                <i class="fa fa-exclamation-circle"></i> Failed to retrieve PlexTV Account Information. Check the <a href="logs">logs</a> for more info.
+            </strong>
+        </div>
+        <div class="modal-footer">
+        </div>
+    </div>
+</div>
+% endif

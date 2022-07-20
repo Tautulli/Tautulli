@@ -1,0 +1,185 @@
+﻿<%
+    import plexpy
+    plex_login = plexpy.CONFIG.HTTP_PLEX_ADMIN or plexpy.CONFIG.ALLOW_GUEST_ACCESS
+%>
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Tautulli - ${title}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link href="${http_root}css/bootstrap3/bootstrap.css" rel="stylesheet">
+    <link href="${http_root}css/tautulli.css${cache_param}" rel="stylesheet">
+    <link href="${http_root}css/opensans.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.all.min.css" rel="stylesheet">
+    <link href="${http_root}css/font-awesome.v4-shims.min.css" rel="stylesheet">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="${http_root}images/favicon/favicon-32x32.png?v=2.0.5">
+    <link rel="icon" type="image/png" sizes="16x16" href="${http_root}images/favicon/favicon-16x16.png?v=2.0.5">
+    <link rel="shortcut icon" href="${http_root}images/favicon/favicon.ico?v=2.0.5">
+
+    <!-- ICONS -->
+    <!-- Android -->
+    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.0.5">
+    <meta name="theme-color" content="#282a2d">
+    <!-- Apple -->
+    <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.0.5">
+    <link rel="mask-icon" href="${http_root}images/favicon/safari-pinned-tab.svg?v=2.0.5" color="#282a2d">
+    <meta name="apple-mobile-web-app-title" content="Tautulli">
+    <!-- Microsoft -->
+    <meta name="application-name" content="Tautulli">
+    <meta name="msapplication-config" content="${http_root}images/favicon/browserconfig.xml?v=2.0.5">
+</head>
+
+<body style="margin: 0; overflow: auto;">
+<div class="login-body-container">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="login-container">
+                <div class="login-logo">
+                    <img src="${http_root}images/logo-tautulli-100.png" height="100" alt="Tautulli">
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <div id="sign-in-alert" class="alert alert-danger login-alert"></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 col-sm-offset-3">
+                        <ul id="login-methods" class="accordion list-unstyled">
+                            % if plex_login:
+                            <li class="open">
+                                <div class="link login-method-header">
+                                    Sign In with Plex
+                                </div>
+                                <ul class="submenu login-button-plex" style="display: block;">
+                                    <li>
+                                        <div>
+                                            <button id="sign-in-plex" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                                        </div>
+                                        <div class="remember-group">
+                                            <label class="control-label">
+                                                <input type="checkbox" id="remember_me_plex" name="remember_me_plex" title="for 30 days" value="1" checked="checked" /> Remember me
+                                            </label>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </li>
+                            % endif
+                            <li class="${'open' if not plex_login else ''}">
+                                <div class="link login-method-header">
+                                    Sign In with Tautulli
+                                </div>
+                                <ul class="submenu" style="${'display: block;' if not plex_login else ''}">
+                                    <li>
+                                        <form id="login-form">
+                                            <div class="form-group">
+                                                <label for="username" class="control-label">
+                                                    Username
+                                                </label>
+                                                <input type="text" id="username" name="username" class="form-control" autocorrect="off" autocapitalize="off" autofocus>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="password" class="control-label">
+                                                    Password
+                                                </label>
+                                                <input type="password" id="password" name="password" class="form-control">
+                                            </div>
+                                            <div class="form-group">
+                                                <span class="remember-group">
+                                                    <label class="control-label">
+                                                        <input type="checkbox" id="remember_me" name="remember_me" title="for 30 days" value="1" checked="checked" /> Remember me
+                                                    </label>
+                                                </span>
+                                                <button id="sign-in" type="submit" class="btn btn-bright login-button"><i class="fa fa-sign-in"></i>&nbsp; Sign In</button>
+                                            </div>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="${http_root}js/jquery-2.1.4.min.js"></script>
+<script src="${http_root}js/platform.min.js"></script>
+<script src="${http_root}js/script.js${cache_param}"></script>
+<script>
+    var login_accordion = new Accordion($('#login-methods'), false, false);
+
+    function OAuthSuccessCallback(authToken) {
+        signIn(true, authToken);
+    }
+    function OAuthErrorCallback() {
+        $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
+    }
+
+    $('#sign-in-plex').click(function() {
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback);
+    });
+
+    $('#login-form').submit(function(event) {
+        event.preventDefault();
+        signIn(false);
+    });
+
+    function signIn(plex, token) {
+        $('.login-container button').prop('disabled', true);
+        if (plex) {
+            $('#sign-in-plex').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+        } else {
+            $('#sign-in').html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sign In');
+        }
+
+        const username = plex ? null : $('#username').val();
+        const password = plex ? null : $('#password').val();
+        const remember_me = plex ? ($('#remember_me_plex').is(':checked') ? '1' : '0')
+                : ($('#remember_me').is(':checked') ? '1' : '0');
+
+        var data = {
+            username: username,
+            password: password,
+            token: token,
+            remember_me: remember_me
+        };
+        data = $.extend(data, x_plex_headers);
+
+        $.ajax({
+            url: '${http_root}auth/signin',
+            type: 'POST',
+            data: data,
+            dataType: 'json',
+            statusCode: {
+                200: function() {
+                   window.location = "${redirect_uri or http_root}";
+                },
+                401: function() {
+                    if (plex) {
+                        $('#sign-in-alert').text('Invalid Plex Login.').show();
+                    } else {
+                        $('#sign-in-alert').text('Incorrect username or password.').show();
+                        $('#username').focus();
+                    }
+                }
+            },
+            complete: function() {
+                $('.login-container button').prop('disabled', false);
+                if (plex) {
+                    $('#sign-in-plex').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+                } else {
+                    $('#sign-in').html('<i class="fa fa-sign-in"></i>&nbsp; Sign In');
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>

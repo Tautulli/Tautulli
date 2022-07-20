@@ -1,0 +1,213 @@
+<%inherit file="base.html"/>
+
+<%def name="headIncludes()">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
+<link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css">
+</%def>
+
+<%def name="body()">
+<div class='container-fluid'>
+    <div class='table-card-header'>
+        <div class="header-bar">
+            <span id="users-xml"><i class="fa fa-group"></i> All Users</span>
+        </div>
+        <div class="button-bar">
+            % if _session['user_group'] == 'admin':
+            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbspSelect users to delete/purge. Data is deleted/purged upon exiting edit mode.</div>
+            <div class="btn-group">
+                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                    <i class="fa fa-pencil"></i> Edit mode
+                </button>&nbsp
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
+            </div>
+            % endif
+            <div class="btn-group colvis-button-bar"></div>
+        </div>
+    </div>
+    <div class='table-card-back'>
+        <table id="users_list_table" class="display" width="100%">
+            <thead>
+            <tr>
+                <th align="left" id="edit_row">Edit</th>
+                <th align="right" id="avatar"></th>
+                <th align="left" class="friendly_name" id="friendly_name">User</th>
+                <th align="left" class="last_seen" id="last_seen">Last Seen</th>
+                <th align="left" class="ip_address" id="last_known_ip">Last Known IP</th>
+                <th align="left" class="platform" id="last_platform">Last Platform</th>
+                <th align="left" class="player" id="last_player">Last Player</th>
+                <th align="left" class="last_server" id="last_serverd">Last Server</th>
+                <th align="left" class="last_played" id="last_played">Last Played</th>
+                <th align="left" class="plays" id="total_plays">Total Plays</th>
+                <th align="left" class="duration" id="total_duration">Total Played Duration</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
+</div>
+<div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
+</div>
+<div class="modal fade" id="confirm-modal-delete" tabindex="-1" role="dialog" aria-labelledby="confirm-modal-delete">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <ul id="users-to-delete" class="list-unstyled"></ul>
+                <ul id="users-to-purge" class="list-unstyled"></ul>
+                <p>This is permanent and cannot be undone!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger btn-ok" data-dismiss="modal" id="confirm-delete">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script src="${http_root}js/jquery.dataTables.min.js"></script>
+<script src="${http_root}js/dataTables.colVis.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.min.js"></script>
+<script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
+<script src="${http_root}js/moment-with-locale.js"></script>
+<script src="${http_root}js/tables/users.js${cache_param}"></script>
+<script>
+    $(document).ready(function () {
+        users_list_table_options.ajax = {
+            url: 'get_user_list',
+            type: 'POST',
+            data: function ( d ) {
+                return {
+                    json_data: JSON.stringify(d)
+                };
+            }
+        };
+
+        users_list_table = $('#users_list_table').DataTable(users_list_table_options);
+        var colvis = new $.fn.dataTable.ColVis(users_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1] });
+        $(colvis.button()).appendTo('div.colvis-button-bar');
+
+        clearSearchButton('users_list_table', users_list_table);
+
+        % if _session['user_group'] == 'admin':
+        $('#row-edit-mode').on('click', function () {
+            $('#row-edit-mode-alert').fadeIn(200);
+            $('#users-to-delete').html('');
+            $('#users-to-purge').html('');
+
+            if ($(this).hasClass('active')) {
+                if (users_to_delete.length > 0 || users_to_purge.length > 0) {
+                    $('.edit-control').each(function () {
+                        $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    });
+
+                    users_to_purge = $.grep(users_to_purge, function (value) {
+                        return $.inArray(value, users_to_delete) < 0;
+                    });
+
+                    if (users_to_delete.length > 0) {
+                        $('#users-to-delete').prepend('<p>Are you REALLY sure you want to delete and purge all history for the following users:</p>')
+                        for (var i = 0; i < users_to_delete.length; i++) {
+                            $('#users-to-delete').append('<li>' + $('div[data-id=' + users_to_delete[i] + '] > input').val() + '</li>');
+                        }
+                    }
+
+                    if (users_to_purge.length > 0) {
+                        $('#users-to-purge').prepend('<p>Are you REALLY sure you want to purge all history for the following users:</p>')
+                        for (var i = 0; i < users_to_purge.length; i++) {
+                            $('#users-to-purge').append('<li>' + $('div[data-id=' + users_to_purge[i] + '] > input').val() + '</li>');
+                        }
+                    }
+
+                    $('#confirm-modal-delete').modal();
+                    $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
+                        users_to_delete.forEach(function(row, idx) {
+                            $.ajax({
+                                url: 'delete_user',
+                                type: 'POST',
+                                data: { user_id: row },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "User deleted";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        });
+                        users_to_purge.forEach(function(row, idx) {
+                            $.ajax({
+                                url: 'delete_all_user_history',
+                                type: 'POST',
+                                data: { user_id: row },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "User history purged";
+                                    showMsg(msg, false, true, 2000);
+                                }
+                            });
+                        });
+                        users_list_table.draw();
+                    });
+                }
+
+                $('.edit-control').each(function () {
+                    $(this).addClass('hidden');
+                    $('#row-edit-mode-alert').fadeOut(200);
+                });
+                toggleEditNames();
+            } else {
+                users_to_delete = [];
+                users_to_purge = [];
+                $('.edit-control').each(function () {
+                    $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    $(this).removeClass('hidden');
+                });
+                toggleEditNames();
+            }
+        });
+        % endif
+    });
+
+    % if _session['user_group'] == 'admin':
+    $("#refresh-users-list").click(function() {
+        showMsg('Refreshing users list...', true, false);
+        $('#refresh-users-list > .fa-refresh').addClass('fa-spin');
+        $.ajax({
+            url: 'refresh_users_list',
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $('#refresh-users-list > .fa-refresh').removeClass('fa-spin');
+                var result = $.parseJSON(xhr.responseText);
+                var msg = result.message;
+                if (result.result == 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + msg, false, true, 2000, false);
+                    users_list_table.draw();
+                } else {
+                    showMsg('<i class="fa fa-times"></i> ' + msg, false, true, 2000, true);
+                }
+            }
+        });
+    });
+    % endif
+
+    $('#users-xml').on('tripleclick', function () {
+        openPlexXML('/api/users', true);
+    });
+</script>
+</%def>

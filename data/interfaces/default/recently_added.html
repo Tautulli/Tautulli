@@ -1,0 +1,209 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           recently_added.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+== Global keys ==
+media_type              Returns the type of media. Either 'movie' or 'episode' or 'album'.
+rating_key              Returns the unique identifier for the media item.
+parent_rating_key       Returns the unique identifier for the season or artist.
+grandparent_rating_key  Returns the unique identifier for the show.
+title                   Returns the name of the movie, episode, album.
+parent_title            Returns the name of the artist.
+grandparent_title       Returns the name of the show.
+media_index             Returns the index number of the episode.
+parent_media_index      Returns the index number of the season.
+section_id              Returns the library section number of the media item.
+library_name            Returns the library section name of the media item.
+year                    Returns the release year of the movie, episode, or album.
+thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
+parent_thumb            Returns the location of the artist's thumbnail. Use with pms_image_proxy.
+grandparent_thumb       Returns the location of the show's thumbnail. Use with pms_image_proxy.
+added_at                Returns the time when the media was added to the library.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+% if data:
+% for server in data:
+<div class="row">
+    <div class="col-md-12">
+            <div class="button-bar pull-left">
+                <span class="btn btn-dark active" id="recently-added-xml-${server['server_id']}"  data-server_id="${server['server_id']}" style="cursor: default">${server['server_name']}</span>
+            </div>
+            <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -3px;">
+                <li>
+                    <a href="#" id="recently-added-page-left-${server['server_id']}" class="paginate btn-gray disabled" data-server_id="${server['server_id']}" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
+                </li>
+                <li>
+                    <a href="#" id="recently-added-page-right-${server['server_id']}" class="paginate btn-gray disabled" data-server_id="${server['server_id']}" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
+                </li>
+            </ul>
+    </div>
+</div>
+<hr>
+<div class="dashboard-recent-media-row">
+    <div id="recently-added-row-scroller-${server['server_id']}" data-server_id="${server['server_id']}" style="left: 0;">
+        <ul class="dashboard-recent-media list-unstyled">
+            % for item in server['items']:
+            <div class="dashboard-recent-media-instance">
+                <li data-type="${item['media_type']}">
+                    % if item['media_type'] == 'movie':
+                    <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['title']}">
+                        <div class="dashboard-recent-media-poster">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?server_id=${item['server_id']}&img=${item['thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['server_id']}-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['server_id']}-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            % if _session['user_group'] == 'admin':
+                            <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                            % endif
+                        </div>
+                    </a>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>
+                            <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        </h3>
+                        <h3 class="text-muted">${item['year']}</h3>
+                        <h3 class="text-muted">&nbsp;</h3>
+                    </div>
+                    % elif item['media_type'] == 'show':
+                    <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['title']}">
+                        <div class="dashboard-recent-media-poster">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?server_id=${item['server_id']}&img=${item['thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['server_id']}-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['server_id']}-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            % if _session['user_group'] == 'admin':
+                            <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                            % endif
+                        </div>
+                    </a>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>
+                            <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        </h3>
+                        <h3 class="text-muted">
+                            ${item['child_count']} Seasons
+                        </h3>
+                        <h3 class="text-muted">&nbsp;</h3>
+                    </div>
+                    % elif item['media_type'] == 'season':
+                    <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['parent_title']}">
+                        <div class="dashboard-recent-media-poster">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?server_id=${item['server_id']}&img=${item['thumb'] or item['parent_thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['server_id']}-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['server_id']}-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            % if _session['user_group'] == 'admin':
+                            <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                            % endif
+                        </div>
+                    </a>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>
+                            <a href="info?server_id=${item['server_id']}&rating_key=${item['parent_rating_key']}" title="${item['parent_title']}">${item['parent_title']}</a>
+                        </h3>
+                        <h3 class="text-muted">
+                            <a class="text-muted" href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        </h3>
+                        <h3 class="text-muted">&nbsp;</h3>
+                    </div>
+                    % elif item['media_type'] == 'episode':
+                    <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['title']}">
+                        <div class="dashboard-recent-media-poster">
+                            <div class="dashboard-recent-media-poster-face" style="background-image: url(pms_image_proxy?server_id=${item['server_id']}&img=${item['grandparent_thumb']}&width=300&height=450&fallback=poster);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['server_id']}-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['server_id']}-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            % if _session['user_group'] == 'admin':
+                            <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                            % endif
+                        </div>
+                    </a>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>
+                            <a href="info?server_id=${item['server_id']}&rating_key=${item['grandparent_rating_key']}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
+                        </h3>
+                        <h3 class="text-muted">
+                            <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        </h3>
+                        <h3 class="text-muted">
+                            <a href="info?server_id=${item['server_id']}&rating_key=${item['parent_rating_key']}" title="Season ${item['parent_media_index']}">S${item['parent_media_index']}</a>
+                            &middot;
+                            <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
+                        </h3>
+                    </div>
+				    % elif item['media_type'] == 'album':
+                    <a href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['parent_title']}">
+                        <div class="dashboard-recent-media-cover">
+                            <div class="dashboard-recent-media-cover-face" style="background-image: url(pms_image_proxy?server_id=${item['server_id']}&img=${item['thumb']}&width=300&height=300&fallback=cover);">
+                                <div class="dashboard-recent-media-overlay">
+                                    <div class="dashboard-recent-media-overlay-text" id="added_at-${item['server_id']}-${item['rating_key']}">
+                                        <script>
+                                            $('#added_at-${item['server_id']}-${item['rating_key']}').text('Added ' + moment(${item['added_at']}, "X").fromNow())
+                                        </script>
+                                    </div>
+                                </div>
+                            </div>
+                            % if _session['user_group'] == 'admin':
+                            <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                            % endif
+                        </div>
+                    </a>
+                    <div class="dashboard-recent-media-metacontainer">
+                        <h3>
+                            <a href="info?server_id=${item['server_id']}&rating_key=${item['parent_rating_key']}" title="${item['parent_title']}">${item['parent_title']}</a>
+                        </h3>
+                        <h3 class="text-muted">
+                            <a class="text-muted" href="info?server_id=${item['server_id']}&rating_key=${item['rating_key']}" title="${item['title']}">${item['title']}</a>
+                        </h3>
+                        <h3 class="text-muted">&nbsp;</h3>
+                    </div>
+				    % endif
+                </li>
+            </div>
+            % endfor
+        </ul>
+    </div>
+</div>
+% endfor
+% else:
+<div id="dashboard-no-recently-added" class="text-muted" style="height: 288px; margin-bottom: 25px;">No recently added items.</div>
+% endif
+% else:
+<div class="text-muted">No plex servers are enabled or online.</div><br>
+% endif
+<script>
+    $("[id^='recently-added-xml-']").on('tripleclick', function () {
+        var server_id = parseInt($(this).data('server_id'));
+        openPlexXML('/library/recentlyAdded', false, server_id, {'X-Plex-Container-Start': 0, 'X-Plex-Container-Size': recently_added_count});
+    });
+</script>

@@ -1,0 +1,248 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           home_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+data[array_index] :: Usable parameters
+
+data['stat_id']     Returns the name of the stat. Either 'top_tv', 'top_movies', 'popular_tv', 'popular_movies', 'top_user' or 'top_platform'
+data['stat_type']   Returns the type of the stat. Either 'total_plays' or 'total_duration'
+data['rows']        Returns an array containing stat data
+
+data[array_index]['rows'] :: Usable parameters
+
+row_id                  Return the db row id for a metadata item if one exists
+
+== Only if 'stat_id' is 'top_tv' or 'popular_tv' or 'top_movies' or 'popular_movies' or 'top_music' or 'popular_music' or 'last_watched' ==
+thumb                   Return the thumb for the media item.
+
+== Only if 'stat_id' is 'top_tv' or 'popular_tv' or 'top_music' or 'popular_music' ==
+grandparent_thumb       Returns location of the item's thumbnail. Use with pms_image_proxy.
+rating_key              Returns the unique identifier for the media item.
+title                   Returns the title for the associated stat.
+
+== Only if 'stat_id' is 'top_tv' or 'top_movies' or 'top_music' or 'top_user' or 'top_platform' ==
+total_plays             Returns the count for the associated stat.
+total_duration          Returns the total duration for the associated stat.
+
+== Only of 'stat_id' is 'popular_tv' or 'popular_movies' or 'popular_music' ==
+users_watched           Returns the count for the associated stat.
+
+== Only if 'stat_id' is 'top_user' or 'last_watched' ==
+user_thumb              Returns url of the user's gravatar. Returns '' if none exists.
+user                    Returns the username for the associated stat.
+user_id                 Returns the user id for the associated stat.
+friendly_name           Returns the friendly name of the user for the associated stat.
+
+== Only if 'stat_id' is 'top_platform' or 'last_watched' ==
+player                  Returns the player name for the associated stat.
+
+== Only if 'stat_id' is 'last_watched' ==
+last_watch              Returns the time the media item was last watched.
+
+== Only if 'stat_id' is 'most_concurrent' ==
+count                   Returns the count of the most concurrent streams.
+started                 Returns the start time of the most concurrent streams.
+stopped                 Returns the stop time of the most concurrent streams.
+
+DOCUMENTATION :: END
+</%doc>
+
+<%!
+    from plexpy import helpers
+
+    # Human readable duration
+    def hd(seconds):
+        m, s = divmod(helpers.cast_to_int(seconds), 60)
+        h, m = divmod(m, 60)
+        return str(h).zfill(1) + ':' + str(m).zfill(2)
+%>
+
+% if data and any(top_stat['rows'] for top_stat in data):
+% for top_stat in data:
+% if top_stat['rows']:
+<%
+    stat_id = top_stat['stat_id']
+    row0 = top_stat['rows'][0]
+%>
+<div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-stat_id="${stat_id}">
+    <div class="dashboard-stats-container">
+        % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
+        % if row0['art']:
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(pms_image_proxy?server_id=${row0['server_id']}&img=${row0['art']}&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art);">
+        % else:
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(images/art.png);">
+        % endif
+        % elif stat_id == 'top_platforms':
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
+        % else:
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background flat">
+        % endif
+            % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
+            <div class="dashboard-stats-poster-container hidden-xs">
+                % if stat_id in ('top_music', 'popular_music'):
+                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster" style="background-image: url(pms_image_proxy?server_id=${row0['server_id']}&img=${row0['thumb']}&width=300&height=300&opacity=60&background=282828&blur=3&fallback=cover);"></div>
+                % endif
+                <% height, type = ('300', 'cover') if stat_id in ('top_music', 'popular_music') else ('450', 'poster') %>
+                <% href = 'info?server_id={}'.format(row0['server_id']) + '&rating_key={}'.format(row0['rating_key']) if row0['rating_key'] else '#' %>
+                <a id="stats-thumb-url-${stat_id}" href="${href}" title="${row0['title']}">
+                    % if row0['thumb']:
+                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(pms_image_proxy?server_id=${row0['server_id']}&img=${row0['thumb']}&width=300&height=${height}&fallback=${type});"></div>
+                    % else:
+                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${type}" style="background-image: url(images/${type}.png);"></div>
+                    % endif
+                </a>
+            </div>
+            % elif stat_id == 'top_users':
+            <% user_href = 'user?user_id={}'.format(row0['user_id']) if row0['user_id'] else '#' %>
+            <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['friendly_name']}" class="hidden-xs">
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${row0['user_thumb'] or 'images/gravatar-default.png'})"></div>
+            </a>
+            % elif stat_id == 'top_platforms':
+            <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon platform-${row0['platform_name']} transparent hidden-xs"></div>
+            % elif stat_id == 'most_concurrent':
+            <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon stats-${stat_id} transparent hidden-xs"></div>
+            % endif
+            <div class="dashboard-stats-info-container">
+                <div id="stats-title-${stat_id}" class="dashboard-stats-info-title">
+                    <h4>${top_stat['stat_title']}</h4>
+                    % if stat_id.startswith('top') and top_stat.get('stat_type') == 'total_plays':
+                    <span class="dashboard-stats-stats-units">plays</span>
+                    % elif stat_id.startswith('top') and top_stat.get('stat_type') == 'total_duration':
+                    <span class="dashboard-stats-stats-units">hh:mm</span>
+                    % elif stat_id.startswith('popular'):
+                    <span class="dashboard-stats-stats-units">users</span>
+                    % elif stat_id == 'last_watched':
+                    <span class="dashboard-stats-stats-units" id="last-watched-header-info">${row0['friendly_name']}</span>
+                    % elif stat_id == 'most_concurrent':
+                    <span class="dashboard-stats-stats-units" id="most-concurrent-header-info">streams</span>
+                    % endif
+                </div>
+                <div class="dashboard-stats-info-scroller scrollbar-macosx">
+                    <div class="dashboard-stats-info scoller-content">
+                        <ul class="list-unstyled dashboard-stats-info-list">
+                            % for row in top_stat['rows']:
+                            <li class="dashboard-stats-info-item ${'expanded' if loop.index == 0 else ''}" data-stat_id="${stat_id}" data-server_id="${row.get('server_id')}" data-rating_key="${row.get('rating_key')}" data-title="${row.get('title')}"
+                                data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}"
+                                data-user_id="${row.get('user_id')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
+                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}">
+                                <div class="sub-list">${loop.index + 1}</div>
+                                <div class="sub-value">
+                                    % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
+                                    <% href = 'info?server_id={}'.format(row['server_id']) + '&rating_key={}'.format(row['rating_key']) if row['rating_key'] else '#' %>
+                                    <a href="${href}" title="${row['title']}">
+                                        ${row['title']}
+                                    </a>
+                                    % elif stat_id == 'top_users':
+                                    <% user_href = 'user?user_id={}'.format(row['user_id']) if row['user_id'] else '#' %>
+                                    <a href="${user_href}" title="${row['friendly_name']}">
+                                        ${row['friendly_name']}
+                                    </a>
+                                    % elif stat_id == 'top_platforms':
+                                    ${row['platform']}
+                                    % elif stat_id == 'most_concurrent':
+                                    ${row['title']}
+                                    % endif
+                                </div>
+                                <div class="sub-count">
+                                    % if stat_id.startswith('top') and top_stat.get('stat_type') == 'total_plays':
+                                    ${row['total_plays']}
+                                    % elif stat_id.startswith('top') and top_stat.get('stat_type') == 'total_duration':
+                                    ${row['total_duration'] | hd}
+                                    % elif stat_id.startswith('popular'):
+                                    ${row['users_watched']}
+                                    % elif stat_id == 'most_concurrent':
+                                    ${row['count']}
+                                    % endif
+                                </div>
+                            </li>
+                            % endfor
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+% endif
+% endfor
+<script>
+    $('.dashboard-stats-instance .dashboard-stats-info-scroller').scrollbar()
+
+    function changeImages(elem) {
+        var stat_id = $(elem).data('stat_id');
+        var art = $(elem).data('art');
+        var thumb = $(elem).data('thumb');
+        var user_id = $(elem).data('user_id');
+        var user_thumb = $(elem).data('user_thumb');
+        var server_id = $(elem).data('server_id');
+        var rating_key = $(elem).data('rating_key');
+        var [height, fallback] = ($.inArray(stat_id, ['top_music', 'popular_music']) > -1) ? [300, 'cover'] : [450, 'poster'];
+        var href;
+
+        if (stat_id == 'most_concurrent') {
+            return
+        } else if (stat_id == 'top_users') {
+            $('#stats-thumb-' + stat_id).css('background-image', 'url(' + (user_thumb || 'images/gravatar-default.png') + ')');
+            if (user_id) {
+                href = 'user?user_id=' + user_id;
+            } else {
+                href = '#';
+            }
+            $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('friendly_name'));
+        } else if (stat_id == 'top_platforms') {
+            $('#stats-thumb-' + stat_id).removeClass(function (index, className) {
+                return (className.match (/(^|\s)platform-\S+/g) || []).join(' ');
+            }).addClass('platform-' + $(elem).data('platform'));
+            $('#stats-background-' + stat_id).removeClass(function (index, className) {
+                return (className.match (/(^|\s)platform-\S+/g) || []).join(' ');
+            }).addClass('platform-' + $(elem).data('platform') + '-rgba');
+        } else {
+            if (rating_key) {
+                href = 'info?server_id=' + server_id + '&rating_key=' + rating_key;
+            } else {
+                href = '#';
+            }
+            $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('title'));
+            if (art) {
+                $('#stats-background-' + stat_id).css('background-image', 'url(pms_image_proxy?server_id=' + server_id + '&img=' + art + '&width=500&height=280&opacity=40&background=282828&blur=3&fallback=art)');
+            } else {
+                $('#stats-background-' + stat_id).css('background-image', 'url(images/art.png)');
+            }
+            if (thumb) {
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(pms_image_proxy?server_id=' + server_id + '&img=' + thumb + '&width=300&height=' + height + '&fallback=' + fallback + ')');
+                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(pms_image_proxy?server_id=' + server_id + '&img=' + thumb + '&width=300&height=' + height + '&opacity=60&background=282828&blur=3&fallback=' + fallback + ')');
+            } else {
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(images/' + fallback + '.png)');
+                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(images/' + fallback + '.png)');
+            }
+        }
+    }
+
+    $('.dashboard-stats-info-item').mouseenter(function () {
+        changeImages(this)
+        if ($(this).data('stat_id') == 'last_watched') {
+            var friendly_name = $(this).data('friendly_name');
+            var last_watch = moment($(this).data('last_watch'), 'X').format(date_format);
+            $('#last-watched-header-info').html(friendly_name);
+        } else if ($(this).data('stat_id') == 'most_concurrent') {
+            var started = moment($(this).data('started'), 'X').format(date_format + ' ' + time_format);
+            $('#most-concurrent-header-info').html(started);
+        }
+    });
+    $('.dashboard-stats-instance').mouseleave(function () {
+        changeImages($(this).find('.dashboard-stats-info-item').first())
+        if ($(this).data('stat_id') == 'last_watched') {
+            $('#last-watched-header-info').text($(this).find('.dashboard-stats-info-item').first().data('friendly_name'));
+        } else if ($(this).data('stat_id') == 'most_concurrent') {
+            $('#most-concurrent-header-info').text('streams');
+        }
+    });
+</script>
+% else:
+<div class="text-muted">No stats to show for the selected period.</div><br>
+% endif

@@ -1,0 +1,131 @@
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * ColVis styles
+ */
+div.ColVis {
+	float: right;
+}
+
+button.ColVis_Button,
+ul.ColVis_collection li {
+	position: relative;
+	float: left;
+	color: #fff;
+	margin-right: 3px;
+	padding: 5px 8px;
+	cursor: pointer;
+	*cursor: hand;
+	font-size: 0.88em;
+	white-space: nowrap;
+}
+
+.ColVis_Button:hover,
+ul.ColVis_collection li:hover {
+    color: #F9AA03;
+}
+
+button.ColVis_Button {
+	padding: 4px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+      touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+    background-image: none;
+    background-color: #444;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    outline:0px !important;
+    -webkit-appearance:none;
+}
+
+button.ColVis_Button::-moz-focus-inner {
+	border: none !important;
+	padding: 0;
+}
+
+button.ColVis_Button:active {
+	outline: none;
+}
+
+div.ColVis_collectionBackground {
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background-color: black;
+	z-index: 1100;
+}
+
+ul.ColVis_collection {
+	list-style: none;
+	width: 150px;
+	padding: 8px 8px 4px 8px;
+	margin: 10px 0px 0px 0px;
+	background-color: #444;
+	overflow: hidden;
+	z-index: 2002;
+	border-radius: 4px;
+}
+
+ul.ColVis_collection li {
+	position: relative;
+	height: auto;
+	left: 0;
+	right: 0;
+	display: block;
+	float: none;
+	padding: 0;
+}
+
+ul.ColVis_collection li {
+	text-align: left;
+}
+
+ul.ColVis_collection li.ColVis_Button:hover {
+	border: 1px solid #999;
+}
+
+ul.ColVis_collection li span {
+	display: inline-block;
+	padding-left: 0.5em;
+	line-height: 1em;
+	cursor: pointer;
+}
+
+
+ul.ColVis_collection li.ColVis_Special {
+}
+
+ul.ColVis_collection li.ColVis_Special:hover {
+}
+
+span.ColVis_radio {
+	display: inline-block;
+	width: 20px;
+}
+
+div.ColVis_catcher {
+	position: absolute;
+	z-index: 1101;
+}
+
+.disabled {
+	color: #999;
+}
+
+ul.ColVis_collection label {
+    display: block;
+    padding: 0.5em;
+    cursor: pointer;
+}

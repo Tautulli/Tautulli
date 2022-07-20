@@ -1,0 +1,81 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           scheduler_table.html
+Version:            0.1
+
+DOCUMENTATION :: END
+</%doc>
+
+<%!
+    import arrow
+    import plexpy
+    from plexpy import common
+
+%>
+
+<table class="config-scheduler-table small-muted">
+    <thead>
+        <tr>
+            <th>Scheduled Task</th>
+            <th>State</th>
+            <th>Interval</th>
+            <th>Next Run In</th>
+            <th>Next Run Time</th>
+        </tr>
+    </thead>
+    <tbody>
+        % for job in scheduled_jobs:
+        % if job['run_interval']:
+        <tr>
+            <td>${job['name']}</td>
+            <td><i class="fa fa-sm fa-fw fa-check"></i> Active</td>
+            <td>${arrow.get(job['run_interval']).format('HH:mm:ss')}</td>
+            <td>${arrow.get(job['next_run_interval']).format('HH:mm:ss')}</td>
+            <td>${arrow.get(job['next_run_time']).format('YYYY-MM-DD HH:mm:ss')}</td>
+        </tr>
+         % elif job['name'] in ('Check for active sessions', 'Check for recently added items'):
+        <tr>
+            % if job['name'] == 'Check for active sessions':
+            <td><a class="queue-modal-link" href="#" data-queue="active sessions">${job['name']}</a></td>
+            % elif job['name'] == 'Check for recently added items':
+            <td><a class="queue-modal-link" href="#" data-queue="recently added">${job['name']}</a></td>
+            % else:
+            <td>${job['name']}</td>
+            % endif
+            <td><i class="fa fa-sm fa-fw fa-check"></i> Websocket</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        % else:
+        <tr>
+            <td>${job['name']}</td>
+            <td><i class="fa fa-sm fa-fw fa-times"></i> Inactive</td>
+            <td>N/A</td>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+        % endif
+        % endfor
+    </tbody>
+</table>
+<script>
+    $('.queue-modal-link').on('click', function (e) {
+        e.preventDefault();
+        $.ajax({
+            url: 'get_queue_modal',
+            data: {
+                queue: $(this).data('queue')
+            },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#queue-modal").html(xhr.responseText);
+                $('#queue-modal').modal();
+            }
+        });
+    });
+</script>

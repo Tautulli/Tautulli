@@ -1,0 +1,44 @@
+# Requirements file for pip-tools
+
+pip-tools
+CherryPy
+Mako
+arrow
+portend
+APScheduler
+configobj
+tzlocal
+urllib3
+pyOpenSSL
+passlib
+requests
+pywin32; sys_platform == "win32"
+infi.systray; sys_platform == "win32"
+oauthlib
+xmltodict
+websocket-client
+geoip2
+pyjwt
+logutils
+maxminddb
+cloudinary
+facebook-sdk
+python-twitter
+ipwhois
+IPy
+bs4
+feedparser
+httpagentparser
+bleach
+paho-mqtt
+gntp
+PyNMA
+profilehooks
+distro
+
+#asn1crypto
+#backports.functools-lru-cache
+#colorama
+#colorlog
+#pbr
+#pyga
