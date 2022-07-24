@@ -147,7 +147,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_metadata_children(self, rating_key='', section_id='', artist=False, collection=False, output_format=''):
+    def get_metadata_children(self, rating_key='', collection=False, output_format=''):
         """
         Return metadata for children of the request item.
 
@@ -156,14 +156,9 @@ class PmsConnect(object):
 
         Output: array
         """
-        if artist:
-            uri = '/library/sections/{}/all?artist.id={}&type=9'.format(
-                section_id, rating_key
-            )
-        else:
-            uri = '/library/{}/{}/children'.format(
-                'collections' if collection else 'metadata', rating_key
-            )
+        uri = '/library/{}/{}/children'.format(
+            'collections' if collection else 'metadata', rating_key
+        )
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -326,7 +321,8 @@ class PmsConnect(object):
 
         return request
 
-    def get_library_list(self, section_id='', list_type='all', count='0', sort_type='', label_key='', output_format=''):
+    def get_library_list(self, section_id='', list_type='all', start=0, count=0, sort_type='',
+                         label_key='', output_format=''):
         """
         Return list of items in library on server.
 
@@ -334,15 +330,50 @@ class PmsConnect(object):
 
         Output: array
         """
-        count = '&X-Plex-Container-Size=' + count if count else ''
+        start = 'X-Plex-Container-Start=' + str(start)
+        count = 'X-Plex-Container-Size=' + str(count)
         label_key = '&label=' + label_key if label_key else ''
 
-        uri = '/library/sections/' + section_id + '/' + list_type + '?X-Plex-Container-Start=0' + count + sort_type + label_key
+        uri = ('/library/sections/' + section_id + '/' + list_type + '?'
+               + start + '&' + count + sort_type + label_key)
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
 
         return request
+
+    def fetch_library_list(self, section_id='', list_type='all', count='', sort_type='',
+                           label_key='', output_format=''):
+        xml_head = []
+
+        start = 0
+        _count = int(count) if count else 100
+
+        while True:
+            library_data = self.get_library_list(
+                section_id=str(section_id),
+                list_type=list_type,
+                start=start,
+                count=_count,
+                sort_type=sort_type,
+                label_key=label_key,
+                output_format=output_format
+            )
+
+            try:
+                _xml_head = library_data.getElementsByTagName('MediaContainer')
+                library_count = int(helpers.get_xml_attr(_xml_head[0], 'totalSize'))
+                xml_head.extend(_xml_head)
+            except Exception as e:
+                logger.warn("Tautulli Pmsconnect :: Unable to parse XML for fetch_library_list: %s." % e)
+                return xml_head
+
+            start += _count
+
+            if count or start >= library_count:
+                break
+
+        return xml_head
 
     def get_library_labels(self, section_id='', output_format=''):
         """
@@ -2352,6 +2383,8 @@ class PmsConnect(object):
                           'children_list': []
                           }
 
+        xml_head = []
+
         if media_type == 'playlist':
             children_data = self.get_playlist_items(rating_key, output_format='xml')
         elif media_type == 'collection':
@@ -2361,15 +2394,21 @@ class PmsConnect(object):
         elif media_type == 'artist':
             artist_metadata = self.get_metadata_details(rating_key)
             section_id = artist_metadata['section_id']
-            children_data = self.get_metadata_children(rating_key, section_id, artist=True, output_format='xml')
+            sort_type = '&artist.id={}&type=9'.format(rating_key)
+            xml_head = self.fetch_library_list(
+                section_id=str(section_id),
+                sort_type=sort_type,
+                output_format='xml'
+            )
         else:
             children_data = self.get_metadata_children(rating_key, output_format='xml')
 
-        try:
-            xml_head = children_data.getElementsByTagName('MediaContainer')
-        except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_item_children: %s." % e)
-            return default_return
+        if not xml_head:
+            try:
+                xml_head = children_data.getElementsByTagName('MediaContainer')
+            except Exception as e:
+                logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_item_children: %s." % e)
+                return default_return
 
         children_list = []
 
@@ -2691,20 +2730,32 @@ class PmsConnect(object):
         else:
             sort_type = ''
 
-        if str(rating_key).isdigit():
-            _artist = section_type == 'album'
-            library_data = self.get_metadata_children(str(rating_key), str(section_id), artist=_artist, output_format='xml')
-        elif str(section_id).isdigit():
-            library_data = self.get_library_list(str(section_id), list_type, count, sort_type, label_key, output_format='xml')
+        if str(rating_key).isdigit() and section_type != 'album':
+            library_data = self.get_metadata_children(str(rating_key), output_format='xml')
+
+            try:
+                xml_head = library_data.getElementsByTagName('MediaContainer')
+            except Exception as e:
+                logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_library_children_details: %s." % e)
+                return []
+
+        elif str(section_id).isdigit() or section_type == 'album':
+            if section_type == 'album':
+                sort_type += '&artist.id=' + str(rating_key)
+
+            xml_head = self.fetch_library_list(
+                section_id=str(section_id),
+                list_type=list_type,
+                count=count,
+                sort_type=sort_type,
+                label_key=label_key,
+                output_format='xml'
+            )
+
         else:
             logger.warn("Tautulli Pmsconnect :: get_library_children called by invalid section_id or rating_key provided.")
             return []
 
-        try:
-            xml_head = library_data.getElementsByTagName('MediaContainer')
-        except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_library_children_details: %s." % e)
-            return []
 
         children_list = []
 
@@ -3055,14 +3106,21 @@ class PmsConnect(object):
 
 
         # get parent_rating_keys
-        _artist = media_type in ('artist', 'album', 'track')
-        metadata = self.get_metadata_children(str(rating_key), str(section_id), artist=_artist, output_format='xml')
+        if media_type in ('artist', 'album', 'track'):
+            sort_type = '&artist.id={}&type=9'.format(rating_key)
+            xml_head = self.fetch_library_list(
+                section_id=str(section_id),
+                sort_type=sort_type,
+                output_format='xml'
+            )
+        else:
+            metadata = self.get_metadata_children(str(rating_key), output_format='xml')
 
-        try:
-            xml_head = metadata.getElementsByTagName('MediaContainer')
-        except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_rating_keys_list: %s." % e)
-            return {}
+            try:
+                xml_head = metadata.getElementsByTagName('MediaContainer')
+            except Exception as e:
+                logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_rating_keys_list: %s." % e)
+                return {}
 
         for a in xml_head:
             if a.getAttribute('size'):
