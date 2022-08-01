@@ -77,7 +77,7 @@ DOCUMENTATION :: END
         <% fallback = 'art-live' if row0['live'] else 'art' %>
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], row0['rating_key'], 500, 280, 40, '282828', 3, fallback=fallback)});">
         % elif stat_id == 'top_libraries':
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], None, 500, 280, 40, '282828', 3, fallback='art')});">
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'] or row0['library_art'], None, 500, 280, 40, '282828', 3, fallback=row0['library_art'])});" data-library_art="${row0['library_art']}">
         % elif stat_id == 'top_users':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" data-blurhash="${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 100, 100, 40, '282828', 0, fallback='user')}">
         % elif stat_id == 'top_platforms':
@@ -147,7 +147,7 @@ DOCUMENTATION :: END
                                 data-rating_key="${row.get('rating_key')}" data-grandparent_rating_key="${row.get('grandparent_rating_key')}" data-guid="${row.get('guid')}" data-title="${row.get('title')}"
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}" data-library-type="${row.get('section_type')}"
                                 data-user_id="${row.get('user_id')}" data-user="${row.get('user')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
-                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}">
+                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}" data-library_art="${row.get('library_art', '')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
                                     % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
