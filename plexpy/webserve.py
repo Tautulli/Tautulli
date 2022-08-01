@@ -4811,6 +4811,11 @@ class WebInterface(object):
                     fbi = common.DEFAULT_IMAGES[fallback]
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                     return serve_file(path=fp, content_type='image/png')
+                elif fallback:
+                    return self.real_pms_image_proxy(
+                        img=fallback, rating_key=None, width=width, height=height,
+                        opacity=opacity, background=background, blur=blur, img_format=img_format,
+                        fallback=None, refresh=refresh, clip=clip, **kwargs)
 
     @cherrypy.expose
     def image(self, *args, **kwargs):
