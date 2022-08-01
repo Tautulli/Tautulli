@@ -667,7 +667,12 @@ class DataFactory(object):
             elif stat == 'top_libraries':
                 top_libraries = []
                 try:
-                    query = 'SELECT sh.section_id, ls.section_name, ls.section_type, ' \
+                    query = 'SELECT sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, ' \
+                            'shm.media_index, shm.parent_media_index, ' \
+                            'sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, ' \
+                            'sh.user, sh.user_id, sh.player, sh.section_id, ' \
+                            'shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, ' \
+                            'ls.section_name, ls.section_type, ' \
                             'ls.thumb AS library_thumb, ls.custom_thumb_url AS custom_thumb, ' \
                             'ls.art AS library_art, ls.custom_art_url AS custom_art, ' \
                             'sh.started, ' \
@@ -678,6 +683,7 @@ class DataFactory(object):
                             '   FROM session_history ' \
                             '   WHERE session_history.stopped >= %s ' \
                             '   GROUP BY %s) AS sh ' \
+                            'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
                             'LEFT OUTER JOIN (SELECT * FROM library_sections WHERE deleted_section = 0) ' \
                             '   AS ls ON sh.section_id = ls.section_id ' \
                             'GROUP BY sh.section_id ' \
@@ -701,6 +707,11 @@ class DataFactory(object):
                     else:
                         library_art = item['library_art']
 
+                    if not item['grandparent_thumb'] or item['grandparent_thumb'] == '':
+                        thumb = item['thumb']
+                    else:
+                        thumb = item['grandparent_thumb']
+
                     row = {
                         'total_plays': item['total_plays'],
                         'total_duration': item['total_duration'],
@@ -708,29 +719,46 @@ class DataFactory(object):
                         'section_name': item['section_name'],
                         'section_id': item['section_id'],
                         'last_play': item['last_watch'],
-                        'thumb': library_thumb,
-                        'grandparent_thumb': '',
-                        'art': library_art,
+                        'library_thumb': library_thumb,
+                        'library_art': library_art,
+                        'thumb': thumb,
+                        'grandparent_thumb': item['grandparent_thumb'],
+                        'art': item['art'],
                         'user': '',
                         'friendly_name': '',
                         'users_watched': '',
-                        'rating_key': '',
-                        'grandparent_rating_key': '',
-                        'title': '',
                         'platform': '',
-                        'row_id': ''
+                        'title': item['full_title'],
+                        'grandparent_title': item['grandparent_title'],
+                        'grandchild_title': item['title'],
+                        'year': item['year'],
+                        'media_index': item['media_index'],
+                        'parent_media_index': item['parent_media_index'],
+                        'rating_key': item['rating_key'],
+                        'grandparent_rating_key': item['grandparent_rating_key'],
+                        'media_type': item['media_type'],
+                        'content_rating': item['content_rating'],
+                        'labels': item['labels'].split(';') if item['labels'] else (),
+                        'live': item['live'],
+                        'guid': item['guid'],
+                        'row_id': item['id']
                     }
                     top_libraries.append(row)
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
                                    'stat_title': 'Most Active Libraries',
-                                   'rows': session.mask_session_info(top_libraries, mask_metadata=False)})
+                                   'rows': session.mask_session_info(top_libraries)})
 
             elif stat == 'top_users':
                 top_users = []
                 try:
-                    query = 'SELECT sh.user, sh.user_id, u.thumb AS user_thumb, u.custom_avatar_url AS custom_thumb, ' \
+                    query = 'SELECT sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, ' \
+                            'shm.media_index, shm.parent_media_index, ' \
+                            'sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, ' \
+                            'sh.user, sh.user_id, sh.player, sh.section_id, ' \
+                            'shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, ' \
+                            'u.thumb AS user_thumb, u.custom_avatar_url AS custom_thumb, ' \
                             'sh.started, ' \
                             '(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = ""' \
                             '   THEN u.username ELSE u.friendly_name END) ' \
@@ -742,6 +770,7 @@ class DataFactory(object):
                             '   FROM session_history ' \
                             '   WHERE session_history.stopped >= %s ' \
                             '   GROUP BY %s) AS sh ' \
+                            'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
                             'LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id ' \
                             'GROUP BY sh.user_id ' \
                             'ORDER BY %s DESC, sh.started DESC ' \
@@ -759,6 +788,11 @@ class DataFactory(object):
                     else:
                         user_thumb = common.DEFAULT_USER_THUMB
 
+                    if not item['grandparent_thumb'] or item['grandparent_thumb'] == '':
+                        thumb = item['thumb']
+                    else:
+                        thumb = item['grandparent_thumb']
+
                     row = {'user': item['user'],
                            'user_id': item['user_id'],
                            'friendly_name': item['friendly_name'],
@@ -766,21 +800,32 @@ class DataFactory(object):
                            'total_duration': item['total_duration'],
                            'last_play': item['last_watch'],
                            'user_thumb': user_thumb,
-                           'grandparent_thumb': '',
-                           'art': '',
+                           'thumb': thumb,
+                           'grandparent_thumb': item['grandparent_thumb'],
+                           'art': item['art'],
                            'users_watched': '',
-                           'rating_key': '',
-                           'grandparent_rating_key': '',
-                           'title': '',
                            'platform': '',
-                           'row_id': ''
-                    }
+                           'title': item['full_title'],
+                           'grandparent_title': item['grandparent_title'],
+                           'grandchild_title': item['title'],
+                           'year': item['year'],
+                           'media_index': item['media_index'],
+                           'parent_media_index': item['parent_media_index'],
+                           'rating_key': item['rating_key'],
+                           'grandparent_rating_key': item['grandparent_rating_key'],
+                           'media_type': item['media_type'],
+                           'content_rating': item['content_rating'],
+                           'labels': item['labels'].split(';') if item['labels'] else (),
+                           'live': item['live'],
+                           'guid': item['guid'],
+                           'row_id': item['id']
+                           }
                     top_users.append(row)
 
                 home_stats.append({'stat_id': stat,
                                    'stat_type': sort_type,
                                    'stat_title': 'Most Active Users',
-                                   'rows': session.mask_session_info(top_users, mask_metadata=False)})
+                                   'rows': session.mask_session_info(top_users)})
 
             elif stat == 'top_platforms':
                 top_platform = []
