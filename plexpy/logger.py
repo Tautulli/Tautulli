@@ -79,7 +79,7 @@ def filter_usernames(new_users=None):
         new_users = [user['username'] for user in users.Users().get_users()]
 
     for username in new_users:
-        if username.lower() not in ('local', 'guest') and username not in _FILTER_USERNAMES:
+        if username.lower() not in ('local', 'guest') and len(username) >= 3 and username not in _FILTER_USERNAMES:
             _FILTER_USERNAMES.append(username)
 
     _FILTER_USERNAMES = sorted(_FILTER_USERNAMES, key=len, reverse=True)
