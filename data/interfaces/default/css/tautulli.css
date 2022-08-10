@@ -997,6 +997,12 @@ a .users-poster-face:hover {
     font-size: 10px;
     z-index: 2;
 }
+.dashboard-activity-info-channel {
+    display: inline-block;
+    max-width: 75px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
 .dashboard-activity-progress {
     width: 100%;
     height: 5px;
