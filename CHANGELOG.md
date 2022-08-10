@@ -9,6 +9,7 @@
   * New: Added guids to artist, album, and track metadata export fields.
   * New: Added languageTag to stream media info export fields.
 * UI:
+  * Fix: Long channel identifier overflowing activity card. (#1802) 
   * Change: Use the last played item's artwork for library statistics cards. 
 * Other:
   * Fix: Username log filter causing database to lock up. (#1705)
