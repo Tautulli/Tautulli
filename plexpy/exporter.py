@@ -805,6 +805,9 @@ class Export(object):
                     'tag': None
                 },
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
                 'index': None,
                 'key': None,
                 'labels': {
@@ -869,6 +872,9 @@ class Export(object):
                     'tag': None
                 },
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
                 'hasSonicAnalysis': None,
                 'index': None,
                 'key': None,
@@ -946,6 +952,9 @@ class Export(object):
                 'grandparentThumb': None,
                 'grandparentTitle': None,
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
                 'hasSonicAnalysis': None,
                 'index': None,
                 'key': None,
@@ -1443,7 +1452,7 @@ class Export(object):
                 ],
                 2: [
                     'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'similar.tag', 'styles.tag',
-                    'fields.name', 'fields.locked'
+                    'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
                     'art', 'thumb', 'key',
@@ -1468,7 +1477,7 @@ class Export(object):
                 2: [
                     'collections.tag', 'formats.tag', 'genres.tag', 'labels.tag',
                     'moods.tag', 'styles.tag', 'subformats.tag',
-                    'fields.name', 'fields.locked'
+                    'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
                     'art', 'thumb', 'key',
@@ -1493,7 +1502,7 @@ class Export(object):
                 ],
                 2: [
                     'collections.tag', 'moods.tag',
-                    'fields.name', 'fields.locked'
+                    'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
                     'art', 'thumb', 'key',
