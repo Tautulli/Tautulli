@@ -1,5 +1,24 @@
 # Changelog
 
+## v2.10.3 (2022-08-09)
+
+* Notifications:
+  * New: Added JSON support for MQTT notifications. (#1763)
+  * New: Added show year notification parameter.
+* Exporter:
+  * New: Added guids to artist, album, and track metadata export fields.
+  * New: Added languageTag to stream media info export fields.
+* UI:
+  * Change: Use the last played item's artwork for library statistics cards. 
+* Other:
+  * Fix: Username log filter causing database to lock up. (#1705)
+  * Change: Username log filter only applies to usernames longer than 3 characters. (#1806)
+* API:
+  * New: Added parent_year and grandparent_year to get_metadata_details API command.
+  * New: Added last played metadata to top_libraries and top_users in get_home_stats API command.
+  * New: Allow fallback to another PMS image in pms_image_proxy API command.
+
+
 ## v2.10.2 (2022-07-03)
 
 * Activity:
