@@ -2740,7 +2740,7 @@ class PmsConnect(object):
                 return []
 
         elif str(section_id).isdigit() or section_type == 'album':
-            if section_type == 'album':
+            if section_type == 'album' and rating_key:
                 sort_type += '&artist.id=' + str(rating_key)
 
             xml_head = self.fetch_library_list(
