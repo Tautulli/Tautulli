@@ -15,12 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         architecture:
-          - i386
           - amd64
           - arm64
           - armhf
-          - ppc64el
-          #- s390x  # broken at the moment
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3.0.2
