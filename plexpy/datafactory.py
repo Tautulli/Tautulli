@@ -1048,8 +1048,8 @@ class DataFactory(object):
                     'shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, ' \
                     'MAX(sh.started) AS last_watch ' \
                     'FROM library_sections AS ls ' \
-                    'JOIN session_history AS sh ON ls.section_id = sh.section_id ' \
-                    'JOIN session_history_metadata AS shm ON sh.id = shm.id ' \
+                    'LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id ' \
+                    'LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id ' \
                     'WHERE ls.section_id IN (%s) AND ls.deleted_section = 0 ' \
                     'GROUP BY ls.id ' \
                     'ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC ' % ','.join(library_cards)
@@ -1084,9 +1084,9 @@ class DataFactory(object):
                        'count': item['count'],
                        'child_count': item['parent_count'],
                        'grandchild_count': item['child_count'],
-                       'thumb': thumb,
-                       'grandparent_thumb': item['grandparent_thumb'],
-                       'art': item['art'],
+                       'thumb': thumb or '',
+                       'grandparent_thumb': item['grandparent_thumb'] or '',
+                       'art': item['art'] or '',
                        'title': item['full_title'],
                        'grandparent_title': item['grandparent_title'],
                        'grandchild_title': item['title'],
