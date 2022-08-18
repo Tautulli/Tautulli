@@ -160,7 +160,8 @@ DOCUMENTATION :: END
                             </li>
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Quality</div>
-                                <div class="sub-value platform-right" id="stream_quality-${sk}">
+                                <div class="sub-value platform-right">
+                                    <span id="stream_quality-${sk}">
                                     % if data['media_type'] != 'photo' and data['quality_profile'] != 'Unknown':
                                     <%
                                         br = cast_to_int(data['stream_bitrate']) or ''
@@ -174,6 +175,8 @@ DOCUMENTATION :: END
                                     % else:
                                     ${data['quality_profile']}
                                     % endif
+                                    </span>
+                                    <span data-toggle="tooltip" title="Quality profile is only an estimate based on bitrate and may be incorrect"><i class="fa fa-exclamation-circle"></i></span>
                                 </div>
                             </li>
                             % if data['optimized_version'] == 1:
