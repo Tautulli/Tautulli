@@ -1,6 +1,7 @@
 name: Publish Docker
 
 on:
+  workflow_dispatch: ~
   push:
     branches: [master, beta, nightly]
     tags: [v*]
