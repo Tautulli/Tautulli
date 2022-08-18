@@ -28,6 +28,7 @@ parts:
       - git
     override-pull: |
       snapcraftctl pull
+      git config --global --add safe.directory /data/parts/tautulli/src
       TAG_FULL=$(git describe --tag)
       TAG=$(echo $TAG_FULL | grep -oP '(v\d+\.\d+\.\d+(?>-beta)?)')
       BRANCH=$(git rev-parse --abbrev-ref HEAD)
