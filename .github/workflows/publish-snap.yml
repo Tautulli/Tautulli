@@ -59,8 +59,9 @@ jobs:
       - name: Publish Snap Package
         uses: snapcore/action-publish@v1
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/nightly'
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_LOGIN }}
         with:
-          store_login: ${{ secrets.SNAP_LOGIN }}
           snap: ${{ steps.build.outputs.snap }}
           release: ${{ steps.prepare.outputs.RELEASE }}
 
