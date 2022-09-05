@@ -1,6 +1,6 @@
 appdirs==1.4.4
 apscheduler==3.9.1
-arrow==1.2.2
+arrow==1.2.3
 backports.csv==1.0.7
 backports.functools-lru-cache==1.6.4
 backports.zoneinfo==0.2.1
