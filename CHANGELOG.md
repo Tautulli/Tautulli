@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.10.4 (2022-09-05)
+
+* Activity:
+  * New: Added tooltip for quality profile on activity cards.
+* Notifications:
+  * New: Added "does not begin with" and "does not end with" condition operators.
+* UI:
+  * Fix: Album count showing 0 on library statistics.
+  * Fix: Library statistics not showing up for libraries without any history.
+
+
 ## v2.10.3 (2022-08-09)
 
 * Notifications:
