@@ -652,7 +652,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     # Check external guids
     if notify_params['media_type'] == 'episode':
         guids = notify_params['grandparent_guids']
-    elif notify_params['media_type'] in ('season', 'track'):
+    elif notify_params['media_type'] == 'season':
         guids = notify_params['parent_guids']
     else:
         guids = notify_params['guids']
@@ -704,8 +704,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     if 'mbid://' in notify_params['guid'] or notify_params['musicbrainz_id']:
         if notify_params['media_type'] == 'artist':
             notify_params['musicbrainz_url'] = 'https://musicbrainz.org/artist/' + notify_params['musicbrainz_id']
-        else:
+        elif notify_params['media_type'] == 'album':
             notify_params['musicbrainz_url'] = 'https://musicbrainz.org/release/' + notify_params['musicbrainz_id']
+        else:
+            notify_params['musicbrainz_url'] = 'https://musicbrainz.org/track/' + notify_params['musicbrainz_id']
 
     # Get TheMovieDB info (for movies and tv only)
     if plexpy.CONFIG.THEMOVIEDB_LOOKUP and notify_params['media_type'] in ('movie', 'show', 'season', 'episode'):
