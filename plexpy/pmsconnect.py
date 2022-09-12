@@ -2757,6 +2757,7 @@ class PmsConnect(object):
             return []
 
 
+        library_count = '0'
         children_list = []
 
         for a in xml_head:
