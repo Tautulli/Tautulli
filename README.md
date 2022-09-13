@@ -114,7 +114,7 @@ problem isn't answered in the FAQ try the following first:
 
 ## Feature Requests
 
-1.  Pleases check the [issues tracker][Issues] to see if someone else has already requested the feature.
+1.  Please check the [issues tracker][Issues] to see if someone else has already requested the feature.
     If a similar idea has already been requested, _give it a thumbs up_. **Do not comment
     with `+1` or something similar as it creates unnecessary spam.**
 2.  If this is a new feature request, open a [feature request][Issue New] on the issues tracker.
