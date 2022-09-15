@@ -54,14 +54,9 @@ jobs:
       - name: Set Up Python
         uses: actions/setup-python@v4.2.0
         with:
-          python-version: 3.9
-
-      - name: Cache Dependencies
-        uses: actions/cache@v3.0.8
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-package.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
+          python-version: '3.9'
+          cache: pip
+          cache-dependency-path: '**/requirements*.txt'
 
       - name: Install Dependencies
         run: |
