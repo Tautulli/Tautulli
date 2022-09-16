@@ -22,7 +22,7 @@ importlib-metadata==4.11.4
 importlib-resources==5.7.1
 git+https://github.com/Tautulli/ipwhois.git@master#egg=ipwhois
 IPy==1.01
-Mako==1.2.0
+Mako==1.2.2
 MarkupSafe==2.1.1
 musicbrainzngs==0.7.1
 packaging==21.3
