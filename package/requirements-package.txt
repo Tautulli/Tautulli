@@ -6,6 +6,6 @@ pyopenssl==22.0.0
 pycryptodomex==3.14.1
 
 pyobjc-framework-Cocoa==8.5; platform_system == "Darwin"
-pyobjc-core==8.5; platform_system == "Darwin"
+pyobjc-core==8.5.1; platform_system == "Darwin"
 
 pywin32==304; platform_system == "Windows"
