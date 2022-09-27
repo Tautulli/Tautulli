@@ -1044,7 +1044,7 @@ class DataFactory(object):
                     'sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, ' \
                     'shm.media_index, shm.parent_media_index, ' \
                     'sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, ' \
-                    'sh.user, sh.user_id, sh.player, sh.section_id, ' \
+                    'sh.user, sh.user_id, sh.player, ' \
                     'shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, ' \
                     'MAX(sh.started) AS last_watch ' \
                     'FROM library_sections AS ls ' \
