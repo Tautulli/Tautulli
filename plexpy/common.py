@@ -489,8 +489,9 @@ NOTIFICATION_PARAMETERS = [
         'category': 'Source Metadata Details',
         'parameters': [
              {'name': 'Media Type', 'type': 'str', 'value': 'media_type', 'description': 'The type of media.', 'example': 'movie, show, season, episode, artist, album, track, clip'},
-             {'name': 'Title', 'type': 'str', 'value': 'title', 'description': 'The full title of the item.'},
              {'name': 'Library Name', 'type': 'str', 'value': 'library_name', 'description': 'The library name of the item.'},
+             {'name': 'Title', 'type': 'str', 'value': 'title', 'description': 'The full title of the item.'},
+             {'name': 'Edition Title', 'type': 'str', 'value': 'edition_title', 'description': 'The edition title of the movie.'},
              {'name': 'Show Name', 'type': 'str', 'value': 'show_name', 'description': 'The title of the TV show.'},
              {'name': 'Season Name', 'type': 'str', 'value': 'season_name', 'description': 'The title of the TV season.'},
              {'name': 'Episode Name', 'type': 'str', 'value': 'episode_name', 'description': 'The title of the TV episode.'},

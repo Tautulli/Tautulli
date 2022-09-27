@@ -1066,8 +1066,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'machine_id': notify_params['machine_id'],
         # Source metadata parameters
         'media_type': notify_params['media_type'],
-        'title': notify_params['full_title'],
         'library_name': notify_params['library_name'],
+        'title': notify_params['full_title'],
+        'edition_title': notify_params['edition_title'],
         'show_name': show_name,
         'season_name': season_name,
         'episode_name': episode_name,
