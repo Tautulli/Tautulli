@@ -5310,6 +5310,7 @@ class WebInterface(object):
                         "Jeremy Podeswa"
                      ],
                      "duration": "2998290",
+                     "edition_title": "",
                      "full_title": "Game of Thrones - The Red Woman",
                      "genres": [
                         "Action/Adventure",
