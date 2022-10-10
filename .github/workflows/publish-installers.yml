@@ -52,7 +52,7 @@ jobs:
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
-        uses: actions/setup-python@v4.2.0
+        uses: actions/setup-python@v4.3.0
         with:
           python-version: '3.9'
           cache: pip
