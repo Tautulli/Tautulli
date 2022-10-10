@@ -679,3 +679,8 @@ NEWSLETTER_PARAMETERS = [
         ]
     }
 ]
+
+
+NOTIFICATION_PARAMETERS_TYPES = {
+    parameter['value']: parameter['type'] for category in NOTIFICATION_PARAMETERS for parameter in category['parameters']
+}
