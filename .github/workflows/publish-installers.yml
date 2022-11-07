@@ -40,7 +40,7 @@ jobs:
             echo "VERSION=0.0.0" >> $GITHUB_ENV
             echo "VERSION_NSIS=0.0.0.0" >> $GITHUB_OUTPUT
             echo "VERSION=0.0.0" >> $GITHUB_OUTPUT
-            echo "RELEASE_VERSION::${GITHUB_SHA=7}" >> $GITHUB_OUTPUT
+            echo "RELEASE_VERSION=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
           fi
           if [[ $GITHUB_REF == refs/tags/*-beta ]]; then
             echo "beta" > branch.txt
