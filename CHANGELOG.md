@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.10.5 (2022-11-07)
+
+* Notifications:
+  * New: Added edition_title notification parameter. (#1838)
+  * Change: Track notifications link to MusicBrainz track instead of album.
+* Newsletters:
+  * New: Added months time frame for newsletters. (#1876)
+* UI:
+  * Fix: Broken link on library statistic cards. (#1852)
+  * Fix: Check for IPv6 host when generating QR code for app registration.
+  * Fix: Missing padding on condition operator dropdown on small screens.
+* Other:
+  * Fix: Launching browser when webserver is bound to IPv6.
+  * New: Tautulli can be installed via the Windows Package Manager (winget).
+  * Change: Separate stdout and stderr console logging. (#1874)
+* API:
+  * Fix: API not returning 400 response code.
+  * New: Added edition_title to get_metadata API response.
+  * New: Added collections to get_children_metadata API response.
+  * New: Added user_thumb to get_history API response.
+  * New: Validate custom notification conditions before saving notification agents. (#1846)
+  * Change: Fallback to parent_thumb for seasons in get_metadata API response.
+
+
 ## v2.10.4 (2022-09-05)
 
 * Activity:
