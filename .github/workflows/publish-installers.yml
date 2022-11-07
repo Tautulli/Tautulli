@@ -117,8 +117,9 @@ jobs:
       - name: Get Changelog
         id: get_changelog
         run: |
-          echo "CHANGELOG="$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md \" >> $GITHUB_OUTPUT
+          CHANGELOG="$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md \
             | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )"
+          echo "CHANGELOG=${CHANGELOG}" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: actions/create-release@v1
