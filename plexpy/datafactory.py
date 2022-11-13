@@ -34,6 +34,7 @@ if plexpy.PYTHON2:
     import logger
     import pmsconnect
     import session
+    import users
 else:
     from plexpy import libraries
     from plexpy import common
@@ -43,6 +44,7 @@ else:
     from plexpy import logger
     from plexpy import pmsconnect
     from plexpy import session
+    from plexpy import users
 
 # Temporarily store update_metadata row ids in memory to prevent rating_key collisions
 _UPDATE_METADATA_IDS = {
@@ -103,6 +105,8 @@ class DataFactory(object):
             'session_history.user',
             '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
              THEN users.username ELSE users.friendly_name END) AS friendly_name',
+            'users.thumb AS user_thumb',
+            'users.custom_avatar_url AS custom_thumb',
             'platform',
             'product',
             'player',
@@ -161,6 +165,8 @@ class DataFactory(object):
                 'user',
                 '(CASE WHEN friendly_name IS NULL OR TRIM(friendly_name) = "" \
                  THEN user ELSE friendly_name END) AS friendly_name',
+                'NULL AS user_thumb',
+                'NULL AS custom_thumb',
                 'platform',
                 'product',
                 'player',
@@ -244,7 +250,18 @@ class DataFactory(object):
                            }
 
         rows = []
+
+        users_lookup = {}
+
         for item in history:
+            if item['state']:
+                # Get user thumb from database for current activity
+                if not users_lookup:
+                    # Cache user lookup
+                    users_lookup = {u['user_id']: u['thumb'] for u in users.Users().get_users()}
+
+                item['user_thumb'] = users_lookup.get(item['user_id'])
+
             filter_duration += int(item['duration'])
 
             if item['media_type'] == 'episode' and item['parent_thumb']:
@@ -267,6 +284,13 @@ class DataFactory(object):
             # Rename Mystery platform names
             platform = common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform'])
 
+            if item['custom_thumb'] and item['custom_thumb'] != item['user_thumb']:
+                user_thumb = item['custom_thumb']
+            elif item['user_thumb']:
+                user_thumb = item['user_thumb']
+            else:
+                user_thumb = common.DEFAULT_USER_THUMB
+
             row = {'reference_id': item['reference_id'],
                    'row_id': item['row_id'],
                    'id': item['row_id'],
@@ -278,6 +302,7 @@ class DataFactory(object):
                    'user_id': item['user_id'],
                    'user': item['user'],
                    'friendly_name': item['friendly_name'],
+                   'user_thumb': user_thumb,
                    'platform': platform,
                    'product': item['product'],
                    'player': item['player'],

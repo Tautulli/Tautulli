@@ -58,7 +58,7 @@ DOCUMENTATION :: END
 
     getPlexPyURL = function () {
         var deferred = $.Deferred();
-        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1" && location.hostname !== "[::1]") {
             deferred.resolve(location.href.split('/settings')[0]);
         } else {
             $.get('get_plexpy_url').then(function (url) {
@@ -74,7 +74,7 @@ DOCUMENTATION :: END
         var hostname = parser.hostname;
         var protocol = parser.protocol;
 
-        if (hostname === '127.0.0.1' || hostname === 'localhost') {
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
             $('#api_qr_localhost').toggle(true);
             $('#api_qr_private').toggle(false);
         } else {

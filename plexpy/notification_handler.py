@@ -288,7 +288,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 continue
 
             # Make sure the condition values is in a list
-            if isinstance(values, str):
+            if not isinstance(values, list):
                 values = [values]
 
             # Cast the condition values to the correct type
@@ -301,6 +301,9 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
                 elif parameter_type == 'float':
                     values = [helpers.cast_to_float(v) for v in values]
+
+                else:
+                    raise ValueError
 
             except ValueError as e:
                 logger.error("Tautulli NotificationHandler :: {%s} Unable to cast condition '%s', values '%s', to type '%s'."
@@ -317,6 +320,9 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 
                 elif parameter_type == 'float':
                     parameter_value = helpers.cast_to_float(parameter_value)
+
+                else:
+                    raise ValueError
 
             except ValueError as e:
                 logger.error("Tautulli NotificationHandler :: {%s} Unable to cast parameter '%s', value '%s', to type '%s'."
