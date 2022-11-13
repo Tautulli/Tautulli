@@ -1,4 +1,4 @@
-name: Submit Tautulli package to Windows Package Manager Community Repository
+name: Submit winget
 
 on:
   workflow_dispatch: ~
