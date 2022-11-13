@@ -1,5 +1,5 @@
 # mako/lexer.py
-# Copyright 2006-2021 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2022 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -74,12 +74,11 @@ class Lexer:
             (start, end) = match.span()
             self.match_position = end + 1 if end == start else end
             self.matched_lineno = self.lineno
-            lines = re.findall(r"\n", self.text[mp : self.match_position])
             cp = mp - 1
-            while cp >= 0 and cp < self.textlength and self.text[cp] != "\n":
-                cp -= 1
+            if cp >= 0 and cp < self.textlength:
+                cp = self.text[: cp + 1].rfind("\n")
             self.matched_charpos = mp - cp
-            self.lineno += len(lines)
+            self.lineno += self.text[mp : self.match_position].count("\n")
         return match
 
     def parse_until_text(self, watch_nesting, *text):
@@ -273,20 +272,24 @@ class Lexer:
         return self.template
 
     def match_tag_start(self):
-        match = self.match(
-            r"""
+        reg = r"""
             \<%     # opening tag
 
             ([\w\.\:]+)   # keyword
 
-            ((?:\s+\w+|\s*=\s*|".*?"|'.*?')*)  # attrname, = \
+            ((?:\s+\w+|\s*=\s*|"[^"]*?"|'[^']*?'|\s*,\s*)*)  # attrname, = \
                                                #        sign, string expression
+                                               # comma is for backwards compat
+                                               # identified in #366
 
             \s*     # more whitespace
 
             (/)?>   # closing
 
-            """,
+        """
+
+        match = self.match(
+            reg,
             re.I | re.S | re.X,
         )
 
@@ -319,7 +322,7 @@ class Lexer:
         return True
 
     def match_tag_end(self):
-        match = self.match(r"\</%[\t ]*(.+?)[\t ]*>")
+        match = self.match(r"\</%[\t ]*([^\t ]+?)[\t ]*>")
         if match:
             if not len(self.tag):
                 raise exceptions.SyntaxException(
