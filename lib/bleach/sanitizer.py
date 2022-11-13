@@ -2,10 +2,10 @@ from itertools import chain
 import re
 import warnings
 
-from bleach._vendor.parse import urlparse
 from xml.sax.saxutils import unescape
 
 from bleach import html5lib_shim
+from bleach import parse_shim
 
 
 #: List of allowed tags
@@ -247,7 +247,7 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
     ):
         """Creates a BleachSanitizerFilter instance
 
-        :arg Treewalker source: stream
+        :arg source: html5lib TreeWalker stream as an html5lib TreeWalker
 
         :arg list allowed_elements: allowed list of tags; defaults to
             ``bleach.sanitizer.ALLOWED_TAGS``
@@ -449,27 +449,27 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
         :returns: allowed value or None
 
         """
-        # NOTE(willkg): This transforms the value into one that's easier to
-        # match and verify, but shouldn't get returned since it's vastly
-        # different than the original value.
+        # NOTE(willkg): This transforms the value into a normalized one that's
+        # easier to match and verify, but shouldn't get returned since it's
+        # vastly different than the original value.
 
         # Convert all character entities in the value
-        new_value = html5lib_shim.convert_entities(value)
+        normalized_uri = html5lib_shim.convert_entities(value)
 
         # Nix backtick, space characters, and control characters
-        new_value = re.sub(r"[`\000-\040\177-\240\s]+", "", new_value)
+        normalized_uri = re.sub(r"[`\000-\040\177-\240\s]+", "", normalized_uri)
 
         # Remove REPLACEMENT characters
-        new_value = new_value.replace("\ufffd", "")
+        normalized_uri = normalized_uri.replace("\ufffd", "")
 
         # Lowercase it--this breaks the value, but makes it easier to match
         # against
-        new_value = new_value.lower()
+        normalized_uri = normalized_uri.lower()
 
         try:
             # Drop attributes with uri values that have protocols that aren't
             # allowed
-            parsed = urlparse(new_value)
+            parsed = parse_shim.urlparse(normalized_uri)
         except ValueError:
             # URI is impossible to parse, therefore it's not allowed
             return None
@@ -481,16 +481,19 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
 
         else:
             # Allow uris that are just an anchor
-            if new_value.startswith("#"):
+            if normalized_uri.startswith("#"):
                 return value
 
             # Handle protocols that urlparse doesn't recognize like "myprotocol"
-            if ":" in new_value and new_value.split(":")[0] in allowed_protocols:
+            if (
+                ":" in normalized_uri
+                and normalized_uri.split(":")[0] in allowed_protocols
+            ):
                 return value
 
-            # If there's no protocol/scheme specified, then assume it's "http"
-            # and see if that's allowed
-            if "http" in allowed_protocols:
+            # If there's no protocol/scheme specified, then assume it's "http" or
+            # "https" and see if that's allowed
+            if "http" in allowed_protocols or "https" in allowed_protocols:
                 return value
 
         return None

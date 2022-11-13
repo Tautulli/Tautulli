@@ -246,7 +246,7 @@ def main():
     # Start the background threads
     plexpy.start()
 
-    # Force the http port if neccessary
+    # Force the http port if necessary
     if args.port:
         plexpy.HTTP_PORT = args.port
         logger.info('Using forced web server port: %i', plexpy.HTTP_PORT)

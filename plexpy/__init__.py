@@ -429,7 +429,7 @@ def daemonize():
 
 def launch_browser(host, port, root):
     if not no_browser:
-        if host == '0.0.0.0':
+        if host in ('0.0.0.0', '::'):
             host = 'localhost'
 
         if CONFIG.ENABLE_HTTPS:
