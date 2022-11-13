@@ -1,5 +1,7 @@
 import re
 
+from urllib.parse import quote
+
 from bleach import callbacks as linkify_callbacks
 from bleach import html5lib_shim
 
@@ -124,11 +126,11 @@ class Linker:
 
         :arg bool parse_email: whether or not to linkify email addresses
 
-        :arg re url_re: url matching regex
+        :arg url_re: url matching regex
 
-        :arg re email_re: email matching regex
+        :arg email_re: email matching regex
 
-        :arg list-of-strings recognized_tags: the list of tags that linkify knows about;
+        :arg list recognized_tags: the list of tags that linkify knows about;
             everything else gets escaped
 
         :returns: linkified text as unicode
@@ -211,7 +213,7 @@ class LinkifyFilter(html5lib_shim.Filter):
     ):
         """Creates a LinkifyFilter instance
 
-        :arg TreeWalker source: stream
+        :arg source: stream as an html5lib TreeWalker
 
         :arg list callbacks: list of callbacks to run when adjusting tag attributes;
             defaults to ``bleach.linkifier.DEFAULT_CALLBACKS``
@@ -222,9 +224,9 @@ class LinkifyFilter(html5lib_shim.Filter):
 
         :arg bool parse_email: whether or not to linkify email addresses
 
-        :arg re url_re: url matching regex
+        :arg url_re: url matching regex
 
-        :arg re email_re: email matching regex
+        :arg email_re: email matching regex
 
         """
         super().__init__(source)
@@ -298,10 +300,15 @@ class LinkifyFilter(html5lib_shim.Filter):
                             {"type": "Characters", "data": text[end : match.start()]}
                         )
 
+                    # URL-encode the "local-part" according to RFC6068
+                    parts = match.group(0).split("@")
+                    parts[0] = quote(parts[0])
+                    address = "@".join(parts)
+
                     # Run attributes through the callbacks to see what we
                     # should do with this match
                     attrs = {
-                        (None, "href"): "mailto:%s" % match.group(0),
+                        (None, "href"): "mailto:%s" % address,
                         "_text": match.group(0),
                     }
                     attrs = self.apply_callbacks(attrs, True)
