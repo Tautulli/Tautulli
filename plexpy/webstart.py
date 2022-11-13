@@ -16,6 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import ssl
 import sys
 
 import cherrypy
@@ -101,6 +102,17 @@ def initialize(options):
         options_dict['engine.autoreload.on'] = True
 
     if enable_https:
+        context = ssl.create_default_context(
+            purpose=ssl.Purpose.CLIENT_AUTH,
+            cafile=https_cert_chain
+        )
+        # Context options:
+        # PROTOCOL_TLS_SERVER | OP_NO_SSLv2 | OP_NO_SSLv3 | OP_NO_TLSv1 | OP_NO_TLSv1_1
+        context.options |= ssl.OP_NO_TLSv1
+        context.options |= ssl.OP_NO_TLSv1_1
+        context.load_cert_chain(https_cert, https_key)
+
+        options_dict['server.ssl_context'] = context
         options_dict['server.ssl_certificate'] = https_cert
         options_dict['server.ssl_certificate_chain'] = https_cert_chain
         options_dict['server.ssl_private_key'] = https_key
