@@ -41,7 +41,7 @@ rumps==0.3.0; platform_system == "Darwin"
 simplejson==3.17.6
 six==1.16.0
 soupsieve==2.3.2.post1
-tempora==5.0.1
+tempora==5.0.2
 tokenize-rt==4.2.1
 tzdata==2022.1
 tzlocal==4.2
