@@ -106,10 +106,7 @@ def initialize(options):
             purpose=ssl.Purpose.CLIENT_AUTH,
             cafile=https_cert_chain
         )
-        # Context options:
-        # PROTOCOL_TLS_SERVER | OP_NO_SSLv2 | OP_NO_SSLv3 | OP_NO_TLSv1 | OP_NO_TLSv1_1
-        context.options |= ssl.OP_NO_TLSv1
-        context.options |= ssl.OP_NO_TLSv1_1
+        context.minimum_version = ssl.TLSVersion.TLSv1_2
         context.load_cert_chain(https_cert, https_key)
 
         options_dict['server.ssl_context'] = context
