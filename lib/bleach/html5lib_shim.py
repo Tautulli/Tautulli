@@ -385,7 +385,17 @@ class BleachHTMLTokenizer(HTMLTokenizer):
             yield token
 
         if last_error_token:
-            yield last_error_token
+            if last_error_token["data"] == "eof-in-tag-name":
+                # Handle the case where the text being parsed ends with <
+                # followed by a series of characters. It's treated as a tag
+                # name that abruptly ends, but we should treat that like
+                # character data
+                yield {
+                    "type": TAG_TOKEN_TYPE_CHARACTERS,
+                    "data": "<" + self.currentToken["name"],
+                }
+            else:
+                yield last_error_token
 
     def consumeEntity(self, allowedChar=None, fromAttribute=False):
         # If this tokenizer is set to consume entities, then we can let the
