@@ -101,13 +101,12 @@ def get_ha1_file_htdigest(filename):
     """
     def get_ha1(realm, username):
         result = None
-        f = open(filename, 'r')
-        for line in f:
-            u, r, ha1 = line.rstrip().split(':')
-            if u == username and r == realm:
-                result = ha1
-                break
-        f.close()
+        with open(filename, 'r') as f:
+            for line in f:
+                u, r, ha1 = line.rstrip().split(':')
+                if u == username and r == realm:
+                    result = ha1
+                    break
         return result
 
     return get_ha1

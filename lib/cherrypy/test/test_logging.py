@@ -113,7 +113,7 @@ def test_normal_return(log_tracker, server):
     resp = requests.get(
         'http://%s:%s/as_string' % (host, port),
         headers={
-            'Referer': 'http://www.cherrypy.org/',
+            'Referer': 'http://www.cherrypy.dev/',
             'User-Agent': 'Mozilla/5.0',
         },
     )
@@ -135,7 +135,7 @@ def test_normal_return(log_tracker, server):
     log_tracker.assertLog(
         -1,
         '] "GET /as_string HTTP/1.1" 200 %s '
-        '"http://www.cherrypy.org/" "Mozilla/5.0"'
+        '"http://www.cherrypy.dev/" "Mozilla/5.0"'
         % content_length,
     )
 

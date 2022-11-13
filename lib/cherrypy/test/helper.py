@@ -505,7 +505,8 @@ server.ssl_private_key: r'%s'
 
     def get_pid(self):
         if self.daemonize:
-            return int(open(self.pid_file, 'rb').read())
+            with open(self.pid_file, 'rb') as f:
+                return int(f.read())
         return self._proc.pid
 
     def join(self):

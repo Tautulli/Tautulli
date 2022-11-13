@@ -97,7 +97,8 @@ class LogCase(object):
 
     def emptyLog(self):
         """Overwrite self.logfile with 0 bytes."""
-        open(self.logfile, 'wb').write('')
+        with open(self.logfile, 'wb') as f:
+            f.write('')
 
     def markLog(self, key=None):
         """Insert a marker line into the log and set self.lastmarker."""
@@ -105,10 +106,11 @@ class LogCase(object):
             key = str(time.time())
         self.lastmarker = key
 
-        open(self.logfile, 'ab+').write(
-            b'%s%s\n'
-            % (self.markerPrefix, key.encode('utf-8'))
-        )
+        with open(self.logfile, 'ab+') as f:
+            f.write(
+                b'%s%s\n'
+                % (self.markerPrefix, key.encode('utf-8'))
+            )
 
     def _read_marked_region(self, marker=None):
         """Return lines from self.logfile in the marked region.
@@ -122,20 +124,23 @@ class LogCase(object):
         logfile = self.logfile
         marker = marker or self.lastmarker
         if marker is None:
-            return open(logfile, 'rb').readlines()
+            with open(logfile, 'rb') as f:
+                return f.readlines()
 
         if isinstance(marker, str):
             marker = marker.encode('utf-8')
         data = []
         in_region = False
-        for line in open(logfile, 'rb'):
-            if in_region:
-                if line.startswith(self.markerPrefix) and marker not in line:
-                    break
-                else:
-                    data.append(line)
-            elif marker in line:
-                in_region = True
+        with open(logfile, 'rb') as f:
+            for line in f:
+                if in_region:
+                    if (line.startswith(self.markerPrefix)
+                            and marker not in line):
+                        break
+                    else:
+                        data.append(line)
+                elif marker in line:
+                    in_region = True
         return data
 
     def assertInLog(self, line, marker=None):

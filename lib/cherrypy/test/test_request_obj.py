@@ -342,7 +342,7 @@ class RequestObjectTests(helper.CPWebCase):
         self.assertBody('/pathinfo/foo/bar')
 
     def testAbsoluteURIPathInfo(self):
-        # http://cherrypy.org/ticket/1061
+        # http://cherrypy.dev/ticket/1061
         self.getPage('http://localhost/pathinfo/foo/bar')
         self.assertBody('/pathinfo/foo/bar')
 
@@ -375,10 +375,10 @@ class RequestObjectTests(helper.CPWebCase):
 
         # Make sure that encoded = and & get parsed correctly
         self.getPage(
-            '/params/code?url=http%3A//cherrypy.org/index%3Fa%3D1%26b%3D2')
+            '/params/code?url=http%3A//cherrypy.dev/index%3Fa%3D1%26b%3D2')
         self.assertBody('args: %s kwargs: %s' %
                         (('code',),
-                         [('url', ntou('http://cherrypy.org/index?a=1&b=2'))]))
+                         [('url', ntou('http://cherrypy.dev/index?a=1&b=2'))]))
 
         # Test coordinates sent by <img ismap>
         self.getPage('/params/ismap?223,114')
@@ -755,6 +755,16 @@ class RequestObjectTests(helper.CPWebCase):
         self.getPage('/headers/Content-Type',
                      headers=[('Content-type', 'application/json')])
         self.assertBody('application/json')
+
+    def test_dangerous_host(self):
+        """
+        Dangerous characters like newlines should be elided.
+        Ref #1974.
+        """
+        # foo\nbar
+        encoded = '=?iso-8859-1?q?foo=0Abar?='
+        self.getPage('/headers/Host', headers=[('Host', encoded)])
+        self.assertBody('foobar')
 
     def test_basic_HTTPMethods(self):
         helper.webtest.methods_with_bodies = ('POST', 'PUT', 'PROPFIND',

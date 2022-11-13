@@ -53,7 +53,7 @@ class LinksPage:
 
             <ul>
                 <li>
-                    <a href="http://www.cherrypy.org">The CherryPy Homepage</a>
+                    <a href="http://www.cherrypy.dev">The CherryPy Homepage</a>
                 </li>
                 <li>
                     <a href="http://www.python.org">The Python Homepage</a>
@@ -77,7 +77,7 @@ class ExtraLinksPage:
 
             <ul>
                 <li><a href="http://del.icio.us">del.icio.us</a></li>
-                <li><a href="http://www.cherrypy.org">CherryPy</a></li>
+                <li><a href="http://www.cherrypy.dev">CherryPy</a></li>
             </ul>
 
             <p>[<a href="../">Return to links page</a>]</p>'''

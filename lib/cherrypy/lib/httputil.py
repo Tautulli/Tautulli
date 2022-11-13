@@ -516,3 +516,33 @@ class Host(object):
 
     def __repr__(self):
         return 'httputil.Host(%r, %r, %r)' % (self.ip, self.port, self.name)
+
+
+class SanitizedHost(str):
+    r"""
+    Wraps a raw host header received from the network in
+    a sanitized version that elides dangerous characters.
+
+    >>> SanitizedHost('foo\nbar')
+    'foobar'
+    >>> SanitizedHost('foo\nbar').raw
+    'foo\nbar'
+
+    A SanitizedInstance is only returned if sanitization was performed.
+
+    >>> isinstance(SanitizedHost('foobar'), SanitizedHost)
+    False
+    """
+    dangerous = re.compile(r'[\n\r]')
+
+    def __new__(cls, raw):
+        sanitized = cls._sanitize(raw)
+        if sanitized == raw:
+            return raw
+        instance = super().__new__(cls, sanitized)
+        instance.raw = raw
+        return instance
+
+    @classmethod
+    def _sanitize(cls, raw):
+        return cls.dangerous.sub('', raw)

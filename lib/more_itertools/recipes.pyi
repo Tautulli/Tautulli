@@ -6,6 +6,7 @@ from typing import (
     Iterator,
     List,
     Optional,
+    Sequence,
     Tuple,
     TypeVar,
     Union,
@@ -39,21 +40,11 @@ def repeatfunc(
     func: Callable[..., _U], times: Optional[int] = ..., *args: Any
 ) -> Iterator[_U]: ...
 def pairwise(iterable: Iterable[_T]) -> Iterator[Tuple[_T, _T]]: ...
-@overload
 def grouper(
-    iterable: Iterable[_T], n: int
-) -> Iterator[Tuple[Optional[_T], ...]]: ...
-@overload
-def grouper(
-    iterable: Iterable[_T], n: int, fillvalue: _U
-) -> Iterator[Tuple[Union[_T, _U], ...]]: ...
-@overload
-def grouper(  # Deprecated interface
-    iterable: int, n: Iterable[_T]
-) -> Iterator[Tuple[Optional[_T], ...]]: ...
-@overload
-def grouper(  # Deprecated interface
-    iterable: int, n: Iterable[_T], fillvalue: _U
+    iterable: Iterable[_T],
+    n: int,
+    incomplete: str = ...,
+    fillvalue: _U = ...,
 ) -> Iterator[Tuple[Union[_T, _U], ...]]: ...
 def roundrobin(*iterables: Iterable[_T]) -> Iterator[_T]: ...
 def partition(
@@ -110,3 +101,10 @@ def triplewise(iterable: Iterable[_T]) -> Iterator[Tuple[_T, _T, _T]]: ...
 def sliding_window(
     iterable: Iterable[_T], n: int
 ) -> Iterator[Tuple[_T, ...]]: ...
+def subslices(iterable: Iterable[_T]) -> Iterator[List[_T]]: ...
+def polynomial_from_roots(roots: Sequence[int]) -> List[int]: ...
+def sieve(n: int) -> Iterator[int]: ...
+def batched(
+    iterable: Iterable[_T],
+    n: int,
+) -> Iterator[List[_T]]: ...

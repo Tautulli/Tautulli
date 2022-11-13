@@ -334,9 +334,10 @@ class CoverStats(object):
         yield '</body></html>'
 
     def annotated_file(self, filename, statements, excluded, missing):
-        source = open(filename, 'r')
+        with open(filename, 'r') as source:
+            lines = source.readlines()
         buffer = []
-        for lineno, line in enumerate(source.readlines()):
+        for lineno, line in enumerate(lines):
             lineno += 1
             line = line.strip('\n\r')
             empty_the_buffer = True
