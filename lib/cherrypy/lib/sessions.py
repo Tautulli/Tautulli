@@ -516,11 +516,8 @@ class FileSession(Session):
         if path is None:
             path = self._get_file_path()
         try:
-            f = open(path, 'rb')
-            try:
+            with open(path, 'rb') as f:
                 return pickle.load(f)
-            finally:
-                f.close()
         except (IOError, EOFError):
             e = sys.exc_info()[1]
             if self.debug:
@@ -531,11 +528,8 @@ class FileSession(Session):
     def _save(self, expiration_time):
         assert self.locked, ('The session was saved without being locked.  '
                              "Check your tools' priority levels.")
-        f = open(self._get_file_path(), 'wb')
-        try:
+        with open(self._get_file_path(), 'wb') as f:
             pickle.dump((self._data, expiration_time), f, self.pickle_protocol)
-        finally:
-            f.close()
 
     def _delete(self):
         assert self.locked, ('The session deletion without being locked.  '

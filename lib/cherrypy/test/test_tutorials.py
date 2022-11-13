@@ -78,7 +78,7 @@ class TutorialTest(helper.CPWebCase):
 
             <ul>
                 <li><a href="http://del.icio.us">del.icio.us</a></li>
-                <li><a href="http://www.cherrypy.org">CherryPy</a></li>
+                <li><a href="http://www.cherrypy.dev">CherryPy</a></li>
             </ul>
 
             <p>[<a href="../">Return to links page</a>]</p>'''
@@ -166,7 +166,7 @@ class TutorialTest(helper.CPWebCase):
         self.assertHeader('Content-Disposition',
                           # Make sure the filename is quoted.
                           'attachment; filename="pdf_file.pdf"')
-        self.assertEqual(len(self.body), 85698)
+        self.assertEqual(len(self.body), 11961)
 
     def test10HTTPErrors(self):
         self.setup_tutorial('tut10_http_errors', 'HTTPErrorDemo')

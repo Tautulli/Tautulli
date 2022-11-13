@@ -143,7 +143,7 @@ class classproperty:
             return super().__setattr__(key, value)
 
     def __init__(self, fget, fset=None):
-        self.fget = self._fix_function(fget)
+        self.fget = self._ensure_method(fget)
         self.fset = fset
         fset and self.setter(fset)
 
@@ -158,14 +158,13 @@ class classproperty:
         return self.fset.__get__(None, owner)(value)
 
     def setter(self, fset):
-        self.fset = self._fix_function(fset)
+        self.fset = self._ensure_method(fset)
         return self
 
     @classmethod
-    def _fix_function(cls, fn):
+    def _ensure_method(cls, fn):
         """
         Ensure fn is a classmethod or staticmethod.
         """
-        if not isinstance(fn, (classmethod, staticmethod)):
-            return classmethod(fn)
-        return fn
+        needs_method = not isinstance(fn, (classmethod, staticmethod))
+        return classmethod(fn) if needs_method else fn

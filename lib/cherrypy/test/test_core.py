@@ -586,9 +586,8 @@ class CoreRequestHandlingTest(helper.CPWebCase):
     def testFavicon(self):
         # favicon.ico is served by staticfile.
         icofilename = os.path.join(localDir, '../favicon.ico')
-        icofile = open(icofilename, 'rb')
-        data = icofile.read()
-        icofile.close()
+        with open(icofilename, 'rb') as icofile:
+            data = icofile.read()
 
         self.getPage('/favicon.ico')
         self.assertBody(data)

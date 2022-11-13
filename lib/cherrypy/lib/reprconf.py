@@ -163,11 +163,8 @@ class Parser(configparser.ConfigParser):
             #     fp = open(filename)
             # except IOError:
             #     continue
-            fp = open(filename)
-            try:
+            with open(filename) as fp:
                 self._read(fp, filename)
-            finally:
-                fp.close()
 
     def as_dict(self, raw=False, vars=None):
         """Convert an INI file to a dictionary"""

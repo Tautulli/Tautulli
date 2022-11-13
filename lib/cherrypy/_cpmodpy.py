@@ -339,11 +339,8 @@ LoadModule python_module modules/mod_python.so
                                      }
 
         mpconf = os.path.join(os.path.dirname(__file__), 'cpmodpy.conf')
-        f = open(mpconf, 'wb')
-        try:
+        with open(mpconf, 'wb') as f:
             f.write(conf_data)
-        finally:
-            f.close()
 
         response = read_process(self.apache_path, '-k start -f %s' % mpconf)
         self.ready = True

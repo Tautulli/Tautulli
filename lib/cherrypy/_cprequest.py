@@ -169,7 +169,7 @@ def request_namespace(k, v):
 def response_namespace(k, v):
     """Attach response attributes declared in config."""
     # Provides config entries to set default response headers
-    # http://cherrypy.org/ticket/889
+    # http://cherrypy.dev/ticket/889
     if k[:8] == 'headers.':
         cherrypy.serving.response.headers[k.split('.', 1)[1]] = v
     else:
@@ -252,7 +252,7 @@ class Request(object):
     The query component of the Request-URI, a string of information to be
     interpreted by the resource. The query portion of a URI follows the
     path component, and is separated by a '?'. For example, the URI
-    'http://www.cherrypy.org/wiki?a=3&b=4' has the query component,
+    'http://www.cherrypy.dev/wiki?a=3&b=4' has the query component,
     'a=3&b=4'."""
 
     query_string_encoding = 'utf8'
@@ -742,6 +742,9 @@ class Request(object):
             if self.protocol >= (1, 1):
                 msg = "HTTP/1.1 requires a 'Host' request header."
                 raise cherrypy.HTTPError(400, msg)
+        else:
+            headers['Host'] = httputil.SanitizedHost(dict.get(headers, 'Host'))
+
         host = dict.get(headers, 'Host')
         if not host:
             host = self.local.name or self.local.ip

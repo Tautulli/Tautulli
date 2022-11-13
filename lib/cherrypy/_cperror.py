@@ -466,7 +466,7 @@ _HTTPErrorTemplate = '''<!DOCTYPE html PUBLIC
         <pre id="traceback">%(traceback)s</pre>
     <div id="powered_by">
       <span>
-        Powered by <a href="http://www.cherrypy.org">CherryPy %(version)s</a>
+        Powered by <a href="http://www.cherrypy.dev">CherryPy %(version)s</a>
       </span>
     </div>
     </body>
@@ -532,7 +532,8 @@ def get_error_page(status, **kwargs):
                     return result
             else:
                 # Load the template from this path.
-                template = io.open(error_page, newline='').read()
+                with io.open(error_page, newline='') as f:
+                    template = f.read()
         except Exception:
             e = _format_exception(*_exc_info())[-1]
             m = kwargs['message']

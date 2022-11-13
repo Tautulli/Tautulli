@@ -424,11 +424,12 @@ test_case_name: "test_signal_handler_unsubscribe"
         p.join()
 
         # Assert the old handler ran.
-        log_lines = list(open(p.error_log, 'rb'))
-        assert any(
-            line.endswith(b'I am an old SIGTERM handler.\n')
-            for line in log_lines
-        )
+        with open(p.error_log, 'rb') as f:
+            log_lines = list(f)
+            assert any(
+                line.endswith(b'I am an old SIGTERM handler.\n')
+                for line in log_lines
+            )
 
 
 def test_safe_wait_INADDR_ANY():  # pylint: disable=invalid-name

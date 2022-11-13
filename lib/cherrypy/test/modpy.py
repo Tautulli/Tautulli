@@ -15,7 +15,7 @@ KNOWN BUGS
 
 1. Apache processes Range headers automatically; CherryPy's truncated
     output is then truncated again by Apache. See test_core.testRanges.
-    This was worked around in http://www.cherrypy.org/changeset/1319.
+    This was worked around in http://www.cherrypy.dev/changeset/1319.
 2. Apache does not allow custom HTTP methods like CONNECT as per the spec.
     See test_core.testHTTPMethods.
 3. Max request header and body settings do not work with Apache.
@@ -107,13 +107,10 @@ class ModPythonSupervisor(helper.Supervisor):
         if not os.path.isabs(mpconf):
             mpconf = os.path.join(curdir, mpconf)
 
-        f = open(mpconf, 'wb')
-        try:
+        with open(mpconf, 'wb') as f:
             f.write(self.template %
                     {'port': self.port, 'modulename': modulename,
                      'host': self.host})
-        finally:
-            f.close()
 
         result = read_process(APACHE_PATH, '-k start -f %s' % mpconf)
         if result:

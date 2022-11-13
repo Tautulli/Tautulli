@@ -63,7 +63,7 @@ class Projection(collections.abc.Mapping):
         return len(tuple(iter(self)))
 
 
-class DictFilter(object):
+class DictFilter(collections.abc.Mapping):
     """
     Takes a dict, and simulates a sub-dict based on the keys.
 
@@ -92,15 +92,21 @@ class DictFilter(object):
     ...
     KeyError: 'e'
 
+    >>> 'e' in filtered
+    False
+
+    Pattern is useful for excluding keys with a prefix.
+
+    >>> filtered = DictFilter(sample, include_pattern=r'(?![ace])')
+    >>> dict(filtered)
+    {'b': 2, 'd': 4}
+
     Also note that DictFilter keeps a reference to the original dict, so
     if you modify the original dict, that could modify the filtered dict.
 
     >>> del sample['d']
-    >>> del sample['a']
-    >>> filtered == {'b': 2, 'c': 3}
-    True
-    >>> filtered != {'b': 2, 'c': 3}
-    False
+    >>> dict(filtered)
+    {'b': 2}
     """
 
     def __init__(self, dict, include_keys=[], include_pattern=None):
@@ -120,29 +126,18 @@ class DictFilter(object):
 
     @property
     def include_keys(self):
-        return self.specified_keys.union(self.pattern_keys)
-
-    def keys(self):
-        return self.include_keys.intersection(self.dict.keys())
-
-    def values(self):
-        return map(self.dict.get, self.keys())
+        return self.specified_keys | self.pattern_keys
 
     def __getitem__(self, i):
         if i not in self.include_keys:
             raise KeyError(i)
         return self.dict[i]
 
-    def items(self):
-        keys = self.keys()
-        values = map(self.dict.get, keys)
-        return zip(keys, values)
+    def __iter__(self):
+        return filter(self.include_keys.__contains__, self.dict.keys())
 
-    def __eq__(self, other):
-        return dict(self) == other
-
-    def __ne__(self, other):
-        return dict(self) != other
+    def __len__(self):
+        return len(list(self))
 
 
 def dict_map(function, dictionary):
@@ -167,7 +162,7 @@ class RangeMap(dict):
     the sorted list of keys.
 
     One may supply keyword parameters to be passed to the sort function used
-    to sort keys (i.e. cmp [python 2 only], keys, reverse) as sort_params.
+    to sort keys (i.e. key, reverse) as sort_params.
 
     Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
 
@@ -220,12 +215,35 @@ class RangeMap(dict):
 
     >>> r.get(7, 'not found')
     'not found'
+
+    One often wishes to define the ranges by their left-most values,
+    which requires use of sort params and a key_match_comparator.
+
+    >>> r = RangeMap({1: 'a', 4: 'b'},
+    ...     sort_params=dict(reverse=True),
+    ...     key_match_comparator=operator.ge)
+    >>> r[1], r[2], r[3], r[4], r[5], r[6]
+    ('a', 'a', 'a', 'b', 'b', 'b')
+
+    That wasn't nearly as easy as before, so an alternate constructor
+    is provided:
+
+    >>> r = RangeMap.left({1: 'a', 4: 'b', 7: RangeMap.undefined_value})
+    >>> r[1], r[2], r[3], r[4], r[5], r[6]
+    ('a', 'a', 'a', 'b', 'b', 'b')
+
     """
 
     def __init__(self, source, sort_params={}, key_match_comparator=operator.le):
         dict.__init__(self, source)
         self.sort_params = sort_params
         self.match = key_match_comparator
+
+    @classmethod
+    def left(cls, source):
+        return cls(
+            source, sort_params=dict(reverse=True), key_match_comparator=operator.ge
+        )
 
     def __getitem__(self, item):
         sorted_keys = sorted(self.keys(), **self.sort_params)
@@ -261,7 +279,7 @@ class RangeMap(dict):
         return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
     # some special values for the RangeMap
-    undefined_value = type(str('RangeValueUndefined'), (object,), {})()
+    undefined_value = type(str('RangeValueUndefined'), (), {})()
 
     class Item(int):
         "RangeMap Item"
@@ -370,7 +388,7 @@ class FoldedCaseKeyedDict(KeyTransformingDict):
     True
     >>> 'HELLO' in d
     True
-    >>> print(repr(FoldedCaseKeyedDict({'heLlo': 'world'})).replace("u'", "'"))
+    >>> print(repr(FoldedCaseKeyedDict({'heLlo': 'world'})))
     {'heLlo': 'world'}
     >>> d = FoldedCaseKeyedDict({'heLlo': 'world'})
     >>> print(d['hello'])
@@ -433,7 +451,7 @@ class FoldedCaseKeyedDict(KeyTransformingDict):
         return jaraco.text.FoldedCase(key)
 
 
-class DictAdapter(object):
+class DictAdapter:
     """
     Provide a getitem interface for attributes of an object.
 
@@ -452,7 +470,7 @@ class DictAdapter(object):
         return getattr(self.object, name)
 
 
-class ItemsAsAttributes(object):
+class ItemsAsAttributes:
     """
     Mix-in class to enable a mapping object to provide items as
     attributes.
@@ -561,7 +579,7 @@ class IdentityOverrideMap(dict):
         return key
 
 
-class DictStack(list, collections.abc.Mapping):
+class DictStack(list, collections.abc.MutableMapping):
     """
     A stack of dictionaries that behaves as a view on those dictionaries,
     giving preference to the last.
@@ -578,11 +596,12 @@ class DictStack(list, collections.abc.Mapping):
     >>> stack.push(dict(a=3))
     >>> stack['a']
     3
+    >>> stack['a'] = 4
     >>> set(stack.keys()) == set(['a', 'b', 'c'])
     True
-    >>> set(stack.items()) == set([('a', 3), ('b', 2), ('c', 2)])
+    >>> set(stack.items()) == set([('a', 4), ('b', 2), ('c', 2)])
     True
-    >>> dict(**stack) == dict(stack) == dict(a=3, c=2, b=2)
+    >>> dict(**stack) == dict(stack) == dict(a=4, c=2, b=2)
     True
     >>> d = stack.pop()
     >>> stack['a']
@@ -593,6 +612,9 @@ class DictStack(list, collections.abc.Mapping):
     >>> stack.get('b', None)
     >>> 'c' in stack
     True
+    >>> del stack['c']
+    >>> dict(stack)
+    {'a': 1}
     """
 
     def __iter__(self):
@@ -612,6 +634,18 @@ class DictStack(list, collections.abc.Mapping):
 
     def __len__(self):
         return len(list(iter(self)))
+
+    def __setitem__(self, key, item):
+        last = list.__getitem__(self, -1)
+        return last.__setitem__(key, item)
+
+    def __delitem__(self, key):
+        last = list.__getitem__(self, -1)
+        return last.__delitem__(key)
+
+    # workaround for mypy confusion
+    def pop(self, *args, **kwargs):
+        return list.pop(self, *args, **kwargs)
 
 
 class BijectiveMap(dict):
@@ -855,7 +889,7 @@ class Enumeration(ItemsAsAttributes, BijectiveMap):
         return (self[name] for name in self.names)
 
 
-class Everything(object):
+class Everything:
     """
     A collection "containing" every possible thing.
 
@@ -896,7 +930,7 @@ class InstrumentedDict(collections.UserDict):  # type: ignore  # buggy mypy
         self.data = data
 
 
-class Least(object):
+class Least:
     """
     A value that is always lesser than any other
 
@@ -928,7 +962,7 @@ class Least(object):
     __gt__ = __ge__
 
 
-class Greatest(object):
+class Greatest:
     """
     A value that is always greater than any other
 

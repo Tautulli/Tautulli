@@ -46,7 +46,7 @@ class EncodingTests(helper.CPWebCase):
                 #  any part which is unicode (even ascii), the response
                 #  should not fail.
                 cherrypy.response.cookie['candy'] = 'bar'
-                cherrypy.response.cookie['candy']['domain'] = 'cherrypy.org'
+                cherrypy.response.cookie['candy']['domain'] = 'cherrypy.dev'
                 cherrypy.response.headers[
                     'Some-Header'] = 'My d\xc3\xb6g has fleas'
                 cherrypy.response.headers[
