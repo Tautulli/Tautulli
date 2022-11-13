@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
 
       - name: Set Release Version
         id: get_version
@@ -33,14 +33,14 @@ jobs:
           if [[ $GITHUB_REF == refs/tags/* ]]; then
             echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
             VERSION_NSIS=${GITHUB_REF#refs/tags/v}.1
-            echo ::set-output name=VERSION_NSIS::${VERSION_NSIS/%-beta.1/.0}
-            echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
-            echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
+            echo "VERSION_NSIS=${VERSION_NSIS/%-beta.1/.0}" >> $GITHUB_OUTPUT
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+            echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           else
             echo "VERSION=0.0.0" >> $GITHUB_ENV
-            echo ::set-output name=VERSION_NSIS::0.0.0.0
-            echo ::set-output name=VERSION::0.0.0
-            echo ::set-output name=RELEASE_VERSION::${GITHUB_SHA::7}
+            echo "VERSION_NSIS=0.0.0.0" >> $GITHUB_OUTPUT
+            echo "VERSION=0.0.0" >> $GITHUB_OUTPUT
+            echo "RELEASE_VERSION=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
           fi
           if [[ $GITHUB_REF == refs/tags/*-beta ]]; then
             echo "beta" > branch.txt
@@ -52,16 +52,11 @@ jobs:
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
-        uses: actions/setup-python@v4.2.0
+        uses: actions/setup-python@v4.3.0
         with:
-          python-version: 3.9
-
-      - name: Cache Dependencies
-        uses: actions/cache@v3.0.8
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles('package/requirements-package.txt') }}
-          restore-keys: ${{ runner.os }}-pip-
+          python-version: '3.9'
+          cache: pip
+          cache-dependency-path: '**/requirements*.txt'
 
       - name: Install Dependencies
         run: |
@@ -108,12 +103,12 @@ jobs:
         uses: technote-space/workflow-conclusion-action@v3.0
 
       - name: Checkout Code
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
 
       - name: Set Release Version
         id: get_version
         run: |
-          echo ::set-output name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: Download Installers
         if: env.WORKFLOW_CONCLUSION == 'success'
@@ -122,8 +117,9 @@ jobs:
       - name: Get Changelog
         id: get_changelog
         run: |
-          echo ::set-output name=CHANGELOG::"$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md \
+          CHANGELOG="$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md \
             | sed '$d' | sed '$d' | sed '$d' | sed ':a;N;$!ba;s/\n/%0A/g' )"
+          echo "CHANGELOG=${CHANGELOG}" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: actions/create-release@v1
@@ -176,9 +172,9 @@ jobs:
         run: |
           failures=(neutral, skipped, timed_out, action_required)
           if [[ ${array[@]} =~ $WORKFLOW_CONCLUSION ]]; then
-            echo ::set-output name=status::failure
+            echo "status=failure" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=status::$WORKFLOW_CONCLUSION
+            echo "status=$WORKFLOW_CONCLUSION" >> $GITHUB_OUTPUT
           fi
 
       - name: Post Status to Discord

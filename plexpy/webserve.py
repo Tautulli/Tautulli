@@ -4591,6 +4591,7 @@ class WebInterface(object):
                           "audience_rating": "",
                           "audience_rating_image": "",
                           "banner": "",
+                          "collections": [],
                           "content_rating": "",
                           "directors": [],
                           "duration": "",
@@ -5310,6 +5311,7 @@ class WebInterface(object):
                         "Jeremy Podeswa"
                      ],
                      "duration": "2998290",
+                     "edition_title": "",
                      "full_title": "Game of Thrones - The Red Woman",
                      "genres": [
                         "Action/Adventure",
@@ -5441,8 +5443,8 @@ class WebInterface(object):
                      "tagline": "",
                      "thumb": "/library/metadata/153037/thumb/1462175060",
                      "title": "The Red Woman",
-                     "user_rating": "9.0",
                      "updated_at": "1462175060",
+                     "user_rating": "9.0",
                      "writers": [
                         "David Benioff",
                         "D. B. Weiss"

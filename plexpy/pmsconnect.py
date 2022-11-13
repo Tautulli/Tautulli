@@ -786,6 +786,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -844,6 +845,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -905,6 +907,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': show_details.get('studio', ''),
@@ -921,7 +924,7 @@ class PmsConnect(object):
                         'parent_year': show_details.get('year', ''),
                         'grandparent_year': helpers.get_xml_attr(metadata_main, 'grandparentYear'),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
-                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb'),
+                        'parent_thumb': helpers.get_xml_attr(metadata_main, 'parentThumb') or show_details.get('thumb'),
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
                         'banner': show_details.get('banner', ''),
@@ -983,6 +986,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': parent_media_index,
                         'studio': show_details.get('studio', ''),
@@ -999,7 +1003,7 @@ class PmsConnect(object):
                         'parent_year': season_details.get('year', ''),
                         'grandparent_year': show_details.get('year', ''),
                         'thumb': helpers.get_xml_attr(metadata_main, 'thumb'),
-                        'parent_thumb': parent_thumb,
+                        'parent_thumb': parent_thumb or show_details.get('thumb'),
                         'grandparent_thumb': helpers.get_xml_attr(metadata_main, 'grandparentThumb'),
                         'art': helpers.get_xml_attr(metadata_main, 'art'),
                         'banner': show_details.get('banner', ''),
@@ -1037,6 +1041,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -1092,6 +1097,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -1150,6 +1156,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -1204,6 +1211,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -1259,6 +1267,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -1314,6 +1323,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -1391,6 +1401,7 @@ class PmsConnect(object):
                         'grandparent_title': helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                         'original_title': helpers.get_xml_attr(metadata_main, 'originalTitle'),
                         'sort_title': helpers.get_xml_attr(metadata_main, 'titleSort'),
+                        'edition_title': helpers.get_xml_attr(metadata_main, 'editionTitle'),
                         'media_index': helpers.get_xml_attr(metadata_main, 'index'),
                         'parent_media_index': helpers.get_xml_attr(metadata_main, 'parentIndex'),
                         'studio': helpers.get_xml_attr(metadata_main, 'studio'),
@@ -2431,6 +2442,7 @@ class PmsConnect(object):
                     actors = []
                     genres = []
                     labels = []
+                    collections = []
 
                     if m.getElementsByTagName('Director'):
                         for director in m.getElementsByTagName('Director'):
@@ -2451,6 +2463,10 @@ class PmsConnect(object):
                     if m.getElementsByTagName('Label'):
                         for label in m.getElementsByTagName('Label'):
                             labels.append(helpers.get_xml_attr(label, 'tag'))
+
+                    if m.getElementsByTagName('Collection'):
+                        for collection in m.getElementsByTagName('Collection'):
+                            collections.append(helpers.get_xml_attr(collection, 'tag'))
 
                     media_type = helpers.get_xml_attr(m, 'type')
                     if m.nodeName == 'Directory' and media_type == 'photo':
@@ -2495,6 +2511,7 @@ class PmsConnect(object):
                                        'actors': actors,
                                        'genres': genres,
                                        'labels': labels,
+                                       'collections': collections,
                                        'full_title': helpers.get_xml_attr(m, 'title')
                                        }
                     children_list.append(children_output)
@@ -2757,6 +2774,7 @@ class PmsConnect(object):
             return []
 
 
+        library_count = '0'
         children_list = []
 
         for a in xml_head:

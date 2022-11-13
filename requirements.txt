@@ -6,7 +6,7 @@ backports.functools-lru-cache==1.6.4
 backports.zoneinfo==0.2.1
 beautifulsoup4==4.11.1
 bleach==5.0.0
-certifi==2022.5.18.1
+certifi==2022.9.24
 cheroot==8.6.0
 cherrypy==18.6.1
 cloudinary==1.29.0
@@ -18,8 +18,8 @@ gntp==1.0.3
 html5lib==1.1
 httpagentparser==1.9.2
 idna==3.4
-importlib-metadata==4.11.4
-importlib-resources==5.7.1
+importlib-metadata==5.0.0
+importlib-resources==5.10.0
 git+https://github.com/Tautulli/ipwhois.git@master#egg=ipwhois
 IPy==1.01
 Mako==1.2.0
@@ -45,7 +45,7 @@ tempora==5.0.1
 tokenize-rt==4.2.1
 tzdata==2022.1
 tzlocal==4.2
-urllib3==1.26.9
+urllib3==1.26.12
 webencodings==0.5.1
 websocket-client==1.3.2
 xmltodict==0.13.0
