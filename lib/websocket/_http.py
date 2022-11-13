@@ -23,7 +23,7 @@ import sys
 
 from ._exceptions import *
 from ._logging import *
-from ._socket import*
+from ._socket import *
 from ._ssl_compat import *
 from ._url import *
 
@@ -59,7 +59,7 @@ class proxy_info:
             self.no_proxy = options.get("http_no_proxy", None)
             self.proxy_protocol = options.get("proxy_type", "http")
             # Note: If timeout not specified, default python-socks timeout is 60 seconds
-            self.proxy_timeout = options.get("timeout", None)
+            self.proxy_timeout = options.get("http_proxy_timeout", None)
             if self.proxy_protocol not in ['http', 'socks4', 'socks4a', 'socks5', 'socks5h']:
                 raise ProxyError("Only http, socks4, socks5 proxy protocols are supported")
         else:
@@ -114,22 +114,22 @@ def connect(url, options, proxy, socket):
     if proxy.proxy_host and not socket and not (proxy.proxy_protocol == "http"):
         return _start_proxied_socket(url, options, proxy)
 
-    hostname, port, resource, is_secure = parse_url(url)
+    hostname, port_from_url, resource, is_secure = parse_url(url)
 
     if socket:
-        return socket, (hostname, port, resource)
+        return socket, (hostname, port_from_url, resource)
 
     addrinfo_list, need_tunnel, auth = _get_addrinfo_list(
-        hostname, port, is_secure, proxy)
+        hostname, port_from_url, is_secure, proxy)
     if not addrinfo_list:
         raise WebSocketException(
-            "Host not found.: " + hostname + ":" + str(port))
+            "Host not found.: " + hostname + ":" + str(port_from_url))
 
     sock = None
     try:
         sock = _open_socket(addrinfo_list, options.sockopt, options.timeout)
         if need_tunnel:
-            sock = _tunnel(sock, hostname, port, auth)
+            sock = _tunnel(sock, hostname, port_from_url, auth)
 
         if is_secure:
             if HAVE_SSL:
@@ -137,7 +137,7 @@ def connect(url, options, proxy, socket):
             else:
                 raise WebSocketException("SSL not available.")
 
-        return sock, (hostname, port, resource)
+        return sock, (hostname, port_from_url, resource)
     except:
         if sock:
             sock.close()
@@ -184,17 +184,16 @@ def _open_socket(addrinfo_list, sockopt, timeout):
             try:
                 sock.connect(address)
             except socket.error as error:
+                sock.close()
                 error.remote_ip = str(address[0])
                 try:
                     eConnRefused = (errno.ECONNREFUSED, errno.WSAECONNREFUSED, errno.ENETUNREACH)
-                except:
+                except AttributeError:
                     eConnRefused = (errno.ECONNREFUSED, errno.ENETUNREACH)
                 if error.errno in eConnRefused:
                     err = error
                     continue
                 else:
-                    if sock:
-                        sock.close()
                     raise error
             else:
                 break

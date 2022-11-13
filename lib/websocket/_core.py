@@ -46,8 +46,11 @@ class WebSocket:
 
     >>> import websocket
     >>> ws = websocket.WebSocket()
-    >>> ws.connect("ws://echo.websocket.org")
+    >>> ws.connect("ws://echo.websocket.events")
+    >>> ws.recv()
+    'echo.websocket.events sponsored by Lob.com'
     >>> ws.send("Hello, Server")
+    19
     >>> ws.recv()
     'Hello, Server'
     >>> ws.close()
@@ -203,7 +206,7 @@ class WebSocket:
         If you set "header" list object, you can set your own custom header.
 
         >>> ws = WebSocket()
-        >>> ws.connect("ws://echo.websocket.org/",
+        >>> ws.connect("ws://echo.websocket.events",
                 ...     header=["User-Agent: MyProgram",
                 ...             "x-custom: header"])
 
@@ -233,6 +236,8 @@ class WebSocket:
             Whitelisted host names that don't use the proxy.
         http_proxy_auth: tuple
             HTTP proxy auth information. Tuple of username and password. Default is None.
+        http_proxy_timeout: int or float
+            HTTP proxy timeout, default is 60 sec as per python-socks.
         redirect_limit: int
             Number of redirects to follow.
         subprotocols: list
@@ -281,7 +286,7 @@ class WebSocket:
         """
         Send the data frame.
 
-        >>> ws = create_connection("ws://echo.websocket.org/")
+        >>> ws = create_connection("ws://echo.websocket.events")
         >>> frame = ABNF.create_frame("Hello", ABNF.OPCODE_TEXT)
         >>> ws.send_frame(frame)
         >>> cont_frame = ABNF.create_frame("My name is ", ABNF.OPCODE_CONT, 0)
@@ -541,7 +546,7 @@ def create_connection(url, timeout=None, class_=WebSocket, **options):
     You can customize using 'options'.
     If you set "header" list object, you can set your own custom header.
 
-    >>> conn = create_connection("ws://echo.websocket.org/",
+    >>> conn = create_connection("ws://echo.websocket.events",
          ...     header=["User-Agent: MyProgram",
          ...             "x-custom: header"])
 
@@ -572,6 +577,8 @@ def create_connection(url, timeout=None, class_=WebSocket, **options):
         Whitelisted host names that don't use the proxy.
     http_proxy_auth: tuple
         HTTP proxy auth information. tuple of username and password. Default is None.
+    http_proxy_timeout: int or float
+        HTTP proxy timeout, default is 60 sec as per python-socks.
     enable_multithread: bool
         Enable lock for multithread.
     redirect_limit: int

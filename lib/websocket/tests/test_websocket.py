@@ -432,7 +432,7 @@ class HandshakeTest(unittest.TestCase):
         self.assertRaises(ws._exceptions.WebSocketBadStatusException,
                           websock3.connect, "wss://api.bitfinex.com/ws/2", cookie="chocolate",
                           origin="testing_websockets.com",
-                          host="echo.websocket.org/websocket-client-test",
+                          host="echo.websocket.events/websocket-client-test",
                           subprotocols=["testproto"],
                           connection="Upgrade",
                           header={"CustomHeader1":"123",
