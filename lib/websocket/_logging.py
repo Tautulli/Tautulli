@@ -35,7 +35,7 @@ __all__ = ["enableTrace", "dump", "error", "warning", "debug", "trace",
            "isEnabledForError", "isEnabledForDebug", "isEnabledForTrace"]
 
 
-def enableTrace(traceable, handler=logging.StreamHandler()):
+def enableTrace(traceable, handler=logging.StreamHandler(), level="DEBUG"):
     """
     Turn on/off the traceability.
 
@@ -48,7 +48,7 @@ def enableTrace(traceable, handler=logging.StreamHandler()):
     _traceEnabled = traceable
     if traceable:
         _logger.addHandler(handler)
-        _logger.setLevel(logging.DEBUG)
+        _logger.setLevel(getattr(logging, level))
 
 
 def dump(title, message):
@@ -68,6 +68,10 @@ def warning(msg):
 
 def debug(msg):
     _logger.debug(msg)
+
+
+def info(msg):
+    _logger.info(msg)
 
 
 def trace(msg):
