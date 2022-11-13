@@ -1,5 +1,4 @@
 from codecs import BOM_UTF8, BOM_UTF16_BE, BOM_UTF16_LE, BOM_UTF32_BE, BOM_UTF32_LE
-from collections import OrderedDict
 from encodings.aliases import aliases
 from re import IGNORECASE, compile as re_compile
 from typing import Dict, List, Set, Union
@@ -7,31 +6,26 @@ from typing import Dict, List, Set, Union
 from .assets import FREQUENCIES
 
 # Contain for each eligible encoding a list of/item bytes SIG/BOM
-ENCODING_MARKS = OrderedDict(
-    [
-        ("utf_8", BOM_UTF8),
-        (
-            "utf_7",
-            [
-                b"\x2b\x2f\x76\x38",
-                b"\x2b\x2f\x76\x39",
-                b"\x2b\x2f\x76\x2b",
-                b"\x2b\x2f\x76\x2f",
-                b"\x2b\x2f\x76\x38\x2d",
-            ],
-        ),
-        ("gb18030", b"\x84\x31\x95\x33"),
-        ("utf_32", [BOM_UTF32_BE, BOM_UTF32_LE]),
-        ("utf_16", [BOM_UTF16_BE, BOM_UTF16_LE]),
-    ]
-)  # type: Dict[str, Union[bytes, List[bytes]]]
+ENCODING_MARKS: Dict[str, Union[bytes, List[bytes]]] = {
+    "utf_8": BOM_UTF8,
+    "utf_7": [
+        b"\x2b\x2f\x76\x38",
+        b"\x2b\x2f\x76\x39",
+        b"\x2b\x2f\x76\x2b",
+        b"\x2b\x2f\x76\x2f",
+        b"\x2b\x2f\x76\x38\x2d",
+    ],
+    "gb18030": b"\x84\x31\x95\x33",
+    "utf_32": [BOM_UTF32_BE, BOM_UTF32_LE],
+    "utf_16": [BOM_UTF16_BE, BOM_UTF16_LE],
+}
 
-TOO_SMALL_SEQUENCE = 32  # type: int
-TOO_BIG_SEQUENCE = int(10e6)  # type: int
+TOO_SMALL_SEQUENCE: int = 32
+TOO_BIG_SEQUENCE: int = int(10e6)
 
-UTF8_MAXIMAL_ALLOCATION = 1112064  # type: int
+UTF8_MAXIMAL_ALLOCATION: int = 1112064
 
-UNICODE_RANGES_COMBINED = {
+UNICODE_RANGES_COMBINED: Dict[str, range] = {
     "Control character": range(31 + 1),
     "Basic Latin": range(32, 127 + 1),
     "Latin-1 Supplement": range(128, 255 + 1),
@@ -311,10 +305,10 @@ UNICODE_RANGES_COMBINED = {
     "CJK Compatibility Ideographs Supplement": range(194560, 195103 + 1),
     "Tags": range(917504, 917631 + 1),
     "Variation Selectors Supplement": range(917760, 917999 + 1),
-}  # type: Dict[str, range]
+}
 
 
-UNICODE_SECONDARY_RANGE_KEYWORD = [
+UNICODE_SECONDARY_RANGE_KEYWORD: List[str] = [
     "Supplement",
     "Extended",
     "Extensions",
@@ -330,25 +324,25 @@ UNICODE_SECONDARY_RANGE_KEYWORD = [
     "Shapes",
     "Supplemental",
     "Tags",
-]  # type: List[str]
+]
 
 RE_POSSIBLE_ENCODING_INDICATION = re_compile(
     r"(?:(?:encoding)|(?:charset)|(?:coding))(?:[\:= ]{1,10})(?:[\"\']?)([a-zA-Z0-9\-_]+)(?:[\"\']?)",
     IGNORECASE,
 )
 
-IANA_SUPPORTED = sorted(
+IANA_SUPPORTED: List[str] = sorted(
     filter(
         lambda x: x.endswith("_codec") is False
         and x not in {"rot_13", "tactis", "mbcs"},
         list(set(aliases.values())),
     )
-)  # type: List[str]
+)
 
-IANA_SUPPORTED_COUNT = len(IANA_SUPPORTED)  # type: int
+IANA_SUPPORTED_COUNT: int = len(IANA_SUPPORTED)
 
 # pre-computed code page that are similar using the function cp_similarity.
-IANA_SUPPORTED_SIMILAR = {
+IANA_SUPPORTED_SIMILAR: Dict[str, List[str]] = {
     "cp037": ["cp1026", "cp1140", "cp273", "cp500"],
     "cp1026": ["cp037", "cp1140", "cp273", "cp500"],
     "cp1125": ["cp866"],
@@ -434,10 +428,10 @@ IANA_SUPPORTED_SIMILAR = {
     "mac_turkish": ["mac_iceland", "mac_roman"],
     "ptcp154": ["cp1251", "kz1048"],
     "tis_620": ["iso8859_11"],
-}  # type: Dict[str, List[str]]
+}
 
 
-CHARDET_CORRESPONDENCE = {
+CHARDET_CORRESPONDENCE: Dict[str, str] = {
     "iso2022_kr": "ISO-2022-KR",
     "iso2022_jp": "ISO-2022-JP",
     "euc_kr": "EUC-KR",
@@ -470,10 +464,10 @@ CHARDET_CORRESPONDENCE = {
     "cp1256": "windows-1256",
     "cp1254": "Windows-1254",
     "cp949": "CP949",
-}  # type: Dict[str, str]
+}
 
 
-COMMON_SAFE_ASCII_CHARACTERS = {
+COMMON_SAFE_ASCII_CHARACTERS: Set[str] = {
     "<",
     ">",
     "=",
@@ -489,15 +483,15 @@ COMMON_SAFE_ASCII_CHARACTERS = {
     "|",
     '"',
     "-",
-}  # type: Set[str]
+}
 
 
-KO_NAMES = {"johab", "cp949", "euc_kr"}  # type: Set[str]
-ZH_NAMES = {"big5", "cp950", "big5hkscs", "hz"}  # type: Set[str]
+KO_NAMES: Set[str] = {"johab", "cp949", "euc_kr"}
+ZH_NAMES: Set[str] = {"big5", "cp950", "big5hkscs", "hz"}
 
 NOT_PRINTABLE_PATTERN = re_compile(r"[0-9\W\n\r\t]+")
 
-LANGUAGE_SUPPORTED_COUNT = len(FREQUENCIES)  # type: int
+LANGUAGE_SUPPORTED_COUNT: int = len(FREQUENCIES)
 
 # Logging LEVEL bellow DEBUG
-TRACE = 5  # type: int
+TRACE: int = 5
