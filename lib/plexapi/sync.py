@@ -81,13 +81,13 @@ class SyncItem(PlexObject):
         """ Returns :class:`~plexapi.myplex.MyPlexResource` with server of current item. """
         server = [s for s in self._server.resources() if s.clientIdentifier == self.machineIdentifier]
         if len(server) == 0:
-            raise NotFound('Unable to find server with uuid %s' % self.machineIdentifier)
+            raise NotFound(f'Unable to find server with uuid {self.machineIdentifier}')
         return server[0]
 
     def getMedia(self):
         """ Returns list of :class:`~plexapi.base.Playable` which belong to this sync item. """
         server = self.server().connect()
-        key = '/sync/items/%s' % self.id
+        key = f'/sync/items/{self.id}'
         return server.fetchItems(key)
 
     def markDownloaded(self, media):
@@ -97,7 +97,7 @@ class SyncItem(PlexObject):
             Parameters:
                 media (base.Playable): the media to be marked as downloaded.
         """
-        url = '/sync/%s/item/%s/downloaded' % (self.clientIdentifier, media.ratingKey)
+        url = f'/sync/{self.clientIdentifier}/item/{media.ratingKey}/downloaded'
         media._server.query(url, method=requests.put)
 
     def delete(self):
@@ -159,13 +159,14 @@ class Status:
         self.itemsCount = plexapi.utils.cast(int, itemsCount)
 
     def __repr__(self):
-        return '<%s>:%s' % (self.__class__.__name__, dict(
+        d = dict(
             itemsCount=self.itemsCount,
             itemsCompleteCount=self.itemsCompleteCount,
             itemsDownloadedCount=self.itemsDownloadedCount,
             itemsReadyCount=self.itemsReadyCount,
             itemsSuccessfulCount=self.itemsSuccessfulCount
-        ))
+        )
+        return f'<{self.__class__.__name__}>:{d}'
 
 
 class MediaSettings:
