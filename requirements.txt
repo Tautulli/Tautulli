@@ -6,7 +6,7 @@ backports.functools-lru-cache==1.6.4
 backports.zoneinfo==0.2.1
 beautifulsoup4==4.11.1
 bleach==5.0.0
-certifi==2022.5.18.1
+certifi==2022.9.24
 cheroot==8.6.0
 cherrypy==18.6.1
 cloudinary==1.29.0
