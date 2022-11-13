@@ -4591,6 +4591,7 @@ class WebInterface(object):
                           "audience_rating": "",
                           "audience_rating_image": "",
                           "banner": "",
+                          "collections": [],
                           "content_rating": "",
                           "directors": [],
                           "duration": "",
@@ -4811,6 +4812,11 @@ class WebInterface(object):
                     fbi = common.DEFAULT_IMAGES[fallback]
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                     return serve_file(path=fp, content_type='image/png')
+                elif fallback:
+                    return self.real_pms_image_proxy(
+                        img=fallback, rating_key=None, width=width, height=height,
+                        opacity=opacity, background=background, blur=blur, img_format=img_format,
+                        fallback=None, refresh=refresh, clip=clip, **kwargs)
 
     @cherrypy.expose
     def image(self, *args, **kwargs):
@@ -5305,6 +5311,7 @@ class WebInterface(object):
                         "Jeremy Podeswa"
                      ],
                      "duration": "2998290",
+                     "edition_title": "",
                      "full_title": "Game of Thrones - The Red Woman",
                      "genres": [
                         "Action/Adventure",
@@ -5321,6 +5328,7 @@ class WebInterface(object):
                      "grandparent_rating_key": "1219",
                      "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
                      "grandparent_title": "Game of Thrones",
+                     "grandparent_year": "2011",
                      "guid": "plex://episode/5d9c1276e9d5a1001f4ff2fa",
                      "guids": [
                          "imdb://tt3658014",
@@ -5424,6 +5432,7 @@ class WebInterface(object):
                      "parent_rating_key": "153036",
                      "parent_thumb": "/library/metadata/153036/thumb/1462175062",
                      "parent_title": "Season 6",
+                     "parent_year": "2016",
                      "rating": "",
                      "rating_image": "",
                      "rating_key": "153037",
@@ -5434,8 +5443,8 @@ class WebInterface(object):
                      "tagline": "",
                      "thumb": "/library/metadata/153037/thumb/1462175060",
                      "title": "The Red Woman",
-                     "user_rating": "9.0",
                      "updated_at": "1462175060",
+                     "user_rating": "9.0",
                      "writers": [
                         "David Benioff",
                         "D. B. Weiss"

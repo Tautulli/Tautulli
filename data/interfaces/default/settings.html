@@ -2757,10 +2757,10 @@ $(document).ready(function() {
     function OAuthSuccessCallback(authToken) {
         $.post('save_pms_token', { token: authToken, client_id: $('#pms_client_id').val() }, function() {
             showMsg('<i class="fa fa-check"></i> Saved new Plex.tv token.', false, true, 5000);
+            getServerOptions();
         });
         $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
         $("#token_error_bar").hide();
-        getServerOptions(authToken);
     }
     function OAuthErrorCallback() {
         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');

@@ -1,5 +1,70 @@
 # Changelog
 
+## v2.10.5 (2022-11-07)
+
+* Notifications:
+  * New: Added edition_title notification parameter. (#1838)
+  * Change: Track notifications link to MusicBrainz track instead of album.
+* Newsletters:
+  * New: Added months time frame for newsletters. (#1876)
+* UI:
+  * Fix: Broken link on library statistic cards. (#1852)
+  * Fix: Check for IPv6 host when generating QR code for app registration.
+  * Fix: Missing padding on condition operator dropdown on small screens.
+* Other:
+  * Fix: Launching browser when webserver is bound to IPv6.
+  * New: Tautulli can be installed via the Windows Package Manager (winget).
+  * Change: Separate stdout and stderr console logging. (#1874)
+* API:
+  * Fix: API not returning 400 response code.
+  * New: Added edition_title to get_metadata API response.
+  * New: Added collections to get_children_metadata API response.
+  * New: Added user_thumb to get_history API response.
+  * New: Validate custom notification conditions before saving notification agents. (#1846)
+  * Change: Fallback to parent_thumb for seasons in get_metadata API response.
+
+
+## v2.10.4 (2022-09-05)
+
+* Activity:
+  * New: Added tooltip for quality profile on activity cards.
+* Notifications:
+  * New: Added "does not begin with" and "does not end with" condition operators.
+* UI:
+  * Fix: Album count showing 0 on library statistics.
+  * Fix: Library statistics not showing up for libraries without any history.
+
+
+## v2.10.3 (2022-08-09)
+
+* Notifications:
+  * New: Added JSON support for MQTT notifications. (#1763)
+  * New: Added show year notification parameter.
+* Exporter:
+  * New: Added guids to artist, album, and track metadata export fields.
+  * New: Added languageTag to stream media info export fields.
+* UI:
+  * Fix: Long channel identifier overflowing activity card. (#1802) 
+  * Change: Use the last played item's artwork for library statistics cards. 
+* Other:
+  * Fix: Username log filter causing database to lock up. (#1705)
+  * Change: Username log filter only applies to usernames longer than 3 characters. (#1806)
+* API:
+  * New: Added parent_year and grandparent_year to get_metadata_details API command.
+  * New: Added last played metadata to top_libraries and top_users in get_home_stats API command.
+  * New: Allow fallback to another PMS image in pms_image_proxy API command.
+
+
+## v2.10.2 (2022-07-03)
+
+* Activity:
+  * Fix: Incorrect audio stream info shown on the activity card when playing a secondary audio track.
+* UI:
+  * Fix: Usernames not showing on the home statistics cards.
+  * Fix: Do not save a user's friendly name if it is the same as the username.
+  * Change: Update library icons to the latest Plex style.
+
+
 ## v2.10.1 (2022-06-01)
 
 * Notifications:

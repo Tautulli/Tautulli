@@ -112,7 +112,12 @@ AGENT_IDS = {'growl': 0,
              'gotify': 29
              }
 
-DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': ''}]
+DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': [], 'type': None}]
+CUSTOM_CONDITION_TYPE_OPERATORS = {
+    'float': ['is', 'is not', 'is greater than', 'is less than'],
+    'int': ['is', 'is not', 'is greater than', 'is less than'],
+    'str': ['contains', 'does not contain', 'is', 'is not', 'begins with', 'does not begin with', 'ends with', 'does not end with'],
+}
 
 
 def available_notification_agents():
@@ -642,13 +647,18 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
 
     agent_class = get_agent_class(agent_id=agent['id'], config=notifier_config)
 
+    custom_conditions = validate_conditions(kwargs.get('custom_conditions'))
+    if custom_conditions is False:
+        logger.error("Tautulli Notifiers :: Unable to update notification agent: Invalid custom conditions.")
+        return False
+
     keys = {'id': notifier_id}
     values = {'agent_id': agent['id'],
               'agent_name': agent['name'],
               'agent_label': agent['label'],
               'friendly_name': kwargs.get('friendly_name', ''),
               'notifier_config': json.dumps(agent_class.config),
-              'custom_conditions': kwargs.get('custom_conditions', json.dumps(DEFAULT_CUSTOM_CONDITIONS)),
+              'custom_conditions': json.dumps(custom_conditions or DEFAULT_CUSTOM_CONDITIONS),
               'custom_conditions_logic': kwargs.get('custom_conditions_logic', ''),
               }
     values.update(actions)
@@ -683,6 +693,66 @@ def send_notification(notifier_id=None, subject='', body='', notify_action='', n
                             **kwargs)
     else:
         logger.debug("Tautulli Notifiers :: Notification requested but no notifier_id received.")
+
+
+def validate_conditions(custom_conditions):
+    if custom_conditions is None:
+        return DEFAULT_CUSTOM_CONDITIONS
+
+    try:
+        conditions = json.loads(custom_conditions)
+    except ValueError:
+        logger.error("Tautulli Notifiers :: Unable to parse custom conditions json: %s" % custom_conditions)
+        return False
+
+    if not isinstance(conditions, list):
+        logger.error("Tautulli Notifiers :: Invalid custom conditions: %s. Conditions must be a list." % conditions)
+        return False
+
+    validated_conditions = []
+
+    for condition in conditions:
+        validated_condition = DEFAULT_CUSTOM_CONDITIONS[0].copy()
+
+        if not isinstance(condition, dict):
+            logger.error("Tautulli Notifiers :: Invalid custom condition: %s. Condition must be a dict." % condition)
+            return False
+
+        parameter = str(condition.get('parameter', '')).lower()
+        operator = str(condition.get('operator', '')).lower()
+        values = condition.get('value', [])
+
+        if parameter:
+            parameter_type = common.NOTIFICATION_PARAMETERS_TYPES.get(parameter)
+        
+            if not parameter_type:
+                logger.error("Tautulli Notifiers :: Invalid parameter '%s' in custom condition: %s" % (parameter, condition))
+                return False
+
+            validated_condition['parameter'] = parameter.lower()
+            validated_condition['type'] = parameter_type
+
+        if operator:
+            if operator not in CUSTOM_CONDITION_TYPE_OPERATORS.get(parameter_type, []):
+                logger.error("Tautulli Notifiers :: Invalid operator '%s' for parameter '%s' in custom condition: %s" % (operator, parameter, condition))
+                return False
+
+            validated_condition['operator'] = operator
+
+        if values:
+            if not isinstance(values, list):
+                values = [values]
+
+            for value in values:
+                if not isinstance(value, (str, int, float)):
+                    logger.error("Tautulli Notifiers :: Invalid value '%s' for parameter '%s' in custom condition: %s" % (value, parameter, condition))
+                    return False
+            
+            validated_condition['value'] = values
+
+        validated_conditions.append(validated_condition)
+
+    return validated_conditions
 
 
 def blacklist_logger():
@@ -2367,17 +2437,25 @@ class MQTT(Notifier):
                        'topic': '',
                        'qos': 1,
                        'retain': 0,
-                       'keep_alive': 60
+                       'keep_alive': 60,
+                       'as_json': 0
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
-        if not self.config['topic']:
+        topic = self.config['topic']
+        if not topic:
             logger.error("Tautulli Notifiers :: MQTT topic not specified.")
             return
 
+        topic = topic.format(**kwargs.get('parameters', {}))
+
+        if self.config['as_json']:
+            subject = json.loads(subject)
+            body = json.loads(body)
+
         data = {'subject': subject,
                 'body': body,
-                'topic': self.config['topic']}
+                'topic': topic}
 
         auth = {}
         if self.config['username']:
@@ -2390,7 +2468,7 @@ class MQTT(Notifier):
         logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
 
         paho.mqtt.publish.single(
-            self.config['topic'], payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
+            topic, payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
             hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
             keepalive=self.config['keep_alive'], auth=auth or None, protocol=protocol
         )
@@ -2443,7 +2521,9 @@ class MQTT(Notifier):
                          {'label': 'Topic',
                           'value': self.config['topic'],
                           'name': 'mqtt_topic',
-                          'description': 'The topic to publish notifications to.',
+                          'description': 'The topic to publish notifications to. You can include'
+                                         ' <a href="#notify-text-sub-modal" data-toggle="modal">notification parameters</a>'
+                                         ' to be substituted.',
                           'input_type': 'text'
                           },
                          {'label': 'Quality of Service',
@@ -2467,7 +2547,13 @@ class MQTT(Notifier):
                           'name': 'mqtt_keep_alive',
                           'description': 'Maximum period in seconds before timing out the connection with the broker.',
                           'input_type': 'number'
-                          }
+                          },
+                         {'label': 'Send Message as JSON',
+                          'value': self.config['as_json'],
+                          'name': 'mqtt_as_json',
+                          'description': 'Parse and send the subject and body as JSON instead of as a raw string.',
+                          'input_type': 'checkbox'
+                          },
                          ]
 
         return config_option

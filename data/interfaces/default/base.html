@@ -236,6 +236,7 @@ ${next.modalIncludes()}
                 <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
                     <li class="active"><a href="#github-donation" role="tab" data-toggle="tab">GitHub</a></li>
                     <li><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
+                    <li><a href="#stripe-donation" role="tab" data-toggle="tab">Stripe</a></li>
                     <li><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab">Crypto</a></li>
                 </ul>
@@ -262,12 +263,23 @@ ${next.modalIncludes()}
                         </p>
                         <p class="small-muted">(Patreon has a fee)</p>
                     </div>
+                    <div role="tabpanel" class="tab-pane" id="stripe-donation" style="text-align: center">
+                        <p>
+                            Click the button below to continue to Stripe.
+                        </p>
+                        <p>
+                            <a href="${anon_url('https://donate.stripe.com/5kA7vnb7dczVbxC9AA')}" target="_blank" rel="noreferrer">
+                                <img src="images/Stripe_wordmark_-_white_small_28px.png" alt="Stripe" style="background-color: #7068fe; border-radius: 3px; padding: 3px;">
+                            </a>
+                        </p>
+                        <p class="small-muted">(Stripe has a fee)</p>
+                    </div>
                     <div role="tabpanel" class="tab-pane" id="paypal-donation" style="text-align: center">
                         <p>
                             Click the button below to continue to PayPal.
                         </p>
                         <p>
-                            <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank" rel="noreferrer">
+                            <a href="${anon_url('https://www.paypal.com/donate/?hosted_button_id=CUHSQ99KAKC5Q')}" target="_blank" rel="noreferrer">
                                 <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
                             </a>
                         </p>

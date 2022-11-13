@@ -160,7 +160,8 @@ DOCUMENTATION :: END
                             </li>
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Quality</div>
-                                <div class="sub-value platform-right" id="stream_quality-${sk}">
+                                <div class="sub-value platform-right">
+                                    <span id="stream_quality-${sk}">
                                     % if data['media_type'] != 'photo' and data['quality_profile'] != 'Unknown':
                                     <%
                                         br = cast_to_int(data['stream_bitrate']) or ''
@@ -174,6 +175,8 @@ DOCUMENTATION :: END
                                     % else:
                                     ${data['quality_profile']}
                                     % endif
+                                    </span>
+                                    <span data-toggle="tooltip" title="Quality profile is only an estimate based on bitrate and may be incorrect"><i class="fa fa-exclamation-circle"></i></span>
                                 </div>
                             </li>
                             % if data['optimized_version'] == 1:
@@ -363,7 +366,7 @@ DOCUMENTATION :: END
                 % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-info-time">
                     % if data['live']:
-                    <br /><span class="thumb-tooltip" data-toggle="popover" data-img="${data['channel_thumb']}" data-height="40" data-width="40">${data['channel_call_sign']} ${data['channel_identifier']}</span>
+                    <br /><span class="thumb-tooltip dashboard-activity-info-channel" data-toggle="popover" data-img="${data['channel_thumb']}" data-height="40" data-width="40">${data['channel_call_sign']} ${data['channel_identifier']}</span>
                     % elif data['view_offset']:
                     ETA:
                     <span id="stream-eta-${sk}">

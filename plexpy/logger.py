@@ -46,6 +46,7 @@ MAX_SIZE = 5000000  # 5 MB
 MAX_FILES = 5
 
 _BLACKLIST_WORDS = set()
+_FILTER_USERNAMES = []
 
 # Tautulli logger
 logger = logging.getLogger("tautulli")
@@ -69,6 +70,29 @@ def blacklist_config(config):
             blacklist.add(value.strip())
 
     _BLACKLIST_WORDS.update(blacklist)
+
+
+def filter_usernames(new_users=None):
+    global _FILTER_USERNAMES
+
+    if new_users is None:
+        new_users = [user['username'] for user in users.Users().get_users()]
+
+    for username in new_users:
+        if username.lower() not in ('local', 'guest') and len(username) > 3 and username not in _FILTER_USERNAMES:
+            _FILTER_USERNAMES.append(username)
+
+    _FILTER_USERNAMES = sorted(_FILTER_USERNAMES, key=len, reverse=True)
+
+
+class LogLevelFilter(logging.Filter):
+    def __init__(self, max_level):
+        super(LogLevelFilter, self).__init__()
+
+        self.max_level = max_level
+
+    def filter(self, record):
+        return record.levelno <= self.max_level
 
 
 class NoThreadFilter(logging.Filter):
@@ -126,18 +150,7 @@ class UsernameFilter(logging.Filter):
         if not plexpy._INITIALIZED:
             return True
 
-        items = sorted(
-            users.Users().get_users(),
-            key=lambda x: len(x['username']),
-            reverse=True
-        )
-
-        for item in items:
-            username = item['username']
-
-            if username.lower() in ('local', 'guest'):
-                continue
-
+        for username in _FILTER_USERNAMES:
             try:
                 record.msg = self.replace(record.msg, username)
 
@@ -327,12 +340,20 @@ def initLogger(console=False, log_dir=False, verbose=False):
     # Setup console logger
     if console:
         console_formatter = logging.Formatter('%(asctime)s - %(levelname)s :: %(threadName)s : %(message)s', '%Y-%m-%d %H:%M:%S')
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(console_formatter)
-        console_handler.setLevel(logging.DEBUG)
 
-        logger.addHandler(console_handler)
-        cherrypy.log.error_log.addHandler(console_handler)
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setFormatter(console_formatter)
+        stdout_handler.setLevel(logging.DEBUG)
+        stdout_handler.addFilter(LogLevelFilter(logging.INFO))
+
+        stderr_handler = logging.StreamHandler(sys.stderr)
+        stderr_handler.setFormatter(console_formatter)
+        stderr_handler.setLevel(logging.WARNING)
+
+        logger.addHandler(stdout_handler)
+        logger.addHandler(stderr_handler)
+        cherrypy.log.error_log.addHandler(stdout_handler)
+        cherrypy.log.error_log.addHandler(stderr_handler)
 
     # Add filters to log handlers
     # Only add filters after the config file has been initialized

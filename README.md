@@ -36,7 +36,7 @@ and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
 [![Docker Stars][badge-docker-stars]][DockerHub]
 [![Downloads][badge-downloads]][Releases Latest]
 
-[badge-python]: https://img.shields.io/badge/python->=3.6-blue?style=flat-square
+[badge-python]: https://img.shields.io/badge/python->=3.7-blue?style=flat-square
 [badge-docker-pulls]: https://img.shields.io/docker/pulls/tautulli/tautulli?style=flat-square
 [badge-docker-stars]: https://img.shields.io/docker/stars/tautulli/tautulli?style=flat-square
 [badge-downloads]: https://img.shields.io/github/downloads/Tautulli/Tautulli/total?style=flat-square

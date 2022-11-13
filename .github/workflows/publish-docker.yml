@@ -1,6 +1,7 @@
 name: Publish Docker
 
 on:
+  workflow_dispatch: ~
   push:
     branches: [master, beta, nightly]
     tags: [v*]
@@ -12,29 +13,29 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
 
       - name: Prepare
         id: prepare
         run: |
           if [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
           elif [[ $GITHUB_REF == refs/heads/master ]]; then
-            echo ::set-output name=tag::latest
+            echo "tag=latest" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=tag::${GITHUB_REF#refs/heads/}
+            echo "tag=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
           fi
           if [[ $GITHUB_REF == refs/tags/*-beta ]]; then
-            echo ::set-output name=branch::beta
+            echo "branch=beta" >> $GITHUB_OUTPUT
           elif [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo ::set-output name=branch::master
+            echo "branch=master" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=branch::${GITHUB_REF#refs/heads/}
+            echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
           fi
-          echo ::set-output name=commit::${GITHUB_SHA}
-          echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          echo ::set-output name=docker_platforms::linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6
-          echo ::set-output name=docker_image::${{ secrets.DOCKER_REPO }}/tautulli
+          echo "commit=${GITHUB_SHA}" >> $GITHUB_OUTPUT
+          echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+          echo "docker_platforms=linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6" >> $GITHUB_OUTPUT
+          echo "docker_image=${{ secrets.DOCKER_REPO }}/tautulli" >> $GITHUB_OUTPUT
 
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v2
@@ -46,7 +47,7 @@ jobs:
           version: latest
 
       - name: Cache Docker Layers
-        uses: actions/cache@v3.0.3
+        uses: actions/cache@v3.0.11
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -94,16 +95,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get Build Job Status
-        uses: technote-space/workflow-conclusion-action@v2.2
+        uses: technote-space/workflow-conclusion-action@v3.0
 
       - name: Combine Job Status
         id: status
         run: |
           failures=(neutral, skipped, timed_out, action_required)
           if [[ ${array[@]} =~ $WORKFLOW_CONCLUSION ]]; then
-            echo ::set-output name=status::failure
+            echo "status=failure" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=status::$WORKFLOW_CONCLUSION
+            echo "status=$WORKFLOW_CONCLUSION" >> $GITHUB_OUTPUT
           fi
 
       - name: Post Status to Discord

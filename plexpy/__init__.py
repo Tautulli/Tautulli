@@ -429,7 +429,7 @@ def daemonize():
 
 def launch_browser(host, port, root):
     if not no_browser:
-        if host == '0.0.0.0':
+        if host in ('0.0.0.0', '::'):
             host = 'localhost'
 
         if CONFIG.ENABLE_HTTPS:
@@ -548,6 +548,8 @@ def start():
     global _STARTED
 
     if _INITIALIZED:
+        logger.filter_usernames()
+
         # Start refreshes on a separate thread
         threading.Thread(target=startup_refresh).start()
 
@@ -1920,6 +1922,14 @@ def dbcheck():
             'ALTER TABLE users ADD COLUMN title TEXT'
         )
 
+    try:
+        result = c_db.execute('SELECT * FROM users WHERE friendly_name = username').fetchall()
+        if result:
+            logger.debug("Altering database. Resetting user friendly names equal to username.")
+            c_db.execute('UPDATE users SET friendly_name = NULL WHERE friendly_name = username')
+    except sqlite3.OperationalError:
+       pass
+
     # Upgrade notify_log table from earlier versions
     try:
         c_db.execute('SELECT poster_url FROM notify_log')
@@ -2039,7 +2049,7 @@ def dbcheck():
     # Upgrade newsletters table from earlier versions
     try:
         result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="newsletters"').fetchone()
-        if '"cron"\tTEXT NOT NULL DEFAULT "0 0 * * 0"' in result[0]:
+        if 'TEXT NOT NULL DEFAULT "0 0 * * 0"' in result[0]:
             logger.debug("Altering database. Updating default cron value in newsletters table.")
             c_db.execute(
                 'CREATE TABLE newsletters_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
@@ -2423,24 +2433,40 @@ def dbcheck():
             'ALTER TABLE exports ADD COLUMN total_items INTEGER DEFAULT 0'
         )
 
-    # Upgrade image_hash_lookup table from earlier versions
+    # Fix unique constraints
+    try:
+        c_db.execute('DELETE FROM tvmaze_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM tvmaze_lookup GROUP BY rating_key)')
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        c_db.execute('DELETE FROM themoviedb_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM themoviedb_lookup GROUP BY rating_key)')
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        c_db.execute('DELETE FROM musicbrainz_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM musicbrainz_lookup GROUP BY rating_key)')
+    except sqlite3.OperationalError:
+        pass
+
     try:
         c_db.execute('DELETE FROM image_hash_lookup '
                      'WHERE id NOT IN (SELECT MIN(id) FROM image_hash_lookup GROUP BY img_hash)')
     except sqlite3.OperationalError:
         pass
 
-    # Upgrade imgur_lookup table from earlier versions
-    try:
-        c_db.execute('DELETE FROM imgur_lookup '
-                     'WHERE id NOT IN (SELECT MIN(id) FROM imgur_lookup GROUP BY img_hash)')
-    except sqlite3.OperationalError:
-        pass
-
-    # Upgrade cloudinary_lookup table from earlier versions
     try:
         c_db.execute('DELETE FROM cloudinary_lookup '
                      'WHERE id NOT IN (SELECT MIN(id) FROM cloudinary_lookup GROUP BY img_hash)')
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        c_db.execute('DELETE FROM imgur_lookup '
+                     'WHERE id NOT IN (SELECT MIN(id) FROM imgur_lookup GROUP BY img_hash)')
     except sqlite3.OperationalError:
         pass
 
