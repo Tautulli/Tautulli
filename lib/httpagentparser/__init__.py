@@ -8,7 +8,7 @@ Tries to
     * assist python web apps to detect clients.
 """
 
-__version__ = '1.9.2'
+__version__ = '1.9.5'
 
 
 class DetectorsHub(dict):
@@ -218,7 +218,7 @@ class WOSBrowser(Browser):
 
 class Safari(Browser):
     look_for = "Safari"
-    skip_if_found = ["Edge", "YaBrowser"]
+    skip_if_found = ["Edge", "YaBrowser", "FxiOS"]
 
     def checkWords(self, agent):
         unless_list = ["Chrome", "OmniWeb", "wOSBrowser", "Android", "CriOS"]
@@ -408,7 +408,7 @@ class AndroidBrowser(Browser):
 
 
 class Firefox(Browser):
-    look_for = "Firefox"
+    look_for = ["Firefox", "FxiOS"]
     version_markers = [('/', '')]
     skip_if_found = ["SeaMonkey", "web/snippet"]
 
@@ -557,7 +557,7 @@ class Chrome(Browser):
         part = agent.split(word + self.version_markers[0])[-1]
         version = part.split(self.version_markers[1])[0]
         if '+' in version:
-            version = part.split('+')[0]
+            version = version.split('+')[0]
         return version.strip()
 
 class YaBrowser(Browser):
@@ -569,7 +569,7 @@ class YaBrowser(Browser):
         part = agent.split(word + self.version_markers[0])[-1]
         version = part.split(self.version_markers[1])[0]
         if '+' in version:
-            version = part.split('+')[0]
+            version = version.split('+')[0]
         return version.strip()
 
 class ChromeiOS(Browser):
