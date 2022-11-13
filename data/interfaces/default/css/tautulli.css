@@ -122,6 +122,16 @@ select.form-control {
 #condition-widget .fa-minus {
     cursor: pointer;
 }
+#condition-widget .condition-operator-col {
+    padding-left: 0;
+    padding-right: 0;
+}
+@media (max-width: 767px) {
+    #condition-widget .condition-operator-col {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+}
 .react-selectize.root-node .react-selectize-control .react-selectize-placeholder {
     color: #eee !important;
 }

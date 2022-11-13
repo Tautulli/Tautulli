@@ -85,6 +85,16 @@ def filter_usernames(new_users=None):
     _FILTER_USERNAMES = sorted(_FILTER_USERNAMES, key=len, reverse=True)
 
 
+class LogLevelFilter(logging.Filter):
+    def __init__(self, max_level):
+        super(LogLevelFilter, self).__init__()
+
+        self.max_level = max_level
+
+    def filter(self, record):
+        return record.levelno <= self.max_level
+
+
 class NoThreadFilter(logging.Filter):
     """
     Log filter for the current thread
@@ -330,12 +340,20 @@ def initLogger(console=False, log_dir=False, verbose=False):
     # Setup console logger
     if console:
         console_formatter = logging.Formatter('%(asctime)s - %(levelname)s :: %(threadName)s : %(message)s', '%Y-%m-%d %H:%M:%S')
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(console_formatter)
-        console_handler.setLevel(logging.DEBUG)
 
-        logger.addHandler(console_handler)
-        cherrypy.log.error_log.addHandler(console_handler)
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setFormatter(console_formatter)
+        stdout_handler.setLevel(logging.DEBUG)
+        stdout_handler.addFilter(LogLevelFilter(logging.INFO))
+
+        stderr_handler = logging.StreamHandler(sys.stderr)
+        stderr_handler.setFormatter(console_formatter)
+        stderr_handler.setLevel(logging.WARNING)
+
+        logger.addHandler(stdout_handler)
+        logger.addHandler(stderr_handler)
+        cherrypy.log.error_log.addHandler(stdout_handler)
+        cherrypy.log.error_log.addHandler(stderr_handler)
 
     # Add filters to log handlers
     # Only add filters after the config file has been initialized
