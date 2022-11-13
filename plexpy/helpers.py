@@ -486,7 +486,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     try:
         from OpenSSL import crypto
     except ImportError:
-        logger.error("Unable to generate self-signed certificates: Missing OpenSSL module.")
+        logger.error("Unable to generate self-signed certificates: Missing pyOpenSSL module.")
         return False
     from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
