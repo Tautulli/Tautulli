@@ -64,6 +64,7 @@ class Media(PlexObject):
         self.optimizedForStreaming = utils.cast(bool, data.attrib.get('optimizedForStreaming'))
         self.parts = self.findItems(data, MediaPart)
         self.proxyType = utils.cast(int, data.attrib.get('proxyType'))
+        self.selected = utils.cast(bool, data.attrib.get('selected'))
         self.target = data.attrib.get('target')
         self.title = data.attrib.get('title')
         self.videoCodec = data.attrib.get('videoCodec')
@@ -71,6 +72,7 @@ class Media(PlexObject):
         self.videoProfile = data.attrib.get('videoProfile')
         self.videoResolution = data.attrib.get('videoResolution')
         self.width = utils.cast(int, data.attrib.get('width'))
+        self.uuid = data.attrib.get('uuid')
 
         if self._isChildOf(etag='Photo'):
             self.aperture = data.attrib.get('aperture')
@@ -89,12 +91,11 @@ class Media(PlexObject):
         return self.proxyType == utils.SEARCHTYPES['optimizedVersion']
 
     def delete(self):
-        part = '%s/media/%s' % (self._parentKey, self.id)
+        part = f'{self._parentKey}/media/{self.id}'
         try:
             return self._server.query(part, method=self._server._session.delete)
         except BadRequest:
-            log.error("Failed to delete %s. This could be because you haven't allowed "
-                      "items to be deleted" % part)
+            log.error("Failed to delete %s. This could be because you haven't allowed items to be deleted", part)
             raise
 
 
@@ -146,7 +147,9 @@ class MediaPart(PlexObject):
         self.key = data.attrib.get('key')
         self.optimizedForStreaming = utils.cast(bool, data.attrib.get('optimizedForStreaming'))
         self.packetLength = utils.cast(int, data.attrib.get('packetLength'))
+        self.protocol = data.attrib.get('protocol')
         self.requiredBandwidths = data.attrib.get('requiredBandwidths')
+        self.selected = utils.cast(bool, data.attrib.get('selected'))
         self.size = utils.cast(int, data.attrib.get('size'))
         self.streams = self._buildStreams(data)
         self.syncItemId = utils.cast(int, data.attrib.get('syncItemId'))
@@ -188,10 +191,11 @@ class MediaPart(PlexObject):
                 stream (:class:`~plexapi.media.AudioStream`): AudioStream to set as default
         """
         if isinstance(stream, AudioStream):
-            key = "/library/parts/%d?audioStreamID=%d&allParts=1" % (self.id, stream.id)
+            key = f"/library/parts/{self.id}?audioStreamID={stream.id}&allParts=1"
         else:
-            key = "/library/parts/%d?audioStreamID=%d&allParts=1" % (self.id, stream)
+            key = f"/library/parts/{self.id}?audioStreamID={stream}&allParts=1"
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def setDefaultSubtitleStream(self, stream):
         """ Set the default :class:`~plexapi.media.SubtitleStream` for this MediaPart.
@@ -200,15 +204,17 @@ class MediaPart(PlexObject):
                 stream (:class:`~plexapi.media.SubtitleStream`): SubtitleStream to set as default.
         """
         if isinstance(stream, SubtitleStream):
-            key = "/library/parts/%d?subtitleStreamID=%d&allParts=1" % (self.id, stream.id)
+            key = f"/library/parts/{self.id}?subtitleStreamID={stream.id}&allParts=1"
         else:
-            key = "/library/parts/%d?subtitleStreamID=%d&allParts=1" % (self.id, stream)
+            key = f"/library/parts/{self.id}?subtitleStreamID={stream}&allParts=1"
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def resetDefaultSubtitleStream(self):
         """ Set default subtitle of this MediaPart to 'none'. """
-        key = "/library/parts/%d?subtitleStreamID=0&allParts=1" % (self.id)
+        key = f"/library/parts/{self.id}?subtitleStreamID=0&allParts=1"
         self._server.query(key, method=self._server._session.put)
+        return self
 
 
 class MediaPartStream(PlexObject):
@@ -225,6 +231,7 @@ class MediaPartStream(PlexObject):
             index (int): The index of the stream.
             language (str): The language of the stream (ex: English, ไทย).
             languageCode (str): The ASCII language code of the stream (ex: eng, tha).
+            languageTag (str): The two letter language tag of the stream (ex: en, fr).
             requiredBandwidths (str): The required bandwidths to stream the file.
             selected (bool): True if this stream is selected.
             streamType (int): The stream type (1= :class:`~plexapi.media.VideoStream`,
@@ -238,14 +245,17 @@ class MediaPartStream(PlexObject):
         self._data = data
         self.bitrate = utils.cast(int, data.attrib.get('bitrate'))
         self.codec = data.attrib.get('codec')
+        self.decision = data.attrib.get('decision')
         self.default = utils.cast(bool, data.attrib.get('default'))
         self.displayTitle = data.attrib.get('displayTitle')
         self.extendedDisplayTitle = data.attrib.get('extendedDisplayTitle')
-        self.key = data.attrib.get('key')
         self.id = utils.cast(int, data.attrib.get('id'))
         self.index = utils.cast(int, data.attrib.get('index', '-1'))
+        self.key = data.attrib.get('key')
         self.language = data.attrib.get('language')
         self.languageCode = data.attrib.get('languageCode')
+        self.languageTag = data.attrib.get('languageTag')
+        self.location = data.attrib.get('location')
         self.requiredBandwidths = data.attrib.get('requiredBandwidths')
         self.selected = utils.cast(bool, data.attrib.get('selected', '0'))
         self.streamType = utils.cast(int, data.attrib.get('streamType'))
@@ -570,22 +580,22 @@ class Optimized(PlexObject):
         """ Returns a list of all :class:`~plexapi.media.Video` objects
             in this optimized item.
         """
-        key = '%s/%s/items' % (self._initpath, self.id)
+        key = f'{self._initpath}/{self.id}/items'
         return self.fetchItems(key)
 
     def remove(self):
         """ Remove an Optimized item"""
-        key = '%s/%s' % (self._initpath, self.id)
+        key = f'{self._initpath}/{self.id}'
         self._server.query(key, method=self._server._session.delete)
 
     def rename(self, title):
         """ Rename an Optimized item"""
-        key = '%s/%s?Item[title]=%s' % (self._initpath, self.id, title)
+        key = f'{self._initpath}/{self.id}?Item[title]={title}'
         self._server.query(key, method=self._server._session.put)
 
     def reprocess(self, ratingKey):
         """ Reprocess a removed Conversion item that is still a listed Optimize item"""
-        key = '%s/%s/%s/enable' % (self._initpath, self.id, ratingKey)
+        key = f'{self._initpath}/{self.id}/{ratingKey}/enable'
         self._server.query(key, method=self._server._session.put)
 
 
@@ -631,7 +641,7 @@ class Conversion(PlexObject):
 
     def remove(self):
         """ Remove Conversion from queue """
-        key = '/playlists/%s/items/%s/%s/disable' % (self.playlistID, self.generatorID, self.ratingKey)
+        key = f'/playlists/{self.playlistID}/items/{self.generatorID}/{self.ratingKey}/disable'
         self._server.query(key, method=self._server._session.put)
 
     def move(self, after):
@@ -646,7 +656,7 @@ class Conversion(PlexObject):
                         conversions[3].move(conversions[1].playQueueItemID)
         """
 
-        key = '%s/items/%s/move?after=%s' % (self._initpath, self.playQueueItemID, after)
+        key = f'{self._initpath}/items/{self.playQueueItemID}/move?after={after}'
         self._server.query(key, method=self._server._session.put)
 
 
@@ -665,6 +675,10 @@ class MediaTag(PlexObject):
             thumb (str): URL to thumbnail image for :class:`~plexapi.media.Role` only.
     """
 
+    def __str__(self):
+        """ Returns the tag name. """
+        return self.tag
+
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         self._data = data
@@ -682,14 +696,12 @@ class MediaTag(PlexObject):
         self._parentType = parent.TYPE
 
         if self._librarySectionKey and self.filter:
-            self.key = '%s/all?%s&type=%s' % (
-                self._librarySectionKey, self.filter, utils.searchType(self._parentType))
+            self.key = f'{self._librarySectionKey}/all?{self.filter}&type={utils.searchType(self._parentType)}'
 
     def items(self):
         """ Return the list of items within this tag. """
         if not self.key:
-            raise BadRequest('Key is not defined for this tag: %s. '
-                             'Reload the parent object.' % self.tag)
+            raise BadRequest(f'Key is not defined for this tag: {self.tag}. Reload the parent object.')
         return self.fetchItems(self.key)
 
 
@@ -707,7 +719,7 @@ class Collection(MediaTag):
     def collection(self):
         """ Return the :class:`~plexapi.collection.Collection` object for this collection tag.
         """
-        key = '%s/collections' % self._librarySectionKey
+        key = f'{self._librarySectionKey}/collections'
         return self.fetchItem(key, etag='Directory', index=self.id)
 
 
@@ -871,7 +883,7 @@ class GuidTag(PlexObject):
     """ Base class for guid tags used only for Guids, as they contain only a string identifier
 
         Attributes:
-            id (id): The guid for external metadata sources (e.g. IMDB, TMDB, TVDB).
+            id (id): The guid for external metadata sources (e.g. IMDB, TMDB, TVDB, MBID).
     """
 
     def _loadData(self, data):
@@ -938,7 +950,7 @@ class BaseResource(PlexObject):
 
     def select(self):
         key = self._initpath[:-1]
-        data = '%s?url=%s' % (key, quote_plus(self.ratingKey))
+        data = f'{key}?url={quote_plus(self.ratingKey)}'
         try:
             self._server.query(data, method=self._server._session.put)
         except xml.etree.ElementTree.ParseError:
@@ -967,7 +979,7 @@ class Theme(BaseResource):
 
 @utils.registerPlexObject
 class Chapter(PlexObject):
-    """ Represents a single Writer media tag.
+    """ Represents a single Chapter media tag.
 
         Attributes:
             TAG (str): 'Chapter'
@@ -998,8 +1010,8 @@ class Marker(PlexObject):
         name = self._clean(self.firstAttr('type'))
         start = utils.millisecondToHumanstr(self._clean(self.firstAttr('start')))
         end = utils.millisecondToHumanstr(self._clean(self.firstAttr('end')))
-        offsets = '%s-%s' % (start, end)
-        return '<%s>' % ':'.join([self.__class__.__name__, name, offsets])
+        offsets = f'{start}-{end}'
+        return f"<{':'.join([self.__class__.__name__, name, offsets])}>"
 
     def _loadData(self, data):
         self._data = data
@@ -1036,7 +1048,7 @@ class SearchResult(PlexObject):
     def __repr__(self):
         name = self._clean(self.firstAttr('name'))
         score = self._clean(self.firstAttr('score'))
-        return '<%s>' % ':'.join([p for p in [self.__class__.__name__, name, score] if p])
+        return f"<{':'.join([p for p in [self.__class__.__name__, name, score] if p])}>"
 
     def _loadData(self, data):
         self._data = data
@@ -1058,7 +1070,7 @@ class Agent(PlexObject):
 
     def __repr__(self):
         uid = self._clean(self.firstAttr('shortIdentifier'))
-        return '<%s>' % ':'.join([p for p in [self.__class__.__name__, uid] if p])
+        return f"<{':'.join([p for p in [self.__class__.__name__, uid] if p])}>"
 
     def _loadData(self, data):
         self._data = data
@@ -1082,7 +1094,7 @@ class Agent(PlexObject):
         return self.languageCodes
 
     def settings(self):
-        key = '/:/plugins/%s/prefs' % self.identifier
+        key = f'/:/plugins/{self.identifier}/prefs'
         data = self._server.query(key)
         return self.findItems(data, cls=settings.Setting)
 
@@ -1101,7 +1113,7 @@ class AgentMediaType(Agent):
 
     def __repr__(self):
         uid = self._clean(self.firstAttr('name'))
-        return '<%s>' % ':'.join([p for p in [self.__class__.__name__, uid] if p])
+        return f"<{':'.join([p for p in [self.__class__.__name__, uid] if p])}>"
 
     def _loadData(self, data):
         self.languageCodes = self.listAttrs(data, 'code', etag='Language')

@@ -127,7 +127,7 @@ class Playlist(
         for _item in self.items():
             if _item.ratingKey == item.ratingKey:
                 return _item.playlistItemID
-        raise NotFound('Item with title "%s" not found in the playlist' % item.title)
+        raise NotFound(f'Item with title "{item.title}" not found in the playlist')
 
     def filters(self):
         """ Returns the search filter dict for smart playlist.
@@ -177,14 +177,14 @@ class Playlist(
         for item in self.items():
             if item.title.lower() == title.lower():
                 return item
-        raise NotFound('Item with title "%s" not found in the playlist' % title)
+        raise NotFound(f'Item with title "{title}" not found in the playlist')
 
     def items(self):
         """ Returns a list of all items in the playlist. """
         if self.radio:
             return []
         if self._items is None:
-            key = '%s/items' % self.key
+            key = f'{self.key}/items'
             items = self.fetchItems(key)
             self._items = items
         return self._items
@@ -212,17 +212,17 @@ class Playlist(
         ratingKeys = []
         for item in items:
             if item.listType != self.playlistType:  # pragma: no cover
-                raise BadRequest('Can not mix media types when building a playlist: %s and %s' %
-                    (self.playlistType, item.listType))
+                raise BadRequest(f'Can not mix media types when building a playlist: '
+                                 f'{self.playlistType} and {item.listType}')
             ratingKeys.append(str(item.ratingKey))
 
         ratingKeys = ','.join(ratingKeys)
-        uri = '%s/library/metadata/%s' % (self._server._uriRoot(), ratingKeys)
+        uri = f'{self._server._uriRoot()}/library/metadata/{ratingKeys}'
 
-        key = '%s/items%s' % (self.key, utils.joinArgs({
-            'uri': uri
-        }))
+        args = {'uri': uri}
+        key = f"{self.key}/items{utils.joinArgs(args)}"
         self._server.query(key, method=self._server._session.put)
+        return self
 
     @deprecated('use "removeItems" instead', stacklevel=3)
     def removeItem(self, item):
@@ -247,8 +247,9 @@ class Playlist(
 
         for item in items:
             playlistItemID = self._getPlaylistItemID(item)
-            key = '%s/items/%s' % (self.key, playlistItemID)
+            key = f'{self.key}/items/{playlistItemID}'
             self._server.query(key, method=self._server._session.delete)
+        return self
 
     def moveItem(self, item, after=None):
         """ Move an item to a new position in the playlist.
@@ -267,13 +268,14 @@ class Playlist(
             raise BadRequest('Cannot move items in a smart playlist.')
 
         playlistItemID = self._getPlaylistItemID(item)
-        key = '%s/items/%s/move' % (self.key, playlistItemID)
+        key = f'{self.key}/items/{playlistItemID}/move'
 
         if after:
             afterPlaylistItemID = self._getPlaylistItemID(after)
-            key += '?after=%s' % afterPlaylistItemID
+            key += f'?after={afterPlaylistItemID}'
 
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def updateFilters(self, limit=None, sort=None, filters=None, **kwargs):
         """ Update the filters for a smart playlist.
@@ -297,17 +299,18 @@ class Playlist(
         section = self.section()
         searchKey = section._buildSearchKey(
             sort=sort, libtype=section.METADATA_TYPE, limit=limit, filters=filters, **kwargs)
-        uri = '%s%s' % (self._server._uriRoot(), searchKey)
+        uri = f'{self._server._uriRoot()}{searchKey}'
 
-        key = '%s/items%s' % (self.key, utils.joinArgs({
-            'uri': uri
-        }))
+        args = {'uri': uri}
+        key = f"{self.key}/items{utils.joinArgs(args)}"
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def _edit(self, **kwargs):
         """ Actually edit the playlist. """
-        key = '%s%s' % (self.key, utils.joinArgs(kwargs))
+        key = f'{self.key}{utils.joinArgs(kwargs)}'
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def edit(self, title=None, summary=None):
         """ Edit the playlist.
@@ -321,7 +324,7 @@ class Playlist(
             args['title'] = title
         if summary:
             args['summary'] = summary
-        self._edit(**args)
+        return self._edit(**args)
 
     def delete(self):
         """ Delete the playlist. """
@@ -348,14 +351,10 @@ class Playlist(
             ratingKeys.append(str(item.ratingKey))
 
         ratingKeys = ','.join(ratingKeys)
-        uri = '%s/library/metadata/%s' % (server._uriRoot(), ratingKeys)
+        uri = f'{server._uriRoot()}/library/metadata/{ratingKeys}'
 
-        key = '/playlists%s' % utils.joinArgs({
-            'uri': uri,
-            'type': listType,
-            'title': title,
-            'smart': 0
-        })
+        args = {'uri': uri, 'type': listType, 'title': title, 'smart': 0}
+        key = f"/playlists{utils.joinArgs(args)}"
         data = server.query(key, method=server._session.post)[0]
         return cls(server, data, initpath=key)
 
@@ -369,14 +368,10 @@ class Playlist(
 
         searchKey = section._buildSearchKey(
             sort=sort, libtype=libtype, limit=limit, filters=filters, **kwargs)
-        uri = '%s%s' % (server._uriRoot(), searchKey)
+        uri = f'{server._uriRoot()}{searchKey}'
 
-        key = '/playlists%s' % utils.joinArgs({
-            'uri': uri,
-            'type': section.CONTENT_TYPE,
-            'title': title,
-            'smart': 1,
-        })
+        args = {'uri': uri, 'type': section.CONTENT_TYPE, 'title': title, 'smart': 1}
+        key = f"/playlists{utils.joinArgs(args)}"
         data = server.query(key, method=server._session.post)[0]
         return cls(server, data, initpath=key)
 
@@ -465,7 +460,7 @@ class Playlist(
         sync_item.metadataType = self.metadataType
         sync_item.machineIdentifier = self._server.machineIdentifier
 
-        sync_item.location = 'playlist:///%s' % quote_plus(self.guid)
+        sync_item.location = f'playlist:///{quote_plus(self.guid)}'
         sync_item.policy = Policy.create(limit, unwatched)
 
         if self.isVideo:

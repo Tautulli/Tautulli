@@ -51,7 +51,7 @@ class Settings(PlexObject):
         id = utils.lowerFirst(id)
         if id in self._settings:
             return self._settings[id]
-        raise NotFound('Invalid setting id: %s' % id)
+        raise NotFound(f'Invalid setting id: {id}')
 
     def groups(self):
         """ Returns a dict of lists for all :class:`~plexapi.settings.Setting`
@@ -77,12 +77,12 @@ class Settings(PlexObject):
         params = {}
         for setting in self.all():
             if setting._setValue:
-                log.info('Saving PlexServer setting %s = %s' % (setting.id, setting._setValue))
+                log.info('Saving PlexServer setting %s = %s', setting.id, setting._setValue)
                 params[setting.id] = quote(setting._setValue)
         if not params:
             raise BadRequest('No setting have been modified.')
-        querystr = '&'.join(['%s=%s' % (k, v) for k, v in params.items()])
-        url = '%s?%s' % (self.key, querystr)
+        querystr = '&'.join([f'{k}={v}' for k, v in params.items()])
+        url = f'{self.key}?{querystr}'
         self._server.query(url, self._server._session.put)
         self.reload()
 
@@ -149,16 +149,16 @@ class Setting(PlexObject):
         # check a few things up front
         if not isinstance(value, self.TYPES[self.type]['type']):
             badtype = type(value).__name__
-            raise BadRequest('Invalid value for %s: a %s is required, not %s' % (self.id, self.type, badtype))
+            raise BadRequest(f'Invalid value for {self.id}: a {self.type} is required, not {badtype}')
         if self.enumValues and value not in self.enumValues:
-            raise BadRequest('Invalid value for %s: %s not in %s' % (self.id, value, list(self.enumValues)))
+            raise BadRequest(f'Invalid value for {self.id}: {value} not in {list(self.enumValues)}')
         # store value off to the side until we call settings.save()
         tostr = self.TYPES[self.type]['tostr']
         self._setValue = tostr(value)
 
     def toUrl(self):
         """Helper for urls"""
-        return '%s=%s' % (self.id, self._value or self.value)
+        return f'{self.id}={self._value or self.value}'
 
 
 @utils.registerPlexObject
@@ -174,6 +174,6 @@ class Preferences(Setting):
 
     def _default(self):
         """ Set the default value for this setting."""
-        key = '%s/prefs?' % self._initpath
-        url = key + '%s=%s' % (self.id, self.default)
+        key = f'{self._initpath}/prefs?'
+        url = key + f'{self.id}={self.default}'
         self._server.query(url, method=self._server._session.put)

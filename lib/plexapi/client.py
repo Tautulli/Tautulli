@@ -94,7 +94,7 @@ class PlexClient(PlexObject):
         self._initpath = self.key
         data = self.query(self.key, timeout=timeout)
         if not data:
-            raise NotFound("Client not found at %s" % self._baseurl)
+            raise NotFound(f"Client not found at {self._baseurl}")
         if self._clientIdentifier:
             client = next(
                 (
@@ -106,8 +106,7 @@ class PlexClient(PlexObject):
             )
             if client is None:
                 raise NotFound(
-                    "Client with identifier %s not found at %s"
-                    % (self._clientIdentifier, self._baseurl)
+                    f"Client with identifier {self._clientIdentifier} not found at {self._baseurl}"
                 )
         else:
             client = data[0]
@@ -136,12 +135,15 @@ class PlexClient(PlexObject):
         # Add this in next breaking release.
         # if self._initpath == 'status/sessions':
         self.device = data.attrib.get('device')         # session
+        self.profile = data.attrib.get('profile')       # session
         self.model = data.attrib.get('model')           # session
         self.state = data.attrib.get('state')           # session
         self.vendor = data.attrib.get('vendor')         # session
         self.version = data.attrib.get('version')       # session
-        self.local = utils.cast(bool, data.attrib.get('local', 0))
-        self.address = data.attrib.get('address')        # session
+        self.local = utils.cast(bool, data.attrib.get('local', 0))  # session
+        self.relayed = utils.cast(bool, data.attrib.get('relayed', 0))  # session
+        self.secure = utils.cast(bool, data.attrib.get('secure', 0))  # session
+        self.address = data.attrib.get('address')       # session
         self.remotePublicAddress = data.attrib.get('remotePublicAddress')
         self.userID = data.attrib.get('userID')
 
@@ -183,7 +185,7 @@ class PlexClient(PlexObject):
         if response.status_code not in (200, 201, 204):
             codename = codes.get(response.status_code)[0]
             errtext = response.text.replace('\n', ' ')
-            message = '(%s) %s; %s %s' % (response.status_code, codename, response.url, errtext)
+            message = f'({response.status_code}) {codename}; {response.url} {errtext}'
             if response.status_code == 401:
                 raise Unauthorized(message)
             elif response.status_code == 404:
@@ -210,8 +212,7 @@ class PlexClient(PlexObject):
         controller = command.split('/')[0]
         headers = {'X-Plex-Target-Client-Identifier': self.machineIdentifier}
         if controller not in self.protocolCapabilities:
-            log.debug("Client %s doesn't support %s controller."
-                      "What your trying might not work" % (self.title, controller))
+            log.debug("Client %s doesn't support %s controller. What your trying might not work", self.title, controller)
 
         proxy = self._proxyThroughServer if proxy is None else proxy
         query = self._server.query if proxy else self.query
@@ -225,7 +226,7 @@ class PlexClient(PlexObject):
             self.sendCommand(ClientTimeline.key, wait=0)
 
         params['commandID'] = self._nextCommandId()
-        key = '/player/%s%s' % (command, utils.joinArgs(params))
+        key = f'/player/{command}{utils.joinArgs(params)}'
 
         try:
             return query(key, headers=headers)
@@ -250,8 +251,8 @@ class PlexClient(PlexObject):
             raise BadRequest('PlexClient object missing baseurl.')
         if self._token and (includeToken or self._showSecrets):
             delim = '&' if '?' in key else '?'
-            return '%s%s%sX-Plex-Token=%s' % (self._baseurl, key, delim, self._token)
-        return '%s%s' % (self._baseurl, key)
+            return f'{self._baseurl}{key}{delim}X-Plex-Token={self._token}'
+        return f'{self._baseurl}{key}'
 
     # ---------------------
     # Navigation Commands
@@ -514,7 +515,7 @@ class PlexClient(PlexObject):
             'offset': offset,
             'key': media.key or playqueue.selectedItem.key,
             'type': mediatype,
-            'containerKey': '/playQueues/%s?window=100&own=1' % playqueue.playQueueID,
+            'containerKey': f'/playQueues/{playqueue.playQueueID}?window=100&own=1',
             **params,
         }
         token = media._server.createToken()
@@ -620,7 +621,7 @@ class ClientTimeline(PlexObject):
         self.protocol = data.attrib.get('protocol')
         self.providerIdentifier = data.attrib.get('providerIdentifier')
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
-        self.repeat = utils.cast(bool, data.attrib.get('repeat'))
+        self.repeat = utils.cast(int, data.attrib.get('repeat'))
         self.seekRange = data.attrib.get('seekRange')
         self.shuffle = utils.cast(bool, data.attrib.get('shuffle'))
         self.state = data.attrib.get('state')

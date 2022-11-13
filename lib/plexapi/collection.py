@@ -4,7 +4,7 @@ from urllib.parse import quote_plus
 from plexapi import media, utils
 from plexapi.base import PlexPartialObject
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
-from plexapi.library import LibrarySection
+from plexapi.library import LibrarySection, ManagedHub
 from plexapi.mixins import (
     AdvancedSettingsMixin, SmartFilterMixin, HubsMixin, RatingMixin,
     ArtMixin, PosterMixin, ThemeMixin,
@@ -184,15 +184,27 @@ class Collection(
         for item in self.items():
             if item.title.lower() == title.lower():
                 return item
-        raise NotFound('Item with title "%s" not found in the collection' % title)
+        raise NotFound(f'Item with title "{title}" not found in the collection')
 
     def items(self):
         """ Returns a list of all items in the collection. """
         if self._items is None:
-            key = '%s/children' % self.key
+            key = f'{self.key}/children'
             items = self.fetchItems(key)
             self._items = items
         return self._items
+
+    def visibility(self):
+        """ Returns the :class:`~plexapi.library.ManagedHub` for this collection. """
+        key = f'/hubs/sections/{self.librarySectionID}/manage?metadataItemId={self.ratingKey}'
+        data = self._server.query(key)
+        hub = self.findItem(data, cls=ManagedHub)
+        if hub is None:
+            hub = ManagedHub(self._server, data, parent=self)
+            hub.identifier = f'custom.collection.{self.librarySectionID}.{self.ratingKey}'
+            hub.title = self.title
+            hub._promoted = False
+        return hub
 
     def get(self, title):
         """ Alias to :func:`~plexapi.library.Collection.item`. """
@@ -221,8 +233,8 @@ class Collection(
         }
         key = user_dict.get(user)
         if key is None:
-            raise BadRequest('Unknown collection filtering user: %s. Options %s' % (user, list(user_dict)))
-        self.editAdvanced(collectionFilterBasedOnUser=key)
+            raise BadRequest(f'Unknown collection filtering user: {user}. Options {list(user_dict)}')
+        return self.editAdvanced(collectionFilterBasedOnUser=key)
 
     def modeUpdate(self, mode=None):
         """ Update the collection mode advanced setting.
@@ -248,8 +260,8 @@ class Collection(
         }
         key = mode_dict.get(mode)
         if key is None:
-            raise BadRequest('Unknown collection mode: %s. Options %s' % (mode, list(mode_dict)))
-        self.editAdvanced(collectionMode=key)
+            raise BadRequest(f'Unknown collection mode: {mode}. Options {list(mode_dict)}')
+        return self.editAdvanced(collectionMode=key)
 
     def sortUpdate(self, sort=None):
         """ Update the collection order advanced setting.
@@ -276,8 +288,8 @@ class Collection(
         }
         key = sort_dict.get(sort)
         if key is None:
-            raise BadRequest('Unknown sort dir: %s. Options: %s' % (sort, list(sort_dict)))
-        self.editAdvanced(collectionSort=key)
+            raise BadRequest(f'Unknown sort dir: {sort}. Options: {list(sort_dict)}')
+        return self.editAdvanced(collectionSort=key)
 
     def addItems(self, items):
         """ Add items to the collection.
@@ -298,17 +310,16 @@ class Collection(
         ratingKeys = []
         for item in items:
             if item.type != self.subtype:  # pragma: no cover
-                raise BadRequest('Can not mix media types when building a collection: %s and %s' %
-                    (self.subtype, item.type))
+                raise BadRequest(f'Can not mix media types when building a collection: {self.subtype} and {item.type}')
             ratingKeys.append(str(item.ratingKey))
 
         ratingKeys = ','.join(ratingKeys)
-        uri = '%s/library/metadata/%s' % (self._server._uriRoot(), ratingKeys)
+        uri = f'{self._server._uriRoot()}/library/metadata/{ratingKeys}'
 
-        key = '%s/items%s' % (self.key, utils.joinArgs({
-            'uri': uri
-        }))
+        args = {'uri': uri}
+        key = f"{self.key}/items{utils.joinArgs(args)}"
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def removeItems(self, items):
         """ Remove items from the collection.
@@ -327,17 +338,18 @@ class Collection(
             items = [items]
 
         for item in items:
-            key = '%s/items/%s' % (self.key, item.ratingKey)
+            key = f'{self.key}/items/{item.ratingKey}'
             self._server.query(key, method=self._server._session.delete)
+        return self
 
     def moveItem(self, item, after=None):
         """ Move an item to a new position in the collection.
 
             Parameters:
-                items (obj): :class:`~plexapi.audio.Audio`, :class:`~plexapi.video.Video`,
-                    or :class:`~plexapi.photo.Photo` objects to be moved in the collection.
+                item (obj): :class:`~plexapi.audio.Audio`, :class:`~plexapi.video.Video`,
+                    or :class:`~plexapi.photo.Photo` object to be moved in the collection.
                 after (obj): :class:`~plexapi.audio.Audio`, :class:`~plexapi.video.Video`,
-                    or :class:`~plexapi.photo.Photo` objects to move the item after in the collection.
+                    or :class:`~plexapi.photo.Photo` object to move the item after in the collection.
 
             Raises:
                 :class:`plexapi.exceptions.BadRequest`: When trying to move items in a smart collection.
@@ -345,12 +357,13 @@ class Collection(
         if self.smart:
             raise BadRequest('Cannot move items in a smart collection.')
 
-        key = '%s/items/%s/move' % (self.key, item.ratingKey)
+        key = f'{self.key}/items/{item.ratingKey}/move'
 
         if after:
-            key += '?after=%s' % after.ratingKey
+            key += f'?after={after.ratingKey}'
 
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def updateFilters(self, libtype=None, limit=None, sort=None, filters=None, **kwargs):
         """ Update the filters for a smart collection.
@@ -376,12 +389,12 @@ class Collection(
         section = self.section()
         searchKey = section._buildSearchKey(
             sort=sort, libtype=libtype, limit=limit, filters=filters, **kwargs)
-        uri = '%s%s' % (self._server._uriRoot(), searchKey)
+        uri = f'{self._server._uriRoot()}{searchKey}'
 
-        key = '%s/items%s' % (self.key, utils.joinArgs({
-            'uri': uri
-        }))
+        args = {'uri': uri}
+        key = f"{self.key}/items{utils.joinArgs(args)}"
         self._server.query(key, method=self._server._session.put)
+        return self
 
     @deprecated('use editTitle, editSortTitle, editContentRating, and editSummary instead')
     def edit(self, title=None, titleSort=None, contentRating=None, summary=None, **kwargs):
@@ -438,15 +451,10 @@ class Collection(
             ratingKeys.append(str(item.ratingKey))
 
         ratingKeys = ','.join(ratingKeys)
-        uri = '%s/library/metadata/%s' % (server._uriRoot(), ratingKeys)
+        uri = f'{server._uriRoot()}/library/metadata/{ratingKeys}'
 
-        key = '/library/collections%s' % utils.joinArgs({
-            'uri': uri,
-            'type': utils.searchType(itemType),
-            'title': title,
-            'smart': 0,
-            'sectionId': section.key
-        })
+        args = {'uri': uri, 'type': utils.searchType(itemType), 'title': title, 'smart': 0, 'sectionId': section.key}
+        key = f"/library/collections{utils.joinArgs(args)}"
         data = server.query(key, method=server._session.post)[0]
         return cls(server, data, initpath=key)
 
@@ -460,15 +468,10 @@ class Collection(
 
         searchKey = section._buildSearchKey(
             sort=sort, libtype=libtype, limit=limit, filters=filters, **kwargs)
-        uri = '%s%s' % (server._uriRoot(), searchKey)
+        uri = f'{server._uriRoot()}{searchKey}'
 
-        key = '/library/collections%s' % utils.joinArgs({
-            'uri': uri,
-            'type': utils.searchType(libtype),
-            'title': title,
-            'smart': 1,
-            'sectionId': section.key
-        })
+        args = {'uri': uri, 'type': utils.searchType(libtype), 'title': title, 'smart': 1, 'sectionId': section.key}
+        key = f"/library/collections{utils.joinArgs(args)}"
         data = server.query(key, method=server._session.post)[0]
         return cls(server, data, initpath=key)
 
@@ -547,9 +550,8 @@ class Collection(
         sync_item.metadataType = self.metadataType
         sync_item.machineIdentifier = self._server.machineIdentifier
 
-        sync_item.location = 'library:///directory/%s' % quote_plus(
-            '%s/children?excludeAllLeaves=1' % (self.key)
-        )
+        key = quote_plus(f'{self.key}/children?excludeAllLeaves=1')
+        sync_item.location = f'library:///directory/{key}'
         sync_item.policy = Policy.create(limit, unwatched)
 
         if self.isVideo:
