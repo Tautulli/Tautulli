@@ -1,7 +1,7 @@
 import base64
 import binascii
 import re
-from typing import Any, Union
+from typing import Union
 
 try:
     from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurve
@@ -10,7 +10,7 @@ try:
         encode_dss_signature,
     )
 except ModuleNotFoundError:
-    EllipticCurve = Any  # type: ignore
+    EllipticCurve = None
 
 
 def force_bytes(value: Union[str, bytes]) -> bytes:
@@ -136,7 +136,7 @@ def is_pem_format(key: bytes) -> bool:
 
 # Based on https://github.com/pyca/cryptography/blob/bcb70852d577b3f490f015378c75cba74986297b/src/cryptography/hazmat/primitives/serialization/ssh.py#L40-L46
 _CERT_SUFFIX = b"-cert-v01@openssh.com"
-_SSH_PUBKEY_RC = re.compile(br"\A(\S+)[ \t]+(\S+)")
+_SSH_PUBKEY_RC = re.compile(rb"\A(\S+)[ \t]+(\S+)")
 _SSH_KEY_FORMATS = [
     b"ssh-ed25519",
     b"ssh-rsa",

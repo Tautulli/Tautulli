@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import json
+import time
 
 from .algorithms import get_default_algorithms
 from .exceptions import InvalidKeyError, PyJWKError, PyJWKSetError
@@ -74,17 +77,24 @@ class PyJWK:
 
 
 class PyJWKSet:
-    def __init__(self, keys):
+    def __init__(self, keys: list[dict]) -> None:
         self.keys = []
 
-        if not keys or not isinstance(keys, list):
-            raise PyJWKSetError("Invalid JWK Set value")
-
-        if len(keys) == 0:
+        if not keys:
             raise PyJWKSetError("The JWK Set did not contain any keys")
 
+        if not isinstance(keys, list):
+            raise PyJWKSetError("Invalid JWK Set value")
+
         for key in keys:
-            self.keys.append(PyJWK(key))
+            try:
+                self.keys.append(PyJWK(key))
+            except PyJWKError:
+                # skip unusable keys
+                continue
+
+        if len(self.keys) == 0:
+            raise PyJWKSetError("The JWK Set did not contain any usable keys")
 
     @staticmethod
     def from_dict(obj):
@@ -101,3 +111,15 @@ class PyJWKSet:
             if key.key_id == kid:
                 return key
         raise KeyError(f"keyset has no key for kid: {kid}")
+
+
+class PyJWTSetWithTimestamp:
+    def __init__(self, jwk_set: PyJWKSet):
+        self.jwk_set = jwk_set
+        self.timestamp = time.monotonic()
+
+    def get_jwk_set(self):
+        return self.jwk_set
+
+    def get_timestamp(self):
+        return self.timestamp
