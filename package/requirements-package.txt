@@ -8,4 +8,4 @@ pycryptodomex==3.15.0
 pyobjc-framework-Cocoa==9.0; platform_system == "Darwin"
 pyobjc-core==9.0; platform_system == "Darwin"
 
-pywin32==304; platform_system == "Windows"
+pywin32==305; platform_system == "Windows"
