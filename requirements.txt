@@ -9,7 +9,7 @@ bleach==5.0.1
 certifi==2022.9.24
 cheroot==8.6.0
 cherrypy==18.8.0
-cloudinary==1.29.0
+cloudinary==1.30.0
 distro==1.7.0
 dnspython==2.2.1
 facebook-sdk==3.1.0
