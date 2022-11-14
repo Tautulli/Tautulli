@@ -106,7 +106,7 @@ class CloudinaryField(models.Field):
         value = super(CloudinaryField, self).pre_save(model_instance, add)
         if isinstance(value, UploadedFile):
             options = {"type": self.type, "resource_type": self.resource_type}
-            options.update(self.options)
+            options.update({key: val(model_instance) if callable(val) else val for key, val in self.options.items()})
             if hasattr(value, 'seekable') and value.seekable():
                 value.seek(0)
             instance_value = uploader.upload_resource(value, **options)

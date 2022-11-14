@@ -93,6 +93,23 @@ def resources_by_ids(public_ids, **options):
     return call_api("get", uri, params, **options)
 
 
+def resources_by_asset_folder(asset_folder, **options):
+    """
+    Returns the details of the resources (assets) under a specified asset_folder.
+
+    :param asset_folder:    The Asset Folder of the asset
+    :type asset_folder:     string
+    :param options:     Additional options
+    :type options:      dict, optional
+    :return:            Resources (assets) of a specific asset_folder
+    :rtype:             Response
+    """
+    uri = ["resources", "by_asset_folder"]
+    params = only(options, "max_results", "tags", "moderations", "context", "next_cursor")
+    params["asset_folder"] = asset_folder
+    return call_api("get", uri, params, **options)
+
+
 def resources_by_asset_ids(asset_ids, **options):
     """Retrieves the resources (assets) indicated in the asset IDs.
     This method does not return deleted assets even if they have been backed up.
@@ -131,7 +148,7 @@ def resources_by_context(key, value=None, **options):
     resource_type = options.pop("resource_type", "image")
     uri = ["resources", resource_type, "context"]
     params = only(options, "next_cursor", "max_results", "tags",
-                "context", "moderations", "direction", "metadata")
+                  "context", "moderations", "direction", "metadata")
     params["key"] = key
     if value is not None:
         params["value"] = value
@@ -194,10 +211,18 @@ def update(public_id, **options):
             options.get("custom_coordinates"))
     if "context" in options:
         params["context"] = utils.encode_context(options.get("context"))
+    if "metadata" in options:
+        params["metadata"] = utils.encode_context(options.get("metadata"))
     if "auto_tagging" in options:
         params["auto_tagging"] = str(options.get("auto_tagging"))
     if "access_control" in options:
         params["access_control"] = utils.json_encode(utils.build_list_of_dicts(options.get("access_control")))
+    if "asset_folder" in options:
+        params["asset_folder"] = options.get("asset_folder")
+    if "display_name" in options:
+        params["display_name"] = options.get("display_name")
+    if "unique_display_name" in options:
+        params["unique_display_name"] = options.get("unique_display_name")
 
     return call_api("post", uri, params, **options)
 

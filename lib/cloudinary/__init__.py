@@ -1,14 +1,14 @@
 from __future__ import absolute_import
 
 import abc
-from copy import deepcopy
-import hashlib
-import os
-import re
 import logging
 import numbers
-import certifi
+import os
+import re
+from copy import deepcopy
 from math import ceil
+
+import certifi
 from six import python_2_unicode_compatible, add_metaclass
 
 logger = logging.getLogger("Cloudinary")
@@ -23,7 +23,7 @@ from cloudinary.cache import responsive_breakpoints_cache
 from cloudinary.http_client import HttpClient
 from cloudinary.compat import urlparse, parse_qs
 
-from platform import python_version
+from platform import python_version, platform
 
 CERT_KWARGS = {
     'cert_reqs': 'CERT_REQUIRED',
@@ -38,15 +38,17 @@ CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAA
 URI_SCHEME = "cloudinary"
 API_VERSION = "v1_1"
 
-VERSION = "1.29.0"
+VERSION = "1.30.0"
 
-USER_AGENT = "CloudinaryPython/{} (Python {})".format(VERSION, python_version())
+_USER_PLATFORM_DETAILS = "; ".join((platform(), "Python {}".format(python_version())))
+
+USER_AGENT = "CloudinaryPython/{} ({})".format(VERSION, _USER_PLATFORM_DETAILS)
 """ :const: USER_AGENT """
 
 USER_PLATFORM = ""
 """
-Additional information to be passed with the USER_AGENT, e.g. "CloudinaryMagento/1.0.1".
-This value is set in platform-specific implementations that use cloudinary_php.
+Additional information to be passed with the USER_AGENT, e.g. "CloudinaryCLI/1.2.3".
+This value is set in platform-specific implementations that use pycloudinary.
 
 The format of the value should be <ProductName>/Version[ (comment)].
 @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.43
