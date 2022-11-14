@@ -1,10 +1,15 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# rumps: Ridiculously Uncomplicated macOS Python Statusbar apps.
-# Copyright: (c) 2017, Jared Suttles. All rights reserved.
-# License: BSD, see LICENSE for details.
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+"""
+rumps.utils
+~~~~~~~~~~~
+
+Generic container classes and utility functions.
+
+:copyright: (c) 2020 by Jared Suttles
+:license: BSD-3-Clause, see LICENSE for details.
+"""
+
 from .packages.ordereddict import OrderedDict as _OrderedDict
 
 

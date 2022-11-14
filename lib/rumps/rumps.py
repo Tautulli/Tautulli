@@ -1,38 +1,32 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# rumps: Ridiculously Uncomplicated macOS Python Statusbar apps.
-# Copyright: (c) 2017, Jared Suttles. All rights reserved.
-# License: BSD, see LICENSE for details.
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-_NOTIFICATIONS = True
+# rumps: Ridiculously Uncomplicated macOS Python Statusbar apps.
+# Copyright: (c) 2020, Jared Suttles. All rights reserved.
+# License: BSD, see LICENSE for details.
+
 
 # For compatibility with pyinstaller
 # See: http://stackoverflow.com/questions/21058889/pyinstaller-not-finding-pyobjc-library-macos-python
 import Foundation
 import AppKit
 
-try:
-    from Foundation import NSUserNotification, NSUserNotificationCenter
-except ImportError:
-    _NOTIFICATIONS = False
-
 from Foundation import (NSDate, NSTimer, NSRunLoop, NSDefaultRunLoopMode, NSSearchPathForDirectoriesInDomains,
-                        NSMakeRect, NSLog, NSObject, NSMutableDictionary, NSString)
-from AppKit import NSApplication, NSStatusBar, NSMenu, NSMenuItem, NSAlert, NSTextField, NSSecureTextField, NSImage, NSSlider, NSSize
+                        NSMakeRect, NSLog, NSObject, NSMutableDictionary, NSString, NSUserDefaults)
+from AppKit import NSApplication, NSStatusBar, NSMenu, NSMenuItem, NSAlert, NSTextField, NSSecureTextField, NSImage, NSSlider, NSSize, NSWorkspace, NSWorkspaceWillSleepNotification, NSWorkspaceDidWakeNotification
 from PyObjCTools import AppHelper
 
-import inspect
 import os
 import pickle
-import sys
 import traceback
 import weakref
 
-from collections import Mapping, Iterable
+from .compat import text_type, string_types, iteritems, collections_abc
+from .text_field import Editing, SecureEditing
 from .utils import ListDict
-from .compat import text_type, string_types, iteritems
+
+from . import _internal
+from . import events
+from . import notifications
 
 _TIMERS = weakref.WeakKeyDictionary()
 separator = object()
@@ -78,130 +72,19 @@ def alert(title=None, message='', ok=None, cancel=None, other=None, icon_path=No
     message = message.replace('%', '%%')
     if title is not None:
         title = text_type(title)
-    _require_string_or_none(ok)
+    _internal.require_string_or_none(ok)
     if not isinstance(cancel, string_types):
         cancel = 'Cancel' if cancel else None
     alert = NSAlert.alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat_(
         title, ok, cancel, other, message)
+    if NSUserDefaults.standardUserDefaults().stringForKey_('AppleInterfaceStyle') == 'Dark':
+        alert.window().setAppearance_(AppKit.NSAppearance.appearanceNamed_('NSAppearanceNameVibrantDark'))
     alert.setAlertStyle_(0)  # informational style
     if icon_path is not None:
         icon = _nsimage_from_file(icon_path)
         alert.setIcon_(icon)
     _log('alert opened with message: {0}, title: {1}'.format(repr(message), repr(title)))
     return alert.runModal()
-
-
-def _gather_info_issue_9():
-    missing_plist = False
-    missing_bundle_ident = False
-    info_plist_path = os.path.join(os.path.dirname(sys.executable), 'Info.plist')
-    try:
-        with open(info_plist_path) as f:
-            import plistlib
-            try:
-                load_plist = plistlib.load
-            except AttributeError:
-                load_plist = plistlib.readPlist
-            try:
-                load_plist(f)['CFBundleIdentifier']
-            except Exception:
-                missing_bundle_ident = True
-
-    except IOError as e:
-        import errno
-        if e.errno == errno.ENOENT:  # No such file or directory
-            missing_plist = True
-
-    info = '\n\n'
-    if missing_plist:
-        info += 'In this case there is no file at "%(info_plist_path)s"'
-        info += '\n\n'
-        confidence = 'should'
-    elif missing_bundle_ident:
-        info += 'In this case the file at "%(info_plist_path)s" does not contain a value for "CFBundleIdentifier"'
-        info += '\n\n'
-        confidence = 'should'
-    else:
-        confidence = 'may'
-    info += 'Running the following command %(confidence)s fix the issue:\n'
-    info += '/usr/libexec/PlistBuddy -c \'Add :CFBundleIdentifier string "rumps"\' %(info_plist_path)s\n'
-    return info % {'info_plist_path': info_plist_path, 'confidence': confidence}
-
-
-def _default_user_notification_center():
-    notification_center = NSUserNotificationCenter.defaultUserNotificationCenter()
-    if notification_center is None:
-        info = (
-            'Failed to setup the notification center. This issue occurs when the "Info.plist" file '
-            'cannot be found or is missing "CFBundleIdentifier".'
-        )
-        try:
-            info += _gather_info_issue_9()
-        except Exception:
-            pass
-        raise RuntimeError(info)
-    else:
-        return notification_center
-
-
-def notification(title, subtitle, message, data=None, sound=True, action_button=None, other_button=None,
-                 has_reply_button=False, icon=None):
-    """Send a notification to Notification Center (OS X 10.8+). If running on a version of macOS that does not
-    support notifications, a ``RuntimeError`` will be raised. Apple says,
-
-        "The userInfo content must be of reasonable serialized size (less than 1k) or an exception will be thrown."
-
-    So don't do that!
-
-    :param title: text in a larger font.
-    :param subtitle: text in a smaller font below the `title`.
-    :param message: text representing the body of the notification below the `subtitle`.
-    :param data: will be passed to the application's "notification center" (see :func:`rumps.notifications`) when this
-                 notification is clicked.
-    :param sound: whether the notification should make a noise when it arrives.
-    :param action_button: title for the action button.
-    :param other_button: title for the other button.
-    :param has_reply_button: whether or not the notification has a reply button.
-    :param icon: the filename of an image for the notification's icon, will replace the default.
-    """
-    if not _NOTIFICATIONS:
-        raise RuntimeError('OS X 10.8+ is required to send notifications')
-
-    if data is not None and not isinstance(data, Mapping):
-        raise TypeError('notification data must be a mapping')
-
-    _require_string_or_none(title, subtitle, message)
-
-    notification = NSUserNotification.alloc().init()
-
-    notification.setTitle_(title)
-    notification.setSubtitle_(subtitle)
-    notification.setInformativeText_(message)
-
-    if data is not None:
-        app = getattr(App, '*app_instance')
-        dumped = app.serializer.dumps(data)
-        ns_dict = NSMutableDictionary.alloc().init()
-        ns_string = NSString.alloc().initWithString_(dumped)
-        ns_dict.setDictionary_({'value': ns_string})
-        notification.setUserInfo_(ns_dict)
-
-    if icon is not None:
-        notification.set_identityImage_(_nsimage_from_file(icon))
-    if sound:
-        notification.setSoundName_("NSUserNotificationDefaultSoundName")
-    if action_button:
-        notification.setActionButtonTitle_(action_button)
-        notification.set_showsButtons_(True)
-    if other_button:
-        notification.setOtherButtonTitle_(other_button)
-        notification.set_showsButtons_(True)
-    if has_reply_button:
-        notification.setHasReplyButton_(True)
-
-    notification.setDeliveryDate_(NSDate.dateWithTimeInterval_sinceDate_(0, NSDate.date()))
-    notification_center = _default_user_notification_center()
-    notification_center.scheduleNotification_(notification)
 
 
 def application_support(name):
@@ -246,18 +129,6 @@ def _nsimage_from_file(filename, dimensions=None, template=None):
     if not template is None:
         image.setTemplate_(template)
     return image
-
-
-def _require_string(*objs):
-    for obj in objs:
-        if not isinstance(obj, string_types):
-            raise TypeError('a string is required but given {0}, a {1}'.format(obj, type(obj).__name__))
-
-
-def _require_string_or_none(*objs):
-    for obj in objs:
-        if not(obj is None or isinstance(obj, string_types)):
-            raise TypeError('a string or None is required but given {0}, a {1}'.format(obj, type(obj).__name__))
 
 
 # Decorators and helper function serving to register functions for dealing with interaction and events
@@ -365,36 +236,6 @@ def slider(*args, **options):
         return f
     return decorator
 
-
-def notifications(f):
-    """Decorator for registering a function to serve as a "notification center" for the application. This function will
-    receive the data associated with an incoming macOS notification sent using :func:`rumps.notification`. This occurs
-    whenever the user clicks on a notification for this application in the macOS Notification Center.
-
-    .. code-block:: python
-
-        @rumps.notifications
-        def notification_center(info):
-            if 'unix' in info:
-                print 'i know this'
-
-    """
-    notifications.__dict__['*notification_center'] = f
-    return f
-
-
-def _call_as_function_or_method(func, event):
-    # The idea here is that when using decorators in a class, the functions passed are not bound so we have to
-    # determine later if the functions we have (those saved as callbacks) for particular events need to be passed
-    # 'self'.
-    #
-    # This works for an App subclass method or a standalone decorated function. Will attempt to find function as
-    # a bound method of the App instance. If it is found, use it, otherwise simply call function.
-    app = getattr(App, '*app_instance')
-    for name, method in inspect.getmembers(app, predicate=inspect.ismethod):
-        if method.__func__ is func:
-            return method(event)
-    return func(event)
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -468,14 +309,14 @@ class Menu(ListDict):
                 menu.add(iterable)
                 return
 
-            for n, ele in enumerate(iteritems(iterable) if isinstance(iterable, Mapping) else iterable):
+            for n, ele in enumerate(iteritems(iterable) if isinstance(iterable, collections_abc.Mapping) else iterable):
 
                 # for mappings we recurse but don't drop down a level in the menu
-                if not isinstance(ele, MenuItem) and isinstance(ele, Mapping):
+                if not isinstance(ele, MenuItem) and isinstance(ele, collections_abc.Mapping):
                     parse_menu(ele, menu, depth)
 
                 # any iterables other than strings and MenuItems
-                elif not isinstance(ele, (string_types, MenuItem)) and isinstance(ele, Iterable):
+                elif not isinstance(ele, (string_types, MenuItem)) and isinstance(ele, collections_abc.Iterable):
                     try:
                         menuitem, submenu = ele
                     except TypeError:
@@ -580,7 +421,7 @@ class MenuItem(Menu):
     # NOTE:
     # Because of the quirks of PyObjC, a class level dictionary **inside an NSObject subclass for 10.9.x** is required
     # in order to have callback_ be a @classmethod. And we need callback_ to be class level because we can't use
-    # instances in setTarget_ method of NSMenuItem. Otherwise this would be much more straightfoward like Timer class.
+    # instances in setTarget_ method of NSMenuItem. Otherwise this would be much more straightforward like Timer class.
     #
     # So the target is always the NSApp class and action is always the @classmethod callback_ -- for every function
     # decorated with @clicked(...). All we do is lookup the MenuItem instance and the user-provided callback function
@@ -690,6 +531,35 @@ class MenuItem(Menu):
     def state(self, new_state):
         self._menuitem.setState_(new_state)
 
+    @property
+    def hidden(self):
+        """Indicates whether the menu item is hidden.
+
+        .. versionadded:: 0.4.0
+
+        """
+        return self._menuitem.isHidden()
+
+    @hidden.setter
+    def hidden(self, value):
+        self._menuitem.setHidden_(value)
+
+    def hide(self):
+        """Hide the menu item.
+
+        .. versionadded:: 0.4.0
+
+        """
+        self.hidden = True
+
+    def show(self):
+        """Show the menu item.
+
+        .. versionadded:: 0.4.0
+
+        """
+        self.hidden = False
+
     def set_callback(self, callback, key=None):
         """Set the function serving as callback for when a click event occurs on this menu item. When `callback` is
         ``None``, it will disable the callback function and grey out the menu item. If `key` is a string, set as the
@@ -703,7 +573,7 @@ class MenuItem(Menu):
         :param callback: the function to be called when the user clicks on this menu item.
         :param key: the key shortcut to click this menu item.
         """
-        _require_string_or_none(key)
+        _internal.require_string_or_none(key)
         if key is not None:
             self._menuitem.setKeyEquivalent_(key)
         NSApp._ns_to_py_and_callback[self._menuitem] = self, callback
@@ -744,7 +614,7 @@ class SliderMenuItem(object):
         self._slider = NSSlider.alloc().init()
         self._slider.setMinValue_(min_value)
         self._slider.setMaxValue_(max_value)
-        self._slider.setValue_(value)
+        self._slider.setDoubleValue_(value)
         self._slider.setFrameSize_(NSSize(*dimensions))
         self._slider.setTarget_(NSApp)
         self._menuitem = NSMenuItem.alloc().init()
@@ -774,11 +644,11 @@ class SliderMenuItem(object):
     @property
     def value(self):
         """The current position of the slider."""
-        return self._slider.value()
+        return self._slider.doubleValue()
 
     @value.setter
     def value(self, new_value):
-        self._slider.setValue_(new_value)
+        self._slider.setDoubleValue_(new_value)
 
 
 class SeparatorMenuItem(object):
@@ -860,9 +730,9 @@ class Timer(object):
     def callback_(self, _):
         _log(self)
         try:
-            return _call_as_function_or_method(getattr(self, '*callback'), self)
+            return _internal.call_as_function_or_method(getattr(self, '*callback'), self)
         except Exception:
-            _log(traceback.format_exc())
+            traceback.print_exc()
 
 
 class Window(object):
@@ -899,7 +769,7 @@ class Window(object):
         self._cancel = bool(cancel)
         self._icon = None
 
-        _require_string_or_none(ok)
+        _internal.require_string_or_none(ok)
         if not isinstance(cancel, string_types):
             cancel = 'Cancel' if cancel else None
 
@@ -908,9 +778,9 @@ class Window(object):
         self._alert.setAlertStyle_(0)  # informational style
 
         if secure:
-            self._textfield = NSSecureTextField.alloc().initWithFrame_(NSMakeRect(0, 0, *dimensions))
+            self._textfield = SecureEditing.alloc().initWithFrame_(NSMakeRect(0, 0, *dimensions))
         else:
-            self._textfield = NSTextField.alloc().initWithFrame_(NSMakeRect(0, 0, *dimensions))
+            self._textfield = Editing.alloc().initWithFrame_(NSMakeRect(0, 0, *dimensions))
         self._textfield.setSelectable_(True)
         self._alert.setAccessoryView_(self._textfield)
 
@@ -982,7 +852,7 @@ class Window(object):
 
         :param name: the text for a new button. Must be a string.
         """
-        _require_string(name)
+        _internal.require_string(name)
         self._alert.addButtonWithTitle_(name)
 
     def add_buttons(self, iterable=None, *args):
@@ -1009,6 +879,8 @@ class Window(object):
         :return: a :class:`rumps.rumps.Response` object that contains the text and the button clicked as an integer.
         """
         _log(self)
+        if NSUserDefaults.standardUserDefaults().stringForKey_('AppleInterfaceStyle') == 'Dark':
+            self._alert.window().setAppearance_(AppKit.NSAppearance.appearanceNamed_('NSAppearanceNameVibrantDark'))
         clicked = self._alert.runModal() % 999
         if clicked > 2 and self._cancel:
             clicked -= 1
@@ -1062,27 +934,7 @@ class NSApp(NSObject):
     _ns_to_py_and_callback = {}
 
     def userNotificationCenter_didActivateNotification_(self, notification_center, notification):
-        notification_center.removeDeliveredNotification_(notification)
-        ns_dict = notification.userInfo()
-        if ns_dict is None:
-            data = None
-        else:
-            dumped = ns_dict['value']
-            app = getattr(App, '*app_instance')
-            data = app.serializer.loads(dumped)
-
-        try:
-            notification_function = getattr(notifications, '*notification_center')
-        except AttributeError:  # notification center function not specified -> no error but warning in log
-            _log('WARNING: notification received but no function specified for answering it; use @notifications '
-                 'decorator to register a function.')
-        else:
-            try:
-                data['activationType'] = notification.activationType()
-                data['actualDeliveryDate'] = notification.actualDeliveryDate()
-                _call_as_function_or_method(notification_function, data)
-            except Exception:
-                _log(traceback.format_exc())
+        notifications._clicked(notification_center, notification)
 
     def initializeStatusBar(self):
         self.nsstatusitem = NSStatusBar.systemStatusBar().statusItemWithLength_(-1)  # variable dimensions
@@ -1113,14 +965,42 @@ class NSApp(NSObject):
         if not (self.nsstatusitem.title() or self.nsstatusitem.image()):
             self.nsstatusitem.setTitle_(self._app['_name'])
 
+    def applicationDidFinishLaunching_(self, notification):
+        workspace          = NSWorkspace.sharedWorkspace()
+        notificationCenter = workspace.notificationCenter()
+        notificationCenter.addObserver_selector_name_object_(
+            self,
+            self.receiveSleepNotification_,
+            NSWorkspaceWillSleepNotification,
+            None
+        )
+        notificationCenter.addObserver_selector_name_object_(
+            self,
+            self.receiveWakeNotification_,
+            NSWorkspaceDidWakeNotification,
+            None
+        )
+
+    def receiveSleepNotification_(self, ns_notification):
+        _log('receiveSleepNotification')
+        events.on_sleep.emit()
+
+    def receiveWakeNotification_(self, ns_notification):
+        _log('receiveWakeNotification')
+        events.on_wake.emit()
+
+    def applicationWillTerminate_(self, ns_notification):
+        _log('applicationWillTerminate')
+        events.before_quit.emit()
+
     @classmethod
     def callback_(cls, nsmenuitem):
         self, callback = cls._ns_to_py_and_callback[nsmenuitem]
         _log(self)
         try:
-            return _call_as_function_or_method(callback, self)
+            return _internal.call_as_function_or_method(callback, self)
         except Exception:
-            _log(traceback.format_exc())
+            traceback.print_exc()
 
 
 class App(object):
@@ -1150,7 +1030,7 @@ class App(object):
     serializer = pickle
 
     def __init__(self, name, title=None, icon=None, template=None, menu=None, quit_button='Quit'):
-        _require_string(name)
+        _internal.require_string(name)
         self._name = name
         self._icon = self._icon_nsimage = self._title = None
         self._template = template
@@ -1186,7 +1066,7 @@ class App(object):
 
     @title.setter
     def title(self, title):
-        _require_string_or_none(title)
+        _internal.require_string_or_none(title)
         self._title = title
         try:
             self._nsapp.setStatusBarTitle()
@@ -1308,13 +1188,7 @@ class App(object):
         self._nsapp = NSApp.alloc().init()
         self._nsapp._app = self.__dict__  # allow for dynamic modification based on this App instance
         nsapplication.setDelegate_(self._nsapp)
-        if _NOTIFICATIONS:
-            try:
-                notification_center = _default_user_notification_center()
-            except RuntimeError:
-                pass
-            else:
-                notification_center.setDelegate_(self._nsapp)
+        notifications._init_nsapp(self._nsapp)
 
         setattr(App, '*app_instance', self)  # class level ref to running instance (for passing self to App subclasses)
         t = b = None
@@ -1326,4 +1200,6 @@ class App(object):
 
         self._nsapp.initializeStatusBar()
 
+        AppHelper.installMachInterrupt()
+        events.before_start.emit()
         AppHelper.runEventLoop()
