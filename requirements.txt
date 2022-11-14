@@ -1,5 +1,5 @@
 appdirs==1.4.4
-apscheduler==3.9.1
+apscheduler==3.9.1.post1
 arrow==1.2.3
 backports.csv==1.0.7
 backports.functools-lru-cache==1.6.4
@@ -9,7 +9,7 @@ bleach==5.0.1
 certifi==2022.9.24
 cheroot==8.6.0
 cherrypy==18.8.0
-cloudinary==1.29.0
+cloudinary==1.30.0
 distro==1.8.0
 dnspython==2.2.1
 facebook-sdk==3.1.0
@@ -42,7 +42,7 @@ simplejson==3.17.6
 six==1.16.0
 soupsieve==2.3.2.post1
 tempora==5.0.2
-tokenize-rt==4.2.1
+tokenize-rt==5.0.0
 tzdata==2022.6
 tzlocal==4.2
 urllib3==1.26.12

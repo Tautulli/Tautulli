@@ -102,7 +102,7 @@ class Export(object):
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
     IMAGE_LEVELS = (0, 1, 2, 9)
-    FILE_FORMATS = ('csv', 'json', 'xml', 'm3u8')
+    FILE_FORMATS = ('csv', 'json', 'xml', 'm3u')
     EXPORT_TYPES = ('all', 'collection', 'playlist')
 
     def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
@@ -141,8 +141,8 @@ class Export(object):
         self.exported_items = 0
         self.success = False
 
-        # Reset export options for m3u8
-        if self.file_format == 'm3u8':
+        # Reset export options for m3u
+        if self.file_format == 'm3u':
             self.metadata_level = 1
             self.media_info_level = 1
             self.thumb_level = 0
@@ -1960,10 +1960,10 @@ class Export(object):
             with open(filepath, 'w', encoding='utf-8') as outfile:
                 outfile.write(xml_data)
 
-        elif self.file_format == 'm3u8':
-            m3u8_data = self.data_to_m3u8(result, obj)
+        elif self.file_format == 'm3u':
+            m3u_data = self.data_to_m3u(result, obj)
             with open(filepath, 'w', encoding='utf-8') as outfile:
-                outfile.write(m3u8_data)
+                outfile.write(m3u_data)
 
         self.file_size += os.path.getsize(filepath)
 
@@ -2119,36 +2119,36 @@ class Export(object):
 
         return helpers.dict_to_xml(xml_metadata, root_node='export', indent=4)
 
-    def data_to_m3u8(self, data, obj):
-        items = self._get_m3u8_items(data)
+    def data_to_m3u(self, data, obj):
+        items = self._get_m3u_items(data)
 
-        m3u8_metadata = {'title': obj.title, 'type': obj.media_type}
+        m3u_metadata = {'title': obj.title, 'type': obj.media_type}
         if obj.rating_key:
-            m3u8_metadata['ratingKey'] = obj.rating_key
+            m3u_metadata['ratingKey'] = obj.rating_key
         if obj.user_id:
-            m3u8_metadata['userID'] = obj.user_id
+            m3u_metadata['userID'] = obj.user_id
         if obj.section_id:
-            m3u8_metadata['sectionID'] = obj.section_id
+            m3u_metadata['sectionID'] = obj.section_id
 
-        m3u8 = '#EXTM3U\n'
-        m3u8 += '# Playlist: {title}\n# {metadata}\n\n'.format(title=obj.title, metadata=json.dumps(m3u8_metadata))
-        m3u8_item_template = '# {metadata}\n#EXTINF:{duration},{title}\n{location}\n'
-        m3u8_items = []
+        m3u = '#EXTM3U\n'
+        m3u += '# Playlist: {title}\n# {metadata}\n\n'.format(title=obj.title, metadata=json.dumps(m3u_metadata))
+        m3u_item_template = '# {metadata}\n#EXTINF:{duration},{title}\n{location}\n'
+        m3u_items = []
 
         for item in items:
-            m3u8_values = {
+            m3u_values = {
                 'duration': item.pop('duration'),
                 'title': item.pop('title'),
                 'location': item.pop('location'),
                 'metadata': json.dumps(item)
             }
-            m3u8_items.append(m3u8_item_template.format(**m3u8_values))
+            m3u_items.append(m3u_item_template.format(**m3u_values))
 
-        m3u8 = m3u8 + '\n'.join(m3u8_items)
+        m3u = m3u + '\n'.join(m3u_items)
 
-        return m3u8
+        return m3u
 
-    def _get_m3u8_items(self, data):
+    def _get_m3u_items(self, data):
         items = []
 
         for d in data:
@@ -2167,7 +2167,7 @@ class Export(object):
                 items.append(metadata)
 
             for child_media_type in self.CHILD_MEDIA_TYPES[d['type']]:
-                child_locations = self._get_m3u8_items(d[self.PLURAL_MEDIA_TYPES[child_media_type]])
+                child_locations = self._get_m3u_items(d[self.PLURAL_MEDIA_TYPES[child_media_type]])
                 items.extend(child_locations)
 
         return items

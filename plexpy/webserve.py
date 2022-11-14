@@ -7003,7 +7003,7 @@ class WebInterface(object):
                 rating_key (int):          The rating key of the media item to export
 
             Optional parameters:
-                file_format (str):         csv (default), json, xml, or m3u8
+                file_format (str):         csv (default), json, xml, or m3u
                 metadata_level (int):      The level of metadata to export (default 1)
                 media_info_level (int):    The level of media info to export (default 1)
                 thumb_level (int):         The level of poster/cover images to export (default 0)
@@ -7084,7 +7084,7 @@ class WebInterface(object):
             elif result['file_format'] == 'xml':
                 return serve_file(filepath, name=result['filename'], content_type='application/xml;charset=UTF-8')
 
-            elif result['file_format'] == 'm3u8':
+            elif result['file_format'] == 'm3u':
                 return serve_file(filepath, name=result['filename'], content_type='text/plain;charset=UTF-8')
 
         else:
