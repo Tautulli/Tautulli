@@ -440,6 +440,41 @@ if has_crypto:
                 return False
 
         @staticmethod
+        def to_jwk(key_obj):
+
+            if isinstance(key_obj, EllipticCurvePrivateKey):
+                public_numbers = key_obj.public_key().public_numbers()
+            elif isinstance(key_obj, EllipticCurvePublicKey):
+                public_numbers = key_obj.public_numbers()
+            else:
+                raise InvalidKeyError("Not a public or private key")
+
+            if isinstance(key_obj.curve, ec.SECP256R1):
+                crv = "P-256"
+            elif isinstance(key_obj.curve, ec.SECP384R1):
+                crv = "P-384"
+            elif isinstance(key_obj.curve, ec.SECP521R1):
+                crv = "P-521"
+            elif isinstance(key_obj.curve, ec.SECP256K1):
+                crv = "secp256k1"
+            else:
+                raise InvalidKeyError(f"Invalid curve: {key_obj.curve}")
+
+            obj = {
+                "kty": "EC",
+                "crv": crv,
+                "x": to_base64url_uint(public_numbers.x).decode(),
+                "y": to_base64url_uint(public_numbers.y).decode(),
+            }
+
+            if isinstance(key_obj, EllipticCurvePrivateKey):
+                obj["d"] = to_base64url_uint(
+                    key_obj.private_numbers().private_value
+                ).decode()
+
+            return json.dumps(obj)
+
+        @staticmethod
         def from_jwk(jwk):
             try:
                 if isinstance(jwk, str):
@@ -574,7 +609,7 @@ if has_crypto:
             Sign a message ``msg`` using the EdDSA private key ``key``
             :param str|bytes msg: Message to sign
             :param Ed25519PrivateKey}Ed448PrivateKey key: A :class:`.Ed25519PrivateKey`
-                or :class:`.Ed448PrivateKey` iinstance
+                or :class:`.Ed448PrivateKey` isinstance
             :return bytes signature: The signature, as bytes
             """
             msg = bytes(msg, "utf-8") if type(msg) is not bytes else msg
