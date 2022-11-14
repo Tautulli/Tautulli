@@ -110,7 +110,7 @@ def initialize(options):
 
         min_tls_version = options['https_min_tls_version'].replace('.', '_')
         context.minimum_version = getattr(ssl.TLSVersion, min_tls_version, ssl.TLSVersion.TLSv1_2)
-        logger.debug("Tautulli WebStart :: Web server minimum TLS version set to %s.", context.minimum_version.name)
+        logger.debug("Tautulli WebStart :: Minimum TLS version set to %s.", context.minimum_version.name)
 
         context.load_cert_chain(https_cert, https_key)
 
