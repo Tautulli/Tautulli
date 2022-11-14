@@ -126,6 +126,7 @@ _CONFIG_DEFINITIONS = {
     'HTTPS_KEY': (str, 'General', ''),
     'HTTPS_DOMAIN': (str, 'General', 'localhost'),
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
+    'HTTPS_MIN_TLS_VERSION': (str, 'Advanced', 'TLSv1.2'),
     'HTTP_BASIC_AUTH': (int, 'General', 0),
     'HTTP_ENVIRONMENT': (str, 'General', 'production'),
     'HTTP_HASH_PASSWORD': (int, 'General', 1),

@@ -46,6 +46,7 @@ def start():
         'https_cert': plexpy.CONFIG.HTTPS_CERT,
         'https_cert_chain': plexpy.CONFIG.HTTPS_CERT_CHAIN,
         'https_key': plexpy.CONFIG.HTTPS_KEY,
+        'https_min_tls_version': plexpy.CONFIG.HTTPS_MIN_TLS_VERSION,
         'http_username': plexpy.CONFIG.HTTP_USERNAME,
         'http_password': plexpy.CONFIG.HTTP_PASSWORD,
         'http_basic_auth': plexpy.CONFIG.HTTP_BASIC_AUTH
@@ -106,7 +107,11 @@ def initialize(options):
             purpose=ssl.Purpose.CLIENT_AUTH,
             cafile=https_cert_chain
         )
-        context.minimum_version = ssl.TLSVersion.TLSv1_2
+
+        min_tls_version = options['https_min_tls_version'].replace('.', '_')
+        context.minimum_version = getattr(ssl.TLSVersion, min_tls_version, ssl.TLSVersion.TLSv1_2)
+        logger.debug("Tautulli WebStart :: Web server minimum TLS version set to %s.", context.minimum_version.name)
+
         context.load_cert_chain(https_cert, https_key)
 
         options_dict['server.ssl_context'] = context
