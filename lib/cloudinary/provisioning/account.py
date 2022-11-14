@@ -65,7 +65,7 @@ def create_sub_account(name, cloud_name=None, custom_attributes=None, enabled=No
               "cloud_name": cloud_name,
               "custom_attributes": custom_attributes,
               "enabled": enabled,
-              "base_account": base_account}
+              "base_sub_account_id": base_account}
     return _call_account_api("POST", uri, params=params, **options)
 
 
