@@ -450,6 +450,15 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
          not isinstance(_int_as_string_bitcount, integer_types))):
         raise TypeError("int_as_string_bitcount must be a positive integer")
 
+    def call_method(obj, method_name):
+        method = getattr(obj, method_name, None)
+        if callable(method):
+            try:
+                return (method(),)
+            except TypeError:
+                pass
+        return None
+
     def _encode_int(value):
         skip_quoting = (
             _int_as_string_bitcount is None
@@ -512,15 +521,15 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
                 yield buf + str(value)
             else:
                 yield buf
-                for_json = _for_json and getattr(value, 'for_json', None)
-                if for_json and callable(for_json):
-                    chunks = _iterencode(for_json(), _current_indent_level)
+                for_json = _for_json and call_method(value, 'for_json')
+                if for_json:
+                    chunks = _iterencode(for_json[0], _current_indent_level)
                 elif isinstance(value, list):
                     chunks = _iterencode_list(value, _current_indent_level)
                 else:
-                    _asdict = _namedtuple_as_object and getattr(value, '_asdict', None)
-                    if _asdict and callable(_asdict):
-                        dct = _asdict()
+                    _asdict = _namedtuple_as_object and call_method(value, '_asdict')
+                    if _asdict:
+                        dct = _asdict[0]
                         if not isinstance(dct, dict):
                             raise TypeError("_asdict() must return a dict, not %s" % (type(dct).__name__,))
                         chunks = _iterencode_dict(dct,
@@ -636,15 +645,15 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
             elif _use_decimal and isinstance(value, Decimal):
                 yield str(value)
             else:
-                for_json = _for_json and getattr(value, 'for_json', None)
-                if for_json and callable(for_json):
-                    chunks = _iterencode(for_json(), _current_indent_level)
+                for_json = _for_json and call_method(value, 'for_json')
+                if for_json:
+                    chunks = _iterencode(for_json[0], _current_indent_level)
                 elif isinstance(value, list):
                     chunks = _iterencode_list(value, _current_indent_level)
                 else:
-                    _asdict = _namedtuple_as_object and getattr(value, '_asdict', None)
-                    if _asdict and callable(_asdict):
-                        dct = _asdict()
+                    _asdict = _namedtuple_as_object and call_method(value, '_asdict')
+                    if _asdict:
+                        dct = _asdict[0]
                         if not isinstance(dct, dict):
                             raise TypeError("_asdict() must return a dict, not %s" % (type(dct).__name__,))
                         chunks = _iterencode_dict(dct,
@@ -682,17 +691,17 @@ def _make_iterencode(markers, _default, _encoder, _indent, _floatstr,
         elif isinstance(o, float):
             yield _floatstr(o)
         else:
-            for_json = _for_json and getattr(o, 'for_json', None)
-            if for_json and callable(for_json):
-                for chunk in _iterencode(for_json(), _current_indent_level):
+            for_json = _for_json and call_method(o, 'for_json')
+            if for_json:
+                for chunk in _iterencode(for_json[0], _current_indent_level):
                     yield chunk
             elif isinstance(o, list):
                 for chunk in _iterencode_list(o, _current_indent_level):
                     yield chunk
             else:
-                _asdict = _namedtuple_as_object and getattr(o, '_asdict', None)
-                if _asdict and callable(_asdict):
-                    dct = _asdict()
+                _asdict = _namedtuple_as_object and call_method(o, '_asdict')
+                if _asdict:
+                    dct = _asdict[0]
                     if not isinstance(dct, dict):
                         raise TypeError("_asdict() must return a dict, not %s" % (type(dct).__name__,))
                     for chunk in _iterencode_dict(dct, _current_indent_level):

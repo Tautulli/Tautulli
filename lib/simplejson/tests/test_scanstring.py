@@ -132,6 +132,8 @@ class TestScanString(TestCase):
             self.assertRaises(ValueError,
                               scanstring, '\\ud834\\x0123"', 0, None, True)
 
+        self.assertRaises(json.JSONDecodeError, scanstring, "\\u-123", 0, None, True)
+
     def test_issue3623(self):
         self.assertRaises(ValueError, json.decoder.scanstring, "xxx", 1,
                           "xxx")

@@ -110,21 +110,46 @@ class TestNamedTuple(unittest.TestCase):
 
     def test_asdict_not_callable_dump(self):
         for f in CONSTRUCTORS:
-            self.assertRaises(TypeError,
-                json.dump, f(DeadDuck()), StringIO(), namedtuple_as_object=True)
+            self.assertRaises(
+                TypeError,
+                json.dump,
+                f(DeadDuck()),
+                StringIO(),
+                namedtuple_as_object=True
+            )
             sio = StringIO()
             json.dump(f(DeadDict()), sio, namedtuple_as_object=True)
             self.assertEqual(
                 json.dumps(f({})),
                 sio.getvalue())
+            self.assertRaises(
+                TypeError,
+                json.dump,
+                f(Value),
+                StringIO(),
+                namedtuple_as_object=True
+            )
 
     def test_asdict_not_callable_dumps(self):
         for f in CONSTRUCTORS:
             self.assertRaises(TypeError,
                 json.dumps, f(DeadDuck()), namedtuple_as_object=True)
+            self.assertRaises(
+                TypeError,
+                json.dumps,
+                f(Value),
+                namedtuple_as_object=True
+            )
             self.assertEqual(
                 json.dumps(f({})),
                 json.dumps(f(DeadDict()), namedtuple_as_object=True))
+
+    def test_asdict_unbound_method_dumps(self):
+        for f in CONSTRUCTORS:
+            self.assertEqual(
+                json.dumps(f(Value), default=lambda v: v.__name__),
+                json.dumps(f(Value.__name__))
+            )
 
     def test_asdict_does_not_return_dict(self):
         if not mock:
