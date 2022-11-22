@@ -732,12 +732,12 @@ def validate_conditions(custom_conditions):
             validated_condition['parameter'] = parameter.lower()
             validated_condition['type'] = parameter_type
 
-        if operator:
-            if operator not in CUSTOM_CONDITION_TYPE_OPERATORS.get(parameter_type, []):
-                logger.error("Tautulli Notifiers :: Invalid operator '%s' for parameter '%s' in custom condition: %s" % (operator, parameter, condition))
-                return False
+            if operator:
+                if operator not in CUSTOM_CONDITION_TYPE_OPERATORS.get(parameter_type, []):
+                    logger.error("Tautulli Notifiers :: Invalid operator '%s' for parameter '%s' in custom condition: %s" % (operator, parameter, condition))
+                    return False
 
-            validated_condition['operator'] = operator
+                validated_condition['operator'] = operator
 
         if values:
             if not isinstance(values, list):
