@@ -185,6 +185,7 @@ class Export(object):
                 },
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
+                'editionTitle': None,
                 'fields': {
                     'name': None,
                     'locked': None
@@ -1267,7 +1268,7 @@ class Export(object):
             _media_type = 'movie'
             _metadata_levels = {
                 1: [
-                    'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year', 'addedAt',
+                    'ratingKey', 'title', 'titleSort', 'originalTitle', 'editionTitle', 'originallyAvailableAt', 'year', 'addedAt',
                     'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
                     'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
                 ],
