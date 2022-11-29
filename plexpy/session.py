@@ -211,33 +211,63 @@ def mask_session_info(list_of_dicts, mask_metadata=True):
     session_library_ids = get_session_shared_libraries()
     session_library_filters = get_session_library_filters()
 
-    keys_to_mask = {'user_id': '',
-                    'user': 'Plex User',
-                    'username': 'Plex User',
-                    'friendly_name': 'Plex User',
-                    'user_thumb': common.DEFAULT_USER_THUMB,
-                    'ip_address': 'N/A',
-                    'machine_id': '',
-                    'player': 'Player'
-                    }
+    keys_to_mask = {
+        'user_id': '',
+        'user': 'Plex User',
+        'username': 'Plex User',
+        'email': '',
+        'friendly_name': 'Plex User',
+        'user_thumb': common.DEFAULT_USER_THUMB,
+        'ip_address': 'N/A',
+        'ip_address_public': 'N/A',
+        'machine_id': '',
+        'player': 'Player'
+    }
 
-    metadata_to_mask = {'media_index': '0',
-                        'parent_media_index': '0',
-                        'art': common.DEFAULT_ART,
-                        'parent_thumb': common.DEFAULT_POSTER_THUMB,
-                        'grandparent_thumb': common.DEFAULT_POSTER_THUMB,
-                        'thumb': common.DEFAULT_POSTER_THUMB,
-                        'bif_thumb': '',
-                        'title': 'Plex Media',
-                        'parent_title': 'Plex Media',
-                        'grandparent_title': 'Plex Media',
-                        'original_title': 'Plex Media',
-                        'rating_key': '',
-                        'parent_rating_key': '',
-                        'grandparent_rating_key': '',
-                        'year': '',
-                        'last_played': 'Plex Media'
-                        }
+    metadata_to_mask = {
+        'actors': [],
+        'art': common.DEFAULT_ART,
+        'bif_thumb': '',
+        'content_rating': '',
+        'directors': [],
+        'edition_title': '',
+        'file': '',
+        'full_title': 'Plex Media',
+        'genres': [],
+        'grandparent_guid': '',
+        'grandparent_guids': [],
+        'grandparent_rating_key': '',
+        'grandparent_thumb': common.DEFAULT_POSTER_THUMB,
+        'grandparent_title': 'Plex Media',
+        'grandparent_year': '',
+        'guid': '',
+        'guids': [],
+        'labels': [],
+        'library_name': '',
+        'media_index': '0',
+        'original_title': 'Plex Media',
+        'originally_available_at': '',
+        'parent_guid': '',
+        'parent_guids': [],
+        'parent_media_index': '0',
+        'parent_rating_key': '',
+        'parent_thumb': common.DEFAULT_POSTER_THUMB,
+        'parent_title': 'Plex Media',
+        'parent_year': '',
+        'rating_key': '',
+        'section_id': '',
+        'shared_libraries': [],
+        'sort_title': 'Plex Media',
+        'studio': '',
+        'summary': '',
+        'tagline': '',
+        'thumb': common.DEFAULT_POSTER_THUMB,
+        'title': 'Plex Media',
+        'writers': [],
+        'year': '',
+
+        'last_played': 'Plex Media',
+    }
 
     list_of_dicts = friendly_name_to_username(list_of_dicts)
 
