@@ -2175,6 +2175,7 @@ class LUNASEA(Notifier):
                 'player': pretty_metadata.parameters.get('player'),
                 'title': pretty_metadata.get_title(),
                 'poster_url': pretty_metadata.get_poster_url(),
+                'session_key': pretty_metadata.parameters.get('session_key'),
                 'session_id': pretty_metadata.parameters.get('session_id'),
                 'user_streams': pretty_metadata.parameters.get('user_streams'),
                 'remote_access_reason': pretty_metadata.parameters.get('remote_access_reason'),
