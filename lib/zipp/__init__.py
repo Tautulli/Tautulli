@@ -4,6 +4,8 @@ import zipfile
 import itertools
 import contextlib
 import pathlib
+import re
+import fnmatch
 
 from .py310compat import text_encoding
 
@@ -243,6 +245,18 @@ class Path:
         self.root = FastLookup.make(root)
         self.at = at
 
+    def __eq__(self, other):
+        """
+        >>> Path(zipfile.ZipFile(io.BytesIO(), 'w')) == 'foo'
+        False
+        """
+        if self.__class__ is not other.__class__:
+            return NotImplemented
+        return (self.root, self.at) == (other.root, other.at)
+
+    def __hash__(self):
+        return hash((self.root, self.at))
+
     def open(self, mode='r', *args, pwd=None, **kwargs):
         """
         Open this entry as text or binary following the semantics
@@ -312,6 +326,38 @@ class Path:
             raise ValueError("Can't listdir a file")
         subs = map(self._next, self.root.namelist())
         return filter(self._is_child, subs)
+
+    def match(self, path_pattern):
+        return pathlib.Path(self.at).match(path_pattern)
+
+    def is_symlink(self):
+        """
+        Return whether this path is a symlink. Always false (python/cpython#82102).
+        """
+        return False
+
+    def _descendants(self):
+        for child in self.iterdir():
+            yield child
+            if child.is_dir():
+                yield from child._descendants()
+
+    def glob(self, pattern):
+        if not pattern:
+            raise ValueError("Unacceptable pattern: {!r}".format(pattern))
+
+        matches = re.compile(fnmatch.translate(pattern)).fullmatch
+        return (
+            child
+            for child in self._descendants()
+            if matches(str(child.relative_to(self)))
+        )
+
+    def rglob(self, pattern):
+        return self.glob(f'**/{pattern}')
+
+    def relative_to(self, other, *extra):
+        return posixpath.relpath(str(self), str(other.joinpath(*extra)))
 
     def __str__(self):
         return posixpath.join(self.root.filename, self.at)
