@@ -1,15 +1,12 @@
 """High-performance, pure-Python HTTP server used by CherryPy."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 try:
-    import pkg_resources
+    from importlib import metadata
 except ImportError:
-    pass
+    import importlib_metadata as metadata  # noqa: WPS440
 
 
 try:
-    __version__ = pkg_resources.get_distribution('cheroot').version
+    __version__ = metadata.version('cheroot')
 except Exception:
     __version__ = 'unknown'

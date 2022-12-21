@@ -7,12 +7,10 @@ To use this module, set ``HTTPServer.ssl_adapter`` to an instance of
 ``BuiltinSSLAdapter``.
 """
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import socket
 import sys
 import threading
+from contextlib import suppress
 
 try:
     import ssl
@@ -27,18 +25,13 @@ except ImportError:
     except ImportError:
         DEFAULT_BUFFER_SIZE = -1
 
-import six
-
 from . import Adapter
 from .. import errors
-from .._compat import IS_ABOVE_OPENSSL10, suppress
+from .._compat import IS_ABOVE_OPENSSL10
 from ..makefile import StreamReader, StreamWriter
 from ..server import HTTPServer
 
-if six.PY2:
-    generic_socket_error = socket.error
-else:
-    generic_socket_error = OSError
+generic_socket_error = OSError
 
 
 def _assert_ssl_exc_contains(exc, *msgs):

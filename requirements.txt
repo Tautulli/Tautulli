@@ -7,7 +7,7 @@ backports.zoneinfo==0.2.1
 beautifulsoup4==4.11.1
 bleach==5.0.1
 certifi==2022.9.24
-cheroot==8.6.0
+cheroot==9.0.0
 cherrypy==18.8.0
 cloudinary==1.30.0
 distro==1.8.0

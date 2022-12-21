@@ -15,9 +15,6 @@ the traceback to stdout, and keep any assertions you have from running
 be of further significance to your tests).
 """
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import pprint
 import re
 import socket
@@ -29,9 +26,8 @@ import json
 import unittest  # pylint: disable=deprecated-module,preferred-module
 import warnings
 import functools
-
-from six.moves import http_client, map, urllib_parse
-import six
+import http.client
+import urllib.parse
 
 from more_itertools.more import always_iterable
 import jaraco.functools
@@ -105,7 +101,7 @@ class WebCase(unittest.TestCase):
 
     HOST = '127.0.0.1'
     PORT = 8000
-    HTTP_CONN = http_client.HTTPConnection
+    HTTP_CONN = http.client.HTTPConnection
     PROTOCOL = 'HTTP/1.1'
 
     scheme = 'http'
@@ -127,7 +123,7 @@ class WebCase(unittest.TestCase):
         * from :py:mod:`python:http.client`.
         """
         cls_name = '{scheme}Connection'.format(scheme=self.scheme.upper())
-        return getattr(http_client, cls_name)
+        return getattr(http.client, cls_name)
 
     def get_conn(self, auto_open=False):
         """Return a connection to our HTTP server."""
@@ -201,9 +197,9 @@ class WebCase(unittest.TestCase):
         """
         ServerError.on = False
 
-        if isinstance(url, six.text_type):
+        if isinstance(url, str):
             url = url.encode('utf-8')
-        if isinstance(body, six.text_type):
+        if isinstance(body, str):
             body = body.encode('utf-8')
 
         # for compatibility, support raise_subcls is None
@@ -386,7 +382,7 @@ class WebCase(unittest.TestCase):
 
     def assertBody(self, value, msg=None):
         """Fail if value != self.body."""
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             value = value.encode(self.encoding)
         if value != self.body:
             if msg is None:
@@ -397,7 +393,7 @@ class WebCase(unittest.TestCase):
 
     def assertInBody(self, value, msg=None):
         """Fail if value not in self.body."""
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             value = value.encode(self.encoding)
         if value not in self.body:
             if msg is None:
@@ -406,7 +402,7 @@ class WebCase(unittest.TestCase):
 
     def assertNotInBody(self, value, msg=None):
         """Fail if value in self.body."""
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             value = value.encode(self.encoding)
         if value in self.body:
             if msg is None:
@@ -415,7 +411,7 @@ class WebCase(unittest.TestCase):
 
     def assertMatchesBody(self, pattern, msg=None, flags=0):
         """Fail if value (a regex pattern) is not in self.body."""
-        if isinstance(pattern, six.text_type):
+        if isinstance(pattern, str):
             pattern = pattern.encode(self.encoding)
         if re.search(pattern, self.body, flags) is None:
             if msg is None:
@@ -464,25 +460,7 @@ def shb(response):
     """Return status, headers, body the way we like from a response."""
     resp_status_line = '%s %s' % (response.status, response.reason)
 
-    if not six.PY2:
-        return resp_status_line, response.getheaders(), response.read()
-
-    h = []
-    key, value = None, None
-    for line in response.msg.headers:
-        if line:
-            if line[0] in ' \t':
-                value += line.strip()
-            else:
-                if key and value:
-                    h.append((key, value))
-                key, value = line.split(':', 1)
-                key = key.strip()
-                value = value.strip()
-    if key and value:
-        h.append((key, value))
-
-    return resp_status_line, h, response.read()
+    return resp_status_line, response.getheaders(), response.read()
 
 
 # def openURL(*args, raise_subcls=(), **kwargs):
@@ -514,7 +492,7 @@ def openURL(*args, **kwargs):
 
 def _open_url_once(
     url, headers=None, method='GET', body=None,
-    host='127.0.0.1', port=8000, http_conn=http_client.HTTPConnection,
+    host='127.0.0.1', port=8000, http_conn=http.client.HTTPConnection,
     protocol='HTTP/1.1', ssl_context=None,
 ):
     """Open the given HTTP resource and return status, headers, and body."""
@@ -530,7 +508,7 @@ def _open_url_once(
         conn = http_conn(interface(host), port, **kw)
     conn._http_vsn_str = protocol
     conn._http_vsn = int(''.join([x for x in protocol if x.isdigit()]))
-    if not six.PY2 and isinstance(url, bytes):
+    if isinstance(url, bytes):
         url = url.decode()
     conn.putrequest(
         method.upper(), url, skip_host=True,
@@ -572,10 +550,10 @@ def strip_netloc(url):
     >>> strip_netloc('/foo/bar?bing#baz')
     '/foo/bar?bing'
     """
-    parsed = urllib_parse.urlparse(url)
+    parsed = urllib.parse.urlparse(url)
     _scheme, _netloc, path, params, query, _fragment = parsed
     stripped = '', '', path, params, query, ''
-    return urllib_parse.urlunparse(stripped)
+    return urllib.parse.urlunparse(stripped)
 
 
 # Add any exceptions which your web framework handles
