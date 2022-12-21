@@ -37,6 +37,7 @@ def simple_wsgi_server():
         yield locals()
 
 
+@pytest.mark.flaky(reruns=3, reruns_delay=2)
 def test_connection_keepalive(simple_wsgi_server):
     """Test the connection keepalive works (duh)."""
     session = Session(base_url=simple_wsgi_server['url'])
@@ -59,6 +60,7 @@ def test_connection_keepalive(simple_wsgi_server):
         ]
         failures = sum(task.result() for task in tasks)
 
+    session.close()
     assert not failures
 
 

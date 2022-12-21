@@ -1,15 +1,9 @@
 """Implementation of the SSL adapter base interface."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 from abc import ABCMeta, abstractmethod
 
-from six import add_metaclass
 
-
-@add_metaclass(ABCMeta)
-class Adapter:
+class Adapter(metaclass=ABCMeta):
     """Base class for SSL driver library adapters.
 
     Required methods:

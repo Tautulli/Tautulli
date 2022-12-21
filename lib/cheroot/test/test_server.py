@@ -1,23 +1,18 @@
 """Tests for the HTTP server."""
-# -*- coding: utf-8 -*-
-# vim: set fileencoding=utf-8 :
-
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 import os
+import queue
 import socket
 import tempfile
 import threading
 import uuid
+import urllib.parse  # noqa: WPS301
 
 import pytest
 import requests
 import requests_unixsocket
-import six
 
 from pypytools.gc.custom import DefaultGc
-from six.moves import queue, urllib
 
 from .._compat import bton, ntob
 from .._compat import IS_LINUX, IS_MACOS, IS_WINDOWS, SYS_PLATFORM
@@ -259,12 +254,12 @@ def peercreds_enabled_server(http_server, unix_sock_file):
 
 @unix_only_sock_test
 @non_macos_sock_test
-def test_peercreds_unix_sock(peercreds_enabled_server):
+def test_peercreds_unix_sock(http_request_timeout, peercreds_enabled_server):
     """Check that ``PEERCRED`` lookup works when enabled."""
     httpserver = peercreds_enabled_server
     bind_addr = httpserver.bind_addr
 
-    if isinstance(bind_addr, six.binary_type):
+    if isinstance(bind_addr, bytes):
         bind_addr = bind_addr.decode()
 
     # pylint: disable=possibly-unused-variable
@@ -275,11 +270,17 @@ def test_peercreds_unix_sock(peercreds_enabled_server):
     expected_peercreds = '|'.join(map(str, expected_peercreds))
 
     with requests_unixsocket.monkeypatch():
-        peercreds_resp = requests.get(unix_base_uri + PEERCRED_IDS_URI)
+        peercreds_resp = requests.get(
+            unix_base_uri + PEERCRED_IDS_URI,
+            timeout=http_request_timeout,
+        )
         peercreds_resp.raise_for_status()
         assert peercreds_resp.text == expected_peercreds
 
-        peercreds_text_resp = requests.get(unix_base_uri + PEERCRED_TEXTS_URI)
+        peercreds_text_resp = requests.get(
+            unix_base_uri + PEERCRED_TEXTS_URI,
+            timeout=http_request_timeout,
+        )
         assert peercreds_text_resp.status_code == 500
 
 
@@ -290,14 +291,17 @@ def test_peercreds_unix_sock(peercreds_enabled_server):
 )
 @unix_only_sock_test
 @non_macos_sock_test
-def test_peercreds_unix_sock_with_lookup(peercreds_enabled_server):
+def test_peercreds_unix_sock_with_lookup(
+        http_request_timeout,
+        peercreds_enabled_server,
+):
     """Check that ``PEERCRED`` resolution works when enabled."""
     httpserver = peercreds_enabled_server
     httpserver.peercreds_resolve_enabled = True
 
     bind_addr = httpserver.bind_addr
 
-    if isinstance(bind_addr, six.binary_type):
+    if isinstance(bind_addr, bytes):
         bind_addr = bind_addr.decode()
 
     # pylint: disable=possibly-unused-variable
@@ -312,7 +316,10 @@ def test_peercreds_unix_sock_with_lookup(peercreds_enabled_server):
     )
     expected_textcreds = '!'.join(map(str, expected_textcreds))
     with requests_unixsocket.monkeypatch():
-        peercreds_text_resp = requests.get(unix_base_uri + PEERCRED_TEXTS_URI)
+        peercreds_text_resp = requests.get(
+            unix_base_uri + PEERCRED_TEXTS_URI,
+            timeout=http_request_timeout,
+        )
         peercreds_text_resp.raise_for_status()
         assert peercreds_text_resp.text == expected_textcreds
 
@@ -363,7 +370,10 @@ def test_high_number_of_file_descriptors(native_server_client, resource_limit):
     assert any(fn >= resource_limit for fn in native_process_conn.filenos)
 
 
-if not IS_WINDOWS:
+ISSUE511 = IS_MACOS
+
+
+if not IS_WINDOWS and not ISSUE511:
     test_high_number_of_file_descriptors = pytest.mark.forked(
         test_high_number_of_file_descriptors,
     )

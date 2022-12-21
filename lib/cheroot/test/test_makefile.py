@@ -3,9 +3,6 @@
 from cheroot import makefile
 
 
-__metaclass__ = type
-
-
 class MockSocket:
     """A mock socket."""
 

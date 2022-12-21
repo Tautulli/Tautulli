@@ -1,21 +1,16 @@
 """Utilities to manage open connections."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import io
 import os
 import socket
 import threading
 import time
+import selectors
+from contextlib import suppress
 
 from . import errors
-from ._compat import selectors
-from ._compat import suppress
 from ._compat import IS_WINDOWS
 from .makefile import MakeFile
-
-import six
 
 try:
     import fcntl
@@ -310,8 +305,7 @@ class ConnectionManager:
                         msg,
                     ]
 
-                    sock_to_make = s if not six.PY2 else s._sock
-                    wfile = mf(sock_to_make, 'wb', io.DEFAULT_BUFFER_SIZE)
+                    wfile = mf(s, 'wb', io.DEFAULT_BUFFER_SIZE)
                     try:
                         wfile.write(''.join(buf).encode('ISO-8859-1'))
                     except socket.error as ex:
@@ -327,10 +321,7 @@ class ConnectionManager:
 
             conn = self.server.ConnectionClass(self.server, s, mf)
 
-            if not isinstance(
-                    self.server.bind_addr,
-                    (six.text_type, six.binary_type),
-            ):
+            if not isinstance(self.server.bind_addr, (str, bytes)):
                 # optional values
                 # Until we do DNS lookups, omit REMOTE_HOST
                 if addr is None:  # sometimes this can happen
