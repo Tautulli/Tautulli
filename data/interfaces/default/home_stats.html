@@ -102,7 +102,7 @@ DOCUMENTATION :: END
                         if row0['live']:
                             href = page('info', row0['rating_key'], row0['guid'], history=True, live=row0['live'])
                         else:
-                            href = page('info', row0['rating_key'])
+                            href = page('info', row0['rating_key'], history=True)
                 %>
                 <a id="stats-thumb-url-${stat_id}" href="${href}" title="${row0['title']}">
                     <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback.split('-')[0]}" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['grandparent_rating_key'] or row0['rating_key'], 300, height, fallback=fallback)});"></div>
@@ -157,7 +157,7 @@ DOCUMENTATION :: END
                                             if row['live']:
                                                 href = page('info', row['rating_key'], row['guid'], history=True, live=row['live'])
                                             else:
-                                                href = page('info', row['rating_key'])
+                                                href = page('info', row['rating_key'], history=True)
                                     %>
                                     <a href="${href}" title="${row['title']}">
                                         ${row['title']}
