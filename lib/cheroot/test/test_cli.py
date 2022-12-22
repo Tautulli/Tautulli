@@ -4,11 +4,8 @@
 
    cli
 """
-# -*- coding: utf-8 -*-
-# vim: set fileencoding=utf-8 :
 import sys
 
-import six
 import pytest
 
 from cheroot.cli import (
@@ -69,12 +66,6 @@ def wsgi_app(monkeypatch):
     app = WSGIAppMock()
     # patch sys.modules, to include the an instance of WSGIAppMock
     # under a specific namespace
-    if six.PY2:
-        # python2 requires the previous namespaces to be part of sys.modules
-        #   (e.g. for 'a.b.c' we need to insert 'a', 'a.b' and 'a.b.c')
-        # otherwise it fails, we're setting the same instance on each level,
-        # we don't really care about those, just the last one.
-        monkeypatch.setitem(sys.modules, 'mypkg', app)
     monkeypatch.setitem(sys.modules, 'mypkg.wsgi', app)
     return app
 

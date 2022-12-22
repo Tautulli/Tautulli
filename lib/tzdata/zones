@@ -239,7 +239,6 @@ America/Edmonton
 America/Vancouver
 America/Dawson_Creek
 America/Fort_Nelson
-America/Pangnirtung
 America/Iqaluit
 America/Resolute
 America/Rankin_Inlet
@@ -253,6 +252,7 @@ America/Merida
 America/Matamoros
 America/Monterrey
 America/Mexico_City
+America/Ciudad_Juarez
 America/Ojinaga
 America/Chihuahua
 America/Hermosillo
@@ -554,6 +554,7 @@ America/Ensenada
 America/Fort_Wayne
 America/Montreal
 America/Nipigon
+America/Pangnirtung
 America/Porto_Acre
 America/Rainy_River
 America/Rosario

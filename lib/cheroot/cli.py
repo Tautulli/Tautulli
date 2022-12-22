@@ -28,18 +28,14 @@ Basic usage:
 """
 
 import argparse
-from importlib import import_module
 import os
 import sys
-
-import six
+import urllib.parse  # noqa: WPS301
+from importlib import import_module
+from contextlib import suppress
 
 from . import server
 from . import wsgi
-from ._compat import suppress
-
-
-__metaclass__ = type
 
 
 class BindLocation:
@@ -143,7 +139,7 @@ def parse_wsgi_bind_location(bind_addr_string):
         return AbstractSocket(bind_addr_string[1:])
 
     # try and match for an IP/hostname and port
-    match = six.moves.urllib.parse.urlparse(
+    match = urllib.parse.urlparse(
         '//{addr}'.format(addr=bind_addr_string),
     )
     try:

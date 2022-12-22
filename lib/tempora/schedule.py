@@ -130,7 +130,7 @@ class PeriodicCommand(DelayedCommand):
             raise ValueError(
                 "A PeriodicCommand must have a positive, " "non-zero delay."
             )
-        super(PeriodicCommand, self).__setattr__(key, value)
+        super().__setattr__(key, value)
 
 
 class PeriodicCommandFixedDelay(PeriodicCommand):

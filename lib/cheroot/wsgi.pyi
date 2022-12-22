@@ -40,3 +40,10 @@ class PathInfoDispatcher:
     apps: Any
     def __init__(self, apps): ...
     def __call__(self, environ, start_response): ...
+
+
+WSGIServer = Server
+WSGIGateway = Gateway
+WSGIGateway_u0 = Gateway_u0
+WSGIGateway_10 = Gateway_10
+WSGIPathInfoDispatcher = PathInfoDispatcher

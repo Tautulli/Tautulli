@@ -115,7 +115,7 @@ class Timer(Stopwatch):
 
     def __init__(self, target=float('Inf')):
         self.target = self._accept(target)
-        super(Timer, self).__init__()
+        super().__init__()
 
     @staticmethod
     def _accept(target):
