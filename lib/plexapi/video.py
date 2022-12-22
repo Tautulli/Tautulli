@@ -323,6 +323,7 @@ class Movie(
             producers (List<:class:`~plexapi.media.Producer`>): List of producers objects.
             rating (float): Movie critic rating (7.9; 9.8; 8.1).
             ratingImage (str): Key to critic rating image (rottentomatoes://image.rating.rotten).
+            ratings (List<:class:`~plexapi.media.Rating`>): List of rating objects.
             roles (List<:class:`~plexapi.media.Role`>): List of role objects.
             similar (List<:class:`~plexapi.media.Similar`>): List of Similar objects.
             studio (str): Studio that created movie (Di Bonaventura Pictures; 21 Laps Entertainment).
@@ -363,6 +364,7 @@ class Movie(
         self.producers = self.findItems(data, media.Producer)
         self.rating = utils.cast(float, data.attrib.get('rating'))
         self.ratingImage = data.attrib.get('ratingImage')
+        self.ratings = self.findItems(data, media.Rating)
         self.roles = self.findItems(data, media.Role)
         self.similar = self.findItems(data, media.Similar)
         self.studio = data.attrib.get('studio')
@@ -459,6 +461,7 @@ class Show(
             originallyAvailableAt (datetime): Datetime the show was released.
             originalTitle (str): The original title of the show.
             rating (float): Show rating (7.9; 9.8; 8.1).
+            ratings (List<:class:`~plexapi.media.Rating`>): List of rating objects.
             roles (List<:class:`~plexapi.media.Role`>): List of role objects.
             showOrdering (str): Setting that indicates the episode ordering for the show
                 (None = Library default).
@@ -503,6 +506,7 @@ class Show(
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.originalTitle = data.attrib.get('originalTitle')
         self.rating = utils.cast(float, data.attrib.get('rating'))
+        self.ratings = self.findItems(data, media.Rating)
         self.roles = self.findItems(data, media.Role)
         self.showOrdering = data.attrib.get('showOrdering')
         self.similar = self.findItems(data, media.Similar)
@@ -639,6 +643,7 @@ class Season(
             parentTheme (str): URL to show theme resource (/library/metadata/<parentRatingkey>/theme/<themeid>).
             parentThumb (str): URL to show thumbnail image (/library/metadata/<parentRatingKey>/thumb/<thumbid>).
             parentTitle (str): Name of the show for the season.
+            ratings (List<:class:`~plexapi.media.Rating`>): List of rating objects.
             viewedLeafCount (int): Number of items marked as played in the season view.
             year (int): Year the season was released.
     """
@@ -663,6 +668,7 @@ class Season(
         self.parentTheme = data.attrib.get('parentTheme')
         self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
+        self.ratings = self.findItems(data, media.Rating)
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
 
@@ -800,6 +806,7 @@ class Episode(
             parentYear (int): Year the season was released.
             producers (List<:class:`~plexapi.media.Producer`>): List of producers objects.
             rating (float): Episode rating (7.9; 9.8; 8.1).
+            ratings (List<:class:`~plexapi.media.Rating`>): List of rating objects.
             roles (List<:class:`~plexapi.media.Role`>): List of role objects.
             skipParent (bool): True if the show's seasons are set to hidden.
             viewOffset (int): View offset in milliseconds.
@@ -845,6 +852,7 @@ class Episode(
         self.parentYear = utils.cast(int, data.attrib.get('parentYear'))
         self.producers = self.findItems(data, media.Producer)
         self.rating = utils.cast(float, data.attrib.get('rating'))
+        self.ratings = self.findItems(data, media.Rating)
         self.roles = self.findItems(data, media.Role)
         self.skipParent = utils.cast(bool, data.attrib.get('skipParent', '0'))
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))

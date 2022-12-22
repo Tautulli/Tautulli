@@ -150,8 +150,8 @@ class PlayQueue(PlexObject):
 
         Parameters:
             server (:class:`~plexapi.server.PlexServer`): Server you are connected to.
-            items (:class:`~plexapi.base.Playable` or :class:`~plexapi.playlist.Playlist`):
-                A media item, list of media items, or Playlist.
+            items (:class:`~plexapi.base.PlexPartialObject`):
+                A media item or a list of media items.
             startItem (:class:`~plexapi.base.Playable`, optional):
                 Media item in the PlayQueue where playback should begin.
             shuffle (int, optional): Start the playqueue shuffled.
@@ -174,16 +174,13 @@ class PlayQueue(PlexObject):
             uri_args = quote_plus(f"/library/metadata/{item_keys}")
             args["uri"] = f"library:///directory/{uri_args}"
             args["type"] = items[0].listType
-        elif items.type == "playlist":
-            args["type"] = items.playlistType
-            if items.radio:
-                args["uri"] = f"server://{server.machineIdentifier}/{server.library.identifier}{items.key}"
-            else:
-                args["playlistID"] = items.ratingKey
         else:
-            uuid = items.section().uuid
-            args["type"] = items.listType
-            args["uri"] = f"library://{uuid}/item/{items.key}"
+            if items.type == "playlist":
+                args["type"] = items.playlistType
+                args["playlistID"] = items.ratingKey
+            else:
+                args["type"] = items.listType
+            args["uri"] = f"server://{server.machineIdentifier}/{server.library.identifier}{items.key}"
 
         if startItem:
             args["key"] = startItem.key

@@ -24,6 +24,11 @@ try:
 except ImportError:
     tqdm = None
 
+try:
+    from functools import cached_property
+except ImportError:
+    from backports.cached_property import cached_property  # noqa: F401
+
 log = logging.getLogger('plexapi')
 
 # Search Types - Plex uses these to filter specific media types when searching.
@@ -618,3 +623,10 @@ def toJson(obj, **kwargs):
             return obj.isoformat()
         return {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
     return json.dumps(obj, default=serialize, **kwargs)
+
+
+def openOrRead(file):
+    if hasattr(file, 'read'):
+        return file.read()
+    with open(file, 'rb') as f:
+        return f.read()

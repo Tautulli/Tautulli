@@ -17,7 +17,7 @@ from plexapi.media import Conversion, Optimized
 from plexapi.playlist import Playlist
 from plexapi.playqueue import PlayQueue
 from plexapi.settings import Settings
-from plexapi.utils import deprecated
+from plexapi.utils import cached_property, deprecated
 from requests.status_codes import _codes as codes
 
 # Need these imports to populate utils.PLEXOBJECTS
@@ -109,8 +109,6 @@ class PlexServer(PlexObject):
         self._showSecrets = CONFIG.get('log.show_secrets', '').lower() == 'true'
         self._session = session or requests.Session()
         self._timeout = timeout
-        self._library = None   # cached library
-        self._settings = None   # cached settings
         self._myPlexAccount = None   # cached myPlexAccount
         self._systemAccounts = None   # cached list of SystemAccount
         self._systemDevices = None   # cached list of SystemDevice
@@ -173,27 +171,22 @@ class PlexServer(PlexObject):
     def _uriRoot(self):
         return f'server://{self.machineIdentifier}/com.plexapp.plugins.library'
 
-    @property
+    @cached_property
     def library(self):
         """ Library to browse or search your media. """
-        if not self._library:
-            try:
-                data = self.query(Library.key)
-                self._library = Library(self, data)
-            except BadRequest:
-                data = self.query('/library/sections/')
-                # Only the owner has access to /library
-                # so just return the library without the data.
-                return Library(self, data)
-        return self._library
+        try:
+            data = self.query(Library.key)
+        except BadRequest:
+            # Only the owner has access to /library
+            # so just return the library without the data.
+            data = self.query('/library/sections/')
+        return Library(self, data)
 
-    @property
+    @cached_property
     def settings(self):
         """ Returns a list of all server settings. """
-        if not self._settings:
-            data = self.query(Settings.key)
-            self._settings = Settings(self, data)
-        return self._settings
+        data = self.query(Settings.key)
+        return Settings(self, data)
 
     def account(self):
         """ Returns the :class:`~plexapi.server.Account` object this server belongs to. """
@@ -318,7 +311,7 @@ class PlexServer(PlexObject):
         """
         if self._myPlexAccount is None:
             from plexapi.myplex import MyPlexAccount
-            self._myPlexAccount = MyPlexAccount(token=self._token)
+            self._myPlexAccount = MyPlexAccount(token=self._token, session=self._session)
         return self._myPlexAccount
 
     def _myPlexClientPorts(self):
@@ -454,19 +447,42 @@ class PlexServer(PlexObject):
 
             Returns:
                 :class:`~plexapi.collection.Collection`: A new instance of the created Collection.
+
+            Example:
+
+                .. code-block:: python
+
+                    # Create a regular collection
+                    movies = plex.library.section("Movies")
+                    movie1 = movies.get("Big Buck Bunny")
+                    movie2 = movies.get("Sita Sings the Blues")
+                    collection = plex.createCollection(
+                        title="Favorite Movies",
+                        section=movies,
+                        items=[movie1, movie2]
+                    )
+
+                    # Create a smart collection
+                    collection = plex.createCollection(
+                        title="Recently Aired Comedy TV Shows",
+                        section="TV Shows",
+                        smart=True,
+                        sort="episode.originallyAvailableAt:desc",
+                        filters={"episode.originallyAvailableAt>>": "4w", "genre": "comedy"}
+                    )
         """
         return Collection.create(
             self, title, section, items=items, smart=smart, limit=limit,
             libtype=libtype, sort=sort, filters=filters, **kwargs)
 
     def createPlaylist(self, title, section=None, items=None, smart=False, limit=None,
-                       libtype=None, sort=None, filters=None, **kwargs):
+                       libtype=None, sort=None, filters=None, m3ufilepath=None, **kwargs):
         """ Creates and returns a new :class:`~plexapi.playlist.Playlist`.
 
             Parameters:
                 title (str): Title of the playlist.
-                section (:class:`~plexapi.library.LibrarySection`, str): Smart playlists only,
-                    library section to create the playlist in.
+                section (:class:`~plexapi.library.LibrarySection`, str): Smart playlists and m3u import only,
+                    the library section to create the playlist in.
                 items (List): Regular playlists only, list of :class:`~plexapi.audio.Audio`,
                     :class:`~plexapi.video.Video`, or :class:`~plexapi.photo.Photo` objects to be added to the playlist.
                 smart (bool): True to create a smart playlist. Default False.
@@ -478,19 +494,51 @@ class PlexServer(PlexObject):
                     See :func:`~plexapi.library.LibrarySection.search` for more info.
                 filters (dict): Smart playlists only, a dictionary of advanced filters.
                     See :func:`~plexapi.library.LibrarySection.search` for more info.
+                m3ufilepath (str): Music playlists only, the full file path to an m3u file to import.
+                    Note: This will overwrite any playlist previously created from the same m3u file.
                 **kwargs (dict): Smart playlists only, additional custom filters to apply to the
                     search results. See :func:`~plexapi.library.LibrarySection.search` for more info.
 
             Raises:
                 :class:`plexapi.exceptions.BadRequest`: When no items are included to create the playlist.
                 :class:`plexapi.exceptions.BadRequest`: When mixing media types in the playlist.
+                :class:`plexapi.exceptions.BadRequest`: When attempting to import m3u file into non-music library.
+                :class:`plexapi.exceptions.BadRequest`: When failed to import m3u file.
 
             Returns:
                 :class:`~plexapi.playlist.Playlist`: A new instance of the created Playlist.
+
+            Example:
+
+                .. code-block:: python
+
+                    # Create a regular playlist
+                    episodes = plex.library.section("TV Shows").get("Game of Thrones").episodes()
+                    playlist = plex.createPlaylist(
+                        title="GoT Episodes",
+                        items=episodes
+                    )
+
+                    # Create a smart playlist
+                    playlist = plex.createPlaylist(
+                        title="Top 10 Unwatched Movies",
+                        section="Movies",
+                        smart=True,
+                        limit=10,
+                        sort="audienceRating:desc",
+                        filters={"audienceRating>>": 8.0, "unwatched": True}
+                    )
+
+                    # Create a music playlist from an m3u file
+                    playlist = plex.createPlaylist(
+                        title="Favorite Tracks",
+                        section="Music",
+                        m3ufilepath="/path/to/playlist.m3u"
+                    )
         """
         return Playlist.create(
             self, title, section=section, items=items, smart=smart, limit=limit,
-            libtype=libtype, sort=sort, filters=filters, **kwargs)
+            libtype=libtype, sort=sort, filters=filters, m3ufilepath=m3ufilepath, **kwargs)
 
     def createPlayQueue(self, item, **kwargs):
         """ Creates and returns a new :class:`~plexapi.playqueue.PlayQueue`.

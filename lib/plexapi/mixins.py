@@ -5,7 +5,7 @@ from urllib.parse import parse_qsl, quote_plus, unquote, urlencode, urlsplit
 
 from plexapi import media, settings, utils
 from plexapi.exceptions import BadRequest, NotFound
-from plexapi.utils import deprecated
+from plexapi.utils import deprecated, openOrRead
 
 
 class AdvancedSettingsMixin:
@@ -341,14 +341,14 @@ class ArtMixin(ArtUrlMixin):
         
             Parameters:
                 url (str): The full URL to the image to upload.
-                filepath (str): The full file path the the image to upload.
+                filepath (str): The full file path the the image to upload or file-like object.
         """
         if url:
             key = f'/library/metadata/{self.ratingKey}/arts?url={quote_plus(url)}'
             self._server.query(key, method=self._server._session.post)
         elif filepath:
             key = f'/library/metadata/{self.ratingKey}/arts'
-            data = open(filepath, 'rb').read()
+            data = openOrRead(filepath)
             self._server.query(key, method=self._server._session.post, data=data)
         return self
 
@@ -392,14 +392,14 @@ class BannerMixin(BannerUrlMixin):
         
             Parameters:
                 url (str): The full URL to the image to upload.
-                filepath (str): The full file path the the image to upload.
+                filepath (str): The full file path the the image to upload or file-like object.
         """
         if url:
             key = f'/library/metadata/{self.ratingKey}/banners?url={quote_plus(url)}'
             self._server.query(key, method=self._server._session.post)
         elif filepath:
             key = f'/library/metadata/{self.ratingKey}/banners'
-            data = open(filepath, 'rb').read()
+            data = openOrRead(filepath)
             self._server.query(key, method=self._server._session.post, data=data)
         return self
 
@@ -448,14 +448,14 @@ class PosterMixin(PosterUrlMixin):
 
             Parameters:
                 url (str): The full URL to the image to upload.
-                filepath (str): The full file path the the image to upload.
+                filepath (str): The full file path the the image to upload or file-like object.
         """
         if url:
             key = f'/library/metadata/{self.ratingKey}/posters?url={quote_plus(url)}'
             self._server.query(key, method=self._server._session.post)
         elif filepath:
             key = f'/library/metadata/{self.ratingKey}/posters'
-            data = open(filepath, 'rb').read()
+            data = openOrRead(filepath)
             self._server.query(key, method=self._server._session.post, data=data)
         return self
 
@@ -494,22 +494,24 @@ class ThemeMixin(ThemeUrlMixin):
         """ Returns list of available :class:`~plexapi.media.Theme` objects. """
         return self.fetchItems(f'/library/metadata/{self.ratingKey}/themes', cls=media.Theme)
 
-    def uploadTheme(self, url=None, filepath=None):
+    def uploadTheme(self, url=None, filepath=None, timeout=None):
         """ Upload a theme from url or filepath.
 
             Warning: Themes cannot be deleted using PlexAPI!
 
             Parameters:
                 url (str): The full URL to the theme to upload.
-                filepath (str): The full file path to the theme to upload.
+                filepath (str): The full file path to the theme to upload or file-like object.
+                timeout (int, optional): Timeout, in seconds, to use when uploading themes to the server.
+                    (default config.TIMEOUT).
         """
         if url:
             key = f'/library/metadata/{self.ratingKey}/themes?url={quote_plus(url)}'
-            self._server.query(key, method=self._server._session.post)
+            self._server.query(key, method=self._server._session.post, timeout=timeout)
         elif filepath:
             key = f'/library/metadata/{self.ratingKey}/themes'
-            data = open(filepath, 'rb').read()
-            self._server.query(key, method=self._server._session.post, data=data)
+            data = openOrRead(filepath)
+            self._server.query(key, method=self._server._session.post, data=data, timeout=timeout)
         return self
 
     def setTheme(self, theme):
