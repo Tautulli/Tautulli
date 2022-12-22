@@ -526,11 +526,11 @@
                             var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
                             var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.stream_audio_decision === 'transcode') {
-                                audio_decision = 'Transcode ('+ (s.stream_audio_language || 'Unknown')+ ' - ' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' <i class="fa fa-long-arrow-right"></i> ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Transcode ('+ (s.audio_language || 'Unknown')+ ' - ' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' <i class="fa fa-long-arrow-right"></i> ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else if (s.stream_audio_decision === 'copy') {
-                                audio_decision = 'Direct Stream ('+ (s.stream_audio_language || 'Unknown')+ ' - ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Direct Stream ('+ (s.audio_language || 'Unknown')+ ' - ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else {
-                                audio_decision = 'Direct Play ('+ (s.stream_audio_language || 'Unknown')+ ' - ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Direct Play ('+ (s.audio_language || 'Unknown')+ ' - ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             }
                         }
                         $('#audio_decision-' + key).html(audio_decision);
@@ -539,13 +539,13 @@
                         if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.subtitles === 1) {
                             var subtitle_codec = (s.stream_subtitle_codec && s.stream_subtitle_transient) ? 'None' : s.subtitle_codec.toUpperCase();
                             if (s.stream_subtitle_decision === 'transcode') {
-                                subtitle_decision = 'Transcode ('+ (s.stream_subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_subtitle_codec.toUpperCase() + ')';
+                                subtitle_decision = 'Transcode ('+ (s.subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_subtitle_codec.toUpperCase() + ')';
                             } else if (s.stream_subtitle_decision === 'copy') {
-                                subtitle_decision = 'Direct Stream ('+ (s.stream_subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ')';
+                                subtitle_decision = 'Direct Stream ('+ (s.subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ')';
                             } else if (s.stream_subtitle_decision === 'burn') {
-                                subtitle_decision = 'Burn ('+ (s.stream_subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ')';
+                                subtitle_decision = 'Burn ('+ (s.subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ')';
                             } else {
-                                subtitle_decision = 'Direct Play ('+ (s.stream_subtitle_language || 'Unknown')+ ' - ' + ((s.synced_version === '1') ? subtitle_codec : s.stream_subtitle_codec.toUpperCase()) + ')';
+                                subtitle_decision = 'Direct Play ('+ (s.subtitle_language || 'Unknown')+ ' - ' + ((s.synced_version === '1') ? subtitle_codec : s.stream_subtitle_codec.toUpperCase()) + ')';
                             }
                         }
                         $('#subtitle_decision-' + key).html(subtitle_decision);
