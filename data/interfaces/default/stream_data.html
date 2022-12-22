@@ -245,6 +245,13 @@ DOCUMENTATION :: END
                         <td>${data['stream_subtitle_codec'].upper() or '-'}</td>
                         <td>${data['subtitle_codec'].upper()}</td>
                     </tr>
+                    % if data['subtitle_forced']:
+                    <tr>
+                        <td>Forced</td>
+                        <td>-</td>
+                        <td>${bool(data['subtitle_forced'])}</td>
+                    </tr>
+                    % endif
                     % if data['subtitle_language'] != '':
                     <tr>
                         <td>Language</td>
