@@ -234,7 +234,7 @@ DOCUMENTATION :: END
                             Subtitles
                         </th>
                         <th>
-                            ${data['stream_subtitle_decision']}
+                            ${'direct play' if data['stream_subtitle_decision'] not in ('transcode', 'copy', 'burn') else data['stream_subtitle_decision']}
                         </th>
                     </tr>
                 </thead>
