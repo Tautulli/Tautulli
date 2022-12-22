@@ -7,7 +7,7 @@ backports.zoneinfo==0.2.1
 beautifulsoup4==4.11.1
 bleach==5.0.1
 certifi==2022.12.7
-cheroot==8.6.0
+cheroot==9.0.0
 cherrypy==18.8.0
 cloudinary==1.30.0
 distro==1.8.0
@@ -19,7 +19,7 @@ html5lib==1.1
 httpagentparser==1.9.5
 idna==3.4
 importlib-metadata==5.0.0
-importlib-resources==5.10.0
+importlib-resources==5.10.1
 git+https://github.com/Tautulli/ipwhois.git@master#egg=ipwhois
 IPy==1.01
 Mako==1.2.4
@@ -41,15 +41,15 @@ rumps==0.4.0; platform_system == "Darwin"
 simplejson==3.18.0
 six==1.16.0
 soupsieve==2.3.2.post1
-tempora==5.0.2
+tempora==5.1.0
 tokenize-rt==5.0.0
-tzdata==2022.6
+tzdata==2022.7
 tzlocal==4.2
-urllib3==1.26.12
+urllib3==1.26.13
 webencodings==0.5.1
 websocket-client==1.4.2
 xmltodict==0.13.0
-zipp==3.10.0
+zipp==3.11.0
 
 # configobj==5.1.0
 # sgmllib3k==1.0.0

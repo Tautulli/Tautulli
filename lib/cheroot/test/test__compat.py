@@ -1,13 +1,8 @@
-# -*- coding: utf-8 -*-
 """Test suite for cross-python compatibility helpers."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import pytest
-import six
 
-from cheroot._compat import extract_bytes, memoryview, ntob, ntou, bton
+from cheroot._compat import extract_bytes, ntob, ntou, bton
 
 
 @pytest.mark.parametrize(
@@ -32,7 +27,7 @@ def test_compat_functions_positive(func, inp, out):
 )
 def test_compat_functions_negative_nonnative(func):
     """Check that compatibility functions fail loudly for incorrect input."""
-    non_native_test_str = u'bar' if six.PY2 else b'bar'
+    non_native_test_str = b'bar'
     with pytest.raises(TypeError):
         func(non_native_test_str, encoding='utf-8')
 

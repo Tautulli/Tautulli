@@ -1,8 +1,5 @@
 """A library of helper functions for the Cheroot test suite."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import datetime
 import logging
 import os
@@ -10,10 +7,7 @@ import sys
 import time
 import threading
 import types
-
-from six.moves import http_client
-
-import six
+import http.client
 
 import cheroot.server
 import cheroot.wsgi
@@ -60,14 +54,14 @@ class CherootWebCase(webtest.WebCase):
             cls.scheme = 'http'
         else:
             ssl = ' (ssl)'
-            cls.HTTP_CONN = http_client.HTTPSConnection
+            cls.HTTP_CONN = http.client.HTTPSConnection
             cls.scheme = 'https'
 
         v = sys.version.split()[0]
-        log.info('Python version used to run this test script: %s' % v)
-        log.info('Cheroot version: %s' % cheroot.__version__)
-        log.info('HTTP server version: %s%s' % (cls.httpserver.protocol, ssl))
-        log.info('PID: %s' % os.getpid())
+        log.info('Python version used to run this test script: %s', v)
+        log.info('Cheroot version: %s', cheroot.__version__)
+        log.info('HTTP server version: %s%s', cls.httpserver.protocol, ssl)
+        log.info('PID: %s', os.getpid())
 
         if hasattr(cls, 'setup_server'):
             # Clear the wsgi server so that
@@ -135,9 +129,9 @@ class Response:
         """Generate iterable response body object."""
         if self.body is None:
             return []
-        elif isinstance(self.body, six.text_type):
+        elif isinstance(self.body, str):
             return [self.body.encode('iso-8859-1')]
-        elif isinstance(self.body, six.binary_type):
+        elif isinstance(self.body, bytes):
             return [self.body]
         else:
             return [x.encode('iso-8859-1') for x in self.body]

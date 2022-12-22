@@ -5,17 +5,12 @@
    joinable
 """
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
-
 import collections
 import threading
 import time
 import socket
 import warnings
-
-from six.moves import queue
+import queue
 
 from jaraco.functools import pass_none
 
@@ -178,7 +173,7 @@ class ThreadPool:
         for worker in self._threads:
             worker.name = (
                 'CP Server {worker_name!s}'.
-                format(worker_name=worker.name),
+                format(worker_name=worker.name)
             )
             worker.start()
         for worker in self._threads:
@@ -228,7 +223,7 @@ class ThreadPool:
         worker = WorkerThread(self.server)
         worker.name = (
             'CP Server {worker_name!s}'.
-            format(worker_name=worker.name),
+            format(worker_name=worker.name)
         )
         worker.start()
         return worker

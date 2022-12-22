@@ -6,6 +6,10 @@ import re
 import numbers
 import functools
 import contextlib
+from numbers import Number
+from typing import Union, Tuple, Iterable
+from typing import cast
+
 
 from jaraco.functools import once
 
@@ -33,7 +37,7 @@ hours_per_month = hours_per_day * days_per_year / 12
 
 
 @once
-def _needs_year_help():
+def _needs_year_help() -> bool:
     """
     Some versions of Python render %Y with only three characters :(
     https://bugs.python.org/issue39103
@@ -41,14 +45,19 @@ def _needs_year_help():
     return len(datetime.date(900, 1, 1).strftime('%Y')) != 4
 
 
-def ensure_datetime(ob):
+AnyDatetime = Union[datetime.datetime, datetime.date, datetime.time]
+StructDatetime = Union[Tuple[int, ...], time.struct_time]
+
+
+def ensure_datetime(ob: AnyDatetime) -> datetime.datetime:
     """
     Given a datetime or date or time object from the ``datetime``
     module, always return a datetime using default values.
     """
     if isinstance(ob, datetime.datetime):
         return ob
-    date = time = ob
+    date = cast(datetime.date, ob)
+    time = cast(datetime.time, ob)
     if isinstance(ob, datetime.date):
         time = datetime.time()
     if isinstance(ob, datetime.time):
@@ -56,7 +65,13 @@ def ensure_datetime(ob):
     return datetime.datetime.combine(date, time)
 
 
-def strftime(fmt, t):
+def infer_datetime(ob: Union[AnyDatetime, StructDatetime]) -> datetime.datetime:
+    if isinstance(ob, (time.struct_time, tuple)):
+        ob = datetime.datetime(*ob[:6])  # type: ignore
+    return ensure_datetime(ob)
+
+
+def strftime(fmt: str, t: Union[AnyDatetime, tuple, time.struct_time]) -> str:
     """
     Portable strftime.
 
@@ -115,15 +130,11 @@ def strftime(fmt, t):
     >>> strftime('%Y', datetime.time())
     '1900'
     """
-    if isinstance(t, (time.struct_time, tuple)):
-        t = datetime.datetime(*t[:6])
-    t = ensure_datetime(t)
+    t = infer_datetime(t)
     subs = (
         ('%s', '%03d' % (t.microsecond // 1000)),
         ('%µ', '%03d' % (t.microsecond % 1000)),
-    )
-    if _needs_year_help():  # pragma: nocover
-        subs += (('%Y', '%04d' % t.year),)
+    ) + (('%Y', '%04d' % t.year),) * _needs_year_help()
 
     def doSub(s, sub):
         return s.replace(*sub)
@@ -324,10 +335,10 @@ def calculate_prorated_values():
     """
     rate = input("Enter the rate (3/hour, 50/month)> ")
     for period, value in _prorated_values(rate):
-        print("per {period}: {value}".format(**locals()))
+        print(f"per {period}: {value}")
 
 
-def _prorated_values(rate):
+def _prorated_values(rate: str) -> Iterable[Tuple[str, Number]]:
     """
     Given a rate (a string in units per unit time), and return that same
     rate for various time periods.
@@ -341,7 +352,8 @@ def _prorated_values(rate):
     year: 175316.333
 
     """
-    res = re.match(r'(?P<value>[\d.]+)/(?P<period>\w+)$', rate).groupdict()
+    match = re.match(r'(?P<value>[\d.]+)/(?P<period>\w+)$', rate)
+    res = cast(re.Match, match).groupdict()
     value = float(res['value'])
     value_per_second = value / get_period_seconds(res['period'])
     for period in ('minute', 'hour', 'day', 'month', 'year'):
