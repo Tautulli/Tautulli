@@ -5,9 +5,8 @@ from urllib.parse import quote_plus, unquote
 from plexapi import media, utils
 from plexapi.base import Playable, PlexPartialObject
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
-from plexapi.library import LibrarySection
+from plexapi.library import LibrarySection, MusicSection
 from plexapi.mixins import SmartFilterMixin, ArtMixin, PosterMixin
-from plexapi.playqueue import PlayQueue
 from plexapi.utils import deprecated
 
 
@@ -330,10 +329,6 @@ class Playlist(
         """ Delete the playlist. """
         self._server.query(self.key, method=self._server._session.delete)
 
-    def playQueue(self, *args, **kwargs):
-        """ Returns a new :class:`~plexapi.playqueue.PlayQueue` from the playlist. """
-        return PlayQueue.create(self._server, self, *args, **kwargs)
-
     @classmethod
     def _create(cls, server, title, items):
         """ Create a regular playlist. """
@@ -376,14 +371,31 @@ class Playlist(
         return cls(server, data, initpath=key)
 
     @classmethod
+    def _createFromM3U(cls, server, title, section, m3ufilepath):
+        """ Create a playlist from uploading an m3u file. """
+        if not isinstance(section, LibrarySection):
+            section = server.library.section(section)
+
+        if not isinstance(section, MusicSection):
+            raise BadRequest('Can only create playlists from m3u files in a music library.')
+
+        args = {'sectionID': section.key, 'path': m3ufilepath}
+        key = f"/playlists/upload{utils.joinArgs(args)}"
+        server.query(key, method=server._session.post)
+        try:
+            return server.playlists(sectionId=section.key, guid__endswith=m3ufilepath)[0].edit(title=title).reload()
+        except IndexError:
+            raise BadRequest('Failed to create playlist from m3u file.') from None
+
+    @classmethod
     def create(cls, server, title, section=None, items=None, smart=False, limit=None,
-               libtype=None, sort=None, filters=None, **kwargs):
+               libtype=None, sort=None, filters=None, m3ufilepath=None, **kwargs):
         """ Create a playlist.
 
             Parameters:
                 server (:class:`~plexapi.server.PlexServer`): Server to create the playlist on.
                 title (str): Title of the playlist.
-                section (:class:`~plexapi.library.LibrarySection`, str): Smart playlists only,
+                section (:class:`~plexapi.library.LibrarySection`, str): Smart playlists and m3u import only,
                     the library section to create the playlist in.
                 items (List): Regular playlists only, list of :class:`~plexapi.audio.Audio`,
                     :class:`~plexapi.video.Video`, or :class:`~plexapi.photo.Photo` objects to be added to the playlist.
@@ -396,17 +408,23 @@ class Playlist(
                     See :func:`~plexapi.library.LibrarySection.search` for more info.
                 filters (dict): Smart playlists only, a dictionary of advanced filters.
                     See :func:`~plexapi.library.LibrarySection.search` for more info.
+                m3ufilepath (str): Music playlists only, the full file path to an m3u file to import.
+                    Note: This will overwrite any playlist previously created from the same m3u file.
                 **kwargs (dict): Smart playlists only, additional custom filters to apply to the
                     search results. See :func:`~plexapi.library.LibrarySection.search` for more info.
 
             Raises:
                 :class:`plexapi.exceptions.BadRequest`: When no items are included to create the playlist.
                 :class:`plexapi.exceptions.BadRequest`: When mixing media types in the playlist.
+                :class:`plexapi.exceptions.BadRequest`: When attempting to import m3u file into non-music library.
+                :class:`plexapi.exceptions.BadRequest`: When failed to import m3u file.
 
             Returns:
                 :class:`~plexapi.playlist.Playlist`: A new instance of the created Playlist.
         """
-        if smart:
+        if m3ufilepath:
+            return cls._createFromM3U(server, title, section, m3ufilepath)
+        elif smart:
             return cls._createSmart(server, title, section, limit, libtype, sort, filters, **kwargs)
         else:
             return cls._create(server, title, items)

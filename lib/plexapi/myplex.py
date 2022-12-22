@@ -32,6 +32,7 @@ class MyPlexAccount(PlexObject):
             session (requests.Session, optional): Use your own session object if you want to
                 cache the http responses from PMS
             timeout (int): timeout in seconds on initial connect to myplex (default config.TIMEOUT).
+            code (str): Two-factor authentication code to use when logging in.
 
         Attributes:
             SIGNIN (str): 'https://plex.tv/users/sign_in.xml'
@@ -88,19 +89,21 @@ class MyPlexAccount(PlexObject):
     # https://plex.tv/api/v2/user?X-Plex-Token={token}&X-Plex-Client-Identifier={clientId}
     key = 'https://plex.tv/users/account'
 
-    def __init__(self, username=None, password=None, token=None, session=None, timeout=None):
+    def __init__(self, username=None, password=None, token=None, session=None, timeout=None, code=None):
         self._token = token or CONFIG.get('auth.server_token')
         self._session = session or requests.Session()
         self._sonos_cache = []
         self._sonos_cache_timestamp = 0
-        data, initpath = self._signin(username, password, timeout)
+        data, initpath = self._signin(username, password, code, timeout)
         super(MyPlexAccount, self).__init__(self, data, initpath)
 
-    def _signin(self, username, password, timeout):
+    def _signin(self, username, password, code, timeout):
         if self._token:
             return self.query(self.key), self.key
         username = username or CONFIG.get('auth.myplex_username')
         password = password or CONFIG.get('auth.myplex_password')
+        if code:
+            password += code
         data = self.query(self.SIGNIN, method=self._session.post, auth=(username, password), timeout=timeout)
         return data, self.SIGNIN
 
@@ -390,12 +393,13 @@ class MyPlexAccount(PlexObject):
         url = self.HOMEUSER.format(userId=user.id)
         return self.query(url, self._session.delete)
 
-    def switchHomeUser(self, user):
+    def switchHomeUser(self, user, pin=None):
         """ Returns a new :class:`~plexapi.myplex.MyPlexAccount` object switched to the given home user.
 
             Parameters:
                 user (:class:`~plexapi.myplex.MyPlexUser` or str): :class:`~plexapi.myplex.MyPlexUser`,
                     username, or email of the home user to switch to.
+                pin (str): PIN for the home user (required if the home user has a PIN set).
 
             Example:
 
@@ -410,9 +414,12 @@ class MyPlexAccount(PlexObject):
         """
         user = user if isinstance(user, MyPlexUser) else self.user(user)
         url = f'{self.HOMEUSERS}/{user.id}/switch'
-        data = self.query(url, self._session.post)
+        params = {}
+        if pin:
+            params['pin'] = pin
+        data = self.query(url, self._session.post, params=params)
         userToken = data.attrib.get('authenticationToken')
-        return MyPlexAccount(token=userToken)
+        return MyPlexAccount(token=userToken, session=self._session)
 
     def setPin(self, newPin, currentPin=None):
         """ Set a new Plex Home PIN for the account.
@@ -861,7 +868,12 @@ class MyPlexAccount(PlexObject):
             results += subresults[:maxresults - len(results)]
             params['X-Plex-Container-Start'] += params['X-Plex-Container-Size']
 
-        return self._toOnlineMetadata(results)
+            # totalSize is available in first response, update maxresults from it
+            totalSize = utils.cast(int, data.attrib.get('totalSize'))
+            if maxresults > totalSize:
+                maxresults = totalSize
+
+        return self._toOnlineMetadata(results, **kwargs)
 
     def onWatchlist(self, item):
         """ Returns True if the item is on the user's watchlist.
@@ -941,7 +953,7 @@ class MyPlexAccount(PlexObject):
         }
         params = {
             'query': query,
-            'limit ': limit,
+            'limit': limit,
             'searchTypes': libtype,
             'includeMetadata': 1
         }
@@ -1005,21 +1017,24 @@ class MyPlexAccount(PlexObject):
         data = {'code': pin}
         self.query(self.LINK, self._session.put, headers=headers, data=data)
 
-    def _toOnlineMetadata(self, objs):
+    def _toOnlineMetadata(self, objs, **kwargs):
         """ Convert a list of media objects to online metadata objects. """
         # TODO: Add proper support for metadata.provider.plex.tv
         # Temporary workaround to allow reloading and browsing of online media objects
-        server = PlexServer(self.METADATA, self._token)
+        server = PlexServer(self.METADATA, self._token, session=self._session)
+
+        includeUserState = int(bool(kwargs.pop('includeUserState', True)))
 
         if not isinstance(objs, list):
             objs = [objs]
+
         for obj in objs:
             obj._server = server
 
             # Parse details key to modify query string
             url = urlsplit(obj._details_key)
             query = dict(parse_qsl(url.query))
-            query['includeUserState'] = 1
+            query['includeUserState'] = includeUserState
             query.pop('includeFields', None)
             obj._details_key = urlunsplit((url.scheme, url.netloc, url.path, urlencode(query), url.fragment))
 

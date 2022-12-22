@@ -139,7 +139,14 @@ class Setting(PlexObject):
         if not enumstr:
             return None
         if ':' in enumstr:
-            return {self._cast(k): v for k, v in [kv.split(':') for kv in enumstr.split('|')]}
+            d = {}
+            for kv in enumstr.split('|'):
+                try:
+                    k, v = kv.split(':')
+                    d[self._cast(k)] = v
+                except ValueError:
+                    d[self._cast(kv)] = kv
+            return d
         return enumstr.split('|')
 
     def set(self, value):

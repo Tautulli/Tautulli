@@ -7,7 +7,7 @@ from plexapi import X_PLEX_CONTAINER_SIZE, log, media, utils
 from plexapi.base import OPERATORS, PlexObject
 from plexapi.exceptions import BadRequest, NotFound
 from plexapi.settings import Setting
-from plexapi.utils import deprecated
+from plexapi.utils import cached_property, deprecated
 
 
 class Library(PlexObject):
@@ -418,7 +418,6 @@ class LibrarySection(PlexObject):
         self._filterTypes = None
         self._fieldTypes = None
         self._totalViewSize = None
-        self._totalSize = None
         self._totalDuration = None
         self._totalStorage = None
 
@@ -456,12 +455,10 @@ class LibrarySection(PlexObject):
                 item.librarySectionID = librarySectionID
         return items
 
-    @property
+    @cached_property
     def totalSize(self):
         """ Returns the total number of items in the library for the default library type. """
-        if self._totalSize is None:
-            self._totalSize = self.totalViewSize(includeCollections=False)
-        return self._totalSize
+        return self.totalViewSize(includeCollections=False)
 
     @property
     def totalDuration(self):
@@ -644,12 +641,12 @@ class LibrarySection(PlexObject):
                     guidLookup = {}
                     for item in library.all():
                         guidLookup[item.guid] = item
-                        guidLookup.update({guid.id for guid in item.guids}}
+                        guidLookup.update({guid.id: item for guid in item.guids}}
 
                     result1 = guidLookup['plex://show/5d9c086c46115600200aa2fe']
                     result2 = guidLookup['imdb://tt0944947']
-                    result4 = guidLookup['tmdb://1399']
-                    result5 = guidLookup['tvdb://121361']
+                    result3 = guidLookup['tmdb://1399']
+                    result4 = guidLookup['tvdb://121361']
 
         """
 
@@ -1671,13 +1668,13 @@ class LibrarySection(PlexObject):
         return self.search(libtype='collection', **kwargs)
 
     def createPlaylist(self, title, items=None, smart=False, limit=None,
-                       sort=None, filters=None, **kwargs):
+                       sort=None, filters=None, m3ufilepath=None, **kwargs):
         """ Alias for :func:`~plexapi.server.PlexServer.createPlaylist` using this
             :class:`~plexapi.library.LibrarySection`.
         """
         return self._server.createPlaylist(
             title, section=self, items=items, smart=smart, limit=limit,
-            sort=sort, filters=filters, **kwargs)
+            sort=sort, filters=filters, m3ufilepath=m3ufilepath, **kwargs)
 
     def playlist(self, title):
         """ Returns the playlist with the specified title.

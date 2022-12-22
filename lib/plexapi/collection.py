@@ -11,7 +11,6 @@ from plexapi.mixins import (
     ContentRatingMixin, SortTitleMixin, SummaryMixin, TitleMixin,
     LabelMixin
 )
-from plexapi.playqueue import PlayQueue
 from plexapi.utils import deprecated
 
 
@@ -426,10 +425,6 @@ class Collection(
     def delete(self):
         """ Delete the collection. """
         super(Collection, self).delete()
-
-    def playQueue(self, *args, **kwargs):
-        """ Returns a new :class:`~plexapi.playqueue.PlayQueue` from the collection. """
-        return PlayQueue.create(self._server, self.items(), *args, **kwargs)
 
     @classmethod
     def _create(cls, server, title, section, items):
