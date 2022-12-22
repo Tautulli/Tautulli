@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """Collection of exceptions raised and/or processed by Cheroot."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import errno
 import sys
 
 
 class MaxSizeExceeded(Exception):
-    """Exception raised when a client sends more data then acceptable within limit.
+    """Exception raised when a client sends more data then allowed under limit.
 
-    Depends on ``request.body.maxbytes`` config option if used within CherryPy
+    Depends on ``request.body.maxbytes`` config option if used within CherryPy.
     """
 
 

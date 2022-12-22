@@ -1,18 +1,14 @@
 """Tests for TCP connection handling, including proper and timely close."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import errno
 import socket
 import time
 import logging
 import traceback as traceback_
 from collections import namedtuple
+import http.client
+import urllib.request
 
-from six.moves import range, http_client, urllib
-
-import six
 import pytest
 from jaraco.text import trim, unwrap
 
@@ -94,8 +90,6 @@ class Controller(helper.Controller):
         WSGI 1.0 is a mess around unicode. Create endpoints
         that match the PATH_INFO that it produces.
         """
-        if six.PY2:
-            return string
         return string.encode('utf-8').decode('latin-1')
 
     handlers = {
@@ -242,7 +236,7 @@ def test_HTTP11_persistent_connections(test_client):
     assert header_has_value('Connection', 'close', actual_headers)
 
     # Make another request on the same connection, which should error.
-    with pytest.raises(http_client.NotConnected):
+    with pytest.raises(http.client.NotConnected):
         test_client.get('/pov', http_conn=http_connection)
 
 
@@ -309,7 +303,7 @@ def test_streaming_11(test_client, set_cl):
 
             # Make another request on the same connection, which should
             # error.
-            with pytest.raises(http_client.NotConnected):
+            with pytest.raises(http.client.NotConnected):
                 test_client.get('/pov', http_conn=http_connection)
 
         # Try HEAD.
@@ -323,6 +317,9 @@ def test_streaming_11(test_client, set_cl):
         assert status_line[4:] == 'OK'
         assert actual_resp_body == b''
         assert not header_exists('Transfer-Encoding', actual_headers)
+
+    # Prevent the resource warnings:
+    http_connection.close()
 
 
 @pytest.mark.parametrize(
@@ -389,13 +386,16 @@ def test_streaming_10(test_client, set_cl):
         assert not header_exists('Transfer-Encoding', actual_headers)
 
         # Make another request on the same connection, which should error.
-        with pytest.raises(http_client.NotConnected):
+        with pytest.raises(http.client.NotConnected):
             test_client.get(
                 '/pov', http_conn=http_connection,
                 protocol='HTTP/1.0',
             )
 
     test_client.server_instance.protocol = original_server_protocol
+
+    # Prevent the resource warnings:
+    http_connection.close()
 
 
 @pytest.mark.parametrize(
@@ -466,6 +466,9 @@ def test_keepalive(test_client, http_server_protocol):
 
     test_client.server_instance.protocol = original_server_protocol
 
+    # Prevent the resource warnings:
+    http_connection.close()
+
 
 def test_keepalive_conn_management(test_client):
     """Test management of Keep-Alive connections."""
@@ -511,9 +514,9 @@ def test_keepalive_conn_management(test_client):
             )
 
     disconnect_errors = (
-        http_client.BadStatusLine,
-        http_client.CannotSendRequest,
-        http_client.NotConnected,
+        http.client.BadStatusLine,
+        http.client.CannotSendRequest,
+        http.client.NotConnected,
     )
 
     # Make a new connection.
@@ -565,6 +568,11 @@ def test_keepalive_conn_management(test_client):
     # Restore original timeout.
     test_client.server_instance.timeout = timeout
 
+    # Prevent the resource warnings:
+    c1.close()
+    c2.close()
+    c3.close()
+
 
 @pytest.mark.parametrize(
     ('simulated_exception', 'error_number', 'exception_leaks'),
@@ -597,7 +605,6 @@ def test_keepalive_conn_management(test_client):
         pytest.param(RuntimeError, 666, True, id='RuntimeError(666)'),
         pytest.param(socket.error, -1, True, id='socket.error(-1)'),
     ) + (
-        () if six.PY2 else (
             pytest.param(
                 ConnectionResetError, errno.ECONNRESET, False,
                 id='ConnectionResetError(ECONNRESET)',
@@ -610,7 +617,6 @@ def test_keepalive_conn_management(test_client):
                 BrokenPipeError, errno.ESHUTDOWN, False,
                 id='BrokenPipeError(ESHUTDOWN)',
             ),
-        )
     ),
 )
 def test_broken_connection_during_tcp_fin(
@@ -765,7 +771,7 @@ def test_HTTP11_Timeout_after_request(test_client):
     response = conn.response_class(conn.sock, method='GET')
     try:
         response.begin()
-    except (socket.error, http_client.BadStatusLine):
+    except (socket.error, http.client.BadStatusLine):
         pass
     except Exception as ex:
         pytest.fail(fail_msg % ex)
@@ -795,7 +801,7 @@ def test_HTTP11_Timeout_after_request(test_client):
     response = conn.response_class(conn.sock, method='GET')
     try:
         response.begin()
-    except (socket.error, http_client.BadStatusLine):
+    except (socket.error, http.client.BadStatusLine):
         pass
     except Exception as ex:
         pytest.fail(fail_msg % ex)
@@ -845,8 +851,7 @@ def test_HTTP11_pipelining(test_client):
         # ``conn.sock``. Until that bug get's fixed we will
         # monkey patch the ``response`` instance.
         # https://bugs.python.org/issue23377
-        if not six.PY2:
-            response.fp = conn.sock.makefile('rb', 0)
+        response.fp = conn.sock.makefile('rb', 0)
         response.begin()
         body = response.read(13)
         assert response.status == 200
@@ -1025,6 +1030,9 @@ def test_No_Message_Body(test_client):
     assert not header_exists('Content-Length', actual_headers)
     assert actual_resp_body == b''
     assert not header_exists('Connection', actual_headers)
+
+    # Prevent the resource warnings:
+    http_connection.close()
 
 
 @pytest.mark.xfail(
