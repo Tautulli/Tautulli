@@ -125,7 +125,7 @@ jobs:
         uses: actions/create-release@v1
         id: create_release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
         with:
           tag_name: ${{ steps.get_version.outputs.RELEASE_VERSION }}
           release_name: Tautulli ${{ steps.get_version.outputs.RELEASE_VERSION }}
@@ -140,7 +140,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         if: env.WORKFLOW_CONCLUSION == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: Tautulli-windows-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
@@ -151,7 +151,7 @@ jobs:
         uses: actions/upload-release-asset@v1
         if: env.WORKFLOW_CONCLUSION == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
