@@ -61,7 +61,8 @@ class HTTPHandler(object):
                 'X-Plex-Device': '{} {}'.format(plexpy.common.PLATFORM,
                                                 plexpy.common.PLATFORM_RELEASE),
                 'X-Plex-Device-Name': '{} ({})'.format(plexpy.common.PLATFORM_DEVICE_NAME,
-                                                       plexpy.common.PRODUCT)
+                                                       plexpy.common.PRODUCT),
+                'Accept-Language': plexpy.SYS_LANGUAGE
             }
 
         self.token = token
