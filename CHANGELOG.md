@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.11.0 (2022-12-22)
+
+* Activity:
+  * New: Added audio and subtitle language to activity cards. (#1831, #1900) (Thanks @fscorrupt)
+* History:
+  * New: Log subtitle language and subtitle forced to database. (#1826)
+* Notifications:
+  * Fix: Validating condition operators would fail with a blank parameter.
+  * New: Added start time and stop time notification parameters. (#1931)
+  * New: Added session_key to LunaSea notification payload. (#1929) (Thanks @JagandeepBrar)
+* Newsletters:
+  * Fix: Allow CSS to support light and dark themes.
+* Exporter:
+  * New: Added editionTitle to movie exporter fields.
+  * Change: m3u8 export changed to .m3u file extension. File is still encoded using UTF-8.
+* UI:
+  * Fix: Link watch statistics to media page using metadata from history. (#1882)
+  * New: Show subtitle language and subtitle forced flag in stream data modal.
+* Other:
+  * Fix: Mask more user and metadata fields for guest access. (#1913)
+  * Change: Disable TLS 1.0 and 1.1 for the webserver. Minimum TLS version is 1.2. (#1870)
+  * Change: Use system language for requests to Plex Media Server.
+
+
 ## v2.10.5 (2022-11-07)
 
 * Notifications:
