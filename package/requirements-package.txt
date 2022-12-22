@@ -3,7 +3,7 @@ importlib-metadata==5.2.0
 importlib-resources==5.10.1
 pyinstaller==5.6.2
 pyopenssl==22.1.0
-pycryptodomex==3.15.0
+pycryptodomex==3.16.0
 
 pyobjc-framework-Cocoa==9.0; platform_system == "Darwin"
 pyobjc-core==9.0; platform_system == "Darwin"
