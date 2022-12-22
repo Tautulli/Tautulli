@@ -218,10 +218,10 @@ DOCUMENTATION :: END
                         <td>${data['stream_audio_channels']}</td>
                         <td>${data['audio_channels']}</td>
                     </tr>
-                    % if data['stream_audio_language'] != '':
+                    % if data['audio_language'] != '':
                     <tr>
                         <td>Language</td>
-                        <td>${data['stream_audio_language']}</td>
+                        <td>-</td>
                         <td>${data['audio_language']}</td>
                     </tr>
                     % endif
@@ -245,6 +245,13 @@ DOCUMENTATION :: END
                         <td>${data['stream_subtitle_codec'].upper() or '-'}</td>
                         <td>${data['subtitle_codec'].upper()}</td>
                     </tr>
+                    % if data['subtitle_language'] != '':
+                    <tr>
+                        <td>Language</td>
+                        <td>-</td>
+                        <td>${data['subtitle_language']}</td>
+                    </tr>
+                    % endif
                 </tbody>
             </table>
             % endif

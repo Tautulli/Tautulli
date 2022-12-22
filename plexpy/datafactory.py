@@ -1286,13 +1286,14 @@ class DataFactory(object):
                     'synced_version, synced_version_profile, ' \
                     'container, video_codec, video_bitrate, video_width, video_height, video_framerate, ' \
                     'video_dynamic_range, aspect_ratio, ' \
-                    'audio_codec, audio_bitrate, audio_channels, audio_language, audio_language_code, subtitle_codec, ' \
+                    'audio_codec, audio_bitrate, audio_channels, audio_language, audio_language_code, ' \
+                    'subtitle_codec, subtitle_language, ' \
                     'stream_bitrate, stream_video_full_resolution, quality_profile, stream_container_decision, stream_container, ' \
                     'stream_video_decision, stream_video_codec, stream_video_bitrate, stream_video_width, stream_video_height, ' \
                     'stream_video_framerate, stream_video_dynamic_range, ' \
                     'stream_audio_decision, stream_audio_codec, stream_audio_bitrate, stream_audio_channels, ' \
                     'stream_audio_language, stream_audio_language_code, ' \
-                    'subtitles, stream_subtitle_decision, stream_subtitle_codec, ' \
+                    'subtitles, stream_subtitle_decision, stream_subtitle_codec, stream_subtitle_language, ' \
                     'transcode_hw_decoding, transcode_hw_encoding, ' \
                     'video_decision, audio_decision, transcode_decision, width, height, container, ' \
                     'transcode_container, transcode_video_codec, transcode_audio_codec, transcode_audio_channels, ' \
