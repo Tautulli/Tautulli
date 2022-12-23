@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.11.1 (2022-12-22)
+
+* Activity:
+  * Fix: Use source language instead of stream language on activity cards.
+* Notifications:
+  * Fix: Blank start time notification parameters causing recently added notifications to fail. (#1940)
+* Other:
+  * Fix: Tautulli failing to start when using python 3.7.
+  * Fix: Snap install failing to start. (#1941)
+  * Fix: Update check crashing when git is missing. (#1943) (Thanks @Minituff)
+
+
 ## v2.11.0 (2022-12-22)
 
 * Activity:
