@@ -101,9 +101,9 @@ def get_version():
         else:
             cur_commit_hash = str(output)
 
-        if not re.match('^[a-z0-9]+$', cur_commit_hash):
-            logger.error('Output does not look like a hash, not using it.')
-            cur_commit_hash = None
+            if not re.match('^[a-z0-9]+$', cur_commit_hash):
+                logger.error('Output does not look like a hash, not using it.')
+                cur_commit_hash = None
 
         if plexpy.CONFIG.DO_NOT_OVERRIDE_GIT_BRANCH and plexpy.CONFIG.GIT_BRANCH:
             remote_name = None
