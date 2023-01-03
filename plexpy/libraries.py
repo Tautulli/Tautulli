@@ -539,6 +539,7 @@ class Libraries(object):
         # If no cache was imported, get all library children items
         cached_items = {d['rating_key']: d['file_size'] for d in rows} if not refresh else {}
 
+        # TODO: Auto trigger for update - needs to be triggered to get date based episode support
         if refresh or not rows:
             pms_connect = pmsconnect.PmsConnect()
 
@@ -577,6 +578,7 @@ class Libraries(object):
                        'year': item['year'],
                        'media_index': item['media_index'],
                        'parent_media_index': item['parent_media_index'],
+                       'originally_available_at': item['originally_available_at'],
                        'thumb': item['thumb'],
                        'container': item.get('container', ''),
                        'bitrate': item.get('bitrate', ''),

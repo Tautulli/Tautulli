@@ -10,14 +10,15 @@ Variable names:     data {dict}
 data :: Usable parameters
 
 == Global keys ==
-session_key                 Returns a unique session id for the active stream
+session_key                 Returns a unique session id for the active stream.
 rating_key                  Returns the unique identifier for the media item.
 media_index                 Returns the index of the media item.
 parent_media_index          Returns the index of the media item's parent.
 media_type                  Returns the type of session. Either 'track', 'episode' or 'movie'.
 thumb                       Returns the location of the item's thumbnail. Use with pms_image_proxy.
 bif_thumb                   Returns the location of the item's bif thumbnail. Use with pms_image_proxy.
-art                         Returns the location of the item's artwork
+art                         Returns the location of the item's artwork.
+originally_available_at     Returns the air date of the item.
 progress_percent            Returns the current progress of the item. 0 to 100.
 user                        Returns the name of the user owning the session.
 user_id                     Returns the Plex user id if available.
@@ -62,7 +63,7 @@ DOCUMENTATION :: END
 % if session is not None:
 <%
     from collections import defaultdict
-    from plexpy.helpers import cast_to_int, get_percent, page, short_season
+    from plexpy.helpers import cast_to_int, get_percent, page, short_season, format_date_based_show
     from plexpy.common import VIDEO_RESOLUTION_OVERRIDES, AUDIO_CODEC_OVERRIDES, EXTRA_TYPES
     import plexpy
 %>
@@ -76,6 +77,12 @@ DOCUMENTATION :: END
     user_href = page('user', data['user_id']) if data['user_id'] else '#'
     season = short_season(data['parent_title'])
 %>
+% if not data['media_index']:
+<%
+    data['originally_available_at'] = format_date_based_show(data['originally_available_at'])
+%>
+% endif
+
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
     data-rating_key="${data['rating_key']}" data-parent_rating_key="${data['parent_rating_key']}" data-grandparent_rating_key="${data['grandparent_rating_key']}"
     data-guid="${data['guid']}">
@@ -499,8 +506,12 @@ DOCUMENTATION :: END
                     % if data['media_type'] == 'movie':
                     <span title="${data['year']}" class="sub-heading">${data['year']}</span>
                     % elif data['media_type'] == 'episode':
-                    <a href="${parent_href}" title="${data['parent_title']}" class="sub-heading">${season}</a>
-                    &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
+                    % if data['media_index']:
+                        <a href="${parent_href}" title="${data['parent_title']}" class="sub-heading">${season}</a>
+                        &middot; <a href="${href}" title="Episode ${data['media_index']}" class="sub-heading">E${data['media_index']}</a>
+                        % else:
+                        <a href="${href}" title="Episode ${data['originally_available_at']}" class="sub-heading">E${data['originally_available_at']}</a>
+                        % endif
                     % elif data['media_type'] == 'track':
                     <a id="metadata-parent_title-${sk}" href="${parent_href}" title="${data['parent_title']}" class="sub-heading">${data['parent_title']}</a>
                     % elif data['media_type'] == 'photo':

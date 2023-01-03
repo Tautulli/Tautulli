@@ -94,7 +94,9 @@ media_info_table_options = {
                         $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key']) + '"><div style="float: left; padding-left: 15px;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>';
-                        thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 500, 280, null, null, null, 'art') + '" data-height="80" data-width="140">E' + rowData['media_index'] + ' - ' + rowData['title'] + '</span>';
+                        thumb_popover = (rowData['media_index']) ? 
+                        '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 500, 280, null, null, null, 'art') + '" data-height="80" data-width="140">E' + rowData['media_index'] + ' - ' + rowData['title'] + '</span>'
+                        : '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 500, 280, null, null, null, 'art') + '" data-height="80" data-width="140">E' + format_date_based_show(rowData['originally_available_at']) + ' - ' + rowData['title'] + '</span>';
                         $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key']) + '"><div style="float: left; padding-left: 30px;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'artist') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Artist"><i class="fa fa-music fa-fw"></i></span>';

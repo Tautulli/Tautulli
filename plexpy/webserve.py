@@ -792,6 +792,7 @@ class WebInterface(object):
                           "media_type": "show",
                           "parent_media_index": "",
                           "parent_rating_key": "",
+                          "originally_available_at": "2011-08-21",
                           "play_count": 15,
                           "rating_key": "1219",
                           "section_id": 2,

@@ -19,6 +19,7 @@ parent_title            Returns the name of the artist.
 grandparent_title       Returns the name of the show.
 media_index             Returns the index number of the episode.
 parent_media_index      Returns the index number of the season.
+originally_available_at Returns the air date of the media item.  
 section_id              Returns the library section number of the media item.
 library_name            Returns the library section name of the media item.
 year                    Returns the release year of the movie, episode, or album.
@@ -32,7 +33,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
-    from plexpy.helpers import cast_to_int, page, short_season
+    from plexpy.helpers import cast_to_int, page, short_season, format_date_based_show
 %>
 % if data:
 <div class="dashboard-recent-media-row">
@@ -146,9 +147,14 @@ DOCUMENTATION :: END
                             <a href="${page('info', item['rating_key'])}" title="${item['title']}">${item['title']}</a>
                         </h3>
                         <h3 class="text-muted">
+                            % if item['media_index']:
                             <a href="${page('info', item['parent_rating_key'])}" title="${item['parent_title']}">${short_season(item['parent_title'])}</a>
                             &middot;
                             <a href="${page('info', item['rating_key'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
+                            % else:
+                            <a href="${page('info', item['rating_key'])}" title="Episode ${format_date_based_show(item['originally_available_at'])}">
+                                E${format_date_based_show(item['originally_available_at'])}</a>
+                            % endif
                         </h3>
                     </div>
                     % elif item['media_type'] == 'album':
