@@ -420,6 +420,7 @@ def clean_filename(filename, replace='_'):
     return cleaned_filename
 
 def format_date_based_show(date):
+    # logger.info(plexpy.CONFIG.DATE_BASED_TV_SHOW_FORMAT)
     return str(date).replace('-', html.unescape('&middot;'))
 
 def split_strip(s, delimiter=','):
