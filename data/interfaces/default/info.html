@@ -260,7 +260,6 @@ DOCUMENTATION :: END
                                 <h3 class="hidden-xs">E${episode}</h3>
                                 % endif
                             % endif
-                        % endif
                         % elif data['media_type'] in ('movie', 'show', 'artist', 'collection', 'playlist', 'photo_album'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
@@ -269,7 +268,7 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'episode':
                         <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
                         <h2>${data['title']}</h2>
-                        % if data['media_index']:
+                            % if data['media_index']:
                             <h3 class="hidden-xs">${season} &middot; E${episode}</h3>
                             % else:
                             <h3 class="hidden-xs">E${episode}</h3>
