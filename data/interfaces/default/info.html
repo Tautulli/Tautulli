@@ -391,16 +391,16 @@ DOCUMENTATION :: END
                                 Runtime <strong> <span id="runtime">${data['duration']}</span></strong>
                                 % endif
                             </div>
-                            <div class="summary-content-details-tag">
-                                % if data['content_rating']:
-                                Rated <strong> ${data['content_rating']} </strong>
-                                % endif
-                            </div>
                             % if data['edition_title']:
                             <div class="summary-content-details-tag">
                                 Edition <strong> ${data['edition_title']} </strong>
                             </div>
                             % endif
+                            <div class="summary-content-details-tag">
+                                % if data['content_rating']:
+                                Rated <strong> ${data['content_rating']} </strong>
+                                % endif
+                            </div>
                             <div class="summary-content-details-tag" id="channel-icon">
                                 % if media_info['channel_identifier']:
                                 Channel <strong> <span class="thumb-tooltip" data-toggle="popover" data-img="${media_info['channel_thumb']}" data-height="40" data-width="40">${media_info['channel_call_sign']} ${media_info['channel_identifier']}</span> </strong>
