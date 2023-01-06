@@ -1,5 +1,14 @@
 var users_to_delete = [];
 var users_to_purge = [];
+var date_based_tv_show_format = 'YYYY\u00b7MM\u00b7DD';
+
+$.ajax({
+    url: 'get_date_formats',
+    type: 'GET',
+    success: function (data) {
+        date_based_tv_show_format = data.date_based_tv_show_format;
+    }
+});
 
 function toggleEditNames() {
     if ($('.edit-control').hasClass('hidden')) {
@@ -211,7 +220,7 @@ users_list_table_options = {
                     } else if (rowData['media_type'] === 'episode') {
                         icon = (rowData['live']) ? 'fa-broadcast-tower' : 'fa-television';
                         icon_title = (rowData['live']) ? 'Live TV' : 'Episode';
-                        rowData['originally_available_at'] = format_date_based_show(rowData['originally_available_at']);
+                        rowData['originally_available_at'] = moment(rowData['originally_available_at']).format(date_based_tv_show_format);
                         if (!isNaN(parseInt(rowData['parent_media_index'])) && !isNaN(parseInt(rowData['media_index']))) { parent_info = ' (' + short_season(rowData['parent_title']) + ' &middot; E' + rowData['media_index'] + ')'; }
                         else if (isNaN(parseInt(rowData['media_index'])) && rowData['originally_available_at']) { parent_info = ' (' + rowData['originally_available_at'] + ')'; }
                         else if (rowData['live'] && rowData['originally_available_at']) { parent_info = ' (' + rowData['originally_available_at'] + ')'; }
