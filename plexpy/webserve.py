@@ -27,6 +27,7 @@ import json
 import ssl as _ssl
 import linecache
 import os
+import html
 import shutil
 import sys
 import threading
@@ -307,7 +308,7 @@ class WebInterface(object):
                 json:
                     {"date_format": "YYYY-MM-DD",
                      "time_format": "HH:mm",
-                     }
+                     "date_based_tv_show_format": "YYYY·MM·DD"}
             ```
         """
         if plexpy.CONFIG.DATE_FORMAT:
@@ -318,9 +319,14 @@ class WebInterface(object):
             time_format = plexpy.CONFIG.TIME_FORMAT
         else:
             time_format = 'HH:mm'
+        if plexpy.CONFIG.DATE_BASED_TV_SHOW_FORMAT:
+            date_based_tv_show_format = html.unescape(plexpy.CONFIG.DATE_BASED_TV_SHOW_FORMAT)
+        else:
+            date_based_tv_show_format = html.unescape('YYYY&middot;MM&middot;DD')
 
         formats = {'date_format': date_format,
-                   'time_format': time_format}
+                   'time_format': time_format,
+                   'date_based_tv_show_format': date_based_tv_show_format}
 
         return formats
 
