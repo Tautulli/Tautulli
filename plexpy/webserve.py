@@ -308,7 +308,7 @@ class WebInterface(object):
                 json:
                     {"date_format": "YYYY-MM-DD",
                      "time_format": "HH:mm",
-                     "date_based_tv_show_format": "YYYY·MM·DD"}
+                     "date_based_tv_show_format": "YYYY\u00b7MM\u00b7DD"}
             ```
         """
         if plexpy.CONFIG.DATE_FORMAT:
