@@ -19,65 +19,71 @@
         <div class="header-bar">
             <span><i class="fa fa-history"></i> History</span>
         </div>
-        <div class="button-bar">
-            % if _session['user_group'] == 'admin':
-            <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbsp</div>
-            <div class="btn-group">
-                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                    <i class="fa fa-trash-o"></i> Delete mode
-                </button>
+        <div id="history-option-container" class="container">
+            <div class="button-bar history-option-bar" style="float: left;">
+                % if _session['user_group'] == 'admin':
+                <div class="alert alert-danger alert-edit" role="alert" id="row-edit-mode-alert"><i class="fa fa-exclamation-triangle"></i>&nbsp</div>
+                <div class="btn-group">
+                    <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                        <i class="fa fa-trash-o"></i> Delete mode
+                    </button>
+                </div>
+                % endif
+                % if _session['user_group'] == 'admin':
+                <div class="btn-group" id="user-selection">
+                    <label>
+                        <select name="history-user" id="history-user" class="btn" style="color: inherit;">
+                            <option value="">All Users</option>
+                            <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                        </select>
+                    </label>
+                </div>
+                % endif
             </div>
-            % endif
-            % if _session['user_group'] == 'admin':
-            <div class="btn-group" id="user-selection">
-                <label>
-                    <select name="history-user" id="history-user" class="btn" style="color: inherit;">
-                        <option value="">All Users</option>
-                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
-                    </select>
-                </label>
+            <div class="button-bar history-option-bar">         
+                <div class="btn-group">
+                    <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
+                </div>
+                <div class="btn-group colvis-button-bar"></div>
             </div>
-            % endif
-            <div class="btn-group" data-toggle="buttons" id="media_type-selection">
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="media_type-filter" id="history-media_type-movie" value="movie" autocomplete="off"><i class="fa fa-film"></i> Movies
-                </label>
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="media_type-filter" id="history-media_type-episode" value="episode" autocomplete="off"><i class="fa fa-television"></i> TV Shows
-                </label>
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="media_type-filter" id="history-media_type-track" value="track" autocomplete="off"><i class="fa fa-music"></i> Music
-                </label>
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="media_type-filter" id="history-media_type-live" value="live" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Live TV
-                </label>
+            <div class="button-bar history-option-bar">
+                <div class="btn-group-justified history-option-button-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 0.5rem;">
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="media_type-filter" id="history-media_type-movie" value="movie" autocomplete="off"><i class="fa fa-film"></i> Movies
+                    </label>
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="media_type-filter" id="history-media_type-episode" value="episode" autocomplete="off"><i class="fa fa-television"></i> TV Shows
+                    </label>
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="media_type-filter" id="history-media_type-track" value="track" autocomplete="off"><i class="fa fa-music"></i> Music
+                    </label>
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="media_type-filter" id="history-media_type-live" value="live" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Live TV
+                    </label>
+                </div>
+                <div class="btn-group-justified history-option-button-group" data-toggle="buttons" id="network_type-selection" style="padding-right: 0.5rem;">
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="network_type-filter" id="history-network_type-lan" value="lan" autocomplete="off"><i class="fa fa-server"></i> Local Play
+                    </label>
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="network_type-filter" id="history-network_type-wan" value="wan" autocomplete="off"><i class="fa fa-globe"></i> Remote Play
+                    </label>
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="network_type-filter" id="history-network_type-cellular" value="cellular" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Mobile Play
+                    </label>
+                </div>
+                <div class="btn-group-justified history-option-button-group" data-toggle="buttons" id="transcode_decision-selection">
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"><i class="fa fa-play-circle"></i> Direct Play
+                    </label>
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-copy" value="copy" autocomplete="off"><i class="fa fa-stream"></i> Direct Stream
+                    </label>
+                    <label class="btn btn-dark btn-filter">
+                        <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
+                    </label>
+                </div>  
             </div>
-            <div class="btn-group" data-toggle="buttons" id="network_type-selection">
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="network_type-filter" id="history-network_type-lan" value="lan" autocomplete="off"><i class="fa fa-server"></i> Local Play
-                </label>
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="network_type-filter" id="history-network_type-wan" value="wan" autocomplete="off"><i class="fa fa-globe"></i> Remote Play
-                </label>
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="network_type-filter" id="history-network_type-cellular" value="cellular" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Mobile Play
-                </label>
-            </div>
-            <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"><i class="fa fa-play-circle"></i> Direct Play
-                </label>
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-copy" value="copy" autocomplete="off"><i class="fa fa-stream"></i> Direct Stream
-                </label>
-                <label class="btn btn-dark btn-filter">
-                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
-                </label>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
-            </div>
-            <div class="btn-group colvis-button-bar"></div>
         </div>
     </div>
     <div class="table-card-back">
