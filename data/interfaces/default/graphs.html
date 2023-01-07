@@ -827,11 +827,11 @@
         function loadGraphsTab4(time_range, yaxis) {
             $('#days-selection').show();
             $('#months-selection').hide();
+            $('#user-selection').hide();
+            $('#yaxis-selection').hide();
 
             // Fixed as graph uses own measurement 'addition count' with formatting of 'plays'
             setGraphFormat("plays", "ddd D MMM YY");
-            $('#user-selection').hide();
-            $('#yaxis-selection').hide();
 
             var _graph_1_call = $.ajax({
                 url: "get_additions_by_date",
