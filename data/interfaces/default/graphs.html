@@ -406,7 +406,7 @@
 
     // Sync selected day (tooltip position)
     // https://jsfiddle.net/BlackLabel/5wq9sdbp
-    ['mousemove', 'touchmove', 'touchstart'].forEach(function (eventType) {
+    ['mousemove', 'touchmove', 'touchstart', 'mouseleave'].forEach(function (eventType) {
             document.getElementById('section-library-graphs').addEventListener(
             eventType,
             function(e) {
@@ -424,36 +424,53 @@
         
         for (i = 0; i < Highcharts.charts.length; i = i + 1) {                                
             chart = _Charts[i];
-            if(chart.options.chart.type != "line" || !syncLinks.hasOwnProperty(chart.renderTo.id)) {
+            if(chart == undefined || chart.options.chart.type != "line" || !syncLinks.hasOwnProperty(chart.renderTo.id)) {
                 continue;
             }
 
             // Find coordinates within the chart
             event = chart.pointer.normalize(e);
-
+            const isMouseLeave = e.type == "mouseleave";
             otherChart = _Charts.find(c => c['renderTo'].id == syncLinks[chart.renderTo.id]);
 
             // Get the hovered points
             points = [];
             chart.series.forEach(function (series, idx) {
                 var _point = series.searchPoint(event, true);
-                if(_point && _point.series.visible == true) {
-                    points.push(_point);
+                if(isMouseLeave) {
+                    if(_point) {
+                        _point.setState('');
+                        points.push(_point);
+                    }
+                } else {
+                    if(_point && _point.series.visible == true) {
+                        points.push(_point);
+                    }
                 }
             });
-            
-            if(points.length && !points.includes(undefined)) {
-                chart.tooltip.refresh(points);
-                chart.xAxis[0].drawCrosshair(e, points[0]);
-                //chart.xAxis[0].drawCrosshair(e, points[points.length]);
 
-                pointsChart2 = []
+            if(points.length && !points.includes(undefined)) {
                 number = 0;
+                if(isMouseLeave) {
+                    chart.tooltip.hide();
+                    chart.xAxis[0].hideCrosshair();
+                } else {
+                    chart.tooltip.refresh(points);
+                    chart.xAxis[0].drawCrosshair(e, points[0]);
+                    //chart.xAxis[0].drawCrosshair(e, points[points.length]);
+
+                    pointsChart2 = []
+                }
+                
                 otherChart.series.forEach(function(_series, idx) {
                     if(_series.visible) {
                         try {
                             var _point = _series.points[points[number].x];
-                            pointsChart2.push(_point);
+                            if(isMouseLeave) {
+                                _point.setState('');
+                            } else {
+                                pointsChart2.push(_point);
+                            }
                             number++;
                         } catch {
                             // Graph render issue. Normalizes by itself so no additional measures required.
@@ -461,8 +478,14 @@
                         }
                     }
                 });
-                otherChart.tooltip.refresh(pointsChart2);
-                otherChart.xAxis[0].drawCrosshair(e, pointsChart2[0]);
+
+                if(isMouseLeave) {
+                    otherChart.tooltip.hide();
+                    otherChart.xAxis[0].hideCrosshair();
+                } else {
+                    otherChart.tooltip.refresh(pointsChart2);
+                    otherChart.xAxis[0].drawCrosshair(e, pointsChart2[0]);
+                }           
             }
 
             /**
