@@ -151,50 +151,67 @@ DOCUMENTATION :: END
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class='table-card-header'>
-                                        <div class="header-bar">
+                                        <div class="header-bar" style="margin-top: 2.4rem;">
                                             <span>
                                                 <i class="fa fa-history"></i> History for <strong>
                                                     <span class="set-username">${data['friendly_name']}</span>
                                                 </strong>
                                             </span>
                                         </div>
-                                        <div class="button-bar">
-                                            % if _session['user_group'] == 'admin':
-                                            <div class="btn-group">
-                                                <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
-                                                    <i class="fa fa-trash-o"></i> Delete mode
-                                                </button>
+                                        <div id="history-option-container" class="container">
+                                            <div class="button-bar history-option-bar" style="float: left;">
+                                                % if _session['user_group'] == 'admin':
+                                                <div class="btn-group">
+                                                    <button class="btn btn-danger btn-edit" data-toggle="button" aria-pressed="false" autocomplete="off" id="row-edit-mode">
+                                                        <i class="fa fa-trash-o"></i> Delete mode
+                                                    </button>
+                                                </div>
+                                                % endif
                                             </div>
-                                            % endif
-                                            <div class="btn-group" data-toggle="buttons" id="media_type-selection">
-                                                <label class="btn btn-dark btn-filter">
-                                                    <input type="checkbox" name="media_type-filter" id="history-media_type-movie" value="movie" autocomplete="off"><i class="fa fa-film"></i> Movies
-                                                </label>
-                                                <label class="btn btn-dark btn-filter">
-                                                    <input type="checkbox" name="media_type-filter" id="history-media_type-episode" value="episode" autocomplete="off"><i class="fa fa-television"></i> TV Shows
-                                                </label>
-                                                <label class="btn btn-dark btn-filter">
-                                                    <input type="checkbox" name="media_type-filter" id="history-media_type-track" value="track" autocomplete="off"><i class="fa fa-music"></i> Music
-                                                </label>
-                                                <label class="btn btn-dark btn-filter">
-                                                    <input type="checkbox" name="media_type-filter" id="history-media_type-live" value="live" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Live TV
-                                                </label>
+                                            <div class="button-bar history-option-bar">         
+                                                <div class="btn-group">
+                                                    <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
+                                                </div>
+                                                <div class="btn-group colvis-button-bar"></div>
                                             </div>
-                                            <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
-                                                <label class="btn btn-dark btn-filter">
-                                                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"><i class="fa fa-play-circle"></i> Direct Play
-                                                </label>
-                                                <label class="btn btn-dark btn-filter">
-                                                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_stream" value="copy" autocomplete="off"><i class="fa fa-stream"></i> Direct Stream
-                                                </label>
-                                                <label class="btn btn-dark btn-filter">
-                                                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
-                                                </label>
+                                            <div class="button-bar history-option-bar">
+                                                <div class="btn-group-justified history-option-button-group" data-toggle="buttons" id="media_type-selection" style="padding-right: 0.5rem;">
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="media_type-filter" id="history-media_type-movie" value="movie" autocomplete="off"><i class="fa fa-film"></i> Movies
+                                                    </label>
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="media_type-filter" id="history-media_type-episode" value="episode" autocomplete="off"><i class="fa fa-television"></i> TV Shows
+                                                    </label>
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="media_type-filter" id="history-media_type-track" value="track" autocomplete="off"><i class="fa fa-music"></i> Music
+                                                    </label>
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="media_type-filter" id="history-media_type-live" value="live" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Live TV
+                                                    </label>
+                                                </div>
+                                                <div class="btn-group-justified history-option-button-group" data-toggle="buttons" id="network_type-selection" style="padding-right: 0.5rem;">
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="network_type-filter" id="history-network_type-lan" value="lan" autocomplete="off"><i class="fa fa-server"></i> Local Play
+                                                    </label>
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="network_type-filter" id="history-network_type-wan" value="wan" autocomplete="off"><i class="fa fa-globe"></i> Remote Play
+                                                    </label>
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="network_type-filter" id="history-network_type-cellular" value="cellular" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Mobile Play
+                                                    </label>
+                                                </div>
+                                                <div class="btn-group-justified history-option-button-group" data-toggle="buttons" id="transcode_decision-selection">
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"><i class="fa fa-play-circle"></i> Direct Play
+                                                    </label>
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-copy" value="copy" autocomplete="off"><i class="fa fa-stream"></i> Direct Stream
+                                                    </label>
+                                                    <label class="btn btn-dark btn-filter">
+                                                        <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
+                                                    </label>
+                                                </div>  
                                             </div>
-                                            <div class="btn-group">
-                                                <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
-                                            </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -532,7 +549,7 @@ DOCUMENTATION :: END
 
     $(".inactive-user-tooltip").tooltip();
 
-    function loadHistoryTable(media_type, transcode_decision) {
+    function loadHistoryTable(media_type, network_type, transcode_decision) {
         // Build watch history table
         history_table_options.ajax = {
             url: 'get_history',
@@ -542,6 +559,7 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     user_id: user_id,
                     media_type: media_type,
+                    network_type: network_type,
                     transcode_decision: transcode_decision
                 };
             }
@@ -556,16 +574,25 @@ DOCUMENTATION :: END
 
         $('#media_type-selection').on('change', function () {
             $('#media_type-selection > label').removeClass('active');
-            var selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
+            let selected_filter = $('input[name=media_type-filter]:checked', '#media_type-selection');
             $(selected_filter).closest('label').addClass('active');
             media_type = $(selected_filter).map(function () { return $(this).val(); }).get().join(',');
             setLocalStorage('user_' + user_id + '-history_media_type', media_type);
             history_table.draw();
         });
 
+        $('#network_type-selection').on('change', function () {
+            $('#network_type-selection > label').removeClass('active');
+            let selected_filter = $('input[name=network_type-filter]:checked', '#network_type-selection');
+            $(selected_filter).closest('label').addClass('active');
+            network_type = $(selected_filter).map(function () { return $(this).val(); }).get().join(',');
+            setLocalStorage('user_' + user_id + 'history_network_type', network_type);
+            history_table.draw();
+        });
+
         $('#transcode_decision-selection').on('change', function () {
             $('#transcode_decision-selection > label').removeClass('active');
-            var selected_filter = $('input[name=transcode_decision-filter]:checked', '#transcode_decision-selection');
+            let selected_filter = $('input[name=transcode_decision-filter]:checked', '#transcode_decision-selection');
             $(selected_filter).closest('label').addClass('active');
             transcode_decision = $(selected_filter).map(function () { return $(this).val(); }).get().join(',');
             setLocalStorage('user_' + user_id + 'history_transcode_decision', transcode_decision);
@@ -575,21 +602,28 @@ DOCUMENTATION :: END
 
     $('#nav-tabs-history').on('shown.bs.tab', function() {
         if (typeof(history_table) === 'undefined') {
-            var media_type = getLocalStorage('user_' + user_id + '-history_media_type', 'all');
+            const media_type = getLocalStorage('user_' + user_id + '-history_media_type', 'all');
             $.each(media_type.split(','), function (i, item) {
-                var history_media_type = $('#history-media_type-' + item);
+                let history_media_type = $('#history-media_type-' + item);
                 history_media_type.prop('checked', true);
                 history_media_type.closest('label').addClass('active');
             });
 
-            var transcode_decision = getLocalStorage('user_' + user_id + 'history_transcode_decision', 'all');
+            const network_type = getLocalStorage('user_' + user_id + 'history_network_type', '');
+            $.each(network_type.split(','), function (i, item) {
+                let history_network_type = $('#history-network_type-' + item);
+                history_network_type.prop('checked', true);
+                history_network_type.closest('label').addClass('active');
+            });
+
+            const transcode_decision = getLocalStorage('user_' + user_id + 'history_transcode_decision', 'all');
             $.each(transcode_decision.split(','), function (i, item) {
-                var history_transcode_decision = $('#history-transcode_decision-' + item.replace(' ', '_'));
+                let history_transcode_decision = $('#history-transcode_decision-' + item.replace(' ', '_'));
                 history_transcode_decision.prop('checked', true);
                 history_transcode_decision.closest('label').addClass('active');
             });
 
-            loadHistoryTable(media_type, transcode_decision);
+            loadHistoryTable(media_type, network_type, transcode_decision);
         }
     });
 

@@ -627,13 +627,13 @@ DOCUMENTATION :: END
                 history_transcode_decision.prop('checked', true);
                 history_transcode_decision.closest('label').addClass('active');
             });
-            const network_type = getLocalStorage('library_' + section_id + 'history_network_type', 'all');
+            const network_type = getLocalStorage('library_' + section_id + 'history_network_type', '');
             $.each(network_type.split(','), function (i, item) {
                 let history_network_type = $('#history-network_type-' + item);
                 history_network_type.prop('checked', true);
                 history_network_type.closest('label').addClass('active');
             });
-            loadHistoryTable(transcode_decision);
+            loadHistoryTable(network_type, transcode_decision);
         }
     });
 
