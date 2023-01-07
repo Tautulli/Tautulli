@@ -52,6 +52,17 @@
                     <input type="checkbox" name="media_type-filter" id="history-media_type-live" value="live" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Live TV
                 </label>
             </div>
+            <div class="btn-group" data-toggle="buttons" id="network_type-selection">
+                <label class="btn btn-dark btn-filter">
+                    <input type="checkbox" name="network_type-filter" id="history-network_type-lan" value="lan" autocomplete="off"><i class="fa fa-server"></i> Local Play
+                </label>
+                <label class="btn btn-dark btn-filter">
+                    <input type="checkbox" name="network_type-filter" id="history-network_type-wan" value="wan" autocomplete="off"><i class="fa fa-globe"></i> Remote Play
+                </label>
+                <label class="btn btn-dark btn-filter">
+                    <input type="checkbox" name="network_type-filter" id="history-network_type-cellular" value="cellular" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Mobile Play
+                </label>
+            </div>
             <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
                 <label class="btn btn-dark btn-filter">
                     <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"><i class="fa fa-play-circle"></i> Direct Play
@@ -145,7 +156,7 @@
             }
         });
 
-        function loadHistoryTable(media_type, transcode_decision, selected_user_id) {
+        function loadHistoryTable(media_type, network_type, transcode_decision, selected_user_id) {
             history_table_options.ajax = {
                 url: 'get_history',
                 type: 'POST',
@@ -153,6 +164,7 @@
                     return {
                         json_data: JSON.stringify(d),
                         media_type: media_type,
+                        network_type: network_type,
                         transcode_decision: transcode_decision,
                         user_id: selected_user_id
                     };
@@ -177,6 +189,15 @@
                 history_table.draw();
             });
 
+            $('#network_type-selection').on('change', function () {
+                $('#network_type-selection > label').removeClass('active');
+                var selected_filter = $('input[name=network_type-filter]:checked', '#network_type-selection');
+                $(selected_filter).closest('label').addClass('active');
+                network_type = $(selected_filter).map(function () { return $(this).val(); }).get().join(',');
+                setLocalStorage('history_network_type', network_type);
+                history_table.draw();
+            });
+
             $('#transcode_decision-selection').on('change', function () {
                 $('#transcode_decision-selection > label').removeClass('active');
                 var selected_filter = $('input[name=transcode_decision-filter]:checked', '#transcode_decision-selection');
@@ -192,23 +213,30 @@
             });
         }
 
-        var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
+        let selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
 
-        var media_type = getLocalStorage('history_media_type', 'all');
+        let media_type = getLocalStorage('history_media_type', 'all');
         $.each(media_type.split(','), function (i, item) {
-            var history_media_type = $('#history-media_type-' + item);
+            let history_media_type = $('#history-media_type-' + item);
             history_media_type.prop('checked', true);
             history_media_type.closest('label').addClass('active');
         });
 
-        var transcode_decision = getLocalStorage('history_transcode_decision', 'all');
+        let network_type = getLocalStorage('history_network_type', 'all');
+        $.each(network_type.split(','), function (i, item) {
+            let history_network_type = $('#history-network_type-' + item);
+            history_network_type.prop('checked', true);
+            history_network_type.closest('label').addClass('active');
+        });
+
+        let transcode_decision = getLocalStorage('history_transcode_decision', 'all');
         $.each(transcode_decision.split(','), function (i, item) {
-            var history_transcode_decision = $('#history-transcode_decision-' + item.replace(' ', '_'));
+            let history_transcode_decision = $('#history-transcode_decision-' + item.replace(' ', '_'));
             history_transcode_decision.prop('checked', true);
             history_transcode_decision.closest('label').addClass('active');
         });
 
-        loadHistoryTable(media_type, transcode_decision, selected_user_id);
+        loadHistoryTable(media_type, network_type, transcode_decision, selected_user_id);
 
         % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function() {

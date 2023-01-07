@@ -1898,6 +1898,7 @@ class WebInterface(object):
                 after (str):                    History after and including the date, "YYYY-MM-DD"
                 section_id (int):               2
                 media_type (str):               "movie", "episode", "track", "live"
+                network_type (str):             "lan", "wan", "cellular"
                 transcode_decision (str):       "direct play", "copy", "transcode",
                 guid (str):                     Plex guid for an item, e.g. "com.plexapp.agents.thetvdb://121361/6/1"
                 order_column (str):             "date", "friendly_name", "ip_address", "platform", "player",
@@ -2029,6 +2030,10 @@ class WebInterface(object):
             media_type = helpers.split_strip(kwargs.get('media_type', ''))
             if media_type and 'all' not in media_type:
                 custom_where.append(['media_type_live', media_type])
+        if 'network_type' in kwargs:
+            network_type = helpers.split_strip(kwargs.get('network_type', ''))
+            if network_type:
+                custom_where.append(['location', network_type])
         if 'transcode_decision' in kwargs:
             transcode_decision = helpers.split_strip(kwargs.get('transcode_decision', ''))
             if transcode_decision and 'all' not in transcode_decision:
