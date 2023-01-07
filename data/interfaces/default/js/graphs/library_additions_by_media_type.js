@@ -1,8 +1,8 @@
-var hc_additions_by_source_resolution_options = {
+var hc_library_additions_by_media_type_options = {
     chart: {
         type: 'column',
         backgroundColor: 'rgba(0,0,0,0)',
-        renderTo: 'graph_additions_by_source_resolution'
+        renderTo: 'graph_additions_by_media_type'
     },
     title: {
         text: ''

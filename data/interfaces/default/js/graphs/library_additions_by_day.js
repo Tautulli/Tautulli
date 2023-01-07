@@ -1,4 +1,4 @@
-var hc_additions_by_day_options = {
+var hc_library_additions_by_day_options = {
     chart: {
         type: 'line',
         backgroundColor: 'rgba(0,0,0,0)',
@@ -39,7 +39,7 @@ var hc_additions_by_day_options = {
             type: 'datetime',
             labels: {
                 formatter: function() {
-                    return moment(this.value).format("MMM D");
+                    return moment(this.value).format("YY MMM D");
                 },
                 style: {
                     color: '#aaa'

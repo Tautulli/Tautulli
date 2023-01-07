@@ -508,10 +508,10 @@
         return series_colors;
     }
 </script>
-<script src="${http_root}js/graphs/additions_by_media_type.js${cache_param}"></script>
+<script src="${http_root}js/graphs/library_additions_by_media_type.js${cache_param}"></script>
 <script src="${http_root}js/graphs/library_growth_by_day.js${cache_param}"></script>
-<script src="${http_root}js/graphs/additions_by_source_resolution.js${cache_param}"></script>
-<script src="${http_root}js/graphs/additions_by_day.js${cache_param}"></script>
+<script src="${http_root}js/graphs/library_additions_by_source_resolution.js${cache_param}"></script>
+<script src="${http_root}js/graphs/library_additions_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_dayofweek.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_hourofday.js${cache_param}"></script>
@@ -806,7 +806,7 @@
             $('#months-selection').hide();
 
             // Fixed as graph uses own measurement 'addition count' with formatting of 'plays'
-            setGraphFormat("plays");
+            setGraphFormat("plays", "ddd D MMM YY");
             $('#user-selection').hide();
             $('#yaxis-selection').hide();
 
@@ -822,18 +822,18 @@
                         // Highlight the weekend
                         if ((moment(day, 'YYYY-MM-DD').format('ddd') === 'Sat') ||
                             (moment(day, 'YYYY-MM-DD').format('ddd') === 'Sun')) {
-                            hc_additions_by_day_options.xAxis.plotBands.push({
+                            hc_library_additions_by_day_options.xAxis.plotBands.push({
                                 from: i-0.5,
                                 to: i+0.5,
                                 color: 'rgba(80,80,80,0.3)'
                             });
                         }
                     });
-                    hc_additions_by_day_options.yAxis.min = 0;
-                    hc_additions_by_day_options.xAxis.categories = dateArray;
-                    hc_additions_by_day_options.series = getGraphVisibility(hc_additions_by_day_options.chart.renderTo, data.series);
-                    hc_additions_by_day_options.colors = getGraphColors(data.series);
-                    var hc_additions_by_day = new Highcharts.Chart(hc_additions_by_day_options);
+                    hc_library_additions_by_day_options.yAxis.min = 0;
+                    hc_library_additions_by_day_options.xAxis.categories = dateArray;
+                    hc_library_additions_by_day_options.series = getGraphVisibility(hc_library_additions_by_day_options.chart.renderTo, data.series);
+                    hc_library_additions_by_day_options.colors = getGraphColors(data.series);
+                    const hc_library_additions_by_day = new Highcharts.Chart(hc_library_additions_by_day_options);
                 }
             });
 
@@ -861,7 +861,7 @@
                     hc_library_growth_by_day_options.xAxis.categories = dateArray;
                     hc_library_growth_by_day_options.series = getGraphVisibility(hc_library_growth_by_day_options.chart.renderTo, data.series);
                     hc_library_growth_by_day_options.colors = getGraphColors(data.series);
-                    var hc_library_growth_by_day = new Highcharts.Chart(hc_library_growth_by_day_options);
+                    const hc_library_growth_by_day = new Highcharts.Chart(hc_library_growth_by_day_options);
                 }
             });
 
@@ -871,10 +871,10 @@
                 data: { time_range: time_range },
                 dataType: "json",
                 success: function(data) {
-                    hc_additions_by_media_type_options.xAxis.categories = data.categories;
-                    hc_additions_by_media_type_options.series = getGraphVisibility(hc_additions_by_media_type_options.chart.renderTo, data.series);
-                    hc_additions_by_media_type_options.colors = getGraphColors(data.series);
-                    var hc_additions_by_media_type = new Highcharts.Chart(hc_additions_by_media_type_options);
+                    hc_library_additions_by_media_type_options.xAxis.categories = data.categories;
+                    hc_library_additions_by_media_type_options.series = getGraphVisibility(hc_library_additions_by_media_type_options.chart.renderTo, data.series);
+                    hc_library_additions_by_media_type_options.colors = getGraphColors(data.series);
+                    const hc_library_additions_by_media_type = new Highcharts.Chart(hc_library_additions_by_media_type_options);
                 }
             });
 
@@ -884,10 +884,10 @@
                 data: { time_range: time_range },
                 dataType: "json",
                 success: function(data) {
-                    hc_additions_by_source_resolution_options.xAxis.categories = data.categories;
-                    hc_additions_by_source_resolution_options.series = getGraphVisibility(hc_additions_by_source_resolution_options.chart.renderTo, data.series);
-                    hc_additions_by_source_resolution_options.colors = getGraphColors(data.series);
-                    var hc_additions_by_source_resolution = new Highcharts.Chart(hc_additions_by_source_resolution_options);
+                    hc_library_additions_by_source_resolution_options.xAxis.categories = data.categories;
+                    hc_library_additions_by_source_resolution_options.series = getGraphVisibility(hc_library_additions_by_source_resolution_options.chart.renderTo, data.series);
+                    hc_library_additions_by_source_resolution_options.colors = getGraphColors(data.series);
+                    const hc_library_additions_by_source_resolution = new Highcharts.Chart(hc_library_additions_by_source_resolution_options);
                 }
             });
 
@@ -1000,12 +1000,12 @@
             //GraphTab4 not needed as Addition Count is used for the Y-Axis
         });
 
-        function setGraphFormat(type) {
+        function setGraphFormat(type, tooltipFormat) {
             if (type === 'plays') {
                 yaxis_format = function() { return this.value; };
                 tooltip_format = function() {
                     if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {
-                        var s = '<b>'+ moment(this.x).format('ddd MMM D') +'</b>';
+                        var s = tooltipFormat ? '<b>'+ moment(this.x).format(tooltipFormat) +'</b>' : '<b>'+ moment(this.x).format('ddd MMM D') +'</b>';
                     } else {
                         var s = '<b>'+ this.x +'</b>';
                     }
@@ -1057,7 +1057,7 @@
             }
 
             hc_plays_by_day_options.xAxis.plotBands = [];
-            hc_additions_by_day_options.xAxis.plotBands = [];
+            hc_library_additions_by_day_options.xAxis.plotBands = [];
             hc_library_growth_by_day_options.xAxis.plotBands = [];
             hc_plays_by_stream_type_options.xAxis.plotBands = [];
 
@@ -1070,14 +1070,14 @@
             hc_plays_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_stream_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_platform_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
-            hc_additions_by_day_options.yAxis[0].labels.formatter = yaxis_format;
-            hc_additions_by_day_options.yAxis[1].labels.formatter = yaxis_format;
-            hc_additions_by_day_options.yAxis[2].labels.formatter = yaxis_format;
+            hc_library_additions_by_day_options.yAxis[0].labels.formatter = yaxis_format;
+            hc_library_additions_by_day_options.yAxis[1].labels.formatter = yaxis_format;
+            hc_library_additions_by_day_options.yAxis[2].labels.formatter = yaxis_format;
             hc_library_growth_by_day_options.yAxis[0].labels.formatter = yaxis_format;
             hc_library_growth_by_day_options.yAxis[1].labels.formatter = yaxis_format;
             hc_library_growth_by_day_options.yAxis[2].labels.formatter = yaxis_format;
-            hc_additions_by_media_type_options.yAxis.labels.formatter = yaxis_format;
-            hc_additions_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
+            hc_library_additions_by_media_type_options.yAxis.labels.formatter = yaxis_format;
+            hc_library_additions_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_user_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
 
@@ -1085,9 +1085,9 @@
             hc_plays_by_dayofweek_options.tooltip.formatter = tooltip_format;
             hc_plays_by_hourofday_options.tooltip.formatter = tooltip_format;
             hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
-            hc_additions_by_media_type_options.tooltip.formatter = tooltip_format;
-            hc_additions_by_source_resolution_options.tooltip.formatter = tooltip_format;
-            hc_additions_by_day_options.tooltip.formatter = tooltip_format;
+            hc_library_additions_by_media_type_options.tooltip.formatter = tooltip_format;
+            hc_library_additions_by_source_resolution_options.tooltip.formatter = tooltip_format;
+            hc_library_additions_by_day_options.tooltip.formatter = tooltip_format;
             hc_library_growth_by_day_options.tooltip.formatter = tooltip_format;
             hc_plays_by_user_options.tooltip.formatter = tooltip_format;
             hc_plays_by_stream_type_options.tooltip.formatter = tooltip_format;
