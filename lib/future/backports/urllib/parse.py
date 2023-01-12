@@ -36,6 +36,7 @@ from future.utils import raise_with_traceback
 import re
 import sys
 import collections
+import unicodedata
 
 __all__ = ["urlparse", "urlunparse", "urljoin", "urldefrag",
            "urlsplit", "urlunsplit", "urlencode", "parse_qs",
@@ -322,6 +323,24 @@ def _splitnetloc(url, start=0):
             delim = min(delim, wdelim)     # use earliest delim position
     return url[start:delim], url[delim:]   # return (domain, rest)
 
+def _checknetloc(netloc):
+    if not netloc or netloc.isascii():
+        return
+    # looking for characters like \u2100 that expand to 'a/c'
+    # IDNA uses NFKC equivalence, so normalize for this check
+    import unicodedata
+    n = netloc.replace('@', '')   # ignore characters already included
+    n = n.replace(':', '')        # but not the surrounding text
+    n = n.replace('#', '')
+    n = n.replace('?', '')
+    netloc2 = unicodedata.normalize('NFKC', n)
+    if n == netloc2:
+        return
+    for c in '/?#@:':
+        if c in netloc2:
+            raise ValueError("netloc '" + netloc + "' contains invalid " +
+                             "characters under NFKC normalization")
+
 def urlsplit(url, scheme='', allow_fragments=True):
     """Parse a URL into 5 components:
     <scheme>://<netloc>/<path>?<query>#<fragment>
@@ -351,6 +370,7 @@ def urlsplit(url, scheme='', allow_fragments=True):
                 url, fragment = url.split('#', 1)
             if '?' in url:
                 url, query = url.split('?', 1)
+            _checknetloc(netloc)
             v = SplitResult(scheme, netloc, url, query, fragment)
             _parse_cache[key] = v
             return _coerce_result(v)
@@ -374,6 +394,7 @@ def urlsplit(url, scheme='', allow_fragments=True):
         url, fragment = url.split('#', 1)
     if '?' in url:
         url, query = url.split('?', 1)
+    _checknetloc(netloc)
     v = SplitResult(scheme, netloc, url, query, fragment)
     _parse_cache[key] = v
     return _coerce_result(v)
