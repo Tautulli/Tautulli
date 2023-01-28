@@ -14,6 +14,7 @@ rating_key              Returns the unique identifier for the media item.
 media_type              Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
 art                     Returns the location of the item's artwork
 title                   Returns the name of the movie, show, episode, artist, album, or track.
+edition_title            Returns the edition title of a movie.
 duration                Returns the standard runtime of the media.
 content_rating          Returns the age rating for the media.
 summary                 Returns a brief description of the media plot.
@@ -390,6 +391,11 @@ DOCUMENTATION :: END
                                 Runtime <strong> <span id="runtime">${data['duration']}</span></strong>
                                 % endif
                             </div>
+                            % if data['edition_title']:
+                            <div class="summary-content-details-tag">
+                                Edition <strong> ${data['edition_title']} </strong>
+                            </div>
+                            % endif
                             <div class="summary-content-details-tag">
                                 % if data['content_rating']:
                                 Rated <strong> ${data['content_rating']} </strong>
