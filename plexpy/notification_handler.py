@@ -715,6 +715,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         else:
             notify_params['musicbrainz_url'] = 'https://musicbrainz.org/track/' + notify_params['musicbrainz_id']
 
+    if 'hama://' in notify_params['guid']:
+        notify_params['anidb_id'] = notify_params['guid'].split('hama://')[1].split('/')[0].split('?')[0].split('-')[1]
+        notify_params['anidb_url'] = 'https://anidb.net/anime/' + notify_params['anidb_id']
+
     # Get TheMovieDB info (for movies and tv only)
     if plexpy.CONFIG.THEMOVIEDB_LOOKUP and notify_params['media_type'] in ('movie', 'show', 'season', 'episode'):
         if notify_params.get('themoviedb_id'):
@@ -1142,6 +1146,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'tvmaze_url': notify_params['tvmaze_url'],
         'musicbrainz_id': notify_params['musicbrainz_id'],
         'musicbrainz_url': notify_params['musicbrainz_url'],
+        'anidb_id': notify_params['anidb_id'],
+        'anidb_url': notify_params['anidb_url'],
         'lastfm_url': notify_params['lastfm_url'],
         'trakt_url': notify_params['trakt_url'],
         'container': notify_params['container'],

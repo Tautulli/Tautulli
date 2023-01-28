@@ -553,6 +553,8 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'TVmaze URL', 'type': 'str', 'value': 'tvmaze_url', 'description': 'The TVmaze URL for the TV show.'},
              {'name': 'MusicBrainz ID', 'type': 'str', 'value': 'musicbrainz_id', 'description': 'The MusicBrainz ID for the artist, album, or track.', 'example': 'e.g. b670dfcf-9824-4309-a57e-03595aaba286'},
              {'name': 'MusicBrainz URL', 'type': 'str', 'value': 'musicbrainz_url', 'description': 'The MusicBrainz URL for the artist, album, or track.'},
+             {'name': 'AniDB ID', 'type': 'str', 'value': 'anidb_id', 'description': 'The AniDB ID for the Anime', 'example': 'e.g. 69', 'help_text': 'TV show library agent must be HAMA'},
+             {'name': 'AniDB URL', 'type': 'str', 'value': 'anidb_url', 'description': 'The AniDB URL for the Anime', 'help_text': 'TV show library agent must be HAMA'},
              {'name': 'Last.fm URL', 'type': 'str', 'value': 'lastfm_url', 'description': 'The Last.fm URL for the album.', 'help_text': 'Music library agent must be Last.fm'},
              {'name': 'Trakt.tv URL', 'type': 'str', 'value': 'trakt_url', 'description': 'The trakt.tv URL for the movie or TV show.'},
              {'name': 'Container', 'type': 'str', 'value': 'container', 'description': 'The media container of the original media.'},
