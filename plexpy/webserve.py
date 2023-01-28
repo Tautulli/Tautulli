@@ -6185,7 +6185,8 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_home_stats(self, grouping=None, time_range=30, stats_type='plays',
-                       stats_start=0, stats_count=10, stat_id='', **kwargs):
+                       stats_start=0, stats_count=10, stat_id='',
+                       section_id=None, user_id=None, **kwargs):
         """ Get the homepage watch statistics.
 
             ```
@@ -6201,6 +6202,8 @@ class WebInterface(object):
                 stat_id (str):          A single stat to return, 'top_movies', 'popular_movies',
                                         'top_tv', 'popular_tv', 'top_music', 'popular_music', 'top_libraries',
                                         'top_users', 'top_platforms', 'last_watched', 'most_concurrent'
+                section_id (int):       The id of the Plex library section
+                user_id (int):          The id of the Plex user
 
             Returns:
                 json:
@@ -6282,7 +6285,9 @@ class WebInterface(object):
                                              stats_type=stats_type,
                                              stats_start=stats_start,
                                              stats_count=stats_count,
-                                             stat_id=stat_id)
+                                             stat_id=stat_id,
+                                             section_id=section_id,
+                                             user_id=user_id)
 
         if result:
             return result
