@@ -3962,7 +3962,10 @@ class TELEGRAM(Notifier):
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
-        data = {'chat_id': self.config['chat_id']}
+        chat_id, *message_thread_id = self.config['chat_id'].split('/')
+        data = {'chat_id': chat_id}
+        if message_thread_id:
+            data['message_thread_id'] = message_thread_id[0]
 
         if self.config['incl_subject']:
             text = subject + '\r\n' + body
@@ -4032,7 +4035,8 @@ class TELEGRAM(Notifier):
                           'description': 'Your Telegram Chat ID, Group ID, Channel ID or @channelusername. '
                                          'Contact <a href="' + helpers.anon_url('https://telegram.me/myidbot') +
                                          '" target="_blank">@myidbot</a>'
-                                         ' on Telegram to get an ID.',
+                                         ' on Telegram to get an ID. '
+                                         'For a group topic, append <span class="inline-pre">/topicID</span> to the group ID.',
                           'input_type': 'text'
                           },
                          {'label': 'Include Subject Line',
