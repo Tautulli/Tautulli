@@ -931,7 +931,10 @@ DOCUMENTATION :: END
     $.ajax({
         url: 'item_watch_time_stats',
         async: true,
-        data: { rating_key: "${data['rating_key']}" },
+        data: { 
+            rating_key: "${data['rating_key']}",
+            media_type: "${data['media_type']}"    
+        },
         complete: function(xhr, status) {
             $("#watch-time-stats").html(xhr.responseText);
         }
