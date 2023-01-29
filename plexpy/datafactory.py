@@ -1213,7 +1213,7 @@ class DataFactory(object):
 
         return item_watch_time_stats
 
-    def get_user_stats(self, rating_key=None, grouping=None):
+    def get_user_stats(self, rating_key=None, media_type=None, grouping=None):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
@@ -1224,6 +1224,18 @@ class DataFactory(object):
         section_ids = set()
         
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+
+        _rating_keys = []
+        if media_type == 'collection':
+            pms_connect = pmsconnect.PmsConnect()
+            result = pms_connect.get_item_children(rating_key=rating_key)
+
+            for child in result['children_list']:
+                _rating_keys.append(child['rating_key'])
+        else:
+            _rating_keys.append(rating_key)
+
+        rating_keys = '(' + ','.join(_rating_keys) + ')'
 
         try:
             if str(rating_key).isdigit():
@@ -1236,12 +1248,12 @@ class DataFactory(object):
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
-                        'WHERE (session_history.grandparent_rating_key = ? ' \
-                        'OR session_history.parent_rating_key = ? ' \
-                        'OR session_history.rating_key = ?) ' \
+                        'WHERE (session_history.grandparent_rating_key IN %s ' \
+                        'OR session_history.parent_rating_key IN %s ' \
+                        'OR session_history.rating_key IN %s) ' \
                         'GROUP BY users.user_id ' \
-                        'ORDER BY total_plays DESC, total_time DESC' % group_by
-                result = monitor_db.select(query, args=[rating_key, rating_key, rating_key])
+                        'ORDER BY total_plays DESC, total_time DESC' % (group_by, rating_keys, rating_keys, rating_keys)
+                result = monitor_db.select(query)
             else:
                 result = []
         except Exception as e:

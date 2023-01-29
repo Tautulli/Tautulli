@@ -4446,10 +4446,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_user_stats(self, rating_key=None, **kwargs):
+    def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key)
+            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
         else:
             result = None
 
