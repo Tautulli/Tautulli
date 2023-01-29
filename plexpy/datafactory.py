@@ -1157,7 +1157,7 @@ class DataFactory(object):
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         _rating_keys = []
-        if media_type == 'collection':
+        if media_type and media_type == 'collection':
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_item_children(rating_key=rating_key)
 
@@ -1239,7 +1239,7 @@ class DataFactory(object):
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         _rating_keys = []
-        if media_type == 'collection':
+        if media_type and media_type == 'collection':
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_item_children(rating_key=rating_key)
 
