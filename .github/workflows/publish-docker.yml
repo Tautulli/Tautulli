@@ -70,7 +70,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Docker Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         if: success()
         with:
           context: .
