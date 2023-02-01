@@ -1,4 +1,4 @@
-apscheduler==3.9.1.post1
+apscheduler==3.10.0
 importlib-metadata==5.2.0
 importlib-resources==5.10.1
 pyinstaller==5.7.0
