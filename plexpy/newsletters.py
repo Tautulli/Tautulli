@@ -794,7 +794,6 @@ class RecentlyAdded(Newsletter):
                 show_rating_keys.append(show_rating_key)
 
             recently_added = shows_list
-            logger.info(recently_added)
 
         if media_type == 'artist':
             artists_list = []
