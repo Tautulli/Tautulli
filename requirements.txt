@@ -47,7 +47,7 @@ tzdata==2022.7
 tzlocal==4.2
 urllib3==1.26.13
 webencodings==0.5.1
-websocket-client==1.4.2
+websocket-client==1.5.1
 xmltodict==0.13.0
 zipp==3.11.0
 
