@@ -595,7 +595,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Subtitle Language', 'type': 'str', 'value': 'subtitle_language', 'description': 'The subtitle language of the original media.'},
              {'name': 'Subtitle Language Code', 'type': 'str', 'value': 'subtitle_language_code', 'description': 'The subtitle language code of the original media.'},
              {'name': 'File', 'type': 'str', 'value': 'file', 'description': 'The file path to the item.'},
-             {'name': 'File Volume Label', 'type': 'str', 'value': 'file_volume', 'description': 'Label of volume where file is stored', 'help_text': 'Windows returns letter (e.g. M:) or UNC hostname and sharepoint (e.g. //host/computer), Unix returns empty string'},
+             {'name': 'File Volume Label', 'type': 'str', 'value': 'file_volume', 'description': 'Label of volume where file is stored.', 'help_text': 'Windows returns letter (e.g. M:) or UNC hostname and sharepoint (e.g. //host/computer), Unix returns empty string'},
              {'name': 'Filename', 'type': 'str', 'value': 'filename', 'description': 'The file name of the item.'},
              {'name': 'File Size', 'type': 'int', 'value': 'file_size', 'description': 'The file size of the item.'},
              {'name': 'Guid', 'type': 'str', 'value': 'guid', 'description': 'The full guid for the item.'},
