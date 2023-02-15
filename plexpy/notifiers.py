@@ -892,6 +892,15 @@ class PrettyMetadata(object):
         parameters[''] = ''
         return parameters
 
+    def get_image(self):
+        result = pmsconnect.PmsConnect().get_image(img=self.parameters.get('poster_thumb', ''))
+        if result and result[0]:
+            poster_content = result[0]
+            poster_filename = 'poster_{}.png'.format(self.parameters['rating_key'])
+            return (poster_filename, poster_content, 'image/png')
+        
+        logger.error("Tautulli Notifiers :: Unable to retrieve image for notification.")
+
 
 class Notifier(object):
     NAME = ''
@@ -1117,9 +1126,15 @@ class DISCORD(Notifier):
         if self.config['tts']:
             data['tts'] = True
 
+        files = {}
+
         if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            image = pretty_metadata.get_image()
+            if image:
+                files = {'files[0]': image}
 
             if pretty_metadata.media_type == 'movie':
                 provider = self.config['movie_provider']
@@ -1150,9 +1165,9 @@ class DISCORD(Notifier):
                     attachment['color'] = helpers.hex_to_int(hex)
 
             if self.config['incl_thumbnail']:
-                attachment['thumbnail'] = {'url': poster_url}
+                attachment['thumbnail'] = {'url': 'attachment://{}'.format(image[0]) if image else poster_url}
             else:
-                attachment['image'] = {'url': poster_url}
+                attachment['image'] = {'url': 'attachment://{}'.format(image[0]) if image else poster_url}
 
             if self.config['incl_description']:
                 attachment['description'] = description[:2045] + (description[2045:] and '...')
@@ -1172,10 +1187,13 @@ class DISCORD(Notifier):
 
             data['embeds'] = [attachment]
 
-        headers = {'Content-type': 'application/json'}
         params = {'wait': True}
 
-        return self.make_request(self.config['hook'], params=params, headers=headers, json=data)
+        if files:
+            files['payload_json'] = (None, json.dumps(data), 'application/json')
+            return self.make_request(self.config['hook'], params=params, files=files)
+        else:
+            return self.make_request(self.config['hook'], params=params, json=data)
 
     def _return_config_options(self):
         config_option = [{'label': 'Discord Webhook URL',
@@ -1217,10 +1235,7 @@ class DISCORD(Notifier):
                          {'label': 'Include Rich Metadata Info',
                           'value': self.config['incl_card'],
                           'name': 'discord_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
-                                         'data-target="notify_upload_posters">Image Hosting</a> '
-                                         'must be enabled under the 3rd Party APIs settings tab.',
+                          'description': 'Include an info card with a poster and metadata with the notifications.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Summary',
