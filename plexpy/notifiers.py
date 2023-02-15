@@ -1807,19 +1807,12 @@ class GROUPME(Notifier):
         if self.config['incl_poster'] and kwargs.get('parameters'):
             pretty_metadata = PrettyMetadata(kwargs.get('parameters'))
 
-            # Retrieve the poster from Plex
-            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb',''))
-            if result and result[0]:
-                poster_content = result[0]
-            else:
-                poster_content = ''
-                logger.error("Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
-
-            if poster_content:
+            image = pretty_metadata.get_image()
+            if image:
                 headers = {'X-Access-Token': self.config['access_token'],
                            'Content-Type': 'image/png'}
 
-                r = requests.post('https://image.groupme.com/pictures', headers=headers, data=poster_content)
+                r = requests.post('https://image.groupme.com/pictures', headers=headers, data=image[1])
 
                 if r.status_code == 200:
                     logger.info("Tautulli Notifiers :: {name} poster sent.".format(name=self.NAME))
@@ -3042,18 +3035,10 @@ class PUSHBULLET(Notifier):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
 
-            # Retrieve the poster from Plex
-            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
-            if result and result[0]:
-                poster_content = result[0]
-            else:
-                poster_content = ''
-                logger.error("Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
-
-            if poster_content:
-                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
-                file_json = {'file_name': poster_filename, 'file_type': 'image/png'}
-                files = {'file': (poster_filename, poster_content, 'image/png')}
+            image = pretty_metadata.get_image()
+            if image:
+                file_json = {'file_name': image[0], 'file_type': image[2]}
+                files = {'file': image}
 
                 r = requests.post('https://api.pushbullet.com/v2/upload-request', headers=headers, json=file_json)
 
@@ -3199,17 +3184,9 @@ class PUSHOVER(Notifier):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
 
-            # Retrieve the poster from Plex
-            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
-            if result and result[0]:
-                poster_content = result[0]
-            else:
-                poster_content = ''
-                logger.error("Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
-
-            if poster_content:
-                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
-                files = {'attachment': (poster_filename, poster_content, 'image/png')}
+            image = pretty_metadata.get_image()
+            if image:
+                files = {'attachment': image}
                 headers = {}
 
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
@@ -3994,17 +3971,9 @@ class TELEGRAM(Notifier):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
 
-            # Retrieve the poster from Plex
-            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
-            if result and result[0]:
-                poster_content = result[0]
-            else:
-                poster_content = ''
-                logger.error("Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
-
-            if poster_content:
-                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
-                files = {'photo': (poster_filename, poster_content, 'image/png')}
+            image = pretty_metadata.get_image()
+            if image:
+                files = {'photo': image}
 
                 if len(text) > 1024:
                     data['disable_notification'] = True
