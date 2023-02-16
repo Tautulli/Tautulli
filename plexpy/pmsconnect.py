@@ -140,7 +140,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/library/metadata/' + rating_key
+        uri = '/library/metadata/' + rating_key + '?includeMarkers=1'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -745,6 +745,7 @@ class PmsConnect(object):
         labels = []
         collections = []
         guids = []
+        markers = []
 
         if metadata_main.getElementsByTagName('Director'):
             for director in metadata_main.getElementsByTagName('Director'):
@@ -773,6 +774,16 @@ class PmsConnect(object):
         if metadata_main.getElementsByTagName('Guid'):
             for guid in metadata_main.getElementsByTagName('Guid'):
                 guids.append(helpers.get_xml_attr(guid, 'id'))
+
+        if metadata_main.getElementsByTagName('Marker'):
+            for marker in metadata_main.getElementsByTagName('Marker'):
+                markers.append({
+                    'id': helpers.get_xml_attr(marker, 'id'),
+                    'type': helpers.get_xml_attr(marker, 'type'),
+                    'start_time_offset': helpers.cast_to_int(helpers.get_xml_attr(marker, 'startTimeOffset')),
+                    'end_time_offset': helpers.cast_to_int(helpers.get_xml_attr(marker, 'endTimeOffset')),
+                    'final': helpers.bool_true(helpers.get_xml_attr(marker, 'final'))
+                })
 
         if metadata_type == 'movie':
             metadata = {'media_type': metadata_type,
@@ -821,6 +832,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -880,6 +892,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -942,6 +955,7 @@ class PmsConnect(object):
                         'labels': show_details.get('labels', []),
                         'collections': show_details.get('collections', []),
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': show_details.get('guids', []),
                         'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
@@ -1021,6 +1035,7 @@ class PmsConnect(object):
                         'labels': show_details.get('labels', []),
                         'collections': show_details.get('collections', []),
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': season_details.get('guids', []),
                         'grandparent_guids': show_details.get('guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
@@ -1076,6 +1091,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -1132,6 +1148,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': artist_details.get('guids', []),
                         'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
@@ -1191,6 +1208,7 @@ class PmsConnect(object):
                         'labels': album_details.get('labels', []),
                         'collections': album_details.get('collections', []),
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': album_details.get('guids', []),
                         'grandparent_guids': album_details.get('parent_guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'title'),
@@ -1246,6 +1264,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -1302,6 +1321,7 @@ class PmsConnect(object):
                         'labels': photo_album_details.get('labels', []),
                         'collections': photo_album_details.get('collections', []),
                         'guids': [],
+                        'markers': markers,
                         'parent_guids': photo_album_details.get('guids', []),
                         'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle') or library_name,
@@ -1361,6 +1381,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -1435,6 +1456,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
