@@ -340,6 +340,22 @@ def available_notification_actions(agent_id=None):
                 'icon': 'fa-exchange-alt',
                 'media_types': ('movie', 'episode', 'track')
                 },
+               {'label': 'Intro Marker',
+                'name': 'on_intro',
+                'description': 'Trigger a notification when a video stream reaches any intro marker.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) has reached an intro marker for {title}.',
+                'icon': 'fa-bookmark',
+                'media_types': ('episode',)
+                },
+               {'label': 'Credits Marker',
+                'name': 'on_credits',
+                'description': 'Trigger a notification when a video stream reaches any credits marker.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) has reached a credits marker for {title}.',
+                'icon': 'fa-bookmark',
+                'media_types': ('movie', 'episode')
+                },
                {'label': 'Watched',
                 'name': 'on_watched',
                 'description': 'Trigger a notification when a video stream reaches the specified watch percentage.',

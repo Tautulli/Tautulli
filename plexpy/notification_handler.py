@@ -583,6 +583,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     notify_params.update(media_info)
     notify_params.update(media_part_info)
 
+    metadata = pmsconnect.PmsConnect().get_metadata_details(rating_key=rating_key)
+
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
         child = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
@@ -938,6 +940,20 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             and audience_rating:
         audience_rating = helpers.get_percent(notify_params['audience_rating'], 10)
 
+    intro_markers, credits_markers = [], []
+    for marker in metadata['markers']:
+        if marker['type'] == 'intro':
+            intro_markers.append(marker)
+        elif marker['type'] == 'credits':
+            credits_markers.append(marker)
+
+    intro_marker = defaultdict(int)
+    credits_marker = defaultdict(int)
+    if notify_action == 'on_intro' and intro_markers and notify_params['intro'] < len(intro_markers):
+        intro_marker = intro_markers[notify_params['intro']]
+    if notify_action == 'on_credits' and credits_markers and notify_params['credits'] < len(credits_markers):
+        credits_marker = credits_markers[notify_params['credits']]
+
     now = arrow.now()
     now_iso = now.isocalendar()
 
@@ -1005,6 +1021,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'progress_duration_sec': view_offset_sec,
         'progress_time': arrow.get(view_offset_sec).format(duration_format),
         'progress_percent': helpers.get_percent(view_offset_sec, duration_sec),
+        'view_offset': session.get('view_offset', 0),
         'initial_stream': notify_params['initial_stream'],
         'transcode_decision': transcode_decision,
         'container_decision': notify_params['container_decision'],
@@ -1016,6 +1033,12 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'optimized_version_profile': notify_params['optimized_version_profile'],
         'synced_version': notify_params['synced_version'],
         'live': notify_params['live'],
+        'intro_marker_start': intro_marker['start_time_offset'],
+        'intro_marker_end': intro_marker['end_time_offset'],
+        'credits_marker_first': int(bool(credits_marker and notify_params['credits'] == 0)),
+        'credits_marker_final': int(credits_marker['final']),
+        'credits_marker_start': credits_marker['start_time_offset'],
+        'credits_marker_end': credits_marker['end_time_offset'],
         'channel_call_sign': notify_params['channel_call_sign'],
         'channel_identifier': notify_params['channel_identifier'],
         'channel_thumb': notify_params['channel_thumb'],
@@ -1132,6 +1155,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'user_rating': notify_params['user_rating'],
         'duration': duration,
         'duration_sec': duration_sec,
+        'duration_ms': notify_params['duration'],
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
         'plex_id': notify_params['plex_id'],
