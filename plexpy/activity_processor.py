@@ -661,8 +661,12 @@ class ActivityProcessor(object):
                            [session['write_attempts'] + 1, session_key])
 
     def set_marker(self, session_key=None, marker_idx=None, marker_type=None):
-        marker_args = [int(marker_type == 'intro'), int(marker_type == 'credits')]
-        self.db.action('UPDATE sessions SET intro = ?, credits = ?, marker = ? '
+        marker_args = [
+            int(marker_type == 'intro'),
+            int(marker_type == 'commercial'),
+            int(marker_type == 'credits')
+        ]
+        self.db.action('UPDATE sessions SET intro = ?, commercial = ?, credits = ?, marker = ? '
                        'WHERE session_key = ?',
                        marker_args + [marker_idx, session_key])
 

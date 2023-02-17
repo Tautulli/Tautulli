@@ -247,13 +247,20 @@ class ActivityHandler(object):
 
     def on_intro(self, marker):
         if self.get_live_session():
-            logger.debug("Tautulli ActivityHandler :: Session %s intro marker reached." % str(self.session_key))
+            logger.debug("Tautulli ActivityHandler :: Session %s reached intro marker." % str(self.session_key))
 
             self.put_notification('on_intro', marker=marker)
 
+    def on_commercial(self, marker):
+        if self.get_live_session():
+            logger.debug("Tautulli ActivityHandler :: Session %s reached commercial marker." % str(self.session_key))
+
+            self.put_notification('on_commercial', marker=marker)
+
     def on_credits(self, marker):
         if self.get_live_session():
-            logger.debug("Tautulli ActivityHandler :: Session %s credits marker reached." % str(self.session_key))
+            logger.debug("Tautulli ActivityHandler :: Session %s reached credits marker." % str(self.session_key))
+
             self.put_notification('on_credits', marker=marker)
 
     def on_watched(self):

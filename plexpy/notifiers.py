@@ -348,6 +348,14 @@ def available_notification_actions(agent_id=None):
                 'icon': 'fa-bookmark',
                 'media_types': ('episode',)
                 },
+               {'label': 'Commercial Marker',
+                'name': 'on_credits',
+                'description': 'Trigger a notification when a video stream reaches any commercial marker.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) has reached a commercial marker for {title}.',
+                'icon': 'fa-bookmark',
+                'media_types': ('movie', 'episode')
+                },
                {'label': 'Credits Marker',
                 'name': 'on_credits',
                 'description': 'Trigger a notification when a video stream reaches any credits marker.',
