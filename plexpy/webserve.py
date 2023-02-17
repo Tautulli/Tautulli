@@ -5339,6 +5339,24 @@ class WebInterface(object):
                      "last_viewed_at": "1462165717",
                      "library_name": "TV Shows",
                      "live": 0,
+                     "markers": [
+                        {
+                             "id": 908,
+                             "type": "credits",
+                             "start_time_offset": 2923863,
+                             "end_time_offset": 2998197,
+                             "first": true,
+                             "final": true
+                        },
+                        {
+                             "id": 908,
+                             "type": "intro",
+                             "start_time_offset": 1622,
+                             "end_time_offset": 109135,
+                             "first": null,
+                             "final": null
+                        }
+                     ],
                      "media_index": "1",
                      "media_info": [
                          {
