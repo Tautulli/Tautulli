@@ -776,12 +776,20 @@ class PmsConnect(object):
                 guids.append(helpers.get_xml_attr(guid, 'id'))
 
         if metadata_main.getElementsByTagName('Marker'):
+            first = None
             for marker in metadata_main.getElementsByTagName('Marker'):
+                marker_type = helpers.get_xml_attr(marker, 'type')
+                if marker_type == 'credits':
+                    if first is None:
+                        first = True
+                    elif first is True:
+                        first = False
                 markers.append({
-                    'id': helpers.get_xml_attr(marker, 'id'),
+                    'id': helpers.cast_to_int(helpers.get_xml_attr(marker, 'id')),
                     'type': helpers.get_xml_attr(marker, 'type'),
                     'start_time_offset': helpers.cast_to_int(helpers.get_xml_attr(marker, 'startTimeOffset')),
                     'end_time_offset': helpers.cast_to_int(helpers.get_xml_attr(marker, 'endTimeOffset')),
+                    'first': first if marker_type == 'credits' else False,
                     'final': helpers.bool_true(helpers.get_xml_attr(marker, 'final'))
                 })
 

@@ -940,19 +940,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             and audience_rating:
         audience_rating = helpers.get_percent(notify_params['audience_rating'], 10)
 
-    intro_markers, credits_markers = [], []
-    for marker in metadata['markers']:
-        if marker['type'] == 'intro':
-            intro_markers.append(marker)
-        elif marker['type'] == 'credits':
-            credits_markers.append(marker)
-
-    intro_marker = defaultdict(int)
-    credits_marker = defaultdict(int)
-    if notify_action == 'on_intro' and intro_markers and notify_params['intro'] < len(intro_markers):
-        intro_marker = intro_markers[notify_params['intro']]
-    if notify_action == 'on_credits' and credits_markers and notify_params['credits'] < len(credits_markers):
-        credits_marker = credits_markers[notify_params['credits']]
+    marker = kwargs.pop('marker', defaultdict(int))
 
     now = arrow.now()
     now_iso = now.isocalendar()
@@ -1033,12 +1021,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'optimized_version_profile': notify_params['optimized_version_profile'],
         'synced_version': notify_params['synced_version'],
         'live': notify_params['live'],
-        'intro_marker_start': intro_marker['start_time_offset'],
-        'intro_marker_end': intro_marker['end_time_offset'],
-        'credits_marker_first': int(bool(credits_marker and notify_params['credits'] == 0)),
-        'credits_marker_final': int(credits_marker['final']),
-        'credits_marker_start': credits_marker['start_time_offset'],
-        'credits_marker_end': credits_marker['end_time_offset'],
+        'marker_start': marker['start_time_offset'],
+        'marker_end': marker['end_time_offset'],
+        'credits_marker_first': int(marker['first']),
+        'credits_marker_final': int(marker['final']),
         'channel_call_sign': notify_params['channel_call_sign'],
         'channel_identifier': notify_params['channel_identifier'],
         'channel_thumb': notify_params['channel_thumb'],
