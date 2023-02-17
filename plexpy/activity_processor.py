@@ -660,15 +660,16 @@ class ActivityProcessor(object):
             self.db.action('UPDATE sessions SET write_attempts = ? WHERE session_key = ?',
                            [session['write_attempts'] + 1, session_key])
 
-    def set_intro(self, session_key=None):
-        self.db.action('UPDATE sessions SET intro = intro + 1 '
+    def set_marker(self, session_key=None, marker_idx=None, marker_type=None):
+        if marker_type == 'intro':
+            args = [1, 0]
+        elif marker_type == 'credits':
+            args = [0, 1]
+        else:
+            args = [0, 0]
+        self.db.action('UPDATE sessions SET intro = ?, credits = ?, marker = ? '
                        'WHERE session_key = ?',
-                       [session_key])
-
-    def set_credits(self, session_key=None):
-        self.db.action('UPDATE sessions SET credits = credits + 1 '
-                       'WHERE session_key = ?',
-                       [session_key])
+                       args + [marker_idx, session_key])
 
     def set_watched(self, session_key=None):
         self.db.action('UPDATE sessions SET watched = ? '

@@ -657,7 +657,7 @@ def dbcheck():
         'live INTEGER, live_uuid TEXT, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
         'secure INTEGER, relayed INTEGER, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, '
-        'watched INTEGER DEFAULT 0, intro INTEGER DEFAULT 0, credits INTEGER DEFAULT 0, '
+        'watched INTEGER DEFAULT 0, intro INTEGER DEFAULT 0, credits INTEGER DEFAULT 0, marker INTEGER DEFAULT 0, '
         'initial_stream INTEGER DEFAULT 1, write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT, '
         'rating_key_websocket TEXT)'
     )
@@ -1415,6 +1415,15 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE sessions ADD COLUMN credits INTEGER DEFAULT 0'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT marker FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN marker INTEGER DEFAULT 0'
         )
 
     # Upgrade session_history table from earlier versions

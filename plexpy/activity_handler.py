@@ -250,16 +250,16 @@ class ActivityHandler(object):
 
         self.put_notification('on_change')
 
-    def on_intro(self):
+    def on_intro(self, marker):
         if self.get_live_session():
             logger.debug("Tautulli ActivityHandler :: Session %s intro marker reached." % str(self.get_session_key()))
 
-            self.put_notification('on_intro')
+            self.put_notification('on_intro', marker=marker)
 
-    def on_credits(self):
+    def on_credits(self, marker):
         if self.get_live_session():
             logger.debug("Tautulli ActivityHandler :: Session %s credits marker reached." % str(self.get_session_key()))
-            self.put_notification('on_credits')
+            self.put_notification('on_credits', marker=marker)
 
     def on_watched(self):
         logger.debug("Tautulli ActivityHandler :: Session %s watched." % str(self.get_session_key()))
@@ -359,37 +359,33 @@ class ActivityHandler(object):
         # Monitor if the stream has reached the intro or credit marker offsets
         self.get_metadata()
 
-        intro_markers, credits_markers = [], []
-        for marker in self.metadata['markers']:
-            if marker['type'] == 'intro':
-                intro_markers.append(marker)
-            elif marker['type'] == 'credits':
-                credits_markers.append(marker)
+        marker_flag = False
 
-        self._check_marker('intro', intro_markers)
-        self._check_marker('credits', credits_markers)
-
-    def _check_marker(self, marker_type, markers):
-        if self.db_session[marker_type] < len(markers):
-            marker = markers[self.db_session[marker_type]]
-
+        for marker_idx, marker in enumerate(self.metadata['markers'], start=1):
             # Websocket events only fire every 10 seconds
             # Check if the marker is within 10 seconds of the current viewOffset
             if marker['start_time_offset'] - 10000 <= self.timeline['viewOffset'] <= marker['end_time_offset']:
-                set_func = getattr(self.ap, 'set_{}'.format(marker_type))
-                callback_func = getattr(self, 'on_{}'.format(marker_type))
+                marker_flag = True
 
-                set_func(session_key=self.get_session_key())
+                if self.db_session['marker'] != marker_idx:
+                    self.ap.set_marker(session_key=self.get_session_key(), marker_idx=marker_idx, marker_type=marker['type'])
+                    callback_func = getattr(self, 'on_{}'.format(marker['type']))
 
-                if self.timeline['viewOffset'] < marker['start_time_offset']:
-                    # Schedule a callback for the exact offset of the marker
-                    schedule_callback(
-                        'session_key-{}-{}-{}'.format(self.get_session_key(), marker_type, self.db_session[marker_type]),
-                        func=callback_func,
-                        milliseconds=marker['start_time_offset'] - self.timeline['viewOffset']
-                    )
-                else:
-                    callback_func()
+                    if self.timeline['viewOffset'] < marker['start_time_offset']:
+                        # Schedule a callback for the exact offset of the marker
+                        schedule_callback(
+                            'session_key-{}-marker-{}'.format(self.get_session_key(), marker_idx),
+                            func=callback_func,
+                            args=[marker],
+                            milliseconds=marker['start_time_offset'] - self.timeline['viewOffset']
+                        )
+                    else:
+                        callback_func(marker)
+
+                break
+
+        if not marker_flag:
+            self.ap.set_marker(session_key=self.get_session_key(), marker_idx=0)
 
     def check_watched(self):
         # Monitor if the stream has reached the watch percentage for notifications
