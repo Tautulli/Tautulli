@@ -294,7 +294,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Cast the condition values to the correct type
             try:
                 if parameter_type == 'str':
-                    values = ['' if v == '~' else str(v).lower() for v in values]
+                    values = ['' if v == '~' else str(v).strip().lower() for v in values]
 
                 elif parameter_type == 'int':
                     values = [helpers.cast_to_int(v) for v in values]
@@ -313,7 +313,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Cast the parameter value to the correct type
             try:
                 if parameter_type == 'str':
-                    parameter_value = str(parameter_value).lower()
+                    parameter_value = str(parameter_value).strip().lower()
 
                 elif parameter_type == 'int':
                     parameter_value = helpers.cast_to_int(parameter_value)
