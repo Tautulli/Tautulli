@@ -180,7 +180,7 @@ DOCUMENTATION :: END
                      <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
             </div>
-            % elif child['media_type'] == 'album':
+            % elif child['media_type'] == 'album' or child['media_type'] == 'artist':
             <a href="${page('info', child['rating_key'])}" title="${child['title']}">
                 <div class="item-children-poster">
                     <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
