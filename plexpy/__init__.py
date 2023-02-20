@@ -715,7 +715,8 @@ def dbcheck():
         'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
         'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
         'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, '
-        'labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT)'
+        'labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
+        'marker_credits_first INTEGER DEFAULT NULL, marker_credits_final INTEGER DEFAULT NULL)'
     )
 
     # users table :: This table keeps record of the friends list
@@ -1562,6 +1563,18 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN channel_thumb TEXT'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT marker_credits_first FROM session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN marker_credits_first INTEGER DEFAULT NULL'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN marker_credits_final INTEGER DEFAULT NULL'
         )
 
     # Upgrade session_history_media_info table from earlier versions

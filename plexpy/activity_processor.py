@@ -490,6 +490,14 @@ class ActivityProcessor(object):
                 genres = ";".join(metadata['genres'])
                 labels = ";".join(metadata['labels'])
 
+                marker_credits_first = None
+                marker_credits_final = None
+                for marker in metadata['markers']:
+                    if marker['first']:
+                        marker_credits_first = marker['start_time_offset']
+                    if marker['final']:
+                        marker_credits_final = marker['start_time_offset']
+
                 # logger.debug("Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_metadata table..."
                 #              % session['session_key'])
                 keys = {'id': last_id}
@@ -528,7 +536,9 @@ class ActivityProcessor(object):
                           'live': session['live'],
                           'channel_call_sign': media_info.get('channel_call_sign', ''),
                           'channel_identifier': media_info.get('channel_identifier', ''),
-                          'channel_thumb': media_info.get('channel_thumb', '')
+                          'channel_thumb': media_info.get('channel_thumb', ''),
+                          'marker_credits_first': marker_credits_first,
+                          'marker_credits_final': marker_credits_final
                           }
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
