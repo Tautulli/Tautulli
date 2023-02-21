@@ -110,11 +110,13 @@ class ActivityHandler(object):
         self.set_session_state()
         self.get_db_session()
 
-    def set_session_state(self):
-        self.ap.set_session_state(session_key=self.session_key,
-                             state=self.state,
-                             view_offset=self.view_offset,
-                             stopped=helpers.timestamp())
+    def set_session_state(self, view_offset=None):
+        self.ap.set_session_state(
+            session_key=self.session_key,
+            state=self.state,
+            view_offset=view_offset or self.view_offset,
+            stopped=helpers.timestamp()
+        )
         
     def put_notification(self, notify_action, **kwargs):
         notification = {'stream_data': self.db_session.copy(), 'notify_action': notify_action}
@@ -246,25 +248,33 @@ class ActivityHandler(object):
         self.put_notification('on_change')
 
     def on_intro(self, marker):
-        if self.get_live_session():
-            logger.debug("Tautulli ActivityHandler :: Session %s reached intro marker." % str(self.session_key))
+        logger.debug("Tautulli ActivityHandler :: Session %s reached intro marker." % str(self.session_key))
 
-            self.put_notification('on_intro', marker=marker)
+        self.set_session_state(view_offset=marker['start_time_offset'])
+
+        self.put_notification('on_intro', marker=marker)
 
     def on_commercial(self, marker):
-        if self.get_live_session():
-            logger.debug("Tautulli ActivityHandler :: Session %s reached commercial marker." % str(self.session_key))
+        logger.debug("Tautulli ActivityHandler :: Session %s reached commercial marker." % str(self.session_key))
 
-            self.put_notification('on_commercial', marker=marker)
+        self.set_session_state(view_offset=marker['start_time_offset'])
+
+        self.put_notification('on_commercial', marker=marker)
 
     def on_credits(self, marker):
-        if self.get_live_session():
-            logger.debug("Tautulli ActivityHandler :: Session %s reached credits marker." % str(self.session_key))
+        logger.debug("Tautulli ActivityHandler :: Session %s reached credits marker." % str(self.session_key))
 
-            self.put_notification('on_credits', marker=marker)
+        self.set_session_state(view_offset=marker['start_time_offset'])
 
-    def on_watched(self):
+        self.put_notification('on_credits', marker=marker)
+
+    def on_watched(self, marker=None):
         logger.debug("Tautulli ActivityHandler :: Session %s watched." % str(self.session_key))
+
+        if marker:
+            self.set_session_state(view_offset=marker['start_time_offset'])
+        else:
+            self.update_db_session()
 
         watched_notifiers = notification_handler.get_notify_state_enabled(
             session=self.db_session, notify_action='on_watched', notified=False)
@@ -368,38 +378,58 @@ class ActivityHandler(object):
 
                 if self.db_session['marker'] != marker_idx:
                     self.ap.set_marker(session_key=self.session_key, marker_idx=marker_idx, marker_type=marker['type'])
-                    callback_func = getattr(self, 'on_{}'.format(marker['type']))
 
                     if self.view_offset < marker['start_time_offset']:
                         # Schedule a callback for the exact offset of the marker
                         schedule_callback(
                             'session_key-{}-marker-{}'.format(self.session_key, marker_idx),
-                            func=callback_func,
+                            func=self._marker_callback,
                             args=[marker],
                             milliseconds=marker['start_time_offset'] - self.view_offset
                         )
                     else:
-                        callback_func(marker)
+                        self._marker_callback(marker)
 
                 break
 
         if not marker_flag:
             self.ap.set_marker(session_key=self.session_key, marker_idx=0)
 
-    def check_watched(self):
-        # Monitor if the stream has reached the watch percentage for notifications
-        if not self.db_session['watched'] and self.timeline['state'] != 'buffering':
-            progress_percent = helpers.get_percent(self.timeline['viewOffset'], self.db_session['duration'])
-            watched_percent = {
-                'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
-                'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
-                'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
-                'clip': plexpy.CONFIG.TV_WATCHED_PERCENT
-            }
+    def _marker_callback(self, marker):
+        if self.get_live_session():
+            # Reset ActivityProcessor object for new database thread
+            self.ap = activity_processor.ActivityProcessor()
 
-            if progress_percent >= watched_percent.get(self.db_session['media_type'], 101):
-                self.ap.set_watched(session_key=self.session_key)
-                self.on_watched()
+            if marker['type'] == 'intro':
+                self.on_intro(marker)
+            elif marker['type'] == 'commercial':
+                self.on_commercial(marker)
+            elif marker['type'] == 'credits':
+                self.on_credits(marker)
+
+                if not self.db_session['watched']:
+                    if marker['final'] and plexpy.CONFIG.WATCHED_MARKER == 1:
+                        self._marker_watched(marker)
+                    elif marker['first'] and (plexpy.CONFIG.WATCHED_MARKER in (2, 3)):
+                        self._marker_watched(marker)
+
+    def _marker_watched(self, marker):
+        if not self.db_session['watched']:
+            self._watched_callback(marker)
+
+    def check_watched(self):
+        if plexpy.CONFIG.WATCHED_MARKER == 1 or plexpy.CONFIG.WATCHED_MARKER == 2:
+            return
+
+        # Monitor if the stream has reached the watch percentage for notifications
+        if not self.db_session['watched'] and self.state != 'buffering' and helpers.check_watched(
+            self.db_session['media_type'], self.view_offset, self.db_session['duration']
+        ):
+            self._watched_callback()
+
+    def _watched_callback(self, marker=None):
+        self.ap.set_watched(session_key=self.session_key)
+        self.on_watched(marker)
 
 
 class TimelineHandler(object):
