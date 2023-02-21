@@ -382,10 +382,6 @@ class DataFactory(object):
         if user_id:
             where_id += 'AND session_history.user_id = %s ' % user_id
 
-        movie_watched_percent = plexpy.CONFIG.MOVIE_WATCHED_PERCENT
-        tv_watched_percent = plexpy.CONFIG.TV_WATCHED_PERCENT
-        music_watched_percent = plexpy.CONFIG.MUSIC_WATCHED_PERCENT
-
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
         sort_type = 'total_duration' if stats_type == 'duration' else 'total_plays'
 
@@ -919,6 +915,43 @@ class DataFactory(object):
                                    'rows': session.mask_session_info(top_platform, mask_metadata=False)})
 
             elif stat == 'last_watched':
+
+                movie_watched_percent = plexpy.CONFIG.MOVIE_WATCHED_PERCENT
+                tv_watched_percent = plexpy.CONFIG.TV_WATCHED_PERCENT
+
+                if plexpy.CONFIG.WATCHED_MARKER == 1:
+                    watched_threshold = (
+                        '(CASE WHEN shm.marker_credits_final IS NULL '
+                        'THEN sh._duration * (CASE WHEN sh.media_type = "movie" THEN %d ELSE %d END) / 100.0 '
+                        'ELSE shm.marker_credits_final END) '
+                        'AS watched_threshold'
+                    ) % (movie_watched_percent, tv_watched_percent)
+                    watched_where = '_view_offset >= watched_threshold'
+                elif plexpy.CONFIG.WATCHED_MARKER == 2:
+                    watched_threshold = (
+                        '(CASE WHEN shm.marker_credits_first IS NULL '
+                        'THEN sh._duration * (CASE WHEN sh.media_type = "movie" THEN %d ELSE %d END) / 100.0 '
+                        'ELSE shm.marker_credits_first END) '
+                        'AS watched_threshold'
+                    ) % (movie_watched_percent, tv_watched_percent)
+                    watched_where = '_view_offset >= watched_threshold'
+                elif plexpy.CONFIG.WATCHED_MARKER == 3:
+                    watched_threshold = (
+                        'MIN('
+                        '(CASE WHEN shm.marker_credits_first IS NULL '
+                        'THEN sh._duration * (CASE WHEN sh.media_type = "movie" THEN %d ELSE %d END) / 100.0 '
+                        'ELSE shm.marker_credits_first END), '
+                        'sh._duration * (CASE WHEN sh.media_type = "movie" THEN %d ELSE %d END) / 100.0) '
+                        'AS watched_threshold'
+                    ) % (movie_watched_percent, tv_watched_percent, movie_watched_percent, tv_watched_percent)
+                    watched_where = '_view_offset >= watched_threshold'
+                else:
+                    watched_threshold = 'NULL AS watched_threshold'
+                    watched_where = (
+                        'sh.media_type == "movie" AND percent_complete >= %d '
+                        'OR sh.media_type == "episode" AND percent_complete >= %d'
+                    ) % (movie_watched_percent, tv_watched_percent)
+
                 last_watched = []
                 try:
                     query = 'SELECT sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, ' \
@@ -929,22 +962,25 @@ class DataFactory(object):
                             '(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = ""' \
                             '   THEN u.username ELSE u.friendly_name END) ' \
                             '   AS friendly_name, ' \
-                            'MAX(sh.started) AS last_watch, ' \
-                            '((CASE WHEN sh.view_offset IS NULL THEN 0.1 ELSE sh.view_offset * 1.0 END) / ' \
-                            '   (CASE WHEN shm.duration IS NULL THEN 1.0 ELSE shm.duration * 1.0 END) * 100) ' \
-                            '   AS percent_complete ' \
-                            'FROM (SELECT *, MAX(id) FROM session_history ' \
+                            'MAX(sh.started) AS last_watch, sh._view_offset, sh._duration, ' \
+                            '(sh._view_offset / sh._duration * 100) AS percent_complete, ' \
+                            '%s ' \
+                            'FROM (SELECT *, MAX(session_history.id), ' \
+                            '   (CASE WHEN view_offset IS NULL THEN 0.1 ELSE view_offset * 1.0 END) AS _view_offset, ' \
+                            '   (CASE WHEN duration IS NULL THEN 1.0 ELSE duration * 1.0 END) AS _duration ' \
+                            '   FROM session_history ' \
+                            '   JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                             '   WHERE session_history.stopped >= %s ' \
                             '       AND (session_history.media_type = "movie" ' \
                             '           OR session_history.media_type = "episode") %s ' \
                             '   GROUP BY %s) AS sh ' \
                             'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
                             'LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id ' \
-                            'WHERE sh.media_type == "movie" AND percent_complete >= %s ' \
-                            '   OR sh.media_type == "episode" AND percent_complete >= %s ' \
+                            'WHERE %s ' \
                             'GROUP BY sh.id ' \
                             'ORDER BY last_watch DESC ' \
-                            'LIMIT %s OFFSET %s' % (timestamp, where_id, group_by, movie_watched_percent, tv_watched_percent,
+                            'LIMIT %s OFFSET %s' % (watched_threshold,
+                                                    timestamp, where_id, group_by, watched_where,
                                                     stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
