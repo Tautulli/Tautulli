@@ -142,8 +142,10 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                    % if item['select_all']:
                                                     <option value="select-all">Select All</option>
                                                     <option value="remove-all">Remove All</option>
+                                                    % endif
                                                     % if isinstance(item['select_options'], dict):
                                                     % for section, options in item['select_options'].items():
                                                     <optgroup label="${section}">
@@ -153,7 +155,9 @@
                                                     </optgroup>
                                                     % endfor
                                                     % else:
+                                                    % if item['select_all']:
                                                     <option value="border-all"></option>
+                                                    % endif
                                                     % for option in sorted(item['select_options'], key=lambda x: x['text'].lower()):
                                                         <option value="${option['value']}">${option['text']}</option>
                                                     % endfor
