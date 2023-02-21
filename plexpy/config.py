@@ -199,6 +199,7 @@ _CONFIG_DEFINITIONS = {
     'UPGRADE_FLAG': (int, 'Advanced', 0),
     'VERBOSE_LOGS': (int, 'Advanced', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
+    'WATCHED_MARKER': (int, 'Monitoring', 3),
     'WEBSOCKET_MONITOR_PING_PONG': (int, 'Advanced', 0),
     'WEBSOCKET_CONNECTION_ATTEMPTS': (int, 'Advanced', 5),
     'WEBSOCKET_CONNECTION_TIMEOUT': (int, 'Advanced', 5),
@@ -298,7 +299,8 @@ SETTINGS = [
     'REFRESH_USERS_INTERVAL',
     'SHOW_ADVANCED_SETTINGS',
     'TIME_FORMAT',
-    'TV_WATCHED_PERCENT'
+    'TV_WATCHED_PERCENT',
+    'WATCHED_MARKER'
 ]
 
 CHECKED_SETTINGS = [
