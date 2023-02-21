@@ -99,8 +99,9 @@ class DataFactory(object):
             'MIN(started) AS started',
             'MAX(stopped) AS stopped',
             'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - \
-             SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
+             SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS play_duration',
             'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
+            'session_history.view_offset',
             'session_history.user_id',
             'session_history.user',
             '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
@@ -139,6 +140,9 @@ class DataFactory(object):
             'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
              (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = "") \
              THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete',
+            'session_history_metadata.duration',
+            'session_history_metadata.marker_credits_first',
+            'session_history_metadata.marker_credits_final',
             'session_history_media_info.transcode_decision',
             'COUNT(*) AS group_count',
             'GROUP_CONCAT(session_history.id) AS group_ids',
@@ -159,8 +163,9 @@ class DataFactory(object):
                 'started',
                 'stopped',
                 'SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE (strftime("%s", "now") - started) END) - \
-                 SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration',
+                 SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS play_duration',
                 'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS paused_counter',
+                'view_offset',
                 'user_id',
                 'user',
                 '(CASE WHEN friendly_name IS NULL OR TRIM(friendly_name) = "" \
@@ -198,6 +203,9 @@ class DataFactory(object):
                 'MAX((CASE WHEN (view_offset IS NULL OR view_offset = "") THEN 0.1 ELSE view_offset * 1.0 END) / \
                  (CASE WHEN (duration IS NULL OR duration = "") \
                  THEN 1.0 ELSE duration * 1.0 END) * 100) AS percent_complete',
+                'duration',
+                'NULL AS marker_credits_first',
+                'NULL AS marker_credits_final',
                 'transcode_decision',
                 'NULL AS group_count',
                 'NULL AS group_ids',
@@ -262,7 +270,7 @@ class DataFactory(object):
 
                 item['user_thumb'] = users_lookup.get(item['user_id'])
 
-            filter_duration += int(item['duration'])
+            filter_duration += int(item['play_duration'])
 
             if item['media_type'] == 'episode' and item['parent_thumb']:
                 thumb = item['parent_thumb']
@@ -274,7 +282,10 @@ class DataFactory(object):
             if item['live']:
                 item['percent_complete'] = 100
 
-            if item['percent_complete'] >= watched_percent[item['media_type']]:
+            if helpers.check_watched(
+                item['media_type'], item['view_offset'], item['duration'],
+                item['marker_credits_first'], item['marker_credits_final']
+            ):
                 watched_status = 1
             elif item['percent_complete'] >= watched_percent[item['media_type']] / 2.0:
                 watched_status = 0.5
@@ -297,7 +308,7 @@ class DataFactory(object):
                    'date': item['date'],
                    'started': item['started'],
                    'stopped': item['stopped'],
-                   'duration': item['duration'],
+                   'duration': item['play_duration'],
                    'paused_counter': item['paused_counter'],
                    'user_id': item['user_id'],
                    'user': item['user'],
