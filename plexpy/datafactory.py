@@ -1157,7 +1157,7 @@ class DataFactory(object):
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         _rating_keys = []
-        if media_type and media_type == 'collection':
+        if media_type == 'collection':
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_item_children(rating_key=rating_key)
 
@@ -1166,7 +1166,8 @@ class DataFactory(object):
         else:
             _rating_keys.append(rating_key)
 
-        rating_keys = '(' + ','.join(_rating_keys) + ')'
+        rating_keys = ','.join(_rating_keys)
+        rating_keys_arg = ','.join(['?'] * len(rating_keys))
 
         for days in query_days:
             timestamp_query = timestamp - days * 24 * 60 * 60
@@ -1179,12 +1180,13 @@ class DataFactory(object):
                                 'COUNT(DISTINCT %s) AS total_plays, section_id ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
-                                'WHERE stopped >= %s ' \
-                                'AND (session_history.grandparent_rating_key IN %s ' \
-                                'OR session_history.parent_rating_key IN %s ' \
-                                'OR session_history.rating_key IN %s)' % (group_by, timestamp_query,
-                                                                        rating_keys, rating_keys, rating_keys)
-                        result = monitor_db.select(query)
+                                'WHERE stopped >= ? ' \
+                                'AND (session_history.grandparent_rating_key IN (%s) ' \
+                                'OR session_history.parent_rating_key IN (%s) ' \
+                                'OR session_history.rating_key IN (%s))' % (
+                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                                )
+                        result = monitor_db.select(query, args=[timestamp_query, rating_keys, rating_keys, rating_keys])
                     else:
                         result = []
                 else:
@@ -1194,10 +1196,12 @@ class DataFactory(object):
                                 'COUNT(DISTINCT %s) AS total_plays, section_id ' \
                                 'FROM session_history ' \
                                 'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
-                                'WHERE (session_history.grandparent_rating_key IN %s ' \
-                                'OR session_history.parent_rating_key IN %s ' \
-                                'OR session_history.rating_key IN %s)' % (group_by, rating_keys, rating_keys, rating_keys)
-                        result = monitor_db.select(query)
+                                'WHERE (session_history.grandparent_rating_key IN (%s) ' \
+                                'OR session_history.parent_rating_key IN (%s) ' \
+                                'OR session_history.rating_key IN (%s))' % (
+                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                                )
+                        result = monitor_db.select(query, args=[rating_keys, rating_keys, rating_keys])
                     else:
                         result = []
             except Exception as e:
@@ -1239,7 +1243,7 @@ class DataFactory(object):
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         _rating_keys = []
-        if media_type and media_type == 'collection':
+        if media_type == 'collection':
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_item_children(rating_key=rating_key)
 
@@ -1248,7 +1252,8 @@ class DataFactory(object):
         else:
             _rating_keys.append(rating_key)
 
-        rating_keys = '(' + ','.join(_rating_keys) + ')'
+        rating_keys = ','.join(_rating_keys)
+        rating_keys_arg = ','.join(['?'] * len(rating_keys))
 
         try:
             if str(rating_key).isdigit():
@@ -1261,12 +1266,14 @@ class DataFactory(object):
                         'FROM session_history ' \
                         'JOIN session_history_metadata ON session_history_metadata.id = session_history.id ' \
                         'JOIN users ON users.user_id = session_history.user_id ' \
-                        'WHERE (session_history.grandparent_rating_key IN %s ' \
-                        'OR session_history.parent_rating_key IN %s ' \
-                        'OR session_history.rating_key IN %s) ' \
+                        'WHERE (session_history.grandparent_rating_key IN (%s) ' \
+                        'OR session_history.parent_rating_key IN (%s) ' \
+                        'OR session_history.rating_key IN (%s)) ' \
                         'GROUP BY users.user_id ' \
-                        'ORDER BY total_plays DESC, total_time DESC' % (group_by, rating_keys, rating_keys, rating_keys)
-                result = monitor_db.select(query)
+                        'ORDER BY total_plays DESC, total_time DESC' % (
+                            group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                        )
+                result = monitor_db.select(query, args=[rating_keys, rating_keys, rating_keys])
             else:
                 result = []
         except Exception as e:

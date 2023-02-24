@@ -4463,7 +4463,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_watch_time_stats(self, rating_key=None, grouping=None, query_days=None, **kwargs):
+    def get_item_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None, **kwargs):
         """  Get the watch time stats for the media item.
 
             ```
@@ -4471,6 +4471,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
+                media_type(str):        Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
@@ -4504,7 +4505,7 @@ class WebInterface(object):
 
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key, grouping=grouping,
+            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type, grouping=grouping,
                                                     query_days=query_days)
             if result:
                 return result
@@ -4518,7 +4519,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_user_stats(self, rating_key=None, grouping=None, **kwargs):
+    def get_item_user_stats(self, rating_key=None, media_type=None, grouping=None, **kwargs):
         """  Get the user stats for the media item.
 
             ```
@@ -4526,6 +4527,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
+                media_type(str):        Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
 
             Returns:
@@ -4554,7 +4556,7 @@ class WebInterface(object):
 
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, grouping=grouping)
+            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type, grouping=grouping)
             if result:
                 return result
             else:
