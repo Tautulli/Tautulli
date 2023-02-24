@@ -4471,7 +4471,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
-                media_type(str):        Media type of the item (only required for a collection)
+                media_type (str):        Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
@@ -4505,7 +4505,9 @@ class WebInterface(object):
 
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type, grouping=grouping,
+            result = item_data.get_watch_time_stats(rating_key=rating_key,
+                                                    media_type=media_type,
+                                                    grouping=grouping,
                                                     query_days=query_days)
             if result:
                 return result
@@ -4527,7 +4529,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
-                media_type(str):        Media type of the item (only required for a collection)
+                media_type (str):        Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
 
             Returns:
@@ -4556,7 +4558,9 @@ class WebInterface(object):
 
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type, grouping=grouping)
+            result = item_data.get_user_stats(rating_key=rating_key,
+                                              media_type=media_type,
+                                              grouping=grouping)
             if result:
                 return result
             else:
