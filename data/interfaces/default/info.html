@@ -12,6 +12,7 @@ data :: Usable parameters (if not applicable for media type, blank value will be
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
 media_type              Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
+sub_media_type          Returns the subtype of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
 art                     Returns the location of the item's artwork
 title                   Returns the name of the movie, show, episode, artist, album, or track.
 duration                Returns the standard runtime of the media.
@@ -542,7 +543,10 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection'):
+                <%
+                    collection_valid = data['media_type'] == 'collection' and data['sub_media_type'] in ('movie', 'show', 'artist')
+                %>
+                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track') or collection_valid:
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
@@ -850,6 +854,7 @@ DOCUMENTATION :: END
 <%
     data = defaultdict(None, **metadata)
     history_user_id = '' if _session['user_group'] == 'admin' else _session['user_id']
+    collection_valid = data['media_type'] == 'collection' and data['sub_media_type'] in ('movie', 'show', 'artist')
 %>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
@@ -925,7 +930,7 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection'):
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track') or "${collection_valid}":
 <script>
     // Populate watch time stats
     $.ajax({
