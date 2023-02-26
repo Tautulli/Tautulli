@@ -29,7 +29,6 @@ import appdirs
 import argparse
 import datetime
 import locale
-import multiprocessing
 import pytz
 import signal
 import shutil
@@ -47,8 +46,6 @@ elif common.PLATFORM == 'Darwin':
 # Register signals, such as CTRL + C
 signal.signal(signal.SIGINT, plexpy.sig_handler)
 signal.signal(signal.SIGTERM, plexpy.sig_handler)
-
-multiprocessing.current_process()._config['semprefix'] = '/tautulli.tautulli.mp'
 
 
 def main():
