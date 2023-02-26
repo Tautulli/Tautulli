@@ -213,7 +213,7 @@ DOCUMENTATION :: END
                             % if _session['user_group'] == 'admin':
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
-                            % elif data['media_type'] in ('artist', 'album', 'track', 'playlist', 'photo_album', 'photo', 'clip'):
+                            % elif data['media_type'] in ('artist', 'album', 'track', 'playlist', 'photo_album', 'photo', 'clip') or data['sub_media_type'] in ('artist', 'album', 'track'):
                             <div class="summary-poster-face-track" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 300, fallback='cover')});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
@@ -283,14 +283,14 @@ DOCUMENTATION :: END
                         padding_height = ''
                         if data['media_type'] == 'movie' or data['live']:
                             padding_height = 'height: 305px;'
-                        elif data['media_type'] in ('show', 'season', 'collection'):
-                            padding_height = 'height: 270px;'
-                        elif data['media_type'] == 'episode':
-                            padding_height = 'height: 70px;'
-                        elif data['media_type'] in ('artist', 'album', 'playlist', 'photo_album', 'photo'):
+                        elif data['media_type'] in ('artist', 'album', 'playlist', 'photo_album', 'photo') or data['sub_media_type'] in ('artist', 'album', 'track'):
                             padding_height = 'height: 150px;'
                         elif data['media_type'] in ('track', 'clip'):
                             padding_height = 'height: 180px;'
+                        elif data['media_type'] == 'episode':
+                            padding_height = 'height: 70px;'
+                        elif data['media_type'] in ('show', 'season', 'collection'):
+                            padding_height = 'height: 270px;'
                     %>
                     <div class="summary-content-padding hidden-xs hidden-sm" style="${padding_height}">
                         % if data['media_type'] in ('movie', 'episode', 'track', 'clip'):
