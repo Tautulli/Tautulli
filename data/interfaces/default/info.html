@@ -543,10 +543,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                <%
-                    collection_valid = data['media_type'] == 'collection' and data['sub_media_type'] in ('movie', 'show', 'artist')
-                %>
-                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track') or collection_valid:
+                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection'):
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
@@ -854,7 +851,6 @@ DOCUMENTATION :: END
 <%
     data = defaultdict(None, **metadata)
     history_user_id = '' if _session['user_group'] == 'admin' else _session['user_id']
-    collection_valid = data['media_type'] == 'collection' and data['sub_media_type'] in ('movie', 'show', 'artist')
 %>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
@@ -930,7 +926,7 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track') or "${collection_valid}":
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection'):
 <script>
     // Populate watch time stats
     $.ajax({
