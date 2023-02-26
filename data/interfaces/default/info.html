@@ -267,7 +267,7 @@ DOCUMENTATION :: END
                         <h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         % elif data['media_type'] == 'track':
-                        <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['original_title'] or data['grandparent_title']}</a></h1>
+                        <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
                         <h2><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a> - ${data['title']}</h2>
                         <h3 class="hidden-xs">T${data['media_index']}</h3>
                         % elif data['media_type'] in ('photo', 'clip'):
@@ -367,6 +367,11 @@ DOCUMENTATION :: END
                             <div class="summary-content-details-tag">
                                 % if data['studio']:
                                 Studio <strong> ${data['studio']}</strong>
+                                % endif
+                            </div>
+                            <div class="summary-content-details-tag">
+                                % if data['media_type'] == 'track' and data['original_title']:
+                                Track Artists <strong> ${data['original_title']}</strong>
                                 % endif
                             </div>
                             <div class="summary-content-details-tag">
@@ -812,7 +817,7 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'album':
                         ${data['parent_title']}<br />${data['title']}
                         % elif data['media_type'] == 'track':
-                        ${data['original_title'] or data['grandparent_title']}<br />${data['title']}<br />${data['parent_title']}
+                        ${data['grandparent_title']}<br />${data['title']}<br />${data['parent_title']}
                         % endif
                     </strong>
                 </p>
