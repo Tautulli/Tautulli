@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -1156,15 +1156,12 @@ class DataFactory(object):
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
-        rating_keys = []
         if media_type == 'collection':
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
-
-            for child in result['children_list']:
-                rating_keys.append(child['rating_key'])
+            rating_keys = [child['rating_key'] for child in result['children_list']]
         else:
-            rating_keys.append(rating_key)
+            rating_keys = [rating_key]
 
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
 
@@ -1243,15 +1240,12 @@ class DataFactory(object):
         
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
-        rating_keys = []
         if media_type == 'collection':
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
-
-            for child in result['children_list']:
-                rating_keys.append(child['rating_key'])
+            rating_keys = [child['rating_key'] for child in result['children_list']]
         else:
-            rating_keys.append(rating_key)
+            rating_keys = [rating_key]
 
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
 
