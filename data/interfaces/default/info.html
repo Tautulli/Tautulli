@@ -12,6 +12,7 @@ data :: Usable parameters (if not applicable for media type, blank value will be
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
 media_type              Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
+sub_media_type          Returns the subtype of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
 art                     Returns the location of the item's artwork
 title                   Returns the name of the movie, show, episode, artist, album, or track.
 edition_title            Returns the edition title of a movie.
@@ -553,7 +554,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection'):
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
@@ -936,13 +937,16 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection'):
 <script>
     // Populate watch time stats
     $.ajax({
         url: 'item_watch_time_stats',
         async: true,
-        data: { rating_key: "${data['rating_key']}" },
+        data: { 
+            rating_key: "${data['rating_key']}",
+            media_type: "${data['media_type']}"    
+        },
         complete: function(xhr, status) {
             $("#watch-time-stats").html(xhr.responseText);
         }
@@ -951,7 +955,10 @@ DOCUMENTATION :: END
     $.ajax({
         url: 'item_user_stats',
         async: true,
-        data: { rating_key: "${data['rating_key']}" },
+        data: { 
+            rating_key: "${data['rating_key']}",
+            media_type: "${data['media_type']}"    
+        },
         complete: function(xhr, status) {
             $("#user-stats").html(xhr.responseText);
         }
