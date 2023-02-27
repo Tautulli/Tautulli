@@ -2880,7 +2880,6 @@ def analytics_event(name, **kwargs):
     if TRACKER:
         try:
             TRACKER.send(events=[event])
-            pass
         except Exception as e:
             logger.warn("Failed to send analytics event for name '%s': %s" % (name, e))
 
