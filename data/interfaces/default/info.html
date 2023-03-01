@@ -554,7 +554,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection'):
+                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
@@ -937,7 +937,7 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection'):
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
 <script>
     // Populate watch time stats
     $.ajax({
