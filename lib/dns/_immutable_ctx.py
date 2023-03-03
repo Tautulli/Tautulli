@@ -8,7 +8,7 @@ import contextvars
 import inspect
 
 
-_in__init__ = contextvars.ContextVar('_immutable_in__init__', default=False)
+_in__init__ = contextvars.ContextVar("_immutable_in__init__", default=False)
 
 
 class _Immutable:
@@ -41,6 +41,7 @@ def _immutable_init(f):
             f(*args, **kwargs)
         finally:
             _in__init__.reset(previous)
+
     nf.__signature__ = inspect.signature(f)
     return nf
 
@@ -50,7 +51,7 @@ def immutable(cls):
         # Some ancestor already has the mixin, so just make sure we keep
         # following the __init__ protocol.
         cls.__init__ = _immutable_init(cls.__init__)
-        if hasattr(cls, '__setstate__'):
+        if hasattr(cls, "__setstate__"):
             cls.__setstate__ = _immutable_init(cls.__setstate__)
         ncls = cls
     else:
@@ -63,7 +64,8 @@ def immutable(cls):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
 
-            if hasattr(cls, '__setstate__'):
+            if hasattr(cls, "__setstate__"):
+
                 @_immutable_init
                 def __setstate__(self, *args, **kwargs):
                     super().__setstate__(*args, **kwargs)

@@ -31,7 +31,7 @@ class MXBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like an MX record."""
 
-    __slots__ = ['preference', 'exchange']
+    __slots__ = ["preference", "exchange"]
 
     def __init__(self, rdclass, rdtype, preference, exchange):
         super().__init__(rdclass, rdtype)
@@ -40,11 +40,12 @@ class MXBase(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         exchange = self.exchange.choose_relativity(origin, relativize)
-        return '%d %s' % (self.preference, exchange)
+        return "%d %s" % (self.preference, exchange)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         preference = tok.get_uint16()
         exchange = tok.get_name(origin, relativize, relativize_to)
         return cls(rdclass, rdtype, preference, exchange)

@@ -26,18 +26,20 @@ _lltuple = dns.inet.low_level_address_tuple
 
 class DatagramSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, socket):
+        super().__init__(socket.family)
         self.socket = socket
-        self.family = socket.family
 
     async def sendto(self, what, destination, timeout):
         async with _maybe_timeout(timeout):
             return await self.socket.sendto(what, destination)
-        raise dns.exception.Timeout(timeout=timeout)  # pragma: no cover
+        raise dns.exception.Timeout(
+            timeout=timeout
+        )  # pragma: no cover  lgtm[py/unreachable-statement]
 
     async def recvfrom(self, size, timeout):
         async with _maybe_timeout(timeout):
             return await self.socket.recvfrom(size)
-        raise dns.exception.Timeout(timeout=timeout)
+        raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def close(self):
         await self.socket.close()
@@ -57,12 +59,12 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
     async def sendall(self, what, timeout):
         async with _maybe_timeout(timeout):
             return await self.socket.sendall(what)
-        raise dns.exception.Timeout(timeout=timeout)
+        raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def recv(self, size, timeout):
         async with _maybe_timeout(timeout):
             return await self.socket.recv(size)
-        raise dns.exception.Timeout(timeout=timeout)
+        raise dns.exception.Timeout(timeout=timeout)  # lgtm[py/unreachable-statement]
 
     async def close(self):
         await self.socket.close()
@@ -76,11 +78,19 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 
 class Backend(dns._asyncbackend.Backend):
     def name(self):
-        return 'curio'
+        return "curio"
 
-    async def make_socket(self, af, socktype, proto=0,
-                          source=None, destination=None, timeout=None,
-                          ssl_context=None, server_hostname=None):
+    async def make_socket(
+        self,
+        af,
+        socktype,
+        proto=0,
+        source=None,
+        destination=None,
+        timeout=None,
+        ssl_context=None,
+        server_hostname=None,
+    ):
         if socktype == socket.SOCK_DGRAM:
             s = curio.socket.socket(af, socktype, proto)
             try:
@@ -96,13 +106,17 @@ class Backend(dns._asyncbackend.Backend):
             else:
                 source_addr = None
             async with _maybe_timeout(timeout):
-                s = await curio.open_connection(destination[0], destination[1],
-                                                ssl=ssl_context,
-                                                source_addr=source_addr,
-                                                server_hostname=server_hostname)
+                s = await curio.open_connection(
+                    destination[0],
+                    destination[1],
+                    ssl=ssl_context,
+                    source_addr=source_addr,
+                    server_hostname=server_hostname,
+                )
             return StreamSocket(s)
-        raise NotImplementedError('unsupported socket ' +
-                                  f'type {socktype}')  # pragma: no cover
+        raise NotImplementedError(
+            "unsupported socket " + f"type {socktype}"
+        )  # pragma: no cover
 
     async def sleep(self, interval):
         await curio.sleep(interval)

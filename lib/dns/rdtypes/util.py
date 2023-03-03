@@ -28,6 +28,7 @@ import dns.rdata
 
 class Gateway:
     """A helper class for the IPSECKEY gateway and AMTRELAY relay fields"""
+
     name = ""
 
     def __init__(self, type, gateway=None):
@@ -67,15 +68,17 @@ class Gateway:
             raise ValueError(self._invalid_type(self.type))  # pragma: no cover
 
     @classmethod
-    def from_text(cls, gateway_type, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, gateway_type, tok, origin=None, relativize=True, relativize_to=None
+    ):
         if gateway_type in (0, 1, 2):
             gateway = tok.get_string()
         elif gateway_type == 3:
             gateway = tok.get_name(origin, relativize, relativize_to)
         else:
             raise dns.exception.SyntaxError(
-                cls._invalid_type(gateway_type))  # pragma: no cover
+                cls._invalid_type(gateway_type)
+            )  # pragma: no cover
         return cls(gateway_type, gateway)
 
     # pylint: disable=unused-argument
@@ -90,6 +93,7 @@ class Gateway:
             self.gateway.to_wire(file, None, origin, False)
         else:
             raise ValueError(self._invalid_type(self.type))  # pragma: no cover
+
     # pylint: enable=unused-argument
 
     @classmethod
@@ -109,6 +113,7 @@ class Gateway:
 
 class Bitmap:
     """A helper class for the NSEC/NSEC3/CSYNC type bitmaps"""
+
     type_name = ""
 
     def __init__(self, windows=None):
@@ -136,7 +141,7 @@ class Bitmap:
                     if byte & (0x80 >> j):
                         rdtype = window * 256 + i * 8 + j
                         bits.append(dns.rdatatype.to_text(rdtype))
-            text += (' ' + ' '.join(bits))
+            text += " " + " ".join(bits)
         return text
 
     @classmethod
@@ -151,7 +156,7 @@ class Bitmap:
         window = 0
         octets = 0
         prior_rdtype = 0
-        bitmap = bytearray(b'\0' * 32)
+        bitmap = bytearray(b"\0" * 32)
         windows = []
         for rdtype in rdtypes:
             if rdtype == prior_rdtype:
@@ -161,7 +166,7 @@ class Bitmap:
             if new_window != window:
                 if octets != 0:
                     windows.append((window, bytes(bitmap[0:octets])))
-                bitmap = bytearray(b'\0' * 32)
+                bitmap = bytearray(b"\0" * 32)
                 window = new_window
             offset = rdtype % 256
             byte = offset // 8
@@ -174,7 +179,7 @@ class Bitmap:
 
     def to_wire(self, file):
         for (window, bitmap) in self.windows:
-            file.write(struct.pack('!BB', window, len(bitmap)))
+            file.write(struct.pack("!BB", window, len(bitmap)))
             file.write(bitmap)
 
     @classmethod
@@ -193,6 +198,7 @@ def _priority_table(items):
         by_priority[rdata._processing_priority()].append(rdata)
     return by_priority
 
+
 def priority_processing_order(iterable):
     items = list(iterable)
     if len(items) == 1:
@@ -205,7 +211,9 @@ def priority_processing_order(iterable):
         ordered.extend(rdatas)
     return ordered
 
+
 _no_weight = 0.1
+
 
 def weighted_processing_order(iterable):
     items = list(iterable)
@@ -215,8 +223,7 @@ def weighted_processing_order(iterable):
     ordered = []
     for k in sorted(by_priority.keys()):
         rdatas = by_priority[k]
-        total = sum(rdata._processing_weight() or _no_weight
-                    for rdata in rdatas)
+        total = sum(rdata._processing_weight() or _no_weight for rdata in rdatas)
         while len(rdatas) > 1:
             r = random.uniform(0, total)
             for (n, rdata) in enumerate(rdatas):
@@ -230,15 +237,16 @@ def weighted_processing_order(iterable):
         ordered.append(rdatas[0])
     return ordered
 
+
 def parse_formatted_hex(formatted, num_chunks, chunk_size, separator):
     if len(formatted) != num_chunks * (chunk_size + 1) - 1:
-        raise ValueError('invalid formatted hex string')
-    value = b''
+        raise ValueError("invalid formatted hex string")
+    value = b""
     for _ in range(num_chunks):
         chunk = formatted[0:chunk_size]
-        value += int(chunk, 16).to_bytes(chunk_size // 2, 'big')
+        value += int(chunk, 16).to_bytes(chunk_size // 2, "big")
         formatted = formatted[chunk_size:]
         if len(formatted) > 0 and formatted[0] != separator:
-            raise ValueError('invalid formatted hex string')
+            raise ValueError("invalid formatted hex string")
         formatted = formatted[1:]
     return value

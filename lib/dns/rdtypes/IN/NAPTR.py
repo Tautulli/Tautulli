@@ -27,7 +27,7 @@ import dns.rdtypes.util
 def _write_string(file, s):
     l = len(s)
     assert l < 256
-    file.write(struct.pack('!B', l))
+    file.write(struct.pack("!B", l))
     file.write(s)
 
 
@@ -38,11 +38,11 @@ class NAPTR(dns.rdata.Rdata):
 
     # see: RFC 3403
 
-    __slots__ = ['order', 'preference', 'flags', 'service', 'regexp',
-                 'replacement']
+    __slots__ = ["order", "preference", "flags", "service", "regexp", "replacement"]
 
-    def __init__(self, rdclass, rdtype, order, preference, flags, service,
-                 regexp, replacement):
+    def __init__(
+        self, rdclass, rdtype, order, preference, flags, service, regexp, replacement
+    ):
         super().__init__(rdclass, rdtype)
         self.flags = self._as_bytes(flags, True, 255)
         self.service = self._as_bytes(service, True, 255)
@@ -53,24 +53,28 @@ class NAPTR(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         replacement = self.replacement.choose_relativity(origin, relativize)
-        return '%d %d "%s" "%s" "%s" %s' % \
-               (self.order, self.preference,
-                dns.rdata._escapify(self.flags),
-                dns.rdata._escapify(self.service),
-                dns.rdata._escapify(self.regexp),
-                replacement)
+        return '%d %d "%s" "%s" "%s" %s' % (
+            self.order,
+            self.preference,
+            dns.rdata._escapify(self.flags),
+            dns.rdata._escapify(self.service),
+            dns.rdata._escapify(self.regexp),
+            replacement,
+        )
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         order = tok.get_uint16()
         preference = tok.get_uint16()
         flags = tok.get_string()
         service = tok.get_string()
         regexp = tok.get_string()
         replacement = tok.get_name(origin, relativize, relativize_to)
-        return cls(rdclass, rdtype, order, preference, flags, service,
-                   regexp, replacement)
+        return cls(
+            rdclass, rdtype, order, preference, flags, service, regexp, replacement
+        )
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         two_ints = struct.pack("!HH", self.order, self.preference)
@@ -82,14 +86,22 @@ class NAPTR(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (order, preference) = parser.get_struct('!HH')
+        (order, preference) = parser.get_struct("!HH")
         strings = []
         for _ in range(3):
             s = parser.get_counted_bytes()
             strings.append(s)
         replacement = parser.get_name(origin)
-        return cls(rdclass, rdtype, order, preference, strings[0], strings[1],
-                   strings[2], replacement)
+        return cls(
+            rdclass,
+            rdtype,
+            order,
+            preference,
+            strings[0],
+            strings[1],
+            strings[2],
+            replacement,
+        )
 
     def _processing_priority(self):
         return (self.order, self.preference)

@@ -31,7 +31,7 @@ class SRV(dns.rdata.Rdata):
 
     # see: RFC 2782
 
-    __slots__ = ['priority', 'weight', 'port', 'target']
+    __slots__ = ["priority", "weight", "port", "target"]
 
     def __init__(self, rdclass, rdtype, priority, weight, port, target):
         super().__init__(rdclass, rdtype)
@@ -42,12 +42,12 @@ class SRV(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)
-        return '%d %d %d %s' % (self.priority, self.weight, self.port,
-                                target)
+        return "%d %d %d %s" % (self.priority, self.weight, self.port, target)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         priority = tok.get_uint16()
         weight = tok.get_uint16()
         port = tok.get_uint16()
@@ -61,7 +61,7 @@ class SRV(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (priority, weight, port) = parser.get_struct('!HHH')
+        (priority, weight, port) = parser.get_struct("!HHH")
         target = parser.get_name(origin)
         return cls(rdclass, rdtype, priority, weight, port, target)
 
