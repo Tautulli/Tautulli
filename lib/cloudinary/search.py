@@ -4,7 +4,11 @@ from cloudinary.api_client.call_api import call_json_api
 from cloudinary.utils import unique
 
 
-class Search:
+class Search(object):
+    ASSETS = 'resources'
+
+    _endpoint = ASSETS
+
     _KEYS_WITH_UNIQUE_VALUES = {
         'sort_by': lambda x: next(iter(x)),
         'aggregate': None,
@@ -53,7 +57,7 @@ class Search:
     def execute(self, **options):
         """Execute the search and return results."""
         options["content_type"] = 'application/json'
-        uri = ['resources', 'search']
+        uri = [self._endpoint, 'search']
         return call_json_api('post', uri, self.as_dict(), **options)
 
     def _add(self, name, value):
@@ -72,3 +76,7 @@ class Search:
             to_return[key] = value
 
         return to_return
+
+    def endpoint(self, endpoint):
+        self._endpoint = endpoint
+        return self
