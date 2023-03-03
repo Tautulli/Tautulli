@@ -11,9 +11,9 @@ from bleach.sanitizer import (
 
 
 # yyyymmdd
-__releasedate__ = "20220627"
+__releasedate__ = "20230123"
 # x.y.z or x.y.z.dev0 -- semver
-__version__ = "5.0.1"
+__version__ = "6.0.0"
 
 
 __all__ = ["clean", "linkify"]
@@ -52,7 +52,7 @@ def clean(
 
     :arg str text: the text to clean
 
-    :arg list tags: allowed list of tags; defaults to
+    :arg set tags: set of allowed tags; defaults to
         ``bleach.sanitizer.ALLOWED_TAGS``
 
     :arg dict attributes: allowed attributes; can be a callable, list or dict;
