@@ -13,7 +13,7 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v3
 
       - name: Prepare
         id: prepare
@@ -47,7 +47,7 @@ jobs:
           version: latest
 
       - name: Cache Docker Layers
-        uses: actions/cache@v3.2.0
+        uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ github.sha }}
@@ -70,7 +70,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Docker Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         if: success()
         with:
           context: .

@@ -1733,3 +1733,43 @@ def short_season(title):
     if title.startswith('Season ') and title[7:].isdigit():
         return 'S%s' % title[7:]
     return title
+
+
+def get_first_final_marker(markers):
+    first = None
+    final = None
+    for marker in markers:
+        if marker['first']:
+            first = marker
+        if marker['final']:
+            final = marker
+    return first, final
+
+
+def check_watched(media_type, view_offset, duration, marker_credits_first=None, marker_credits_final=None):
+    if isinstance(marker_credits_first, dict):
+        marker_credits_first = marker_credits_first['start_time_offset']
+    if isinstance(marker_credits_final, dict):
+        marker_credits_final = marker_credits_final['start_time_offset']
+
+    view_offset = cast_to_int(view_offset)
+    duration = cast_to_int(duration)
+
+    watched_percent = {
+        'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+        'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+        'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
+        'clip': plexpy.CONFIG.TV_WATCHED_PERCENT
+    }
+    threshold = watched_percent.get(media_type, 0) / 100 * duration
+    if not threshold:
+        return False
+
+    if plexpy.CONFIG.WATCHED_MARKER == 1 and marker_credits_final:
+        return view_offset >= marker_credits_final
+    elif plexpy.CONFIG.WATCHED_MARKER == 2 and marker_credits_first:
+        return view_offset >= marker_credits_first
+    elif plexpy.CONFIG.WATCHED_MARKER == 3 and marker_credits_first:
+        return view_offset >= min(threshold, marker_credits_first)
+    else:
+        return view_offset >= threshold

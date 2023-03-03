@@ -294,7 +294,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Cast the condition values to the correct type
             try:
                 if parameter_type == 'str':
-                    values = ['' if v == '~' else str(v).lower() for v in values]
+                    values = ['' if v == '~' else str(v).strip().lower() for v in values]
 
                 elif parameter_type == 'int':
                     values = [helpers.cast_to_int(v) for v in values]
@@ -313,7 +313,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Cast the parameter value to the correct type
             try:
                 if parameter_type == 'str':
-                    parameter_value = str(parameter_value).lower()
+                    parameter_value = str(parameter_value).strip().lower()
 
                 elif parameter_type == 'int':
                     parameter_value = helpers.cast_to_int(parameter_value)
@@ -583,6 +583,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     notify_params.update(media_info)
     notify_params.update(media_part_info)
 
+    metadata = pmsconnect.PmsConnect().get_metadata_details(rating_key=rating_key)
+
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
         child = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
@@ -714,6 +716,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             notify_params['musicbrainz_url'] = 'https://musicbrainz.org/release/' + notify_params['musicbrainz_id']
         else:
             notify_params['musicbrainz_url'] = 'https://musicbrainz.org/track/' + notify_params['musicbrainz_id']
+
+    if 'hama://' in notify_params['guid']:
+        notify_params['anidb_id'] = notify_params['guid'].split('hama://')[1].split('/')[0].split('?')[0].split('-')[1]
+        notify_params['anidb_url'] = 'https://anidb.net/anime/' + notify_params['anidb_id']
 
     # Get TheMovieDB info (for movies and tv only)
     if plexpy.CONFIG.THEMOVIEDB_LOOKUP and notify_params['media_type'] in ('movie', 'show', 'season', 'episode'):
@@ -934,6 +940,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             and audience_rating:
         audience_rating = helpers.get_percent(notify_params['audience_rating'], 10)
 
+    marker = kwargs.pop('marker', defaultdict(int))
+
     now = arrow.now()
     now_iso = now.isocalendar()
 
@@ -1001,6 +1009,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'progress_duration_sec': view_offset_sec,
         'progress_time': arrow.get(view_offset_sec).format(duration_format),
         'progress_percent': helpers.get_percent(view_offset_sec, duration_sec),
+        'view_offset': session.get('view_offset', 0),
         'initial_stream': notify_params['initial_stream'],
         'transcode_decision': transcode_decision,
         'container_decision': notify_params['container_decision'],
@@ -1012,6 +1021,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'optimized_version_profile': notify_params['optimized_version_profile'],
         'synced_version': notify_params['synced_version'],
         'live': notify_params['live'],
+        'marker_start': marker['start_time_offset'],
+        'marker_end': marker['end_time_offset'],
+        'credits_marker_first': helpers.cast_to_int(marker['first']),
+        'credits_marker_final': helpers.cast_to_int(marker['final']),
         'channel_call_sign': notify_params['channel_call_sign'],
         'channel_identifier': notify_params['channel_identifier'],
         'channel_thumb': notify_params['channel_thumb'],
@@ -1128,6 +1141,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'user_rating': notify_params['user_rating'],
         'duration': duration,
         'duration_sec': duration_sec,
+        'duration_ms': notify_params['duration'],
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
         'plex_id': notify_params['plex_id'],
@@ -1142,6 +1156,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'tvmaze_url': notify_params['tvmaze_url'],
         'musicbrainz_id': notify_params['musicbrainz_id'],
         'musicbrainz_url': notify_params['musicbrainz_url'],
+        'anidb_id': notify_params['anidb_id'],
+        'anidb_url': notify_params['anidb_url'],
         'lastfm_url': notify_params['lastfm_url'],
         'trakt_url': notify_params['trakt_url'],
         'container': notify_params['container'],

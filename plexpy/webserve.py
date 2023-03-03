@@ -4431,10 +4431,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_watch_time_stats(self, rating_key=None, **kwargs):
+    def item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key)
+            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
         else:
             result = None
 
@@ -4446,10 +4446,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_user_stats(self, rating_key=None, **kwargs):
+    def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key)
+            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
         else:
             result = None
 
@@ -4463,7 +4463,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_watch_time_stats(self, rating_key=None, grouping=None, query_days=None, **kwargs):
+    def get_item_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None, **kwargs):
         """  Get the watch time stats for the media item.
 
             ```
@@ -4471,6 +4471,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
+                media_type (str):        Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
@@ -4504,7 +4505,9 @@ class WebInterface(object):
 
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key, grouping=grouping,
+            result = item_data.get_watch_time_stats(rating_key=rating_key,
+                                                    media_type=media_type,
+                                                    grouping=grouping,
                                                     query_days=query_days)
             if result:
                 return result
@@ -4518,7 +4521,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_user_stats(self, rating_key=None, grouping=None, **kwargs):
+    def get_item_user_stats(self, rating_key=None, media_type=None, grouping=None, **kwargs):
         """  Get the user stats for the media item.
 
             ```
@@ -4526,6 +4529,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
+                media_type (str):        Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
 
             Returns:
@@ -4554,7 +4558,9 @@ class WebInterface(object):
 
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, grouping=grouping)
+            result = item_data.get_user_stats(rating_key=rating_key,
+                                              media_type=media_type,
+                                              grouping=grouping)
             if result:
                 return result
             else:
@@ -5339,6 +5345,24 @@ class WebInterface(object):
                      "last_viewed_at": "1462165717",
                      "library_name": "TV Shows",
                      "live": 0,
+                     "markers": [
+                        {
+                             "id": 908,
+                             "type": "credits",
+                             "start_time_offset": 2923863,
+                             "end_time_offset": 2998197,
+                             "first": true,
+                             "final": true
+                        },
+                        {
+                             "id": 908,
+                             "type": "intro",
+                             "start_time_offset": 1622,
+                             "end_time_offset": 109135,
+                             "first": null,
+                             "final": null
+                        }
+                     ],
                      "media_index": "1",
                      "media_info": [
                          {
@@ -6185,7 +6209,8 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_home_stats(self, grouping=None, time_range=30, stats_type='plays',
-                       stats_start=0, stats_count=10, stat_id='', **kwargs):
+                       stats_start=0, stats_count=10, stat_id='',
+                       section_id=None, user_id=None, **kwargs):
         """ Get the homepage watch statistics.
 
             ```
@@ -6201,6 +6226,8 @@ class WebInterface(object):
                 stat_id (str):          A single stat to return, 'top_movies', 'popular_movies',
                                         'top_tv', 'popular_tv', 'top_music', 'popular_music', 'top_libraries',
                                         'top_users', 'top_platforms', 'last_watched', 'most_concurrent'
+                section_id (int):       The id of the Plex library section
+                user_id (int):          The id of the Plex user
 
             Returns:
                 json:
@@ -6282,7 +6309,9 @@ class WebInterface(object):
                                              stats_type=stats_type,
                                              stats_start=stats_start,
                                              stats_count=stats_count,
-                                             stat_id=stat_id)
+                                             stat_id=stat_id,
+                                             section_id=section_id,
+                                             user_id=user_id)
 
         if result:
             return result

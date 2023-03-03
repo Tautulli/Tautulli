@@ -10,3 +10,9 @@ else:
     except ImportError:
         raise ImportError('The FileDialog module is missing. Does your Py2 '
                           'installation include tkinter?')
+    
+    try:
+        from tkFileDialog import *
+    except ImportError:
+        raise ImportError('The tkFileDialog module is missing. Does your Py2 '
+                          'installation include tkinter?')
