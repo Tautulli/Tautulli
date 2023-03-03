@@ -8,21 +8,23 @@ from bleach import html5lib_shim
 from bleach import parse_shim
 
 
-#: List of allowed tags
-ALLOWED_TAGS = [
-    "a",
-    "abbr",
-    "acronym",
-    "b",
-    "blockquote",
-    "code",
-    "em",
-    "i",
-    "li",
-    "ol",
-    "strong",
-    "ul",
-]
+#: Set of allowed tags
+ALLOWED_TAGS = frozenset(
+    (
+        "a",
+        "abbr",
+        "acronym",
+        "b",
+        "blockquote",
+        "code",
+        "em",
+        "i",
+        "li",
+        "ol",
+        "strong",
+        "ul",
+    )
+)
 
 
 #: Map of allowed attributes by tag
@@ -33,7 +35,7 @@ ALLOWED_ATTRIBUTES = {
 }
 
 #: List of allowed protocols
-ALLOWED_PROTOCOLS = ["http", "https", "mailto"]
+ALLOWED_PROTOCOLS = frozenset(("http", "https", "mailto"))
 
 #: Invisible characters--0 to and including 31 except 9 (tab), 10 (lf), and 13 (cr)
 INVISIBLE_CHARACTERS = "".join(
@@ -46,6 +48,10 @@ INVISIBLE_CHARACTERS_RE = re.compile("[" + INVISIBLE_CHARACTERS + "]", re.UNICOD
 #: String to replace invisible characters with. This can be a character, a
 #: string, or even a function that takes a Python re matchobj
 INVISIBLE_REPLACEMENT_CHAR = "?"
+
+
+class NoCssSanitizerWarning(UserWarning):
+    pass
 
 
 class Cleaner:
@@ -89,7 +95,7 @@ class Cleaner:
     ):
         """Initializes a Cleaner
 
-        :arg list tags: allowed list of tags; defaults to
+        :arg set tags: set of allowed tags; defaults to
             ``bleach.sanitizer.ALLOWED_TAGS``
 
         :arg dict attributes: allowed attributes; can be a callable, list or dict;
@@ -143,6 +149,25 @@ class Cleaner:
             alphabetical_attributes=False,
         )
 
+        if css_sanitizer is None:
+            # FIXME(willkg): this doesn't handle when attributes or an
+            # attributes value is a callable
+            attributes_values = []
+            if isinstance(attributes, list):
+                attributes_values = attributes
+
+            elif isinstance(attributes, dict):
+                attributes_values = []
+                for values in attributes.values():
+                    if isinstance(values, (list, tuple)):
+                        attributes_values.extend(values)
+
+            if "style" in attributes_values:
+                warnings.warn(
+                    "'style' attribute specified, but css_sanitizer not set.",
+                    category=NoCssSanitizerWarning,
+                )
+
     def clean(self, text):
         """Cleans text and returns sanitized result as unicode
 
@@ -155,9 +180,8 @@ class Cleaner:
         """
         if not isinstance(text, str):
             message = (
-                "argument cannot be of '{name}' type, must be of text type".format(
-                    name=text.__class__.__name__
-                )
+                f"argument cannot be of {text.__class__.__name__!r} type, "
+                + "must be of text type"
             )
             raise TypeError(message)
 
@@ -167,13 +191,11 @@ class Cleaner:
         dom = self.parser.parseFragment(text)
         filtered = BleachSanitizerFilter(
             source=self.walker(dom),
-            # Bleach-sanitizer-specific things
+            allowed_tags=self.tags,
             attributes=self.attributes,
-            strip_disallowed_elements=self.strip,
+            strip_disallowed_tags=self.strip,
             strip_html_comments=self.strip_comments,
             css_sanitizer=self.css_sanitizer,
-            # html5lib-sanitizer things
-            allowed_elements=self.tags,
             allowed_protocols=self.protocols,
         )
 
@@ -237,19 +259,21 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
     def __init__(
         self,
         source,
-        allowed_elements=ALLOWED_TAGS,
+        allowed_tags=ALLOWED_TAGS,
         attributes=ALLOWED_ATTRIBUTES,
         allowed_protocols=ALLOWED_PROTOCOLS,
-        strip_disallowed_elements=False,
+        attr_val_is_uri=html5lib_shim.attr_val_is_uri,
+        svg_attr_val_allows_ref=html5lib_shim.svg_attr_val_allows_ref,
+        svg_allow_local_href=html5lib_shim.svg_allow_local_href,
+        strip_disallowed_tags=False,
         strip_html_comments=True,
         css_sanitizer=None,
-        **kwargs,
     ):
         """Creates a BleachSanitizerFilter instance
 
         :arg source: html5lib TreeWalker stream as an html5lib TreeWalker
 
-        :arg list allowed_elements: allowed list of tags; defaults to
+        :arg set allowed_tags: set of allowed tags; defaults to
             ``bleach.sanitizer.ALLOWED_TAGS``
 
         :arg dict attributes: allowed attributes; can be a callable, list or dict;
@@ -258,8 +282,16 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
         :arg list allowed_protocols: allowed list of protocols for links; defaults
             to ``bleach.sanitizer.ALLOWED_PROTOCOLS``
 
-        :arg bool strip_disallowed_elements: whether or not to strip disallowed
-            elements
+        :arg attr_val_is_uri: set of attributes that have URI values
+
+        :arg svg_attr_val_allows_ref: set of SVG attributes that can have
+            references
+
+        :arg svg_allow_local_href: set of SVG elements that can have local
+            hrefs
+
+        :arg bool strip_disallowed_tags: whether or not to strip disallowed
+            tags
 
         :arg bool strip_html_comments: whether or not to strip HTML comments
 
@@ -267,24 +299,24 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
             sanitizing style attribute values and style text; defaults to None
 
         """
-        self.attr_filter = attribute_filter_factory(attributes)
-        self.strip_disallowed_elements = strip_disallowed_elements
-        self.strip_html_comments = strip_html_comments
-        self.css_sanitizer = css_sanitizer
+        # NOTE(willkg): This is the superclass of
+        # html5lib.filters.sanitizer.Filter. We call this directly skipping the
+        # __init__ for html5lib.filters.sanitizer.Filter because that does
+        # things we don't need to do and kicks up the deprecation warning for
+        # using Sanitizer.
+        html5lib_shim.Filter.__init__(self, source)
 
-        # filter out html5lib deprecation warnings to use bleach from BleachSanitizerFilter init
-        warnings.filterwarnings(
-            "ignore",
-            message="html5lib's sanitizer is deprecated",
-            category=DeprecationWarning,
-            module="bleach._vendor.html5lib",
-        )
-        return super().__init__(
-            source,
-            allowed_elements=allowed_elements,
-            allowed_protocols=allowed_protocols,
-            **kwargs,
-        )
+        self.allowed_tags = frozenset(allowed_tags)
+        self.allowed_protocols = frozenset(allowed_protocols)
+
+        self.attr_filter = attribute_filter_factory(attributes)
+        self.strip_disallowed_tags = strip_disallowed_tags
+        self.strip_html_comments = strip_html_comments
+
+        self.attr_val_is_uri = attr_val_is_uri
+        self.svg_attr_val_allows_ref = svg_attr_val_allows_ref
+        self.css_sanitizer = css_sanitizer
+        self.svg_allow_local_href = svg_allow_local_href
 
     def sanitize_stream(self, token_iterator):
         for token in token_iterator:
@@ -354,10 +386,10 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
         """
         token_type = token["type"]
         if token_type in ["StartTag", "EndTag", "EmptyTag"]:
-            if token["name"] in self.allowed_elements:
+            if token["name"] in self.allowed_tags:
                 return self.allow_token(token)
 
-            elif self.strip_disallowed_elements:
+            elif self.strip_disallowed_tags:
                 return None
 
             else:
@@ -570,7 +602,7 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
     def disallowed_token(self, token):
         token_type = token["type"]
         if token_type == "EndTag":
-            token["data"] = "</%s>" % token["name"]
+            token["data"] = f"</{token['name']}>"
 
         elif token["data"]:
             assert token_type in ("StartTag", "EmptyTag")
@@ -586,25 +618,19 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
                 if ns is None or ns not in html5lib_shim.prefixes:
                     namespaced_name = name
                 else:
-                    namespaced_name = "{}:{}".format(html5lib_shim.prefixes[ns], name)
+                    namespaced_name = f"{html5lib_shim.prefixes[ns]}:{name}"
 
-                attrs.append(
-                    ' %s="%s"'
-                    % (
-                        namespaced_name,
-                        # NOTE(willkg): HTMLSerializer escapes attribute values
-                        # already, so if we do it here (like HTMLSerializer does),
-                        # then we end up double-escaping.
-                        v,
-                    )
-                )
-            token["data"] = "<{}{}>".format(token["name"], "".join(attrs))
+                # NOTE(willkg): HTMLSerializer escapes attribute values
+                # already, so if we do it here (like HTMLSerializer does),
+                # then we end up double-escaping.
+                attrs.append(f' {namespaced_name}="{v}"')
+            token["data"] = f"<{token['name']}{''.join(attrs)}>"
 
         else:
-            token["data"] = "<%s>" % token["name"]
+            token["data"] = f"<{token['name']}>"
 
         if token.get("selfClosing"):
-            token["data"] = token["data"][:-1] + "/>"
+            token["data"] = f"{token['data'][:-1]}/>"
 
         token["type"] = "Characters"
 

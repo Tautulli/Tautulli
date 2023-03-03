@@ -53,7 +53,7 @@ class ELFFile:
             raise ELFInvalid(f"invalid magic: {magic!r}")
 
         self.capacity = ident[4]  # Format for program header (bitness).
-        self.encoding = ident[5]  # Data structure encoding (endianess).
+        self.encoding = ident[5]  # Data structure encoding (endianness).
 
         try:
             # e_fmt: Format for program header.

@@ -32,7 +32,7 @@ class URI(dns.rdata.Rdata):
 
     # see RFC 7553
 
-    __slots__ = ['priority', 'weight', 'target']
+    __slots__ = ["priority", "weight", "target"]
 
     def __init__(self, rdclass, rdtype, priority, weight, target):
         super().__init__(rdclass, rdtype)
@@ -43,12 +43,12 @@ class URI(dns.rdata.Rdata):
             raise dns.exception.SyntaxError("URI target cannot be empty")
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return '%d %d "%s"' % (self.priority, self.weight,
-                               self.target.decode())
+        return '%d %d "%s"' % (self.priority, self.weight, self.target.decode())
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         priority = tok.get_uint16()
         weight = tok.get_uint16()
         target = tok.get().unescape()
@@ -63,10 +63,10 @@ class URI(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (priority, weight) = parser.get_struct('!HH')
+        (priority, weight) = parser.get_struct("!HH")
         target = parser.get_remaining()
         if len(target) == 0:
-            raise dns.exception.FormError('URI target may not be empty')
+            raise dns.exception.FormError("URI target may not be empty")
         return cls(rdclass, rdtype, priority, weight, target)
 
     def _processing_priority(self):

@@ -213,6 +213,20 @@
                             </div>
                             <p class="help-block">Set the percentage for a music track to be considered as listened. Minimum 50, Maximum 95.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="music_watched_percent">Video Watched Completion Behaviour</label>
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <select class="form-control" id="watched_marker" name="watched_marker">
+                                        <option value="0" ${'selected' if config['watched_marker'] == 0 else ''}>At selected threshold percentage</option>
+                                        <option value="1" ${'selected' if config['watched_marker'] == 1 else ''}>At final credits marker position</option>
+                                        <option value="2" ${'selected' if config['watched_marker'] == 2 else ''}>At first credits marker position</option>
+                                        <option value="3" ${'selected' if config['watched_marker'] == 3 else ''}>Earliest between threshold percent and first credits marker</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">Decide whether to use end credits markers to determine the 'watched' state of video items. When markers are not available the selected threshold percentage will be used.</p>
+                        </div>
                         <div class="form-group advanced-setting">
                             <label>Flush Temporary Sessions</label>
                             <p class="help-block">

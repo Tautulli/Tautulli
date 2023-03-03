@@ -16,12 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import itertools
-import sys
 
-if sys.version_info >= (3, 7):
-    odict = dict
-else:
-    from collections import OrderedDict as odict  # pragma: no cover
 
 class Set:
 
@@ -33,7 +28,7 @@ class Set:
     ability is widely used in dnspython applications.
     """
 
-    __slots__ = ['items']
+    __slots__ = ["items"]
 
     def __init__(self, items=None):
         """Initialize the set.
@@ -41,24 +36,24 @@ class Set:
         *items*, an iterable or ``None``, the initial set of items.
         """
 
-        self.items = odict()
+        self.items = dict()
         if items is not None:
             for item in items:
-                self.add(item)
+                # This is safe for how we use set, but if other code
+                # subclasses it could be a legitimate issue.
+                self.add(item)  # lgtm[py/init-calls-subclass]
 
     def __repr__(self):
         return "dns.set.Set(%s)" % repr(list(self.items.keys()))
 
     def add(self, item):
-        """Add an item to the set.
-        """
+        """Add an item to the set."""
 
         if item not in self.items:
             self.items[item] = None
 
     def remove(self, item):
-        """Remove an item from the set.
-        """
+        """Remove an item from the set."""
 
         try:
             del self.items[item]
@@ -66,12 +61,16 @@ class Set:
             raise ValueError
 
     def discard(self, item):
-        """Remove an item from the set if present.
-        """
+        """Remove an item from the set if present."""
 
         self.items.pop(item, None)
 
-    def _clone(self):
+    def pop(self):
+        """Remove an arbitrary item from the set."""
+        (k, _) = self.items.popitem()
+        return k
+
+    def _clone(self) -> "Set":
         """Make a (shallow) copy of the set.
 
         There is a 'clone protocol' that subclasses of this class
@@ -84,24 +83,22 @@ class Set:
         subclasses.
         """
 
-        if hasattr(self, '_clone_class'):
-            cls = self._clone_class
+        if hasattr(self, "_clone_class"):
+            cls = self._clone_class  # type: ignore
         else:
             cls = self.__class__
         obj = cls.__new__(cls)
-        obj.items = odict()
+        obj.items = dict()
         obj.items.update(self.items)
         return obj
 
     def __copy__(self):
-        """Make a (shallow) copy of the set.
-        """
+        """Make a (shallow) copy of the set."""
 
         return self._clone()
 
     def copy(self):
-        """Make a (shallow) copy of the set.
-        """
+        """Make a (shallow) copy of the set."""
 
         return self._clone()
 
@@ -111,8 +108,8 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
-        if self is other:
+            raise ValueError("other must be a Set instance")
+        if self is other:  # lgtm[py/comparison-using-is]
             return
         for item in other.items:
             self.add(item)
@@ -123,8 +120,8 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
-        if self is other:
+            raise ValueError("other must be a Set instance")
+        if self is other:  # lgtm[py/comparison-using-is]
             return
         # we make a copy of the list so that we can remove items from
         # the list without breaking the iterator.
@@ -138,12 +135,24 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
-        if self is other:
+            raise ValueError("other must be a Set instance")
+        if self is other:  # lgtm[py/comparison-using-is]
             self.items.clear()
         else:
             for item in other.items:
                 self.discard(item)
+
+    def symmetric_difference_update(self, other):
+        """Update the set, retaining only elements unique to both sets."""
+
+        if not isinstance(other, Set):
+            raise ValueError("other must be a Set instance")
+        if self is other:  # lgtm[py/comparison-using-is]
+            self.items.clear()
+        else:
+            overlap = self.intersection(other)
+            self.union_update(other)
+            self.difference_update(overlap)
 
     def union(self, other):
         """Return a new set which is the union of ``self`` and ``other``.
@@ -177,6 +186,18 @@ class Set:
         obj.difference_update(other)
         return obj
 
+    def symmetric_difference(self, other):
+        """Return a new set which (``self`` - ``other``) | (``other``
+        - ``self), ie: the items in either ``self`` or ``other`` which
+        are not contained in their intersection.
+
+        Returns the same Set type as this set.
+        """
+
+        obj = self._clone()
+        obj.symmetric_difference_update(other)
+        return obj
+
     def __or__(self, other):
         return self.union(other)
 
@@ -188,6 +209,9 @@ class Set:
 
     def __sub__(self, other):
         return self.difference(other)
+
+    def __xor__(self, other):
+        return self.symmetric_difference(other)
 
     def __ior__(self, other):
         self.union_update(other)
@@ -203,6 +227,10 @@ class Set:
 
     def __isub__(self, other):
         self.difference_update(other)
+        return self
+
+    def __ixor__(self, other):
+        self.symmetric_difference_update(other)
         return self
 
     def update(self, other):
@@ -221,13 +249,7 @@ class Set:
         self.items.clear()
 
     def __eq__(self, other):
-        if odict == dict:
-            return self.items == other.items
-        else:
-            # We don't want an ordered comparison.
-            if len(self.items) != len(other.items):
-                return False
-            return all(elt in other.items for elt in self.items)
+        return self.items == other.items
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -258,7 +280,7 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         for item in self.items:
             if item not in other.items:
                 return False
@@ -271,8 +293,16 @@ class Set:
         """
 
         if not isinstance(other, Set):
-            raise ValueError('other must be a Set instance')
+            raise ValueError("other must be a Set instance")
         for item in other.items:
             if item not in self.items:
+                return False
+        return True
+
+    def isdisjoint(self, other):
+        if not isinstance(other, Set):
+            raise ValueError("other must be a Set instance")
+        for item in other.items:
+            if item in self.items:
                 return False
         return True

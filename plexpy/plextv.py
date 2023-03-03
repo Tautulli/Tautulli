@@ -331,6 +331,14 @@ class PlexTV(object):
 
         return request
 
+    def get_public_ip(self, output_format=''):
+        uri = '/:/ip'
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_plextv_geoip(self, ip_address='', output_format=''):
         uri = '/api/v2/geoip?ip_address=%s' % ip_address
         request = self.request_handler.make_request(uri=uri,

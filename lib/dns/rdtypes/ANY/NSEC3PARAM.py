@@ -28,7 +28,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
 
     """NSEC3PARAM record"""
 
-    __slots__ = ['algorithm', 'flags', 'iterations', 'salt']
+    __slots__ = ["algorithm", "flags", "iterations", "salt"]
 
     def __init__(self, rdclass, rdtype, algorithm, flags, iterations, salt):
         super().__init__(rdclass, rdtype)
@@ -38,34 +38,33 @@ class NSEC3PARAM(dns.rdata.Rdata):
         self.salt = self._as_bytes(salt, True, 255)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        if self.salt == b'':
-            salt = '-'
+        if self.salt == b"":
+            salt = "-"
         else:
             salt = binascii.hexlify(self.salt).decode()
-        return '%u %u %u %s' % (self.algorithm, self.flags, self.iterations,
-                                salt)
+        return "%u %u %u %s" % (self.algorithm, self.flags, self.iterations, salt)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         algorithm = tok.get_uint8()
         flags = tok.get_uint8()
         iterations = tok.get_uint16()
         salt = tok.get_string()
-        if salt == '-':
-            salt = ''
+        if salt == "-":
+            salt = ""
         else:
             salt = binascii.unhexlify(salt.encode())
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.salt)
-        file.write(struct.pack("!BBHB", self.algorithm, self.flags,
-                               self.iterations, l))
+        file.write(struct.pack("!BBHB", self.algorithm, self.flags, self.iterations, l))
         file.write(self.salt)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (algorithm, flags, iterations) = parser.get_struct('!BBH')
+        (algorithm, flags, iterations) = parser.get_struct("!BBH")
         salt = parser.get_counted_bytes()
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt)

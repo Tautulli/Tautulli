@@ -87,7 +87,7 @@ class newrange(Sequence):
         return (isinstance(other, newrange) and
                 (self._len == 0 == other._len or
                  (self._start, self._step, self._len) ==
-                 (other._start, other._step, self._len)))
+                 (other._start, other._step, other._len)))
 
     def __len__(self):
         return self._len

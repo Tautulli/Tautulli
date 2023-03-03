@@ -20,6 +20,7 @@ import struct
 import dns.rdtypes.mxbase
 import dns.immutable
 
+
 @dns.immutable.immutable
 class A(dns.rdata.Rdata):
 
@@ -28,7 +29,7 @@ class A(dns.rdata.Rdata):
     # domain: the domain of the address
     # address: the 16-bit address
 
-    __slots__ = ['domain', 'address']
+    __slots__ = ["domain", "address"]
 
     def __init__(self, rdclass, rdtype, domain, address):
         super().__init__(rdclass, rdtype)
@@ -37,11 +38,12 @@ class A(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         domain = self.domain.choose_relativity(origin, relativize)
-        return '%s %o' % (domain, self.address)
+        return "%s %o" % (domain, self.address)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         domain = tok.get_name(origin, relativize, relativize_to)
         address = tok.get_uint16(base=8)
         return cls(rdclass, rdtype, domain, address)

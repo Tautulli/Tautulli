@@ -27,6 +27,7 @@ import dns.rdataclass
 import dns.name
 import dns.rcode
 
+
 class BadTime(dns.exception.DNSException):
 
     """The current time is not within the TSIG's validity time."""
@@ -87,6 +88,19 @@ GSS_TSIG = dns.name.from_text("gss-tsig")
 
 default_algorithm = HMAC_SHA256
 
+mac_sizes = {
+    HMAC_SHA1: 20,
+    HMAC_SHA224: 28,
+    HMAC_SHA256: 32,
+    HMAC_SHA256_128: 16,
+    HMAC_SHA384: 48,
+    HMAC_SHA384_192: 24,
+    HMAC_SHA512: 64,
+    HMAC_SHA512_256: 32,
+    HMAC_MD5: 16,
+    GSS_TSIG: 128,  # This is what we assume to be the worst case!
+}
+
 
 class GSSTSig:
     """
@@ -97,10 +111,11 @@ class GSSTSig:
     In order to avoid a direct GSSAPI dependency, the keyring holds a ref
     to the GSSAPI object required, rather than the key itself.
     """
+
     def __init__(self, gssapi_context):
         self.gssapi_context = gssapi_context
-        self.data = b''
-        self.name = 'gss-tsig'
+        self.data = b""
+        self.name = "gss-tsig"
 
     def update(self, data):
         self.data += data
@@ -139,9 +154,9 @@ class GSSTSigAdapter:
         # client to complete the GSSAPI negotiation before attempting
         # to verify the signed response to a TKEY message exchange
         try:
-            rrset = message.find_rrset(message.answer, keyname,
-                                       dns.rdataclass.ANY,
-                                       dns.rdatatype.TKEY)
+            rrset = message.find_rrset(
+                message.answer, keyname, dns.rdataclass.ANY, dns.rdatatype.TKEY
+            )
             if rrset:
                 token = rrset[0].key
                 gssapi_context = key.secret
@@ -172,8 +187,9 @@ class HMACTSig:
         try:
             hashinfo = self._hashes[algorithm]
         except KeyError:
-            raise NotImplementedError(f"TSIG algorithm {algorithm} " +
-                                      "is not supported")
+            raise NotImplementedError(
+                f"TSIG algorithm {algorithm} " + "is not supported"
+            )
 
         # create the HMAC context
         if isinstance(hashinfo, tuple):
@@ -184,7 +200,7 @@ class HMACTSig:
             self.size = None
         self.name = self.hmac_context.name
         if self.size:
-            self.name += f'-{self.size}'
+            self.name += f"-{self.size}"
 
     def update(self, data):
         return self.hmac_context.update(data)
@@ -203,8 +219,7 @@ class HMACTSig:
             raise BadSignature
 
 
-def _digest(wire, key, rdata, time=None, request_mac=None, ctx=None,
-            multi=None):
+def _digest(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=None):
     """Return a context containing the TSIG rdata for the input parameters
     @rtype: dns.tsig.HMACTSig or dns.tsig.GSSTSig object
     @raises ValueError: I{other_data} is too long
@@ -215,25 +230,25 @@ def _digest(wire, key, rdata, time=None, request_mac=None, ctx=None,
     if first:
         ctx = get_context(key)
         if request_mac:
-            ctx.update(struct.pack('!H', len(request_mac)))
+            ctx.update(struct.pack("!H", len(request_mac)))
             ctx.update(request_mac)
-    ctx.update(struct.pack('!H', rdata.original_id))
+    ctx.update(struct.pack("!H", rdata.original_id))
     ctx.update(wire[2:])
     if first:
         ctx.update(key.name.to_digestable())
-        ctx.update(struct.pack('!H', dns.rdataclass.ANY))
-        ctx.update(struct.pack('!I', 0))
+        ctx.update(struct.pack("!H", dns.rdataclass.ANY))
+        ctx.update(struct.pack("!I", 0))
     if time is None:
         time = rdata.time_signed
-    upper_time = (time >> 32) & 0xffff
-    lower_time = time & 0xffffffff
-    time_encoded = struct.pack('!HIH', upper_time, lower_time, rdata.fudge)
+    upper_time = (time >> 32) & 0xFFFF
+    lower_time = time & 0xFFFFFFFF
+    time_encoded = struct.pack("!HIH", upper_time, lower_time, rdata.fudge)
     other_len = len(rdata.other)
     if other_len > 65535:
-        raise ValueError('TSIG Other Data is > 65535 bytes')
+        raise ValueError("TSIG Other Data is > 65535 bytes")
     if first:
         ctx.update(key.algorithm.to_digestable() + time_encoded)
-        ctx.update(struct.pack('!HH', rdata.error, other_len) + rdata.other)
+        ctx.update(struct.pack("!HH", rdata.error, other_len) + rdata.other)
     else:
         ctx.update(time_encoded)
     return ctx
@@ -246,7 +261,7 @@ def _maybe_start_digest(key, mac, multi):
     """
     if multi:
         ctx = get_context(key)
-        ctx.update(struct.pack('!H', len(mac)))
+        ctx.update(struct.pack("!H", len(mac)))
         ctx.update(mac)
         return ctx
     else:
@@ -269,8 +284,9 @@ def sign(wire, key, rdata, time=None, request_mac=None, ctx=None, multi=False):
     return (tsig, _maybe_start_digest(key, mac, multi))
 
 
-def validate(wire, key, owner, rdata, now, request_mac, tsig_start, ctx=None,
-             multi=False):
+def validate(
+    wire, key, owner, rdata, now, request_mac, tsig_start, ctx=None, multi=False
+):
     """Validate the specified TSIG rdata against the other input parameters.
 
     @raises FormError: The TSIG is badly formed.
@@ -294,7 +310,7 @@ def validate(wire, key, owner, rdata, now, request_mac, tsig_start, ctx=None,
         elif rdata.error == dns.rcode.BADTRUNC:
             raise PeerBadTruncation
         else:
-            raise PeerError('unknown TSIG error code %d' % rdata.error)
+            raise PeerError("unknown TSIG error code %d" % rdata.error)
     if abs(rdata.time_signed - now) > rdata.fudge:
         raise BadTime
     if key.name != owner:
@@ -332,14 +348,15 @@ class Key:
         self.algorithm = algorithm
 
     def __eq__(self, other):
-        return (isinstance(other, Key) and
-                self.name == other.name and
-                self.secret == other.secret and
-                self.algorithm == other.algorithm)
+        return (
+            isinstance(other, Key)
+            and self.name == other.name
+            and self.secret == other.secret
+            and self.algorithm == other.algorithm
+        )
 
     def __repr__(self):
-        r = f"<DNS key name='{self.name}', " + \
-            f"algorithm='{self.algorithm}'"
+        r = f"<DNS key name='{self.name}', " + f"algorithm='{self.algorithm}'"
         if self.algorithm != GSS_TSIG:
             r += f", secret='{base64.b64encode(self.secret).decode()}'"
         r += ">"

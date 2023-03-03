@@ -57,6 +57,16 @@ class FixPrint(fixer_base.BaseFix):
         if args and args[-1] == Comma():
             args = args[:-1]
             end = " "
+
+            # try to determine if the string ends in a non-space whitespace character, in which
+            # case there should be no space at the end of the conversion
+            string_leaves = [leaf for leaf in args[-1].leaves() if leaf.type == token.STRING]
+            if (
+                string_leaves
+                and string_leaves[-1].value[0] != "r"  # "raw" string
+                and string_leaves[-1].value[-3:-1] in (r"\t", r"\n", r"\r")
+            ):
+                end = ""
         if args and args[0] == pytree.Leaf(token.RIGHTSHIFT, u">>"):
             assert len(args) >= 2
             file = args[1].clone()

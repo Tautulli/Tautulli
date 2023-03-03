@@ -36,7 +36,7 @@ except ImportError:
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from UniversalAnalytics import Tracker
+from ga4mp import GtagMP
 import pytz
 
 PYTHON2 = sys.version_info[0] == 2
@@ -578,12 +578,12 @@ def start():
 
             # Send system analytics events
             if not CONFIG.FIRST_RUN_COMPLETE:
-                analytics_event(category='system', action='install')
+                analytics_event(name='install')
 
             elif _UPDATE:
-                analytics_event(category='system', action='update')
+                analytics_event(name='update')
 
-            analytics_event(category='system', action='start')
+            analytics_event(name='start')
 
         _STARTED = True
 
@@ -657,6 +657,7 @@ def dbcheck():
         'live INTEGER, live_uuid TEXT, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
         'secure INTEGER, relayed INTEGER, '
         'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
+        'intro INTEGER DEFAULT 0, credits INTEGER DEFAULT 0, commercial INTEGER DEFAULT 0, marker INTEGER DEFAULT 0, '
         'initial_stream INTEGER DEFAULT 1, write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT, '
         'rating_key_websocket TEXT)'
     )
@@ -714,7 +715,8 @@ def dbcheck():
         'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
         'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
         'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, '
-        'labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT)'
+        'labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
+        'marker_credits_first INTEGER DEFAULT NULL, marker_credits_final INTEGER DEFAULT NULL)'
     )
 
     # users table :: This table keeps record of the friends list
@@ -753,19 +755,23 @@ def dbcheck():
         'agent_id INTEGER, agent_name TEXT, agent_label TEXT, friendly_name TEXT, notifier_config TEXT, '
         'on_play INTEGER DEFAULT 0, on_stop INTEGER DEFAULT 0, on_pause INTEGER DEFAULT 0, '
         'on_resume INTEGER DEFAULT 0, on_change INTEGER DEFAULT 0, on_buffer INTEGER DEFAULT 0, '
-        'on_error INTEGER DEFAULT 0, on_watched INTEGER DEFAULT 0, on_created INTEGER DEFAULT 0, '
+        'on_error INTEGER DEFAULT 0, '
+        'on_intro INTEGER DEFAULT 0, on_credits INTEGER DEFAULT 0, on_commercial INTEGER DEFAULT 0, '
+        'on_watched INTEGER DEFAULT 0, on_created INTEGER DEFAULT 0, '
         'on_extdown INTEGER DEFAULT 0, on_intdown INTEGER DEFAULT 0, '
         'on_extup INTEGER DEFAULT 0, on_intup INTEGER DEFAULT 0, on_pmsupdate INTEGER DEFAULT 0, '
         'on_concurrent INTEGER DEFAULT 0, on_newdevice INTEGER DEFAULT 0, on_plexpyupdate INTEGER DEFAULT 0, '
         'on_plexpydbcorrupt INTEGER DEFAULT 0, '
         'on_play_subject TEXT, on_stop_subject TEXT, on_pause_subject TEXT, '
         'on_resume_subject TEXT, on_change_subject TEXT, on_buffer_subject TEXT, on_error_subject TEXT, '
+        'on_intro_subject TEXT, on_credits_subject TEXT, on_commercial_subject TEXT,'
         'on_watched_subject TEXT, on_created_subject TEXT, on_extdown_subject TEXT, on_intdown_subject TEXT, '
         'on_extup_subject TEXT, on_intup_subject TEXT, on_pmsupdate_subject TEXT, '
         'on_concurrent_subject TEXT, on_newdevice_subject TEXT, on_plexpyupdate_subject TEXT, '
         'on_plexpydbcorrupt_subject TEXT, '
         'on_play_body TEXT, on_stop_body TEXT, on_pause_body TEXT, '
         'on_resume_body TEXT, on_change_body TEXT, on_buffer_body TEXT, on_error_body TEXT, '
+        'on_intro_body TEXT, on_credits_body TEXT, on_commercial_body TEXT, '
         'on_watched_body TEXT, on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, '
         'on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, '
         'on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT, '
@@ -1401,6 +1407,36 @@ def dbcheck():
             'ALTER TABLE sessions ADD COLUMN stream_subtitle_forced INTEGER'
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT intro FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN intro INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN credits INTEGER DEFAULT 0'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT commercial FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN commercial INTEGER DEFAULT 0'
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute('SELECT marker FROM sessions')
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            'ALTER TABLE sessions ADD COLUMN marker INTEGER DEFAULT 0'
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute('SELECT reference_id FROM session_history')
@@ -1527,6 +1563,18 @@ def dbcheck():
         )
         c_db.execute(
             'ALTER TABLE session_history_metadata ADD COLUMN channel_thumb TEXT'
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute('SELECT marker_credits_first FROM session_history_metadata')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN marker_credits_first INTEGER DEFAULT NULL'
+        )
+        c_db.execute(
+            'ALTER TABLE session_history_metadata ADD COLUMN marker_credits_final INTEGER DEFAULT NULL'
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -2371,6 +2419,45 @@ def dbcheck():
             'ALTER TABLE notifiers ADD COLUMN on_error_body TEXT'
         )
 
+    # Upgrade notifiers table from earlier versions
+    try:
+        c_db.execute('SELECT on_intro FROM notifiers')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table notifiers.")
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_intro INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_intro_subject TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_intro_body TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_credits INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_credits_subject TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_credits_body TEXT'
+        )
+
+    # Upgrade notifiers table from earlier versions
+    try:
+        c_db.execute('SELECT on_commercial FROM notifiers')
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table notifiers.")
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_commercial INTEGER DEFAULT 0'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_commercial_subject TEXT'
+        )
+        c_db.execute(
+            'ALTER TABLE notifiers ADD COLUMN on_commercial_body TEXT'
+        )
+
     # Upgrade tvmaze_lookup table from earlier versions
     try:
         c_db.execute('SELECT rating_key FROM tvmaze_lookup')
@@ -2756,44 +2843,45 @@ def generate_uuid():
 
 
 def initialize_tracker():
-    data = {
-        'dataSource': 'server',
-        'appName': common.PRODUCT,
-        'appVersion': common.RELEASE,
-        'appId': INSTALL_TYPE,
-        'appInstallerId': CONFIG.GIT_BRANCH,
-        'dimension1': '{} {}'.format(common.PLATFORM, common.PLATFORM_RELEASE),  # App Platform
-        'dimension2': common.PLATFORM_LINUX_DISTRO,  # Linux Distro
-        'dimension3': common.PYTHON_VERSION,
-        'userLanguage': SYS_LANGUAGE,
-        'documentEncoding': SYS_ENCODING,
-        'noninteractive': True
-        }
-
-    tracker = Tracker.create('UA-111522699-2', client_id=CONFIG.PMS_UUID, hash_client_id=True,
-                             user_agent=common.USER_AGENT)
-    tracker.set(data)
-
+    tracker = GtagMP(
+        api_secret='Cl_LjAKUT26AS22YZwqaPw',
+        measurement_id='G-NH1M4BYM2P',
+        client_id=CONFIG.PMS_UUID
+    )
     return tracker
 
 
-def analytics_event(category, action, label=None, value=None, **kwargs):
-    data = {'category': category, 'action': action}
+def analytics_event(name, **kwargs):
+    event = TRACKER.create_new_event(name=name)
+    event.set_event_param('name', common.PRODUCT)
+    event.set_event_param('version', common.RELEASE)
+    event.set_event_param('install', INSTALL_TYPE)
+    event.set_event_param('branch', CONFIG.GIT_BRANCH)
+    event.set_event_param('platform', common.PLATFORM)
+    event.set_event_param('platformRelease', common.PLATFORM_RELEASE)
+    event.set_event_param('platformVersion', common.PLATFORM_VERSION)
+    event.set_event_param('linuxDistro', common.PLATFORM_LINUX_DISTRO)
+    event.set_event_param('pythonVersion', common.PYTHON_VERSION)
+    event.set_event_param('language', SYS_LANGUAGE)
+    event.set_event_param('encoding', SYS_ENCODING)
+    event.set_event_param('timezone', str(SYS_TIMEZONE))
+    event.set_event_param('timezoneUTCOffset', f'UTC{SYS_UTC_OFFSET}')
 
-    if label is not None:
-        data['label'] = label
+    for key, value in kwargs.items():
+        event.set_event_param(key, value)
 
-    if value is not None:
-        data['value'] = value
+    plex_tv = plextv.PlexTV()
+    ip_address = plex_tv.get_public_ip(output_format='text')
+    geolocation = plex_tv.get_geoip_lookup(ip_address) or {}
 
-    if kwargs:
-        data.update(kwargs)
+    event.set_event_param('country', geolocation.get('country', 'Unknown'))
+    event.set_event_param('countryCode', geolocation.get('code', 'Unknown'))
 
     if TRACKER:
         try:
-            TRACKER.send('event', data)
+            TRACKER.send(events=[event])
         except Exception as e:
-            logger.warn("Failed to send analytics event for category '%s', action '%s': %s" % (category, action, e))
+            logger.warn("Failed to send analytics event for name '%s': %s" % (name, e))
 
 
 def check_folder_writable(folder, fallback, name):

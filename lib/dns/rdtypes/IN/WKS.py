@@ -23,12 +23,13 @@ import dns.immutable
 import dns.rdata
 
 try:
-    _proto_tcp = socket.getprotobyname('tcp')
-    _proto_udp = socket.getprotobyname('udp')
+    _proto_tcp = socket.getprotobyname("tcp")
+    _proto_udp = socket.getprotobyname("udp")
 except OSError:
     # Fall back to defaults in case /etc/protocols is unavailable.
     _proto_tcp = 6
     _proto_udp = 17
+
 
 @dns.immutable.immutable
 class WKS(dns.rdata.Rdata):
@@ -37,7 +38,7 @@ class WKS(dns.rdata.Rdata):
 
     # see: RFC 1035
 
-    __slots__ = ['address', 'protocol', 'bitmap']
+    __slots__ = ["address", "protocol", "bitmap"]
 
     def __init__(self, rdclass, rdtype, address, protocol, bitmap):
         super().__init__(rdclass, rdtype)
@@ -51,12 +52,13 @@ class WKS(dns.rdata.Rdata):
             for j in range(0, 8):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
-        text = ' '.join(bits)
-        return '%s %d %s' % (self.address, self.protocol, text)
+        text = " ".join(bits)
+        return "%s %d %s" % (self.address, self.protocol, text)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         address = tok.get_string()
         protocol = tok.get_string()
         if protocol.isdigit():
@@ -87,7 +89,7 @@ class WKS(dns.rdata.Rdata):
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(dns.ipv4.inet_aton(self.address))
-        protocol = struct.pack('!B', self.protocol)
+        protocol = struct.pack("!B", self.protocol)
         file.write(protocol)
         file.write(self.bitmap)
 

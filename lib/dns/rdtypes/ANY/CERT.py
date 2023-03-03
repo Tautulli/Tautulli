@@ -20,34 +20,34 @@ import base64
 
 import dns.exception
 import dns.immutable
-import dns.dnssec
+import dns.dnssectypes
 import dns.rdata
 import dns.tokenizer
 
 _ctype_by_value = {
-    1: 'PKIX',
-    2: 'SPKI',
-    3: 'PGP',
-    4: 'IPKIX',
-    5: 'ISPKI',
-    6: 'IPGP',
-    7: 'ACPKIX',
-    8: 'IACPKIX',
-    253: 'URI',
-    254: 'OID',
+    1: "PKIX",
+    2: "SPKI",
+    3: "PGP",
+    4: "IPKIX",
+    5: "ISPKI",
+    6: "IPGP",
+    7: "ACPKIX",
+    8: "IACPKIX",
+    253: "URI",
+    254: "OID",
 }
 
 _ctype_by_name = {
-    'PKIX': 1,
-    'SPKI': 2,
-    'PGP': 3,
-    'IPKIX': 4,
-    'ISPKI': 5,
-    'IPGP': 6,
-    'ACPKIX': 7,
-    'IACPKIX': 8,
-    'URI': 253,
-    'OID': 254,
+    "PKIX": 1,
+    "SPKI": 2,
+    "PGP": 3,
+    "IPKIX": 4,
+    "ISPKI": 5,
+    "IPGP": 6,
+    "ACPKIX": 7,
+    "IACPKIX": 8,
+    "URI": 253,
+    "OID": 254,
 }
 
 
@@ -72,10 +72,11 @@ class CERT(dns.rdata.Rdata):
 
     # see RFC 4398
 
-    __slots__ = ['certificate_type', 'key_tag', 'algorithm', 'certificate']
+    __slots__ = ["certificate_type", "key_tag", "algorithm", "certificate"]
 
-    def __init__(self, rdclass, rdtype, certificate_type, key_tag, algorithm,
-                 certificate):
+    def __init__(
+        self, rdclass, rdtype, certificate_type, key_tag, algorithm, certificate
+    ):
         super().__init__(rdclass, rdtype)
         self.certificate_type = self._as_uint16(certificate_type)
         self.key_tag = self._as_uint16(key_tag)
@@ -84,24 +85,28 @@ class CERT(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         certificate_type = _ctype_to_text(self.certificate_type)
-        return "%s %d %s %s" % (certificate_type, self.key_tag,
-                                dns.dnssec.algorithm_to_text(self.algorithm),
-                                dns.rdata._base64ify(self.certificate, **kw))
+        return "%s %d %s %s" % (
+            certificate_type,
+            self.key_tag,
+            dns.dnssectypes.Algorithm.to_text(self.algorithm),
+            dns.rdata._base64ify(self.certificate, **kw),
+        )
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         certificate_type = _ctype_from_text(tok.get_string())
         key_tag = tok.get_uint16()
-        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
+        algorithm = dns.dnssectypes.Algorithm.from_text(tok.get_string())
         b64 = tok.concatenate_remaining_identifiers().encode()
         certificate = base64.b64decode(b64)
-        return cls(rdclass, rdtype, certificate_type, key_tag,
-                   algorithm, certificate)
+        return cls(rdclass, rdtype, certificate_type, key_tag, algorithm, certificate)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
-        prefix = struct.pack("!HHB", self.certificate_type, self.key_tag,
-                             self.algorithm)
+        prefix = struct.pack(
+            "!HHB", self.certificate_type, self.key_tag, self.algorithm
+        )
         file.write(prefix)
         file.write(self.certificate)
 
@@ -109,5 +114,4 @@ class CERT(dns.rdata.Rdata):
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         (certificate_type, key_tag, algorithm) = parser.get_struct("!HHB")
         certificate = parser.get_remaining()
-        return cls(rdclass, rdtype, certificate_type, key_tag, algorithm,
-                   certificate)
+        return cls(rdclass, rdtype, certificate_type, key_tag, algorithm, certificate)

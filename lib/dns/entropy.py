@@ -15,14 +15,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+from typing import Any, Optional
+
 import os
 import hashlib
 import random
+import threading
 import time
-try:
-    import threading as _threading
-except ImportError:  # pragma: no cover
-    import dummy_threading as _threading    # type: ignore
 
 
 class EntropyPool:
@@ -32,51 +31,51 @@ class EntropyPool:
     # leaving this code doesn't hurt anything as the library code
     # is used if present.
 
-    def __init__(self, seed=None):
+    def __init__(self, seed: Optional[bytes] = None):
         self.pool_index = 0
-        self.digest = None
+        self.digest: Optional[bytearray] = None
         self.next_byte = 0
-        self.lock = _threading.Lock()
+        self.lock = threading.Lock()
         self.hash = hashlib.sha1()
         self.hash_len = 20
-        self.pool = bytearray(b'\0' * self.hash_len)
+        self.pool = bytearray(b"\0" * self.hash_len)
         if seed is not None:
-            self._stir(bytearray(seed))
+            self._stir(seed)
             self.seeded = True
             self.seed_pid = os.getpid()
         else:
             self.seeded = False
             self.seed_pid = 0
 
-    def _stir(self, entropy):
+    def _stir(self, entropy: bytes) -> None:
         for c in entropy:
             if self.pool_index == self.hash_len:
                 self.pool_index = 0
-            b = c & 0xff
+            b = c & 0xFF
             self.pool[self.pool_index] ^= b
             self.pool_index += 1
 
-    def stir(self, entropy):
+    def stir(self, entropy: bytes) -> None:
         with self.lock:
             self._stir(entropy)
 
-    def _maybe_seed(self):
+    def _maybe_seed(self) -> None:
         if not self.seeded or self.seed_pid != os.getpid():
             try:
                 seed = os.urandom(16)
             except Exception:  # pragma: no cover
                 try:
-                    with open('/dev/urandom', 'rb', 0) as r:
+                    with open("/dev/urandom", "rb", 0) as r:
                         seed = r.read(16)
                 except Exception:
-                    seed = str(time.time())
+                    seed = str(time.time()).encode()
             self.seeded = True
             self.seed_pid = os.getpid()
             self.digest = None
             seed = bytearray(seed)
             self._stir(seed)
 
-    def random_8(self):
+    def random_8(self) -> int:
         with self.lock:
             self._maybe_seed()
             if self.digest is None or self.next_byte == self.hash_len:
@@ -88,16 +87,16 @@ class EntropyPool:
             self.next_byte += 1
         return value
 
-    def random_16(self):
+    def random_16(self) -> int:
         return self.random_8() * 256 + self.random_8()
 
-    def random_32(self):
+    def random_32(self) -> int:
         return self.random_16() * 65536 + self.random_16()
 
-    def random_between(self, first, last):
+    def random_between(self, first: int, last: int) -> int:
         size = last - first + 1
         if size > 4294967296:
-            raise ValueError('too big')
+            raise ValueError("too big")
         if size > 65536:
             rand = self.random_32
             max = 4294967295
@@ -109,20 +108,24 @@ class EntropyPool:
             max = 255
         return first + size * rand() // (max + 1)
 
+
 pool = EntropyPool()
 
+system_random: Optional[Any]
 try:
     system_random = random.SystemRandom()
 except Exception:  # pragma: no cover
     system_random = None
 
-def random_16():
+
+def random_16() -> int:
     if system_random is not None:
         return system_random.randrange(0, 65536)
     else:
         return pool.random_16()
 
-def between(first, last):
+
+def between(first: int, last: int) -> int:
     if system_random is not None:
         return system_random.randrange(first, last + 1)
     else:

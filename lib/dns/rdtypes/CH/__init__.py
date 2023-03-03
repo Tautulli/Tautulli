@@ -18,5 +18,5 @@
 """Class CH rdata type classes."""
 
 __all__ = [
-    'A',
+    "A",
 ]
