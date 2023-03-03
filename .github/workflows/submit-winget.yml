@@ -9,6 +9,7 @@ jobs:
   winget:
     name: Submit Winget Package
     runs-on: windows-latest
+    if: !github.event.release.prerelease
     steps:
       - name: Submit package to Windows Package Manager Community Repository
         run: |
