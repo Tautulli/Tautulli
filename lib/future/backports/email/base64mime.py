@@ -28,6 +28,7 @@ from __future__ import division
 from __future__ import absolute_import
 from future.builtins import range
 from future.builtins import bytes
+from future.builtins import str
 
 __all__ = [
     'body_decode',
