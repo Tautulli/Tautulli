@@ -1,22 +1,9 @@
-import warnings
-from collections import Counter
 from encodings.aliases import aliases
 from hashlib import sha256
 from json import dumps
-from re import sub
-from typing import (
-    Any,
-    Counter as TypeCounter,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
 
-from .constant import NOT_PRINTABLE_PATTERN, TOO_BIG_SEQUENCE
-from .md import mess_ratio
+from .constant import TOO_BIG_SEQUENCE
 from .utils import iana_name, is_multi_byte_encoding, unicode_range
 
 
@@ -65,7 +52,7 @@ class CharsetMatch:
         chaos_difference: float = abs(self.chaos - other.chaos)
         coherence_difference: float = abs(self.coherence - other.coherence)
 
-        # Bellow 1% difference --> Use Coherence
+        # Below 1% difference --> Use Coherence
         if chaos_difference < 0.01 and coherence_difference > 0.02:
             # When having a tough decision, use the result that decoded as many multi-byte as possible.
             if chaos_difference == 0.0 and self.coherence == other.coherence:
@@ -77,45 +64,6 @@ class CharsetMatch:
     @property
     def multi_byte_usage(self) -> float:
         return 1.0 - len(str(self)) / len(self.raw)
-
-    @property
-    def chaos_secondary_pass(self) -> float:
-        """
-        Check once again chaos in decoded text, except this time, with full content.
-        Use with caution, this can be very slow.
-        Notice: Will be removed in 3.0
-        """
-        warnings.warn(
-            "chaos_secondary_pass is deprecated and will be removed in 3.0",
-            DeprecationWarning,
-        )
-        return mess_ratio(str(self), 1.0)
-
-    @property
-    def coherence_non_latin(self) -> float:
-        """
-        Coherence ratio on the first non-latin language detected if ANY.
-        Notice: Will be removed in 3.0
-        """
-        warnings.warn(
-            "coherence_non_latin is deprecated and will be removed in 3.0",
-            DeprecationWarning,
-        )
-        return 0.0
-
-    @property
-    def w_counter(self) -> TypeCounter[str]:
-        """
-        Word counter instance on decoded text.
-        Notice: Will be removed in 3.0
-        """
-        warnings.warn(
-            "w_counter is deprecated and will be removed in 3.0", DeprecationWarning
-        )
-
-        string_printable_only = sub(NOT_PRINTABLE_PATTERN, " ", str(self).lower())
-
-        return Counter(string_printable_only.split())
 
     def __str__(self) -> str:
         # Lazy Str Loading
@@ -251,18 +199,6 @@ class CharsetMatch:
         This list does include the encoding available in property 'encoding'.
         """
         return [self._encoding] + [m.encoding for m in self._leaves]
-
-    def first(self) -> "CharsetMatch":
-        """
-        Kept for BC reasons. Will be removed in 3.0.
-        """
-        return self
-
-    def best(self) -> "CharsetMatch":
-        """
-        Kept for BC reasons. Will be removed in 3.0.
-        """
-        return self
 
     def output(self, encoding: str = "utf_8") -> bytes:
         """
