@@ -1,7 +1,12 @@
 from functools import lru_cache
+from logging import getLogger
 from typing import List, Optional
 
-from .constant import COMMON_SAFE_ASCII_CHARACTERS, UNICODE_SECONDARY_RANGE_KEYWORD
+from .constant import (
+    COMMON_SAFE_ASCII_CHARACTERS,
+    TRACE,
+    UNICODE_SECONDARY_RANGE_KEYWORD,
+)
 from .utils import (
     is_accentuated,
     is_ascii,
@@ -123,7 +128,7 @@ class TooManyAccentuatedPlugin(MessDetectorPlugin):
 
     @property
     def ratio(self) -> float:
-        if self._character_count == 0:
+        if self._character_count == 0 or self._character_count < 8:
             return 0.0
         ratio_of_accentuation: float = self._accentuated_count / self._character_count
         return ratio_of_accentuation if ratio_of_accentuation >= 0.35 else 0.0
@@ -547,7 +552,20 @@ def mess_ratio(
                 break
 
     if debug:
+        logger = getLogger("charset_normalizer")
+
+        logger.log(
+            TRACE,
+            "Mess-detector extended-analysis start. "
+            f"intermediary_mean_mess_ratio_calc={intermediary_mean_mess_ratio_calc} mean_mess_ratio={mean_mess_ratio} "
+            f"maximum_threshold={maximum_threshold}",
+        )
+
+        if len(decoded_sequence) > 16:
+            logger.log(TRACE, f"Starting with: {decoded_sequence[:16]}")
+            logger.log(TRACE, f"Ending with: {decoded_sequence[-16::]}")
+
         for dt in detectors:  # pragma: nocover
-            print(dt.__class__, dt.ratio)
+            logger.log(TRACE, f"{dt.__class__}: {dt.ratio}")
 
     return round(mean_mess_ratio, 3)

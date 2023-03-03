@@ -1,9 +1,7 @@
-import warnings
 from typing import Dict, Optional, Union
 
-from .api import from_bytes, from_fp, from_path, normalize
+from .api import from_bytes
 from .constant import CHARDET_CORRESPONDENCE
-from .models import CharsetMatch, CharsetMatches
 
 
 def detect(byte_str: bytes) -> Dict[str, Optional[Union[str, float]]]:
@@ -43,53 +41,3 @@ def detect(byte_str: bytes) -> Dict[str, Optional[Union[str, float]]]:
         "language": language,
         "confidence": confidence,
     }
-
-
-class CharsetNormalizerMatch(CharsetMatch):
-    pass
-
-
-class CharsetNormalizerMatches(CharsetMatches):
-    @staticmethod
-    def from_fp(*args, **kwargs):  # type: ignore
-        warnings.warn(  # pragma: nocover
-            "staticmethod from_fp, from_bytes, from_path and normalize are deprecated "
-            "and scheduled to be removed in 3.0",
-            DeprecationWarning,
-        )
-        return from_fp(*args, **kwargs)  # pragma: nocover
-
-    @staticmethod
-    def from_bytes(*args, **kwargs):  # type: ignore
-        warnings.warn(  # pragma: nocover
-            "staticmethod from_fp, from_bytes, from_path and normalize are deprecated "
-            "and scheduled to be removed in 3.0",
-            DeprecationWarning,
-        )
-        return from_bytes(*args, **kwargs)  # pragma: nocover
-
-    @staticmethod
-    def from_path(*args, **kwargs):  # type: ignore
-        warnings.warn(  # pragma: nocover
-            "staticmethod from_fp, from_bytes, from_path and normalize are deprecated "
-            "and scheduled to be removed in 3.0",
-            DeprecationWarning,
-        )
-        return from_path(*args, **kwargs)  # pragma: nocover
-
-    @staticmethod
-    def normalize(*args, **kwargs):  # type: ignore
-        warnings.warn(  # pragma: nocover
-            "staticmethod from_fp, from_bytes, from_path and normalize are deprecated "
-            "and scheduled to be removed in 3.0",
-            DeprecationWarning,
-        )
-        return normalize(*args, **kwargs)  # pragma: nocover
-
-
-class CharsetDetector(CharsetNormalizerMatches):
-    pass
-
-
-class CharsetDoctor(CharsetNormalizerMatches):
-    pass

@@ -1,12 +1,6 @@
-try:
-    # WARNING: unicodedata2 support is going to be removed in 3.0
-    # Python is quickly catching up.
-    import unicodedata2 as unicodedata
-except ImportError:
-    import unicodedata  # type: ignore[no-redef]
-
 import importlib
 import logging
+import unicodedata
 from codecs import IncrementalDecoder
 from encodings.aliases import aliases
 from functools import lru_cache
@@ -402,7 +396,7 @@ def cut_sequence_chunks(
 
             # multi-byte bad cutting detector and adjustment
             # not the cleanest way to perform that fix but clever enough for now.
-            if is_multi_byte_decoder and i > 0 and sequences[i] >= 0x80:
+            if is_multi_byte_decoder and i > 0:
 
                 chunk_partial_size_chk: int = min(chunk_size, 16)
 

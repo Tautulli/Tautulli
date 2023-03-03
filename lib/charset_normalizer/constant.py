@@ -489,9 +489,7 @@ COMMON_SAFE_ASCII_CHARACTERS: Set[str] = {
 KO_NAMES: Set[str] = {"johab", "cp949", "euc_kr"}
 ZH_NAMES: Set[str] = {"big5", "cp950", "big5hkscs", "hz"}
 
-NOT_PRINTABLE_PATTERN = re_compile(r"[0-9\W\n\r\t]+")
-
 LANGUAGE_SUPPORTED_COUNT: int = len(FREQUENCIES)
 
-# Logging LEVEL bellow DEBUG
+# Logging LEVEL below DEBUG
 TRACE: int = 5
