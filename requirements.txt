@@ -4,7 +4,7 @@ arrow==1.2.3
 backports.csv==1.0.7
 backports.functools-lru-cache==1.6.4
 backports.zoneinfo==0.2.1;python_version<"3.9"
-beautifulsoup4==4.11.1
+beautifulsoup4==4.11.2
 bleach==6.0.0
 certifi==2022.12.7
 cheroot==9.0.0

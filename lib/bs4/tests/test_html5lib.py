@@ -1,27 +1,26 @@
 """Tests to ensure that the html5lib tree builder generates good trees."""
 
+import pytest
 import warnings
 
-try:
-    from bs4.builder import HTML5TreeBuilder
-    HTML5LIB_PRESENT = True
-except ImportError as e:
-    HTML5LIB_PRESENT = False
+from bs4 import BeautifulSoup
 from bs4.element import SoupStrainer
 from . import (
+    HTML5LIB_PRESENT,
     HTML5TreeBuilderSmokeTest,
     SoupTest,
-    skipIf,
 )
 
-@skipIf(
+@pytest.mark.skipif(
     not HTML5LIB_PRESENT,
-    "html5lib seems not to be present, not testing its tree builder.")
+    reason="html5lib seems not to be present, not testing its tree builder."
+)
 class TestHTML5LibBuilder(SoupTest, HTML5TreeBuilderSmokeTest):
     """See ``HTML5TreeBuilderSmokeTest``."""
 
     @property
     def default_builder(self):
+        from bs4.builder import HTML5TreeBuilder
         return HTML5TreeBuilder
 
     def test_soupstrainer(self):
@@ -29,10 +28,12 @@ class TestHTML5LibBuilder(SoupTest, HTML5TreeBuilderSmokeTest):
         strainer = SoupStrainer("b")
         markup = "<p>A <b>bold</b> statement.</p>"
         with warnings.catch_warnings(record=True) as w:
-            soup = self.soup(markup, parse_only=strainer)
+            soup = BeautifulSoup(markup, "html5lib", parse_only=strainer)
         assert soup.decode() == self.document_for(markup)
 
-        assert "the html5lib tree builder doesn't support parse_only" in str(w[0].message)
+        [warning] = w
+        assert warning.filename == __file__
+        assert "the html5lib tree builder doesn't support parse_only" in str(warning.message)
 
     def test_correctly_nested_tables(self):
         """html5lib inserts <tbody> tags where other parsers don't."""

@@ -122,15 +122,3 @@ class TestHTMLParserTreeBuilder(SoupTest, HTMLTreeBuilderSmokeTest):
             with_element = div.encode(formatter="html")
             expect = b"<div>%s</div>" % output_element
             assert with_element == expect
-
-class TestHTMLParserSubclass(SoupTest):
-    def test_error(self):
-        """Verify that our HTMLParser subclass implements error() in a way
-        that doesn't cause a crash.
-        """
-        parser = BeautifulSoupHTMLParser()
-        with warnings.catch_warnings(record=True) as warns:
-            parser.error("don't crash")
-        [warning] = warns
-        assert "don't crash" == str(warning.message)
-

@@ -1,7 +1,8 @@
 """CSS selector structure items."""
+from __future__ import annotations
 import copyreg
 from .pretty import pretty
-from typing import Any, Type, Tuple, Union, Dict, Iterator, Hashable, Optional, Pattern, Iterable, Mapping
+from typing import Any, Iterator, Hashable, Optional, Pattern, Iterable, Mapping
 
 __all__ = (
     'Selector',
@@ -33,7 +34,7 @@ SEL_PLACEHOLDER_SHOWN = 0x400
 class Immutable:
     """Immutable."""
 
-    __slots__: Tuple[str, ...] = ('_hash',)
+    __slots__: tuple[str, ...] = ('_hash',)
 
     _hash: int
 
@@ -48,7 +49,7 @@ class Immutable:
         super(Immutable, self).__setattr__('_hash', hash(tuple(temp)))
 
     @classmethod
-    def __base__(cls) -> "Type[Immutable]":
+    def __base__(cls) -> "type[Immutable]":
         """Get base class."""
 
         return cls
@@ -99,7 +100,7 @@ class ImmutableDict(Mapping[Any, Any]):
 
     def __init__(
         self,
-        arg: Union[Dict[Any, Any], Iterable[Tuple[Any, Any]]]
+        arg: dict[Any, Any] | Iterable[tuple[Any, Any]]
     ) -> None:
         """Initialize."""
 
@@ -107,7 +108,7 @@ class ImmutableDict(Mapping[Any, Any]):
         self._d = dict(arg)
         self._hash = hash(tuple([(type(x), x, type(y), y) for x, y in sorted(self._d.items())]))
 
-    def _validate(self, arg: Union[Dict[Any, Any], Iterable[Tuple[Any, Any]]]) -> None:
+    def _validate(self, arg: dict[Any, Any] | Iterable[tuple[Any, Any]]) -> None:
         """Validate arguments."""
 
         if isinstance(arg, dict):
@@ -147,12 +148,12 @@ class ImmutableDict(Mapping[Any, Any]):
 class Namespaces(ImmutableDict):
     """Namespaces."""
 
-    def __init__(self, arg: Union[Dict[str, str], Iterable[Tuple[str, str]]]) -> None:
+    def __init__(self, arg: dict[str, str] | Iterable[tuple[str, str]]) -> None:
         """Initialize."""
 
         super().__init__(arg)
 
-    def _validate(self, arg: Union[Dict[str, str], Iterable[Tuple[str, str]]]) -> None:
+    def _validate(self, arg: dict[str, str] | Iterable[tuple[str, str]]) -> None:
         """Validate arguments."""
 
         if isinstance(arg, dict):
@@ -165,12 +166,12 @@ class Namespaces(ImmutableDict):
 class CustomSelectors(ImmutableDict):
     """Custom selectors."""
 
-    def __init__(self, arg: Union[Dict[str, str], Iterable[Tuple[str, str]]]) -> None:
+    def __init__(self, arg: dict[str, str] | Iterable[tuple[str, str]]) -> None:
         """Initialize."""
 
         super().__init__(arg)
 
-    def _validate(self, arg: Union[Dict[str, str], Iterable[Tuple[str, str]]]) -> None:
+    def _validate(self, arg: dict[str, str] | Iterable[tuple[str, str]]) -> None:
         """Validate arguments."""
 
         if isinstance(arg, dict):
@@ -188,30 +189,30 @@ class Selector(Immutable):
         'relation', 'rel_type', 'contains', 'lang', 'flags', '_hash'
     )
 
-    tag: Optional['SelectorTag']
-    ids: Tuple[str, ...]
-    classes: Tuple[str, ...]
-    attributes: Tuple['SelectorAttribute', ...]
-    nth: Tuple['SelectorNth', ...]
-    selectors: Tuple['SelectorList', ...]
-    relation: 'SelectorList'
+    tag: Optional[SelectorTag]
+    ids: tuple[str, ...]
+    classes: tuple[str, ...]
+    attributes: tuple[SelectorAttribute, ...]
+    nth: tuple[SelectorNth, ...]
+    selectors: tuple[SelectorList, ...]
+    relation: SelectorList
     rel_type: Optional[str]
-    contains: Tuple['SelectorContains', ...]
-    lang: Tuple['SelectorLang', ...]
+    contains: tuple[SelectorContains, ...]
+    lang: tuple[SelectorLang, ...]
     flags: int
 
     def __init__(
         self,
-        tag: Optional['SelectorTag'],
-        ids: Tuple[str, ...],
-        classes: Tuple[str, ...],
-        attributes: Tuple['SelectorAttribute', ...],
-        nth: Tuple['SelectorNth', ...],
-        selectors: Tuple['SelectorList', ...],
-        relation: 'SelectorList',
+        tag: Optional[SelectorTag],
+        ids: tuple[str, ...],
+        classes: tuple[str, ...],
+        attributes: tuple[SelectorAttribute, ...],
+        nth: tuple[SelectorNth, ...],
+        selectors: tuple[SelectorList, ...],
+        relation: SelectorList,
         rel_type: Optional[str],
-        contains: Tuple['SelectorContains', ...],
-        lang: Tuple['SelectorLang', ...],
+        contains: tuple[SelectorContains, ...],
+        lang: tuple[SelectorLang, ...],
         flags: int
     ):
         """Initialize."""
@@ -286,7 +287,7 @@ class SelectorContains(Immutable):
 
     __slots__ = ("text", "own", "_hash")
 
-    text: Tuple[str, ...]
+    text: tuple[str, ...]
     own: bool
 
     def __init__(self, text: Iterable[str], own: bool) -> None:
@@ -305,9 +306,9 @@ class SelectorNth(Immutable):
     b: int
     of_type: bool
     last: bool
-    selectors: 'SelectorList'
+    selectors: SelectorList
 
-    def __init__(self, a: int, n: bool, b: int, of_type: bool, last: bool, selectors: 'SelectorList') -> None:
+    def __init__(self, a: int, n: bool, b: int, of_type: bool, last: bool, selectors: SelectorList) -> None:
         """Initialize."""
 
         super().__init__(
@@ -325,7 +326,7 @@ class SelectorLang(Immutable):
 
     __slots__ = ("languages", "_hash",)
 
-    languages: Tuple[str, ...]
+    languages: tuple[str, ...]
 
     def __init__(self, languages: Iterable[str]):
         """Initialize."""
@@ -353,13 +354,13 @@ class SelectorList(Immutable):
 
     __slots__ = ("selectors", "is_not", "is_html", "_hash")
 
-    selectors: Tuple[Union['Selector', 'SelectorNull'], ...]
+    selectors: tuple[Selector | SelectorNull, ...]
     is_not: bool
     is_html: bool
 
     def __init__(
         self,
-        selectors: Optional[Iterable[Union['Selector', 'SelectorNull']]] = None,
+        selectors: Optional[Iterable[Selector | SelectorNull]] = None,
         is_not: bool = False,
         is_html: bool = False
     ) -> None:
@@ -371,7 +372,7 @@ class SelectorList(Immutable):
             is_html=is_html
         )
 
-    def __iter__(self) -> Iterator[Union['Selector', 'SelectorNull']]:
+    def __iter__(self) -> Iterator[Selector | SelectorNull]:
         """Iterator."""
 
         return iter(self.selectors)
@@ -381,7 +382,7 @@ class SelectorList(Immutable):
 
         return len(self.selectors)
 
-    def __getitem__(self, index: int) -> Union['Selector', 'SelectorNull']:
+    def __getitem__(self, index: int) -> Selector | SelectorNull:
         """Get item."""
 
         return self.selectors[index]
