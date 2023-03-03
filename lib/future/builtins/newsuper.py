@@ -60,49 +60,48 @@ def newsuper(typ=_SENTINEL, type_or_obj=_SENTINEL, framedepth=1):
             raise RuntimeError('super() used in a function with no args')
 
         try:
-            # Get the MRO so we can crawl it.
-            mro = type_or_obj.__mro__
-        except (AttributeError, RuntimeError):  # see issue #160
+            typ = find_owner(type_or_obj, f.f_code)
+        except (AttributeError, RuntimeError, TypeError):
+            # see issues #160, #267
             try:
-                mro = type_or_obj.__class__.__mro__
+                typ = find_owner(type_or_obj.__class__, f.f_code)
             except AttributeError:
-                raise RuntimeError('super() used with a non-newstyle class')
-
-        #   A ``for...else`` block?  Yes!  It's odd, but useful.
-        #   If unfamiliar with for...else, see:
-        #
-        #       http://psung.blogspot.com/2007/12/for-else-in-python.html
-        for typ in mro:
-            #  Find the class that owns the currently-executing method.
-            for meth in typ.__dict__.values():
-                # Drill down through any wrappers to the underlying func.
-                # This handles e.g. classmethod() and staticmethod().
-                try:
-                    while not isinstance(meth,FunctionType):
-                        if isinstance(meth, property):
-                            # Calling __get__ on the property will invoke
-                            # user code which might throw exceptions or have
-                            # side effects
-                            meth = meth.fget
-                        else:
-                            try:
-                                meth = meth.__func__
-                            except AttributeError:
-                                meth = meth.__get__(type_or_obj, typ)
-                except (AttributeError, TypeError):
-                    continue
-                if meth.func_code is f.f_code:
-                    break   # Aha!  Found you.
-            else:
-                continue    #  Not found! Move onto the next class in MRO.
-            break    #  Found! Break out of the search loop.
-        else:
-            raise RuntimeError('super() called outside a method')
+                raise RuntimeError('super() used with an old-style class')
+            except TypeError:
+                raise RuntimeError('super() called outside a method')
 
     #  Dispatch to builtin super().
     if type_or_obj is not _SENTINEL:
         return _builtin_super(typ, type_or_obj)
     return _builtin_super(typ)
+
+
+def find_owner(cls, code):
+    '''Find the class that owns the currently-executing method.
+    '''
+    for typ in cls.__mro__:
+        for meth in typ.__dict__.values():
+            # Drill down through any wrappers to the underlying func.
+            # This handles e.g. classmethod() and staticmethod().
+            try:
+                while not isinstance(meth,FunctionType):
+                    if isinstance(meth, property):
+                        # Calling __get__ on the property will invoke
+                        # user code which might throw exceptions or have
+                        # side effects
+                        meth = meth.fget
+                    else:
+                        try:
+                            meth = meth.__func__
+                        except AttributeError:
+                            meth = meth.__get__(cls, typ)
+            except (AttributeError, TypeError):
+                continue
+            if meth.func_code is code:
+                return typ   # Aha!  Found you.
+        #  Not found! Move onto the next class in MRO.
+
+    raise TypeError
 
 
 def superm(*args, **kwds):

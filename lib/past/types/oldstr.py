@@ -20,7 +20,7 @@ class BaseOldStr(type):
 
 
 def unescape(s):
-    """
+    r"""
     Interprets strings with escape sequences
 
     Example:

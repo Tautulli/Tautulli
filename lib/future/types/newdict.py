@@ -23,7 +23,7 @@ from future.types.newobject import newobject
 
 
 _builtin_dict = dict
-ver = sys.version_info[:2]
+ver = sys.version_info
 
 
 class BaseNewDict(type):
@@ -38,47 +38,18 @@ class newdict(with_metaclass(BaseNewDict, _builtin_dict)):
     """
     A backport of the Python 3 dict object to Py2
     """
-    def items(self):
-        """
-        On Python 2.7+:
-            D.items() -> a set-like object providing a view on D's items
-        On Python 2.6:
-            D.items() -> an iterator over D's items
-        """
-        if ver == (2, 7):
-            return self.viewitems()
-        elif ver == (2, 6):
-            return self.iteritems()
-        elif ver >= (3, 0):
-            return self.items()
 
-    def keys(self):
-        """
-        On Python 2.7+:
-            D.keys() -> a set-like object providing a view on D's keys
-        On Python 2.6:
-            D.keys() -> an iterator over D's keys
-        """
-        if ver == (2, 7):
-            return self.viewkeys()
-        elif ver == (2, 6):
-            return self.iterkeys()
-        elif ver >= (3, 0):
-            return self.keys()
-
-    def values(self):
-        """
-        On Python 2.7+:
-            D.values() -> a set-like object providing a view on D's values
-        On Python 2.6:
-            D.values() -> an iterator over D's values
-        """
-        if ver == (2, 7):
-            return self.viewvalues()
-        elif ver == (2, 6):
-            return self.itervalues()
-        elif ver >= (3, 0):
-            return self.values()
+    if ver >= (3,):
+        # Inherit items, keys and values from `dict` in 3.x
+        pass
+    elif ver >= (2, 7):
+        items = dict.viewitems
+        keys = dict.viewkeys
+        values = dict.viewvalues
+    else:
+        items = dict.iteritems
+        keys = dict.iterkeys
+        values = dict.itervalues
 
     def __new__(cls, *args, **kwargs):
         """
@@ -93,13 +64,7 @@ class newdict(with_metaclass(BaseNewDict, _builtin_dict)):
             in the keyword argument list.  For example:  dict(one=1, two=2)
         """
 
-        if len(args) == 0:
-            return super(newdict, cls).__new__(cls)
-        elif type(args[0]) == newdict:
-            value = args[0]
-        else:
-            value = args[0]
-        return super(newdict, cls).__new__(cls, value)
+        return super(newdict, cls).__new__(cls, *args)
 
     def __native__(self):
         """
