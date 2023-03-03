@@ -11,9 +11,6 @@ from typing import Union, Tuple, Iterable
 from typing import cast
 
 
-from jaraco.functools import once
-
-
 # some useful constants
 osc_per_year = 290_091_329_207_984_000
 """
@@ -36,7 +33,7 @@ seconds_per_month = seconds_per_year / 12
 hours_per_month = hours_per_day * days_per_year / 12
 
 
-@once
+@functools.lru_cache()
 def _needs_year_help() -> bool:
     """
     Some versions of Python render %Y with only three characters :(
