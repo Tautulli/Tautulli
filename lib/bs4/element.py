@@ -496,13 +496,16 @@ class PageElement(object):
     def extend(self, tags):
         """Appends the given PageElements to this one's contents.
 
-        :param tags: A list of PageElements.
+        :param tags: A list of PageElements. If a single Tag is
+            provided instead, this PageElement's contents will be extended
+            with that Tag's contents.
         """
         if isinstance(tags, Tag):
-            # Calling self.append() on another tag's contents will change
-            # the list we're iterating over. Make a list that won't
-            # change.
-            tags = list(tags.contents)
+            tags = tags.contents
+        if isinstance(tags, list):
+            # Moving items around the tree may change their position in
+            # the original list. Make a list that won't change.
+            tags = list(tags)
         for tag in tags:
             self.append(tag)
 
@@ -586,8 +589,9 @@ class PageElement(object):
         :kwargs: A dictionary of filters on attribute values.
         :return: A ResultSet containing PageElements.
         """
+        _stacklevel = kwargs.pop('_stacklevel', 2)
         return self._find_all(name, attrs, string, limit, self.next_elements,
-                             **kwargs)
+                              _stacklevel=_stacklevel+1, **kwargs)
     findAllNext = find_all_next  # BS3
 
     def find_next_sibling(self, name=None, attrs={}, string=None, **kwargs):
@@ -624,8 +628,11 @@ class PageElement(object):
         :return: A ResultSet of PageElements.
         :rtype: bs4.element.ResultSet
         """
-        return self._find_all(name, attrs, string, limit,
-                              self.next_siblings, **kwargs)
+        _stacklevel = kwargs.pop('_stacklevel', 2)
+        return self._find_all(
+            name, attrs, string, limit,
+            self.next_siblings, _stacklevel=_stacklevel+1, **kwargs
+        )
     findNextSiblings = find_next_siblings   # BS3
     fetchNextSiblings = find_next_siblings  # BS2
 
@@ -663,8 +670,11 @@ class PageElement(object):
         :return: A ResultSet of PageElements.
         :rtype: bs4.element.ResultSet
         """
-        return self._find_all(name, attrs, string, limit, self.previous_elements,
-                           **kwargs)
+        _stacklevel = kwargs.pop('_stacklevel', 2)
+        return self._find_all(
+            name, attrs, string, limit, self.previous_elements,
+            _stacklevel=_stacklevel+1, **kwargs
+        )
     findAllPrevious = find_all_previous  # BS3
     fetchPrevious = find_all_previous    # BS2
 
@@ -702,8 +712,11 @@ class PageElement(object):
         :return: A ResultSet of PageElements.
         :rtype: bs4.element.ResultSet
         """
-        return self._find_all(name, attrs, string, limit,
-                              self.previous_siblings, **kwargs)
+        _stacklevel = kwargs.pop('_stacklevel', 2)
+        return self._find_all(
+            name, attrs, string, limit,
+            self.previous_siblings, _stacklevel=_stacklevel+1, **kwargs
+        )
     findPreviousSiblings = find_previous_siblings   # BS3
     fetchPreviousSiblings = find_previous_siblings  # BS2
 
@@ -724,7 +737,7 @@ class PageElement(object):
         # NOTE: We can't use _find_one because findParents takes a different
         # set of arguments.
         r = None
-        l = self.find_parents(name, attrs, 1, **kwargs)
+        l = self.find_parents(name, attrs, 1, _stacklevel=3, **kwargs)
         if l:
             r = l[0]
         return r
@@ -744,8 +757,9 @@ class PageElement(object):
         :return: A PageElement.
         :rtype: bs4.element.Tag | bs4.element.NavigableString
         """
+        _stacklevel = kwargs.pop('_stacklevel', 2)
         return self._find_all(name, attrs, None, limit, self.parents,
-                             **kwargs)
+                              _stacklevel=_stacklevel+1, **kwargs)
     findParents = find_parents   # BS3
     fetchParents = find_parents  # BS2
 
@@ -771,19 +785,20 @@ class PageElement(object):
 
     def _find_one(self, method, name, attrs, string, **kwargs):
         r = None
-        l = method(name, attrs, string, 1, **kwargs)
+        l = method(name, attrs, string, 1, _stacklevel=4, **kwargs)
         if l:
             r = l[0]
         return r
 
     def _find_all(self, name, attrs, string, limit, generator, **kwargs):
         "Iterates over a generator looking for things that match."
+        _stacklevel = kwargs.pop('_stacklevel', 3)
 
         if string is None and 'text' in kwargs:
             string = kwargs.pop('text')
             warnings.warn(
                 "The 'text' argument to find()-type methods is deprecated. Use 'string' instead.",
-                DeprecationWarning
+                DeprecationWarning, stacklevel=_stacklevel
             )
 
         if isinstance(name, SoupStrainer):
@@ -1306,7 +1321,8 @@ class Tag(PageElement):
             sourceline=self.sourceline, sourcepos=self.sourcepos,
             can_be_empty_element=self.can_be_empty_element,
             cdata_list_attributes=self.cdata_list_attributes,
-            preserve_whitespace_tags=self.preserve_whitespace_tags
+            preserve_whitespace_tags=self.preserve_whitespace_tags,
+            interesting_string_types=self.interesting_string_types
         )
         for attr in ('can_be_empty_element', 'hidden'):
             setattr(clone, attr, getattr(self, attr))
@@ -1558,7 +1574,7 @@ class Tag(PageElement):
                 '.%(name)sTag is deprecated, use .find("%(name)s") instead. If you really were looking for a tag called %(name)sTag, use .find("%(name)sTag")' % dict(
                     name=tag_name
                 ),
-                DeprecationWarning
+                DeprecationWarning, stacklevel=2
             )
             return self.find(tag_name)
         # We special case contents to avoid recursion.
@@ -1862,7 +1878,8 @@ class Tag(PageElement):
         :rtype: bs4.element.Tag | bs4.element.NavigableString
         """
         r = None
-        l = self.find_all(name, attrs, recursive, string, 1, **kwargs)
+        l = self.find_all(name, attrs, recursive, string, 1, _stacklevel=3,
+                          **kwargs)
         if l:
             r = l[0]
         return r
@@ -1889,7 +1906,9 @@ class Tag(PageElement):
         generator = self.descendants
         if not recursive:
             generator = self.children
-        return self._find_all(name, attrs, string, limit, generator, **kwargs)
+        _stacklevel = kwargs.pop('_stacklevel', 2)
+        return self._find_all(name, attrs, string, limit, generator,
+                              _stacklevel=_stacklevel+1, **kwargs)
     findAll = find_all       # BS3
     findChildren = find_all  # BS2
 
@@ -1993,7 +2012,7 @@ class Tag(PageElement):
         """
         warnings.warn(
             'has_key is deprecated. Use has_attr(key) instead.',
-            DeprecationWarning
+            DeprecationWarning, stacklevel=2
         )
         return self.has_attr(key)
 
@@ -2024,7 +2043,7 @@ class SoupStrainer(object):
             string = kwargs.pop('text')
             warnings.warn(
                 "The 'text' argument to the SoupStrainer constructor is deprecated. Use 'string' instead.",
-                DeprecationWarning
+                DeprecationWarning, stacklevel=2
             )
 
         self.name = self._normalize_search_value(name)

@@ -122,7 +122,7 @@ class TreeBuilder(object):
     
     # A value for these tag/attribute combinations is a space- or
     # comma-separated list of CDATA, rather than a single CDATA.
-    DEFAULT_CDATA_LIST_ATTRIBUTES = {}
+    DEFAULT_CDATA_LIST_ATTRIBUTES = defaultdict(list)
 
     # Whitespace should be preserved inside these tags.
     DEFAULT_PRESERVE_WHITESPACE_TAGS = set()

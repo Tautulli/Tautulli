@@ -3,15 +3,18 @@ import copy
 import pickle
 import pytest
 
-from soupsieve import SelectorSyntaxError
-
 from bs4 import BeautifulSoup
 from bs4.element import (
     Comment,
     SoupStrainer,
 )
-from . import SoupTest
+from . import (
+    SoupTest,
+    SOUP_SIEVE_PRESENT,
+)
 
+if SOUP_SIEVE_PRESENT:
+    from soupsieve import SelectorSyntaxError
 
 class TestEncoding(SoupTest):
     """Test the ability to encode objects into strings."""
@@ -213,6 +216,7 @@ class TestFormatters(SoupTest):
         assert soup.contents[0].name == 'pre'
 
 
+@pytest.mark.skipif(not SOUP_SIEVE_PRESENT, reason="Soup Sieve not installed")
 class TestCSSSelectors(SoupTest):
     """Test basic CSS selector functionality.
 
@@ -694,6 +698,7 @@ class TestPersistence(SoupTest):
         assert tag.can_be_empty_element == copied.can_be_empty_element
         assert tag.cdata_list_attributes == copied.cdata_list_attributes
         assert tag.preserve_whitespace_tags == copied.preserve_whitespace_tags
+        assert tag.interesting_string_types == copied.interesting_string_types
         
     def test_unicode_pickle(self):
         # A tree containing Unicode characters can be pickled.
