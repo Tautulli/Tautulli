@@ -1897,7 +1897,7 @@ class WebInterface(object):
                 before (str):                   History before and including the date, "YYYY-MM-DD"
                 after (str):                    History after and including the date, "YYYY-MM-DD"
                 section_id (int):               2
-                media_type (str):               "movie", "episode", "track", "live"
+                media_type (str):               "movie", "episode", "track", "live", "collection", "playlist"
                 transcode_decision (str):       "direct play", "copy", "transcode",
                 guid (str):                     Plex guid for an item, e.g. "com.plexapp.agents.thetvdb://121361/6/1"
                 order_column (str):             "date", "friendly_name", "ip_address", "platform", "player",
@@ -1994,47 +1994,55 @@ class WebInterface(object):
             if user:
                 custom_where.append(['session_history.user', user])
         if 'rating_key' in kwargs:
-            rating_key = helpers.split_strip(kwargs.get('rating_key', ''))
-            if rating_key:
-                custom_where.append(['session_history.rating_key', rating_key])
+            if kwargs.get('media_type') in ('collection', 'playlist') and kwargs.get('rating_key'):
+                pms_connect = pmsconnect.PmsConnect()
+                result = pms_connect.get_item_children(rating_key=kwargs.pop('rating_key'), media_type=kwargs.pop('media_type'))
+                rating_keys = [child['rating_key'] for child in result['children_list']]
+                custom_where.append(['session_history_metadata.rating_key OR', rating_keys])
+                custom_where.append(['session_history_metadata.parent_rating_key OR', rating_keys])
+                custom_where.append(['session_history_metadata.grandparent_rating_key OR', rating_keys])
+            else:
+                rating_key = helpers.split_strip(kwargs.pop('rating_key', ''))
+                if rating_key:
+                    custom_where.append(['session_history.rating_key', rating_key])
         if 'parent_rating_key' in kwargs:
-            rating_key = helpers.split_strip(kwargs.get('parent_rating_key', ''))
+            rating_key = helpers.split_strip(kwargs.pop('parent_rating_key', ''))
             if rating_key:
                 custom_where.append(['session_history.parent_rating_key', rating_key])
         if 'grandparent_rating_key' in kwargs:
-            rating_key = helpers.split_strip(kwargs.get('grandparent_rating_key', ''))
+            rating_key = helpers.split_strip(kwargs.pop('grandparent_rating_key', ''))
             if rating_key:
                 custom_where.append(['session_history.grandparent_rating_key', rating_key])
         if 'start_date' in kwargs:
-            start_date = helpers.split_strip(kwargs.get('start_date', ''))
+            start_date = helpers.split_strip(kwargs.pop('start_date', ''))
             if start_date:
                 custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
         if 'before' in kwargs:
-            before = helpers.split_strip(kwargs.get('before', ''))
+            before = helpers.split_strip(kwargs.pop('before', ''))
             if before:
                 custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime")) <', before])
         if 'after' in kwargs:
-            after = helpers.split_strip(kwargs.get('after', ''))
+            after = helpers.split_strip(kwargs.pop('after', ''))
             if after:
                 custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime")) >', after])
         if 'reference_id' in kwargs:
-            reference_id = helpers.split_strip(kwargs.get('reference_id', ''))
+            reference_id = helpers.split_strip(kwargs.pop('reference_id', ''))
             if reference_id:
                 custom_where.append(['session_history.reference_id', reference_id])
         if 'section_id' in kwargs:
-            section_id = helpers.split_strip(kwargs.get('section_id', ''))
+            section_id = helpers.split_strip(kwargs.pop('section_id', ''))
             if section_id:
                 custom_where.append(['session_history.section_id', section_id])
         if 'media_type' in kwargs:
-            media_type = helpers.split_strip(kwargs.get('media_type', ''))
+            media_type = helpers.split_strip(kwargs.pop('media_type', ''))
             if media_type and 'all' not in media_type:
                 custom_where.append(['media_type_live', media_type])
         if 'transcode_decision' in kwargs:
-            transcode_decision = helpers.split_strip(kwargs.get('transcode_decision', ''))
+            transcode_decision = helpers.split_strip(kwargs.pop('transcode_decision', ''))
             if transcode_decision and 'all' not in transcode_decision:
                 custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
         if 'guid' in kwargs:
-            guid = helpers.split_strip(kwargs.get('guid', '').split('?')[0])
+            guid = helpers.split_strip(kwargs.pop('guid', '').split('?')[0])
             if guid:
                 custom_where.append(['session_history_metadata.guid', ['LIKE ' + g + '%' for g in guid]])
 

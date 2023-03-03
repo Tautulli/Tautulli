@@ -583,7 +583,7 @@ DOCUMENTATION :: END
                 </div>
                 % endif
                 <%
-                    history_type = data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track')
+                    history_type = data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist')
                     history_active = 'active' if history_type else ''
                     export_active = 'active' if not history_type else ''
                 %>
@@ -646,7 +646,7 @@ DOCUMENTATION :: END
                                 <div class="col-md-12">
                                     <div class="table-card-header">
                                         <div class="header-bar">
-                                            % if data['media_type'] in ('artist', 'album', 'track'):
+                                            % if data['media_type'] in ('artist', 'album', 'track', 'playlist'):
                                             <span>Play History for <strong>${data['title']}</strong></span>
                                             % else:
                                             <span>Watch History for <strong>${data['title']}</strong></span>
@@ -865,7 +865,7 @@ DOCUMENTATION :: END
 %>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
-% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
 <script>
     function loadHistoryTable(transcode_decision) {
         // Build watch history table
@@ -884,6 +884,9 @@ DOCUMENTATION :: END
                     % elif data['media_type'] in ('season', 'album'):
                     parent_rating_key: "${data['rating_key']}"
                     % elif data['media_type'] in ('movie', 'episode', 'track'):
+                    rating_key: "${data['rating_key']}"
+                    % elif data['media_type'] in ('collection', 'playlist'):
+                    media_type: "${data['media_type']}",
                     rating_key: "${data['rating_key']}"
                     % endif
                 };
