@@ -971,7 +971,8 @@ class RecentlyAdded(Newsletter):
              'description': 'Select the libraries to include in the newsletter.',
              'name': 'newsletter_config_incl_libraries',
              'input_type': 'selectize',
-             'select_options': self._get_sections_options()
+             'select_options': self._get_sections_options(),
+             'select_all': True
              }
         ]
 

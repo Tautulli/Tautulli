@@ -30,7 +30,7 @@ class CAA(dns.rdata.Rdata):
 
     # see: RFC 6844
 
-    __slots__ = ['flags', 'tag', 'value']
+    __slots__ = ["flags", "tag", "value"]
 
     def __init__(self, rdclass, rdtype, flags, tag, value):
         super().__init__(rdclass, rdtype)
@@ -41,23 +41,26 @@ class CAA(dns.rdata.Rdata):
         self.value = self._as_bytes(value)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return '%u %s "%s"' % (self.flags,
-                               dns.rdata._escapify(self.tag),
-                               dns.rdata._escapify(self.value))
+        return '%u %s "%s"' % (
+            self.flags,
+            dns.rdata._escapify(self.tag),
+            dns.rdata._escapify(self.value),
+        )
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         flags = tok.get_uint8()
         tag = tok.get_string().encode()
         value = tok.get_string().encode()
         return cls(rdclass, rdtype, flags, tag, value)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
-        file.write(struct.pack('!B', self.flags))
+        file.write(struct.pack("!B", self.flags))
         l = len(self.tag)
         assert l < 256
-        file.write(struct.pack('!B', l))
+        file.write(struct.pack("!B", l))
         file.write(self.tag)
         file.write(self.value)
 

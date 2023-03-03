@@ -46,6 +46,16 @@ def ceil(x):
 
 from itertools import islice
 
+if PY26:
+    # itertools.count in Py 2.6 doesn't accept a step parameter
+    def count(start=0, step=1):
+        while True:
+            yield start
+            start += step
+else:
+    from itertools import count
+
+
 if PY3:
     try:
         from _thread import get_ident
@@ -84,6 +94,10 @@ def recursive_repr(fillvalue='...'):
 
     return decorating_function
 
+
+# OrderedDict Shim from  Raymond Hettinger, python core dev
+# http://code.activestate.com/recipes/576693-ordered-dictionary-for-py24/
+# here to support version 2.6.
 
 ################################################################################
 ### OrderedDict

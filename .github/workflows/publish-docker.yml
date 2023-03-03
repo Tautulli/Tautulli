@@ -70,7 +70,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Docker Build and Push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v4
         if: success()
         with:
           context: .
@@ -87,7 +87,6 @@ jobs:
             ghcr.io/${{ steps.prepare.outputs.docker_image }}:${{ steps.prepare.outputs.tag }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
-          provenance: false
 
   discord:
     name: Discord Notification

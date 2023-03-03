@@ -20,7 +20,7 @@ import calendar
 import struct
 import time
 
-import dns.dnssec
+import dns.dnssectypes
 import dns.immutable
 import dns.exception
 import dns.rdata
@@ -43,12 +43,11 @@ def sigtime_to_posixtime(what):
     hour = int(what[8:10])
     minute = int(what[10:12])
     second = int(what[12:14])
-    return calendar.timegm((year, month, day, hour, minute, second,
-                            0, 0, 0))
+    return calendar.timegm((year, month, day, hour, minute, second, 0, 0, 0))
 
 
 def posixtime_to_sigtime(what):
-    return time.strftime('%Y%m%d%H%M%S', time.gmtime(what))
+    return time.strftime("%Y%m%d%H%M%S", time.gmtime(what))
 
 
 @dns.immutable.immutable
@@ -56,16 +55,35 @@ class RRSIG(dns.rdata.Rdata):
 
     """RRSIG record"""
 
-    __slots__ = ['type_covered', 'algorithm', 'labels', 'original_ttl',
-                 'expiration', 'inception', 'key_tag', 'signer',
-                 'signature']
+    __slots__ = [
+        "type_covered",
+        "algorithm",
+        "labels",
+        "original_ttl",
+        "expiration",
+        "inception",
+        "key_tag",
+        "signer",
+        "signature",
+    ]
 
-    def __init__(self, rdclass, rdtype, type_covered, algorithm, labels,
-                 original_ttl, expiration, inception, key_tag, signer,
-                 signature):
+    def __init__(
+        self,
+        rdclass,
+        rdtype,
+        type_covered,
+        algorithm,
+        labels,
+        original_ttl,
+        expiration,
+        inception,
+        key_tag,
+        signer,
+        signature,
+    ):
         super().__init__(rdclass, rdtype)
         self.type_covered = self._as_rdatatype(type_covered)
-        self.algorithm = dns.dnssec.Algorithm.make(algorithm)
+        self.algorithm = dns.dnssectypes.Algorithm.make(algorithm)
         self.labels = self._as_uint8(labels)
         self.original_ttl = self._as_ttl(original_ttl)
         self.expiration = self._as_uint32(expiration)
@@ -78,7 +96,7 @@ class RRSIG(dns.rdata.Rdata):
         return self.type_covered
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return '%s %d %d %d %s %s %d %s %s' % (
+        return "%s %d %d %d %s %s %d %s %s" % (
             dns.rdatatype.to_text(self.type_covered),
             self.algorithm,
             self.labels,
@@ -87,14 +105,15 @@ class RRSIG(dns.rdata.Rdata):
             posixtime_to_sigtime(self.inception),
             self.key_tag,
             self.signer.choose_relativity(origin, relativize),
-            dns.rdata._base64ify(self.signature, **kw)
+            dns.rdata._base64ify(self.signature, **kw),
         )
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         type_covered = dns.rdatatype.from_text(tok.get_string())
-        algorithm = dns.dnssec.algorithm_from_text(tok.get_string())
+        algorithm = dns.dnssectypes.Algorithm.from_text(tok.get_string())
         labels = tok.get_int()
         original_ttl = tok.get_ttl()
         expiration = sigtime_to_posixtime(tok.get_string())
@@ -103,22 +122,38 @@ class RRSIG(dns.rdata.Rdata):
         signer = tok.get_name(origin, relativize, relativize_to)
         b64 = tok.concatenate_remaining_identifiers().encode()
         signature = base64.b64decode(b64)
-        return cls(rdclass, rdtype, type_covered, algorithm, labels,
-                   original_ttl, expiration, inception, key_tag, signer,
-                   signature)
+        return cls(
+            rdclass,
+            rdtype,
+            type_covered,
+            algorithm,
+            labels,
+            original_ttl,
+            expiration,
+            inception,
+            key_tag,
+            signer,
+            signature,
+        )
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
-        header = struct.pack('!HBBIIIH', self.type_covered,
-                             self.algorithm, self.labels,
-                             self.original_ttl, self.expiration,
-                             self.inception, self.key_tag)
+        header = struct.pack(
+            "!HBBIIIH",
+            self.type_covered,
+            self.algorithm,
+            self.labels,
+            self.original_ttl,
+            self.expiration,
+            self.inception,
+            self.key_tag,
+        )
         file.write(header)
         self.signer.to_wire(file, None, origin, canonicalize)
         file.write(self.signature)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        header = parser.get_struct('!HBBIIIH')
+        header = parser.get_struct("!HBBIIIH")
         signer = parser.get_name(origin)
         signature = parser.get_remaining()
         return cls(rdclass, rdtype, *header, signer, signature)

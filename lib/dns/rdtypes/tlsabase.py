@@ -30,10 +30,9 @@ class TLSABase(dns.rdata.Rdata):
 
     # see: RFC 6698
 
-    __slots__ = ['usage', 'selector', 'mtype', 'cert']
+    __slots__ = ["usage", "selector", "mtype", "cert"]
 
-    def __init__(self, rdclass, rdtype, usage, selector,
-                 mtype, cert):
+    def __init__(self, rdclass, rdtype, usage, selector, mtype, cert):
         super().__init__(rdclass, rdtype)
         self.usage = self._as_uint8(usage)
         self.selector = self._as_uint8(selector)
@@ -42,17 +41,18 @@ class TLSABase(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         kw = kw.copy()
-        chunksize = kw.pop('chunksize', 128)
-        return '%d %d %d %s' % (self.usage,
-                                self.selector,
-                                self.mtype,
-                                dns.rdata._hexify(self.cert,
-                                                  chunksize=chunksize,
-                                                  **kw))
+        chunksize = kw.pop("chunksize", 128)
+        return "%d %d %d %s" % (
+            self.usage,
+            self.selector,
+            self.mtype,
+            dns.rdata._hexify(self.cert, chunksize=chunksize, **kw),
+        )
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         usage = tok.get_uint8()
         selector = tok.get_uint8()
         mtype = tok.get_uint8()

@@ -25,9 +25,8 @@ class BaseBaseString(type):
     def __instancecheck__(cls, instance):
         return isinstance(instance, (bytes, str))
 
-    def __subclasshook__(cls, thing):
-        # TODO: What should go here?
-        raise NotImplemented
+    def __subclasscheck__(cls, subclass):
+        return super(BaseBaseString, cls).__subclasscheck__(subclass) or issubclass(subclass, (bytes, str))
 
 
 class basestring(with_metaclass(BaseBaseString)):

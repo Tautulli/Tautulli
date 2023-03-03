@@ -1,6 +1,0 @@
-from . import name
-def from_address(text : str) -> name.Name:
-    ...
-
-def to_address(name : name.Name) -> str:
-    ...

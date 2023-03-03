@@ -1,9 +1,12 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+from typing import Any, Callable, List, Optional, Tuple, Union
+
 import collections
 
 import dns.exception
 import dns.name
+import dns.node
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
@@ -13,11 +16,11 @@ import dns.ttl
 
 
 class TransactionManager:
-    def reader(self):
+    def reader(self) -> "Transaction":
         """Begin a read-only transaction."""
         raise NotImplementedError  # pragma: no cover
 
-    def writer(self, replacement=False):
+    def writer(self, replacement: bool = False) -> "Transaction":
         """Begin a writable transaction.
 
         *replacement*, a ``bool``.  If `True`, the content of the
@@ -27,7 +30,9 @@ class TransactionManager:
         """
         raise NotImplementedError  # pragma: no cover
 
-    def origin_information(self):
+    def origin_information(
+        self,
+    ) -> Tuple[Optional[dns.name.Name], bool, Optional[dns.name.Name]]:
         """Returns a tuple
 
             (absolute_origin, relativize, effective_origin)
@@ -52,14 +57,12 @@ class TransactionManager:
         """
         raise NotImplementedError  # pragma: no cover
 
-    def get_class(self):
-        """The class of the transaction manager.
-        """
+    def get_class(self) -> dns.rdataclass.RdataClass:
+        """The class of the transaction manager."""
         raise NotImplementedError  # pragma: no cover
 
-    def from_wire_origin(self):
-        """Origin to use in from_wire() calls.
-        """
+    def from_wire_origin(self) -> Optional[dns.name.Name]:
+        """Origin to use in from_wire() calls."""
         (absolute_origin, relativize, _) = self.origin_information()
         if relativize:
             return absolute_origin
@@ -84,28 +87,51 @@ def _ensure_immutable_rdataset(rdataset):
         return rdataset
     return dns.rdataset.ImmutableRdataset(rdataset)
 
+
 def _ensure_immutable_node(node):
     if node is None or node.is_immutable():
         return node
     return dns.node.ImmutableNode(node)
 
 
-class Transaction:
+CheckPutRdatasetType = Callable[
+    ["Transaction", dns.name.Name, dns.rdataset.Rdataset], None
+]
+CheckDeleteRdatasetType = Callable[
+    ["Transaction", dns.name.Name, dns.rdatatype.RdataType, dns.rdatatype.RdataType],
+    None,
+]
+CheckDeleteNameType = Callable[["Transaction", dns.name.Name], None]
 
-    def __init__(self, manager, replacement=False, read_only=False):
+
+class Transaction:
+    def __init__(
+        self,
+        manager: TransactionManager,
+        replacement: bool = False,
+        read_only: bool = False,
+    ):
         self.manager = manager
         self.replacement = replacement
         self.read_only = read_only
         self._ended = False
-        self._check_put_rdataset = []
-        self._check_delete_rdataset = []
-        self._check_delete_name = []
+        self._check_put_rdataset: List[CheckPutRdatasetType] = []
+        self._check_delete_rdataset: List[CheckDeleteRdatasetType] = []
+        self._check_delete_name: List[CheckDeleteNameType] = []
 
     #
     # This is the high level API
     #
+    # Note that we currently use non-immutable types in the return type signature to
+    # avoid covariance problems, e.g. if the caller has a List[Rdataset], mypy will be
+    # unhappy if we return an ImmutableRdataset.
 
-    def get(self, name, rdtype, covers=dns.rdatatype.NONE):
+    def get(
+        self,
+        name: Optional[Union[dns.name.Name, str]],
+        rdtype: Union[dns.rdatatype.RdataType, str],
+        covers: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.NONE,
+    ) -> dns.rdataset.Rdataset:
         """Return the rdataset associated with *name*, *rdtype*, and *covers*,
         or `None` if not found.
 
@@ -115,21 +141,22 @@ class Transaction:
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         rdtype = dns.rdatatype.RdataType.make(rdtype)
+        covers = dns.rdatatype.RdataType.make(covers)
         rdataset = self._get_rdataset(name, rdtype, covers)
         return _ensure_immutable_rdataset(rdataset)
 
-    def get_node(self, name):
+    def get_node(self, name: dns.name.Name) -> Optional[dns.node.Node]:
         """Return the node at *name*, if any.
 
         Returns an immutable node or ``None``.
         """
         return _ensure_immutable_node(self._get_node(name))
 
-    def _check_read_only(self):
+    def _check_read_only(self) -> None:
         if self.read_only:
             raise ReadOnly
 
-    def add(self, *args):
+    def add(self, *args: Any) -> None:
         """Add records.
 
         The arguments may be:
@@ -142,9 +169,9 @@ class Transaction:
         """
         self._check_ended()
         self._check_read_only()
-        return self._add(False, args)
+        self._add(False, args)
 
-    def replace(self, *args):
+    def replace(self, *args: Any) -> None:
         """Replace the existing rdataset at the name with the specified
         rdataset, or add the specified rdataset if there was no existing
         rdataset.
@@ -163,9 +190,9 @@ class Transaction:
         """
         self._check_ended()
         self._check_read_only()
-        return self._add(True, args)
+        self._add(True, args)
 
-    def delete(self, *args):
+    def delete(self, *args: Any) -> None:
         """Delete records.
 
         It is not an error if some of the records are not in the existing
@@ -185,9 +212,9 @@ class Transaction:
         """
         self._check_ended()
         self._check_read_only()
-        return self._delete(False, args)
+        self._delete(False, args)
 
-    def delete_exact(self, *args):
+    def delete_exact(self, *args: Any) -> None:
         """Delete records.
 
         The arguments may be:
@@ -208,16 +235,21 @@ class Transaction:
         """
         self._check_ended()
         self._check_read_only()
-        return self._delete(True, args)
+        self._delete(True, args)
 
-    def name_exists(self, name):
+    def name_exists(self, name: Union[dns.name.Name, str]) -> bool:
         """Does the specified name exist?"""
         self._check_ended()
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         return self._name_exists(name)
 
-    def update_serial(self, value=1, relative=True, name=dns.name.empty):
+    def update_serial(
+        self,
+        value: int = 1,
+        relative: bool = True,
+        name: dns.name.Name = dns.name.empty,
+    ) -> None:
         """Update the serial number.
 
         *value*, an `int`, is an increment if *relative* is `True`, or the
@@ -231,11 +263,10 @@ class Transaction:
         """
         self._check_ended()
         if value < 0:
-            raise ValueError('negative update_serial() value')
+            raise ValueError("negative update_serial() value")
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
-        rdataset = self._get_rdataset(name, dns.rdatatype.SOA,
-                                      dns.rdatatype.NONE)
+        rdataset = self._get_rdataset(name, dns.rdatatype.SOA, dns.rdatatype.NONE)
         if rdataset is None or len(rdataset) == 0:
             raise KeyError
         if relative:
@@ -253,7 +284,7 @@ class Transaction:
         self._check_ended()
         return self._iterate_rdatasets()
 
-    def changed(self):
+    def changed(self) -> bool:
         """Has this transaction changed anything?
 
         For read-only transactions, the result is always `False`.
@@ -264,7 +295,7 @@ class Transaction:
         self._check_ended()
         return self._changed()
 
-    def commit(self):
+    def commit(self) -> None:
         """Commit the transaction.
 
         Normally transactions are used as context managers and commit
@@ -277,7 +308,7 @@ class Transaction:
         """
         self._end(True)
 
-    def rollback(self):
+    def rollback(self) -> None:
         """Rollback the transaction.
 
         Normally transactions are used as context managers and commit
@@ -289,7 +320,7 @@ class Transaction:
         """
         self._end(False)
 
-    def check_put_rdataset(self, check):
+    def check_put_rdataset(self, check: CheckPutRdatasetType) -> None:
         """Call *check* before putting (storing) an rdataset.
 
         The function is called with the transaction, the name, and the rdataset.
@@ -301,7 +332,7 @@ class Transaction:
         """
         self._check_put_rdataset.append(check)
 
-    def check_delete_rdataset(self, check):
+    def check_delete_rdataset(self, check: CheckDeleteRdatasetType) -> None:
         """Call *check* before deleting an rdataset.
 
         The function is called with the transaction, the name, the rdatatype,
@@ -314,7 +345,7 @@ class Transaction:
         """
         self._check_delete_rdataset.append(check)
 
-    def check_delete_name(self, check):
+    def check_delete_name(self, check: CheckDeleteNameType) -> None:
         """Call *check* before putting (storing) an rdataset.
 
         The function is called with the transaction and the name.
@@ -332,7 +363,7 @@ class Transaction:
 
     def _raise_if_not_empty(self, method, args):
         if len(args) != 0:
-            raise TypeError(f'extra parameters to {method}')
+            raise TypeError(f"extra parameters to {method}")
 
     def _rdataset_from_args(self, method, deleting, args):
         try:
@@ -348,29 +379,29 @@ class Transaction:
                     if isinstance(arg, int):
                         ttl = arg
                         if ttl > dns.ttl.MAX_TTL:
-                            raise ValueError(f'{method}: TTL value too big')
+                            raise ValueError(f"{method}: TTL value too big")
                     else:
-                        raise TypeError(f'{method}: expected a TTL')
+                        raise TypeError(f"{method}: expected a TTL")
                     arg = args.popleft()
                 if isinstance(arg, dns.rdata.Rdata):
                     rdataset = dns.rdataset.from_rdata(ttl, arg)
                 else:
-                    raise TypeError(f'{method}: expected an Rdata')
+                    raise TypeError(f"{method}: expected an Rdata")
             return rdataset
         except IndexError:
             if deleting:
                 return None
             else:
                 # reraise
-                raise TypeError(f'{method}: expected more arguments')
+                raise TypeError(f"{method}: expected more arguments")
 
     def _add(self, replace, args):
         try:
             args = collections.deque(args)
             if replace:
-                method = 'replace()'
+                method = "replace()"
             else:
-                method = 'add()'
+                method = "add()"
             arg = args.popleft()
             if isinstance(arg, str):
                 arg = dns.name.from_text(arg, None)
@@ -384,44 +415,45 @@ class Transaction:
                 # same and can't be stored in nodes, so convert.
                 rdataset = rrset.to_rdataset()
             else:
-                raise TypeError(f'{method} requires a name or RRset ' +
-                                'as the first argument')
+                raise TypeError(
+                    f"{method} requires a name or RRset " + "as the first argument"
+                )
             if rdataset.rdclass != self.manager.get_class():
-                raise ValueError(f'{method} has objects of wrong RdataClass')
+                raise ValueError(f"{method} has objects of wrong RdataClass")
             if rdataset.rdtype == dns.rdatatype.SOA:
                 (_, _, origin) = self._origin_information()
                 if name != origin:
-                    raise ValueError(f'{method} has non-origin SOA')
+                    raise ValueError(f"{method} has non-origin SOA")
             self._raise_if_not_empty(method, args)
             if not replace:
-                existing = self._get_rdataset(name, rdataset.rdtype,
-                                              rdataset.covers)
+                existing = self._get_rdataset(name, rdataset.rdtype, rdataset.covers)
                 if existing is not None:
                     if isinstance(existing, dns.rdataset.ImmutableRdataset):
-                        trds = dns.rdataset.Rdataset(existing.rdclass,
-                                                     existing.rdtype,
-                                                     existing.covers)
+                        trds = dns.rdataset.Rdataset(
+                            existing.rdclass, existing.rdtype, existing.covers
+                        )
                         trds.update(existing)
                         existing = trds
                     rdataset = existing.union(rdataset)
             self._checked_put_rdataset(name, rdataset)
         except IndexError:
-            raise TypeError(f'not enough parameters to {method}')
+            raise TypeError(f"not enough parameters to {method}")
 
     def _delete(self, exact, args):
         try:
             args = collections.deque(args)
             if exact:
-                method = 'delete_exact()'
+                method = "delete_exact()"
             else:
-                method = 'delete()'
+                method = "delete()"
             arg = args.popleft()
             if isinstance(arg, str):
                 arg = dns.name.from_text(arg, None)
             if isinstance(arg, dns.name.Name):
                 name = arg
-                if len(args) > 0 and (isinstance(args[0], int) or
-                                      isinstance(args[0], str)):
+                if len(args) > 0 and (
+                    isinstance(args[0], int) or isinstance(args[0], str)
+                ):
                     # deleting by type and (optionally) covers
                     rdtype = dns.rdatatype.RdataType.make(args.popleft())
                     if len(args) > 0:
@@ -432,7 +464,7 @@ class Transaction:
                     existing = self._get_rdataset(name, rdtype, covers)
                     if existing is None:
                         if exact:
-                            raise DeleteNotExact(f'{method}: missing rdataset')
+                            raise DeleteNotExact(f"{method}: missing rdataset")
                     else:
                         self._delete_rdataset(name, rdtype, covers)
                     return
@@ -442,34 +474,34 @@ class Transaction:
                 rdataset = arg  # rrsets are also rdatasets
                 name = rdataset.name
             else:
-                raise TypeError(f'{method} requires a name or RRset ' +
-                                'as the first argument')
+                raise TypeError(
+                    f"{method} requires a name or RRset " + "as the first argument"
+                )
             self._raise_if_not_empty(method, args)
             if rdataset:
                 if rdataset.rdclass != self.manager.get_class():
-                    raise ValueError(f'{method} has objects of wrong '
-                                     'RdataClass')
-                existing = self._get_rdataset(name, rdataset.rdtype,
-                                              rdataset.covers)
+                    raise ValueError(f"{method} has objects of wrong RdataClass")
+                existing = self._get_rdataset(name, rdataset.rdtype, rdataset.covers)
                 if existing is not None:
                     if exact:
                         intersection = existing.intersection(rdataset)
                         if intersection != rdataset:
-                            raise DeleteNotExact(f'{method}: missing rdatas')
+                            raise DeleteNotExact(f"{method}: missing rdatas")
                     rdataset = existing.difference(rdataset)
                     if len(rdataset) == 0:
-                        self._checked_delete_rdataset(name, rdataset.rdtype,
-                                                      rdataset.covers)
+                        self._checked_delete_rdataset(
+                            name, rdataset.rdtype, rdataset.covers
+                        )
                     else:
                         self._checked_put_rdataset(name, rdataset)
                 elif exact:
-                    raise DeleteNotExact(f'{method}: missing rdataset')
+                    raise DeleteNotExact(f"{method}: missing rdataset")
             else:
                 if exact and not self._name_exists(name):
-                    raise DeleteNotExact(f'{method}: name not known')
+                    raise DeleteNotExact(f"{method}: name not known")
                 self._checked_delete_name(name)
         except IndexError:
-            raise TypeError(f'not enough parameters to {method}')
+            raise TypeError(f"not enough parameters to {method}")
 
     def _check_ended(self):
         if self._ended:
@@ -575,8 +607,7 @@ class Transaction:
         raise NotImplementedError  # pragma: no cover
 
     def _iterate_rdatasets(self):
-        """Return an iterator that yields (name, rdataset) tuples.
-        """
+        """Return an iterator that yields (name, rdataset) tuples."""
         raise NotImplementedError  # pragma: no cover
 
     def _get_node(self, name):

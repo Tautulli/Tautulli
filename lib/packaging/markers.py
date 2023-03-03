@@ -237,5 +237,9 @@ class Marker:
         current_environment["extra"] = ""
         if environment is not None:
             current_environment.update(environment)
+            # The API used to allow setting extra to None. We need to handle this
+            # case for backwards compatibility.
+            if current_environment["extra"] is None:
+                current_environment["extra"] = ""
 
         return _evaluate_markers(self._markers, current_environment)

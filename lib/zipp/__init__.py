@@ -88,6 +88,11 @@ class CompleteDirs(InitializedState, zipfile.ZipFile):
     """
     A ZipFile subclass that ensures that implied directories
     are always included in the namelist.
+
+    >>> list(CompleteDirs._implied_dirs(['foo/bar.txt', 'foo/bar/baz.txt']))
+    ['foo/', 'foo/bar/']
+    >>> list(CompleteDirs._implied_dirs(['foo/bar.txt', 'foo/bar/baz.txt', 'foo/bar/']))
+    ['foo/']
     """
 
     @staticmethod
@@ -97,7 +102,7 @@ class CompleteDirs(InitializedState, zipfile.ZipFile):
         return _dedupe(_difference(as_dirs, names))
 
     def namelist(self):
-        names = super(CompleteDirs, self).namelist()
+        names = super().namelist()
         return names + list(self._implied_dirs(names))
 
     def _name_set(self):
@@ -112,6 +117,17 @@ class CompleteDirs(InitializedState, zipfile.ZipFile):
         dirname = name + '/'
         dir_match = name not in names and dirname in names
         return dirname if dir_match else name
+
+    def getinfo(self, name):
+        """
+        Supplement getinfo for implied dirs.
+        """
+        try:
+            return super().getinfo(name)
+        except KeyError:
+            if not name.endswith('/') or name not in self._name_set():
+                raise
+            return zipfile.ZipInfo(filename=name)
 
     @classmethod
     def make(cls, source):
@@ -142,14 +158,19 @@ class FastLookup(CompleteDirs):
     def namelist(self):
         with contextlib.suppress(AttributeError):
             return self.__names
-        self.__names = super(FastLookup, self).namelist()
+        self.__names = super().namelist()
         return self.__names
 
     def _name_set(self):
         with contextlib.suppress(AttributeError):
             return self.__lookup
-        self.__lookup = super(FastLookup, self)._name_set()
+        self.__lookup = super()._name_set()
         return self.__lookup
+
+
+def _extract_text_encoding(encoding=None, *args, **kwargs):
+    # stacklevel=3 so that the caller of the caller see any warning.
+    return text_encoding(encoding, 3), args, kwargs
 
 
 class Path:
@@ -201,7 +222,7 @@ class Path:
 
     Read text:
 
-    >>> c.read_text()
+    >>> c.read_text(encoding='utf-8')
     'content of c'
 
     existence:
@@ -273,9 +294,9 @@ class Path:
             if args or kwargs:
                 raise ValueError("encoding args invalid for binary operation")
             return stream
-        else:
-            kwargs["encoding"] = text_encoding(kwargs.get("encoding"))
-        return io.TextIOWrapper(stream, *args, **kwargs)
+        # Text mode:
+        encoding, args, kwargs = _extract_text_encoding(*args, **kwargs)
+        return io.TextIOWrapper(stream, encoding, *args, **kwargs)
 
     @property
     def name(self):
@@ -298,8 +319,8 @@ class Path:
         return pathlib.Path(self.root.filename).joinpath(self.at)
 
     def read_text(self, *args, **kwargs):
-        kwargs["encoding"] = text_encoding(kwargs.get("encoding"))
-        with self.open('r', *args, **kwargs) as strm:
+        encoding, args, kwargs = _extract_text_encoding(*args, **kwargs)
+        with self.open('r', encoding, *args, **kwargs) as strm:
             return strm.read()
 
     def read_bytes(self):
@@ -344,7 +365,7 @@ class Path:
 
     def glob(self, pattern):
         if not pattern:
-            raise ValueError("Unacceptable pattern: {!r}".format(pattern))
+            raise ValueError(f"Unacceptable pattern: {pattern!r}")
 
         matches = re.compile(fnmatch.translate(pattern)).fullmatch
         return (

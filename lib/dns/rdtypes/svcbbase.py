@@ -63,44 +63,48 @@ def _validate_key(key):
     if isinstance(key, bytes):
         # We decode to latin-1 so we get 0-255 as valid and do NOT interpret
         # UTF-8 sequences
-        key = key.decode('latin-1')
+        key = key.decode("latin-1")
     if isinstance(key, str):
-        if key.lower().startswith('key'):
+        if key.lower().startswith("key"):
             force_generic = True
-            if key[3:].startswith('0') and len(key) != 4:
+            if key[3:].startswith("0") and len(key) != 4:
                 # key has leading zeros
-                raise ValueError('leading zeros in key')
-        key = key.replace('-', '_')
+                raise ValueError("leading zeros in key")
+        key = key.replace("-", "_")
     return (ParamKey.make(key), force_generic)
 
+
 def key_to_text(key):
-    return ParamKey.to_text(key).replace('_', '-').lower()
+    return ParamKey.to_text(key).replace("_", "-").lower()
+
 
 # Like rdata escapify, but escapes ',' too.
 
 _escaped = b'",\\'
 
+
 def _escapify(qstring):
-    text = ''
+    text = ""
     for c in qstring:
         if c in _escaped:
-            text += '\\' + chr(c)
+            text += "\\" + chr(c)
         elif c >= 0x20 and c < 0x7F:
             text += chr(c)
         else:
-            text += '\\%03d' % c
+            text += "\\%03d" % c
     return text
 
+
 def _unescape(value):
-    if value == '':
+    if value == "":
         return value
-    unescaped = b''
+    unescaped = b""
     l = len(value)
     i = 0
     while i < l:
         c = value[i]
         i += 1
-        if c == '\\':
+        if c == "\\":
             if i >= l:  # pragma: no cover   (can't happen via tokenizer get())
                 raise dns.exception.UnexpectedEnd
             c = value[i]
@@ -119,7 +123,7 @@ def _unescape(value):
                 codepoint = int(c) * 100 + int(c2) * 10 + int(c3)
                 if codepoint > 255:
                     raise dns.exception.SyntaxError
-                unescaped += b'%c' % (codepoint)
+                unescaped += b"%c" % (codepoint)
                 continue
         unescaped += c.encode()
     return unescaped
@@ -129,21 +133,21 @@ def _split(value):
     l = len(value)
     i = 0
     items = []
-    unescaped = b''
+    unescaped = b""
     while i < l:
         c = value[i]
         i += 1
-        if c == ord('\\'):
+        if c == ord("\\"):
             if i >= l:  # pragma: no cover   (can't happen via tokenizer get())
                 raise dns.exception.UnexpectedEnd
             c = value[i]
             i += 1
-            unescaped += b'%c' % (c)
-        elif c == ord(','):
+            unescaped += b"%c" % (c)
+        elif c == ord(","):
             items.append(unescaped)
-            unescaped = b''
+            unescaped = b""
         else:
-            unescaped += b'%c' % (c)
+            unescaped += b"%c" % (c)
     items.append(unescaped)
     return items
 
@@ -159,8 +163,8 @@ class Param:
 
 @dns.immutable.immutable
 class GenericParam(Param):
-    """Generic SVCB parameter
-    """
+    """Generic SVCB parameter"""
+
     def __init__(self, value):
         self.value = dns.rdata.Rdata._as_bytes(value, True)
 
@@ -198,19 +202,19 @@ class MandatoryParam(Param):
         prior_k = None
         for k in keys:
             if k == prior_k:
-                raise ValueError(f'duplicate key {k:d}')
+                raise ValueError(f"duplicate key {k:d}")
             prior_k = k
             if k == ParamKey.MANDATORY:
-                raise ValueError('listed the mandatory key as mandatory')
+                raise ValueError("listed the mandatory key as mandatory")
         self.keys = tuple(keys)
 
     @classmethod
     def from_value(cls, value):
-        keys = [k.encode() for k in value.split(',')]
+        keys = [k.encode() for k in value.split(",")]
         return cls(keys)
 
     def to_text(self):
-        return '"' + ','.join([key_to_text(key) for key in self.keys]) + '"'
+        return '"' + ",".join([key_to_text(key) for key in self.keys]) + '"'
 
     @classmethod
     def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
@@ -219,28 +223,29 @@ class MandatoryParam(Param):
         while parser.remaining() > 0:
             key = parser.get_uint16()
             if key < last_key:
-                raise dns.exception.FormError('manadatory keys not ascending')
+                raise dns.exception.FormError("manadatory keys not ascending")
             last_key = key
             keys.append(key)
         return cls(keys)
 
     def to_wire(self, file, origin=None):  # pylint: disable=W0613
         for key in self.keys:
-            file.write(struct.pack('!H', key))
+            file.write(struct.pack("!H", key))
 
 
 @dns.immutable.immutable
 class ALPNParam(Param):
     def __init__(self, ids):
         self.ids = dns.rdata.Rdata._as_tuple(
-            ids, lambda x: dns.rdata.Rdata._as_bytes(x, True, 255, False))
+            ids, lambda x: dns.rdata.Rdata._as_bytes(x, True, 255, False)
+        )
 
     @classmethod
     def from_value(cls, value):
         return cls(_split(_unescape(value)))
 
     def to_text(self):
-        value = ','.join([_escapify(id) for id in self.ids])
+        value = ",".join([_escapify(id) for id in self.ids])
         return '"' + dns.rdata._escapify(value.encode()) + '"'
 
     @classmethod
@@ -253,7 +258,7 @@ class ALPNParam(Param):
 
     def to_wire(self, file, origin=None):  # pylint: disable=W0613
         for id in self.ids:
-            file.write(struct.pack('!B', len(id)))
+            file.write(struct.pack("!B", len(id)))
             file.write(id)
 
 
@@ -269,10 +274,10 @@ class NoDefaultALPNParam(Param):
 
     @classmethod
     def from_value(cls, value):
-        if value is None or value == '':
+        if value is None or value == "":
             return None
         else:
-            raise ValueError('no-default-alpn with non-empty value')
+            raise ValueError("no-default-alpn with non-empty value")
 
     def to_text(self):
         raise NotImplementedError  # pragma: no cover
@@ -306,22 +311,23 @@ class PortParam(Param):
         return cls(port)
 
     def to_wire(self, file, origin=None):  # pylint: disable=W0613
-        file.write(struct.pack('!H', self.port))
+        file.write(struct.pack("!H", self.port))
 
 
 @dns.immutable.immutable
 class IPv4HintParam(Param):
     def __init__(self, addresses):
         self.addresses = dns.rdata.Rdata._as_tuple(
-            addresses, dns.rdata.Rdata._as_ipv4_address)
+            addresses, dns.rdata.Rdata._as_ipv4_address
+        )
 
     @classmethod
     def from_value(cls, value):
-        addresses = value.split(',')
+        addresses = value.split(",")
         return cls(addresses)
 
     def to_text(self):
-        return '"' + ','.join(self.addresses) + '"'
+        return '"' + ",".join(self.addresses) + '"'
 
     @classmethod
     def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
@@ -340,15 +346,16 @@ class IPv4HintParam(Param):
 class IPv6HintParam(Param):
     def __init__(self, addresses):
         self.addresses = dns.rdata.Rdata._as_tuple(
-            addresses, dns.rdata.Rdata._as_ipv6_address)
+            addresses, dns.rdata.Rdata._as_ipv6_address
+        )
 
     @classmethod
     def from_value(cls, value):
-        addresses = value.split(',')
+        addresses = value.split(",")
         return cls(addresses)
 
     def to_text(self):
-        return '"' + ','.join(self.addresses) + '"'
+        return '"' + ",".join(self.addresses) + '"'
 
     @classmethod
     def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
@@ -370,13 +377,13 @@ class ECHParam(Param):
 
     @classmethod
     def from_value(cls, value):
-        if '\\' in value:
-            raise ValueError('escape in ECH value')
+        if "\\" in value:
+            raise ValueError("escape in ECH value")
         value = base64.b64decode(value.encode())
         return cls(value)
 
     def to_text(self):
-        b64 = base64.b64encode(self.ech).decode('ascii')
+        b64 = base64.b64encode(self.ech).decode("ascii")
         return f'"{b64}"'
 
     @classmethod
@@ -407,7 +414,7 @@ def _validate_and_define(params, key, value):
     emptiness = cls.emptiness()
     if value is None:
         if emptiness == Emptiness.NEVER:
-            raise SyntaxError('value cannot be empty')
+            raise SyntaxError("value cannot be empty")
         value = cls.from_value(value)
     else:
         if force_generic:
@@ -422,9 +429,9 @@ class SVCBBase(dns.rdata.Rdata):
 
     """Base class for SVCB-like records"""
 
-    # see: draft-ietf-dnsop-svcb-https-01
+    # see: draft-ietf-dnsop-svcb-https-11
 
-    __slots__ = ['priority', 'target', 'params']
+    __slots__ = ["priority", "target", "params"]
 
     def __init__(self, rdclass, rdtype, priority, target, params):
         super().__init__(rdclass, rdtype)
@@ -433,7 +440,7 @@ class SVCBBase(dns.rdata.Rdata):
         for k, v in params.items():
             k = ParamKey.make(k)
             if not isinstance(v, Param) and v is not None:
-                raise ValueError("not a Param")
+                raise ValueError(f"{k:d} not a Param")
         self.params = dns.immutable.Dict(params)
         # Make sure any parameter listed as mandatory is present in the
         # record.
@@ -443,12 +450,11 @@ class SVCBBase(dns.rdata.Rdata):
                 # Note we have to say "not in" as we have None as a value
                 # so a get() and a not None test would be wrong.
                 if key not in params:
-                    raise ValueError(f'key {key:d} declared mandatory but not '
-                                     'present')
+                    raise ValueError(f"key {key:d} declared mandatory but not present")
         # The no-default-alpn parameter requires the alpn parameter.
         if ParamKey.NO_DEFAULT_ALPN in params:
             if ParamKey.ALPN not in params:
-                raise ValueError('no-default-alpn present, but alpn missing')
+                raise ValueError("no-default-alpn present, but alpn missing")
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)
@@ -458,23 +464,24 @@ class SVCBBase(dns.rdata.Rdata):
             if value is None:
                 params.append(key_to_text(key))
             else:
-                kv = key_to_text(key) + '=' + value.to_text()
+                kv = key_to_text(key) + "=" + value.to_text()
                 params.append(kv)
         if len(params) > 0:
-            space = ' '
+            space = " "
         else:
-            space = ''
-        return '%d %s%s%s' % (self.priority, target, space, ' '.join(params))
+            space = ""
+        return "%d %s%s%s" % (self.priority, target, space, " ".join(params))
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         priority = tok.get_uint16()
         target = tok.get_name(origin, relativize, relativize_to)
         if priority == 0:
             token = tok.get()
             if not token.is_eol_or_eof():
-                raise SyntaxError('parameters in AliasMode')
+                raise SyntaxError("parameters in AliasMode")
             tok.unget(token)
         params = {}
         while True:
@@ -483,20 +490,20 @@ class SVCBBase(dns.rdata.Rdata):
                 tok.unget(token)
                 break
             if token.ttype != dns.tokenizer.IDENTIFIER:
-                raise SyntaxError('parameter is not an identifier')
-            equals = token.value.find('=')
+                raise SyntaxError("parameter is not an identifier")
+            equals = token.value.find("=")
             if equals == len(token.value) - 1:
                 # 'key=', so next token should be a quoted string without
                 # any intervening whitespace.
                 key = token.value[:-1]
                 token = tok.get(want_leading=True)
                 if token.ttype != dns.tokenizer.QUOTED_STRING:
-                    raise SyntaxError('whitespace after =')
+                    raise SyntaxError("whitespace after =")
                 value = token.value
             elif equals > 0:
                 # key=value
                 key = token.value[:equals]
-                value = token.value[equals + 1:]
+                value = token.value[equals + 1 :]
             elif equals == 0:
                 # =key
                 raise SyntaxError('parameter cannot start with "="')
@@ -532,13 +539,13 @@ class SVCBBase(dns.rdata.Rdata):
         priority = parser.get_uint16()
         target = parser.get_name(origin)
         if priority == 0 and parser.remaining() != 0:
-            raise dns.exception.FormError('parameters in AliasMode')
+            raise dns.exception.FormError("parameters in AliasMode")
         params = {}
         prior_key = -1
         while parser.remaining() > 0:
             key = parser.get_uint16()
             if key < prior_key:
-                raise dns.exception.FormError('keys not in order')
+                raise dns.exception.FormError("keys not in order")
             prior_key = key
             vlen = parser.get_uint16()
             pcls = _class_for_key.get(key, GenericParam)
