@@ -1435,21 +1435,24 @@ class EMAIL(Notifier):
                           'name': 'email_to',
                           'description': 'The email address(es) of the recipients.',
                           'input_type': 'selectize',
-                          'select_options': user_emails_to
+                          'select_options': user_emails_to,
+                          'select_all': True
                           },
                          {'label': 'CC',
                           'value': self.config['cc'],
                           'name': 'email_cc',
                           'description': 'The email address(es) to CC.',
                           'input_type': 'selectize',
-                          'select_options': user_emails_cc
+                          'select_options': user_emails_cc,
+                          'select_all': True
                           },
                          {'label': 'BCC',
                           'value': self.config['bcc'],
                           'name': 'email_bcc',
                           'description': 'The email address(es) to BCC.',
                           'input_type': 'selectize',
-                          'select_options': user_emails_bcc
+                          'select_options': user_emails_bcc,
+                          'select_all': True
                           },
                          {'label': 'SMTP Server',
                           'value': self.config['smtp_server'],
@@ -3216,31 +3219,34 @@ class PUSHOVER(Notifier):
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
 
     def get_sounds(self):
-        sounds = {
-            '': '',
-            'alien': 'Alien Alarm (long)',
-            'bike': 'Bike',
-            'bugle': 'Bugle',
-            'cashregister': 'Cash Register',
-            'classical': 'Classical',
-            'climb': 'Climb (long)',
-            'cosmic': 'Cosmic',
-            'echo': 'Pushover Echo (long)',
-            'falling': 'Falling',
-            'gamelan': 'Gamelan',
-            'incoming': 'Incoming',
-            'intermission': 'Intermission',
-            'magic': 'Magic',
-            'mechanical': 'Mechanical',
-            'none': 'None (silent)',
-            'persistent': 'Persistent (long)',
-            'pianobar': 'Piano Bar',
-            'pushover': 'Pushover (default)',
-            'siren': 'Siren',
-            'spacealarm': 'Space Alarm',
-            'tugboat': 'Tug Boat',
-            'updown': 'Up Down (long)'
-        }
+        sounds = [
+            {'value': '', 'text': ''},
+            {'value': 'alien', 'text': 'Alien Alarm (long)'},
+            {'value': 'bike', 'text': 'Bike'},
+            {'value': 'bugle', 'text': 'Bugle'},
+            {'value': 'cashregister', 'text': 'Cash Register'},
+            {'value': 'classical', 'text': 'Classical'},
+            {'value': 'climb', 'text': 'Climb (long)'},
+            {'value': 'cosmic', 'text': 'Cosmic'},
+            {'value': 'echo', 'text': 'Pushover Echo (long)'},
+            {'value': 'falling', 'text': 'Falling'},
+            {'value': 'gamelan', 'text': 'Gamelan'},
+            {'value': 'incoming', 'text': 'Incoming'},
+            {'value': 'intermission', 'text': 'Intermission'},
+            {'value': 'magic', 'text': 'Magic'},
+            {'value': 'mechanical', 'text': 'Mechanical'},
+            {'value': 'none', 'text': 'None (silent)'},
+            {'value': 'persistent', 'text': 'Persistent (long)'},
+            {'value': 'pianobar', 'text': 'Piano Bar'},
+            {'value': 'pushover', 'text': 'Pushover (default)'},
+            {'value': 'siren', 'text': 'Siren'},
+            {'value': 'spacealarm', 'text': 'Space Alarm'},
+            {'value': 'tugboat', 'text': 'Tug Boat'},
+            {'value': 'updown', 'text': 'Up Down (long)'},
+            {'value': 'vibrate', 'text': 'Vibrate Only'},
+        ]
+        if self.config['sound'] not in [s['value'] for s in sounds]:
+            sounds.append({'value': self.config['sound'], 'text': self.config['sound']})
 
         return sounds
 
@@ -3281,9 +3287,10 @@ class PUSHOVER(Notifier):
                          {'label': 'Sound',
                           'value': self.config['sound'],
                           'name': 'pushover_sound',
-                          'description': 'Set the notification sound. Leave blank for the default sound.',
-                          'input_type': 'select',
-                          'select_options': self.get_sounds()
+                          'description': 'Select a notification sound or enter a custom sound name. Leave blank for the default sound.',
+                          'input_type': 'selectize',
+                          'select_options': self.get_sounds(),
+                          'select_all': False
                           },
                          {'label': 'Priority',
                           'value': self.config['priority'],

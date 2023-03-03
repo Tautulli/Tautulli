@@ -15,6 +15,10 @@ architectures:
   - build-on: arm64
   - build-on: armhf
 
+plugs:
+  shared-memory:
+    private: true
+
 parts:
   tautulli:
     plugin: dump

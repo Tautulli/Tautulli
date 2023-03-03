@@ -2545,7 +2545,7 @@ class PmsConnect(object):
                     children_list.append(children_output)
 
         output = {'children_count': helpers.cast_to_int(helpers.get_xml_attr(xml_head[0], 'size')),
-                  'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup'),
+                  'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup') or (children_list[0]['media_type'] if children_list else ''),
                   'title': helpers.get_xml_attr(xml_head[0], 'title2'),
                   'children_list': children_list
                   }

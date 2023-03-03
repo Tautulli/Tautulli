@@ -160,6 +160,16 @@ DOCUMENTATION :: END
                     % endif
                 </div>
             </a>
+            <div class="item-children-instance-text-wrapper poster-item">
+                <h3>
+                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                </h3>
+                % if media_type == 'collection':
+                <h3 class="text-muted">
+                    <a class="text-muted" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>
+                </h3>
+                % endif
+            </div>
             % elif child['media_type'] == 'episode':
             <a href="${page('info', child['rating_key'])}" title="Episode ${child['media_index']}">
                 <div class="item-children-poster">
@@ -179,6 +189,29 @@ DOCUMENTATION :: END
                 <h3>
                      <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
+                % if media_type == 'collection':
+                <h3 class="text-muted">
+                    <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">${child['grandparent_title']}</a>
+                </h3>
+                <h3 class="text-muted">
+                    <a href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${short_season(child['parent_title'])}</a>
+                        &middot; <a href="${page('info', child['rating_key'])}" title="Episode ${child['media_index']}">E${child['media_index']}</a>
+                </h3>
+                % endif
+            </div>
+            % elif child['media_type'] == 'artist':
+            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+                <div class="item-children-poster">
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
+                    % if _session['user_group'] == 'admin':
+                    <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
+                    % endif
+                </div>
+            </a>
+            <div class="item-children-instance-text-wrapper cover-item">
+                <h3>
+                    <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                </h3>
             </div>
             % elif child['media_type'] == 'album':
             <a href="${page('info', child['rating_key'])}" title="${child['title']}">
@@ -193,6 +226,11 @@ DOCUMENTATION :: END
                 <h3>
                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
+                % if media_type == 'collection':
+                <h3 class="text-muted">
+                    <a class="text-muted" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>
+                </h3>
+                % endif
             </div>
             % elif child['media_type'] == 'track':
                 <% e = 'even' if loop.index % 2 == 0 else 'odd' %>
@@ -205,7 +243,15 @@ DOCUMENTATION :: END
                                 ${child['title']}
                             </span>
                         </a>
-                        % if child['original_title']:
+                        % if media_type == 'collection':
+                        -
+                        <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                                ${child['grandparent_title']}
+                            </span>
+                        </a>
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
+                        % elif child['original_title']:
                         <span class="text-muted"> - ${child['original_title']}</span>
                         % endif
                     </span>
