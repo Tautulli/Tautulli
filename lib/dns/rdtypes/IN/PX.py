@@ -31,7 +31,7 @@ class PX(dns.rdata.Rdata):
 
     # see: RFC 2163
 
-    __slots__ = ['preference', 'map822', 'mapx400']
+    __slots__ = ["preference", "map822", "mapx400"]
 
     def __init__(self, rdclass, rdtype, preference, map822, mapx400):
         super().__init__(rdclass, rdtype)
@@ -42,11 +42,12 @@ class PX(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         map822 = self.map822.choose_relativity(origin, relativize)
         mapx400 = self.mapx400.choose_relativity(origin, relativize)
-        return '%d %s %s' % (self.preference, map822, mapx400)
+        return "%d %s %s" % (self.preference, map822, mapx400)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         preference = tok.get_uint16()
         map822 = tok.get_name(origin, relativize, relativize_to)
         mapx400 = tok.get_name(origin, relativize, relativize_to)

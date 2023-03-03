@@ -17,15 +17,19 @@
 
 """DNS E.164 helpers."""
 
+from typing import Iterable, Optional, Union
+
 import dns.exception
 import dns.name
 import dns.resolver
 
 #: The public E.164 domain.
-public_enum_domain = dns.name.from_text('e164.arpa.')
+public_enum_domain = dns.name.from_text("e164.arpa.")
 
 
-def from_e164(text, origin=public_enum_domain):
+def from_e164(
+    text: str, origin: Optional[dns.name.Name] = public_enum_domain
+) -> dns.name.Name:
     """Convert an E.164 number in textual form into a Name object whose
     value is the ENUM domain name for that number.
 
@@ -42,10 +46,14 @@ def from_e164(text, origin=public_enum_domain):
 
     parts = [d for d in text if d.isdigit()]
     parts.reverse()
-    return dns.name.from_text('.'.join(parts), origin=origin)
+    return dns.name.from_text(".".join(parts), origin=origin)
 
 
-def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
+def to_e164(
+    name: dns.name.Name,
+    origin: Optional[dns.name.Name] = public_enum_domain,
+    want_plus_prefix: bool = True,
+) -> str:
     """Convert an ENUM domain name into an E.164 number.
 
     Note that dnspython does not have any information about preferred
@@ -69,15 +77,19 @@ def to_e164(name, origin=public_enum_domain, want_plus_prefix=True):
         name = name.relativize(origin)
     dlabels = [d for d in name.labels if d.isdigit() and len(d) == 1]
     if len(dlabels) != len(name.labels):
-        raise dns.exception.SyntaxError('non-digit labels in ENUM domain name')
+        raise dns.exception.SyntaxError("non-digit labels in ENUM domain name")
     dlabels.reverse()
-    text = b''.join(dlabels)
+    text = b"".join(dlabels)
     if want_plus_prefix:
-        text = b'+' + text
+        text = b"+" + text
     return text.decode()
 
 
-def query(number, domains, resolver=None):
+def query(
+    number: str,
+    domains: Iterable[Union[dns.name.Name, str]],
+    resolver: Optional[dns.resolver.Resolver] = None,
+) -> dns.resolver.Answer:
     """Look for NAPTR RRs for the specified number in the specified domains.
 
     e.g. lookup('16505551212', ['e164.dnspython.org.', 'e164.arpa.'])
@@ -98,7 +110,7 @@ def query(number, domains, resolver=None):
             domain = dns.name.from_text(domain)
         qname = dns.e164.from_e164(number, domain)
         try:
-            return resolver.resolve(qname, 'NAPTR')
+            return resolver.resolve(qname, "NAPTR")
         except dns.resolver.NXDOMAIN as e:
             e_nx += e
     raise e_nx

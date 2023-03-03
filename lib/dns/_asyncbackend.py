@@ -3,6 +3,7 @@
 # This is a nullcontext for both sync and async.  3.7 has a nullcontext,
 # but it is only for sync use.
 
+
 class NullContext:
     def __init__(self, enter_result=None):
         self.enter_result = enter_result
@@ -23,6 +24,7 @@ class NullContext:
 # These are declared here so backends can import them without creating
 # circular dependencies with dns.asyncbackend.
 
+
 class Socket:  # pragma: no cover
     async def close(self):
         pass
@@ -41,6 +43,9 @@ class Socket:  # pragma: no cover
 
 
 class DatagramSocket(Socket):  # pragma: no cover
+    def __init__(self, family: int):
+        self.family = family
+
     async def sendto(self, what, destination, timeout):
         raise NotImplementedError
 
@@ -56,14 +61,25 @@ class StreamSocket(Socket):  # pragma: no cover
         raise NotImplementedError
 
 
-class Backend:    # pragma: no cover
+class Backend:  # pragma: no cover
     def name(self):
-        return 'unknown'
+        return "unknown"
 
-    async def make_socket(self, af, socktype, proto=0,
-                          source=None, destination=None, timeout=None,
-                          ssl_context=None, server_hostname=None):
+    async def make_socket(
+        self,
+        af,
+        socktype,
+        proto=0,
+        source=None,
+        destination=None,
+        timeout=None,
+        ssl_context=None,
+        server_hostname=None,
+    ):
         raise NotImplementedError
 
     def datagram_connection_required(self):
         return False
+
+    async def sleep(self, interval):
+        raise NotImplementedError

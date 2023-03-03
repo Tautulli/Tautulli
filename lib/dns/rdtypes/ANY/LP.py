@@ -3,6 +3,7 @@
 import struct
 
 import dns.immutable
+import dns.rdata
 
 
 @dns.immutable.immutable
@@ -12,7 +13,7 @@ class LP(dns.rdata.Rdata):
 
     # see: rfc6742.txt
 
-    __slots__ = ['preference', 'fqdn']
+    __slots__ = ["preference", "fqdn"]
 
     def __init__(self, rdclass, rdtype, preference, fqdn):
         super().__init__(rdclass, rdtype)
@@ -21,17 +22,18 @@ class LP(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         fqdn = self.fqdn.choose_relativity(origin, relativize)
-        return '%d %s' % (self.preference, fqdn)
+        return "%d %s" % (self.preference, fqdn)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         preference = tok.get_uint16()
         fqdn = tok.get_name(origin, relativize, relativize_to)
         return cls(rdclass, rdtype, preference, fqdn)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
-        file.write(struct.pack('!H', self.preference))
+        file.write(struct.pack("!H", self.preference))
         self.fqdn.to_wire(file, compress, origin, canonicalize)
 
     @classmethod
