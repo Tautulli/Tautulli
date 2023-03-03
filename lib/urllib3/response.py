@@ -666,7 +666,7 @@ class HTTPResponse(io.IOBase):
     def getheaders(self):
         warnings.warn(
             "HTTPResponse.getheaders() is deprecated and will be removed "
-            "in urllib3 v2.1.0. Instead access HTTResponse.headers directly.",
+            "in urllib3 v2.1.0. Instead access HTTPResponse.headers directly.",
             category=DeprecationWarning,
             stacklevel=2,
         )
@@ -675,7 +675,7 @@ class HTTPResponse(io.IOBase):
     def getheader(self, name, default=None):
         warnings.warn(
             "HTTPResponse.getheader() is deprecated and will be removed "
-            "in urllib3 v2.1.0. Instead use HTTResponse.headers.get(name, default).",
+            "in urllib3 v2.1.0. Instead use HTTPResponse.headers.get(name, default).",
             category=DeprecationWarning,
             stacklevel=2,
         )
