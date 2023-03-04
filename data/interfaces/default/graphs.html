@@ -364,8 +364,8 @@
         //$(current_tab).addClass('active');
 
 
-        $('.days').html(current_day_range);
-        $('.months').html(current_month_range);
+        $('.days').text(current_day_range);
+        $('.months').text(current_month_range);
         
         // Load user ids and names (for the selector)
         $.ajax({
@@ -639,7 +639,7 @@
             setLocalStorage('graph_days', current_day_range);
             if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
-            $('.days').html(current_day_range);
+            $('.days').text(current_day_range);
         });
         
         // Month range changed
@@ -649,7 +649,7 @@
             current_month_range = $(this).val();
             setLocalStorage('graph_months', current_month_range);
             if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
-            $('.months').html(current_month_range);
+            $('.months').text(current_month_range);
         });
 
         // User changed
