@@ -458,7 +458,8 @@ class Libraries(object):
                           'draw': 0,
                           'data': [],
                           'filtered_file_size': 0,
-                          'total_file_size': 0}
+                          'total_file_size': 0,
+                          'last_refreshed': None}
 
         if not session.allow_session_library(section_id):
             return default_return
@@ -513,13 +514,19 @@ class Libraries(object):
             watched_list[str(item[group_by])] = {'last_played': item['last_played'],
                                                  'play_count': item['play_count']}
 
+        cache_time = None
         rows = []
         # Import media info cache from json file
         if rating_key:
             try:
                 inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (section_id, rating_key))
                 with open(inFilePath, 'r') as inFile:
-                    rows = json.load(inFile)
+                    data = json.load(inFile)
+                    if isinstance(data, dict):
+                        cache_time = data['last_refreshed']
+                        rows = data['rows']
+                    else:
+                        rows = data
                     library_count = len(rows)
             except IOError as e:
                 #logger.debug("Tautulli Libraries :: No JSON file for rating_key %s." % rating_key)
@@ -529,7 +536,12 @@ class Libraries(object):
             try:
                 inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s.json' % section_id)
                 with open(inFilePath, 'r') as inFile:
-                    rows = json.load(inFile)
+                    data = json.load(inFile)
+                    if isinstance(data, dict):
+                        cache_time = data['last_refreshed']
+                        rows = data['rows']
+                    else:
+                        rows = data
                     library_count = len(rows)
             except IOError as e:
                 #logger.debug("Tautulli Libraries :: No JSON file for library section_id %s." % section_id)
@@ -594,18 +606,20 @@ class Libraries(object):
                 return default_return
 
             # Cache the media info to a json file
+            cache_time = helpers.timestamp()
+            
             if rating_key:
                 try:
                     outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (section_id, rating_key))
                     with open(outFilePath, 'w') as outFile:
-                        json.dump(rows, outFile)
+                        json.dump({'last_refreshed': cache_time, 'rows': rows}, outFile)
                 except IOError as e:
                     logger.debug("Tautulli Libraries :: Unable to create cache file for rating_key %s." % rating_key)
             elif section_id:
                 try:
                     outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s.json' % section_id)
                     with open(outFilePath, 'w') as outFile:
-                        json.dump(rows, outFile)
+                        json.dump({'last_refreshed': cache_time, 'rows': rows}, outFile)
                 except IOError as e:
                     logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
 
@@ -662,15 +676,17 @@ class Libraries(object):
 
         filtered_file_size = sum([helpers.cast_to_int(d['file_size']) for d in results])
 
-        dict = {'recordsFiltered': filtered_count,
-                'recordsTotal': library_count,
-                'data': results,
-                'draw': int(json_data['draw']),
-                'filtered_file_size': filtered_file_size,
-                'total_file_size': total_file_size
-                }
+        output = {
+            'recordsFiltered': filtered_count,
+            'recordsTotal': int(library_count),
+            'data': results,
+            'draw': int(json_data['draw']),
+            'filtered_file_size': filtered_file_size,
+            'total_file_size': total_file_size,
+            'last_refreshed': cache_time
+        }
 
-        return dict
+        return output
 
     def get_media_info_file_sizes(self, section_id=None, rating_key=None):
         if not session.allow_session_library(section_id):
