@@ -599,7 +599,7 @@ class Newsletter(object):
             base_url = helpers.get_plexpy_url() + '/newsletter/'
 
         parameters = {
-            'server_name': plexpy.CONFIG.PMS_NAME,
+            'server_name': helpers.pms_name(),
             'start_date': self.start_date.format(date_format),
             'end_date': self.end_date.format(date_format),
             'current_year': self.start_date.year,

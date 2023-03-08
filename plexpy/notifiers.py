@@ -2850,7 +2850,7 @@ class PLEXMOBILEAPP(Notifier):
             'data': {
                 'provider': {
                     'identifier': plexpy.CONFIG.PMS_IDENTIFIER,
-                    'title': plexpy.CONFIG.PMS_NAME
+                    'title': helpers.pms_name()
                 }
             }
         }

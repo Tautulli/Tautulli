@@ -1773,3 +1773,7 @@ def check_watched(media_type, view_offset, duration, marker_credits_first=None, 
         return view_offset >= min(threshold, marker_credits_first)
     else:
         return view_offset >= threshold
+
+
+def pms_name():
+    return plexpy.CONFIG.PMS_NAME_OVERRIDE or plexpy.CONFIG.PMS_NAME

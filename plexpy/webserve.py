@@ -127,7 +127,7 @@ def serve_template(templatename, **kwargs):
                                error_handler=mako_error_handler)
 
     http_root = plexpy.HTTP_ROOT
-    server_name = plexpy.CONFIG.PMS_NAME
+    server_name = helpers.pms_name()
     cache_param = '?' + (plexpy.CURRENT_VERSION or common.RELEASE)
 
     _session = get_session_info()
@@ -213,7 +213,7 @@ class WebInterface(object):
             "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
-            "pms_name": plexpy.CONFIG.PMS_NAME,
+            "pms_name": helpers.pms_name(),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
 
@@ -282,7 +282,7 @@ class WebInterface(object):
         config = {
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
             "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
-            "pms_name": plexpy.CONFIG.PMS_NAME,
+            "pms_name": helpers.pms_name(),
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG,
             "first_run_complete": plexpy.CONFIG.FIRST_RUN_COMPLETE

@@ -48,7 +48,7 @@ def get_server_resources(return_presence=False, return_server=False, return_info
     if not return_presence and not return_info:
         logger.info("Tautulli PlexTV :: Requesting resources for server...")
 
-    server = {'pms_name': plexpy.CONFIG.PMS_NAME,
+    server = {'pms_name': helpers.pms_name(),
               'pms_version': plexpy.CONFIG.PMS_VERSION,
               'pms_platform': plexpy.CONFIG.PMS_PLATFORM,
               'pms_ip': plexpy.CONFIG.PMS_IP,
