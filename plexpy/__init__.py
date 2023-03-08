@@ -242,6 +242,9 @@ def initialize(config_file):
         logger.info("Python {}".format(
             sys.version.replace('\n', '')
         ))
+        logger.info("SQLite {}".format(
+            sqlite3.sqlite_version
+        ))
 
         logger.info("Program Dir: {}".format(
             PROG_DIR
@@ -618,1646 +621,1646 @@ def dbcheck():
 
     # schema table :: This is a table which keeps track of the database version
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS version_info (key TEXT UNIQUE, value TEXT)'
+        "CREATE TABLE IF NOT EXISTS version_info (key TEXT UNIQUE, value TEXT)"
     )
 
     # sessions table :: This is a temp table that logs currently active sessions
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, session_key INTEGER, session_id TEXT, '
-        'transcode_key TEXT, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, stopped INTEGER, '
-        'paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, '
-        'ip_address TEXT, machine_id TEXT, bandwidth INTEGER, location TEXT, player TEXT, product TEXT, platform TEXT, '
-        'title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, '
-        'media_index INTEGER, parent_media_index INTEGER, '
-        'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, year INTEGER, '
-        'parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'originally_available_at TEXT, added_at INTEGER, guid TEXT, '
-        'view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, '
-        'transcode_decision TEXT, container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, '
-        'video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, video_height INTEGER, '
-        'video_framerate TEXT, video_scan_type TEXT, video_full_resolution TEXT, '
-        'video_dynamic_range TEXT, aspect_ratio TEXT, '
-        'audio_codec TEXT, audio_bitrate INTEGER, audio_channels INTEGER, audio_language TEXT, audio_language_code TEXT, '
-        'subtitle_codec TEXT, subtitle_forced INTEGER, subtitle_language TEXT, '
-        'stream_bitrate INTEGER, stream_video_resolution TEXT, quality_profile TEXT, '
-        'stream_container_decision TEXT, stream_container TEXT, '
-        'stream_video_decision TEXT, stream_video_codec TEXT, stream_video_bitrate INTEGER, stream_video_width INTEGER, '
-        'stream_video_height INTEGER, stream_video_framerate TEXT, stream_video_scan_type TEXT, stream_video_full_resolution TEXT, '
-        'stream_video_dynamic_range TEXT, '
-        'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
-        'stream_audio_language TEXT, stream_audio_language_code TEXT, '
-        'subtitles INTEGER, stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, '
-        'stream_subtitle_forced INTEGER, stream_subtitle_language TEXT, '
-        'transcode_protocol TEXT, transcode_container TEXT, '
-        'transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,'
-        'transcode_width INTEGER, transcode_height INTEGER, '
-        'transcode_hw_decoding INTEGER, transcode_hw_encoding INTEGER, '
-        'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, '
-        'synced_version INTEGER, synced_version_profile TEXT, '
-        'live INTEGER, live_uuid TEXT, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
-        'secure INTEGER, relayed INTEGER, '
-        'buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, '
-        'intro INTEGER DEFAULT 0, credits INTEGER DEFAULT 0, commercial INTEGER DEFAULT 0, marker INTEGER DEFAULT 0, '
-        'initial_stream INTEGER DEFAULT 1, write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT, '
-        'rating_key_websocket TEXT)'
+        "CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY AUTOINCREMENT, session_key INTEGER, session_id TEXT, "
+        "transcode_key TEXT, rating_key INTEGER, section_id INTEGER, media_type TEXT, started INTEGER, stopped INTEGER, "
+        "paused_counter INTEGER DEFAULT 0, state TEXT, user_id INTEGER, user TEXT, friendly_name TEXT, "
+        "ip_address TEXT, machine_id TEXT, bandwidth INTEGER, location TEXT, player TEXT, product TEXT, platform TEXT, "
+        "title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, "
+        "media_index INTEGER, parent_media_index INTEGER, "
+        "thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, year INTEGER, "
+        "parent_rating_key INTEGER, grandparent_rating_key INTEGER, "
+        "originally_available_at TEXT, added_at INTEGER, guid TEXT, "
+        "view_offset INTEGER DEFAULT 0, duration INTEGER, video_decision TEXT, audio_decision TEXT, "
+        "transcode_decision TEXT, container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, "
+        "video_codec TEXT, video_bitrate INTEGER, video_resolution TEXT, video_width INTEGER, video_height INTEGER, "
+        "video_framerate TEXT, video_scan_type TEXT, video_full_resolution TEXT, "
+        "video_dynamic_range TEXT, aspect_ratio TEXT, "
+        "audio_codec TEXT, audio_bitrate INTEGER, audio_channels INTEGER, audio_language TEXT, audio_language_code TEXT, "
+        "subtitle_codec TEXT, subtitle_forced INTEGER, subtitle_language TEXT, "
+        "stream_bitrate INTEGER, stream_video_resolution TEXT, quality_profile TEXT, "
+        "stream_container_decision TEXT, stream_container TEXT, "
+        "stream_video_decision TEXT, stream_video_codec TEXT, stream_video_bitrate INTEGER, stream_video_width INTEGER, "
+        "stream_video_height INTEGER, stream_video_framerate TEXT, stream_video_scan_type TEXT, stream_video_full_resolution TEXT, "
+        "stream_video_dynamic_range TEXT, "
+        "stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, "
+        "stream_audio_language TEXT, stream_audio_language_code TEXT, "
+        "subtitles INTEGER, stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, "
+        "stream_subtitle_forced INTEGER, stream_subtitle_language TEXT, "
+        "transcode_protocol TEXT, transcode_container TEXT, "
+        "transcode_video_codec TEXT, transcode_audio_codec TEXT, transcode_audio_channels INTEGER,"
+        "transcode_width INTEGER, transcode_height INTEGER, "
+        "transcode_hw_decoding INTEGER, transcode_hw_encoding INTEGER, "
+        "optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, "
+        "synced_version INTEGER, synced_version_profile TEXT, "
+        "live INTEGER, live_uuid TEXT, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, "
+        "secure INTEGER, relayed INTEGER, "
+        "buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, "
+        "intro INTEGER DEFAULT 0, credits INTEGER DEFAULT 0, commercial INTEGER DEFAULT 0, marker INTEGER DEFAULT 0, "
+        "initial_stream INTEGER DEFAULT 1, write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT, "
+        "rating_key_websocket TEXT)"
     )
 
     # sessions_continued table :: This is a temp table that keeps track of continued streaming sessions
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS sessions_continued (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'user_id INTEGER, machine_id TEXT, media_type TEXT, stopped INTEGER)'
+        "CREATE TABLE IF NOT EXISTS sessions_continued (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "user_id INTEGER, machine_id TEXT, media_type TEXT, stopped INTEGER)"
     )
 
     # session_history table :: This is a history table which logs essential stream details
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, reference_id INTEGER, '
-        'started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, '
-        'ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, product TEXT, product_version TEXT, '
-        'platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, '
-        'bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER, '
-        'parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, section_id INTEGER, '
-        'view_offset INTEGER DEFAULT 0)'
+        "CREATE TABLE IF NOT EXISTS session_history (id INTEGER PRIMARY KEY AUTOINCREMENT, reference_id INTEGER, "
+        "started INTEGER, stopped INTEGER, rating_key INTEGER, user_id INTEGER, user TEXT, "
+        "ip_address TEXT, paused_counter INTEGER DEFAULT 0, player TEXT, product TEXT, product_version TEXT, "
+        "platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, "
+        "bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER, "
+        "parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, section_id INTEGER, "
+        "view_offset INTEGER DEFAULT 0)"
     )
 
-    # session_history_media_info table :: This is a table which logs each session's media info
+    # session_history_media_info table :: This is a table which logs each session"s media info
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, rating_key INTEGER, '
-        'video_decision TEXT, audio_decision TEXT, transcode_decision TEXT, duration INTEGER DEFAULT 0, '
-        'container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, video_bitrate INTEGER, video_bit_depth INTEGER, '
-        'video_codec TEXT, video_codec_level TEXT, video_width INTEGER, video_height INTEGER, video_resolution TEXT, '
-        'video_framerate TEXT, video_scan_type TEXT, video_full_resolution TEXT, video_dynamic_range TEXT, aspect_ratio TEXT, '
-        'audio_bitrate INTEGER, audio_codec TEXT, audio_channels INTEGER, audio_language TEXT, audio_language_code TEXT, '
-        'subtitles INTEGER, subtitle_codec TEXT, subtitle_forced, subtitle_language TEXT,'
-        'transcode_protocol TEXT, transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, '
-        'transcode_audio_channels INTEGER, transcode_width INTEGER, transcode_height INTEGER, '
-        'transcode_hw_requested INTEGER, transcode_hw_full_pipeline INTEGER, '
-        'transcode_hw_decode TEXT, transcode_hw_decode_title TEXT, transcode_hw_decoding INTEGER, '
-        'transcode_hw_encode TEXT, transcode_hw_encode_title TEXT, transcode_hw_encoding INTEGER, '
-        'stream_container TEXT, stream_container_decision TEXT, stream_bitrate INTEGER, '
-        'stream_video_decision TEXT, stream_video_bitrate INTEGER, stream_video_codec TEXT, stream_video_codec_level TEXT, '
-        'stream_video_bit_depth INTEGER, stream_video_height INTEGER, stream_video_width INTEGER, stream_video_resolution TEXT, '
-        'stream_video_framerate TEXT, stream_video_scan_type TEXT, stream_video_full_resolution TEXT, stream_video_dynamic_range TEXT, '
-        'stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, '
-        'stream_audio_language TEXT, stream_audio_language_code TEXT, '
-        'stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, '
-        'stream_subtitle_container TEXT, stream_subtitle_forced INTEGER, stream_subtitle_language TEXT, '
-        'synced_version INTEGER, synced_version_profile TEXT, '
-        'optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT)'
+        "CREATE TABLE IF NOT EXISTS session_history_media_info (id INTEGER PRIMARY KEY, rating_key INTEGER, "
+        "video_decision TEXT, audio_decision TEXT, transcode_decision TEXT, duration INTEGER DEFAULT 0, "
+        "container TEXT, bitrate INTEGER, width INTEGER, height INTEGER, video_bitrate INTEGER, video_bit_depth INTEGER, "
+        "video_codec TEXT, video_codec_level TEXT, video_width INTEGER, video_height INTEGER, video_resolution TEXT, "
+        "video_framerate TEXT, video_scan_type TEXT, video_full_resolution TEXT, video_dynamic_range TEXT, aspect_ratio TEXT, "
+        "audio_bitrate INTEGER, audio_codec TEXT, audio_channels INTEGER, audio_language TEXT, audio_language_code TEXT, "
+        "subtitles INTEGER, subtitle_codec TEXT, subtitle_forced, subtitle_language TEXT,"
+        "transcode_protocol TEXT, transcode_container TEXT, transcode_video_codec TEXT, transcode_audio_codec TEXT, "
+        "transcode_audio_channels INTEGER, transcode_width INTEGER, transcode_height INTEGER, "
+        "transcode_hw_requested INTEGER, transcode_hw_full_pipeline INTEGER, "
+        "transcode_hw_decode TEXT, transcode_hw_decode_title TEXT, transcode_hw_decoding INTEGER, "
+        "transcode_hw_encode TEXT, transcode_hw_encode_title TEXT, transcode_hw_encoding INTEGER, "
+        "stream_container TEXT, stream_container_decision TEXT, stream_bitrate INTEGER, "
+        "stream_video_decision TEXT, stream_video_bitrate INTEGER, stream_video_codec TEXT, stream_video_codec_level TEXT, "
+        "stream_video_bit_depth INTEGER, stream_video_height INTEGER, stream_video_width INTEGER, stream_video_resolution TEXT, "
+        "stream_video_framerate TEXT, stream_video_scan_type TEXT, stream_video_full_resolution TEXT, stream_video_dynamic_range TEXT, "
+        "stream_audio_decision TEXT, stream_audio_codec TEXT, stream_audio_bitrate INTEGER, stream_audio_channels INTEGER, "
+        "stream_audio_language TEXT, stream_audio_language_code TEXT, "
+        "stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, "
+        "stream_subtitle_container TEXT, stream_subtitle_forced INTEGER, stream_subtitle_language TEXT, "
+        "synced_version INTEGER, synced_version_profile TEXT, "
+        "optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT)"
     )
 
-    # session_history_metadata table :: This is a table which logs each session's media metadata
+    # session_history_metadata table :: This is a table which logs each session"s media metadata
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS session_history_metadata (id INTEGER PRIMARY KEY, '
-        'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, '
-        'media_index INTEGER, parent_media_index INTEGER, '
-        'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, '
-        'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
-        'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
-        'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, '
-        'labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, '
-        'marker_credits_first INTEGER DEFAULT NULL, marker_credits_final INTEGER DEFAULT NULL)'
+        "CREATE TABLE IF NOT EXISTS session_history_metadata (id INTEGER PRIMARY KEY, "
+        "rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, "
+        "title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, "
+        "media_index INTEGER, parent_media_index INTEGER, "
+        "thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, "
+        "art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, "
+        "last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, "
+        "duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, "
+        "labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, "
+        "marker_credits_first INTEGER DEFAULT NULL, marker_credits_final INTEGER DEFAULT NULL)"
     )
 
     # users table :: This table keeps record of the friends list
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
-        'thumb TEXT, custom_avatar_url TEXT, title TEXT, email TEXT, '
-        'is_active INTEGER DEFAULT 1, is_admin INTEGER DEFAULT 0, is_home_user INTEGER DEFAULT NULL, '
-        'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, '
-        'do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, '
-        'allow_guest INTEGER DEFAULT 0, user_token TEXT, server_token TEXT, shared_libraries TEXT, '
-        'filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT)'
+        "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, "
+        "thumb TEXT, custom_avatar_url TEXT, title TEXT, email TEXT, "
+        "is_active INTEGER DEFAULT 1, is_admin INTEGER DEFAULT 0, is_home_user INTEGER DEFAULT NULL, "
+        "is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, "
+        "do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, "
+        "allow_guest INTEGER DEFAULT 0, user_token TEXT, server_token TEXT, shared_libraries TEXT, "
+        "filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT)"
     )
 
     # library_sections table :: This table keeps record of the servers library sections
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, agent TEXT, '
-        'thumb TEXT, custom_thumb_url TEXT, art TEXT, custom_art_url TEXT, '
-        'count INTEGER, parent_count INTEGER, child_count INTEGER, is_active INTEGER DEFAULT 1, '
-        'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
-        'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
+        "CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, agent TEXT, "
+        "thumb TEXT, custom_thumb_url TEXT, art TEXT, custom_art_url TEXT, "
+        "count INTEGER, parent_count INTEGER, child_count INTEGER, is_active INTEGER DEFAULT 1, "
+        "do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, "
+        "deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))"
     )
 
     # user_login table :: This table keeps record of the Tautulli guest logins
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, '
-        'ip_address TEXT, host TEXT, user_agent TEXT, success INTEGER DEFAULT 1,'
-        'expiry TEXT, jwt_token TEXT)'
+        "CREATE TABLE IF NOT EXISTS user_login (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "timestamp INTEGER, user_id INTEGER, user TEXT, user_group TEXT, "
+        "ip_address TEXT, host TEXT, user_agent TEXT, success INTEGER DEFAULT 1,"
+        "expiry TEXT, jwt_token TEXT)"
     )
 
     # notifiers table :: This table keeps record of the notification agent settings
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS notifiers (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, friendly_name TEXT, notifier_config TEXT, '
-        'on_play INTEGER DEFAULT 0, on_stop INTEGER DEFAULT 0, on_pause INTEGER DEFAULT 0, '
-        'on_resume INTEGER DEFAULT 0, on_change INTEGER DEFAULT 0, on_buffer INTEGER DEFAULT 0, '
-        'on_error INTEGER DEFAULT 0, '
-        'on_intro INTEGER DEFAULT 0, on_credits INTEGER DEFAULT 0, on_commercial INTEGER DEFAULT 0, '
-        'on_watched INTEGER DEFAULT 0, on_created INTEGER DEFAULT 0, '
-        'on_extdown INTEGER DEFAULT 0, on_intdown INTEGER DEFAULT 0, '
-        'on_extup INTEGER DEFAULT 0, on_intup INTEGER DEFAULT 0, on_pmsupdate INTEGER DEFAULT 0, '
-        'on_concurrent INTEGER DEFAULT 0, on_newdevice INTEGER DEFAULT 0, on_plexpyupdate INTEGER DEFAULT 0, '
-        'on_plexpydbcorrupt INTEGER DEFAULT 0, '
-        'on_play_subject TEXT, on_stop_subject TEXT, on_pause_subject TEXT, '
-        'on_resume_subject TEXT, on_change_subject TEXT, on_buffer_subject TEXT, on_error_subject TEXT, '
-        'on_intro_subject TEXT, on_credits_subject TEXT, on_commercial_subject TEXT,'
-        'on_watched_subject TEXT, on_created_subject TEXT, on_extdown_subject TEXT, on_intdown_subject TEXT, '
-        'on_extup_subject TEXT, on_intup_subject TEXT, on_pmsupdate_subject TEXT, '
-        'on_concurrent_subject TEXT, on_newdevice_subject TEXT, on_plexpyupdate_subject TEXT, '
-        'on_plexpydbcorrupt_subject TEXT, '
-        'on_play_body TEXT, on_stop_body TEXT, on_pause_body TEXT, '
-        'on_resume_body TEXT, on_change_body TEXT, on_buffer_body TEXT, on_error_body TEXT, '
-        'on_intro_body TEXT, on_credits_body TEXT, on_commercial_body TEXT, '
-        'on_watched_body TEXT, on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, '
-        'on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, '
-        'on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT, '
-        'on_plexpydbcorrupt_body TEXT, '
-        'custom_conditions TEXT, custom_conditions_logic TEXT)'
+        "CREATE TABLE IF NOT EXISTS notifiers (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "agent_id INTEGER, agent_name TEXT, agent_label TEXT, friendly_name TEXT, notifier_config TEXT, "
+        "on_play INTEGER DEFAULT 0, on_stop INTEGER DEFAULT 0, on_pause INTEGER DEFAULT 0, "
+        "on_resume INTEGER DEFAULT 0, on_change INTEGER DEFAULT 0, on_buffer INTEGER DEFAULT 0, "
+        "on_error INTEGER DEFAULT 0, "
+        "on_intro INTEGER DEFAULT 0, on_credits INTEGER DEFAULT 0, on_commercial INTEGER DEFAULT 0, "
+        "on_watched INTEGER DEFAULT 0, on_created INTEGER DEFAULT 0, "
+        "on_extdown INTEGER DEFAULT 0, on_intdown INTEGER DEFAULT 0, "
+        "on_extup INTEGER DEFAULT 0, on_intup INTEGER DEFAULT 0, on_pmsupdate INTEGER DEFAULT 0, "
+        "on_concurrent INTEGER DEFAULT 0, on_newdevice INTEGER DEFAULT 0, on_plexpyupdate INTEGER DEFAULT 0, "
+        "on_plexpydbcorrupt INTEGER DEFAULT 0, "
+        "on_play_subject TEXT, on_stop_subject TEXT, on_pause_subject TEXT, "
+        "on_resume_subject TEXT, on_change_subject TEXT, on_buffer_subject TEXT, on_error_subject TEXT, "
+        "on_intro_subject TEXT, on_credits_subject TEXT, on_commercial_subject TEXT,"
+        "on_watched_subject TEXT, on_created_subject TEXT, on_extdown_subject TEXT, on_intdown_subject TEXT, "
+        "on_extup_subject TEXT, on_intup_subject TEXT, on_pmsupdate_subject TEXT, "
+        "on_concurrent_subject TEXT, on_newdevice_subject TEXT, on_plexpyupdate_subject TEXT, "
+        "on_plexpydbcorrupt_subject TEXT, "
+        "on_play_body TEXT, on_stop_body TEXT, on_pause_body TEXT, "
+        "on_resume_body TEXT, on_change_body TEXT, on_buffer_body TEXT, on_error_body TEXT, "
+        "on_intro_body TEXT, on_credits_body TEXT, on_commercial_body TEXT, "
+        "on_watched_body TEXT, on_created_body TEXT, on_extdown_body TEXT, on_intdown_body TEXT, "
+        "on_extup_body TEXT, on_intup_body TEXT, on_pmsupdate_body TEXT, "
+        "on_concurrent_body TEXT, on_newdevice_body TEXT, on_plexpyupdate_body TEXT, "
+        "on_plexpydbcorrupt_body TEXT, "
+        "custom_conditions TEXT, custom_conditions_logic TEXT)"
     )
 
     # notify_log table :: This is a table which logs notifications sent
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
-        'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-        'user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT, script_args TEXT, success INTEGER DEFAULT 0, tag TEXT)'
+        "CREATE TABLE IF NOT EXISTS notify_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, "
+        "session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, "
+        "user_id INTEGER, user TEXT, notifier_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, "
+        "subject_text TEXT, body_text TEXT, script_args TEXT, success INTEGER DEFAULT 0, tag TEXT)"
     )
 
     # newsletters table :: This table keeps record of the newsletter settings
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL, '
-        'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
-        'subject TEXT, body TEXT, message TEXT, '
-        'cron TEXT NOT NULL DEFAULT \'0 0 * * 0\', active INTEGER DEFAULT 0)'
+        "CREATE TABLE IF NOT EXISTS newsletters (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL, "
+        "friendly_name TEXT, newsletter_config TEXT, email_config TEXT, "
+        "subject TEXT, body TEXT, message TEXT, "
+        "cron TEXT NOT NULL DEFAULT '0 0 * * 0', active INTEGER DEFAULT 0)"
     )
 
     # newsletter_log table :: This is a table which logs newsletters sent
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS newsletter_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
-        'newsletter_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-        'subject_text TEXT, body_text TEXT, message_text TEXT, start_date TEXT, end_date TEXT, '
-        'start_time INTEGER, end_time INTEGER, uuid TEXT UNIQUE, filename TEXT, email_msg_id TEXT, '
-        'success INTEGER DEFAULT 0)'
+        "CREATE TABLE IF NOT EXISTS newsletter_log (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, "
+        "newsletter_id INTEGER, agent_id INTEGER, agent_name TEXT, notify_action TEXT, "
+        "subject_text TEXT, body_text TEXT, message_text TEXT, start_date TEXT, end_date TEXT, "
+        "start_time INTEGER, end_time INTEGER, uuid TEXT UNIQUE, filename TEXT, email_msg_id TEXT, "
+        "success INTEGER DEFAULT 0)"
     )
 
     # recently_added table :: This table keeps record of recently added items
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS recently_added (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'added_at INTEGER, pms_identifier TEXT, section_id INTEGER, '
-        'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, '
-        'media_info TEXT)'
+        "CREATE TABLE IF NOT EXISTS recently_added (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "added_at INTEGER, pms_identifier TEXT, section_id INTEGER, "
+        "rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, "
+        "media_info TEXT)"
     )
 
     # mobile_devices table :: This table keeps record of devices linked with the mobile app
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, '
-        'platform TEXT, version TEXT, friendly_name TEXT, '
-        'onesignal_id TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)'
+        "CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, "
+        "platform TEXT, version TEXT, friendly_name TEXT, "
+        "onesignal_id TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)"
     )
 
     # tvmaze_lookup table :: This table keeps record of the TVmaze lookups
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS tvmaze_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'rating_key INTEGER, thetvdb_id INTEGER, imdb_id TEXT, '
-        'tvmaze_id INTEGER, tvmaze_url TEXT, tvmaze_json TEXT)'
+        "CREATE TABLE IF NOT EXISTS tvmaze_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "rating_key INTEGER, thetvdb_id INTEGER, imdb_id TEXT, "
+        "tvmaze_id INTEGER, tvmaze_url TEXT, tvmaze_json TEXT)"
     )
 
     # themoviedb_lookup table :: This table keeps record of the TheMovieDB lookups
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS themoviedb_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'rating_key INTEGER, thetvdb_id INTEGER, imdb_id TEXT, '
-        'themoviedb_id INTEGER, themoviedb_url TEXT, themoviedb_json TEXT)'
+        "CREATE TABLE IF NOT EXISTS themoviedb_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "rating_key INTEGER, thetvdb_id INTEGER, imdb_id TEXT, "
+        "themoviedb_id INTEGER, themoviedb_url TEXT, themoviedb_json TEXT)"
     )
 
     # musicbrainz_lookup table :: This table keeps record of the MusicBrainz lookups
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS musicbrainz_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'rating_key INTEGER, musicbrainz_id INTEGER, musicbrainz_url TEXT, musicbrainz_type TEXT, '
-        'musicbrainz_json TEXT)'
+        "CREATE TABLE IF NOT EXISTS musicbrainz_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "rating_key INTEGER, musicbrainz_id INTEGER, musicbrainz_url TEXT, musicbrainz_type TEXT, "
+        "musicbrainz_json TEXT)"
     )
 
     # image_hash_lookup table :: This table keeps record of the image hash lookups
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS image_hash_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'img_hash TEXT UNIQUE, img TEXT, rating_key INTEGER, width INTEGER, height INTEGER, '
-        'opacity INTEGER, background TEXT, blur INTEGER, fallback TEXT)'
+        "CREATE TABLE IF NOT EXISTS image_hash_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "img_hash TEXT UNIQUE, img TEXT, rating_key INTEGER, width INTEGER, height INTEGER, "
+        "opacity INTEGER, background TEXT, blur INTEGER, fallback TEXT)"
     )
 
     # imgur_lookup table :: This table keeps record of the Imgur uploads
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS imgur_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'img_hash TEXT, imgur_title TEXT, imgur_url TEXT, delete_hash TEXT)'
+        "CREATE TABLE IF NOT EXISTS imgur_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "img_hash TEXT, imgur_title TEXT, imgur_url TEXT, delete_hash TEXT)"
     )
 
     # cloudinary_lookup table :: This table keeps record of the Cloudinary uploads
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS cloudinary_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'img_hash TEXT, cloudinary_title TEXT, cloudinary_url TEXT)'
+        "CREATE TABLE IF NOT EXISTS cloudinary_lookup (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "img_hash TEXT, cloudinary_title TEXT, cloudinary_url TEXT)"
     )
 
     # exports table :: This table keeps record of the exported files
     c_db.execute(
-        'CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-        'timestamp INTEGER, section_id INTEGER, user_id INTEGER, rating_key INTEGER, media_type TEXT, '
-        'title TEXT, file_format TEXT, '
-        'metadata_level INTEGER, media_info_level INTEGER, '
-        'thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0, '
-        'custom_fields TEXT, individual_files INTEGER DEFAULT 0, '
-        'file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0, '
-        'exported_items INTEGER DEFAULT 0, total_items INTEGER DEFAULT 0)'
+        "CREATE TABLE IF NOT EXISTS exports (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "timestamp INTEGER, section_id INTEGER, user_id INTEGER, rating_key INTEGER, media_type TEXT, "
+        "title TEXT, file_format TEXT, "
+        "metadata_level INTEGER, media_info_level INTEGER, "
+        "thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0, "
+        "custom_fields TEXT, individual_files INTEGER DEFAULT 0, "
+        "file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0, "
+        "exported_items INTEGER DEFAULT 0, total_items INTEGER DEFAULT 0)"
     )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT started FROM sessions')
+        c_db.execute("SELECT started FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN started INTEGER'
+            "ALTER TABLE sessions ADD COLUMN started INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN paused_counter INTEGER DEFAULT 0'
+            "ALTER TABLE sessions ADD COLUMN paused_counter INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN state TEXT'
+            "ALTER TABLE sessions ADD COLUMN state TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN user TEXT'
+            "ALTER TABLE sessions ADD COLUMN user TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN machine_id TEXT'
+            "ALTER TABLE sessions ADD COLUMN machine_id TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT title FROM sessions')
+        c_db.execute("SELECT title FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN title TEXT'
+            "ALTER TABLE sessions ADD COLUMN title TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN parent_title TEXT'
+            "ALTER TABLE sessions ADD COLUMN parent_title TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN grandparent_title TEXT'
+            "ALTER TABLE sessions ADD COLUMN grandparent_title TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN friendly_name TEXT'
+            "ALTER TABLE sessions ADD COLUMN friendly_name TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN player TEXT'
+            "ALTER TABLE sessions ADD COLUMN player TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN user_id INTEGER'
+            "ALTER TABLE sessions ADD COLUMN user_id INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT ip_address FROM sessions')
+        c_db.execute("SELECT ip_address FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN ip_address TEXT'
+            "ALTER TABLE sessions ADD COLUMN ip_address TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN platform TEXT'
+            "ALTER TABLE sessions ADD COLUMN platform TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN parent_rating_key INTEGER'
+            "ALTER TABLE sessions ADD COLUMN parent_rating_key INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN grandparent_rating_key INTEGER'
+            "ALTER TABLE sessions ADD COLUMN grandparent_rating_key INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN view_offset INTEGER DEFAULT 0'
+            "ALTER TABLE sessions ADD COLUMN view_offset INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN duration INTEGER'
+            "ALTER TABLE sessions ADD COLUMN duration INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_decision TEXT'
+            "ALTER TABLE sessions ADD COLUMN video_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN audio_decision TEXT'
+            "ALTER TABLE sessions ADD COLUMN audio_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN width INTEGER'
+            "ALTER TABLE sessions ADD COLUMN width INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN height INTEGER'
+            "ALTER TABLE sessions ADD COLUMN height INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN container TEXT'
+            "ALTER TABLE sessions ADD COLUMN container TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_codec TEXT'
+            "ALTER TABLE sessions ADD COLUMN video_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN audio_codec TEXT'
+            "ALTER TABLE sessions ADD COLUMN audio_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN bitrate INTEGER'
+            "ALTER TABLE sessions ADD COLUMN bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_resolution TEXT'
+            "ALTER TABLE sessions ADD COLUMN video_resolution TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_framerate TEXT'
+            "ALTER TABLE sessions ADD COLUMN video_framerate TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN aspect_ratio TEXT'
+            "ALTER TABLE sessions ADD COLUMN aspect_ratio TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN audio_channels INTEGER'
+            "ALTER TABLE sessions ADD COLUMN audio_channels INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_protocol TEXT'
+            "ALTER TABLE sessions ADD COLUMN transcode_protocol TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_container TEXT'
+            "ALTER TABLE sessions ADD COLUMN transcode_container TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_video_codec TEXT'
+            "ALTER TABLE sessions ADD COLUMN transcode_video_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_audio_codec TEXT'
+            "ALTER TABLE sessions ADD COLUMN transcode_audio_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_audio_channels INTEGER'
+            "ALTER TABLE sessions ADD COLUMN transcode_audio_channels INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_width INTEGER'
+            "ALTER TABLE sessions ADD COLUMN transcode_width INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_height INTEGER'
+            "ALTER TABLE sessions ADD COLUMN transcode_height INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT buffer_count FROM sessions')
+        c_db.execute("SELECT buffer_count FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN buffer_count INTEGER DEFAULT 0'
+            "ALTER TABLE sessions ADD COLUMN buffer_count INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN buffer_last_triggered INTEGER'
+            "ALTER TABLE sessions ADD COLUMN buffer_last_triggered INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT last_paused FROM sessions')
+        c_db.execute("SELECT last_paused FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN last_paused INTEGER'
+            "ALTER TABLE sessions ADD COLUMN last_paused INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT section_id FROM sessions')
+        c_db.execute("SELECT section_id FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN section_id INTEGER'
+            "ALTER TABLE sessions ADD COLUMN section_id INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT stopped FROM sessions')
+        c_db.execute("SELECT stopped FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stopped INTEGER'
+            "ALTER TABLE sessions ADD COLUMN stopped INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT transcode_key FROM sessions')
+        c_db.execute("SELECT transcode_key FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_key TEXT'
+            "ALTER TABLE sessions ADD COLUMN transcode_key TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT write_attempts FROM sessions')
+        c_db.execute("SELECT write_attempts FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN write_attempts INTEGER DEFAULT 0'
+            "ALTER TABLE sessions ADD COLUMN write_attempts INTEGER DEFAULT 0"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT transcode_decision FROM sessions')
+        c_db.execute("SELECT transcode_decision FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_decision TEXT'
+            "ALTER TABLE sessions ADD COLUMN transcode_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN full_title TEXT'
+            "ALTER TABLE sessions ADD COLUMN full_title TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN media_index INTEGER'
+            "ALTER TABLE sessions ADD COLUMN media_index INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN parent_media_index INTEGER'
+            "ALTER TABLE sessions ADD COLUMN parent_media_index INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN thumb TEXT'
+            "ALTER TABLE sessions ADD COLUMN thumb TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN parent_thumb TEXT'
+            "ALTER TABLE sessions ADD COLUMN parent_thumb TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN grandparent_thumb TEXT'
+            "ALTER TABLE sessions ADD COLUMN grandparent_thumb TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN year INTEGER'
+            "ALTER TABLE sessions ADD COLUMN year INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT raw_stream_info FROM sessions')
+        c_db.execute("SELECT raw_stream_info FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN product TEXT'
+            "ALTER TABLE sessions ADD COLUMN product TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN optimized_version INTEGER'
+            "ALTER TABLE sessions ADD COLUMN optimized_version INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN optimized_version_profile TEXT'
+            "ALTER TABLE sessions ADD COLUMN optimized_version_profile TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN synced_version INTEGER'
+            "ALTER TABLE sessions ADD COLUMN synced_version INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_bitrate INTEGER'
+            "ALTER TABLE sessions ADD COLUMN video_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_width INTEGER'
+            "ALTER TABLE sessions ADD COLUMN video_width INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_height INTEGER'
+            "ALTER TABLE sessions ADD COLUMN video_height INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN audio_bitrate INTEGER'
+            "ALTER TABLE sessions ADD COLUMN audio_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN subtitle_codec TEXT'
+            "ALTER TABLE sessions ADD COLUMN subtitle_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_bitrate INTEGER'
+            "ALTER TABLE sessions ADD COLUMN stream_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_resolution TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_video_resolution TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN quality_profile TEXT'
+            "ALTER TABLE sessions ADD COLUMN quality_profile TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_container_decision TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_container_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_container TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_container TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_decision TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_video_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_codec TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_video_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_bitrate INTEGER'
+            "ALTER TABLE sessions ADD COLUMN stream_video_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_width INTEGER'
+            "ALTER TABLE sessions ADD COLUMN stream_video_width INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_height INTEGER'
+            "ALTER TABLE sessions ADD COLUMN stream_video_height INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_framerate TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_video_framerate TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_audio_decision TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_audio_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_audio_codec TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_audio_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_audio_bitrate INTEGER'
+            "ALTER TABLE sessions ADD COLUMN stream_audio_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_audio_channels INTEGER'
+            "ALTER TABLE sessions ADD COLUMN stream_audio_channels INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN subtitles INTEGER'
+            "ALTER TABLE sessions ADD COLUMN subtitles INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_subtitle_decision TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_subtitle_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_subtitle_codec TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_subtitle_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN raw_stream_info TEXT'
+            "ALTER TABLE sessions ADD COLUMN raw_stream_info TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT video_height FROM sessions')
+        c_db.execute("SELECT video_height FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_height INTEGER'
+            "ALTER TABLE sessions ADD COLUMN video_height INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT subtitles FROM sessions')
+        c_db.execute("SELECT subtitles FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN subtitles INTEGER'
+            "ALTER TABLE sessions ADD COLUMN subtitles INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT synced_version_profile FROM sessions')
+        c_db.execute("SELECT synced_version_profile FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN synced_version_profile TEXT'
+            "ALTER TABLE sessions ADD COLUMN synced_version_profile TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN optimized_version_title TEXT'
+            "ALTER TABLE sessions ADD COLUMN optimized_version_title TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT transcode_hw_decoding FROM sessions')
+        c_db.execute("SELECT transcode_hw_decoding FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_hw_decoding INTEGER'
+            "ALTER TABLE sessions ADD COLUMN transcode_hw_decoding INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN transcode_hw_encoding INTEGER'
+            "ALTER TABLE sessions ADD COLUMN transcode_hw_encoding INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT watched FROM sessions')
+        c_db.execute("SELECT watched FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN watched INTEGER DEFAULT 0'
+            "ALTER TABLE sessions ADD COLUMN watched INTEGER DEFAULT 0"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT live FROM sessions')
+        c_db.execute("SELECT live FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN live INTEGER'
+            "ALTER TABLE sessions ADD COLUMN live INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN live_uuid TEXT'
+            "ALTER TABLE sessions ADD COLUMN live_uuid TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT session_id FROM sessions')
+        c_db.execute("SELECT session_id FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN session_id TEXT'
+            "ALTER TABLE sessions ADD COLUMN session_id TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT original_title FROM sessions')
+        c_db.execute("SELECT original_title FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN original_title TEXT'
+            "ALTER TABLE sessions ADD COLUMN original_title TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT secure FROM sessions')
+        c_db.execute("SELECT secure FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN secure INTEGER'
+            "ALTER TABLE sessions ADD COLUMN secure INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN relayed INTEGER'
+            "ALTER TABLE sessions ADD COLUMN relayed INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT rating_key_websocket FROM sessions')
+        c_db.execute("SELECT rating_key_websocket FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN rating_key_websocket TEXT'
+            "ALTER TABLE sessions ADD COLUMN rating_key_websocket TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT video_scan_type FROM sessions')
+        c_db.execute("SELECT video_scan_type FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_scan_type TEXT'
+            "ALTER TABLE sessions ADD COLUMN video_scan_type TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_full_resolution TEXT'
+            "ALTER TABLE sessions ADD COLUMN video_full_resolution TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_scan_type TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_video_scan_type TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_full_resolution TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_video_full_resolution TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT video_dynamic_range FROM sessions')
+        c_db.execute("SELECT video_dynamic_range FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN video_dynamic_range TEXT'
+            "ALTER TABLE sessions ADD COLUMN video_dynamic_range TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_video_dynamic_range TEXT'
+            "ALTER TABLE sessions ADD COLUMN stream_video_dynamic_range TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT channel_identifier FROM sessions')
+        c_db.execute("SELECT channel_identifier FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN channel_call_sign TEXT'
+            "ALTER TABLE sessions ADD COLUMN channel_call_sign TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN channel_identifier TEXT'
+            "ALTER TABLE sessions ADD COLUMN channel_identifier TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN channel_thumb TEXT'
+            "ALTER TABLE sessions ADD COLUMN channel_thumb TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT originally_available_at FROM sessions')
+        c_db.execute("SELECT originally_available_at FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN originally_available_at TEXT'
+            "ALTER TABLE sessions ADD COLUMN originally_available_at TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN added_at INTEGER'
+            "ALTER TABLE sessions ADD COLUMN added_at INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT guid FROM sessions')
+        c_db.execute("SELECT guid FROM sessions")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN guid TEXT'
+            "ALTER TABLE sessions ADD COLUMN guid TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT bandwidth FROM sessions')
+        c_db.execute("SELECT bandwidth FROM sessions")
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN bandwidth INTEGER'
+            "ALTER TABLE sessions ADD COLUMN bandwidth INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN location TEXT'
-        )
-
-    # Upgrade sessions table from earlier versions
-    try:
-        c_db.execute('SELECT initial_stream FROM sessions')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN initial_stream INTEGER DEFAULT 1'
+            "ALTER TABLE sessions ADD COLUMN location TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT audio_language FROM sessions')
+        c_db.execute("SELECT initial_stream FROM sessions")
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN audio_language TEXT'
-        )
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN audio_language_code TEXT'
-        )
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_audio_language TEXT'
-        )
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_audio_language_code TEXT'
+            "ALTER TABLE sessions ADD COLUMN initial_stream INTEGER DEFAULT 1"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT subtitle_language FROM sessions')
+        c_db.execute("SELECT audio_language FROM sessions")
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN subtitle_language TEXT'
+            "ALTER TABLE sessions ADD COLUMN audio_language TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_subtitle_language TEXT'
+            "ALTER TABLE sessions ADD COLUMN audio_language_code TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN stream_audio_language TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN stream_audio_language_code TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT subtitle_forced FROM sessions')
+        c_db.execute("SELECT subtitle_language FROM sessions")
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN subtitle_forced INTEGER'
+            "ALTER TABLE sessions ADD COLUMN subtitle_language TEXT"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN stream_subtitle_forced INTEGER'
+            "ALTER TABLE sessions ADD COLUMN stream_subtitle_language TEXT"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT intro FROM sessions')
+        c_db.execute("SELECT subtitle_forced FROM sessions")
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN intro INTEGER DEFAULT 0'
+            "ALTER TABLE sessions ADD COLUMN subtitle_forced INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN credits INTEGER DEFAULT 0'
-        )
-
-    # Upgrade sessions table from earlier versions
-    try:
-        c_db.execute('SELECT commercial FROM sessions')
-    except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
-        c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN commercial INTEGER DEFAULT 0'
+            "ALTER TABLE sessions ADD COLUMN stream_subtitle_forced INTEGER"
         )
 
     # Upgrade sessions table from earlier versions
     try:
-        c_db.execute('SELECT marker FROM sessions')
+        c_db.execute("SELECT intro FROM sessions")
     except sqlite3.OperationalError:
         logger.debug(u"Altering database. Updating database table sessions.")
         c_db.execute(
-            'ALTER TABLE sessions ADD COLUMN marker INTEGER DEFAULT 0'
+            "ALTER TABLE sessions ADD COLUMN intro INTEGER DEFAULT 0"
+        )
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN credits INTEGER DEFAULT 0"
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute("SELECT commercial FROM sessions")
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN commercial INTEGER DEFAULT 0"
+        )
+
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute("SELECT marker FROM sessions")
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN marker INTEGER DEFAULT 0"
         )
 
     # Upgrade session_history table from earlier versions
     try:
-        c_db.execute('SELECT reference_id FROM session_history')
+        c_db.execute("SELECT reference_id FROM session_history")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history.")
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN reference_id INTEGER DEFAULT 0'
+            "ALTER TABLE session_history ADD COLUMN reference_id INTEGER DEFAULT 0"
         )
         # Set reference_id to the first row where (user_id = previous row, rating_key != previous row) and user_id = user_id
         c_db.execute(
-            'UPDATE session_history ' \
-            'SET reference_id = (SELECT (CASE \
+            "UPDATE session_history " \
+            "SET reference_id = (SELECT (CASE \
              WHEN (SELECT MIN(id) FROM session_history WHERE id > ( \
                  SELECT MAX(id) FROM session_history \
                  WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) IS NULL \
              THEN (SELECT MIN(id) FROM session_history WHERE (user_id = t1.user_id)) \
              ELSE (SELECT MIN(id) FROM session_history WHERE id > ( \
                  SELECT MAX(id) FROM session_history \
-                 WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) ' \
-            'FROM session_history AS t1 ' \
-            'WHERE t1.id = session_history.id) '
+                 WHERE (user_id = t1.user_id AND rating_key <> t1.rating_key AND id < t1.id)) AND user_id = t1.user_id) END) " \
+            "FROM session_history AS t1 " \
+            "WHERE t1.id = session_history.id) "
         )
 
     # Upgrade session_history table from earlier versions
     try:
-        c_db.execute('SELECT bandwidth FROM session_history')
+        c_db.execute("SELECT bandwidth FROM session_history")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history.")
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN platform_version TEXT'
+            "ALTER TABLE session_history ADD COLUMN platform_version TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN product TEXT'
+            "ALTER TABLE session_history ADD COLUMN product TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN product_version TEXT'
+            "ALTER TABLE session_history ADD COLUMN product_version TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN profile TEXT'
+            "ALTER TABLE session_history ADD COLUMN profile TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN bandwidth INTEGER'
+            "ALTER TABLE session_history ADD COLUMN bandwidth INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN location TEXT'
+            "ALTER TABLE session_history ADD COLUMN location TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN quality_profile TEXT'
+            "ALTER TABLE session_history ADD COLUMN quality_profile TEXT"
         )
 
     # Upgrade session_history table from earlier versions
     try:
-        c_db.execute('SELECT secure FROM session_history')
+        c_db.execute("SELECT secure FROM session_history")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history.")
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN secure INTEGER'
+            "ALTER TABLE session_history ADD COLUMN secure INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN relayed INTEGER'
+            "ALTER TABLE session_history ADD COLUMN relayed INTEGER"
         )
 
     # Upgrade session_history table from earlier versions
     try:
-        result = c_db.execute('SELECT platform FROM session_history '
-                              'WHERE platform = "windows"').fetchall()
+        result = c_db.execute("SELECT platform FROM session_history "
+                              "WHERE platform = 'windows'").fetchall()
         if len(result) > 0:
             logger.debug("Altering database. Capitalizing Windows platform values in session_history table.")
             c_db.execute(
-                'UPDATE session_history SET platform = "Windows" WHERE platform = "windows" '
+                "UPDATE session_history SET platform = 'Windows' WHERE platform = 'windows' "
             )
     except sqlite3.OperationalError:
         logger.warn("Unable to capitalize Windows platform values in session_history table.")
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT full_title FROM session_history_metadata')
+        c_db.execute("SELECT full_title FROM session_history_metadata")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN full_title TEXT'
+            "ALTER TABLE session_history_metadata ADD COLUMN full_title TEXT"
         )
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT tagline FROM session_history_metadata')
+        c_db.execute("SELECT tagline FROM session_history_metadata")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT'
+            "ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT"
         )
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT labels FROM session_history_metadata')
+        c_db.execute("SELECT labels FROM session_history_metadata")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN labels TEXT'
+            "ALTER TABLE session_history_metadata ADD COLUMN labels TEXT"
         )
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT original_title FROM session_history_metadata')
+        c_db.execute("SELECT original_title FROM session_history_metadata")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN original_title TEXT'
+            "ALTER TABLE session_history_metadata ADD COLUMN original_title TEXT"
         )
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT live FROM session_history_metadata')
+        c_db.execute("SELECT live FROM session_history_metadata")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN live INTEGER DEFAULT 0'
+            "ALTER TABLE session_history_metadata ADD COLUMN live INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN channel_call_sign TEXT'
+            "ALTER TABLE session_history_metadata ADD COLUMN channel_call_sign TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN channel_identifier TEXT'
+            "ALTER TABLE session_history_metadata ADD COLUMN channel_identifier TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN channel_thumb TEXT'
+            "ALTER TABLE session_history_metadata ADD COLUMN channel_thumb TEXT"
         )
 
     # Upgrade session_history_metadata table from earlier versions
     try:
-        c_db.execute('SELECT marker_credits_first FROM session_history_metadata')
+        c_db.execute("SELECT marker_credits_first FROM session_history_metadata")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN marker_credits_first INTEGER DEFAULT NULL'
+            "ALTER TABLE session_history_metadata ADD COLUMN marker_credits_first INTEGER DEFAULT NULL"
         )
         c_db.execute(
-            'ALTER TABLE session_history_metadata ADD COLUMN marker_credits_final INTEGER DEFAULT NULL'
+            "ALTER TABLE session_history_metadata ADD COLUMN marker_credits_final INTEGER DEFAULT NULL"
         )
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT transcode_decision FROM session_history_media_info')
+        c_db.execute("SELECT transcode_decision FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_decision TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_decision TEXT"
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET transcode_decision = (CASE '
-            'WHEN video_decision = "transcode" OR audio_decision = "transcode" THEN "transcode" '
-            'WHEN video_decision = "copy" OR audio_decision = "copy" THEN "copy" '
-            'WHEN video_decision = "direct play" OR audio_decision = "direct play" THEN "direct play" END)'
+            "UPDATE session_history_media_info SET transcode_decision = (CASE "
+            "WHEN video_decision = 'transcode' OR audio_decision = 'transcode' THEN 'transcode' "
+            "WHEN video_decision = 'copy' OR audio_decision = 'copy' THEN 'copy' "
+            "WHEN video_decision = 'direct play' OR audio_decision = 'direct play' THEN 'direct play' END)"
         )
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT subtitles FROM session_history_media_info')
+        c_db.execute("SELECT subtitles FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_bit_depth INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN video_bit_depth INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_bitrate INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN video_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_codec_level TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN video_codec_level TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_width INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN video_width INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_height INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN video_height INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN audio_bitrate INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN audio_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_requested INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_requested INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_full_pipeline INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_full_pipeline INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decode TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decode TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encode TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encode TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decode_title TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decode_title TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encode_title TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encode_title TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_container TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_container TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_container_decision TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_container_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_bitrate INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_decision TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_bitrate INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_codec TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_codec_level TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_codec_level TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_bit_depth INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_bit_depth INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_height INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_height INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_width INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_width INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_resolution TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_resolution TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_framerate TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_framerate TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_decision TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_audio_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_codec TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_audio_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_bitrate INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_audio_bitrate INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_channels INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_audio_channels INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_decision TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_decision TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_codec TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_codec TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_container TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_container TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_forced INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_forced INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN subtitles INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN subtitles INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN synced_version INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN synced_version INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN optimized_version INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN optimized_version INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN optimized_version_profile TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN optimized_version_profile TEXT"
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET video_resolution=REPLACE(video_resolution, "p", "")'
+            "UPDATE session_history_media_info SET video_resolution=REPLACE(video_resolution, 'p', '')"
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET video_resolution=REPLACE(video_resolution, "SD", "sd")'
+            "UPDATE session_history_media_info SET video_resolution=REPLACE(video_resolution, 'SD', 'sd')"
         )
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT subtitle_codec FROM session_history_media_info')
+        c_db.execute("SELECT subtitle_codec FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN subtitle_codec TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN subtitle_codec TEXT"
         )
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT synced_version_profile FROM session_history_media_info')
+        c_db.execute("SELECT synced_version_profile FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN synced_version_profile TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN synced_version_profile TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN optimized_version_title TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN optimized_version_title TEXT"
         )
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT transcode_hw_decoding FROM session_history_media_info')
+        c_db.execute("SELECT transcode_hw_decoding FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decoding INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decoding INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encoding INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_encoding INTEGER"
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET subtitle_codec = "" WHERE subtitle_codec IS NULL'
+            "UPDATE session_history_media_info SET subtitle_codec = '' WHERE subtitle_codec IS NULL"
         )
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        result = c_db.execute('SELECT stream_container FROM session_history_media_info '
-                              'WHERE stream_container IS NULL').fetchall()
+        result = c_db.execute("SELECT stream_container FROM session_history_media_info "
+                              "WHERE stream_container IS NULL").fetchall()
         if len(result) > 0:
             logger.debug("Altering database. Removing NULL values from session_history_media_info table.")
             c_db.execute(
-                'UPDATE session_history_media_info SET stream_container = "" WHERE stream_container IS NULL'
+                "UPDATE session_history_media_info SET stream_container = '' WHERE stream_container IS NULL"
             )
             c_db.execute(
-                'UPDATE session_history_media_info SET stream_video_codec = "" WHERE stream_video_codec IS NULL'
+                "UPDATE session_history_media_info SET stream_video_codec = '' WHERE stream_video_codec IS NULL"
             )
             c_db.execute(
-                'UPDATE session_history_media_info SET stream_audio_codec = "" WHERE stream_audio_codec IS NULL'
+                "UPDATE session_history_media_info SET stream_audio_codec = '' WHERE stream_audio_codec IS NULL"
             )
             c_db.execute(
-                'UPDATE session_history_media_info SET stream_subtitle_codec = "" WHERE stream_subtitle_codec IS NULL'
+                "UPDATE session_history_media_info SET stream_subtitle_codec = '' WHERE stream_subtitle_codec IS NULL"
             )
     except sqlite3.OperationalError:
         logger.warn("Unable to remove NULL values from session_history_media_info table.")
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT video_scan_type FROM session_history_media_info')
+        c_db.execute("SELECT video_scan_type FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_scan_type TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN video_scan_type TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_full_resolution TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN video_full_resolution TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_scan_type TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_scan_type TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_full_resolution TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_full_resolution TEXT"
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET video_scan_type = "progressive" '
-            'WHERE video_resolution != ""'
+            "UPDATE session_history_media_info SET video_scan_type = 'progressive' "
+            "WHERE video_resolution != ''"
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET stream_video_scan_type = "progressive" '
-            'WHERE stream_video_resolution != "" AND stream_video_resolution IS NOT NULL'
+            "UPDATE session_history_media_info SET stream_video_scan_type = 'progressive' "
+            "WHERE stream_video_resolution != '' AND stream_video_resolution IS NOT NULL"
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET video_full_resolution = (CASE '
-            'WHEN video_resolution = "" OR video_resolution = "SD" OR video_resolution = "4k" THEN video_resolution '
-            'WHEN video_resolution = "sd" THEN "SD" '
-            'ELSE video_resolution || "p" END)'
+            "UPDATE session_history_media_info SET video_full_resolution = (CASE "
+            "WHEN video_resolution = '' OR video_resolution = 'SD' OR video_resolution = '4k' THEN video_resolution "
+            "WHEN video_resolution = 'sd' THEN 'SD' "
+            "ELSE video_resolution || 'p' END)"
         )
         c_db.execute(
-            'UPDATE session_history_media_info SET stream_video_full_resolution = ( '
-            'CASE WHEN stream_video_resolution = "" OR stream_video_resolution = "SD" OR stream_video_resolution = "4k" '
-            'THEN stream_video_resolution '
-            'WHEN stream_video_resolution = "sd" THEN "SD" '
-            'ELSE stream_video_resolution || "p" END)'
+            "UPDATE session_history_media_info SET stream_video_full_resolution = ( "
+            "CASE WHEN stream_video_resolution = '' OR stream_video_resolution = 'SD' OR stream_video_resolution = '4k' "
+            "THEN stream_video_resolution "
+            "WHEN stream_video_resolution = 'sd' THEN 'SD' "
+            "ELSE stream_video_resolution || 'p' END)"
         )
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT video_dynamic_range FROM session_history_media_info')
+        c_db.execute("SELECT video_dynamic_range FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN video_dynamic_range TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN video_dynamic_range TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_video_dynamic_range TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_video_dynamic_range TEXT"
         )
 
-    result = c_db.execute('SELECT * FROM session_history_media_info '
-                          'WHERE video_dynamic_range = "SDR" AND stream_video_dynamic_range = "HDR"').fetchone()
+    result = c_db.execute("SELECT * FROM session_history_media_info "
+                          "WHERE video_dynamic_range = 'SDR' AND stream_video_dynamic_range = 'HDR'").fetchone()
     if result:
         c_db.execute(
-            'UPDATE session_history_media_info SET stream_video_dynamic_range = "SDR" '
-            'WHERE video_dynamic_range = "SDR" AND stream_video_dynamic_range = "HDR"'
+            "UPDATE session_history_media_info SET stream_video_dynamic_range = 'SDR' "
+            "WHERE video_dynamic_range = 'SDR' AND stream_video_dynamic_range = 'HDR'"
         )
     
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT audio_language FROM session_history_media_info')
+        c_db.execute("SELECT audio_language FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN audio_language TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN audio_language TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN audio_language_code TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN audio_language_code TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_language TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_audio_language TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_audio_language_code TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_audio_language_code TEXT"
         ) 
     
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT subtitle_language FROM session_history_media_info')
+        c_db.execute("SELECT subtitle_language FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN subtitle_language TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN subtitle_language TEXT"
         )
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_language TEXT'
+            "ALTER TABLE session_history_media_info ADD COLUMN stream_subtitle_language TEXT"
         )
 
     # Upgrade session_history_media_info table from earlier versions
     try:
-        c_db.execute('SELECT subtitle_forced FROM session_history_media_info')
+        c_db.execute("SELECT subtitle_forced FROM session_history_media_info")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
-            'ALTER TABLE session_history_media_info ADD COLUMN subtitle_forced INTEGER'
+            "ALTER TABLE session_history_media_info ADD COLUMN subtitle_forced INTEGER"
         )
 
     # Upgrade session_history table from earlier versions
     try:
-        c_db.execute('SELECT section_id FROM session_history')
+        c_db.execute("SELECT section_id FROM session_history")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table session_history.")
         c_db.execute(
-            'ALTER TABLE session_history ADD COLUMN section_id INTEGER'
+            "ALTER TABLE session_history ADD COLUMN section_id INTEGER"
         )
         c_db.execute(
-            'UPDATE session_history SET section_id = ('
-            'SELECT section_id FROM session_history_metadata '
-            'WHERE session_history_metadata.id = session_history.id)'
+            "UPDATE session_history SET section_id = ("
+            "SELECT section_id FROM session_history_metadata "
+            "WHERE session_history_metadata.id = session_history.id)"
         )
         c_db.execute(
-            'CREATE TABLE IF NOT EXISTS session_history_metadata_temp (id INTEGER PRIMARY KEY, '
-            'rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-            'title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, '
-            'media_index INTEGER, parent_media_index INTEGER, '
-            'thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, '
-            'art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, '
-            'last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, '
-            'duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, '
-            'labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT)'
+            "CREATE TABLE IF NOT EXISTS session_history_metadata_temp (id INTEGER PRIMARY KEY, "
+            "rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, "
+            "title TEXT, parent_title TEXT, grandparent_title TEXT, original_title TEXT, full_title TEXT, "
+            "media_index INTEGER, parent_media_index INTEGER, "
+            "thumb TEXT, parent_thumb TEXT, grandparent_thumb TEXT, "
+            "art TEXT, media_type TEXT, year INTEGER, originally_available_at TEXT, added_at INTEGER, updated_at INTEGER, "
+            "last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, "
+            "duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, "
+            "labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT)"
         )
         c_db.execute(
-            'INSERT INTO session_history_metadata_temp (id, rating_key, parent_rating_key, grandparent_rating_key, '
-            'title, parent_title, grandparent_title, original_title, full_title, '
-            'media_index, parent_media_index, '
-            'thumb, parent_thumb, grandparent_thumb, '
-            'art, media_type, year, originally_available_at, added_at, updated_at, '
-            'last_viewed_at, content_rating, summary, tagline, rating, '
-            'duration, guid, directors, writers, actors, genres, studio, '
-            'labels, live, channel_call_sign, channel_identifier, channel_thumb) '
-            'SELECT id, rating_key, parent_rating_key, grandparent_rating_key, '
-            'title, parent_title, grandparent_title, original_title, full_title, '
-            'media_index, parent_media_index, '
-            'thumb, parent_thumb, grandparent_thumb, '
-            'art, media_type, year, originally_available_at, added_at, updated_at, '
-            'last_viewed_at, content_rating, summary, tagline, rating, '
-            'duration, guid, directors, writers, actors, genres, studio, '
-            'labels, live, channel_call_sign, channel_identifier, channel_thumb '
-            'FROM session_history_metadata'
+            "INSERT INTO session_history_metadata_temp (id, rating_key, parent_rating_key, grandparent_rating_key, "
+            "title, parent_title, grandparent_title, original_title, full_title, "
+            "media_index, parent_media_index, "
+            "thumb, parent_thumb, grandparent_thumb, "
+            "art, media_type, year, originally_available_at, added_at, updated_at, "
+            "last_viewed_at, content_rating, summary, tagline, rating, "
+            "duration, guid, directors, writers, actors, genres, studio, "
+            "labels, live, channel_call_sign, channel_identifier, channel_thumb) "
+            "SELECT id, rating_key, parent_rating_key, grandparent_rating_key, "
+            "title, parent_title, grandparent_title, original_title, full_title, "
+            "media_index, parent_media_index, "
+            "thumb, parent_thumb, grandparent_thumb, "
+            "art, media_type, year, originally_available_at, added_at, updated_at, "
+            "last_viewed_at, content_rating, summary, tagline, rating, "
+            "duration, guid, directors, writers, actors, genres, studio, "
+            "labels, live, channel_call_sign, channel_identifier, channel_thumb "
+            "FROM session_history_metadata"
         )
         c_db.execute(
-            'DROP TABLE session_history_metadata'
+            "DROP TABLE session_history_metadata"
         )
         c_db.execute(
-            'ALTER TABLE session_history_metadata_temp RENAME TO session_history_metadata'
+            "ALTER TABLE session_history_metadata_temp RENAME TO session_history_metadata"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT do_notify FROM users')
+        c_db.execute("SELECT do_notify FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN do_notify INTEGER DEFAULT 1'
+            "ALTER TABLE users ADD COLUMN do_notify INTEGER DEFAULT 1"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT keep_history FROM users')
+        c_db.execute("SELECT keep_history FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN keep_history INTEGER DEFAULT 1'
+            "ALTER TABLE users ADD COLUMN keep_history INTEGER DEFAULT 1"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT custom_avatar_url FROM users')
+        c_db.execute("SELECT custom_avatar_url FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN custom_avatar_url TEXT'
+            "ALTER TABLE users ADD COLUMN custom_avatar_url TEXT"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT deleted_user FROM users')
+        c_db.execute("SELECT deleted_user FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0'
+            "ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT allow_guest FROM users')
+        c_db.execute("SELECT allow_guest FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN allow_guest INTEGER DEFAULT 0'
+            "ALTER TABLE users ADD COLUMN allow_guest INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN user_token TEXT'
+            "ALTER TABLE users ADD COLUMN user_token TEXT"
         )
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN server_token TEXT'
+            "ALTER TABLE users ADD COLUMN server_token TEXT"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT shared_libraries FROM users')
+        c_db.execute("SELECT shared_libraries FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN shared_libraries TEXT'
+            "ALTER TABLE users ADD COLUMN shared_libraries TEXT"
         )
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN filter_all TEXT'
+            "ALTER TABLE users ADD COLUMN filter_all TEXT"
         )
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN filter_movies TEXT'
+            "ALTER TABLE users ADD COLUMN filter_movies TEXT"
         )
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN filter_tv TEXT'
+            "ALTER TABLE users ADD COLUMN filter_tv TEXT"
         )
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN filter_music TEXT'
+            "ALTER TABLE users ADD COLUMN filter_music TEXT"
         )
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN filter_photos TEXT'
+            "ALTER TABLE users ADD COLUMN filter_photos TEXT"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT is_admin FROM users')
+        c_db.execute("SELECT is_admin FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0'
+            "ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT is_active FROM users')
+        c_db.execute("SELECT is_active FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1'
+            "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1"
         )
 
     # Upgrade users table from earlier versions
     try:
-        c_db.execute('SELECT title FROM users')
+        c_db.execute("SELECT title FROM users")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
-            'ALTER TABLE users ADD COLUMN title TEXT'
+            "ALTER TABLE users ADD COLUMN title TEXT"
         )
 
     try:
-        result = c_db.execute('SELECT * FROM users WHERE friendly_name = username').fetchall()
+        result = c_db.execute("SELECT * FROM users WHERE friendly_name = username").fetchall()
         if result:
             logger.debug("Altering database. Resetting user friendly names equal to username.")
-            c_db.execute('UPDATE users SET friendly_name = NULL WHERE friendly_name = username')
+            c_db.execute("UPDATE users SET friendly_name = NULL WHERE friendly_name = username")
     except sqlite3.OperationalError:
        pass
 
     # Upgrade notify_log table from earlier versions
     try:
-        c_db.execute('SELECT poster_url FROM notify_log')
+        c_db.execute("SELECT poster_url FROM notify_log")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notify_log.")
         c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN poster_url TEXT'
+            "ALTER TABLE notify_log ADD COLUMN poster_url TEXT"
         )
 
     # Upgrade notify_log table from earlier versions (populate table with data from notify_log)
     try:
-        c_db.execute('SELECT timestamp FROM notify_log')
+        c_db.execute("SELECT timestamp FROM notify_log")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notify_log.")
         c_db.execute(
-            'CREATE TABLE IF NOT EXISTS notify_log_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, '
-            'session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
-            'user_id INTEGER, user TEXT, agent_id INTEGER, agent_name TEXT, notify_action TEXT, '
-            'subject_text TEXT, body_text TEXT, script_args TEXT, poster_url TEXT)'
+            "CREATE TABLE IF NOT EXISTS notify_log_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, "
+            "session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, "
+            "user_id INTEGER, user TEXT, agent_id INTEGER, agent_name TEXT, notify_action TEXT, "
+            "subject_text TEXT, body_text TEXT, script_args TEXT, poster_url TEXT)"
         )
         c_db.execute(
-            'INSERT INTO notify_log_temp (session_key, rating_key, user_id, user, agent_id, agent_name, '
-            'poster_url, timestamp, notify_action) '
-            'SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, timestamp, '
-            'notify_action FROM notify_log_temp '
-            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
-            'on_play, "play" FROM notify_log WHERE on_play '
-            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
-            'on_stop, "stop" FROM notify_log WHERE on_stop '
-            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
-            'on_watched, "watched" FROM notify_log WHERE on_watched '
-            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
-            'on_pause, "pause" FROM notify_log WHERE on_pause '
-            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
-            'on_resume, "resume" FROM notify_log WHERE on_resume '
-            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
-            'on_buffer, "buffer" FROM notify_log WHERE on_buffer '
-            'UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, '
-            'on_created, "created" FROM notify_log WHERE on_created '
-            'ORDER BY timestamp ')
+            "INSERT INTO notify_log_temp (session_key, rating_key, user_id, user, agent_id, agent_name, "
+            "poster_url, timestamp, notify_action) "
+            "SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, timestamp, "
+            "notify_action FROM notify_log_temp "
+            "UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, "
+            "on_play, 'play' FROM notify_log WHERE on_play "
+            "UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, "
+            "on_stop, 'stop' FROM notify_log WHERE on_stop "
+            "UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, "
+            "on_watched, 'watched' FROM notify_log WHERE on_watched "
+            "UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, "
+            "on_pause, 'pause' FROM notify_log WHERE on_pause "
+            "UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, "
+            "on_resume, 'resume' FROM notify_log WHERE on_resume "
+            "UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, "
+            "on_buffer, 'buffer' FROM notify_log WHERE on_buffer "
+            "UNION ALL SELECT session_key, rating_key, user_id, user, agent_id, agent_name, poster_url, "
+            "on_created, 'created' FROM notify_log WHERE on_created "
+            "ORDER BY timestamp ")
         c_db.execute(
-            'DROP TABLE notify_log'
+            "DROP TABLE notify_log"
         )
         c_db.execute(
-            'ALTER TABLE notify_log_temp RENAME TO notify_log'
+            "ALTER TABLE notify_log_temp RENAME TO notify_log"
         )
 
     # Upgrade notify_log table from earlier versions
     try:
-        c_db.execute('SELECT notifier_id FROM notify_log')
+        c_db.execute("SELECT notifier_id FROM notify_log")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notify_log.")
         c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN notifier_id INTEGER'
+            "ALTER TABLE notify_log ADD COLUMN notifier_id INTEGER"
         )
 
     # Upgrade notify_log table from earlier versions
     try:
-        c_db.execute('SELECT success FROM notify_log')
+        c_db.execute("SELECT success FROM notify_log")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notify_log.")
         c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN success INTEGER DEFAULT 0'
+            "ALTER TABLE notify_log ADD COLUMN success INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'UPDATE notify_log SET success = 1'
+            "UPDATE notify_log SET success = 1"
         )
 
     # Upgrade notify_log table from earlier versions
     try:
-        c_db.execute('SELECT tag FROM notify_log')
+        c_db.execute("SELECT tag FROM notify_log")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notify_log.")
         c_db.execute(
-            'ALTER TABLE notify_log ADD COLUMN tag TEXT'
+            "ALTER TABLE notify_log ADD COLUMN tag TEXT"
         )
 
     # Upgrade newsletter_log table from earlier versions
     try:
-        c_db.execute('SELECT start_time FROM newsletter_log')
+        c_db.execute("SELECT start_time FROM newsletter_log")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table newsletter_log.")
         c_db.execute(
-            'ALTER TABLE newsletter_log ADD COLUMN start_time INTEGER'
+            "ALTER TABLE newsletter_log ADD COLUMN start_time INTEGER"
         )
         c_db.execute(
-            'ALTER TABLE newsletter_log ADD COLUMN end_time INTEGER'
-        )
-
-    # Upgrade newsletter_log table from earlier versions
-    try:
-        c_db.execute('SELECT filename FROM newsletter_log')
-    except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table newsletter_log.")
-        c_db.execute(
-            'ALTER TABLE newsletter_log ADD COLUMN filename TEXT'
+            "ALTER TABLE newsletter_log ADD COLUMN end_time INTEGER"
         )
 
     # Upgrade newsletter_log table from earlier versions
     try:
-        c_db.execute('SELECT email_msg_id FROM newsletter_log')
+        c_db.execute("SELECT filename FROM newsletter_log")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table newsletter_log.")
         c_db.execute(
-            'ALTER TABLE newsletter_log ADD COLUMN email_msg_id TEXT'
+            "ALTER TABLE newsletter_log ADD COLUMN filename TEXT"
+        )
+
+    # Upgrade newsletter_log table from earlier versions
+    try:
+        c_db.execute("SELECT email_msg_id FROM newsletter_log")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table newsletter_log.")
+        c_db.execute(
+            "ALTER TABLE newsletter_log ADD COLUMN email_msg_id TEXT"
         )
 
     # Upgrade newsletters table from earlier versions
     try:
-        c_db.execute('SELECT id_name FROM newsletters')
+        c_db.execute("SELECT id_name FROM newsletters")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table newsletters.")
         c_db.execute(
-            'ALTER TABLE newsletters ADD COLUMN id_name TEXT NOT NULL'
+            "ALTER TABLE newsletters ADD COLUMN id_name TEXT NOT NULL"
         )
 
     # Upgrade newsletters table from earlier versions
     try:
-        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="newsletters"').fetchone()
-        if 'TEXT NOT NULL DEFAULT "0 0 * * 0"' in result[0]:
+        result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='newsletters'").fetchone()
+        if "TEXT NOT NULL DEFAULT \"0 0 * * 0\"" in result[0]:
             logger.debug("Altering database. Updating default cron value in newsletters table.")
             c_db.execute(
-                'CREATE TABLE newsletters_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL, '
-                'friendly_name TEXT, newsletter_config TEXT, email_config TEXT, '
-                'subject TEXT, body TEXT, message TEXT, '
-                'cron TEXT NOT NULL DEFAULT \'0 0 * * 0\', active INTEGER DEFAULT 0)'
+                "CREATE TABLE newsletters_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL, "
+                "friendly_name TEXT, newsletter_config TEXT, email_config TEXT, "
+                "subject TEXT, body TEXT, message TEXT, "
+                "cron TEXT NOT NULL DEFAULT '0 0 * * 0', active INTEGER DEFAULT 0)"
             )
             c_db.execute(
-                'INSERT INTO newsletters_temp (id, agent_id, agent_name, agent_label, id_name, '
-                'friendly_name, newsletter_config, email_config, subject, body, message, cron, active) '
-                'SELECT id, agent_id, agent_name, agent_label, id_name, '
-                'friendly_name, newsletter_config, email_config, subject, body, message, cron, active '
-                'FROM newsletters'
+                "INSERT INTO newsletters_temp (id, agent_id, agent_name, agent_label, id_name, "
+                "friendly_name, newsletter_config, email_config, subject, body, message, cron, active) "
+                "SELECT id, agent_id, agent_name, agent_label, id_name, "
+                "friendly_name, newsletter_config, email_config, subject, body, message, cron, active "
+                "FROM newsletters"
             )
             c_db.execute(
-                'DROP TABLE newsletters'
+                "DROP TABLE newsletters"
             )
             c_db.execute(
-                'ALTER TABLE newsletters_temp RENAME TO newsletters'
+                "ALTER TABLE newsletters_temp RENAME TO newsletters"
             )
     except sqlite3.OperationalError:
         logger.warn("Unable to update default cron value in newsletters table.")
         try:
             c_db.execute(
-                'DROP TABLE newsletters_temp'
+                "DROP TABLE newsletters_temp"
             )
         except:
             pass
 
     # Upgrade library_sections table from earlier versions (remove UNIQUE constraint on section_id)
     try:
-        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="library_sections"').fetchone()
-        if 'section_id INTEGER UNIQUE' in result[0]:
+        result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='library_sections'").fetchone()
+        if "section_id INTEGER UNIQUE" in result[0]:
             logger.debug("Altering database. Removing unique constraint on section_id from library_sections table.")
             c_db.execute(
-                'CREATE TABLE library_sections_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, '
-                'thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, '
-                'do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, '
-                'deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))'
+                "CREATE TABLE library_sections_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, "
+                "thumb TEXT, custom_thumb_url TEXT, art TEXT, count INTEGER, parent_count INTEGER, child_count INTEGER, "
+                "do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, "
+                "deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))"
             )
             c_db.execute(
-                'INSERT INTO library_sections_temp (id, server_id, section_id, section_name, section_type, '
-                'thumb, custom_thumb_url, art, count, parent_count, child_count, do_notify, do_notify_created, '
-                'keep_history, deleted_section) '
-                'SELECT id, server_id, section_id, section_name, section_type, '
-                'thumb, custom_thumb_url, art, count, parent_count, child_count, do_notify, do_notify_created, '
-                'keep_history, deleted_section '
-                'FROM library_sections'
+                "INSERT INTO library_sections_temp (id, server_id, section_id, section_name, section_type, "
+                "thumb, custom_thumb_url, art, count, parent_count, child_count, do_notify, do_notify_created, "
+                "keep_history, deleted_section) "
+                "SELECT id, server_id, section_id, section_name, section_type, "
+                "thumb, custom_thumb_url, art, count, parent_count, child_count, do_notify, do_notify_created, "
+                "keep_history, deleted_section "
+                "FROM library_sections"
             )
             c_db.execute(
-                'DROP TABLE library_sections'
+                "DROP TABLE library_sections"
             )
             c_db.execute(
-                'ALTER TABLE library_sections_temp RENAME TO library_sections'
+                "ALTER TABLE library_sections_temp RENAME TO library_sections"
             )
     except sqlite3.OperationalError:
         logger.warn("Unable to remove section_id unique constraint from library_sections.")
         try:
             c_db.execute(
-                'DROP TABLE library_sections_temp'
+                "DROP TABLE library_sections_temp"
             )
         except:
             pass
 
     # Upgrade library_sections table from earlier versions (remove duplicated libraries)
     try:
-        result = c_db.execute('SELECT * FROM library_sections WHERE server_id = ""').fetchall()
+        result = c_db.execute("SELECT * FROM library_sections WHERE server_id = ''").fetchall()
         if len(result) > 0:
             logger.debug("Altering database. Removing duplicate libraries from library_sections table.")
             c_db.execute(
-                'DELETE FROM library_sections WHERE server_id = ""'
+                "DELETE FROM library_sections WHERE server_id = ''"
             )
     except sqlite3.OperationalError:
         logger.warn("Unable to remove duplicate libraries from library_sections table.")
 
     # Upgrade library_sections table from earlier versions
     try:
-        c_db.execute('SELECT agent FROM library_sections')
+        c_db.execute("SELECT agent FROM library_sections")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table library_sections.")
         c_db.execute(
-            'ALTER TABLE library_sections ADD COLUMN agent TEXT'
+            "ALTER TABLE library_sections ADD COLUMN agent TEXT"
         )
 
     # Upgrade library_sections table from earlier versions
     try:
-        c_db.execute('SELECT custom_art_url FROM library_sections')
+        c_db.execute("SELECT custom_art_url FROM library_sections")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table library_sections.")
         c_db.execute(
-            'ALTER TABLE library_sections ADD COLUMN custom_art_url TEXT'
+            "ALTER TABLE library_sections ADD COLUMN custom_art_url TEXT"
         )
 
     # Upgrade library_sections table from earlier versions
     try:
-        c_db.execute('SELECT is_active FROM library_sections')
+        c_db.execute("SELECT is_active FROM library_sections")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table library_sections.")
         c_db.execute(
-            'ALTER TABLE library_sections ADD COLUMN is_active INTEGER DEFAULT 1'
+            "ALTER TABLE library_sections ADD COLUMN is_active INTEGER DEFAULT 1"
         )
 
     # Upgrade library_sections table from earlier versions
     try:
-        result = c_db.execute('SELECT thumb, art FROM library_sections WHERE section_id = ?',
+        result = c_db.execute("SELECT thumb, art FROM library_sections WHERE section_id = ?",
                               [common.LIVE_TV_SECTION_ID]).fetchone()
         if result and (not result[0] or not result[1]):
             logger.debug("Altering database. Updating database table library_sections.")
-            c_db.execute('UPDATE library_sections SET thumb = ?, art =? WHERE section_id = ?',
+            c_db.execute("UPDATE library_sections SET thumb = ?, art =? WHERE section_id = ?",
                          [common.DEFAULT_LIVE_TV_THUMB,
                           common.DEFAULT_LIVE_TV_ART_FULL,
                           common.LIVE_TV_SECTION_ID])
@@ -2266,49 +2269,49 @@ def dbcheck():
 
     # Upgrade users table from earlier versions (remove UNIQUE constraint on username)
     try:
-        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="users"').fetchone()
-        if 'username TEXT NOT NULL UNIQUE' in result[0]:
+        result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
+        if "username TEXT NOT NULL UNIQUE" in result[0]:
             logger.debug("Altering database. Removing unique constraint on username from users table.")
             c_db.execute(
-                'CREATE TABLE users_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, '
-                'thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, '
-                'is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, '
-                'keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)'
+                "CREATE TABLE users_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, "
+                "thumb TEXT, custom_avatar_url TEXT, email TEXT, is_home_user INTEGER DEFAULT NULL, "
+                "is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, do_notify INTEGER DEFAULT 1, "
+                "keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0)"
             )
             c_db.execute(
-                'INSERT INTO users_temp (id, user_id, username, friendly_name, thumb, custom_avatar_url, '
-                'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user) '
-                'SELECT id, user_id, username, friendly_name, thumb, custom_avatar_url, '
-                'email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user '
-                'FROM users'
+                "INSERT INTO users_temp (id, user_id, username, friendly_name, thumb, custom_avatar_url, "
+                "email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user) "
+                "SELECT id, user_id, username, friendly_name, thumb, custom_avatar_url, "
+                "email, is_home_user, is_allow_sync, is_restricted, do_notify, keep_history, deleted_user "
+                "FROM users"
             )
             c_db.execute(
-                'DROP TABLE users'
+                "DROP TABLE users"
             )
             c_db.execute(
-                'ALTER TABLE users_temp RENAME TO users'
+                "ALTER TABLE users_temp RENAME TO users"
             )
     except sqlite3.OperationalError:
         logger.warn("Unable to remove username unique constraint from users.")
         try:
             c_db.execute(
-                'DROP TABLE users_temp'
+                "DROP TABLE users_temp"
             )
         except:
             pass
 
     # Upgrade mobile_devices table from earlier versions
     try:
-        result = c_db.execute('SELECT SQL FROM sqlite_master WHERE type="table" AND name="mobile_devices"').fetchone()
-        if 'device_token TEXT NOT NULL UNIQUE' in result[0]:
+        result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='mobile_devices'").fetchone()
+        if "device_token TEXT NOT NULL UNIQUE" in result[0]:
             logger.debug("Altering database. Dropping and recreating mobile_devices table.")
             c_db.execute(
-                'DROP TABLE mobile_devices'
+                "DROP TABLE mobile_devices"
             )
             c_db.execute(
-                'CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, '
-                'device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)'
+                "CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, friendly_name TEXT)"
             )
     except sqlite3.OperationalError:
         logger.warn("Failed to recreate mobile_devices table.")
@@ -2316,408 +2319,408 @@ def dbcheck():
 
     # Upgrade mobile_devices table from earlier versions
     try:
-        c_db.execute('SELECT last_seen FROM mobile_devices')
+        c_db.execute("SELECT last_seen FROM mobile_devices")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table mobile_devices.")
         c_db.execute(
-            'ALTER TABLE mobile_devices ADD COLUMN last_seen INTEGER'
+            "ALTER TABLE mobile_devices ADD COLUMN last_seen INTEGER"
         )
 
     # Upgrade mobile_devices table from earlier versions
     try:
-        c_db.execute('SELECT official FROM mobile_devices')
+        c_db.execute("SELECT official FROM mobile_devices")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table mobile_devices.")
         c_db.execute(
-            'ALTER TABLE mobile_devices ADD COLUMN official INTEGER DEFAULT 0'
+            "ALTER TABLE mobile_devices ADD COLUMN official INTEGER DEFAULT 0"
         )
         # Update official mobile device flag
-        for device_id, in c_db.execute('SELECT device_id FROM mobile_devices').fetchall():
-            c_db.execute('UPDATE mobile_devices SET official = ? WHERE device_id = ?',
+        for device_id, in c_db.execute("SELECT device_id FROM mobile_devices").fetchall():
+            c_db.execute("UPDATE mobile_devices SET official = ? WHERE device_id = ?",
                          [mobile_app.validate_onesignal_id(device_id), device_id])
 
     # Upgrade mobile_devices table from earlier versions
     try:
-        c_db.execute('SELECT onesignal_id FROM mobile_devices')
+        c_db.execute("SELECT onesignal_id FROM mobile_devices")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table mobile_devices.")
         c_db.execute(
-            'ALTER TABLE mobile_devices ADD COLUMN onesignal_id TEXT'
+            "ALTER TABLE mobile_devices ADD COLUMN onesignal_id TEXT"
         )
 
     # Upgrade mobile_devices table from earlier versions
     try:
-        c_db.execute('SELECT platform FROM mobile_devices')
+        c_db.execute("SELECT platform FROM mobile_devices")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table mobile_devices.")
         c_db.execute(
-            'ALTER TABLE mobile_devices ADD COLUMN platform TEXT'
+            "ALTER TABLE mobile_devices ADD COLUMN platform TEXT"
         )
         c_db.execute(
-            'ALTER TABLE mobile_devices ADD COLUMN version TEXT'
+            "ALTER TABLE mobile_devices ADD COLUMN version TEXT"
         )
         # Update mobile device platforms
         for device_id, in c_db.execute(
-                'SELECT device_id FROM mobile_devices WHERE official > 0').fetchall():
-            c_db.execute('UPDATE mobile_devices SET platform = ? WHERE device_id = ?',
-                         ['android', device_id])
+                "SELECT device_id FROM mobile_devices WHERE official > 0").fetchall():
+            c_db.execute("UPDATE mobile_devices SET platform = ? WHERE device_id = ?",
+                         ["android", device_id])
 
     # Upgrade notifiers table from earlier versions
     try:
-        c_db.execute('SELECT custom_conditions FROM notifiers')
+        c_db.execute("SELECT custom_conditions FROM notifiers")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notifiers.")
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN custom_conditions TEXT'
+            "ALTER TABLE notifiers ADD COLUMN custom_conditions TEXT"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN custom_conditions_logic TEXT'
-        )
-
-    # Upgrade notifiers table from earlier versions
-    try:
-        c_db.execute('SELECT on_change FROM notifiers')
-    except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notifiers.")
-        c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_change INTEGER DEFAULT 0'
-        )
-        c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_change_subject TEXT'
-        )
-        c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_change_body TEXT'
+            "ALTER TABLE notifiers ADD COLUMN custom_conditions_logic TEXT"
         )
 
     # Upgrade notifiers table from earlier versions
     try:
-        c_db.execute('SELECT on_plexpydbcorrupt FROM notifiers')
+        c_db.execute("SELECT on_change FROM notifiers")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notifiers.")
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt INTEGER DEFAULT 0'
+            "ALTER TABLE notifiers ADD COLUMN on_change INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt_subject TEXT'
+            "ALTER TABLE notifiers ADD COLUMN on_change_subject TEXT"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt_body TEXT'
+            "ALTER TABLE notifiers ADD COLUMN on_change_body TEXT"
         )
 
     # Upgrade notifiers table from earlier versions
     try:
-        c_db.execute('SELECT on_error FROM notifiers')
+        c_db.execute("SELECT on_plexpydbcorrupt FROM notifiers")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notifiers.")
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_error INTEGER DEFAULT 0'
+            "ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_error_subject TEXT'
+            "ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt_subject TEXT"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_error_body TEXT'
+            "ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt_body TEXT"
         )
 
     # Upgrade notifiers table from earlier versions
     try:
-        c_db.execute('SELECT on_intro FROM notifiers')
+        c_db.execute("SELECT on_error FROM notifiers")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notifiers.")
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_intro INTEGER DEFAULT 0'
+            "ALTER TABLE notifiers ADD COLUMN on_error INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_intro_subject TEXT'
+            "ALTER TABLE notifiers ADD COLUMN on_error_subject TEXT"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_intro_body TEXT'
-        )
-        c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_credits INTEGER DEFAULT 0'
-        )
-        c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_credits_subject TEXT'
-        )
-        c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_credits_body TEXT'
+            "ALTER TABLE notifiers ADD COLUMN on_error_body TEXT"
         )
 
     # Upgrade notifiers table from earlier versions
     try:
-        c_db.execute('SELECT on_commercial FROM notifiers')
+        c_db.execute("SELECT on_intro FROM notifiers")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table notifiers.")
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_commercial INTEGER DEFAULT 0'
+            "ALTER TABLE notifiers ADD COLUMN on_intro INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_commercial_subject TEXT'
+            "ALTER TABLE notifiers ADD COLUMN on_intro_subject TEXT"
         )
         c_db.execute(
-            'ALTER TABLE notifiers ADD COLUMN on_commercial_body TEXT'
+            "ALTER TABLE notifiers ADD COLUMN on_intro_body TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE notifiers ADD COLUMN on_credits INTEGER DEFAULT 0"
+        )
+        c_db.execute(
+            "ALTER TABLE notifiers ADD COLUMN on_credits_subject TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE notifiers ADD COLUMN on_credits_body TEXT"
+        )
+
+    # Upgrade notifiers table from earlier versions
+    try:
+        c_db.execute("SELECT on_commercial FROM notifiers")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table notifiers.")
+        c_db.execute(
+            "ALTER TABLE notifiers ADD COLUMN on_commercial INTEGER DEFAULT 0"
+        )
+        c_db.execute(
+            "ALTER TABLE notifiers ADD COLUMN on_commercial_subject TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE notifiers ADD COLUMN on_commercial_body TEXT"
         )
 
     # Upgrade tvmaze_lookup table from earlier versions
     try:
-        c_db.execute('SELECT rating_key FROM tvmaze_lookup')
+        c_db.execute("SELECT rating_key FROM tvmaze_lookup")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table tvmaze_lookup.")
         c_db.execute(
-            'ALTER TABLE tvmaze_lookup ADD COLUMN rating_key INTEGER'
+            "ALTER TABLE tvmaze_lookup ADD COLUMN rating_key INTEGER"
         )
         c_db.execute(
-            'DROP INDEX IF EXISTS idx_tvmaze_lookup_thetvdb_id'
+            "DROP INDEX IF EXISTS idx_tvmaze_lookup_thetvdb_id"
         )
         c_db.execute(
-            'DROP INDEX IF EXISTS idx_tvmaze_lookup_imdb_id'
+            "DROP INDEX IF EXISTS idx_tvmaze_lookup_imdb_id"
         )
 
     # Upgrade themoviedb_lookup table from earlier versions
     try:
-        c_db.execute('SELECT rating_key FROM themoviedb_lookup')
+        c_db.execute("SELECT rating_key FROM themoviedb_lookup")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table themoviedb_lookup.")
         c_db.execute(
-            'ALTER TABLE themoviedb_lookup ADD COLUMN rating_key INTEGER'
+            "ALTER TABLE themoviedb_lookup ADD COLUMN rating_key INTEGER"
         )
         c_db.execute(
-            'DROP INDEX IF EXISTS idx_themoviedb_lookup_thetvdb_id'
+            "DROP INDEX IF EXISTS idx_themoviedb_lookup_thetvdb_id"
         )
         c_db.execute(
-            'DROP INDEX IF EXISTS idx_themoviedb_lookup_imdb_id'
-        )
-
-    # Upgrade user_login table from earlier versions
-    try:
-        c_db.execute('SELECT success FROM user_login')
-    except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table user_login.")
-        c_db.execute(
-            'ALTER TABLE user_login ADD COLUMN success INTEGER DEFAULT 1'
+            "DROP INDEX IF EXISTS idx_themoviedb_lookup_imdb_id"
         )
 
     # Upgrade user_login table from earlier versions
     try:
-        c_db.execute('SELECT expiry FROM user_login')
+        c_db.execute("SELECT success FROM user_login")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table user_login.")
         c_db.execute(
-            'ALTER TABLE user_login ADD COLUMN expiry TEXT'
+            "ALTER TABLE user_login ADD COLUMN success INTEGER DEFAULT 1"
+        )
+
+    # Upgrade user_login table from earlier versions
+    try:
+        c_db.execute("SELECT expiry FROM user_login")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table user_login.")
+        c_db.execute(
+            "ALTER TABLE user_login ADD COLUMN expiry TEXT"
         )
         c_db.execute(
-            'ALTER TABLE user_login ADD COLUMN jwt_token TEXT'
+            "ALTER TABLE user_login ADD COLUMN jwt_token TEXT"
         )
 
     # Rename notifiers in the database
-    result = c_db.execute('SELECT agent_label FROM notifiers '
-                          'WHERE agent_label = "XBMC" '
-                          'OR agent_label = "OSX Notify" '
-                          'OR agent_name = "androidapp"').fetchone()
+    result = c_db.execute("SELECT agent_label FROM notifiers "
+                          "WHERE agent_label = 'XBMC' "
+                          "OR agent_label = 'OSX Notify' "
+                          "OR agent_name = 'androidapp'").fetchone()
     if result:
         logger.debug("Altering database. Renaming notifiers.")
         c_db.execute(
-            'UPDATE notifiers SET agent_label = "Kodi" WHERE agent_label = "XBMC"'
+            "UPDATE notifiers SET agent_label = 'Kodi' WHERE agent_label = 'XBMC'"
         )
         c_db.execute(
-            'UPDATE notifiers SET agent_label = "macOS Notification Center" WHERE agent_label = "OSX Notify"'
+            "UPDATE notifiers SET agent_label = 'macOS Notification Center' WHERE agent_label = 'OSX Notify'"
         )
         c_db.execute(
-            'UPDATE notifiers SET agent_name = "remoteapp", agent_label = "Tautulli Remote App" '
-            'WHERE agent_name = "androidapp"'
-        )
-
-    # Upgrade exports table from earlier versions
-    try:
-        c_db.execute('SELECT thumb_level FROM exports')
-    except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table exports.")
-        c_db.execute(
-            'ALTER TABLE exports ADD COLUMN thumb_level INTEGER DEFAULT 0'
-        )
-        c_db.execute(
-            'UPDATE exports SET thumb_level = 9 WHERE include_thumb = 1'
-        )
-        c_db.execute(
-            'ALTER TABLE exports ADD COLUMN art_level INTEGER DEFAULT 0'
-        )
-        c_db.execute(
-            'UPDATE exports SET art_level = 9 WHERE include_art = 1'
+            "UPDATE notifiers SET agent_name = 'remoteapp', agent_label = 'Tautulli Remote App' "
+            "WHERE agent_name = 'androidapp'"
         )
 
     # Upgrade exports table from earlier versions
     try:
-        c_db.execute('SELECT title FROM exports')
+        c_db.execute("SELECT thumb_level FROM exports")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table exports.")
         c_db.execute(
-            'ALTER TABLE exports ADD COLUMN title TEXT'
+            "ALTER TABLE exports ADD COLUMN thumb_level INTEGER DEFAULT 0"
         )
         c_db.execute(
-            'ALTER TABLE exports ADD COLUMN individual_files INTEGER DEFAULT 0'
+            "UPDATE exports SET thumb_level = 9 WHERE include_thumb = 1"
+        )
+        c_db.execute(
+            "ALTER TABLE exports ADD COLUMN art_level INTEGER DEFAULT 0"
+        )
+        c_db.execute(
+            "UPDATE exports SET art_level = 9 WHERE include_art = 1"
         )
 
     # Upgrade exports table from earlier versions
     try:
-        c_db.execute('SELECT total_items FROM exports')
+        c_db.execute("SELECT title FROM exports")
     except sqlite3.OperationalError:
         logger.debug("Altering database. Updating database table exports.")
         c_db.execute(
-            'ALTER TABLE exports ADD COLUMN exported_items INTEGER DEFAULT 0'
+            "ALTER TABLE exports ADD COLUMN title TEXT"
         )
         c_db.execute(
-            'ALTER TABLE exports ADD COLUMN total_items INTEGER DEFAULT 0'
+            "ALTER TABLE exports ADD COLUMN individual_files INTEGER DEFAULT 0"
+        )
+
+    # Upgrade exports table from earlier versions
+    try:
+        c_db.execute("SELECT total_items FROM exports")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table exports.")
+        c_db.execute(
+            "ALTER TABLE exports ADD COLUMN exported_items INTEGER DEFAULT 0"
+        )
+        c_db.execute(
+            "ALTER TABLE exports ADD COLUMN total_items INTEGER DEFAULT 0"
         )
 
     # Fix unique constraints
     try:
-        c_db.execute('DELETE FROM tvmaze_lookup '
-                     'WHERE id NOT IN (SELECT MIN(id) FROM tvmaze_lookup GROUP BY rating_key)')
+        c_db.execute("DELETE FROM tvmaze_lookup "
+                     "WHERE id NOT IN (SELECT MIN(id) FROM tvmaze_lookup GROUP BY rating_key)")
     except sqlite3.OperationalError:
         pass
 
     try:
-        c_db.execute('DELETE FROM themoviedb_lookup '
-                     'WHERE id NOT IN (SELECT MIN(id) FROM themoviedb_lookup GROUP BY rating_key)')
+        c_db.execute("DELETE FROM themoviedb_lookup "
+                     "WHERE id NOT IN (SELECT MIN(id) FROM themoviedb_lookup GROUP BY rating_key)")
     except sqlite3.OperationalError:
         pass
 
     try:
-        c_db.execute('DELETE FROM musicbrainz_lookup '
-                     'WHERE id NOT IN (SELECT MIN(id) FROM musicbrainz_lookup GROUP BY rating_key)')
+        c_db.execute("DELETE FROM musicbrainz_lookup "
+                     "WHERE id NOT IN (SELECT MIN(id) FROM musicbrainz_lookup GROUP BY rating_key)")
     except sqlite3.OperationalError:
         pass
 
     try:
-        c_db.execute('DELETE FROM image_hash_lookup '
-                     'WHERE id NOT IN (SELECT MIN(id) FROM image_hash_lookup GROUP BY img_hash)')
+        c_db.execute("DELETE FROM image_hash_lookup "
+                     "WHERE id NOT IN (SELECT MIN(id) FROM image_hash_lookup GROUP BY img_hash)")
     except sqlite3.OperationalError:
         pass
 
     try:
-        c_db.execute('DELETE FROM cloudinary_lookup '
-                     'WHERE id NOT IN (SELECT MIN(id) FROM cloudinary_lookup GROUP BY img_hash)')
+        c_db.execute("DELETE FROM cloudinary_lookup "
+                     "WHERE id NOT IN (SELECT MIN(id) FROM cloudinary_lookup GROUP BY img_hash)")
     except sqlite3.OperationalError:
         pass
 
     try:
-        c_db.execute('DELETE FROM imgur_lookup '
-                     'WHERE id NOT IN (SELECT MIN(id) FROM imgur_lookup GROUP BY img_hash)')
+        c_db.execute("DELETE FROM imgur_lookup "
+                     "WHERE id NOT IN (SELECT MIN(id) FROM imgur_lookup GROUP BY img_hash)")
     except sqlite3.OperationalError:
         pass
 
     # Add "Local" user to database as default unauthenticated user.
-    result = c_db.execute('SELECT id FROM users WHERE username = "Local"')
+    result = c_db.execute("SELECT id FROM users WHERE username = 'Local'")
     if not result.fetchone():
         logger.debug("User 'Local' does not exist. Adding user.")
-        c_db.execute('INSERT INTO users (user_id, username) VALUES (0, "Local")')
+        c_db.execute("INSERT INTO users (user_id, username) VALUES (0, 'Local')")
 
     # Create session_history table indices
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_media_type" '
-        'ON "session_history" ("media_type")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_media_type "
+        "ON session_history (media_type)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_media_type_stopped" '
-        'ON "session_history" ("media_type", "stopped" ASC)'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_media_type_stopped "
+        "ON session_history (media_type, stopped ASC)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_rating_key" '
-        'ON "session_history" ("rating_key")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_rating_key "
+        "ON session_history (rating_key)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_parent_rating_key" '
-        'ON "session_history" ("parent_rating_key")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_parent_rating_key "
+        "ON session_history (parent_rating_key)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_grandparent_rating_key" '
-        'ON "session_history" ("grandparent_rating_key")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_grandparent_rating_key "
+        "ON session_history (grandparent_rating_key)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_user" '
-        'ON "session_history" ("user")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_user "
+        "ON session_history (user)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_user_id" '
-        'ON "session_history" ("user_id")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_user_id "
+        "ON session_history (user_id)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_user_id_stopped" '
-        'ON "session_history" ("user_id", "stopped" ASC)'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_user_id_stopped "
+        "ON session_history (user_id, stopped ASC)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_section_id" '
-        'ON "session_history" ("section_id")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_section_id "
+        "ON session_history (section_id)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_section_id_stopped" '
-        'ON "session_history" ("section_id", "stopped" ASC)'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_section_id_stopped "
+        "ON session_history (section_id, stopped ASC)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_reference_id" '
-        'ON "session_history" ("reference_id" ASC)'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_reference_id "
+        "ON session_history (reference_id ASC)"
     )
 
     # Create session_history_metadata table indices
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_rating_key" '
-        'ON "session_history_metadata" ("rating_key")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_rating_key "
+        "ON session_history_metadata (rating_key)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_guid" '
-        'ON "session_history_metadata" ("guid")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_guid "
+        "ON session_history_metadata (guid)"
     )
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_metadata_live" '
-        'ON "session_history_metadata" ("live")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_live "
+        "ON session_history_metadata (live)"
     )
 
     # Create session_history_media_info table indices
     c_db.execute(
-        'CREATE INDEX IF NOT EXISTS "idx_session_history_media_info_transcode_decision" '
-        'ON "session_history_media_info" ("transcode_decision")'
+        "CREATE INDEX IF NOT EXISTS idx_session_history_media_info_transcode_decision "
+        "ON session_history_media_info (transcode_decision)"
     )
 
     # Create lookup table indices
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_tvmaze_lookup" '
-        'ON "tvmaze_lookup" ("rating_key")'
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup "
+        "ON tvmaze_lookup (rating_key)"
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_themoviedb_lookup" '
-        'ON "themoviedb_lookup" ("rating_key")'
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_themoviedb_lookup "
+        "ON themoviedb_lookup (rating_key)"
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_musicbrainz_lookup" '
-        'ON "musicbrainz_lookup" ("rating_key")'
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_musicbrainz_lookup "
+        "ON musicbrainz_lookup (rating_key)"
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_image_hash_lookup" '
-        'ON "image_hash_lookup" ("img_hash")'
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_image_hash_lookup "
+        "ON image_hash_lookup (img_hash)"
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_cloudinary_lookup" '
-        'ON "cloudinary_lookup" ("img_hash")'
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_cloudinary_lookup "
+        "ON cloudinary_lookup (img_hash)"
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_imgur_lookup" '
-        'ON "imgur_lookup" ("img_hash")'
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_imgur_lookup "
+        "ON imgur_lookup (img_hash)"
     )
     c_db.execute(
-        'CREATE UNIQUE INDEX IF NOT EXISTS "idx_sessions_continued" '
-        'ON "sessions_continued" ("user_id", "machine_id", "media_type")'
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_continued "
+        "ON sessions_continued (user_id, machine_id, media_type)"
     )
 
     # Set database version
-    result = c_db.execute('SELECT value FROM version_info WHERE key = "version"').fetchone()
+    result = c_db.execute("SELECT value FROM version_info WHERE key = 'version'").fetchone()
     if not result:
         c_db.execute(
-            'INSERT OR REPLACE INTO version_info (key, value) VALUES ("version", ?)',
+            "INSERT OR REPLACE INTO version_info (key, value) VALUES ('version', ?)",
             [common.RELEASE]
         )
     elif helpers.version_to_tuple(result[0]) < helpers.version_to_tuple(common.RELEASE):
         c_db.execute(
-            'UPDATE version_info SET value = ? WHERE key = "version"',
+            "UPDATE version_info SET value = ? WHERE key = 'version'",
             [common.RELEASE]
         )
 
@@ -2727,9 +2730,9 @@ def dbcheck():
     # Migrate poster_urls to imgur_lookup table
     try:
         db = database.MonitorDatabase()
-        result = db.select('SELECT SQL FROM sqlite_master WHERE type="table" AND name="poster_urls"')
+        result = db.select("SELECT SQL FROM sqlite_master WHERE type='table' AND name='poster_urls'")
         if result:
-            result = db.select('SELECT * FROM poster_urls')
+            result = db.select("SELECT * FROM poster_urls")
             logger.debug("Altering database. Updating database table imgur_lookup.")
 
             data_factory = datafactory.DataFactory()
