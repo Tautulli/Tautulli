@@ -186,6 +186,7 @@ class Export(object):
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
                 'editionTitle': None,
+                'enableCreditsMarkerGeneration': None,
                 'fields': {
                     'name': None,
                     'locked': None
@@ -198,6 +199,7 @@ class Export(object):
                 'guids': {
                     'id': None
                 },
+                'hasCreditsMarker': None,
                 'hasPreviewThumbnails': None,
                 'key': None,
                 'labels': {
@@ -211,6 +213,14 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'markers': {
+                    'end': None,
+                    'final': None,
+                    'first': None,
+                    'id': None,
+                    'start': None,
+                    'type': None
+                },
                 'media': {
                     'aspectRatio': None,
                     'audioChannels': None,
@@ -403,6 +413,7 @@ class Export(object):
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
+                'audioLanguage': None,
                 'autoDeletionItemPolicyUnwatchedLibrary': None,
                 'autoDeletionItemPolicyWatchedLibrary': None,
                 'banner': None,
@@ -415,6 +426,7 @@ class Export(object):
                 'contentRating': None,
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
+                'enableCreditsMarkerGeneration': None,
                 'episodeSort': None,
                 'fields': {
                     'name': None,
@@ -454,8 +466,11 @@ class Export(object):
                     'role': None,
                     'thumb': None
                 },
+                'seasonCount': None,
                 'showOrdering': None,
                 'studio': None,
+                'subtitleLanguage': None,
+                'subtitleMode': None,
                 'summary': None,
                 'tagline': None,
                 'theme': None,
@@ -481,6 +496,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
+                'audioLanguage': None,
                 'collections': {
                     'id': None,
                     'tag': None
@@ -515,6 +531,8 @@ class Export(object):
                 'parentTitle': None,
                 'ratingKey': None,
                 'seasonNumber': None,
+                'subtitleLanguage': None,
+                'subtitleMode': None,
                 'summary': None,
                 'thumb': None,
                 'thumbBlurHash': None,
@@ -576,6 +594,7 @@ class Export(object):
                     'id': None
                 },
                 'hasCommercialMarker': None,
+                'hasCreditsMarker': None,
                 'hasIntroMarker': None,
                 'hasPreviewThumbnails': None,
                 'index': None,
@@ -592,6 +611,9 @@ class Export(object):
                 'locations': None,
                 'markers': {
                     'end': None,
+                    'final': None,
+                    'first': None,
+                    'id': None,
                     'start': None,
                     'type': None
                 },
@@ -1270,12 +1292,14 @@ class Export(object):
                 1: [
                     'ratingKey', 'title', 'titleSort', 'originalTitle', 'editionTitle', 'originallyAvailableAt', 'year', 'addedAt',
                     'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
-                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
+                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type',
+                    'hasCreditsMarker'
                 ],
                 2: [
                     'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
                     'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag',
-                    'fields.name', 'fields.locked', 'guids.id'
+                    'fields.name', 'fields.locked', 'guids.id',
+                    'markers.type', 'markers.start', 'markers.end', 'markers.first', 'markers.final'
                 ],
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
@@ -1333,7 +1357,7 @@ class Export(object):
                 1: [
                     'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'originalTitle', 'year', 'addedAt',
                     'rating', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating', 'network',
-                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount',
+                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount', 'seasonCount',
                     'seasons'
                 ],
                 2: [
@@ -1383,12 +1407,12 @@ class Export(object):
                     'summary', 'guid', 'duration', 'durationHuman', 'type', 'episodeNumber', 'seasonEpisode',
                     'parentTitle', 'parentRatingKey', 'parentGuid', 'parentYear', 'seasonNumber',
                     'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid',
-                    'hasCommercialMarker', 'hasIntroMarker'
+                    'hasCommercialMarker', 'hasCreditsMarker', 'hasIntroMarker'
                 ],
                 2: [
                     'collections.tag', 'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
                     'fields.name', 'fields.locked', 'guids.id',
-                    'markers.type', 'markers.start', 'markers.end'
+                    'markers.type', 'markers.start', 'markers.end', 'markers.first', 'markers.final'
                 ],
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
