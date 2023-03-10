@@ -53,6 +53,8 @@ SEARCHTYPES = {
     'optimizedVersion': 42,
     'userPlaylistItem': 1001,
 }
+REVERSESEARCHTYPES = {v: k for k, v in SEARCHTYPES.items()}
+
 # Tag Types - Plex uses these to filter specific tags when searching.
 TAGTYPES = {
     'tag': 0,
@@ -91,6 +93,8 @@ TAGTYPES = {
     'network': 319,
     'place': 400,
 }
+REVERSETAGTYPES = {v: k for k, v in TAGTYPES.items()}
+
 # Plex Objects - Populated at runtime
 PLEXOBJECTS = {}
 
@@ -219,11 +223,12 @@ def searchType(libtype):
             :exc:`~plexapi.exceptions.NotFound`: Unknown libtype
     """
     libtype = str(libtype)
-    if libtype in [str(v) for v in SEARCHTYPES.values()]:
-        return libtype
-    if SEARCHTYPES.get(libtype) is not None:
+    try:
         return SEARCHTYPES[libtype]
-    raise NotFound(f'Unknown libtype: {libtype}')
+    except KeyError:
+        if libtype in [str(k) for k in REVERSESEARCHTYPES]:
+            return libtype
+        raise NotFound(f'Unknown libtype: {libtype}') from None
 
 
 def reverseSearchType(libtype):
@@ -235,13 +240,12 @@ def reverseSearchType(libtype):
         Raises:
             :exc:`~plexapi.exceptions.NotFound`: Unknown libtype
     """
-    if libtype in SEARCHTYPES:
-        return libtype
-    libtype = int(libtype)
-    for k, v in SEARCHTYPES.items():
-        if libtype == v:
-            return k
-    raise NotFound(f'Unknown libtype: {libtype}')
+    try:
+        return REVERSESEARCHTYPES[int(libtype)]
+    except (KeyError, ValueError):
+        if libtype in SEARCHTYPES:
+            return libtype
+        raise NotFound(f'Unknown libtype: {libtype}') from None
 
 
 def tagType(tag):
@@ -254,11 +258,12 @@ def tagType(tag):
             :exc:`~plexapi.exceptions.NotFound`: Unknown tag
     """
     tag = str(tag)
-    if tag in [str(v) for v in TAGTYPES.values()]:
-        return tag
-    if TAGTYPES.get(tag) is not None:
+    try:
         return TAGTYPES[tag]
-    raise NotFound(f'Unknown tag: {tag}')
+    except KeyError:
+        if tag in [str(k) for k in REVERSETAGTYPES]:
+            return tag
+        raise NotFound(f'Unknown tag: {tag}') from None
 
 
 def reverseTagType(tag):
@@ -270,13 +275,12 @@ def reverseTagType(tag):
         Raises:
             :exc:`~plexapi.exceptions.NotFound`: Unknown tag
     """
-    if tag in TAGTYPES:
-        return tag
-    tag = int(tag)
-    for k, v in TAGTYPES.items():
-        if tag == v:
-            return k
-    raise NotFound(f'Unknown tag: {tag}')
+    try:
+        return REVERSETAGTYPES[int(tag)]
+    except (KeyError, ValueError):
+        if tag in TAGTYPES:
+            return tag
+        raise NotFound(f'Unknown tag: {tag}') from None
 
 
 def threaded(callback, listargs):

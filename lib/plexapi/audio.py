@@ -8,14 +8,14 @@ from plexapi.exceptions import BadRequest, NotFound
 from plexapi.mixins import (
     AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, PlayedUnplayedMixin, RatingMixin,
     ArtUrlMixin, ArtMixin, PosterUrlMixin, PosterMixin, ThemeMixin, ThemeUrlMixin,
-    OriginallyAvailableMixin, SortTitleMixin, StudioMixin, SummaryMixin, TitleMixin,
+    AddedAtMixin, OriginallyAvailableMixin, SortTitleMixin, StudioMixin, SummaryMixin, TitleMixin,
     TrackArtistMixin, TrackDiscNumberMixin, TrackNumberMixin,
     CollectionMixin, CountryMixin, GenreMixin, LabelMixin, MoodMixin, SimilarArtistMixin, StyleMixin
 )
 from plexapi.playlist import Playlist
 
 
-class Audio(PlexPartialObject, PlayedUnplayedMixin):
+class Audio(PlexPartialObject, PlayedUnplayedMixin, AddedAtMixin):
     """ Base class for all audio objects including :class:`~plexapi.audio.Artist`,
         :class:`~plexapi.audio.Album`, and :class:`~plexapi.audio.Track`.
 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 
-from urllib.parse import parse_qsl, quote_plus, unquote, urlencode, urlsplit
+from urllib.parse import parse_qsl, quote, quote_plus, unquote, urlencode, urlsplit
 
 from plexapi import media, settings, utils
 from plexapi.exceptions import BadRequest, NotFound
@@ -557,6 +557,24 @@ class EditFieldMixin:
         return self._edit(**edits)
 
 
+class AddedAtMixin(EditFieldMixin):
+    """ Mixin for Plex objects that can have an added at date. """
+
+    def editAddedAt(self, addedAt, locked=True):
+        """ Edit the added at date.
+
+            Parameters:
+                addedAt (int or str or datetime): The new value as a unix timestamp (int),
+                    "YYYY-MM-DD" (str), or datetime object.
+                locked (bool): True (default) to lock the field, False to unlock the field.
+        """
+        if isinstance(addedAt, str):
+            addedAt = int(round(datetime.strptime(addedAt, '%Y-%m-%d').timestamp()))
+        elif isinstance(addedAt, datetime):
+            addedAt = int(round(addedAt.timestamp()))
+        return self.editField('addedAt', addedAt, locked=locked)
+
+
 class ContentRatingMixin(EditFieldMixin):
     """ Mixin for Plex objects that can have a content rating. """
 
@@ -590,7 +608,7 @@ class OriginallyAvailableMixin(EditFieldMixin):
         """ Edit the originally available date.
 
             Parameters:
-                originallyAvailable (str or datetime): The new value (YYYY-MM-DD) or datetime object.
+                originallyAvailable (str or datetime): The new value "YYYY-MM-DD (str) or datetime object.
                 locked (bool): True (default) to lock the field, False to unlock the field.
         """
         if isinstance(originallyAvailable, datetime):
@@ -726,7 +744,7 @@ class PhotoCapturedTimeMixin(EditFieldMixin):
         """ Edit the photo captured time.
 
             Parameters:
-                capturedTime (str or datetime): The new value (YYYY-MM-DD hh:mm:ss) or datetime object.
+                capturedTime (str or datetime): The new value "YYYY-MM-DD hh:mm:ss" (str) or datetime object.
                 locked (bool): True (default) to lock the field, False to unlock the field.
         """
         if isinstance(capturedTime, datetime):
@@ -804,7 +822,7 @@ class EditTagsMixin:
 
         if remove:
             tagname = f'{tag}[].tag.tag-'
-            data[tagname] = ','.join([str(t) for t in items])
+            data[tagname] = ','.join([quote(str(t)) for t in items])
         else:
             for i, item in enumerate(items):
                 tagname = f'{str(tag)}[{i}].tag.tag'
