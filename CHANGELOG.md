@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.12.0-beta (2023-03-03)
+## v2.12.0 (2023-03-13)
 
 * Notifications:
   * New: Added support for Telegram group topics. (#1980)
@@ -13,18 +13,21 @@
   * Change: Trigger watched notifications based on the video watched completion behaviour setting.
 * Exporter:
   * Fix: Unable to run exporter when using the Snap package. (#2007)
+  * New: Added credits marker, and audio/subtitle settings to export fields.
 * UI:
+  * Fix: Incorrect styling and missing content for collection media info pages.
   * New: Added edition details field on movie media info pages. (#1957) (Thanks @herby2212)
   * New: Added setting to change the video watched completion behaviour.
   * New: Added watch time and user statistics to collection and playlist media info pages. (#1982, #2012) (Thanks @herby2212)
   * New: Added history table to collection and playlist media info pages.
   * New: Dynamically change watched status in the UI based on video watched completion behaviour setting.
-  * Fix: Incorrect styling and missing content for collection media info pages.
+  * New: Added hidden setting to override server name.
   * Change: Move track artist to a details field instead of in the title on track media info pages.
 * API:
   * New: Added section_id and user_id parameters to get_home_stats API command. (#1944)
   * New: Added marker info to get_metadata API command results.
   * New: Added media_type parameter to get_item_watch_time_stats and get_item_user_stats API commands. (#1982) (Thanks @herby2212)
+  * New: Added last_refreshed timestamp to get_library_media_info API command response.
 * Other:
   * Change: Migrate analytics to Google Analytics 4.
 
