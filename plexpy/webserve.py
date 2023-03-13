@@ -4479,7 +4479,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
-                media_type (str):        Media type of the item (only required for a collection)
+                media_type (str):       Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
@@ -4537,7 +4537,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
-                media_type (str):        Media type of the item (only required for a collection)
+                media_type (str):       Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
 
             Returns:
