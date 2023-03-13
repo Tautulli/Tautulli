@@ -775,6 +775,7 @@ class WebInterface(object):
             Returns:
                 json:
                     {"draw": 1,
+                     "last_refreshed": 1678734670,
                      "recordsTotal": 82,
                      "recordsFiltered": 82,
                      "filtered_file_size": 2616760056742,
