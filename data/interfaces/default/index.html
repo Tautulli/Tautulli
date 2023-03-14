@@ -523,14 +523,15 @@
 
                         var audio_decision = '';
                         if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.stream_audio_decision) {
+                            var audio_language = (s.media_type !== 'track') ? (s.audio_language || 'Unknown') + ' - ' : '';
                             var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
                             var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.stream_audio_decision === 'transcode') {
-                                audio_decision = 'Transcode ('+ (s.audio_language || 'Unknown')+ ' - ' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' <i class="fa fa-long-arrow-right"></i> ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Transcode (' + audio_language + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' <i class="fa fa-long-arrow-right"></i> ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else if (s.stream_audio_decision === 'copy') {
-                                audio_decision = 'Direct Stream ('+ (s.audio_language || 'Unknown')+ ' - ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Direct Stream (' + audio_language + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else {
-                                audio_decision = 'Direct Play ('+ (s.audio_language || 'Unknown')+ ' - ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Direct Play (' + audio_language + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             }
                         }
                         $('#audio_decision-' + key).html(audio_decision);
