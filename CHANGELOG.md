@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.12.1 (2023-03-14)
+
+* Activity:
+  * Fix: Stop checking for deprecated sync items sessions.
+  * Change: Do not show audio language on activity cards for music.
+* Other:
+  * Fix: Tautulli not starting on macOS.
+
+
 ## v2.12.0 (2023-03-13)
 
 * Notifications:
