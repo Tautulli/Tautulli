@@ -1908,40 +1908,7 @@ class PmsConnect(object):
         transcode_details['transcode_hw_decoding'] = int(transcode_details['transcode_hw_decode'].lower() in common.HW_DECODERS)
         transcode_details['transcode_hw_encoding'] = int(transcode_details['transcode_hw_encode'].lower() in common.HW_ENCODERS)
 
-        # Determine if a synced version is being played
-        sync_id = synced_session_data = synced_item_details = None
-        if media_type not in ('photo', 'clip') \
-                and not session.getElementsByTagName('Session') \
-                and not session.getElementsByTagName('TranscodeSession') \
-                and helpers.get_xml_attr(session, 'ratingKey').isdigit() \
-                and plexpy.CONFIG.PMS_PLEXPASS:
-            plex_tv = plextv.PlexTV()
-            parent_rating_key = helpers.get_xml_attr(session, 'parentRatingKey')
-            grandparent_rating_key = helpers.get_xml_attr(session, 'grandparentRatingKey')
-
-            synced_items = plex_tv.get_synced_items(client_id_filter=player_details['machine_id'],
-                                                    rating_key_filter=[rating_key, parent_rating_key, grandparent_rating_key])
-            if synced_items:
-                synced_item_details = synced_items[0]
-                sync_id = synced_item_details['sync_id']
-                synced_xml = self.get_sync_item(sync_id=sync_id, output_format='xml')
-                synced_xml_head = synced_xml.getElementsByTagName('MediaContainer')
-
-                synced_xml_items = []
-                if synced_xml_head[0].getElementsByTagName('Track'):
-                    synced_xml_items = synced_xml_head[0].getElementsByTagName('Track')
-                elif synced_xml_head[0].getElementsByTagName('Video'):
-                    synced_xml_items = synced_xml_head[0].getElementsByTagName('Video')
-
-                for synced_session_data in synced_xml_items:
-                    if helpers.get_xml_attr(synced_session_data, 'ratingKey') == rating_key:
-                        break
-
-        # Figure out which version is being played
-        if sync_id and synced_session_data:
-            media_info_all = synced_session_data.getElementsByTagName('Media')
-        else:
-            media_info_all = session.getElementsByTagName('Media')
+        media_info_all = session.getElementsByTagName('Media')
         stream_media_info = next((m for m in media_info_all if helpers.get_xml_attr(m, 'selected') == '1'), media_info_all[0])
         part_info_all = stream_media_info.getElementsByTagName('Part')
         stream_media_parts_info = next((p for p in part_info_all if helpers.get_xml_attr(p, 'selected') == '1'), part_info_all[0])
@@ -2077,10 +2044,10 @@ class PmsConnect(object):
                           'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
                           'stream_video_resolution': stream_video_resolution,
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration') or helpers.get_xml_attr(session, 'duration'),
-                          'stream_container_decision': 'direct play' if sync_id else helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
+                          'stream_container_decision': helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
                           'optimized_version': int(helpers.get_xml_attr(stream_media_info, 'proxyType') == '42'),
                           'optimized_version_title': helpers.get_xml_attr(stream_media_info, 'title'),
-                          'synced_version': 1 if sync_id else 0,
+                          'synced_version': 0,
                           'live': int(helpers.get_xml_attr(session, 'live') == '1'),
                           'live_uuid': helpers.get_xml_attr(stream_media_info, 'uuid'),
                           'indexes': int(indexes == 'sd'),
@@ -2162,12 +2129,8 @@ class PmsConnect(object):
             media_id = helpers.get_xml_attr(stream_media_info, 'id')
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
 
-            if sync_id:
-                metadata_details = self.get_metadata_details(rating_key=rating_key, sync_id=sync_id,
-                                                             skip_cache=skip_cache, cache_key=session_key)
-            else:
-                metadata_details = self.get_metadata_details(rating_key=rating_key,
-                                                             skip_cache=skip_cache, cache_key=session_key)
+            metadata_details = self.get_metadata_details(rating_key=rating_key,
+                                                         skip_cache=skip_cache, cache_key=session_key)
 
             # Get the media info, fallback to first item if match id is not found
             source_medias = metadata_details.pop('media_info', [])
@@ -2278,16 +2241,7 @@ class PmsConnect(object):
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
-            if sync_id:
-                quality_profile = 'Original'
-
-                synced_item_bitrate = helpers.cast_to_int(synced_item_details['video_bitrate'])
-                try:
-                    synced_bitrate = max(b for b in common.VIDEO_QUALITY_PROFILES if b <= synced_item_bitrate)
-                    synced_version_profile = common.VIDEO_QUALITY_PROFILES[synced_bitrate]
-                except ValueError:
-                    synced_version_profile = 'Original'
-            elif video_details['stream_video_decision'] == 'transcode':
+            if video_details['stream_video_decision'] == 'transcode':
                 synced_version_profile = ''
 
                 stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
@@ -2310,25 +2264,15 @@ class PmsConnect(object):
                 optimized_version_profile = ''
 
         elif media_type == 'track' and 'stream_bitrate' in stream_details:
-            if sync_id:
+            synced_version_profile = ''
+
+            stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
+            source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
+            try:
+                quailtiy_bitrate = min(b for b in common.AUDIO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
+                quality_profile = common.AUDIO_QUALITY_PROFILES[quailtiy_bitrate]
+            except ValueError:
                 quality_profile = 'Original'
-
-                synced_item_bitrate = helpers.cast_to_int(synced_item_details['audio_bitrate'])
-                try:
-                    synced_bitrate = max(b for b in common.AUDIO_QUALITY_PROFILES if b <= synced_item_bitrate)
-                    synced_version_profile = common.AUDIO_QUALITY_PROFILES[synced_bitrate]
-                except ValueError:
-                    synced_version_profile = 'Original'
-            else:
-                synced_version_profile = ''
-
-                stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
-                source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
-                try:
-                    quailtiy_bitrate = min(b for b in common.AUDIO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
-                    quality_profile = common.AUDIO_QUALITY_PROFILES[quailtiy_bitrate]
-                except ValueError:
-                    quality_profile = 'Original'
 
             optimized_version_profile = ''
 
