@@ -2859,7 +2859,7 @@ def analytics_event(name, **kwargs):
     event.set_event_param('branch', CONFIG.GIT_BRANCH)
     event.set_event_param('platform', common.PLATFORM)
     event.set_event_param('platformRelease', common.PLATFORM_RELEASE)
-    event.set_event_param('platformVersion', common.PLATFORM_VERSION)
+    event.set_event_param('platformVersion', common.PLATFORM_VERSION.split(';', 1)[0] if common.PLATFORM == 'Darwin' else common.PLATFORM_VERSION)
     event.set_event_param('linuxDistro', common.PLATFORM_LINUX_DISTRO)
     event.set_event_param('pythonVersion', common.PYTHON_VERSION)
     event.set_event_param('language', SYS_LANGUAGE)
