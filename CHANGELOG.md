@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.12.2 (2023-03-16)
+
+* Other:
+  * Fix: Tautulli not starting on FreeBSD jails.
+
+
 ## v2.12.1 (2023-03-14)
 
 * Activity:
