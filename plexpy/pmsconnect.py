@@ -2008,7 +2008,7 @@ class PmsConnect(object):
                                 'stream_subtitle_location': helpers.get_xml_attr(subtitle_stream_info, 'location'),
                                 'stream_subtitle_language': helpers.get_xml_attr(subtitle_stream_info, 'language'),
                                 'stream_subtitle_language_code': helpers.get_xml_attr(subtitle_stream_info, 'languageCode'),
-                                'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision'),
+                                'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision') or transcode_details['subtitle_decision'],
                                 'stream_subtitle_transient': int(helpers.get_xml_attr(subtitle_stream_info, 'transient') == '1')
                                 }
         else:
