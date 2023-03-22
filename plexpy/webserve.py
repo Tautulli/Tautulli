@@ -931,6 +931,9 @@ class WebInterface(object):
         section_ids = set(get_file_sizes_hold['section_ids'])
         rating_keys = set(get_file_sizes_hold['rating_keys'])
 
+        section_id = helpers.cast_to_int(section_id)
+        rating_key = helpers.cast_to_int(rating_key)
+
         if (section_id and section_id not in section_ids) or (rating_key and rating_key not in rating_keys):
             if section_id:
                 section_ids.add(section_id)
