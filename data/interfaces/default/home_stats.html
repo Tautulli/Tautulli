@@ -77,7 +77,8 @@ DOCUMENTATION :: END
         <% fallback = 'art-live' if row0['live'] else 'art' %>
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], row0['rating_key'], 500, 280, 40, '282828', 3, fallback=fallback)});">
         % elif stat_id == 'top_libraries':
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'] or row0['library_art'], None, 500, 280, 40, '282828', 3, fallback=row0['library_art'])});" data-library_art="${row0['library_art']}">
+        <% fallback = 'art-live' if row0['live'] else row0['library_art'] %>
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'] or row0['library_art'], None, 500, 280, 40, '282828', 3, fallback=fallback)});" data-library_art="${row0['library_art']}">
         % elif stat_id == 'top_users':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" data-blurhash="${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 100, 100, 40, '282828', 0, fallback='user')}">
         % elif stat_id == 'top_platforms':
@@ -110,7 +111,7 @@ DOCUMENTATION :: END
             </div>
             % elif stat_id == 'top_libraries':
                 % if row0['thumb'].startswith('http'):
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['thumb'], None, 80, 80)});"></div>
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['library_thumb'], None, 80, 80)});"></div>
                 % else:
                 <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['section_type']} hidden-xs"></div>
                 % endif

@@ -809,7 +809,7 @@
             if (stat_id === 'most_concurrent') {
                 return
             } else if (stat_id === 'top_libraries') {
-                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art || library_art, null, 500, 280, 40, '282828', 3, library_art || fallback_art) + ')');
+                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art || library_art, null, 500, 280, 40, '282828', 3, fallback_art) + ')');
                 $('#stats-thumb-' + stat_id).removeClass(function (index, className) {
                     return (className.match (/(^|\s)svg-icon library-\S+/g) || []).join(' ')});
                 if (thumb.startsWith('http')) {

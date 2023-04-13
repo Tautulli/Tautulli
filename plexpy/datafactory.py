@@ -743,6 +743,8 @@ class DataFactory(object):
 
                     if item['custom_art'] and item['custom_art'] != item['library_art']:
                         library_art = item['custom_art']
+                    elif item['library_art'] == common.DEFAULT_LIVE_TV_ART_FULL:
+                        library_art = common.DEFAULT_LIVE_TV_ART
                     else:
                         library_art = item['library_art']
 
