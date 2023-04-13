@@ -1920,7 +1920,6 @@ class WebInterface(object):
                      "filter_duration": "10 hrs 12 mins",
                      "data":
                         [{"date": 1462687607,
-                          "duration": 263,
                           "friendly_name": "Mother of Dragons",
                           "full_title": "Game of Thrones - The Red Woman",
                           "grandparent_rating_key": 351,
@@ -1942,6 +1941,7 @@ class WebInterface(object):
                           "paused_counter": 0,
                           "percent_complete": 84,
                           "platform": "Windows",
+                          "play_duration": 263,
                           "product": "Plex for Windows",
                           "player": "Castle-PC",
                           "rating_key": 4348,
