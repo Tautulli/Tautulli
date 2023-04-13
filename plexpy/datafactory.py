@@ -308,7 +308,8 @@ class DataFactory(object):
                    'date': item['date'],
                    'started': item['started'],
                    'stopped': item['stopped'],
-                   'duration': item['play_duration'],
+                   'duration': item['play_duration'],  # Keep for backwards compatibility
+                   'play_duration': item['play_duration'],
                    'paused_counter': item['paused_counter'],
                    'user_id': item['user_id'],
                    'user': item['user'],
