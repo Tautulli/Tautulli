@@ -1,5 +1,20 @@
 # Changelog
 
+## v2.12.3 (2023-04-14)
+
+* Activity:
+  * Fix: Incorrect subtitle decision shown when subtitles are transcoded.
+* History:
+  * Fix: Incorrect order when sorting by the duration column in the history tables.
+* Notifications:
+  * Fix: Logging error when running scripts that use PlexAPI.
+* UI:
+  * Fix: Calculate file sizes setting causing the media info table to fail to load.
+  * Fix: Incorrect artwork and thumbnail shown for Live TV on the Most Active Libraries statistics card.
+* API:
+  * Change: Renamed duration to play_duration in the get_history API response. (Note: duration kept for backwards compatibility.)
+
+
 ## v2.12.2 (2023-03-16)
 
 * Other:
