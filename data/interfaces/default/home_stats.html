@@ -110,8 +110,8 @@ DOCUMENTATION :: END
                 </a>
             </div>
             % elif stat_id == 'top_libraries':
-                % if row0['thumb'].startswith('http'):
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['library_thumb'], None, 80, 80)});"></div>
+                % if row0['library_thumb'].startswith('http'):
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['library_thumb'], None, 100, 100, fallback='cover')});"></div>
                 % else:
                 <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['section_type']} hidden-xs"></div>
                 % endif
@@ -148,7 +148,8 @@ DOCUMENTATION :: END
                                 data-rating_key="${row.get('rating_key')}" data-grandparent_rating_key="${row.get('grandparent_rating_key')}" data-guid="${row.get('guid')}" data-title="${row.get('title')}"
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}" data-library-type="${row.get('section_type')}"
                                 data-user_id="${row.get('user_id')}" data-user="${row.get('user')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
-                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}" data-library_art="${row.get('library_art', '')}">
+                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}"
+                                data-library_art="${row.get('library_art', '')}" data-library_thumb="${row.get('library_thumb', '')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
                                     % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
