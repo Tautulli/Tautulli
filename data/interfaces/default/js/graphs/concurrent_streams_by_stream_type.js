@@ -25,14 +25,6 @@ var hc_concurrent_streams_by_stream_type_options = {
     },
     plotOptions: {
         series: {
-            cursor: 'pointer',
-            point: {
-                events: {
-                    click: function() {
-                        selectHandler(this.category, this.series.name);
-                    }
-                }
-            },
             events: {
                 legendItemClick: function() {
                     setGraphVisibility(this.chart.renderTo.id, this.chart.series, this.name);
