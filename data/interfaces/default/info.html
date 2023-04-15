@@ -560,11 +560,7 @@ DOCUMENTATION :: END
                     <div class="table-card-header">
                         <div class="header-bar">
                             <span><i class="fa fa-group"></i> User Stats</span>
-                            % if _session['user_group'] == 'admin':
-                            <div class="form-check-reverse form-switch">
-                            % else:
-                            <div class="form-check-reverse form-switch" hidden>
-                            % endif
+                            <div id="switch-show-all-users-container" class="form-check-reverse form-switch" style="margin-top: 0.6rem;" hidden>
                                 <input class="form-check-input" type="checkbox" role="switch" id="switch-show-all-users">
                                 <label class="form-check-label" for="switch-show-all-users">Show All Users</label>                              
                             </div>
@@ -1086,6 +1082,7 @@ DOCUMENTATION :: END
         if (!($('#tabs-history').length)) {
             loadExportTable();
         }
+        $('#switch-show-all-users-container').removeAttr('hidden');
     });
 
     $("#refresh-export-table").click(function () {
