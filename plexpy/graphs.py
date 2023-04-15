@@ -861,11 +861,6 @@ class Graphs(object):
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
         
         def calc_most_concurrent(result):
-            '''
-            Function to calculate most concurrent streams
-            Input: Stat title, SQLite query result
-            Output: Dict {title, count, started, stopped}
-            '''
             times = []
             for item in result:
                 times.append({'time': str(item['started']) + 'B', 'count': 1})
@@ -873,27 +868,19 @@ class Graphs(object):
             times = sorted(times, key=lambda k: k['time'])
 
             count = 0
+            final_count = 0
             last_count = 0
-            last_start = ''
-            concurrent = {  'count': 0,
-                            'started': None,
-                            'stopped': None
-                            }
 
             for d in times:
                 if d['count'] == 1:
                     count += d['count']
-                    if count >= last_count:
-                        last_start = d['time']
                 else:
                     if count >= last_count:
                         last_count = count
-                        concurrent['count'] = count
-                        concurrent['started'] = last_start[:-1]
-                        concurrent['stopped'] = d['time'][:-1]
+                        final_count = count
                     count += d['count']
 
-            return concurrent
+            return final_count
 
         try:
             query = 'SELECT sh.date_played, sh.started, sh.stopped, shmi.transcode_decision ' \
@@ -930,11 +917,11 @@ class Graphs(object):
 
             for item in grouped_result:
                 if item['key'] == (date_string,'direct play'):
-                    series_1_value = calc_most_concurrent(item['value'])['count']
+                    series_1_value = calc_most_concurrent(item['value'])
                 elif item['key'] == (date_string,'copy'):
-                    series_2_value = calc_most_concurrent(item['value'])['count']
+                    series_2_value = calc_most_concurrent(item['value'])
                 elif item['key'] == (date_string,'transcode'):
-                    series_3_value = calc_most_concurrent(item['value'])['count']
+                    series_3_value = calc_most_concurrent(item['value'])
             
             series_1.append(series_1_value)
             series_2.append(series_2_value)
