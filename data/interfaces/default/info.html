@@ -560,6 +560,14 @@ DOCUMENTATION :: END
                     <div class="table-card-header">
                         <div class="header-bar">
                             <span><i class="fa fa-group"></i> User Stats</span>
+                            % if _session['user_group'] == 'admin':
+                            <div class="form-check-reverse form-switch">
+                            % else:
+                            <div class="form-check-reverse form-switch" hidden>
+                            % endif
+                                <input class="form-check-input" type="checkbox" role="switch" id="switch-show-all-users">
+                                <label class="form-check-label" for="switch-show-all-users">Show All Users</label>                              
+                            </div>
                         </div>
                     </div>
                     <div class="table-card-back">
@@ -940,7 +948,7 @@ DOCUMENTATION :: END
     $.ajax({
         url: 'item_user_stats',
         async: true,
-        data: { rating_key: "${data['rating_key']}" },
+        data: { rating_key: "${data['rating_key']}", show_all_users: $('#switch-show-all-users').prop('checked') },
         complete: function(xhr, status) {
             $("#user-stats").html(xhr.responseText);
         }
@@ -1018,6 +1026,18 @@ DOCUMENTATION :: END
 </script>
 % if _session['user_group'] == 'admin':
 <script>
+    $('#switch-show-all-users').on('change', function() {
+        // Refresh user stats
+        $.ajax({
+            url: 'item_user_stats',
+            async: true,
+            data: { rating_key: "${data['rating_key']}", show_all_users: $('#switch-show-all-users').prop('checked') },
+            complete: function(xhr, status) {
+                $("#user-stats").html(xhr.responseText);
+            }
+        });
+    });
+
     $("#toggle-export-modal").click(function() {
         $.ajax({
             url: 'export_metadata_modal',

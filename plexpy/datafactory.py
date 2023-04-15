@@ -1213,7 +1213,7 @@ class DataFactory(object):
 
         return item_watch_time_stats
 
-    def get_user_stats(self, rating_key=None, grouping=None):
+    def get_user_stats(self, rating_key=None, grouping=None, **kwargs):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
@@ -1248,6 +1248,16 @@ class DataFactory(object):
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_user_stats: %s." % e)
             result = []
 
+        if kwargs['show_all_users'] == 'true':
+            users_to_exlude = '(0,' + ','.join([str(x['user_id']) for x in result]) + ')'
+
+            query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
+                    'THEN users.username ELSE users.friendly_name END) AS friendly_name, ' \
+                    'users.user_id, users.username, users.thumb, users.custom_avatar_url AS custom_thumb, ' \
+                    '0 AS total_plays, 0 AS total_time, -1 AS section_id ' \
+                    'FROM users WHERE NOT user_id IN %s' % users_to_exlude
+            result.extend(monitor_db.select(query))
+
         for item in result:
             section_ids.add(item['section_id'])
 
@@ -1267,7 +1277,7 @@ class DataFactory(object):
                    }
             user_stats.append(row)
 
-        if any(not session.allow_session_library(section_id) for section_id in section_ids):
+        if any(not session.allow_session_library(section_id) for section_id in section_ids if section_id != -1):
             return []
 
         return session.mask_session_info(user_stats, mask_metadata=False)
