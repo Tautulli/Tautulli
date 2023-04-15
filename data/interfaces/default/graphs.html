@@ -139,6 +139,20 @@
                     </div>
                 </div>
                 <div class="row">
+                    <div class="col-md-12">
+                        <h4><i class="fa fa-video-camera"></i> Daily concurrent stream count</span> by stream type <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The total count of concurrent streams of tv, movies, and music by the transcode decision.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_concurrent_streams_by_stream_type">
+                                <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
                     <div class="col-md-6">
                         <h4><i class="fa fa-expand-arrows-alt"></i> <span class="yaxis-text">Play count</span> by source resolution <small>Last <span class="days">30</span> days</small></h4>
                         <p class="help-block">
@@ -327,6 +341,7 @@
 <script src="${http_root}js/graphs/plays_by_platform.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_user.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_stream_type.js${cache_param}"></script>
+<script src="${http_root}js/graphs/concurrent_streams_by_stream_type.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_source_resolution.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_stream_resolution.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_platform_by_stream_type.js${cache_param}"></script>
@@ -516,6 +531,33 @@
                     hc_plays_by_stream_type_options.series = getGraphVisibility(hc_plays_by_stream_type_options.chart.renderTo, data.series);
                     hc_plays_by_stream_type_options.colors = getGraphColors(data.series);
                     var hc_plays_by_stream_type = new Highcharts.Chart(hc_plays_by_stream_type_options);
+                }
+            });
+
+            $.ajax({
+                url: "get_concurrent_streams_by_stream_type",
+                type: 'get',
+                data: { time_range: time_range },
+                dataType: "json",
+                success: function(data) {
+                    var dateArray = [];
+                    $.each(data.categories, function (i, day) {
+                        dateArray.push(moment(day, 'YYYY-MM-DD').valueOf());
+                        // Highlight the weekend
+                        if ((moment(day, 'YYYY-MM-DD').format('ddd') == 'Sat') ||
+                            (moment(day, 'YYYY-MM-DD').format('ddd') == 'Sun')) {
+                            hc_plays_by_day_options.xAxis.plotBands.push({
+                                from: i-0.5,
+                                to: i+0.5,
+                                color: 'rgba(80,80,80,0.3)'
+                            });
+                        }
+                    });
+                    hc_concurrent_streams_by_stream_type_options.yAxis.min = 0;
+                    hc_concurrent_streams_by_stream_type_options.xAxis.categories = dateArray;
+                    hc_concurrent_streams_by_stream_type_options.series = getGraphVisibility(hc_concurrent_streams_by_stream_type_options.chart.renderTo, data.series);
+                    hc_concurrent_streams_by_stream_type_options.colors = getGraphColors(data.series);
+                    var hc_plays_by_stream_type = new Highcharts.Chart(hc_concurrent_streams_by_stream_type_options);
                 }
             });
 
@@ -727,6 +769,7 @@
 
             hc_plays_by_day_options.xAxis.plotBands = [];
             hc_plays_by_stream_type_options.xAxis.plotBands = [];
+            hc_concurrent_streams_by_stream_type_options.xAxis.plotBands = [];
 
             hc_plays_by_day_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_dayofweek_options.yAxis.labels.formatter = yaxis_format;
@@ -734,6 +777,7 @@
             hc_plays_by_platform_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_user_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
+            hc_concurrent_streams_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_stream_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_platform_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
@@ -746,6 +790,7 @@
             hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
             hc_plays_by_user_options.tooltip.formatter = tooltip_format;
             hc_plays_by_stream_type_options.tooltip.formatter = tooltip_format;
+            hc_concurrent_streams_by_stream_type_options.tooltip.formatter = tooltip_format;
             hc_plays_by_source_resolution_options.tooltip.formatter = tooltip_format;
             hc_plays_by_stream_resolution_options.tooltip.formatter = tooltip_format;
             hc_plays_by_platform_by_stream_type_options.tooltip.formatter = tooltip_format;
