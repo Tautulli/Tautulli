@@ -2545,11 +2545,10 @@ class WebInterface(object):
                      }
             ```
         """
-        grouping = helpers.bool_true(grouping, return_none=True)
 
         graph = graphs.Graphs()
         result = graph.get_total_concurrent_streams_per_stream_type(time_range=time_range)
-
+        logger.debug(result)
         if result:
             return result
         else:
