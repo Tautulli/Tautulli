@@ -550,7 +550,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     if session:
         # Reload json from raw stream info
         if session.get('raw_stream_info'):
-            session.update(json.loads(session['raw_stream_info']))
+            raw_stream_info = json.loads(session['raw_stream_info'])
+            # Don't overwrite id, session_key, stopped, view_offset
+            raw_stream_info.pop('id', None)
+            raw_stream_info.pop('session_key', None)
+            raw_stream_info.pop('stopped', None)
+            raw_stream_info.pop('view_offset', None)
+            session.update(raw_stream_info)
         notify_params.update(session)
 
     if timeline:
@@ -638,13 +644,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         stream_duration_sec = 0
         stream_duration = 0
 
-    view_offset_sec = helpers.convert_milliseconds_to_seconds(session.get('view_offset', 0))
+    progress_duration_sec = helpers.convert_milliseconds_to_seconds(session.get('view_offset', 0))
     duration_sec = helpers.convert_milliseconds_to_seconds(notify_params['duration'])
-    remaining_duration_sec = duration_sec - view_offset_sec
+    remaining_duration_sec = duration_sec - progress_duration_sec
 
-    view_offset = helpers.seconds_to_minutes(view_offset_sec)
+    progress_duration = helpers.seconds_to_minutes(progress_duration_sec)
     duration = helpers.seconds_to_minutes(duration_sec)
-    remaining_duration = duration - view_offset
+    remaining_duration = duration - progress_duration
 
     # Build Plex URL
     if notify_params['media_type'] == 'track':
@@ -1005,10 +1011,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'remaining_duration': remaining_duration,
         'remaining_duration_sec': remaining_duration_sec,
         'remaining_time': arrow.get(remaining_duration_sec).format(duration_format),
-        'progress_duration': view_offset,
-        'progress_duration_sec': view_offset_sec,
-        'progress_time': arrow.get(view_offset_sec).format(duration_format),
-        'progress_percent': helpers.get_percent(view_offset_sec, duration_sec),
+        'progress_duration': progress_duration,
+        'progress_duration_sec': progress_duration_sec,
+        'progress_time': arrow.get(progress_duration_sec).format(duration_format),
+        'progress_percent': helpers.get_percent(progress_duration_sec, duration_sec),
         'view_offset': session.get('view_offset', 0),
         'initial_stream': notify_params['initial_stream'],
         'transcode_decision': transcode_decision,

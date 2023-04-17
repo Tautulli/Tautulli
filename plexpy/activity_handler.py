@@ -108,7 +108,6 @@ class ActivityHandler(object):
             self.ap.write_session(session=self.session, notify=notify)
 
         self.set_session_state()
-        self.get_db_session()
 
     def set_session_state(self, view_offset=None):
         self.ap.set_session_state(
@@ -117,6 +116,7 @@ class ActivityHandler(object):
             view_offset=view_offset or self.view_offset,
             stopped=helpers.timestamp()
         )
+        self.get_db_session()
         
     def put_notification(self, notify_action, **kwargs):
         notification = {'stream_data': self.db_session.copy(), 'notify_action': notify_action}
@@ -162,7 +162,12 @@ class ActivityHandler(object):
         # Update the session state and viewOffset
         # Set force_stop to true to disable the state set
         if not force_stop:
-            self.set_session_state()
+            # Set the view offset equal to the duration if it is within the last 10 seconds
+            if self.db_session['duration'] - self.view_offset <= 10000:
+                view_offset = self.db_session['duration']
+            else:
+                view_offset = self.view_offset
+            self.set_session_state(view_offset=view_offset)
 
         # Write it to the history table
         row_id = self.ap.write_session_history(session=self.db_session)
