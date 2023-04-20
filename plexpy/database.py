@@ -98,7 +98,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
     try:
         version_info = db.select_single('SELECT * FROM import_db.version_info WHERE key = "version"')
         import_db_version = version_info['value']
-    except sqlite3.OperationalError:
+    except (sqlite3.OperationalError, KeyError):
         import_db_version = 'v2.6.10'
 
     logger.info("Tautulli Database :: Import Tautulli database version: %s", import_db_version)
