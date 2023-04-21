@@ -181,9 +181,9 @@ def set_notify_success(newsletter_log_id):
 def get_last_newsletter_email_msg_id(newsletter_id, notify_action):
     db = database.MonitorDatabase()
 
-    result = db.select_single('SELECT email_msg_id FROM newsletter_log '
-                              'WHERE newsletter_id = ? AND notify_action = ? AND success = 1 '
-                              'ORDER BY timestamp DESC LIMIT 1', [newsletter_id, notify_action])
+    result = db.select_single("SELECT email_msg_id FROM newsletter_log "
+                              "WHERE newsletter_id = ? AND notify_action = ? AND success = 1 "
+                              "ORDER BY timestamp DESC LIMIT 1", [newsletter_id, notify_action])
 
     if result:
         return result['email_msg_id']
@@ -193,13 +193,13 @@ def get_newsletter(newsletter_uuid=None, newsletter_id_name=None):
     db = database.MonitorDatabase()
 
     if newsletter_uuid:
-        result = db.select_single('SELECT start_date, end_date, uuid, filename FROM newsletter_log '
-                                  'WHERE uuid = ?', [newsletter_uuid])
+        result = db.select_single("SELECT start_date, end_date, uuid, filename FROM newsletter_log "
+                                  "WHERE uuid = ?", [newsletter_uuid])
     elif newsletter_id_name:
-        result = db.select_single('SELECT start_date, end_date, uuid, filename FROM newsletter_log '
-                                  'JOIN newsletters ON newsletters.id = newsletter_log.newsletter_id '
-                                  'WHERE id_name = ? AND notify_action != "test" '
-                                  'ORDER BY timestamp DESC LIMIT 1', [newsletter_id_name])
+        result = db.select_single("SELECT start_date, end_date, uuid, filename FROM newsletter_log "
+                                  "JOIN newsletters ON newsletters.id = newsletter_log.newsletter_id "
+                                  "WHERE id_name = ? AND notify_action != 'test' "
+                                  "ORDER BY timestamp DESC LIMIT 1", [newsletter_id_name])
     else:
         result = None
 
