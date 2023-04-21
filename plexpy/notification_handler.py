@@ -443,12 +443,12 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
 
 def get_notify_state(session):
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT timestamp, notify_action, notifier_id '
-                               'FROM notify_log '
-                               'WHERE session_key = ? '
-                               'AND rating_key = ? '
-                               'AND user_id = ? '
-                               'ORDER BY id DESC',
+    result = monitor_db.select("SELECT timestamp, notify_action, notifier_id "
+                               "FROM notify_log "
+                               "WHERE session_key = ? "
+                               "AND rating_key = ? "
+                               "AND user_id = ? "
+                               "ORDER BY id DESC",
                                args=[session['session_key'], session['rating_key'], session['user_id']])
     notify_states = []
     for item in result:
@@ -467,16 +467,16 @@ def get_notify_state_enabled(session, notify_action, notified=True):
         timestamp_where = 'AND timestamp IS NULL'
 
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT id AS notifier_id, timestamp '
-                               'FROM notifiers '
-                               'LEFT OUTER JOIN ('
-                               'SELECT timestamp, notifier_id '
-                               'FROM notify_log '
-                               'WHERE session_key = ? '
-                               'AND rating_key = ? '
-                               'AND user_id = ? '
-                               'AND notify_action = ?) AS t ON notifiers.id = t.notifier_id '
-                               'WHERE %s = 1 %s' % (notify_action, timestamp_where),
+    result = monitor_db.select("SELECT id AS notifier_id, timestamp "
+                               "FROM notifiers "
+                               "LEFT OUTER JOIN ("
+                               "SELECT timestamp, notifier_id "
+                               "FROM notify_log "
+                               "WHERE session_key = ? "
+                               "AND rating_key = ? "
+                               "AND user_id = ? "
+                               "AND notify_action = ?) AS t ON notifiers.id = t.notifier_id "
+                               "WHERE %s = 1 %s" % (notify_action, timestamp_where),
                                args=[session['session_key'], session['rating_key'], session['user_id'], notify_action])
 
     return result
@@ -528,8 +528,8 @@ def set_notify_success(notification_id):
 
 def check_nofity_tag(notify_action, tag):
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select_single('SELECT * FROM notify_log '
-                                      'WHERE notify_action = ? AND tag = ?',
+    result = monitor_db.select_single("SELECT * FROM notify_log "
+                                      "WHERE notify_action = ? AND tag = ?",
                                       [notify_action, tag])
     return bool(result)
 
@@ -1625,7 +1625,7 @@ def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
 
 def get_hash_image_info(img_hash=None):
     db = database.MonitorDatabase()
-    query = 'SELECT * FROM image_hash_lookup WHERE img_hash = ?'
+    query = "SELECT * FROM image_hash_lookup WHERE img_hash = ?"
     result = db.select_single(query, args=[img_hash])
     return result
 
@@ -1634,8 +1634,8 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=No
     db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT imdb_id, tvmaze_id, tvmaze_url FROM tvmaze_lookup ' \
-                'WHERE rating_key = ?'
+        query = "SELECT imdb_id, tvmaze_id, tvmaze_url FROM tvmaze_lookup " \
+                "WHERE rating_key = ?"
         tvmaze_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
@@ -1694,8 +1694,8 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, titl
     db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT thetvdb_id, imdb_id, themoviedb_id, themoviedb_url FROM themoviedb_lookup ' \
-                'WHERE rating_key = ?'
+        query = "SELECT thetvdb_id, imdb_id, themoviedb_id, themoviedb_url FROM themoviedb_lookup " \
+                "WHERE rating_key = ?"
         themoviedb_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
@@ -1772,8 +1772,8 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
     db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT themoviedb_json FROM themoviedb_lookup ' \
-                'WHERE rating_key = ?'
+        query = "SELECT themoviedb_json FROM themoviedb_lookup " \
+                "WHERE rating_key = ?"
         result = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
@@ -1823,8 +1823,8 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
     db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT musicbrainz_id, musicbrainz_url, musicbrainz_type FROM musicbrainz_lookup ' \
-                'WHERE rating_key = ?'
+        query = "SELECT musicbrainz_id, musicbrainz_url, musicbrainz_type FROM musicbrainz_lookup " \
+                "WHERE rating_key = ?"
         musicbrainz_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_musicbrainz: %s." % e)
