@@ -75,8 +75,8 @@ def refresh_users():
 
             # Check if we've set a custom avatar if so don't overwrite it.
             if keys_dict['user_id']:
-                avatar_urls = monitor_db.select('SELECT thumb, custom_avatar_url '
-                                                'FROM users WHERE user_id = ?',
+                avatar_urls = monitor_db.select("SELECT thumb, custom_avatar_url "
+                                                "FROM users WHERE user_id = ?",
                                                 [keys_dict['user_id']])
                 if avatar_urls:
                     if not avatar_urls[0]['custom_avatar_url'] or \
@@ -98,7 +98,7 @@ def refresh_users():
             if result == 'insert':
                 new_users.append(item['username'])
 
-        query = 'UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})'.format(', '.join(['?'] * len(user_ids)))
+        query = "UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})".format(", ".join(["?"] * len(user_ids)))
         monitor_db.action(query=query, args=user_ids)
 
         # Add new users to loger username filter
@@ -137,43 +137,43 @@ class Users(object):
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
-        columns = ['users.id AS row_id',
-                   'users.user_id',
-                   'users.username',
-                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
-                    THEN users.username ELSE users.friendly_name END) AS friendly_name',
-                   'users.title',
-                   'users.email',
-                   'users.thumb AS user_thumb',
-                   'users.custom_avatar_url AS custom_thumb',
-                   'COUNT(DISTINCT %s) AS plays' % group_by,
-                   'SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
+        columns = ["users.id AS row_id",
+                   "users.user_id",
+                   "users.username",
+                   "(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = '' \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name",
+                   "users.title",
+                   "users.email",
+                   "users.thumb AS user_thumb",
+                   "users.custom_avatar_url AS custom_thumb",
+                   "COUNT(DISTINCT %s) AS plays" % group_by,
+                   "SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
                     ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
-                    session_history.paused_counter END) AS duration',
-                   'MAX(session_history.started) AS last_seen',
-                   'MAX(session_history.id) AS history_row_id',
-                   'session_history_metadata.full_title AS last_played',
-                   'session_history.ip_address',
-                   'session_history.platform',
-                   'session_history.player',
-                   'session_history.rating_key',
-                   'session_history_metadata.media_type',
-                   'session_history_metadata.thumb',
-                   'session_history_metadata.parent_thumb',
-                   'session_history_metadata.grandparent_thumb',
-                   'session_history_metadata.parent_title',
-                   'session_history_metadata.year',
-                   'session_history_metadata.media_index',
-                   'session_history_metadata.parent_media_index',
-                   'session_history_metadata.live',
-                   'session_history_metadata.added_at',
-                   'session_history_metadata.originally_available_at',
-                   'session_history_metadata.guid',
-                   'session_history_media_info.transcode_decision',
-                   'users.do_notify AS do_notify',
-                   'users.keep_history AS keep_history',
-                   'users.allow_guest AS allow_guest',
-                   'users.is_active AS is_active'
+                    session_history.paused_counter END) AS duration",
+                   "MAX(session_history.started) AS last_seen",
+                   "MAX(session_history.id) AS history_row_id",
+                   "session_history_metadata.full_title AS last_played",
+                   "session_history.ip_address",
+                   "session_history.platform",
+                   "session_history.player",
+                   "session_history.rating_key",
+                   "session_history_metadata.media_type",
+                   "session_history_metadata.thumb",
+                   "session_history_metadata.parent_thumb",
+                   "session_history_metadata.grandparent_thumb",
+                   "session_history_metadata.parent_title",
+                   "session_history_metadata.year",
+                   "session_history_metadata.media_index",
+                   "session_history_metadata.parent_media_index",
+                   "session_history_metadata.live",
+                   "session_history_metadata.added_at",
+                   "session_history_metadata.originally_available_at",
+                   "session_history_metadata.guid",
+                   "session_history_media_info.transcode_decision",
+                   "users.do_notify AS do_notify",
+                   "users.keep_history AS keep_history",
+                   "users.allow_guest AS allow_guest",
+                   "users.is_active AS is_active"
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
@@ -270,32 +270,32 @@ class Users(object):
 
         custom_where = ['users.user_id', user_id]
 
-        columns = ['session_history.id AS history_row_id',
-                   'MIN(session_history.started) AS first_seen',
-                   'MAX(session_history.started) AS last_seen',
-                   'session_history.ip_address',
-                   'COUNT(session_history.id) AS play_count',
-                   'session_history.platform',
-                   'session_history.player',
-                   'session_history.rating_key',
-                   'session_history_metadata.full_title AS last_played',
-                   'session_history_metadata.thumb',
-                   'session_history_metadata.parent_thumb',
-                   'session_history_metadata.grandparent_thumb',
-                   'session_history_metadata.media_type',
-                   'session_history_metadata.parent_title',
-                   'session_history_metadata.year',
-                   'session_history_metadata.media_index',
-                   'session_history_metadata.parent_media_index',
-                   'session_history_metadata.live',
-                   'session_history_metadata.added_at',
-                   'session_history_metadata.originally_available_at',
-                   'session_history_metadata.guid',
-                   'session_history_media_info.transcode_decision',
-                   'session_history.user',
-                   'session_history.user_id as custom_user_id',
-                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
-                    THEN users.username ELSE users.friendly_name END) AS friendly_name'
+        columns = ["session_history.id AS history_row_id",
+                   "MIN(session_history.started) AS first_seen",
+                   "MAX(session_history.started) AS last_seen",
+                   "session_history.ip_address",
+                   "COUNT(session_history.id) AS play_count",
+                   "session_history.platform",
+                   "session_history.player",
+                   "session_history.rating_key",
+                   "session_history_metadata.full_title AS last_played",
+                   "session_history_metadata.thumb",
+                   "session_history_metadata.parent_thumb",
+                   "session_history_metadata.grandparent_thumb",
+                   "session_history_metadata.media_type",
+                   "session_history_metadata.parent_title",
+                   "session_history_metadata.year",
+                   "session_history_metadata.media_index",
+                   "session_history_metadata.parent_media_index",
+                   "session_history_metadata.live",
+                   "session_history_metadata.added_at",
+                   "session_history_metadata.originally_available_at",
+                   "session_history_metadata.guid",
+                   "session_history_media_info.transcode_decision",
+                   "session_history.user",
+                   "session_history.user_id as custom_user_id",
+                   "(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = '' \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name"
                    ]
 
         try:
@@ -436,31 +436,31 @@ class Users(object):
         last_seen = 'NULL'
         join = ''
         if include_last_seen:
-            last_seen = 'MAX(session_history.started)'
-            join = 'LEFT OUTER JOIN session_history ON users.user_id = session_history.user_id'
+            last_seen = "MAX(session_history.started)"
+            join = "LEFT OUTER JOIN session_history ON users.user_id = session_history.user_id"
 
         monitor_db = database.MonitorDatabase()
 
         try:
             if str(user_id).isdigit():
-                where = 'users.user_id = ?'
+                where = "users.user_id = ?"
                 args = [user_id]
             elif user:
-                where = 'users.username = ?'
+                where = "users.username = ?"
                 args = [user]
             elif email:
-                where = 'users.email = ?'
+                where = "users.email = ?"
                 args = [email]
             else:
-                raise Exception('Missing user_id, username, or email')
+                raise Exception("Missing user_id, username, or email")
 
-            query = 'SELECT users.id AS row_id, users.user_id, username, friendly_name, ' \
-                    'thumb AS user_thumb, custom_avatar_url AS custom_thumb, ' \
-                    'email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                    'do_notify, keep_history, deleted_user, ' \
-                    'allow_guest, shared_libraries, %s AS last_seen ' \
-                    'FROM users %s ' \
-                    'WHERE %s COLLATE NOCASE' % (last_seen, join, where)
+            query = "SELECT users.id AS row_id, users.user_id, username, friendly_name, " \
+                    "thumb AS user_thumb, custom_avatar_url AS custom_thumb, " \
+                    "email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
+                    "do_notify, keep_history, deleted_user, " \
+                    "allow_guest, shared_libraries, %s AS last_seen " \
+                    "FROM users %s " \
+                    "WHERE %s COLLATE NOCASE" % (last_seen, join, where)
             result = monitor_db.select(query, args=args)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_user_details: %s." % e)
@@ -531,22 +531,22 @@ class Users(object):
             try:
                 if days > 0:
                     if str(user_id).isdigit():
-                        query = 'SELECT (SUM(stopped - started) - ' \
-                                '   SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
-                                'COUNT(DISTINCT %s) AS total_plays ' \
-                                'FROM session_history ' \
-                                'WHERE stopped >= %s ' \
-                                'AND user_id = ? ' % (group_by, timestamp_query)
+                        query = "SELECT (SUM(stopped - started) - " \
+                                "   SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
+                                "COUNT(DISTINCT %s) AS total_plays " \
+                                "FROM session_history " \
+                                "WHERE stopped >= %s " \
+                                "AND user_id = ? " % (group_by, timestamp_query)
                         result = monitor_db.select(query, args=[user_id])
                     else:
                         result = []
                 else:
                     if str(user_id).isdigit():
-                        query = 'SELECT (SUM(stopped - started) - ' \
-                                '   SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
-                                'COUNT(DISTINCT %s) AS total_plays ' \
-                                'FROM session_history ' \
-                                'WHERE user_id = ? ' % group_by
+                        query = "SELECT (SUM(stopped - started) - " \
+                                "   SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
+                                "COUNT(DISTINCT %s) AS total_plays " \
+                                "FROM session_history " \
+                                "WHERE user_id = ? " % group_by
                         result = monitor_db.select(query, args=[user_id])
                     else:
                         result = []
@@ -587,13 +587,13 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = 'SELECT player, COUNT(DISTINCT %s) as total_plays, (SUM(stopped - started) - ' \
-                        'SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, ' \
-                        'platform ' \
-                        'FROM session_history ' \
-                        'WHERE user_id = ? ' \
-                        'GROUP BY player ' \
-                        'ORDER BY total_plays DESC, total_time DESC' % group_by
+                query = "SELECT player, COUNT(DISTINCT %s) as total_plays, (SUM(stopped - started) - " \
+                        "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
+                        "platform " \
+                        "FROM session_history " \
+                        "WHERE user_id = ? " \
+                        "GROUP BY player " \
+                        "ORDER BY total_plays DESC, total_time DESC" % group_by
                 result = monitor_db.select(query, args=[user_id])
             else:
                 result = []
@@ -630,17 +630,17 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = 'SELECT session_history.id, session_history.media_type, guid, ' \
-                        'session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, ' \
-                        'title, parent_title, grandparent_title, original_title, ' \
-                        'thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, ' \
-                        'year, originally_available_at, added_at, live, started, user ' \
-                        'FROM session_history_metadata ' \
-                        'JOIN session_history ON session_history_metadata.id = session_history.id ' \
-                        'WHERE user_id = ? ' \
-                        'GROUP BY (CASE WHEN session_history.media_type = "track" THEN session_history.parent_rating_key ' \
-                        '   ELSE session_history.rating_key END) ' \
-                        'ORDER BY MAX(started) DESC LIMIT ?'
+                query = "SELECT session_history.id, session_history.media_type, guid, " \
+                        "session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, " \
+                        "title, parent_title, grandparent_title, original_title, " \
+                        "thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, " \
+                        "year, originally_available_at, added_at, live, started, user " \
+                        "FROM session_history_metadata " \
+                        "JOIN session_history ON session_history_metadata.id = session_history.id " \
+                        "WHERE user_id = ? " \
+                        "GROUP BY (CASE WHEN session_history.media_type = 'track' THEN session_history.parent_rating_key " \
+                        "   ELSE session_history.rating_key END) " \
+                        "ORDER BY MAX(started) DESC LIMIT ?"
                 result = monitor_db.select(query, args=[user_id, limit])
             else:
                 result = []
@@ -683,11 +683,11 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT id AS row_id, user_id, username, friendly_name, thumb, custom_avatar_url, email, ' \
-                    'is_active, is_admin, is_home_user, is_allow_sync, is_restricted, ' \
-                    'do_notify, keep_history, allow_guest, shared_libraries, ' \
-                    'filter_all, filter_movies, filter_tv, filter_music, filter_photos ' \
-                    'FROM users WHERE deleted_user = 0'
+            query = "SELECT id AS row_id, user_id, username, friendly_name, thumb, custom_avatar_url, email, " \
+                    "is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
+                    "do_notify, keep_history, allow_guest, shared_libraries, " \
+                    "filter_all, filter_movies, filter_tv, filter_music, filter_photos " \
+                    "FROM users WHERE deleted_user = 0"
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_users: %s." % e)
@@ -729,8 +729,8 @@ class Users(object):
             row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
 
             # Get the user_ids corresponding to the row_ids
-            result = monitor_db.select('SELECT user_id FROM users '
-                                       'WHERE id IN ({})'.format(','.join(['?'] * len(row_ids))), row_ids)
+            result = monitor_db.select("SELECT user_id FROM users "
+                                       "WHERE id IN ({})".format(",".join(["?"] * len(row_ids))), row_ids)
 
             success = []
             for user in result:
@@ -747,9 +747,9 @@ class Users(object):
                 logger.info("Tautulli Users :: Deleting user with user_id %s from database."
                             % user_id)
                 try:
-                    monitor_db.action('UPDATE users '
-                                      'SET deleted_user = 1, keep_history = 0, do_notify = 0 '
-                                      'WHERE user_id = ?', [user_id])
+                    monitor_db.action("UPDATE users "
+                                      "SET deleted_user = 1, keep_history = 0, do_notify = 0 "
+                                      "WHERE user_id = ?", [user_id])
                     return delete_success
                 except Exception as e:
                     logger.warn("Tautulli Users :: Unable to execute database query for delete: %s." % e)
@@ -762,25 +762,25 @@ class Users(object):
 
         try:
             if user_id and str(user_id).isdigit():
-                query = 'SELECT * FROM users WHERE user_id = ?'
+                query = "SELECT * FROM users WHERE user_id = ?"
                 result = monitor_db.select(query=query, args=[user_id])
                 if result:
                     logger.info("Tautulli Users :: Re-adding user with id %s to database." % user_id)
-                    monitor_db.action('UPDATE users '
-                                      'SET deleted_user = 0, keep_history = 1, do_notify = 1 '
-                                      'WHERE user_id = ?', [user_id])
+                    monitor_db.action("UPDATE users "
+                                      "SET deleted_user = 0, keep_history = 1, do_notify = 1 "
+                                      "WHERE user_id = ?", [user_id])
                     return True
                 else:
                     return False
 
             elif username:
-                query = 'SELECT * FROM users WHERE username = ?'
+                query = "SELECT * FROM users WHERE username = ?"
                 result = monitor_db.select(query=query, args=[username])
                 if result:
                     logger.info("Tautulli Users :: Re-adding user with username %s to database." % username)
-                    monitor_db.action('UPDATE users '
-                                      'SET deleted_user = 0, keep_history = 1, do_notify = 1 '
-                                      'WHERE username = ?', [username])
+                    monitor_db.action("UPDATE users "
+                                      "SET deleted_user = 0, keep_history = 1, do_notify = 1 "
+                                      "WHERE username = ?", [username])
                     return True
                 else:
                     return False
@@ -793,7 +793,7 @@ class Users(object):
         if user:
             try:
                 monitor_db = database.MonitorDatabase()
-                query = 'SELECT user_id FROM users WHERE username = ?'
+                query = "SELECT user_id FROM users WHERE username = ?"
                 result = monitor_db.select_single(query, args=[user])
                 if result:
                     return result['user_id']
@@ -809,14 +809,14 @@ class Users(object):
 
         user_cond = ''
         if session.get_session_user_id():
-            user_cond = 'AND user_id = %s ' % session.get_session_user_id()
+            user_cond = "AND user_id = %s " % session.get_session_user_id()
 
         try:
-            query = 'SELECT user_id, ' \
-                    '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
-                    THEN users.username ELSE users.friendly_name END) AS friendly_name ' \
-                    'FROM users ' \
-                    'WHERE deleted_user = 0 %s' % user_cond
+            query = "SELECT user_id, " \
+                    "(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = '' \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name " \
+                    "FROM users " \
+                    "WHERE deleted_user = 0 %s" % user_cond
 
             result = monitor_db.select(query)
         except Exception as e:
@@ -835,8 +835,8 @@ class Users(object):
         if user_id:
             try:
                 monitor_db = database.MonitorDatabase()
-                query = 'SELECT allow_guest, user_token, server_token FROM users ' \
-                        'WHERE user_id = ? AND deleted_user = 0'
+                query = "SELECT allow_guest, user_token, server_token FROM users " \
+                        "WHERE user_id = ? AND deleted_user = 0"
                 result = monitor_db.select_single(query, args=[user_id])
                 if result:
                     tokens = {'allow_guest': result['allow_guest'],
@@ -857,8 +857,8 @@ class Users(object):
 
         try:
             monitor_db = database.MonitorDatabase()
-            query = 'SELECT filter_all, filter_movies, filter_tv, filter_music, filter_photos FROM users ' \
-                    'WHERE user_id = ?'
+            query = "SELECT filter_all, filter_movies, filter_tv, filter_music, filter_photos FROM users " \
+                    "WHERE user_id = ?"
             result = monitor_db.select_single(query, args=[user_id])
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_filters: %s." % e)
@@ -907,8 +907,8 @@ class Users(object):
 
     def get_user_login(self, jwt_token):
         monitor_db = database.MonitorDatabase()
-        result = monitor_db.select_single('SELECT * FROM user_login '
-                                          'WHERE jwt_token = ?',
+        result = monitor_db.select_single("SELECT * FROM user_login "
+                                          "WHERE jwt_token = ?",
                                           [jwt_token])
         return result
 
@@ -918,8 +918,8 @@ class Users(object):
         if jwt_token:
             logger.debug("Tautulli Users :: Clearing user JWT token.")
             try:
-                monitor_db.action('UPDATE user_login SET jwt_token = NULL '
-                                  'WHERE jwt_token = ?',
+                monitor_db.action("UPDATE user_login SET jwt_token = NULL "
+                                  "WHERE jwt_token = ?",
                                   [jwt_token])
             except Exception as e:
                 logger.error("Tautulli Users :: Unable to clear user JWT token: %s.", e)
@@ -929,8 +929,8 @@ class Users(object):
             row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
             logger.debug("Tautulli Users :: Clearing JWT tokens for row_ids %s.", row_ids)
             try:
-                monitor_db.action('UPDATE user_login SET jwt_token = NULL '
-                                  'WHERE id in ({})'.format(','.join(['?'] * len(row_ids))),
+                monitor_db.action("UPDATE user_login SET jwt_token = NULL "
+                                  "WHERE id in ({})".format(",".join(["?"] * len(row_ids))),
                                   row_ids)
             except Exception as e:
                 logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
@@ -954,19 +954,19 @@ class Users(object):
         else:
             custom_where = [['user_login.user_id', user_id]] if user_id else []
 
-        columns = ['user_login.id AS row_id',
-                   'user_login.timestamp',
-                   'user_login.user_id',
-                   'user_login.user',
-                   'user_login.user_group',
-                   'user_login.ip_address',
-                   'user_login.host',
-                   'user_login.user_agent',
-                   'user_login.success',
-                   'user_login.expiry',
-                   'user_login.jwt_token',
-                   '(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" \
-                    THEN users.username ELSE users.friendly_name END) AS friendly_name'
+        columns = ["user_login.id AS row_id",
+                   "user_login.timestamp",
+                   "user_login.user_id",
+                   "user_login.user",
+                   "user_login.user_group",
+                   "user_login.ip_address",
+                   "user_login.host",
+                   "user_login.user_agent",
+                   "user_login.success",
+                   "user_login.expiry",
+                   "user_login.jwt_token",
+                   "(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = '' \
+                    THEN users.username ELSE users.friendly_name END) AS friendly_name"
                    ]
 
         try:
