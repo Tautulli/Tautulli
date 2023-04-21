@@ -2291,9 +2291,9 @@ class ExportObject(Export):
 
 def get_export(export_id):
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT timestamp, title, file_format, thumb_level, art_level, '
-                              'individual_files, complete '
-                              'FROM exports WHERE id = ?',
+    result = db.select_single("SELECT timestamp, title, file_format, thumb_level, art_level, "
+                              "individual_files, complete "
+                              "FROM exports WHERE id = ?",
                               [export_id])
 
     if result:
@@ -2324,7 +2324,7 @@ def delete_export(export_id):
         if deleted:
             logger.info("Tautulli Exporter :: Deleting export_id %s from the database.", export_id)
             db = database.MonitorDatabase()
-            result = db.action('DELETE FROM exports WHERE id = ?', args=[export_id])
+            result = db.action("DELETE FROM exports WHERE id = ?", args=[export_id])
 
         return deleted
     else:
@@ -2349,7 +2349,7 @@ def delete_all_exports():
 
 def cancel_exports():
     db = database.MonitorDatabase()
-    db.action('UPDATE exports SET complete = -1 WHERE complete = 0')
+    db.action("UPDATE exports SET complete = -1 WHERE complete = 0")
 
 
 def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=None):
@@ -2368,27 +2368,27 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
     if rating_key:
         custom_where.append(['exports.rating_key', rating_key])
 
-    columns = ['exports.id AS export_id',
-               'exports.timestamp',
-               'exports.section_id',
-               'exports.user_id',
-               'exports.rating_key',
-               'exports.media_type',
-               'CASE WHEN exports.media_type = "photoalbum" THEN "Photo Album" ELSE '
-               'UPPER(SUBSTR(exports.media_type, 1, 1)) || SUBSTR(exports.media_type, 2) END '
-               'AS media_type_title',
-               'exports.title',
-               'exports.file_format',
-               'exports.metadata_level',
-               'exports.media_info_level',
-               'exports.thumb_level',
-               'exports.art_level',
-               'exports.custom_fields',
-               'exports.individual_files',
-               'exports.file_size',
-               'exports.complete',
-               'exports.total_items',
-               'exports.exported_items'
+    columns = ["exports.id AS export_id",
+               "exports.timestamp",
+               "exports.section_id",
+               "exports.user_id",
+               "exports.rating_key",
+               "exports.media_type",
+               "CASE WHEN exports.media_type = 'photoalbum' THEN 'Photo Album' ELSE "
+               "UPPER(SUBSTR(exports.media_type, 1, 1)) || SUBSTR(exports.media_type, 2) END "
+               "AS media_type_title",
+               "exports.title",
+               "exports.file_format",
+               "exports.metadata_level",
+               "exports.media_info_level",
+               "exports.thumb_level",
+               "exports.art_level",
+               "exports.custom_fields",
+               "exports.individual_files",
+               "exports.file_size",
+               "exports.complete",
+               "exports.total_items",
+               "exports.exported_items"
                ]
     try:
         query = data_tables.ssp_query(table_name='exports',
