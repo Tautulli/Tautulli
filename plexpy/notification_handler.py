@@ -438,7 +438,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
 
     if success:
         set_notify_success(notification_id)
-        return True
+        return notification_id
 
 
 def get_notify_state(session):

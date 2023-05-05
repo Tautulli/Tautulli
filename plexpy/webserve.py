@@ -7057,9 +7057,7 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    {"result": "success",
-                     "message": "Metadata export has started."
-                     }
+                    {"export_id": 1}
             ```
         """
         individual_files = helpers.bool_true(individual_files)
@@ -7075,8 +7073,8 @@ class WebInterface(object):
                                  export_type=export_type,
                                  individual_files=individual_files).export()
 
-        if result is True:
-            return {'result': 'success', 'message': 'Metadata export has started.'}
+        if isinstance(result, int):
+            return {'result': 'success', 'message': 'Metadata export has started.', 'export_id': result}
         else:
             return {'result': 'error', 'message': result}
 

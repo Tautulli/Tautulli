@@ -1837,7 +1837,7 @@ class Export(object):
 
         threading.Thread(target=self._real_export).start()
 
-        return True
+        return self.export_id
 
     def add_export(self):
         keys = {
