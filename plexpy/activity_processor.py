@@ -331,10 +331,10 @@ class ActivityProcessor(object):
 
                 if session['live']:
                     # Check if we should group the session, select the last guid from the user
-                    query = 'SELECT session_history.id, session_history_metadata.guid, session_history.reference_id ' \
-                            'FROM session_history ' \
-                            'JOIN session_history_metadata ON session_history.id == session_history_metadata.id ' \
-                            'WHERE session_history.user_id = ? ORDER BY session_history.id DESC LIMIT 1 '
+                    query = "SELECT session_history.id, session_history_metadata.guid, session_history.reference_id " \
+                            "FROM session_history " \
+                            "JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
+                            "WHERE session_history.user_id = ? ORDER BY session_history.id DESC LIMIT 1 "
 
                     args = [session['user_id']]
 
@@ -351,8 +351,8 @@ class ActivityProcessor(object):
 
                 else:
                     # Check if we should group the session, select the last two rows from the user
-                    query = 'SELECT id, rating_key, view_offset, reference_id FROM session_history ' \
-                            'WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 '
+                    query = "SELECT id, rating_key, view_offset, reference_id FROM session_history " \
+                            "WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 "
 
                     args = [session['user_id'], session['rating_key']]
 
@@ -375,7 +375,7 @@ class ActivityProcessor(object):
                             marker_first, marker_final
                         )
 
-                query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
+                query = "UPDATE session_history SET reference_id = ? WHERE id = ? "
 
                 # If previous session view offset less than watched percent,
                 # and new session view offset is greater,
@@ -547,12 +547,12 @@ class ActivityProcessor(object):
             return session['id']
 
     def get_sessions(self, user_id=None, ip_address=None):
-        query = 'SELECT * FROM sessions'
+        query = "SELECT * FROM sessions"
         args = []
 
         if str(user_id).isdigit():
-            ip = ' GROUP BY ip_address' if ip_address else ''
-            query += ' WHERE user_id = ?' + ip
+            ip = " GROUP BY ip_address" if ip_address else ""
+            query += " WHERE user_id = ?" + ip
             args.append(user_id)
 
         sessions = self.db.select(query, args)
@@ -560,8 +560,8 @@ class ActivityProcessor(object):
 
     def get_session_by_key(self, session_key=None):
         if str(session_key).isdigit():
-            session = self.db.select_single('SELECT * FROM sessions '
-                                            'WHERE session_key = ? ',
+            session = self.db.select_single("SELECT * FROM sessions "
+                                            "WHERE session_key = ? ",
                                             args=[session_key])
             if session:
                 return session
@@ -570,8 +570,8 @@ class ActivityProcessor(object):
 
     def get_session_by_id(self, session_id=None):
         if session_id:
-            session = self.db.select_single('SELECT * FROM sessions '
-                                            'WHERE session_id = ? ',
+            session = self.db.select_single("SELECT * FROM sessions "
+                                            "WHERE session_id = ? ",
                                             args=[session_id])
             if session:
                 return session
@@ -597,15 +597,15 @@ class ActivityProcessor(object):
 
     def delete_session(self, session_key=None, row_id=None):
         if str(session_key).isdigit():
-            self.db.action('DELETE FROM sessions WHERE session_key = ?', [session_key])
+            self.db.action("DELETE FROM sessions WHERE session_key = ?", [session_key])
         elif str(row_id).isdigit():
-            self.db.action('DELETE FROM sessions WHERE id = ?', [row_id])
+            self.db.action("DELETE FROM sessions WHERE id = ?", [row_id])
 
     def set_session_last_paused(self, session_key=None, timestamp=None):
         if str(session_key).isdigit():
-            result = self.db.select('SELECT last_paused, paused_counter '
-                                    'FROM sessions '
-                                    'WHERE session_key = ?', args=[session_key])
+            result = self.db.select("SELECT last_paused, paused_counter "
+                                    "FROM sessions "
+                                    "WHERE session_key = ?", args=[session_key])
 
             paused_counter = None
             for session in result:
@@ -626,15 +626,15 @@ class ActivityProcessor(object):
 
     def increment_session_buffer_count(self, session_key=None):
         if str(session_key).isdigit():
-            self.db.action('UPDATE sessions SET buffer_count = buffer_count + 1 '
-                           'WHERE session_key = ?',
+            self.db.action("UPDATE sessions SET buffer_count = buffer_count + 1 "
+                           "WHERE session_key = ?",
                            [session_key])
 
     def get_session_buffer_count(self, session_key=None):
         if str(session_key).isdigit():
-            buffer_count = self.db.select_single('SELECT buffer_count '
-                                                 'FROM sessions '
-                                                 'WHERE session_key = ?',
+            buffer_count = self.db.select_single("SELECT buffer_count "
+                                                 "FROM sessions "
+                                                 "WHERE session_key = ?",
                                                  [session_key])
             if buffer_count:
                 return buffer_count['buffer_count']
@@ -643,15 +643,15 @@ class ActivityProcessor(object):
 
     def set_session_buffer_trigger_time(self, session_key=None):
         if str(session_key).isdigit():
-            self.db.action('UPDATE sessions SET buffer_last_triggered = strftime("%s","now") '
-                           'WHERE session_key = ?',
+            self.db.action("UPDATE sessions SET buffer_last_triggered = strftime('%s', 'now') "
+                           "WHERE session_key = ?",
                            [session_key])
 
     def get_session_buffer_trigger_time(self, session_key=None):
         if str(session_key).isdigit():
-            last_time = self.db.select_single('SELECT buffer_last_triggered '
-                                              'FROM sessions '
-                                              'WHERE session_key = ?',
+            last_time = self.db.select_single("SELECT buffer_last_triggered "
+                                              "FROM sessions "
+                                              "WHERE session_key = ?",
                                               [session_key])
             if last_time:
                 return last_time['buffer_last_triggered']
@@ -660,12 +660,12 @@ class ActivityProcessor(object):
 
     def set_temp_stopped(self):
         stopped_time = helpers.timestamp()
-        self.db.action('UPDATE sessions SET stopped = ?', [stopped_time])
+        self.db.action("UPDATE sessions SET stopped = ?", [stopped_time])
 
     def increment_write_attempts(self, session_key=None):
         if str(session_key).isdigit():
             session = self.get_session_by_key(session_key=session_key)
-            self.db.action('UPDATE sessions SET write_attempts = ? WHERE session_key = ?',
+            self.db.action("UPDATE sessions SET write_attempts = ? WHERE session_key = ?",
                            [session['write_attempts'] + 1, session_key])
 
     def set_marker(self, session_key=None, marker_idx=None, marker_type=None):
@@ -674,13 +674,13 @@ class ActivityProcessor(object):
             int(marker_type == 'commercial'),
             int(marker_type == 'credits')
         ]
-        self.db.action('UPDATE sessions SET intro = ?, commercial = ?, credits = ?, marker = ? '
-                       'WHERE session_key = ?',
+        self.db.action("UPDATE sessions SET intro = ?, commercial = ?, credits = ?, marker = ? "
+                       "WHERE session_key = ?",
                        marker_args + [marker_idx, session_key])
 
     def set_watched(self, session_key=None):
-        self.db.action('UPDATE sessions SET watched = ? '
-                       'WHERE session_key = ?',
+        self.db.action("UPDATE sessions SET watched = ? "
+                       "WHERE session_key = ?",
                        [1, session_key])
 
     def write_continued_session(self, user_id=None, machine_id=None, media_type=None, stopped=None):
@@ -689,9 +689,9 @@ class ActivityProcessor(object):
         self.db.upsert(table_name='sessions_continued', key_dict=keys, value_dict=values)
 
     def is_initial_stream(self, user_id=None, machine_id=None, media_type=None, started=None):
-        last_session = self.db.select_single('SELECT stopped '
-                                             'FROM sessions_continued '
-                                             'WHERE user_id = ? AND machine_id = ? AND media_type = ? '
-                                             'ORDER BY stopped DESC',
+        last_session = self.db.select_single("SELECT stopped "
+                                             "FROM sessions_continued "
+                                             "WHERE user_id = ? AND machine_id = ? AND media_type = ? "
+                                             "ORDER BY stopped DESC",
                                              [user_id, machine_id, media_type])
         return int(started - last_session.get('stopped', 0) >= plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)

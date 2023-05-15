@@ -295,29 +295,29 @@ def import_from_plexwatch(database_file=None, table_name=None, import_ignore_int
         logger.debug("Tautulli Importer :: Unable to refresh the users list. Aborting import.")
         return None
 
-    query = 'SELECT time AS started, ' \
-            'stopped, ' \
-            'cast(ratingKey as text) AS rating_key, ' \
-            'null AS user_id, ' \
-            'user, ' \
-            'ip_address, ' \
-            'paused_counter, ' \
-            'platform AS player, ' \
-            'null AS platform, ' \
-            'null as machine_id, ' \
-            'parentRatingKey as parent_rating_key, ' \
-            'grandparentRatingKey as grandparent_rating_key, ' \
-            'null AS media_type, ' \
-            'null AS view_offset, ' \
-            'xml, ' \
-            'rating as content_rating,' \
-            'summary,' \
-            'title AS full_title,' \
-            '(case when orig_title_ep = "" then orig_title else ' \
-            'orig_title_ep end) as title,' \
-            '(case when orig_title_ep != "" then orig_title else ' \
-            'null end) as grandparent_title ' \
-            'FROM ' + table_name + ' ORDER BY id'
+    query = "SELECT time AS started, " \
+            "stopped, " \
+            "cast(ratingKey as text) AS rating_key, " \
+            "null AS user_id, " \
+            "user, " \
+            "ip_address, " \
+            "paused_counter, " \
+            "platform AS player, " \
+            "null AS platform, " \
+            "null as machine_id, " \
+            "parentRatingKey as parent_rating_key, " \
+            "grandparentRatingKey as grandparent_rating_key, " \
+            "null AS media_type, " \
+            "null AS view_offset, " \
+            "xml, " \
+            "rating as content_rating," \
+            "summary," \
+            "title AS full_title," \
+            "(case when orig_title_ep = '' then orig_title else " \
+            "orig_title_ep end) as title," \
+            "(case when orig_title_ep != '' then orig_title else " \
+            "null end) as grandparent_title " \
+            "FROM " + table_name + " ORDER BY id"
 
     result = connection.execute(query)
 
@@ -450,9 +450,9 @@ def import_users():
     logger.debug("Tautulli Importer :: Importing PlexWatch Users...")
     monitor_db = database.MonitorDatabase()
 
-    query = 'INSERT OR IGNORE INTO users (user_id, username) ' \
-            'SELECT user_id, user ' \
-            'FROM session_history WHERE user_id != 1 GROUP BY user_id'
+    query = "INSERT OR IGNORE INTO users (user_id, username) " \
+            "SELECT user_id, user " \
+            "FROM session_history WHERE user_id != 1 GROUP BY user_id"
 
     try:
         monitor_db.action(query)

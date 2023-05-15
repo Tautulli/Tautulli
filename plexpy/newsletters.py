@@ -117,15 +117,15 @@ def get_newsletters(newsletter_id=None):
     args = []
 
     if newsletter_id:
-        where = 'WHERE '
+        where = "WHERE "
         if newsletter_id:
-            where_id += 'id = ?'
+            where_id += "id = ?"
             args.append(newsletter_id)
-        where += ' AND '.join([w for w in [where_id] if w])
+        where += " AND ".join([w for w in [where_id] if w])
 
     db = database.MonitorDatabase()
-    result = db.select('SELECT id, agent_id, agent_name, agent_label, '
-                       'friendly_name, cron, active FROM newsletters %s' % where, args=args)
+    result = db.select("SELECT id, agent_id, agent_name, agent_label, "
+                       "friendly_name, cron, active FROM newsletters %s" % where, args=args)
 
     return result
 
@@ -136,7 +136,7 @@ def delete_newsletter(newsletter_id=None):
     if str(newsletter_id).isdigit():
         logger.debug("Tautulli Newsletters :: Deleting newsletter_id %s from the database."
                      % newsletter_id)
-        result = db.action('DELETE FROM newsletters WHERE id = ?', args=[newsletter_id])
+        result = db.action("DELETE FROM newsletters WHERE id = ?", args=[newsletter_id])
         return True
     else:
         return False
@@ -151,7 +151,7 @@ def get_newsletter_config(newsletter_id=None, mask_passwords=False):
         return None
 
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT * FROM newsletters WHERE id = ?', args=[newsletter_id])
+    result = db.select_single("SELECT * FROM newsletters WHERE id = ?", args=[newsletter_id])
 
     if not result:
         return None
@@ -309,7 +309,7 @@ def send_newsletter(newsletter_id=None, subject=None, body=None, message=None, n
 
 def blacklist_logger():
     db = database.MonitorDatabase()
-    notifiers = db.select('SELECT newsletter_config, email_config FROM newsletters')
+    notifiers = db.select("SELECT newsletter_config, email_config FROM newsletters")
 
     for n in notifiers:
         config = json.loads(n['newsletter_config'] or '{}')
@@ -346,7 +346,7 @@ def generate_newsletter_uuid():
     while not uuid or uuid_exists:
         uuid = plexpy.generate_uuid()[:8]
         result = db.select_single(
-            'SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists', [uuid])
+            "SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists", [uuid])
         uuid_exists = result['uuid_exists']
 
     return uuid

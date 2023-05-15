@@ -507,7 +507,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
         where += ' AND '.join([w for w in [where_id, where_action] if w])
 
     db = database.MonitorDatabase()
-    result = db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
+    result = db.select("SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s"
                        % (', '.join(notify_actions), where), args=args)
 
     for item in result:
@@ -522,7 +522,7 @@ def delete_notifier(notifier_id=None):
     if str(notifier_id).isdigit():
         logger.debug("Tautulli Notifiers :: Deleting notifier_id %s from the database."
                      % notifier_id)
-        result = db.action('DELETE FROM notifiers WHERE id = ?', args=[notifier_id])
+        result = db.action("DELETE FROM notifiers WHERE id = ?", args=[notifier_id])
         return True
     else:
         return False
@@ -537,7 +537,7 @@ def get_notifier_config(notifier_id=None, mask_passwords=False):
         return None
 
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT * FROM notifiers WHERE id = ?', args=[notifier_id])
+    result = db.select_single("SELECT * FROM notifiers WHERE id = ?", args=[notifier_id])
 
     if not result:
         return None
@@ -3866,8 +3866,8 @@ class TAUTULLIREMOTEAPP(Notifier):
         db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT * FROM mobile_devices WHERE official = 1 ' \
-                    'AND onesignal_id IS NOT NULL AND onesignal_id != ""'
+            query = "SELECT * FROM mobile_devices WHERE official = 1 " \
+                    "AND onesignal_id IS NOT NULL AND onesignal_id != ''"
             return db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Notifiers :: Unable to retrieve Tautulli Remote app devices list: %s." % e)
@@ -4472,8 +4472,8 @@ def check_browser_enabled():
 
 def get_browser_notifications():
     db = database.MonitorDatabase()
-    result = db.select('SELECT notifier_id, subject_text, body_text FROM notify_log '
-                       'WHERE agent_id = 17 AND timestamp >= ? ',
+    result = db.select("SELECT notifier_id, subject_text, body_text FROM notify_log "
+                       "WHERE agent_id = 17 AND timestamp >= ? ",
                        args=[time.time() - 5])
 
     notifications = []
