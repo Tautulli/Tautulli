@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.12.4 (2023-05-23)
+
+* History:
+  * Fix: Set view offset equal to duration if a stream is stopped within the last 10 sec.
+* Other:
+  * Fix: Database import may fail for some older databases.
+  * Fix: Double-quoted strings for newer versions of SQLite. (#2015, #2057)
+* API:
+  * Change: Return the ID for async API calls (export_metadata, notify, notify_newsletter).
+
+
 ## v2.12.3 (2023-04-14)
 
 * Activity:
