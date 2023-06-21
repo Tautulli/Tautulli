@@ -162,11 +162,16 @@ class Graphs(object):
         return output
 
     def make_user_cond(self, user_id):
+        """
+        Expects user_id to be a comma-separated list of ints.
+        """
         user_cond = ''
         if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        elif user_id:
+            user_ids = [id.strip() for id in user_id.split(',')]
+            if all(id.isdigit() for id in user_ids):
+                user_cond = 'AND session_history.user_id IN (%s) ' % ','.join(user_ids)
         return user_cond
 
     def get_total_plays_per_dayofweek(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
