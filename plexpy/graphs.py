@@ -51,11 +51,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -165,17 +161,21 @@ class Graphs(object):
                   'series': series_output}
         return output
 
+    def make_user_cond(self, user_id):
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id and user_id.isdigit():
+            user_cond = 'AND session_history.user_id = %s ' % user_id
+        return user_cond
+
     def get_total_plays_per_dayofweek(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = "AND session_history.user_id = %s " % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = "AND session_history.user_id = %s " % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -308,11 +308,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -427,11 +423,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 12
         timestamp = arrow.get(helpers.timestamp()).shift(months=-time_range).floor('month').timestamp()
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -554,11 +546,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -653,11 +641,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -763,11 +747,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -860,11 +840,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -941,11 +917,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -1048,11 +1020,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -1128,11 +1096,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self.make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
