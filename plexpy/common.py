@@ -216,6 +216,7 @@ AUDIO_QUALITY_PROFILES = {
 AUDIO_QUALITY_PROFILES = OrderedDict(sorted(list(AUDIO_QUALITY_PROFILES.items()), key=lambda k: k[0], reverse=True))
 
 HW_DECODERS = [
+    'd3d11va',
     'dxva2',
     'videotoolbox',
     'mediacodecndk',
