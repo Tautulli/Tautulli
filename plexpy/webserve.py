@@ -119,12 +119,16 @@ else:
         from plexpy import macos
 
 
-def serve_template(templatename, **kwargs):
-    interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
-    template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
+TEMPLATE_LOOKUP = None
 
-    _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'],
-                               error_handler=mako_error_handler)
+
+def serve_template(template_name, **kwargs):
+    global TEMPLATE_LOOKUP
+    if TEMPLATE_LOOKUP is None:
+        interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
+        template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
+        TEMPLATE_LOOKUP = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'],
+                            error_handler=mako_error_handler)
 
     http_root = plexpy.HTTP_ROOT
     server_name = helpers.pms_name()
@@ -133,7 +137,7 @@ def serve_template(templatename, **kwargs):
     _session = get_session_info()
 
     try:
-        template = _hplookup.get_template(templatename)
+        template = TEMPLATE_LOOKUP.get_template(template_name)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
                                _session=_session, **kwargs)
     except Exception as e:
