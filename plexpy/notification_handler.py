@@ -160,6 +160,7 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
 
 def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, **kwargs):
     logger.debug("Tautulli NotificationHandler :: Checking global notification conditions.")
+    evaluated = False
 
     # Activity notifications
     if stream_data:
@@ -187,7 +188,14 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
                 user_sessions = [s for s in result['sessions'] if s['user_id'] == stream_data['user_id']]
 
             if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
-                evaluated = len(Counter(s['ip_address'] for s in user_sessions)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+                ip_addresses = []
+                for s in user_sessions:
+                    if helpers.ip_type(s['ip_address']) == 'IPv6':
+                        ip_addresses.append(helpers.get_ipv6_network_address(s['ip_address']))
+                    if helpers.ip_type(s['ip_address']) == 'IPv4':
+                        ip_addresses.append(s['ip_address'])
+                logger.debug("IP addresses: %s" % ip_addresses)
+                evaluated = len(Counter(ip_addresses)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
             else:
                 evaluated = len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
 

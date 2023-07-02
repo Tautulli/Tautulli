@@ -33,6 +33,7 @@ from functools import reduce, wraps
 import hashlib
 import imghdr
 from future.moves.itertools import islice, zip_longest
+from ipaddress import ip_address, ip_network, IPv4Address
 import ipwhois
 import ipwhois.exceptions
 import ipwhois.utils
@@ -1777,3 +1778,18 @@ def check_watched(media_type, view_offset, duration, marker_credits_first=None, 
 
 def pms_name():
     return plexpy.CONFIG.PMS_NAME_OVERRIDE or plexpy.CONFIG.PMS_NAME
+
+
+def ip_type(ip: str) -> str:
+    try:
+        return "IPv4" if type(ip_address(ip)) is IPv4Address else "IPv6"
+    except ValueError:
+        return "Invalid"
+
+
+def get_ipv6_network_address(ip: str) -> str:
+    cidr = "/64"
+    cidr_pattern = re.compile(r'^/(1([0-1]\d|2[0-8]))$|^/(\d\d)$|^/[1-9]$')
+    if cidr_pattern.match(plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR):
+        cidr = plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR
+    return str(ip_network(ip+cidr, strict=False).network_address)
