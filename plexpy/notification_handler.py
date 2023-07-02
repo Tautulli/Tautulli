@@ -194,7 +194,6 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
                         ip_addresses.append(helpers.get_ipv6_network_address(s['ip_address']))
                     if helpers.ip_type(s['ip_address']) == 'IPv4':
                         ip_addresses.append(s['ip_address'])
-                logger.debug("IP addresses: %s" % ip_addresses)
                 evaluated = len(Counter(ip_addresses)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
             else:
                 evaluated = len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
