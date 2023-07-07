@@ -1,4 +1,4 @@
-# This file is part of Tautulli.
+﻿# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -326,71 +326,7 @@ class ActivityProcessor(object):
 
                 # Get the last insert row id
                 last_id = self.db.last_insert_id()
-                new_session = prev_session = None
-                prev_watched = None
-
-                if session['live']:
-                    # Check if we should group the session, select the last guid from the user
-                    query = "SELECT session_history.id, session_history_metadata.guid, session_history.reference_id " \
-                            "FROM session_history " \
-                            "JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
-                            "WHERE session_history.user_id = ? ORDER BY session_history.id DESC LIMIT 1 "
-
-                    args = [session['user_id']]
-
-                    result = self.db.select(query=query, args=args)
-
-                    if len(result) > 0:
-                        new_session = {'id': last_id,
-                                       'guid': metadata['guid'],
-                                       'reference_id': last_id}
-
-                        prev_session = {'id': result[0]['id'],
-                                        'guid': result[0]['guid'],
-                                        'reference_id': result[0]['reference_id']}
-
-                else:
-                    # Check if we should group the session, select the last two rows from the user
-                    query = "SELECT id, rating_key, view_offset, reference_id FROM session_history " \
-                            "WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 "
-
-                    args = [session['user_id'], session['rating_key']]
-
-                    result = self.db.select(query=query, args=args)
-
-                    if len(result) > 1:
-                        new_session = {'id': result[0]['id'],
-                                       'rating_key': result[0]['rating_key'],
-                                       'view_offset': result[0]['view_offset'],
-                                       'reference_id': result[0]['reference_id']}
-
-                        prev_session = {'id': result[1]['id'],
-                                        'rating_key': result[1]['rating_key'],
-                                        'view_offset': result[1]['view_offset'],
-                                        'reference_id': result[1]['reference_id']}
-
-                        marker_first, marker_final = helpers.get_first_final_marker(metadata['markers'])
-                        prev_watched = helpers.check_watched(
-                            session['media_type'], prev_session['view_offset'], session['duration'],
-                            marker_first, marker_final
-                        )
-
-                query = "UPDATE session_history SET reference_id = ? WHERE id = ? "
-
-                # If previous session view offset less than watched threshold,
-                # and new session view offset is greater,
-                # then set the reference_id to the previous row,
-                # else set the reference_id to the new id
-                if (prev_watched is False and prev_session['view_offset'] <= new_session['view_offset'] or 
-                        session['live'] and prev_session['guid'] == new_session['guid']):
-                    logger.debug("Tautulli ActivityProcessor :: Grouping history for sessionKey %s", session['session_key'])
-                    args = [prev_session['reference_id'], new_session['id']]
-
-                else:
-                    logger.debug("Tautulli ActivityProcessor :: Not grouping history for sessionKey %s", session['session_key'])
-                    args = [last_id, last_id]
-
-                self.db.action(query=query, args=args)
+                self.group_history(last_id, session, metadata)
                 
                 # logger.debug("Tautulli ActivityProcessor :: Successfully written history item, last id for session_history is %s"
                 #              % last_id)
@@ -547,6 +483,80 @@ class ActivityProcessor(object):
             # Return the session row id when the session is successfully written to the database
             return session['id']
 
+    def group_history(self, last_id, session, metadata=None):
+        new_session = prev_session = None
+        prev_watched = None
+
+        if session['live']:
+            # Check if we should group the session, select the last guid from the user
+            query = "SELECT session_history.id, session_history_metadata.guid, session_history.reference_id " \
+                    "FROM session_history " \
+                    "JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
+                    "WHERE session_history.id <= ? AND session_history.user_id = ? ORDER BY session_history.id DESC LIMIT 1 "
+
+            args = [last_id, session['user_id']]
+
+            result = self.db.select(query=query, args=args)
+
+            if len(result) > 0:
+                new_session = {'id': last_id,
+                                'guid': metadata['guid'] if metadata else session['guid'],
+                                'reference_id': last_id}
+
+                prev_session = {'id': result[0]['id'],
+                                'guid': result[0]['guid'],
+                                'reference_id': result[0]['reference_id']}
+
+        else:
+            # Check if we should group the session, select the last two rows from the user
+            query = "SELECT id, rating_key, view_offset, reference_id FROM session_history " \
+                    "WHERE id <= ? AND user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 "
+
+            args = [last_id, session['user_id'], session['rating_key']]
+
+            result = self.db.select(query=query, args=args)
+
+            if len(result) > 1:
+                new_session = {'id': result[0]['id'],
+                                'rating_key': result[0]['rating_key'],
+                                'view_offset': result[0]['view_offset'],
+                                'reference_id': result[0]['reference_id']}
+
+                prev_session = {'id': result[1]['id'],
+                                'rating_key': result[1]['rating_key'],
+                                'view_offset': result[1]['view_offset'],
+                                'reference_id': result[1]['reference_id']}
+
+                if metadata:
+                    marker_first, marker_final = helpers.get_first_final_marker(metadata['markers'])
+                else:
+                    marker_first = session['marker_credits_first']
+                    marker_final = session['marker_credits_final']
+
+                prev_watched = helpers.check_watched(
+                    session['media_type'], prev_session['view_offset'], session['duration'],
+                    marker_first, marker_final
+                )
+
+        query = "UPDATE session_history SET reference_id = ? WHERE id = ? "
+
+        # If previous session view offset less than watched threshold,
+        # and new session view offset is greater,
+        # then set the reference_id to the previous row,
+        # else set the reference_id to the new id
+        if (prev_watched is False and prev_session['view_offset'] <= new_session['view_offset'] or 
+                session['live'] and prev_session['guid'] == new_session['guid']):
+            if metadata:
+                logger.debug("Tautulli ActivityProcessor :: Grouping history for sessionKey %s", session['session_key'])
+            args = [prev_session['reference_id'], new_session['id']]
+
+        else:
+            if metadata:
+                logger.debug("Tautulli ActivityProcessor :: Not grouping history for sessionKey %s", session['session_key'])
+            args = [last_id, last_id]
+
+        self.db.action(query=query, args=args)
+
     def get_sessions(self, user_id=None, ip_address=None):
         query = "SELECT * FROM sessions"
         args = []
@@ -696,3 +706,20 @@ class ActivityProcessor(object):
                                              "ORDER BY stopped DESC",
                                              [user_id, machine_id, media_type])
         return int(started - last_session.get('stopped', 0) >= plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)
+
+    def regroup_history(self):
+        logger.info("Tautulli ActivityProcessor :: Creating database backup...")
+        database.make_backup()
+
+        logger.info("Tautulli ActivityProcessor :: Regrouping session history...")
+
+        query = (
+            "SELECT * FROM session_history "
+            "JOIN session_history_metadata ON session_history.id = session_history_metadata.id"
+        )
+        results = self.db.select(query)
+
+        for session in results:
+            self.group_history(session['id'], session)
+
+        logger.info("Tautulli ActivityProcessor :: Regrouping session history complete.")
