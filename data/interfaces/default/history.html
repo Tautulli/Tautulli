@@ -133,7 +133,7 @@
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-                let select = $('#graph-user');
+                let select = $('#history-user');
                 let by_id = {};
                 data.sort(function (a, b) {
                     return a.friendly_name.localeCompare(b.friendly_name);
