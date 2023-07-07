@@ -709,7 +709,8 @@ class ActivityProcessor(object):
 
     def regroup_history(self):
         logger.info("Tautulli ActivityProcessor :: Creating database backup...")
-        database.make_backup()
+        if not database.make_backup():
+            return False
 
         logger.info("Tautulli ActivityProcessor :: Regrouping session history...")
 
@@ -720,6 +721,11 @@ class ActivityProcessor(object):
         results = self.db.select(query)
 
         for session in results:
-            self.group_history(session['id'], session)
+            try:
+                self.group_history(session['id'], session)
+            except Exception as e:
+                logger.error("Tautulli ActivityProcessor :: Error regrouping session history: %s", e)
+                return False
 
         logger.info("Tautulli ActivityProcessor :: Regrouping session history complete.")
+        return True

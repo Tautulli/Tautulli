@@ -51,6 +51,7 @@ if sys.version_info >= (3, 6):
 import plexpy
 if plexpy.PYTHON2:
     import activity_pinger
+    import activity_processor
     import common
     import config
     import database
@@ -85,6 +86,7 @@ if plexpy.PYTHON2:
         import macos
 else:
     from plexpy import activity_pinger
+    from plexpy import activity_processor
     from plexpy import common
     from plexpy import config
     from plexpy import database
@@ -433,6 +435,20 @@ class WebInterface(object):
         else:
             logger.warn("Unable to retrieve data for get_recently_added.")
             return serve_template(template_name="recently_added.html", data=None)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def regroup_history(self, **kwargs):
+        """ Regroup play history in the database."""
+
+        result = activity_processor.ActivityProcessor().regroup_history()
+
+        if result:
+            return {'result': 'success', 'message': 'Regrouped play history.'}
+        else:
+            return {'result': 'error', 'message': 'Regrouping play history failed.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
