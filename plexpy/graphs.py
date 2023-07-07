@@ -169,7 +169,7 @@ class Graphs(object):
         if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id:
-            user_ids = [id.strip() for id in user_id.split(',')]
+            user_ids = helpers.split_strip(user_id)
             if all(id.isdigit() for id in user_ids):
                 user_cond = 'AND session_history.user_id IN (%s) ' % ','.join(user_ids)
         return user_cond
