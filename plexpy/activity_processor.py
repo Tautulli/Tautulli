@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -327,7 +327,7 @@ class ActivityProcessor(object):
                 # Get the last insert row id
                 last_id = self.db.last_insert_id()
                 new_session = prev_session = None
-                watched = False
+                prev_watched = None
 
                 if session['live']:
                     # Check if we should group the session, select the last guid from the user
@@ -370,24 +370,25 @@ class ActivityProcessor(object):
                                         'reference_id': result[1]['reference_id']}
 
                         marker_first, marker_final = helpers.get_first_final_marker(metadata['markers'])
-                        watched = helpers.check_watched(
-                            session['media_type'], session['view_offset'], session['duration'],
+                        prev_watched = helpers.check_watched(
+                            session['media_type'], prev_session['view_offset'], session['duration'],
                             marker_first, marker_final
                         )
 
                 query = "UPDATE session_history SET reference_id = ? WHERE id = ? "
 
-                # If previous session view offset less than watched percent,
+                # If previous session view offset less than watched threshold,
                 # and new session view offset is greater,
                 # then set the reference_id to the previous row,
                 # else set the reference_id to the new id
-                if prev_session is None and new_session is None:
-                    args = [last_id, last_id]
-                elif watched and prev_session['view_offset'] <= new_session['view_offset'] or \
-                        session['live'] and prev_session['guid'] == new_session['guid']:
+                if (prev_watched is False and prev_session['view_offset'] <= new_session['view_offset'] or 
+                        session['live'] and prev_session['guid'] == new_session['guid']):
+                    logger.debug("Tautulli ActivityProcessor :: Grouping history for sessionKey %s", session['session_key'])
                     args = [prev_session['reference_id'], new_session['id']]
+
                 else:
-                    args = [new_session['id'], new_session['id']]
+                    logger.debug("Tautulli ActivityProcessor :: Not grouping history for sessionKey %s", session['session_key'])
+                    args = [last_id, last_id]
 
                 self.db.action(query=query, args=args)
                 
