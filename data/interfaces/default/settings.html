@@ -2498,9 +2498,9 @@ $(document).ready(function() {
     });
 
     $("#regroup_history").click(function () {
-        var msg = 'Are you sure you want to regroup play history in the database?';
+        var msg = 'Are you sure you want to regroup play history in the database?<br /><br /><strong>This make take a long time for large databases.<br />Regrouping will continue in the background.</strong>';
         var url = 'regroup_history';
-        confirmAjaxCall(url, msg, null, 'Regrouping play history...');
+        confirmAjaxCall(url, msg);
     });
 
     $("#delete_temp_sessions").click(function () {

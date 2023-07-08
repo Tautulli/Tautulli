@@ -719,8 +719,14 @@ class ActivityProcessor(object):
             "JOIN session_history_metadata ON session_history.id = session_history_metadata.id"
         )
         results = self.db.select(query)
+        count = len(results)
+        progress = 0
 
-        for session in results:
+        for i, session in enumerate(results, start=1):
+            if int(i / count * 10) > progress:
+                progress = int(i / count * 10)
+                logger.info("Tautulli ActivityProcessor :: Regrouping session history: %d%%", progress * 10)
+
             try:
                 self.group_history(session['id'], session)
             except Exception as e:
@@ -729,3 +735,7 @@ class ActivityProcessor(object):
 
         logger.info("Tautulli ActivityProcessor :: Regrouping session history complete.")
         return True
+
+
+def regroup_history():
+    ActivityProcessor().regroup_history()

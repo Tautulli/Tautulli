@@ -443,12 +443,10 @@ class WebInterface(object):
     def regroup_history(self, **kwargs):
         """ Regroup play history in the database."""
 
-        result = activity_processor.ActivityProcessor().regroup_history()
+        threading.Thread(target=activity_processor.regroup_history).start()
 
-        if result:
-            return {'result': 'success', 'message': 'Regrouped play history.'}
-        else:
-            return {'result': 'error', 'message': 'Regrouping play history failed.'}
+        return {'result': 'success',
+                'message': 'Regrouping play history started. Check the logs to monitor any problems.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
