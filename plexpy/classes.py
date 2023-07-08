@@ -25,10 +25,7 @@ from __future__ import unicode_literals
 from future.moves.urllib.request import FancyURLopener
 
 import plexpy
-if plexpy.PYTHON2:
-    from common import USER_AGENT
-else:
-    from plexpy.common import USER_AGENT
+from plexpy.common import USER_AGENT
 
 
 class PlexPyURLopener(FancyURLopener):

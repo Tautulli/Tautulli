@@ -22,14 +22,9 @@ import requests
 import threading
 
 import plexpy
-if plexpy.PYTHON2:
-    import database
-    import helpers
-    import logger
-else:
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import logger
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
 
 
 _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'

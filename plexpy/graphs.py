@@ -23,20 +23,12 @@ from future.builtins import object
 import arrow
 import datetime
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import helpers
-    import logger
-    import libraries
-    import session
-else:
-    from plexpy import common
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import libraries
-    from plexpy import session
+from plexpy import common
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
+from plexpy import libraries
+from plexpy import session
 
 
 class Graphs(object):

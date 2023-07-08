@@ -30,24 +30,14 @@ import os
 import re
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import helpers
-    import libraries
-    import logger
-    import newsletter_handler
-    import pmsconnect
-    from notifiers import send_notification, EMAIL
-else:
-    from plexpy import common
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import libraries
-    from plexpy import logger
-    from plexpy import newsletter_handler
-    from plexpy import pmsconnect
-    from plexpy.notifiers import send_notification, EMAIL
+from plexpy import common
+from plexpy import database
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import newsletter_handler
+from plexpy import pmsconnect
+from plexpy.notifiers import send_notification, EMAIL
 
 
 AGENT_IDS = {

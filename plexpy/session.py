@@ -21,12 +21,8 @@ from future.builtins import str
 import cherrypy
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import users
-else:
-    from plexpy import common
-    from plexpy import users
+from plexpy import common
+from plexpy import users
 
 
 def get_session_info():

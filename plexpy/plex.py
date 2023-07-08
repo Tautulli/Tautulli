@@ -20,10 +20,7 @@ from future.builtins import object
 from future.builtins import str
 
 import plexpy
-if plexpy.PYTHON2:
-    import logger
-else:
-    from plexpy import logger
+from plexpy import logger
 
 
 class DummyObject(object):

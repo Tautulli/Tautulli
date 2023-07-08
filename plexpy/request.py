@@ -26,12 +26,8 @@ import requests
 from requests.packages import urllib3
 
 import plexpy
-if plexpy.PYTHON2:
-    import lock
-    import logger
-else:
-    from plexpy import lock
-    from plexpy import logger
+from plexpy import lock
+from plexpy import logger
 
 
 # Dictionary with last request times, for rate limiting.

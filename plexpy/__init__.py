@@ -39,52 +39,27 @@ from apscheduler.triggers.interval import IntervalTrigger
 from ga4mp import GtagMP
 import pytz
 
-PYTHON2 = sys.version_info[0] == 2
-
-if PYTHON2:
-    import activity_handler
-    import activity_pinger
-    import common
-    import database
-    import datafactory
-    import exporter
-    import helpers
-    import libraries
-    import logger
-    import mobile_app
-    import newsletters
-    import newsletter_handler
-    import notification_handler
-    import notifiers
-    import plex
-    import plextv
-    import users
-    import versioncheck
-    import web_socket
-    import webstart
-    import config
-else:
-    from plexpy import activity_handler
-    from plexpy import activity_pinger
-    from plexpy import common
-    from plexpy import database
-    from plexpy import datafactory
-    from plexpy import exporter
-    from plexpy import helpers
-    from plexpy import libraries
-    from plexpy import logger
-    from plexpy import mobile_app
-    from plexpy import newsletters
-    from plexpy import newsletter_handler
-    from plexpy import notification_handler
-    from plexpy import notifiers
-    from plexpy import plex
-    from plexpy import plextv
-    from plexpy import users
-    from plexpy import versioncheck
-    from plexpy import web_socket
-    from plexpy import webstart
-    from plexpy import config
+from plexpy import activity_handler
+from plexpy import activity_pinger
+from plexpy import common
+from plexpy import database
+from plexpy import datafactory
+from plexpy import exporter
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import mobile_app
+from plexpy import newsletters
+from plexpy import newsletter_handler
+from plexpy import notification_handler
+from plexpy import notifiers
+from plexpy import plex
+from plexpy import plextv
+from plexpy import users
+from plexpy import versioncheck
+from plexpy import web_socket
+from plexpy import webstart
+from plexpy import config
 
 
 PROG_DIR = None
@@ -214,11 +189,10 @@ def initialize(config_file):
         logger.initLogger(console=not QUIET, log_dir=CONFIG.LOG_DIR if log_writable else None,
                           verbose=VERBOSE)
 
-        if not PYTHON2:
-            os.environ['PLEXAPI_CONFIG_PATH'] = os.path.join(DATA_DIR, 'plexapi.config.ini')
-            os.environ['PLEXAPI_LOG_PATH'] = os.path.join(CONFIG.LOG_DIR, 'plexapi.log')
-            os.environ['PLEXAPI_LOG_LEVEL'] = 'DEBUG'
-            plex.initialize_plexapi()
+        os.environ['PLEXAPI_CONFIG_PATH'] = os.path.join(DATA_DIR, 'plexapi.config.ini')
+        os.environ['PLEXAPI_LOG_PATH'] = os.path.join(CONFIG.LOG_DIR, 'plexapi.log')
+        os.environ['PLEXAPI_LOG_LEVEL'] = 'DEBUG'
+        plex.initialize_plexapi()
 
         if DOCKER:
             build = '[Docker] '

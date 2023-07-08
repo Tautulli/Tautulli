@@ -22,10 +22,7 @@ import platform
 from collections import OrderedDict
 
 import plexpy
-if plexpy.PYTHON2:
-    import version
-else:
-    from plexpy import version
+from plexpy import version
 
 
 # Identify Our Application

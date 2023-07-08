@@ -27,12 +27,8 @@ from configobj import ConfigObj, ParseError
 from hashing_passwords import make_hash
 
 import plexpy
-if plexpy.PYTHON2:
-    import helpers
-    import logger
-else:
-    from plexpy import helpers
-    from plexpy import logger
+from plexpy import helpers
+from plexpy import logger
 
 
 def bool_int(value):

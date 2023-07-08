@@ -19,14 +19,9 @@ from future.builtins import object
 import re
 
 import plexpy
-if plexpy.PYTHON2:
-    import database
-    import helpers
-    import logger
-else:
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import logger
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
 
 
 class DataTables(object):

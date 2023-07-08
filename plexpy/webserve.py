@@ -49,76 +49,40 @@ if sys.version_info >= (3, 6):
     import secrets
 
 import plexpy
-if plexpy.PYTHON2:
-    import activity_pinger
-    import activity_processor
-    import common
-    import config
-    import database
-    import datafactory
-    import exporter
-    import graphs
-    import helpers
-    import http_handler
-    import libraries
-    import log_reader
-    import logger
-    import newsletter_handler
-    import newsletters
-    import mobile_app
-    import notification_handler
-    import notifiers
-    import plextv
-    import plexivity_import
-    import plexwatch_import
-    import pmsconnect
-    import users
-    import versioncheck
-    import web_socket
-    import webstart
-    from api2 import API2
-    from helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
-    from session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
-    from webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
-    if common.PLATFORM == 'Windows':
-        import windows
-    elif common.PLATFORM == 'Darwin':
-        import macos
-else:
-    from plexpy import activity_pinger
-    from plexpy import activity_processor
-    from plexpy import common
-    from plexpy import config
-    from plexpy import database
-    from plexpy import datafactory
-    from plexpy import exporter
-    from plexpy import graphs
-    from plexpy import helpers
-    from plexpy import http_handler
-    from plexpy import libraries
-    from plexpy import log_reader
-    from plexpy import logger
-    from plexpy import newsletter_handler
-    from plexpy import newsletters
-    from plexpy import mobile_app
-    from plexpy import notification_handler
-    from plexpy import notifiers
-    from plexpy import plextv
-    from plexpy import plexivity_import
-    from plexpy import plexwatch_import
-    from plexpy import pmsconnect
-    from plexpy import users
-    from plexpy import versioncheck
-    from plexpy import web_socket
-    from plexpy import webstart
-    from plexpy.api2 import API2
-    from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
-    from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
-    from plexpy.webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
-    if common.PLATFORM == 'Windows':
-        from plexpy import windows
-    elif common.PLATFORM == 'Darwin':
-        from plexpy import macos
+from plexpy import activity_pinger
+from plexpy import activity_processor
+from plexpy import common
+from plexpy import config
+from plexpy import database
+from plexpy import datafactory
+from plexpy import exporter
+from plexpy import graphs
+from plexpy import helpers
+from plexpy import http_handler
+from plexpy import libraries
+from plexpy import log_reader
+from plexpy import logger
+from plexpy import newsletter_handler
+from plexpy import newsletters
+from plexpy import mobile_app
+from plexpy import notification_handler
+from plexpy import notifiers
+from plexpy import plextv
+from plexpy import plexivity_import
+from plexpy import plexwatch_import
+from plexpy import pmsconnect
+from plexpy import users
+from plexpy import versioncheck
+from plexpy import web_socket
+from plexpy import webstart
+from plexpy.api2 import API2
+from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
+from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
+from plexpy.webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
+if common.PLATFORM == 'Windows':
+    from plexpy import windows
+elif common.PLATFORM == 'Darwin':
+    from plexpy import macos
 
 
 TEMPLATE_LOOKUP = None
@@ -4367,8 +4331,6 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def update(self, **kwargs):
-        if plexpy.PYTHON2:
-            raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home?update=python2")
         if plexpy.DOCKER or plexpy.SNAP:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 

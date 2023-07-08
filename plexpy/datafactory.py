@@ -24,26 +24,15 @@ from future.builtins import object
 import json
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import datatables
-    import libraries
-    import helpers
-    import logger
-    import pmsconnect
-    import session
-    import users
-else:
-    from plexpy import libraries
-    from plexpy import common
-    from plexpy import database
-    from plexpy import datatables
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import pmsconnect
-    from plexpy import session
-    from plexpy import users
+from plexpy import libraries
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import logger
+from plexpy import pmsconnect
+from plexpy import session
+from plexpy import users
 
 # Temporarily store update_metadata row ids in memory to prevent rating_key collisions
 _UPDATE_METADATA_IDS = {

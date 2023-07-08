@@ -25,22 +25,13 @@ from apscheduler.triggers.date import DateTrigger
 import pytz
 
 import plexpy
-if plexpy.PYTHON2:
-    import activity_processor
-    import common
-    import datafactory
-    import helpers
-    import logger
-    import notification_handler
-    import pmsconnect
-else:
-    from plexpy import activity_processor
-    from plexpy import common
-    from plexpy import datafactory
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import notification_handler
-    from plexpy import pmsconnect
+from plexpy import activity_processor
+from plexpy import common
+from plexpy import datafactory
+from plexpy import helpers
+from plexpy import logger
+from plexpy import notification_handler
+from plexpy import pmsconnect
 
 
 ACTIVITY_SCHED = None

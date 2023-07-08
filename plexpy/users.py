@@ -26,24 +26,14 @@ import httpagentparser
 from datetime import datetime, timedelta
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import datatables
-    import helpers
-    import libraries
-    import logger
-    import plextv
-    import session
-else:
-    from plexpy import common
-    from plexpy import database
-    from plexpy import datatables
-    from plexpy import helpers
-    from plexpy import libraries
-    from plexpy import logger
-    from plexpy import plextv
-    from plexpy import session
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import plextv
+from plexpy import session
 
 
 def refresh_users():

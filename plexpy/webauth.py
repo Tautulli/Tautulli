@@ -30,18 +30,11 @@ from hashing_passwords import check_hash
 import jwt
 
 import plexpy
-if plexpy.PYTHON2:
-    import logger
-    from database import MonitorDatabase
-    from helpers import timestamp
-    from users import Users, refresh_users
-    from plextv import PlexTV
-else:
-    from plexpy import logger
-    from plexpy.database import MonitorDatabase
-    from plexpy.helpers import timestamp
-    from plexpy.users import Users, refresh_users
-    from plexpy.plextv import PlexTV
+from plexpy import logger
+from plexpy.database import MonitorDatabase
+from plexpy.helpers import timestamp
+from plexpy.users import Users, refresh_users
+from plexpy.plextv import PlexTV
 
 # Monkey patch SameSite support into cookies.
 # https://stackoverflow.com/a/50813092

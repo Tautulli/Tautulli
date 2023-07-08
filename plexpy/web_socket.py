@@ -29,18 +29,11 @@ import certifi
 import websocket
 
 import plexpy
-if plexpy.PYTHON2:
-    import activity_handler
-    import activity_pinger
-    import activity_processor
-    import database
-    import logger
-else:
-    from plexpy import activity_handler
-    from plexpy import activity_pinger
-    from plexpy import activity_processor
-    from plexpy import database
-    from plexpy import logger
+from plexpy import activity_handler
+from plexpy import activity_pinger
+from plexpy import activity_processor
+from plexpy import database
+from plexpy import logger
 
 
 name = 'websocket'

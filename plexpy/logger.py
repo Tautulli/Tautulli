@@ -29,13 +29,8 @@ import threading
 import traceback
 
 import plexpy
-if plexpy.PYTHON2:
-    import helpers
-    import users
-    from config import _BLACKLIST_KEYS, _WHITELIST_KEYS
-else:
-    from plexpy import helpers, users
-    from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
+from plexpy import helpers, users
+from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
 # These settings are for file logging only

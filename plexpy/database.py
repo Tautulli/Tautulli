@@ -24,12 +24,8 @@ import threading
 import time
 
 import plexpy
-if plexpy.PYTHON2:
-    import helpers
-    import logger
-else:
-    from plexpy import helpers
-    from plexpy import logger
+from plexpy import helpers
+from plexpy import logger
 
 
 FILENAME = "tautulli.db"

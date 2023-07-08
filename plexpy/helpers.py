@@ -55,16 +55,10 @@ from xml.dom import minidom
 import xmltodict
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import logger
-    import request
-    from api2 import API2
-else:
-    from plexpy import common
-    from plexpy import logger
-    from plexpy import request
-    from plexpy.api2 import API2
+from plexpy import common
+from plexpy import logger
+from plexpy import request
+from plexpy.api2 import API2
 
 
 def addtoapi(*dargs, **dkwargs):
@@ -889,17 +883,11 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
         api_secret=plexpy.CONFIG.CLOUDINARY_API_SECRET
     )
 
-    # Cloudinary library has very poor support for non-ASCII characters on Python 2
-    if plexpy.PYTHON2:
-        _img_title = latinToAscii(img_title, replace=True)
-    else:
-        _img_title = img_title
-
     try:
         response = upload((img_title, img_data),
                           public_id='{}_{}'.format(fallback, rating_key),
                           tags=['tautulli', fallback, str(rating_key)],
-                          context={'title': _img_title, 'rating_key': str(rating_key), 'fallback': fallback})
+                          context={'title': img_title, 'rating_key': str(rating_key), 'fallback': fallback})
         logger.debug("Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
         img_url = response.get('url', '')
     except Exception as e:
@@ -1280,11 +1268,7 @@ def split_args(args=None):
     if isinstance(args, list):
         return args
     elif isinstance(args, str):
-        if plexpy.PYTHON2:
-            args = args.encode('utf-8')
         args = shlex.split(args)
-        if plexpy.PYTHON2:
-            args = [a.decode('utf-8') for a in args]
         return args
     return []
 
