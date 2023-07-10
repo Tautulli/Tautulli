@@ -1049,7 +1049,11 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'item_user_stats',
             async: true,
-            data: { rating_key: "${data['rating_key']}", show_all_users: $('#switch-show-all-users').prop('checked') },
+            data: { 
+                rating_key: "${data['rating_key']}",
+                media_type: "${data['media_type']}",
+                show_all_users: $('#switch-show-all-users').prop('checked')    
+            },
             complete: function(xhr, status) {
                 $("#user-stats").html(xhr.responseText);
             }
