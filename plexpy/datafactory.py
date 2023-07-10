@@ -1332,7 +1332,7 @@ class DataFactory(object):
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_user_stats: %s." % e)
             result = []
 
-        if show_all_users == 'true':
+        if show_all_users == 'true' and not result == []:
             users_to_exlude = '(0,' + ','.join([str(x['user_id']) for x in result]) + ')'
 
             query = 'SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = "" ' \
