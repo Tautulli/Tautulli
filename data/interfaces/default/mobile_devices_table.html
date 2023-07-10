@@ -70,7 +70,7 @@ DOCUMENTATION :: END
 
     function checkQRAddress(url) {
         var parser = document.createElement('a');
-        parser.href = url;
+        parser.setAttribute('href', url);
         var hostname = parser.hostname;
         var protocol = parser.protocol;
 

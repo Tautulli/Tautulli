@@ -1,6 +1,7 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
+<link rel="stylesheet" href="${http_root}css/bootstrap-select.min.css">
 <link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.min.css">
 <link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css">
 </%def>
@@ -14,9 +15,7 @@
         <div class="button-bar">
             <div class="btn-group" id="user-selection">
                 <label>
-                    <select name="graph-user" id="graph-user" class="btn" style="color: inherit;">
-                        <option value="">All Users</option>
-                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    <select name="graph-user" id="graph-user" multiple>
                     </select>
                 </label>
             </div>
@@ -239,6 +238,7 @@
 </%def>
 
 <%def name="javascriptIncludes()">
+<script src="${http_root}js/bootstrap-select.min.js"></script>
 <script src="${http_root}js/highcharts.min.js"></script>
 <script src="${http_root}js/jquery.dataTables.min.js"></script>
 <script src="${http_root}js/dataTables.bootstrap.min.js"></script>
@@ -379,8 +379,8 @@
         //$(current_tab).addClass('active');
 
 
-        $('.days').html(current_day_range);
-        $('.months').html(current_month_range);
+        $('.days').text(current_day_range);
+        $('.months').text(current_month_range);
         
         // Load user ids and names (for the selector)
         $.ajax({
@@ -388,14 +388,35 @@
             type: 'get',
             dataType: "json",
             success: function (data) {
-                var select = $('#graph-user');
+                let select = $('#graph-user');
+                let by_id = {};
                 data.sort(function(a, b) {
                     return a.friendly_name.localeCompare(b.friendly_name);
                 });
                 data.forEach(function(item) {
                     select.append('<option value="' + item.user_id + '">' +
                         item.friendly_name + '</option>');
+                    by_id[item.user_id] = item.friendly_name;
                 });
+                select.selectpicker({
+                    countSelectedText: function(sel, total) {
+                        if (sel === 0 || sel === total) {
+                            return 'All users';
+                        } else if (sel > 1) {
+                            return sel + ' users';
+                        } else {
+                            return select.val().map(function(id) {
+                                return by_id[id];
+                            }).join(', ');
+                        }
+                    },
+                    style: 'btn-dark',
+                    actionsBox: true,
+                    selectedTextFormat: 'count',
+                    noneSelectedText: 'All users'
+                });
+                select.selectpicker('render');
+                select.selectpicker('selectAll');
             }
         });
 
@@ -644,11 +665,6 @@
             $('#nav-tabs-total').tab('show');
         }
 
-        // Set initial state
-        if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
-        if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
-        if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
-
         // Tab1 opened
         $('#nav-tabs-plays').on('shown.bs.tab', function (e) {
             e.preventDefault();
@@ -681,7 +697,7 @@
             setLocalStorage('graph_days', current_day_range);
             if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
-            $('.days').html(current_day_range);
+            $('.days').text(current_day_range);
         });
         
         // Month range changed
@@ -691,12 +707,23 @@
             current_month_range = $(this).val();
             setLocalStorage('graph_months', current_month_range);
             if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
-            $('.months').html(current_month_range);
+            $('.months').text(current_month_range);
         });
+
+        let graph_user_last_id = undefined;
 
         // User changed
         $('#graph-user').on('change', function() {
-            selected_user_id = $(this).val() || null;
+            let val = $(this).val();
+            if (val.length === 0 || val.length === $(this).children().length) {
+                selected_user_id = null; // if all users are selected, just send an empty list
+            } else {
+                selected_user_id = val.join(",");
+            }
+            if (selected_user_id === graph_user_last_id) {
+                return;
+            }
+            graph_user_last_id = selected_user_id;
             if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
             if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }

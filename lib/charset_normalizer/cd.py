@@ -105,7 +105,7 @@ def mb_encoding_languages(iana_name: str) -> List[str]:
     ):
         return ["Japanese"]
     if iana_name.startswith("gb") or iana_name in ZH_NAMES:
-        return ["Chinese", "Classical Chinese"]
+        return ["Chinese"]
     if iana_name.startswith("iso2022_kr") or iana_name in KO_NAMES:
         return ["Korean"]
 
@@ -140,7 +140,6 @@ def alphabet_languages(
     source_have_accents = any(is_accentuated(character) for character in characters)
 
     for language, language_characters in FREQUENCIES.items():
-
         target_have_accents, target_pure_latin = get_target_features(language)
 
         if ignore_non_latin and target_pure_latin is False:
@@ -179,22 +178,45 @@ def characters_popularity_compare(
     character_approved_count: int = 0
     FREQUENCIES_language_set = set(FREQUENCIES[language])
 
-    for character in ordered_characters:
+    ordered_characters_count: int = len(ordered_characters)
+    target_language_characters_count: int = len(FREQUENCIES[language])
+
+    large_alphabet: bool = target_language_characters_count > 26
+
+    for character, character_rank in zip(
+        ordered_characters, range(0, ordered_characters_count)
+    ):
         if character not in FREQUENCIES_language_set:
             continue
 
+        character_rank_in_language: int = FREQUENCIES[language].index(character)
+        expected_projection_ratio: float = (
+            target_language_characters_count / ordered_characters_count
+        )
+        character_rank_projection: int = int(character_rank * expected_projection_ratio)
+
+        if (
+            large_alphabet is False
+            and abs(character_rank_projection - character_rank_in_language) > 4
+        ):
+            continue
+
+        if (
+            large_alphabet is True
+            and abs(character_rank_projection - character_rank_in_language)
+            < target_language_characters_count / 3
+        ):
+            character_approved_count += 1
+            continue
+
         characters_before_source: List[str] = FREQUENCIES[language][
-            0 : FREQUENCIES[language].index(character)
+            0:character_rank_in_language
         ]
         characters_after_source: List[str] = FREQUENCIES[language][
-            FREQUENCIES[language].index(character) :
+            character_rank_in_language:
         ]
-        characters_before: List[str] = ordered_characters[
-            0 : ordered_characters.index(character)
-        ]
-        characters_after: List[str] = ordered_characters[
-            ordered_characters.index(character) :
-        ]
+        characters_before: List[str] = ordered_characters[0:character_rank]
+        characters_after: List[str] = ordered_characters[character_rank:]
 
         before_match_count: int = len(
             set(characters_before) & set(characters_before_source)
@@ -289,6 +311,33 @@ def merge_coherence_ratios(results: List[CoherenceMatches]) -> CoherenceMatches:
     return sorted(merge, key=lambda x: x[1], reverse=True)
 
 
+def filter_alt_coherence_matches(results: CoherenceMatches) -> CoherenceMatches:
+    """
+    We shall NOT return "English—" in CoherenceMatches because it is an alternative
+    of "English". This function only keeps the best match and remove the em-dash in it.
+    """
+    index_results: Dict[str, List[float]] = dict()
+
+    for result in results:
+        language, ratio = result
+        no_em_name: str = language.replace("—", "")
+
+        if no_em_name not in index_results:
+            index_results[no_em_name] = []
+
+        index_results[no_em_name].append(ratio)
+
+    if any(len(index_results[e]) > 1 for e in index_results):
+        filtered_results: CoherenceMatches = []
+
+        for language in index_results:
+            filtered_results.append((language, max(index_results[language])))
+
+        return filtered_results
+
+    return results
+
+
 @lru_cache(maxsize=2048)
 def coherence_ratio(
     decoded_sequence: str, threshold: float = 0.1, lg_inclusion: Optional[str] = None
@@ -336,4 +385,6 @@ def coherence_ratio(
             if sufficient_match_count >= 3:
                 break
 
-    return sorted(results, key=lambda x: x[1], reverse=True)
+    return sorted(
+        filter_alt_coherence_matches(results), key=lambda x: x[1], reverse=True
+    )

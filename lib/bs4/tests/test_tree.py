@@ -33,7 +33,6 @@ from bs4.element import (
 )
 from . import (
     SoupTest,
-    skipIf,
 )
 
 class TestFind(SoupTest):
@@ -910,12 +909,16 @@ class TestTreeModification(SoupTest):
         soup.a.extend(l)
         assert "<a><g></g><f></f><e></e><d></d><c></c><b></b></a>" == soup.decode()
 
-    def test_extend_with_another_tags_contents(self):
+    @pytest.mark.parametrize(
+        "get_tags", [lambda tag: tag, lambda tag: tag.contents]
+    )
+    def test_extend_with_another_tags_contents(self, get_tags):
         data = '<body><div id="d1"><a>1</a><a>2</a><a>3</a><a>4</a></div><div id="d2"></div></body>'
         soup = self.soup(data)
         d1 = soup.find('div', id='d1')
         d2 = soup.find('div', id='d2')
-        d2.extend(d1)
+        tags = get_tags(d1)
+        d2.extend(tags)
         assert '<div id="d1"></div>' == d1.decode()
         assert '<div id="d2"><a>1</a><a>2</a><a>3</a><a>4</a></div>' == d2.decode()
         
@@ -1272,19 +1275,30 @@ class TestTreeModification(SoupTest):
 
 class TestDeprecatedArguments(SoupTest):
 
-    def test_find_type_method_string(self):
+    @pytest.mark.parametrize(
+        "method_name", [
+            "find", "find_all", "find_parent", "find_parents",
+            "find_next", "find_all_next", "find_previous",
+            "find_all_previous", "find_next_sibling", "find_next_siblings",
+            "find_previous_sibling", "find_previous_siblings",
+        ]
+    )
+    def test_find_type_method_string(self, method_name):
         soup = self.soup("<a>some</a><b>markup</b>")
+        method = getattr(soup.b, method_name)
         with warnings.catch_warnings(record=True) as w:
-            [result] = soup.find_all(text='markup')
-            assert result == 'markup'
-            assert result.parent.name == 'b'
-            msg = str(w[0].message)
+            method(text='markup')
+            [warning] = w
+            assert warning.filename == __file__
+            msg = str(warning.message)
             assert msg == "The 'text' argument to find()-type methods is deprecated. Use 'string' instead."
 
     def test_soupstrainer_constructor_string(self):
         with warnings.catch_warnings(record=True) as w:
             strainer = SoupStrainer(text="text")
             assert strainer.text == 'text'
-            msg = str(w[0].message)
+            [warning] = w
+            msg = str(warning.message)
+            assert warning.filename == __file__
             assert msg == "The 'text' argument to the SoupStrainer constructor is deprecated. Use 'string' instead."
 

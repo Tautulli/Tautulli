@@ -149,14 +149,14 @@ class HTMLFormatter(Formatter):
     """A generic Formatter for HTML."""
     REGISTRY = {}
     def __init__(self, *args, **kwargs):
-        return super(HTMLFormatter, self).__init__(self.HTML, *args, **kwargs)
+        super(HTMLFormatter, self).__init__(self.HTML, *args, **kwargs)
 
     
 class XMLFormatter(Formatter):
     """A generic Formatter for XML."""
     REGISTRY = {}
     def __init__(self, *args, **kwargs):
-        return super(XMLFormatter, self).__init__(self.XML, *args, **kwargs)
+        super(XMLFormatter, self).__init__(self.XML, *args, **kwargs)
 
 
 # Set up aliases for the default formatters.

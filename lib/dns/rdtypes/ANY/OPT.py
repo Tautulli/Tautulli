@@ -26,12 +26,13 @@ import dns.rdata
 # We don't implement from_text, and that's ok.
 # pylint: disable=abstract-method
 
+
 @dns.immutable.immutable
 class OPT(dns.rdata.Rdata):
 
     """OPT record"""
 
-    __slots__ = ['options']
+    __slots__ = ["options"]
 
     def __init__(self, rdclass, rdtype, options):
         """Initialize an OPT rdata.
@@ -45,10 +46,12 @@ class OPT(dns.rdata.Rdata):
         """
 
         super().__init__(rdclass, rdtype)
+
         def as_option(option):
             if not isinstance(option, dns.edns.Option):
-                raise ValueError('option is not a dns.edns.option')
+                raise ValueError("option is not a dns.edns.option")
             return option
+
         self.options = self._as_tuple(options, as_option)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
@@ -58,13 +61,13 @@ class OPT(dns.rdata.Rdata):
             file.write(owire)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return ' '.join(opt.to_text() for opt in self.options)
+        return " ".join(opt.to_text() for opt in self.options)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
         options = []
         while parser.remaining() > 0:
-            (otype, olen) = parser.get_struct('!HH')
+            (otype, olen) = parser.get_struct("!HH")
             with parser.restrict_to(olen):
                 opt = dns.edns.option_from_wire_parser(otype, parser)
             options.append(opt)

@@ -140,7 +140,7 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/library/metadata/' + rating_key
+        uri = '/library/metadata/' + rating_key + '?includeMarkers=1'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -745,6 +745,7 @@ class PmsConnect(object):
         labels = []
         collections = []
         guids = []
+        markers = []
 
         if metadata_main.getElementsByTagName('Director'):
             for director in metadata_main.getElementsByTagName('Director'):
@@ -773,6 +774,22 @@ class PmsConnect(object):
         if metadata_main.getElementsByTagName('Guid'):
             for guid in metadata_main.getElementsByTagName('Guid'):
                 guids.append(helpers.get_xml_attr(guid, 'id'))
+
+        if metadata_main.getElementsByTagName('Marker'):
+            first = None
+            for marker in metadata_main.getElementsByTagName('Marker'):
+                marker_type = helpers.get_xml_attr(marker, 'type')
+                if marker_type == 'credits':
+                    first = bool(first is None)
+                final = helpers.bool_true(helpers.get_xml_attr(marker, 'final'))
+                markers.append({
+                    'id': helpers.cast_to_int(helpers.get_xml_attr(marker, 'id')),
+                    'type': marker_type,
+                    'start_time_offset': helpers.cast_to_int(helpers.get_xml_attr(marker, 'startTimeOffset')),
+                    'end_time_offset': helpers.cast_to_int(helpers.get_xml_attr(marker, 'endTimeOffset')),
+                    'first': first if marker_type == 'credits' else None,
+                    'final': final if marker_type == 'credits' else None
+                })
 
         if metadata_type == 'movie':
             metadata = {'media_type': metadata_type,
@@ -821,6 +838,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -880,6 +898,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -942,6 +961,7 @@ class PmsConnect(object):
                         'labels': show_details.get('labels', []),
                         'collections': show_details.get('collections', []),
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': show_details.get('guids', []),
                         'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
@@ -1021,6 +1041,7 @@ class PmsConnect(object):
                         'labels': show_details.get('labels', []),
                         'collections': show_details.get('collections', []),
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': season_details.get('guids', []),
                         'grandparent_guids': show_details.get('guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
@@ -1076,6 +1097,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -1132,6 +1154,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': artist_details.get('guids', []),
                         'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
@@ -1191,6 +1214,7 @@ class PmsConnect(object):
                         'labels': album_details.get('labels', []),
                         'collections': album_details.get('collections', []),
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': album_details.get('guids', []),
                         'grandparent_guids': album_details.get('parent_guids', []),
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'title'),
@@ -1246,6 +1270,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -1302,6 +1327,7 @@ class PmsConnect(object):
                         'labels': photo_album_details.get('labels', []),
                         'collections': photo_album_details.get('collections', []),
                         'guids': [],
+                        'markers': markers,
                         'parent_guids': photo_album_details.get('guids', []),
                         'grandparent_guids': [],
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle') or library_name,
@@ -1361,6 +1387,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -1435,6 +1462,7 @@ class PmsConnect(object):
                         'labels': labels,
                         'collections': collections,
                         'guids': guids,
+                        'markers': markers,
                         'parent_guids': [],
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
@@ -1589,7 +1617,7 @@ class PmsConnect(object):
         else:
             return metadata
 
-    def get_metadata_children_details(self, rating_key='', get_children=False):
+    def get_metadata_children_details(self, rating_key='', get_children=False, media_type=None, section_id=None):
         """
         Return processed and validated metadata list for all children of requested item.
 
@@ -1597,13 +1625,21 @@ class PmsConnect(object):
 
         Output: array
         """
-        metadata = self.get_metadata_children(str(rating_key), output_format='xml')
+        if media_type == 'artist':
+            sort_type = '&artist.id={}&type=9'.format(rating_key)
+            xml_head = self.fetch_library_list(
+                section_id=str(section_id),
+                sort_type=sort_type,
+                output_format='xml'
+            )
+        else:
+            metadata = self.get_metadata_children(str(rating_key), output_format='xml')
 
-        try:
-            xml_head = metadata.getElementsByTagName('MediaContainer')
-        except Exception as e:
-            logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_metadata_children: %s." % e)
-            return []
+            try:
+                xml_head = metadata.getElementsByTagName('MediaContainer')
+            except Exception as e:
+                logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_metadata_children: %s." % e)
+                return []
 
         metadata_list = []
 
@@ -1880,40 +1916,7 @@ class PmsConnect(object):
         transcode_details['transcode_hw_decoding'] = int(transcode_details['transcode_hw_decode'].lower() in common.HW_DECODERS)
         transcode_details['transcode_hw_encoding'] = int(transcode_details['transcode_hw_encode'].lower() in common.HW_ENCODERS)
 
-        # Determine if a synced version is being played
-        sync_id = synced_session_data = synced_item_details = None
-        if media_type not in ('photo', 'clip') \
-                and not session.getElementsByTagName('Session') \
-                and not session.getElementsByTagName('TranscodeSession') \
-                and helpers.get_xml_attr(session, 'ratingKey').isdigit() \
-                and plexpy.CONFIG.PMS_PLEXPASS:
-            plex_tv = plextv.PlexTV()
-            parent_rating_key = helpers.get_xml_attr(session, 'parentRatingKey')
-            grandparent_rating_key = helpers.get_xml_attr(session, 'grandparentRatingKey')
-
-            synced_items = plex_tv.get_synced_items(client_id_filter=player_details['machine_id'],
-                                                    rating_key_filter=[rating_key, parent_rating_key, grandparent_rating_key])
-            if synced_items:
-                synced_item_details = synced_items[0]
-                sync_id = synced_item_details['sync_id']
-                synced_xml = self.get_sync_item(sync_id=sync_id, output_format='xml')
-                synced_xml_head = synced_xml.getElementsByTagName('MediaContainer')
-
-                synced_xml_items = []
-                if synced_xml_head[0].getElementsByTagName('Track'):
-                    synced_xml_items = synced_xml_head[0].getElementsByTagName('Track')
-                elif synced_xml_head[0].getElementsByTagName('Video'):
-                    synced_xml_items = synced_xml_head[0].getElementsByTagName('Video')
-
-                for synced_session_data in synced_xml_items:
-                    if helpers.get_xml_attr(synced_session_data, 'ratingKey') == rating_key:
-                        break
-
-        # Figure out which version is being played
-        if sync_id and synced_session_data:
-            media_info_all = synced_session_data.getElementsByTagName('Media')
-        else:
-            media_info_all = session.getElementsByTagName('Media')
+        media_info_all = session.getElementsByTagName('Media')
         stream_media_info = next((m for m in media_info_all if helpers.get_xml_attr(m, 'selected') == '1'), media_info_all[0])
         part_info_all = stream_media_info.getElementsByTagName('Part')
         stream_media_parts_info = next((p for p in part_info_all if helpers.get_xml_attr(p, 'selected') == '1'), part_info_all[0])
@@ -2013,7 +2016,7 @@ class PmsConnect(object):
                                 'stream_subtitle_location': helpers.get_xml_attr(subtitle_stream_info, 'location'),
                                 'stream_subtitle_language': helpers.get_xml_attr(subtitle_stream_info, 'language'),
                                 'stream_subtitle_language_code': helpers.get_xml_attr(subtitle_stream_info, 'languageCode'),
-                                'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision'),
+                                'stream_subtitle_decision': helpers.get_xml_attr(subtitle_stream_info, 'decision') or transcode_details['subtitle_decision'],
                                 'stream_subtitle_transient': int(helpers.get_xml_attr(subtitle_stream_info, 'transient') == '1')
                                 }
         else:
@@ -2049,10 +2052,10 @@ class PmsConnect(object):
                           'stream_video_framerate': helpers.get_xml_attr(stream_media_info, 'videoFrameRate'),
                           'stream_video_resolution': stream_video_resolution,
                           'stream_duration': helpers.get_xml_attr(stream_media_info, 'duration') or helpers.get_xml_attr(session, 'duration'),
-                          'stream_container_decision': 'direct play' if sync_id else helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
+                          'stream_container_decision': helpers.get_xml_attr(stream_media_parts_info, 'decision').replace('directplay', 'direct play'),
                           'optimized_version': int(helpers.get_xml_attr(stream_media_info, 'proxyType') == '42'),
                           'optimized_version_title': helpers.get_xml_attr(stream_media_info, 'title'),
-                          'synced_version': 1 if sync_id else 0,
+                          'synced_version': 0,
                           'live': int(helpers.get_xml_attr(session, 'live') == '1'),
                           'live_uuid': helpers.get_xml_attr(stream_media_info, 'uuid'),
                           'indexes': int(indexes == 'sd'),
@@ -2134,12 +2137,8 @@ class PmsConnect(object):
             media_id = helpers.get_xml_attr(stream_media_info, 'id')
             part_id = helpers.get_xml_attr(stream_media_parts_info, 'id')
 
-            if sync_id:
-                metadata_details = self.get_metadata_details(rating_key=rating_key, sync_id=sync_id,
-                                                             skip_cache=skip_cache, cache_key=session_key)
-            else:
-                metadata_details = self.get_metadata_details(rating_key=rating_key,
-                                                             skip_cache=skip_cache, cache_key=session_key)
+            metadata_details = self.get_metadata_details(rating_key=rating_key,
+                                                         skip_cache=skip_cache, cache_key=session_key)
 
             # Get the media info, fallback to first item if match id is not found
             source_medias = metadata_details.pop('media_info', [])
@@ -2250,16 +2249,7 @@ class PmsConnect(object):
 
         # Get the quality profile
         if media_type in ('movie', 'episode', 'clip') and 'stream_bitrate' in stream_details:
-            if sync_id:
-                quality_profile = 'Original'
-
-                synced_item_bitrate = helpers.cast_to_int(synced_item_details['video_bitrate'])
-                try:
-                    synced_bitrate = max(b for b in common.VIDEO_QUALITY_PROFILES if b <= synced_item_bitrate)
-                    synced_version_profile = common.VIDEO_QUALITY_PROFILES[synced_bitrate]
-                except ValueError:
-                    synced_version_profile = 'Original'
-            elif video_details['stream_video_decision'] == 'transcode':
+            if video_details['stream_video_decision'] == 'transcode':
                 synced_version_profile = ''
 
                 stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
@@ -2282,25 +2272,15 @@ class PmsConnect(object):
                 optimized_version_profile = ''
 
         elif media_type == 'track' and 'stream_bitrate' in stream_details:
-            if sync_id:
+            synced_version_profile = ''
+
+            stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
+            source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
+            try:
+                quailtiy_bitrate = min(b for b in common.AUDIO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
+                quality_profile = common.AUDIO_QUALITY_PROFILES[quailtiy_bitrate]
+            except ValueError:
                 quality_profile = 'Original'
-
-                synced_item_bitrate = helpers.cast_to_int(synced_item_details['audio_bitrate'])
-                try:
-                    synced_bitrate = max(b for b in common.AUDIO_QUALITY_PROFILES if b <= synced_item_bitrate)
-                    synced_version_profile = common.AUDIO_QUALITY_PROFILES[synced_bitrate]
-                except ValueError:
-                    synced_version_profile = 'Original'
-            else:
-                synced_version_profile = ''
-
-                stream_bitrate = helpers.cast_to_int(stream_details['stream_bitrate'])
-                source_bitrate = helpers.cast_to_int(source_media_details.get('bitrate'))
-                try:
-                    quailtiy_bitrate = min(b for b in common.AUDIO_QUALITY_PROFILES if stream_bitrate <= b <= source_bitrate)
-                    quality_profile = common.AUDIO_QUALITY_PROFILES[quailtiy_bitrate]
-                except ValueError:
-                    quality_profile = 'Original'
 
             optimized_version_profile = ''
 
@@ -2517,7 +2497,7 @@ class PmsConnect(object):
                     children_list.append(children_output)
 
         output = {'children_count': helpers.cast_to_int(helpers.get_xml_attr(xml_head[0], 'size')),
-                  'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup'),
+                  'children_type': helpers.get_xml_attr(xml_head[0], 'viewGroup') or (children_list[0]['media_type'] if children_list else ''),
                   'title': helpers.get_xml_attr(xml_head[0], 'title2'),
                   'children_list': children_list
                   }

@@ -17,6 +17,8 @@
 
 """DNS TTL conversion."""
 
+from typing import Union
+
 import dns.exception
 
 # Technically TTLs are supposed to be between 0 and 2**31 - 1, with values
@@ -31,7 +33,7 @@ class BadTTL(dns.exception.SyntaxError):
     """DNS TTL value is not well-formed."""
 
 
-def from_text(text):
+def from_text(text: str) -> int:
     """Convert the text form of a TTL to an integer.
 
     The BIND 8 units syntax for TTLs (e.g. '1w6d4h3m10s') is supported.
@@ -60,15 +62,15 @@ def from_text(text):
                 if need_digit:
                     raise BadTTL
                 c = c.lower()
-                if c == 'w':
+                if c == "w":
                     total += current * 604800
-                elif c == 'd':
+                elif c == "d":
                     total += current * 86400
-                elif c == 'h':
+                elif c == "h":
                     total += current * 3600
-                elif c == 'm':
+                elif c == "m":
                     total += current * 60
-                elif c == 's':
+                elif c == "s":
                     total += current
                 else:
                     raise BadTTL("unknown unit '%s'" % c)
@@ -81,10 +83,10 @@ def from_text(text):
     return total
 
 
-def make(value):
+def make(value: Union[int, str]) -> int:
     if isinstance(value, int):
         return value
     elif isinstance(value, str):
         return dns.ttl.from_text(value)
     else:
-        raise ValueError('cannot convert value to TTL')
+        raise ValueError("cannot convert value to TTL")

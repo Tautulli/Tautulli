@@ -48,12 +48,16 @@ class Renderer:
         r.add_rrset(dns.renderer.ANSWER, rrset_1)
         r.add_rrset(dns.renderer.ANSWER, rrset_2)
         r.add_rrset(dns.renderer.AUTHORITY, ns_rrset)
-        r.add_edns(0, 0, 4096)
         r.add_rrset(dns.renderer.ADDITIONAL, ad_rrset_1)
         r.add_rrset(dns.renderer.ADDITIONAL, ad_rrset_2)
+        r.add_edns(0, 0, 4096)
         r.write_header()
         r.add_tsig(keyname, secret, 300, 1, 0, '', request_mac)
         wire = r.get_wire()
+
+    If padding is going to be used, then the OPT record MUST be
+    written after everything else in the additional section except for
+    the TSIG (if any).
 
     output, an io.BytesIO, where rendering is written
 
@@ -88,8 +92,10 @@ class Renderer:
         self.compress = {}
         self.section = QUESTION
         self.counts = [0, 0, 0, 0]
-        self.output.write(b'\x00' * 12)
-        self.mac = ''
+        self.output.write(b"\x00" * 12)
+        self.mac = ""
+        self.reserved = 0
+        self.was_padded = False
 
     def _rollback(self, where):
         """Truncate the output buffer at offset *where*, and remove any
@@ -160,21 +166,52 @@ class Renderer:
 
         self._set_section(section)
         with self._track_size():
-            n = rdataset.to_wire(name, self.output, self.compress, self.origin,
-                                 **kw)
+            n = rdataset.to_wire(name, self.output, self.compress, self.origin, **kw)
         self.counts[section] += n
+
+    def add_opt(self, opt, pad=0, opt_size=0, tsig_size=0):
+        """Add *opt* to the additional section, applying padding if desired.  The
+        padding will take the specified precomputed OPT size and TSIG size into
+        account.
+
+        Note that we don't have reliable way of knowing how big a GSS-TSIG digest
+        might be, so we we might not get an even multiple of the pad in that case."""
+        if pad:
+            ttl = opt.ttl
+            assert opt_size >= 11
+            opt_rdata = opt[0]
+            size_without_padding = self.output.tell() + opt_size + tsig_size
+            remainder = size_without_padding % pad
+            if remainder:
+                pad = b"\x00" * (pad - remainder)
+            else:
+                pad = b""
+            options = list(opt_rdata.options)
+            options.append(dns.edns.GenericOption(dns.edns.OptionType.PADDING, pad))
+            opt = dns.message.Message._make_opt(ttl, opt_rdata.rdclass, options)
+            self.was_padded = True
+        self.add_rrset(ADDITIONAL, opt)
 
     def add_edns(self, edns, ednsflags, payload, options=None):
         """Add an EDNS OPT record to the message."""
 
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
-        ednsflags |= (edns << 16)
+        ednsflags |= edns << 16
         opt = dns.message.Message._make_opt(ednsflags, payload, options)
-        self.add_rrset(ADDITIONAL, opt)
+        self.add_opt(opt)
 
-    def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
-                 request_mac, algorithm=dns.tsig.default_algorithm):
+    def add_tsig(
+        self,
+        keyname,
+        secret,
+        fudge,
+        id,
+        tsig_error,
+        other_data,
+        request_mac,
+        algorithm=dns.tsig.default_algorithm,
+    ):
         """Add a TSIG signature to the message."""
 
         s = self.output.getvalue()
@@ -183,15 +220,24 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(keyname, algorithm, 0, fudge,
-                                              b'', id, tsig_error, other_data)
-        (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()),
-                                  request_mac)
+        tsig = dns.message.Message._make_tsig(
+            keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
+        )
+        (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()), request_mac)
         self._write_tsig(tsig, keyname)
 
-    def add_multi_tsig(self, ctx, keyname, secret, fudge, id, tsig_error,
-                       other_data, request_mac,
-                       algorithm=dns.tsig.default_algorithm):
+    def add_multi_tsig(
+        self,
+        ctx,
+        keyname,
+        secret,
+        fudge,
+        id,
+        tsig_error,
+        other_data,
+        request_mac,
+        algorithm=dns.tsig.default_algorithm,
+    ):
         """Add a TSIG signature to the message. Unlike add_tsig(), this can be
         used for a series of consecutive DNS envelopes, e.g. for a zone
         transfer over TCP [RFC2845, 4.4].
@@ -206,28 +252,35 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(keyname, algorithm, 0, fudge,
-                                              b'', id, tsig_error, other_data)
-        (tsig, ctx) = dns.tsig.sign(s, key, tsig[0], int(time.time()),
-                                    request_mac, ctx, True)
+        tsig = dns.message.Message._make_tsig(
+            keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
+        )
+        (tsig, ctx) = dns.tsig.sign(
+            s, key, tsig[0], int(time.time()), request_mac, ctx, True
+        )
         self._write_tsig(tsig, keyname)
         return ctx
 
     def _write_tsig(self, tsig, keyname):
+        if self.was_padded:
+            compress = None
+        else:
+            compress = self.compress
         self._set_section(ADDITIONAL)
         with self._track_size():
-            keyname.to_wire(self.output, self.compress, self.origin)
-            self.output.write(struct.pack('!HHIH', dns.rdatatype.TSIG,
-                                          dns.rdataclass.ANY, 0, 0))
+            keyname.to_wire(self.output, compress, self.origin)
+            self.output.write(
+                struct.pack("!HHIH", dns.rdatatype.TSIG, dns.rdataclass.ANY, 0, 0)
+            )
             rdata_start = self.output.tell()
             tsig.to_wire(self.output)
 
         after = self.output.tell()
         self.output.seek(rdata_start - 2)
-        self.output.write(struct.pack('!H', after - rdata_start))
+        self.output.write(struct.pack("!H", after - rdata_start))
         self.counts[ADDITIONAL] += 1
         self.output.seek(10)
-        self.output.write(struct.pack('!H', self.counts[ADDITIONAL]))
+        self.output.write(struct.pack("!H", self.counts[ADDITIONAL]))
         self.output.seek(0, io.SEEK_END)
 
     def write_header(self):
@@ -239,12 +292,34 @@ class Renderer:
         """
 
         self.output.seek(0)
-        self.output.write(struct.pack('!HHHHHH', self.id, self.flags,
-                                      self.counts[0], self.counts[1],
-                                      self.counts[2], self.counts[3]))
+        self.output.write(
+            struct.pack(
+                "!HHHHHH",
+                self.id,
+                self.flags,
+                self.counts[0],
+                self.counts[1],
+                self.counts[2],
+                self.counts[3],
+            )
+        )
         self.output.seek(0, io.SEEK_END)
 
     def get_wire(self):
         """Return the wire format message."""
 
         return self.output.getvalue()
+
+    def reserve(self, size: int) -> None:
+        """Reserve *size* bytes."""
+        if size < 0:
+            raise ValueError("reserved amount must be non-negative")
+        if size > self.max_size:
+            raise ValueError("cannot reserve more than the maximum size")
+        self.reserved += size
+        self.max_size -= size
+
+    def release_reserved(self) -> None:
+        """Release the reserved bytes."""
+        self.max_size += self.reserved
+        self.reserved = 0

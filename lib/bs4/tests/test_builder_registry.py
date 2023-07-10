@@ -10,22 +10,23 @@ from bs4.builder import (
     TreeBuilderRegistry,
 )
 
-try:
-    from bs4.builder import HTML5TreeBuilder
-    HTML5LIB_PRESENT = True
-except ImportError:
-    HTML5LIB_PRESENT = False
+from . import (
+    HTML5LIB_PRESENT,
+    LXML_PRESENT,
+)
 
-try:
+if HTML5LIB_PRESENT:
+    from bs4.builder import HTML5TreeBuilder
+
+if LXML_PRESENT:
     from bs4.builder import (
         LXMLTreeBuilderForXML,
         LXMLTreeBuilder,
         )
-    LXML_PRESENT = True
-except ImportError:
-    LXML_PRESENT = False
 
 
+# TODO: Split out the lxml and html5lib tests into their own classes
+# and gate with pytest.mark.skipIf.
 class TestBuiltInRegistry(object):
     """Test the built-in registry with the default builders registered."""
 

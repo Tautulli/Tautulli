@@ -160,6 +160,7 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
 
 def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, **kwargs):
     logger.debug("Tautulli NotificationHandler :: Checking global notification conditions.")
+    evaluated = False
 
     # Activity notifications
     if stream_data:
@@ -187,7 +188,13 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
                 user_sessions = [s for s in result['sessions'] if s['user_id'] == stream_data['user_id']]
 
             if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
-                evaluated = len(Counter(s['ip_address'] for s in user_sessions)) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+                ip_addresses = set()
+                for s in user_sessions:
+                    if helpers.ip_type(s['ip_address']) == 'IPv6':
+                        ip_addresses.add(helpers.get_ipv6_network_address(s['ip_address']))
+                    elif helpers.ip_type(s['ip_address']) == 'IPv4':
+                        ip_addresses.add(s['ip_address'])
+                evaluated = len(ip_addresses) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
             else:
                 evaluated = len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
 
@@ -294,7 +301,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Cast the condition values to the correct type
             try:
                 if parameter_type == 'str':
-                    values = ['' if v == '~' else str(v).lower() for v in values]
+                    values = ['' if v == '~' else str(v).strip().lower() for v in values]
 
                 elif parameter_type == 'int':
                     values = [helpers.cast_to_int(v) for v in values]
@@ -313,7 +320,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
             # Cast the parameter value to the correct type
             try:
                 if parameter_type == 'str':
-                    parameter_value = str(parameter_value).lower()
+                    parameter_value = str(parameter_value).strip().lower()
 
                 elif parameter_type == 'int':
                     parameter_value = helpers.cast_to_int(parameter_value)
@@ -438,17 +445,17 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
 
     if success:
         set_notify_success(notification_id)
-        return True
+        return notification_id
 
 
 def get_notify_state(session):
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT timestamp, notify_action, notifier_id '
-                               'FROM notify_log '
-                               'WHERE session_key = ? '
-                               'AND rating_key = ? '
-                               'AND user_id = ? '
-                               'ORDER BY id DESC',
+    result = monitor_db.select("SELECT timestamp, notify_action, notifier_id "
+                               "FROM notify_log "
+                               "WHERE session_key = ? "
+                               "AND rating_key = ? "
+                               "AND user_id = ? "
+                               "ORDER BY id DESC",
                                args=[session['session_key'], session['rating_key'], session['user_id']])
     notify_states = []
     for item in result:
@@ -467,16 +474,16 @@ def get_notify_state_enabled(session, notify_action, notified=True):
         timestamp_where = 'AND timestamp IS NULL'
 
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select('SELECT id AS notifier_id, timestamp '
-                               'FROM notifiers '
-                               'LEFT OUTER JOIN ('
-                               'SELECT timestamp, notifier_id '
-                               'FROM notify_log '
-                               'WHERE session_key = ? '
-                               'AND rating_key = ? '
-                               'AND user_id = ? '
-                               'AND notify_action = ?) AS t ON notifiers.id = t.notifier_id '
-                               'WHERE %s = 1 %s' % (notify_action, timestamp_where),
+    result = monitor_db.select("SELECT id AS notifier_id, timestamp "
+                               "FROM notifiers "
+                               "LEFT OUTER JOIN ("
+                               "SELECT timestamp, notifier_id "
+                               "FROM notify_log "
+                               "WHERE session_key = ? "
+                               "AND rating_key = ? "
+                               "AND user_id = ? "
+                               "AND notify_action = ?) AS t ON notifiers.id = t.notifier_id "
+                               "WHERE %s = 1 %s" % (notify_action, timestamp_where),
                                args=[session['session_key'], session['rating_key'], session['user_id'], notify_action])
 
     return result
@@ -528,8 +535,8 @@ def set_notify_success(notification_id):
 
 def check_nofity_tag(notify_action, tag):
     monitor_db = database.MonitorDatabase()
-    result = monitor_db.select_single('SELECT * FROM notify_log '
-                                      'WHERE notify_action = ? AND tag = ?',
+    result = monitor_db.select_single("SELECT * FROM notify_log "
+                                      "WHERE notify_action = ? AND tag = ?",
                                       [notify_action, tag])
     return bool(result)
 
@@ -550,7 +557,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     if session:
         # Reload json from raw stream info
         if session.get('raw_stream_info'):
-            session.update(json.loads(session['raw_stream_info']))
+            raw_stream_info = json.loads(session['raw_stream_info'])
+            # Don't overwrite id, session_key, stopped, view_offset
+            raw_stream_info.pop('id', None)
+            raw_stream_info.pop('session_key', None)
+            raw_stream_info.pop('stopped', None)
+            raw_stream_info.pop('view_offset', None)
+            session.update(raw_stream_info)
         notify_params.update(session)
 
     if timeline:
@@ -582,6 +595,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     notify_params.update(media_info)
     notify_params.update(media_part_info)
+
+    metadata = pmsconnect.PmsConnect().get_metadata_details(rating_key=rating_key)
 
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
@@ -636,13 +651,13 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         stream_duration_sec = 0
         stream_duration = 0
 
-    view_offset_sec = helpers.convert_milliseconds_to_seconds(session.get('view_offset', 0))
+    progress_duration_sec = helpers.convert_milliseconds_to_seconds(session.get('view_offset', 0))
     duration_sec = helpers.convert_milliseconds_to_seconds(notify_params['duration'])
-    remaining_duration_sec = duration_sec - view_offset_sec
+    remaining_duration_sec = duration_sec - progress_duration_sec
 
-    view_offset = helpers.seconds_to_minutes(view_offset_sec)
+    progress_duration = helpers.seconds_to_minutes(progress_duration_sec)
     duration = helpers.seconds_to_minutes(duration_sec)
-    remaining_duration = duration - view_offset
+    remaining_duration = duration - progress_duration
 
     # Build Plex URL
     if notify_params['media_type'] == 'track':
@@ -714,6 +729,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             notify_params['musicbrainz_url'] = 'https://musicbrainz.org/release/' + notify_params['musicbrainz_id']
         else:
             notify_params['musicbrainz_url'] = 'https://musicbrainz.org/track/' + notify_params['musicbrainz_id']
+
+    if 'hama://' in notify_params['guid']:
+        notify_params['anidb_id'] = notify_params['guid'].split('hama://')[1].split('/')[0].split('?')[0].split('-')[1]
+        notify_params['anidb_url'] = 'https://anidb.net/anime/' + notify_params['anidb_id']
 
     # Get TheMovieDB info (for movies and tv only)
     if plexpy.CONFIG.THEMOVIEDB_LOOKUP and notify_params['media_type'] in ('movie', 'show', 'season', 'episode'):
@@ -934,6 +953,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             and audience_rating:
         audience_rating = helpers.get_percent(notify_params['audience_rating'], 10)
 
+    marker = kwargs.pop('marker', defaultdict(int))
+
     now = arrow.now()
     now_iso = now.isocalendar()
 
@@ -943,7 +964,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
         'tautulli_commit': plexpy.CURRENT_VERSION,
-        'server_name': plexpy.CONFIG.PMS_NAME,
+        'server_name': helpers.pms_name(),
         'server_ip': plexpy.CONFIG.PMS_IP,
         'server_port': plexpy.CONFIG.PMS_PORT,
         'server_url': plexpy.CONFIG.PMS_URL,
@@ -997,10 +1018,11 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'remaining_duration': remaining_duration,
         'remaining_duration_sec': remaining_duration_sec,
         'remaining_time': arrow.get(remaining_duration_sec).format(duration_format),
-        'progress_duration': view_offset,
-        'progress_duration_sec': view_offset_sec,
-        'progress_time': arrow.get(view_offset_sec).format(duration_format),
-        'progress_percent': helpers.get_percent(view_offset_sec, duration_sec),
+        'progress_duration': progress_duration,
+        'progress_duration_sec': progress_duration_sec,
+        'progress_time': arrow.get(progress_duration_sec).format(duration_format),
+        'progress_percent': helpers.get_percent(progress_duration_sec, duration_sec),
+        'view_offset': session.get('view_offset', 0),
         'initial_stream': notify_params['initial_stream'],
         'transcode_decision': transcode_decision,
         'container_decision': notify_params['container_decision'],
@@ -1012,6 +1034,10 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'optimized_version_profile': notify_params['optimized_version_profile'],
         'synced_version': notify_params['synced_version'],
         'live': notify_params['live'],
+        'marker_start': marker['start_time_offset'],
+        'marker_end': marker['end_time_offset'],
+        'credits_marker_first': helpers.cast_to_int(marker['first']),
+        'credits_marker_final': helpers.cast_to_int(marker['final']),
         'channel_call_sign': notify_params['channel_call_sign'],
         'channel_identifier': notify_params['channel_identifier'],
         'channel_thumb': notify_params['channel_thumb'],
@@ -1128,6 +1154,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'user_rating': notify_params['user_rating'],
         'duration': duration,
         'duration_sec': duration_sec,
+        'duration_ms': notify_params['duration'],
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
         'plex_id': notify_params['plex_id'],
@@ -1142,6 +1169,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'tvmaze_url': notify_params['tvmaze_url'],
         'musicbrainz_id': notify_params['musicbrainz_id'],
         'musicbrainz_url': notify_params['musicbrainz_url'],
+        'anidb_id': notify_params['anidb_id'],
+        'anidb_url': notify_params['anidb_url'],
         'lastfm_url': notify_params['lastfm_url'],
         'trakt_url': notify_params['trakt_url'],
         'container': notify_params['container'],
@@ -1230,7 +1259,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
         'tautulli_commit': plexpy.CURRENT_VERSION,
-        'server_name': plexpy.CONFIG.PMS_NAME,
+        'server_name': helpers.pms_name(),
         'server_ip': plexpy.CONFIG.PMS_IP,
         'server_port': plexpy.CONFIG.PMS_PORT,
         'server_url': plexpy.CONFIG.PMS_URL,
@@ -1609,7 +1638,7 @@ def set_hash_image_info(img=None, rating_key=None, width=750, height=1000,
 
 def get_hash_image_info(img_hash=None):
     db = database.MonitorDatabase()
-    query = 'SELECT * FROM image_hash_lookup WHERE img_hash = ?'
+    query = "SELECT * FROM image_hash_lookup WHERE img_hash = ?"
     result = db.select_single(query, args=[img_hash])
     return result
 
@@ -1618,8 +1647,8 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=No
     db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT imdb_id, tvmaze_id, tvmaze_url FROM tvmaze_lookup ' \
-                'WHERE rating_key = ?'
+        query = "SELECT imdb_id, tvmaze_id, tvmaze_url FROM tvmaze_lookup " \
+                "WHERE rating_key = ?"
         tvmaze_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
@@ -1678,8 +1707,8 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, titl
     db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT thetvdb_id, imdb_id, themoviedb_id, themoviedb_url FROM themoviedb_lookup ' \
-                'WHERE rating_key = ?'
+        query = "SELECT thetvdb_id, imdb_id, themoviedb_id, themoviedb_url FROM themoviedb_lookup " \
+                "WHERE rating_key = ?"
         themoviedb_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
@@ -1756,8 +1785,8 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
     db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT themoviedb_json FROM themoviedb_lookup ' \
-                'WHERE rating_key = ?'
+        query = "SELECT themoviedb_json FROM themoviedb_lookup " \
+                "WHERE rating_key = ?"
         result = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
@@ -1807,8 +1836,8 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
     db = database.MonitorDatabase()
 
     try:
-        query = 'SELECT musicbrainz_id, musicbrainz_url, musicbrainz_type FROM musicbrainz_lookup ' \
-                'WHERE rating_key = ?'
+        query = "SELECT musicbrainz_id, musicbrainz_url, musicbrainz_type FROM musicbrainz_lookup " \
+                "WHERE rating_key = ?"
         musicbrainz_info = db.select_single(query, args=[rating_key])
     except Exception as e:
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_musicbrainz: %s." % e)

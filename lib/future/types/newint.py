@@ -284,6 +284,9 @@ class newint(with_metaclass(BaseNewInt, long)):
         """
         So subclasses can override this, Py3-style
         """
+        if PY3:
+            return super(newint, self).__bool__()
+
         return super(newint, self).__nonzero__()
 
     def __native__(self):

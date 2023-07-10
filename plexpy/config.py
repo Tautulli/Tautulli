@@ -58,6 +58,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_LOGS_FOLDER': (str, 'PMS', ''),
     'PMS_LOGS_LINE_CAP': (int, 'PMS', 1000),
     'PMS_NAME': (str, 'PMS', ''),
+    'PMS_NAME_OVERRIDE': (str, 'PMS', ''),
     'PMS_PORT': (int, 'PMS', 32400),
     'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_SSL': (int, 'PMS', 0),
@@ -176,6 +177,7 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_RECENTLY_ADDED_UPGRADE': (int, 'Monitoring', 0),
     'NOTIFY_REMOTE_ACCESS_THRESHOLD': (int, 'Monitoring', 60),
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
+    'NOTIFY_CONCURRENT_IPV6_CIDR': (str, 'Monitoring', '/64'),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'NOTIFY_NEW_DEVICE_INITIAL_ONLY': (int, 'Monitoring', 1),
     'NOTIFY_SERVER_CONNECTION_THRESHOLD': (int, 'Monitoring', 60),
@@ -199,6 +201,7 @@ _CONFIG_DEFINITIONS = {
     'UPGRADE_FLAG': (int, 'Advanced', 0),
     'VERBOSE_LOGS': (int, 'Advanced', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
+    'WATCHED_MARKER': (int, 'Monitoring', 3),
     'WEBSOCKET_MONITOR_PING_PONG': (int, 'Advanced', 0),
     'WEBSOCKET_CONNECTION_ATTEMPTS': (int, 'Advanced', 5),
     'WEBSOCKET_CONNECTION_TIMEOUT': (int, 'Advanced', 5),
@@ -298,7 +301,8 @@ SETTINGS = [
     'REFRESH_USERS_INTERVAL',
     'SHOW_ADVANCED_SETTINGS',
     'TIME_FORMAT',
-    'TV_WATCHED_PERCENT'
+    'TV_WATCHED_PERCENT',
+    'WATCHED_MARKER'
 ]
 
 CHECKED_SETTINGS = [
@@ -533,7 +537,7 @@ class Config(object):
         Returns something from the ini unless it is a real property
         of the configuration object or is not all caps.
         """
-        if not re.match(r'[A-Z_]+$', name):
+        if not re.match(r'[A-Z0-9_]+$', name):
             return super(Config, self).__getattr__(name)
         else:
             return self.check_setting(name)

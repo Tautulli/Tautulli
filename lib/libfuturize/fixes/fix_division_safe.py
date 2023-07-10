@@ -92,7 +92,12 @@ class FixDivisionSafe(fixer_base.BaseFix):
                 else:
                     children.append(child.clone())
             if matched:
-                return Node(node.type, children, fixers_applied=node.fixers_applied)
+                # In Python 2.6, `Node` does not have the fixers_applied attribute
+                # https://github.com/python/cpython/blob/8493c0cd66cfc181ac1517268a74f077e9998701/Lib/lib2to3/pytree.py#L235
+                if hasattr(Node, "fixers_applied"):
+                    return Node(node.type, children, fixers_applied=node.fixers_applied)
+                else:
+                    return Node(node.type, children)
 
         return False
 

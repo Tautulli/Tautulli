@@ -18,7 +18,6 @@
 import base64
 import struct
 
-import dns.dnssec
 import dns.immutable
 import dns.exception
 import dns.rdata
@@ -29,11 +28,28 @@ class TKEY(dns.rdata.Rdata):
 
     """TKEY Record"""
 
-    __slots__ = ['algorithm', 'inception', 'expiration', 'mode', 'error',
-                 'key', 'other']
+    __slots__ = [
+        "algorithm",
+        "inception",
+        "expiration",
+        "mode",
+        "error",
+        "key",
+        "other",
+    ]
 
-    def __init__(self, rdclass, rdtype, algorithm, inception, expiration,
-                 mode, error, key, other=b''):
+    def __init__(
+        self,
+        rdclass,
+        rdtype,
+        algorithm,
+        inception,
+        expiration,
+        mode,
+        error,
+        key,
+        other=b"",
+    ):
         super().__init__(rdclass, rdtype)
         self.algorithm = self._as_name(algorithm)
         self.inception = self._as_uint32(inception)
@@ -45,17 +61,23 @@ class TKEY(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         _algorithm = self.algorithm.choose_relativity(origin, relativize)
-        text = '%s %u %u %u %u %s' % (str(_algorithm), self.inception,
-                                      self.expiration, self.mode, self.error,
-                                      dns.rdata._base64ify(self.key, 0))
+        text = "%s %u %u %u %u %s" % (
+            str(_algorithm),
+            self.inception,
+            self.expiration,
+            self.mode,
+            self.error,
+            dns.rdata._base64ify(self.key, 0),
+        )
         if len(self.other) > 0:
-            text += ' %s' % (dns.rdata._base64ify(self.other, 0))
+            text += " %s" % (dns.rdata._base64ify(self.other, 0))
 
         return text
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         algorithm = tok.get_name(relativize=False)
         inception = tok.get_uint32()
         expiration = tok.get_uint32()
@@ -66,13 +88,15 @@ class TKEY(dns.rdata.Rdata):
         other_b64 = tok.concatenate_remaining_identifiers(True).encode()
         other = base64.b64decode(other_b64)
 
-        return cls(rdclass, rdtype, algorithm, inception, expiration, mode,
-                   error, key, other)
+        return cls(
+            rdclass, rdtype, algorithm, inception, expiration, mode, error, key, other
+        )
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         self.algorithm.to_wire(file, compress, origin)
-        file.write(struct.pack("!IIHH", self.inception, self.expiration,
-                               self.mode, self.error))
+        file.write(
+            struct.pack("!IIHH", self.inception, self.expiration, self.mode, self.error)
+        )
         file.write(struct.pack("!H", len(self.key)))
         file.write(self.key)
         file.write(struct.pack("!H", len(self.other)))
@@ -86,8 +110,9 @@ class TKEY(dns.rdata.Rdata):
         key = parser.get_counted_bytes(2)
         other = parser.get_counted_bytes(2)
 
-        return cls(rdclass, rdtype, algorithm, inception, expiration, mode,
-                   error, key, other)
+        return cls(
+            rdclass, rdtype, algorithm, inception, expiration, mode, error, key, other
+        )
 
     # Constants for the mode field - from RFC 2930:
     # 2.5 The Mode Field

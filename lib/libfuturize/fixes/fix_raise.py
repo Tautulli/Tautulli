@@ -94,7 +94,7 @@ class FixRaise(fixer_base.BaseFix):
                 args = [exc, Comma(), val]
                 if tb is not None:
                     args += [Comma(), tb]
-                return Call(Name(u"raise_"), args)
+                return Call(Name(u"raise_"), args, prefix=node.prefix)
 
         if tb is not None:
             tb.prefix = ""

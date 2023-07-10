@@ -57,24 +57,24 @@ Read the [Installation Guides][Installation] for instructions on how to install 
 [badge-release-nightly-last-commit]: https://img.shields.io/github/last-commit/Tautulli/Tautulli/nightly?style=flat-square&color=blue
 [badge-release-nightly-commits]: https://img.shields.io/github/commits-since/Tautulli/Tautulli/latest/nightly?style=flat-square&color=blue
 [badge-docker-master]: https://img.shields.io/badge/docker-latest-blue?style=flat-square
-[badge-docker-master-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/master?style=flat-square
+[badge-docker-master-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-docker.yml?style=flat-square&branch=master
 [badge-docker-beta]: https://img.shields.io/badge/docker-beta-blue?style=flat-square
-[badge-docker-beta-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/beta?style=flat-square
+[badge-docker-beta-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-docker.yml?style=flat-square&branch=beta
 [badge-docker-nightly]: https://img.shields.io/badge/docker-nightly-blue?style=flat-square
-[badge-docker-nightly-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Docker/nightly?style=flat-square
+[badge-docker-nightly-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-docker.yml?style=flat-square&branch=nightly
 [badge-snap-master]: https://img.shields.io/badge/snap-stable-blue?style=flat-square
-[badge-snap-master-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/master?style=flat-square
+[badge-snap-master-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-snap.yml?style=flat-square&branch=master
 [badge-snap-beta]: https://img.shields.io/badge/snap-beta-blue?style=flat-square
-[badge-snap-beta-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/beta?style=flat-square
+[badge-snap-beta-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-snap.yml?style=flat-square&branch=beta
 [badge-snap-nightly]: https://img.shields.io/badge/snap-edge-blue?style=flat-square
-[badge-snap-nightly-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Snap/nightly?style=flat-square
+[badge-snap-nightly-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-snap.yml?style=flat-square&branch=nightly
 [badge-installer-master-win]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=windows&style=flat-square
 [badge-installer-master-macos]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=macos&style=flat-square
-[badge-installer-master-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/master?style=flat-square
+[badge-installer-master-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-installers.yml?style=flat-square&branch=master
 [badge-installer-beta-win]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=windows&include_prereleases&style=flat-square
 [badge-installer-beta-macos]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=macos&include_prereleases&style=flat-square
-[badge-installer-beta-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/beta?style=flat-square
-[badge-installer-nightly-ci]: https://img.shields.io/github/workflow/status/Tautulli/Tautulli/Publish%20Installers/nightly?style=flat-square
+[badge-installer-beta-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-installers.yml?style=flat-square&branch=beta
+[badge-installer-nightly-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-installers.yml?style=flat-square&branch=nightly
 
 ## Support
 

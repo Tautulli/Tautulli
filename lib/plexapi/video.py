@@ -8,14 +8,14 @@ from plexapi.exceptions import BadRequest
 from plexapi.mixins import (
     AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, PlayedUnplayedMixin, RatingMixin,
     ArtUrlMixin, ArtMixin, BannerMixin, PosterUrlMixin, PosterMixin, ThemeUrlMixin, ThemeMixin,
-    ContentRatingMixin, EditionTitleMixin, OriginallyAvailableMixin, OriginalTitleMixin, SortTitleMixin, StudioMixin,
-    SummaryMixin, TaglineMixin, TitleMixin,
+    AddedAtMixin, ContentRatingMixin, EditionTitleMixin, OriginallyAvailableMixin, OriginalTitleMixin, SortTitleMixin,
+    StudioMixin, SummaryMixin, TaglineMixin, TitleMixin,
     CollectionMixin, CountryMixin, DirectorMixin, GenreMixin, LabelMixin, ProducerMixin, WriterMixin,
     WatchlistMixin
 )
 
 
-class Video(PlexPartialObject, PlayedUnplayedMixin):
+class Video(PlexPartialObject, PlayedUnplayedMixin, AddedAtMixin):
     """ Base class for all video objects including :class:`~plexapi.video.Movie`,
         :class:`~plexapi.video.Show`, :class:`~plexapi.video.Season`,
         :class:`~plexapi.video.Episode`, and :class:`~plexapi.video.Clip`.
@@ -97,9 +97,24 @@ class Video(PlexPartialObject, PlayedUnplayedMixin):
         """ Returns str, default title for a new syncItem. """
         return self.title
 
+    def videoStreams(self):
+        """ Returns a list of :class:`~plexapi.media.videoStream` objects for all MediaParts. """
+        streams = []
+
+        if self.isPartialObject():
+            self.reload()
+
+        parts = self.iterParts()
+        for part in parts:
+            streams += part.videoStreams()
+        return streams
+
     def audioStreams(self):
         """ Returns a list of :class:`~plexapi.media.AudioStream` objects for all MediaParts. """
         streams = []
+
+        if self.isPartialObject():
+            self.reload()
 
         parts = self.iterParts()
         for part in parts:
@@ -109,6 +124,9 @@ class Video(PlexPartialObject, PlayedUnplayedMixin):
     def subtitleStreams(self):
         """ Returns a list of :class:`~plexapi.media.SubtitleStream` objects for all MediaParts. """
         streams = []
+
+        if self.isPartialObject():
+            self.reload()
 
         parts = self.iterParts()
         for part in parts:
@@ -311,11 +329,13 @@ class Movie(
             directors (List<:class:`~plexapi.media.Director`>): List of director objects.
             duration (int): Duration of the movie in milliseconds.
             editionTitle (str): The edition title of the movie (e.g. Director's Cut, Extended Edition, etc.).
+            enableCreditsMarkerGeneration (int): Setting that indicates if credits markers detection is enabled.
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
             languageOverride (str): Setting that indicates if a language is used to override metadata
                 (eg. en-CA, None = Library default).
+            markers (List<:class:`~plexapi.media.Marker`>): List of marker objects.
             media (List<:class:`~plexapi.media.Media`>): List of media objects.
             originallyAvailableAt (datetime): Datetime the movie was released.
             originalTitle (str): Original title, often the foreign title (転々; 엽기적인 그녀).
@@ -353,10 +373,12 @@ class Movie(
         self.directors = self.findItems(data, media.Director)
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.editionTitle = data.attrib.get('editionTitle')
+        self.enableCreditsMarkerGeneration = utils.cast(int, data.attrib.get('enableCreditsMarkerGeneration', '-1'))
         self.genres = self.findItems(data, media.Genre)
         self.guids = self.findItems(data, media.Guid)
         self.labels = self.findItems(data, media.Label)
         self.languageOverride = data.attrib.get('languageOverride')
+        self.markers = self.findItems(data, media.Marker)
         self.media = self.findItems(data, media.Media)
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.originalTitle = data.attrib.get('originalTitle')
@@ -389,6 +411,11 @@ class Movie(
                 List<str> of file paths where the movie is found on disk.
         """
         return [part.file for part in self.iterParts() if part]
+
+    @property
+    def hasCreditsMarker(self):
+        """ Returns True if the movie has a credits marker. """
+        return any(marker.type == 'credits' for marker in self.markers)
 
     @property
     def hasPreviewThumbnails(self):
@@ -432,6 +459,7 @@ class Show(
             TYPE (str): 'show'
             audienceRating (float): Audience rating (TMDB or TVDB).
             audienceRatingImage (str): Key to audience rating image (tmdb://image.rating).
+            audioLanguage (str): Setting that indicates the preferred audio language.
             autoDeletionItemPolicyUnwatchedLibrary (int): Setting that indicates the number of unplayed
                 episodes to keep for the show (0 = All episodes, 5 = 5 latest episodes, 3 = 3 latest episodes,
                 1 = 1 latest episode, -3 = Episodes added in the past 3 days, -7 = Episodes added in the
@@ -440,10 +468,11 @@ class Show(
                 after being watched for the show (0 = Never, 1 = After a day, 7 = After a week,
                 100 = On next refresh).
             banner (str): Key to banner artwork (/library/metadata/<ratingkey>/banner/<bannerid>).
-            childCount (int): Number of seasons in the show.
+            childCount (int): Number of seasons (including Specials) in the show.
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
             contentRating (str) Content rating (PG-13; NR; TV-G).
             duration (int): Typical duration of the show episodes in milliseconds.
+            enableCreditsMarkerGeneration (int): Setting that indicates if credits markers detection is enabled.
             episodeSort (int): Setting that indicates how episodes are sorted for the show
                 (-1 = Library default, 0 = Oldest first, 1 = Newest first).
             flattenSeasons (int): Setting that indicates if seasons are set to hidden for the show
@@ -463,10 +492,14 @@ class Show(
             rating (float): Show rating (7.9; 9.8; 8.1).
             ratings (List<:class:`~plexapi.media.Rating`>): List of rating objects.
             roles (List<:class:`~plexapi.media.Role`>): List of role objects.
+            seasonCount (int): Number of seasons (excluding Specials) in the show.
             showOrdering (str): Setting that indicates the episode ordering for the show
                 (None = Library default).
             similar (List<:class:`~plexapi.media.Similar`>): List of Similar objects.
             studio (str): Studio that created show (Di Bonaventura Pictures; 21 Laps Entertainment).
+            subtitleLanguage (str): Setting that indicates the preferred subtitle language.
+            subtitleMode (int): Setting that indicates the auto-select subtitle mode.
+                (-1 = Account default, 0 = Manually selected, 1 = Shown with foreign audio, 2 = Always enabled).
             tagline (str): Show tag line.
             theme (str): URL to theme resource (/library/metadata/<ratingkey>/theme/<themeid>).
             useOriginalTitle (int): Setting that indicates if the original title is used for the show
@@ -483,6 +516,7 @@ class Show(
         Video._loadData(self, data)
         self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.audienceRatingImage = data.attrib.get('audienceRatingImage')
+        self.audioLanguage = data.attrib.get('audioLanguage', '')
         self.autoDeletionItemPolicyUnwatchedLibrary = utils.cast(
             int, data.attrib.get('autoDeletionItemPolicyUnwatchedLibrary', '0'))
         self.autoDeletionItemPolicyWatchedLibrary = utils.cast(
@@ -492,6 +526,7 @@ class Show(
         self.collections = self.findItems(data, media.Collection)
         self.contentRating = data.attrib.get('contentRating')
         self.duration = utils.cast(int, data.attrib.get('duration'))
+        self.enableCreditsMarkerGeneration = utils.cast(int, data.attrib.get('enableCreditsMarkerGeneration', '-1'))
         self.episodeSort = utils.cast(int, data.attrib.get('episodeSort', '-1'))
         self.flattenSeasons = utils.cast(int, data.attrib.get('flattenSeasons', '-1'))
         self.genres = self.findItems(data, media.Genre)
@@ -508,9 +543,12 @@ class Show(
         self.rating = utils.cast(float, data.attrib.get('rating'))
         self.ratings = self.findItems(data, media.Rating)
         self.roles = self.findItems(data, media.Role)
+        self.seasonCount = utils.cast(int, data.attrib.get('seasonCount', self.childCount))
         self.showOrdering = data.attrib.get('showOrdering')
         self.similar = self.findItems(data, media.Similar)
         self.studio = data.attrib.get('studio')
+        self.subtitleLanguage = data.attrib.get('audioLanguage', '')
+        self.subtitleMode = utils.cast(int, data.attrib.get('subtitleMode', '-1'))
         self.tagline = data.attrib.get('tagline')
         self.theme = data.attrib.get('theme')
         self.useOriginalTitle = utils.cast(int, data.attrib.get('useOriginalTitle', '-1'))
@@ -619,7 +657,7 @@ class Show(
 @utils.registerPlexObject
 class Season(
     Video,
-    ExtrasMixin, RatingMixin,
+    AdvancedSettingsMixin, ExtrasMixin, RatingMixin,
     ArtMixin, PosterMixin, ThemeUrlMixin,
     SummaryMixin, TitleMixin,
     CollectionMixin, LabelMixin
@@ -629,6 +667,7 @@ class Season(
         Attributes:
             TAG (str): 'Directory'
             TYPE (str): 'season'
+            audioLanguage (str): Setting that indicates the preferred audio language.
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             index (int): Season number.
@@ -644,6 +683,9 @@ class Season(
             parentThumb (str): URL to show thumbnail image (/library/metadata/<parentRatingKey>/thumb/<thumbid>).
             parentTitle (str): Name of the show for the season.
             ratings (List<:class:`~plexapi.media.Rating`>): List of rating objects.
+            subtitleLanguage (str): Setting that indicates the preferred subtitle language.
+            subtitleMode (int): Setting that indicates the auto-select subtitle mode.
+                (-1 = Series default, 0 = Manually selected, 1 = Shown with foreign audio, 2 = Always enabled).
             viewedLeafCount (int): Number of items marked as played in the season view.
             year (int): Year the season was released.
     """
@@ -654,6 +696,7 @@ class Season(
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Video._loadData(self, data)
+        self.audioLanguage = data.attrib.get('audioLanguage', '')
         self.collections = self.findItems(data, media.Collection)
         self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
@@ -669,6 +712,8 @@ class Season(
         self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
         self.ratings = self.findItems(data, media.Rating)
+        self.subtitleLanguage = data.attrib.get('audioLanguage', '')
+        self.subtitleMode = utils.cast(int, data.attrib.get('subtitleMode', '-1'))
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
 
@@ -918,13 +963,18 @@ class Episode(
 
     @property
     def hasCommercialMarker(self):
-        """ Returns True if the episode has a commercial marker in the xml. """
+        """ Returns True if the episode has a commercial marker. """
         return any(marker.type == 'commercial' for marker in self.markers)
 
     @property
     def hasIntroMarker(self):
-        """ Returns True if the episode has an intro marker in the xml. """
+        """ Returns True if the episode has an intro marker. """
         return any(marker.type == 'intro' for marker in self.markers)
+
+    @property
+    def hasCreditsMarker(self):
+        """ Returns True if the episode has a credits marker. """
+        return any(marker.type == 'credits' for marker in self.markers)
 
     @property
     def hasPreviewThumbnails(self):

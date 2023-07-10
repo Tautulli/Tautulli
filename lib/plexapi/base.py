@@ -695,38 +695,45 @@ class Playable:
         self.playlistItemID = utils.cast(int, data.attrib.get('playlistItemID'))    # playlist
         self.playQueueItemID = utils.cast(int, data.attrib.get('playQueueItemID'))  # playqueue
 
-    def getStreamURL(self, **params):
+    def getStreamURL(self, **kwargs):
         """ Returns a stream url that may be used by external applications such as VLC.
 
             Parameters:
-                **params (dict): optional parameters to manipulate the playback when accessing
+                **kwargs (dict): optional parameters to manipulate the playback when accessing
                     the stream. A few known parameters include: maxVideoBitrate, videoResolution
-                    offset, copyts, protocol, mediaIndex, platform.
+                    offset, copyts, protocol, mediaIndex, partIndex, platform.
 
             Raises:
                 :exc:`~plexapi.exceptions.Unsupported`: When the item doesn't support fetching a stream URL.
         """
         if self.TYPE not in ('movie', 'episode', 'track', 'clip'):
             raise Unsupported(f'Fetching stream URL for {self.TYPE} is unsupported.')
-        mvb = params.get('maxVideoBitrate')
-        vr = params.get('videoResolution', '')
+
+        mvb = kwargs.pop('maxVideoBitrate', None)
+        vr = kwargs.pop('videoResolution', '')
+        protocol = kwargs.pop('protocol', None)
+
         params = {
             'path': self.key,
-            'offset': params.get('offset', 0),
-            'copyts': params.get('copyts', 1),
-            'protocol': params.get('protocol'),
-            'mediaIndex': params.get('mediaIndex', 0),
-            'X-Plex-Platform': params.get('platform', 'Chrome'),
+            'mediaIndex': kwargs.pop('mediaIndex', 0),
+            'partIndex': kwargs.pop('mediaIndex', 0),
+            'protocol': protocol,
+            'fastSeek': kwargs.pop('fastSeek', 1),
+            'copyts': kwargs.pop('copyts', 1),
+            'offset': kwargs.pop('offset', 0),
             'maxVideoBitrate': max(mvb, 64) if mvb else None,
-            'videoResolution': vr if re.match(r'^\d+x\d+$', vr) else None
+            'videoResolution': vr if re.match(r'^\d+x\d+$', vr) else None,
+            'X-Plex-Platform': kwargs.pop('platform', 'Chrome')
         }
+        params.update(kwargs)
+
         # remove None values
         params = {k: v for k, v in params.items() if v is not None}
         streamtype = 'audio' if self.TYPE in ('track', 'album') else 'video'
-        # sort the keys since the randomness fucks with my tests..
-        sorted_params = sorted(params.items(), key=lambda val: val[0])
+        ext = 'mpd' if protocol == 'dash' else 'm3u8'
+
         return self._server.url(
-            f'/{streamtype}/:/transcode/universal/start.m3u8?{urlencode(sorted_params)}',
+            f'/{streamtype}/:/transcode/universal/start.{ext}?{urlencode(params)}',
             includeToken=True
         )
 
@@ -795,8 +802,8 @@ class Playable:
         """ Set the watched progress for this video.
 
             Note that setting the time to 0 will not work.
-            Use :func:`~plexapi.mixins.PlayedMixin.markPlayed` or
-            :func:`~plexapi.mixins.PlayedMixin.markUnplayed` to achieve
+            Use :func:`~plexapi.mixins.PlayedUnplayedMixin.markPlayed` or
+            :func:`~plexapi.mixins.PlayedUnplayedMixin.markUnplayed` to achieve
             that goal.
 
             Parameters:

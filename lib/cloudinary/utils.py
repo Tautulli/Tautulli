@@ -78,6 +78,7 @@ __SIMPLE_UPLOAD_PARAMS = [
     "backup",
     "faces",
     "image_metadata",
+    "media_metadata",
     "exif",
     "colors",
     "use_filename",
@@ -1052,7 +1053,8 @@ def build_custom_headers(headers):
 
 
 def build_upload_params(**options):
-    params = {param_name: options.get(param_name) for param_name in __SIMPLE_UPLOAD_PARAMS}
+    params = {param_name: options.get(param_name) for param_name in __SIMPLE_UPLOAD_PARAMS if param_name in options}
+    params["upload_preset"] = params.pop("upload_preset", cloudinary.config().upload_preset)
 
     serialized_params = {
         "timestamp": now(),
@@ -1577,3 +1579,19 @@ def unique(collection, key=None):
         to_return[key(element)] = element
 
     return list(to_return.values())
+
+
+def fq_public_id(public_id, resource_type="image", type="upload"):
+    """
+    Returns the fully qualified public id of form resource_type/type/public_id.
+
+    :param public_id: The public ID of the asset.
+    :type public_id: str
+    :param resource_type: The type of the asset. Defaults to "image".
+    :type resource_type: str
+    :param type: The upload type. Defaults to "upload".
+    :type type: str
+
+    :return:
+    """
+    return "{resource_type}/{type}/{public_id}".format(resource_type=resource_type, type=type, public_id=public_id)

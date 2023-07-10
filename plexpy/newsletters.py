@@ -117,15 +117,15 @@ def get_newsletters(newsletter_id=None):
     args = []
 
     if newsletter_id:
-        where = 'WHERE '
+        where = "WHERE "
         if newsletter_id:
-            where_id += 'id = ?'
+            where_id += "id = ?"
             args.append(newsletter_id)
-        where += ' AND '.join([w for w in [where_id] if w])
+        where += " AND ".join([w for w in [where_id] if w])
 
     db = database.MonitorDatabase()
-    result = db.select('SELECT id, agent_id, agent_name, agent_label, '
-                       'friendly_name, cron, active FROM newsletters %s' % where, args=args)
+    result = db.select("SELECT id, agent_id, agent_name, agent_label, "
+                       "friendly_name, cron, active FROM newsletters %s" % where, args=args)
 
     return result
 
@@ -136,7 +136,7 @@ def delete_newsletter(newsletter_id=None):
     if str(newsletter_id).isdigit():
         logger.debug("Tautulli Newsletters :: Deleting newsletter_id %s from the database."
                      % newsletter_id)
-        result = db.action('DELETE FROM newsletters WHERE id = ?', args=[newsletter_id])
+        result = db.action("DELETE FROM newsletters WHERE id = ?", args=[newsletter_id])
         return True
     else:
         return False
@@ -151,7 +151,7 @@ def get_newsletter_config(newsletter_id=None, mask_passwords=False):
         return None
 
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT * FROM newsletters WHERE id = ?', args=[newsletter_id])
+    result = db.select_single("SELECT * FROM newsletters WHERE id = ?", args=[newsletter_id])
 
     if not result:
         return None
@@ -309,7 +309,7 @@ def send_newsletter(newsletter_id=None, subject=None, body=None, message=None, n
 
 def blacklist_logger():
     db = database.MonitorDatabase()
-    notifiers = db.select('SELECT newsletter_config, email_config FROM newsletters')
+    notifiers = db.select("SELECT newsletter_config, email_config FROM newsletters")
 
     for n in notifiers:
         config = json.loads(n['newsletter_config'] or '{}')
@@ -318,7 +318,7 @@ def blacklist_logger():
         logger.blacklist_config(email_config)
 
 
-def serve_template(templatename, **kwargs):
+def serve_template(template_name, **kwargs):
     if plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR:
         logger.info("Tautulli Newsletters :: Using custom newsletter template directory.")
         template_dir = plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
@@ -327,12 +327,12 @@ def serve_template(templatename, **kwargs):
         template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.NEWSLETTER_TEMPLATES)
 
         if not plexpy.CONFIG.NEWSLETTER_INLINE_STYLES:
-            templatename = templatename.replace('.html', '.internal.html')
+            template_name = template_name.replace('.html', '.internal.html')
 
     _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
 
     try:
-        template = _hplookup.get_template(templatename)
+        template = _hplookup.get_template(template_name)
         return template.render(**kwargs), False
     except:
         return exceptions.html_error_template().render(), True
@@ -346,7 +346,7 @@ def generate_newsletter_uuid():
     while not uuid or uuid_exists:
         uuid = plexpy.generate_uuid()[:8]
         result = db.select_single(
-            'SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists', [uuid])
+            "SELECT EXISTS(SELECT uuid FROM newsletter_log WHERE uuid = ?) as uuid_exists", [uuid])
         uuid_exists = result['uuid_exists']
 
     return uuid
@@ -477,7 +477,7 @@ class Newsletter(object):
         logger.info("Tautulli Newsletters :: Generating newsletter%s." % (' preview' if self.is_preview else ''))
 
         newsletter_rendered, self.template_error = serve_template(
-            templatename=self._TEMPLATE,
+            template_name=self._TEMPLATE,
             uuid=self.uuid,
             subject=self.subject_formatted,
             body=self.body_formatted,
@@ -599,7 +599,7 @@ class Newsletter(object):
             base_url = helpers.get_plexpy_url() + '/newsletter/'
 
         parameters = {
-            'server_name': plexpy.CONFIG.PMS_NAME,
+            'server_name': helpers.pms_name(),
             'start_date': self.start_date.format(date_format),
             'end_date': self.end_date.format(date_format),
             'current_year': self.start_date.year,
@@ -971,7 +971,8 @@ class RecentlyAdded(Newsletter):
              'description': 'Select the libraries to include in the newsletter.',
              'name': 'newsletter_config_incl_libraries',
              'input_type': 'selectize',
-             'select_options': self._get_sections_options()
+             'select_options': self._get_sections_options(),
+             'select_all': True
              }
         ]
 

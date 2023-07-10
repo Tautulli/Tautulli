@@ -186,13 +186,13 @@ class WebSocketAppTest(unittest.TestCase):
         app = ws.WebSocketApp('wss://tsock.us1.twilio.com/v3/wsconnect')
         app.run_forever(ping_interval=2, ping_timeout=1, ping_payload="Ping payload")
 
-    @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testOpcodeBinary(self):
-        """ Test WebSocketApp binary opcode
-        """
-        # The lack of wss:// in the URL below is on purpose
-        app = ws.WebSocketApp('wss://streaming.vn.teslamotors.com/streaming/')
-        app.run_forever(ping_interval=2, ping_timeout=1, ping_payload="Ping payload")
+    # This is commented out because the URL no longer responds in the expected way
+    # @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
+    # def testOpcodeBinary(self):
+    #     """ Test WebSocketApp binary opcode
+    #     """
+    #     app = ws.WebSocketApp('wss://streaming.vn.teslamotors.com/streaming/')
+    #     app.run_forever(ping_interval=2, ping_timeout=1, ping_payload="Ping payload")
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
     def testBadPingInterval(self):
@@ -227,6 +227,91 @@ class WebSocketAppTest(unittest.TestCase):
         self.assertEqual([None, None], app2._get_close_args(closeframe))
 
         self.assertRaises(ws.WebSocketConnectionClosedException, app.send, data="test if connection is closed")
+
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
+    def testCallbackFunctionException(self):
+        """ Test callback function exception handling """
+
+        exc = None
+        passed_app = None
+
+        def on_open(app):
+            raise RuntimeError("Callback failed")
+
+        def on_error(app, err):
+            nonlocal passed_app
+            passed_app = app
+            nonlocal exc
+            exc = err
+
+        def on_pong(app, msg):
+            app.close()
+
+        app = ws.WebSocketApp('ws://127.0.0.1:' + LOCAL_WS_SERVER_PORT, on_open=on_open, on_error=on_error, on_pong=on_pong)
+        app.run_forever(ping_interval=2, ping_timeout=1)
+
+        self.assertEqual(passed_app, app)
+        self.assertIsInstance(exc, RuntimeError)
+        self.assertEqual(str(exc), "Callback failed")
+
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
+    def testCallbackMethodException(self):
+        """ Test callback method exception handling """
+
+        class Callbacks:
+            def __init__(self):
+                self.exc = None
+                self.passed_app = None
+                self.app = ws.WebSocketApp(
+                    'ws://127.0.0.1:' + LOCAL_WS_SERVER_PORT,
+                    on_open=self.on_open,
+                    on_error=self.on_error,
+                    on_pong=self.on_pong
+                )
+                self.app.run_forever(ping_interval=2, ping_timeout=1)
+
+            def on_open(self, app):
+                raise RuntimeError("Callback failed")
+
+            def on_error(self, app, err):
+                self.passed_app = app
+                self.exc = err
+
+            def on_pong(self, app, msg):
+                app.close()
+
+        callbacks = Callbacks()
+
+        self.assertEqual(callbacks.passed_app, callbacks.app)
+        self.assertIsInstance(callbacks.exc, RuntimeError)
+        self.assertEqual(str(callbacks.exc), "Callback failed")
+
+    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
+    def testReconnect(self):
+        """ Test reconnect """
+        pong_count = 0
+        exc = None
+
+        def on_error(app, err):
+            nonlocal exc
+            exc = err
+
+        def on_pong(app, msg):
+            nonlocal pong_count
+            pong_count += 1
+            if pong_count == 1:
+                # First pong, shutdown socket, enforce read error
+                app.sock.shutdown()
+            if pong_count >= 2:
+                # Got second pong after reconnect
+                app.close()
+
+        app = ws.WebSocketApp('ws://127.0.0.1:' + LOCAL_WS_SERVER_PORT, on_pong=on_pong, on_error=on_error)
+        app.run_forever(ping_interval=2, ping_timeout=1, reconnect=3)
+
+        self.assertEqual(pong_count, 2)
+        self.assertIsInstance(exc, ValueError)
+        self.assertEqual(str(exc), "Invalid file object: None")
 
 
 if __name__ == "__main__":

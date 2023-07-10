@@ -247,7 +247,7 @@ history_table_options = {
         },
         {
             "targets": [11],
-            "data": "duration",
+            "data": "play_duration",
             "render": function (data, type, full) {
                 if (data !== null) {
                     return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
@@ -529,7 +529,7 @@ function childTableFormat(rowData) {
                 '<th align="left" id="started">Started</th>' +
                 '<th align="left" id="paused_counter">Paused</th>' +
                 '<th align="left" id="stopped">Stopped</th>' +
-                '<th align="left" id="duration">Duration</th>' +
+                '<th align="left" id="play_duration">Duration</th>' +
                 '<th align="left" id="percent_complete"></th>' +
             '</tr>' +
             '</thead>' +

@@ -1,12 +1,13 @@
-import warnings
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
+from warnings import warn
 
-from .api import from_bytes, from_fp, from_path, normalize
+from .api import from_bytes
 from .constant import CHARDET_CORRESPONDENCE
-from .models import CharsetMatch, CharsetMatches
 
 
-def detect(byte_str: bytes) -> Dict[str, Optional[Union[str, float]]]:
+def detect(
+    byte_str: bytes, should_rename_legacy: bool = False, **kwargs: Any
+) -> Dict[str, Optional[Union[str, float]]]:
     """
     chardet legacy method
     Detect the encoding of the given byte string. It should be mostly backward-compatible.
@@ -15,7 +16,14 @@ def detect(byte_str: bytes) -> Dict[str, Optional[Union[str, float]]]:
     further information. Not planned for removal.
 
     :param byte_str:     The byte sequence to examine.
+    :param should_rename_legacy:  Should we rename legacy encodings
+                                  to their more modern equivalents?
     """
+    if len(kwargs):
+        warn(
+            f"charset-normalizer disregard arguments '{','.join(list(kwargs.keys()))}' in legacy function detect()"
+        )
+
     if not isinstance(byte_str, (bytearray, bytes)):
         raise TypeError(  # pragma: nocover
             "Expected object of type bytes or bytearray, got: "
@@ -36,60 +44,11 @@ def detect(byte_str: bytes) -> Dict[str, Optional[Union[str, float]]]:
     if r is not None and encoding == "utf_8" and r.bom:
         encoding += "_sig"
 
+    if should_rename_legacy is False and encoding in CHARDET_CORRESPONDENCE:
+        encoding = CHARDET_CORRESPONDENCE[encoding]
+
     return {
-        "encoding": encoding
-        if encoding not in CHARDET_CORRESPONDENCE
-        else CHARDET_CORRESPONDENCE[encoding],
+        "encoding": encoding,
         "language": language,
         "confidence": confidence,
     }
-
-
-class CharsetNormalizerMatch(CharsetMatch):
-    pass
-
-
-class CharsetNormalizerMatches(CharsetMatches):
-    @staticmethod
-    def from_fp(*args, **kwargs):  # type: ignore
-        warnings.warn(  # pragma: nocover
-            "staticmethod from_fp, from_bytes, from_path and normalize are deprecated "
-            "and scheduled to be removed in 3.0",
-            DeprecationWarning,
-        )
-        return from_fp(*args, **kwargs)  # pragma: nocover
-
-    @staticmethod
-    def from_bytes(*args, **kwargs):  # type: ignore
-        warnings.warn(  # pragma: nocover
-            "staticmethod from_fp, from_bytes, from_path and normalize are deprecated "
-            "and scheduled to be removed in 3.0",
-            DeprecationWarning,
-        )
-        return from_bytes(*args, **kwargs)  # pragma: nocover
-
-    @staticmethod
-    def from_path(*args, **kwargs):  # type: ignore
-        warnings.warn(  # pragma: nocover
-            "staticmethod from_fp, from_bytes, from_path and normalize are deprecated "
-            "and scheduled to be removed in 3.0",
-            DeprecationWarning,
-        )
-        return from_path(*args, **kwargs)  # pragma: nocover
-
-    @staticmethod
-    def normalize(*args, **kwargs):  # type: ignore
-        warnings.warn(  # pragma: nocover
-            "staticmethod from_fp, from_bytes, from_path and normalize are deprecated "
-            "and scheduled to be removed in 3.0",
-            DeprecationWarning,
-        )
-        return normalize(*args, **kwargs)  # pragma: nocover
-
-
-class CharsetDetector(CharsetNormalizerMatches):
-    pass
-
-
-class CharsetDoctor(CharsetNormalizerMatches):
-    pass

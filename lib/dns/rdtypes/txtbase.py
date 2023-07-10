@@ -17,6 +17,8 @@
 
 """TXT-like base class."""
 
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
+
 import struct
 
 import dns.exception
@@ -30,9 +32,14 @@ class TXTBase(dns.rdata.Rdata):
 
     """Base class for rdata that is like a TXT record (see RFC 1035)."""
 
-    __slots__ = ['strings']
+    __slots__ = ["strings"]
 
-    def __init__(self, rdclass, rdtype, strings):
+    def __init__(
+        self,
+        rdclass: dns.rdataclass.RdataClass,
+        rdtype: dns.rdatatype.RdataType,
+        strings: Iterable[Union[bytes, str]],
+    ):
         """Initialize a TXT-like rdata.
 
         *rdclass*, an ``int`` is the rdataclass of the Rdata.
@@ -42,27 +49,41 @@ class TXTBase(dns.rdata.Rdata):
         *strings*, a tuple of ``bytes``
         """
         super().__init__(rdclass, rdtype)
-        self.strings = self._as_tuple(strings,
-                                      lambda x: self._as_bytes(x, True, 255))
+        self.strings: Tuple[bytes] = self._as_tuple(
+            strings, lambda x: self._as_bytes(x, True, 255)
+        )
 
-    def to_text(self, origin=None, relativize=True, **kw):
-        txt = ''
-        prefix = ''
+    def to_text(
+        self,
+        origin: Optional[dns.name.Name] = None,
+        relativize: bool = True,
+        **kw: Dict[str, Any]
+    ) -> str:
+        txt = ""
+        prefix = ""
         for s in self.strings:
             txt += '{}"{}"'.format(prefix, dns.rdata._escapify(s))
-            prefix = ' '
+            prefix = " "
         return txt
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls,
+        rdclass: dns.rdataclass.RdataClass,
+        rdtype: dns.rdatatype.RdataType,
+        tok: dns.tokenizer.Tokenizer,
+        origin: Optional[dns.name.Name] = None,
+        relativize: bool = True,
+        relativize_to: Optional[dns.name.Name] = None,
+    ) -> dns.rdata.Rdata:
         strings = []
         for token in tok.get_remaining():
             token = token.unescape_to_bytes()
             # The 'if' below is always true in the current code, but we
             # are leaving this check in in case things change some day.
-            if not (token.is_quoted_string() or
-                    token.is_identifier()):  # pragma: no cover
+            if not (
+                token.is_quoted_string() or token.is_identifier()
+            ):  # pragma: no cover
                 raise dns.exception.SyntaxError("expected a string")
             if len(token.value) > 255:
                 raise dns.exception.SyntaxError("string too long")
@@ -75,7 +96,7 @@ class TXTBase(dns.rdata.Rdata):
         for s in self.strings:
             l = len(s)
             assert l < 256
-            file.write(struct.pack('!B', l))
+            file.write(struct.pack("!B", l))
             file.write(s)
 
     @classmethod

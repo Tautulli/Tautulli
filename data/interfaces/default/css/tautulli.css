@@ -79,7 +79,6 @@ select.form-control {
     color: #eee !important;
     border: 0px solid #444 !important;
     background: #555 !important;
-    padding: 1px 2px;
     transition: background-color .3s;
 }
 .selectize-control.form-control .selectize-input {
@@ -87,7 +86,6 @@ select.form-control {
     align-items: center;
     flex-wrap: wrap;
     margin-bottom: 4px;
-    padding-left: 5px;
 }
 .selectize-control.form-control.selectize-pms-ip .selectize-input {
     padding-left: 12px !important;
@@ -2916,7 +2914,7 @@ a .home-platforms-list-cover-face:hover
     margin-bottom: -20px;
     width: 100%;
     max-width: 1750px;
-    overflow: hidden;
+    display: flow-root;
 }
 .table-card-back td {
     font-size: 12px;

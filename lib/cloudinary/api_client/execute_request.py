@@ -68,9 +68,9 @@ def execute_request(http_connector, method, params, headers, auth, api_url, **op
         response = http_connector.request(method.upper(), api_url, processed_params, req_headers, **kw)
         body = response.data
     except HTTPError as e:
-        raise GeneralError("Unexpected error {0}", e.message)
+        raise GeneralError("Unexpected error %s" % str(e))
     except socket.error as e:
-        raise GeneralError("Socket Error: %s" % (str(e)))
+        raise GeneralError("Socket Error: %s" % str(e))
 
     try:
         result = json.loads(body.decode('utf-8'))

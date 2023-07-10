@@ -12,8 +12,10 @@ data :: Usable parameters (if not applicable for media type, blank value will be
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
 media_type              Returns the type of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
+sub_media_type          Returns the subtype of media. Either 'movie', 'show', 'season', 'episode', 'artist', 'album', or 'track'.
 art                     Returns the location of the item's artwork
 title                   Returns the name of the movie, show, episode, artist, album, or track.
+edition_title            Returns the edition title of a movie.
 duration                Returns the standard runtime of the media.
 content_rating          Returns the age rating for the media.
 summary                 Returns a brief description of the media plot.
@@ -212,7 +214,7 @@ DOCUMENTATION :: END
                             % if _session['user_group'] == 'admin':
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
-                            % elif data['media_type'] in ('artist', 'album', 'track', 'playlist', 'photo_album', 'photo', 'clip'):
+                            % elif data['media_type'] in ('artist', 'album', 'track', 'playlist', 'photo_album', 'photo', 'clip') or data['sub_media_type'] in ('artist', 'album', 'track'):
                             <div class="summary-poster-face-track" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 300, fallback='cover')});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
@@ -266,7 +268,7 @@ DOCUMENTATION :: END
                         <h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         % elif data['media_type'] == 'track':
-                        <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['original_title'] or data['grandparent_title']}</a></h1>
+                        <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
                         <h2><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a> - ${data['title']}</h2>
                         <h3 class="hidden-xs">T${data['media_index']}</h3>
                         % elif data['media_type'] in ('photo', 'clip'):
@@ -282,14 +284,14 @@ DOCUMENTATION :: END
                         padding_height = ''
                         if data['media_type'] == 'movie' or data['live']:
                             padding_height = 'height: 305px;'
-                        elif data['media_type'] in ('show', 'season', 'collection'):
-                            padding_height = 'height: 270px;'
-                        elif data['media_type'] == 'episode':
-                            padding_height = 'height: 70px;'
-                        elif data['media_type'] in ('artist', 'album', 'playlist', 'photo_album', 'photo'):
+                        elif data['media_type'] in ('artist', 'album', 'playlist', 'photo_album', 'photo') or data['sub_media_type'] in ('artist', 'album', 'track'):
                             padding_height = 'height: 150px;'
                         elif data['media_type'] in ('track', 'clip'):
                             padding_height = 'height: 180px;'
+                        elif data['media_type'] == 'episode':
+                            padding_height = 'height: 70px;'
+                        elif data['media_type'] in ('show', 'season', 'collection'):
+                            padding_height = 'height: 270px;'
                     %>
                     <div class="summary-content-padding hidden-xs hidden-sm" style="${padding_height}">
                         % if data['media_type'] in ('movie', 'episode', 'track', 'clip'):
@@ -369,6 +371,11 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                             <div class="summary-content-details-tag">
+                                % if data['media_type'] == 'track' and data['original_title']:
+                                Track Artists <strong> ${data['original_title']}</strong>
+                                % endif
+                            </div>
+                            <div class="summary-content-details-tag">
                                 % if data['media_type'] == 'movie':
                                 Year <strong> ${data['year']}</strong>
                                 % elif data['media_type'] == 'show':
@@ -390,6 +397,11 @@ DOCUMENTATION :: END
                                 Runtime <strong> <span id="runtime">${data['duration']}</span></strong>
                                 % endif
                             </div>
+                            % if data['edition_title']:
+                            <div class="summary-content-details-tag">
+                                Edition <strong> ${data['edition_title']} </strong>
+                            </div>
+                            % endif
                             <div class="summary-content-details-tag">
                                 % if data['content_rating']:
                                 Rated <strong> ${data['content_rating']} </strong>
@@ -542,7 +554,7 @@ DOCUMENTATION :: END
                     </div>
                 </div>
                 % endif
-                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+                % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
                 <div class="col-md-12">
                     <div class="table-card-header">
                         <div class="header-bar">
@@ -571,7 +583,7 @@ DOCUMENTATION :: END
                 </div>
                 % endif
                 <%
-                    history_type = data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track')
+                    history_type = data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist')
                     history_active = 'active' if history_type else ''
                     export_active = 'active' if not history_type else ''
                 %>
@@ -634,7 +646,7 @@ DOCUMENTATION :: END
                                 <div class="col-md-12">
                                     <div class="table-card-header">
                                         <div class="header-bar">
-                                            % if data['media_type'] in ('artist', 'album', 'track'):
+                                            % if data['media_type'] in ('artist', 'album', 'track', 'playlist'):
                                             <span>Play History for <strong>${data['title']}</strong></span>
                                             % else:
                                             <span>Watch History for <strong>${data['title']}</strong></span>
@@ -680,7 +692,7 @@ DOCUMENTATION :: END
                                                     <th align="left" id="started">Started</th>
                                                     <th align="left" id="paused_counter">Paused</th>
                                                     <th align="left" id="stopped">Stopped</th>
-                                                    <th align="left" id="duration">Duration</th>
+                                                    <th align="left" id="play_duration">Duration</th>
                                                     <th align="left" id="percent_complete"></th>
                                                 </tr>
                                             </thead>
@@ -806,7 +818,7 @@ DOCUMENTATION :: END
                         % elif data['media_type'] == 'album':
                         ${data['parent_title']}<br />${data['title']}
                         % elif data['media_type'] == 'track':
-                        ${data['original_title'] or data['grandparent_title']}<br />${data['title']}<br />${data['parent_title']}
+                        ${data['grandparent_title']}<br />${data['title']}<br />${data['parent_title']}
                         % endif
                     </strong>
                 </p>
@@ -853,7 +865,7 @@ DOCUMENTATION :: END
 %>
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
-% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
 <script>
     function loadHistoryTable(transcode_decision) {
         // Build watch history table
@@ -872,6 +884,9 @@ DOCUMENTATION :: END
                     % elif data['media_type'] in ('season', 'album'):
                     parent_rating_key: "${data['rating_key']}"
                     % elif data['media_type'] in ('movie', 'episode', 'track'):
+                    rating_key: "${data['rating_key']}"
+                    % elif data['media_type'] in ('collection', 'playlist'):
+                    media_type: "${data['media_type']}",
                     rating_key: "${data['rating_key']}"
                     % endif
                 };
@@ -925,13 +940,16 @@ DOCUMENTATION :: END
     });
 </script>
 % endif
-% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track'):
+% if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
 <script>
     // Populate watch time stats
     $.ajax({
         url: 'item_watch_time_stats',
         async: true,
-        data: { rating_key: "${data['rating_key']}" },
+        data: { 
+            rating_key: "${data['rating_key']}",
+            media_type: "${data['media_type']}"    
+        },
         complete: function(xhr, status) {
             $("#watch-time-stats").html(xhr.responseText);
         }
@@ -940,7 +958,10 @@ DOCUMENTATION :: END
     $.ajax({
         url: 'item_user_stats',
         async: true,
-        data: { rating_key: "${data['rating_key']}" },
+        data: { 
+            rating_key: "${data['rating_key']}",
+            media_type: "${data['media_type']}"    
+        },
         complete: function(xhr, status) {
             $("#user-stats").html(xhr.responseText);
         }

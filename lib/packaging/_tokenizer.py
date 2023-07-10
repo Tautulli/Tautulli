@@ -35,7 +35,6 @@ class ParserSyntaxError(Exception):
 
 
 DEFAULT_RULES: "Dict[str, Union[str, re.Pattern[str]]]" = {
-    "LPAREN": r"\s*\(",
     "LEFT_PARENTHESIS": r"\(",
     "RIGHT_PARENTHESIS": r"\)",
     "LEFT_BRACKET": r"\[",
@@ -72,7 +71,10 @@ DEFAULT_RULES: "Dict[str, Union[str, re.Pattern[str]]]" = {
         """,
         re.VERBOSE,
     ),
-    "VERSION": re.compile(Specifier._version_regex_str, re.VERBOSE | re.IGNORECASE),
+    "SPECIFIER": re.compile(
+        Specifier._operator_regex_str + Specifier._version_regex_str,
+        re.VERBOSE | re.IGNORECASE,
+    ),
     "AT": r"\@",
     "URL": r"[^ \t]+",
     "IDENTIFIER": r"\b[a-zA-Z0-9][a-zA-Z0-9._-]*\b",
