@@ -519,12 +519,12 @@ class ActivityProcessor(object):
             if len(result) > 1:
                 new_session = {'id': result[0]['id'],
                                 'rating_key': result[0]['rating_key'],
-                                'view_offset': result[0]['view_offset'],
+                                'view_offset': helpers.cast_to_int(result[0]['view_offset']),
                                 'reference_id': result[0]['reference_id']}
 
                 prev_session = {'id': result[1]['id'],
                                 'rating_key': result[1]['rating_key'],
-                                'view_offset': result[1]['view_offset'],
+                                'view_offset': helpers.cast_to_int(result[1]['view_offset']),
                                 'reference_id': result[1]['reference_id']}
 
                 if metadata:
