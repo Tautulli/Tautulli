@@ -453,12 +453,12 @@
 
         $("#download-tautullilog").click(function () {
             var logfile = $(".tab-pane.active").data('logfile');
-            window.location.href = "download_log?logfile=" + logfile;
+            window.location.href = "download_log?logfile=" + window.encodeURIComponent(logfile);
         });
 
         $("#download-plexserverlog").click(function () {
             var logfile = $("option:selected", "#plex-log-files").val();
-            window.location.href = "download_plex_log?logfile=" + logfile;
+            window.location.href = "download_plex_log?logfile=" + window.encodeURIComponent(logfile);
         });
 
         $("#clear-notify-logs").click(function () {

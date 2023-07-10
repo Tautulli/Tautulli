@@ -32,7 +32,7 @@ class HIP(dns.rdata.Rdata):
 
     # see: RFC 5205
 
-    __slots__ = ['hit', 'algorithm', 'key', 'servers']
+    __slots__ = ["hit", "algorithm", "key", "servers"]
 
     def __init__(self, rdclass, rdtype, hit, algorithm, key, servers):
         super().__init__(rdclass, rdtype)
@@ -43,18 +43,19 @@ class HIP(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         hit = binascii.hexlify(self.hit).decode()
-        key = base64.b64encode(self.key).replace(b'\n', b'').decode()
-        text = ''
+        key = base64.b64encode(self.key).replace(b"\n", b"").decode()
+        text = ""
         servers = []
         for server in self.servers:
             servers.append(server.choose_relativity(origin, relativize))
         if len(servers) > 0:
-            text += (' ' + ' '.join((x.to_unicode() for x in servers)))
-        return '%u %s %s%s' % (self.algorithm, hit, key, text)
+            text += " " + " ".join((x.to_unicode() for x in servers))
+        return "%u %s %s%s" % (self.algorithm, hit, key, text)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         algorithm = tok.get_uint8()
         hit = binascii.unhexlify(tok.get_string().encode())
         key = base64.b64decode(tok.get_string().encode())
@@ -75,7 +76,7 @@ class HIP(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-        (lh, algorithm, lk) = parser.get_struct('!BBH')
+        (lh, algorithm, lk) = parser.get_struct("!BBH")
         hit = parser.get_bytes(lh)
         key = parser.get_bytes(lk)
         servers = []

@@ -340,6 +340,30 @@ def available_notification_actions(agent_id=None):
                 'icon': 'fa-exchange-alt',
                 'media_types': ('movie', 'episode', 'track')
                 },
+               {'label': 'Intro Marker',
+                'name': 'on_intro',
+                'description': 'Trigger a notification when a video stream reaches any intro marker.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) has reached an intro marker for {title}.',
+                'icon': 'fa-bookmark',
+                'media_types': ('episode',)
+                },
+               {'label': 'Commercial Marker',
+                'name': 'on_commercial',
+                'description': 'Trigger a notification when a video stream reaches any commercial marker.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) has reached a commercial marker for {title}.',
+                'icon': 'fa-bookmark',
+                'media_types': ('movie', 'episode')
+                },
+               {'label': 'Credits Marker',
+                'name': 'on_credits',
+                'description': 'Trigger a notification when a video stream reaches any credits marker.',
+                'subject': 'Tautulli ({server_name})',
+                'body': '{user} ({player}) has reached a credits marker for {title}.',
+                'icon': 'fa-bookmark',
+                'media_types': ('movie', 'episode')
+                },
                {'label': 'Watched',
                 'name': 'on_watched',
                 'description': 'Trigger a notification when a video stream reaches the specified watch percentage.',
@@ -483,7 +507,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
         where += ' AND '.join([w for w in [where_id, where_action] if w])
 
     db = database.MonitorDatabase()
-    result = db.select('SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s'
+    result = db.select("SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s"
                        % (', '.join(notify_actions), where), args=args)
 
     for item in result:
@@ -498,7 +522,7 @@ def delete_notifier(notifier_id=None):
     if str(notifier_id).isdigit():
         logger.debug("Tautulli Notifiers :: Deleting notifier_id %s from the database."
                      % notifier_id)
-        result = db.action('DELETE FROM notifiers WHERE id = ?', args=[notifier_id])
+        result = db.action("DELETE FROM notifiers WHERE id = ?", args=[notifier_id])
         return True
     else:
         return False
@@ -513,7 +537,7 @@ def get_notifier_config(notifier_id=None, mask_passwords=False):
         return None
 
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT * FROM notifiers WHERE id = ?', args=[notifier_id])
+    result = db.select_single("SELECT * FROM notifiers WHERE id = ?", args=[notifier_id])
 
     if not result:
         return None
@@ -892,6 +916,15 @@ class PrettyMetadata(object):
         parameters[''] = ''
         return parameters
 
+    def get_image(self):
+        result = pmsconnect.PmsConnect().get_image(img=self.parameters.get('poster_thumb', ''))
+        if result and result[0]:
+            poster_content = result[0]
+            poster_filename = 'poster_{}.png'.format(self.parameters['rating_key'])
+            return (poster_filename, poster_content, 'image/png')
+        
+        logger.error("Tautulli Notifiers :: Unable to retrieve image for notification.")
+
 
 class Notifier(object):
     NAME = ''
@@ -1117,9 +1150,15 @@ class DISCORD(Notifier):
         if self.config['tts']:
             data['tts'] = True
 
+        files = {}
+
         if self.config['incl_card'] and kwargs.get('parameters', {}).get('media_type'):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            image = pretty_metadata.get_image()
+            if image:
+                files = {'files[0]': image}
 
             if pretty_metadata.media_type == 'movie':
                 provider = self.config['movie_provider']
@@ -1150,9 +1189,9 @@ class DISCORD(Notifier):
                     attachment['color'] = helpers.hex_to_int(hex)
 
             if self.config['incl_thumbnail']:
-                attachment['thumbnail'] = {'url': poster_url}
+                attachment['thumbnail'] = {'url': 'attachment://{}'.format(image[0]) if image else poster_url}
             else:
-                attachment['image'] = {'url': poster_url}
+                attachment['image'] = {'url': 'attachment://{}'.format(image[0]) if image else poster_url}
 
             if self.config['incl_description']:
                 attachment['description'] = description[:2045] + (description[2045:] and '...')
@@ -1172,10 +1211,13 @@ class DISCORD(Notifier):
 
             data['embeds'] = [attachment]
 
-        headers = {'Content-type': 'application/json'}
         params = {'wait': True}
 
-        return self.make_request(self.config['hook'], params=params, headers=headers, json=data)
+        if files:
+            files['payload_json'] = (None, json.dumps(data), 'application/json')
+            return self.make_request(self.config['hook'], params=params, files=files)
+        else:
+            return self.make_request(self.config['hook'], params=params, json=data)
 
     def _return_config_options(self):
         config_option = [{'label': 'Discord Webhook URL',
@@ -1217,10 +1259,7 @@ class DISCORD(Notifier):
                          {'label': 'Include Rich Metadata Info',
                           'value': self.config['incl_card'],
                           'name': 'discord_incl_card',
-                          'description': 'Include an info card with a poster and metadata with the notifications.<br>'
-                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" '
-                                         'data-target="notify_upload_posters">Image Hosting</a> '
-                                         'must be enabled under the 3rd Party APIs settings tab.',
+                          'description': 'Include an info card with a poster and metadata with the notifications.',
                           'input_type': 'checkbox'
                           },
                          {'label': 'Include Summary',
@@ -1396,21 +1435,24 @@ class EMAIL(Notifier):
                           'name': 'email_to',
                           'description': 'The email address(es) of the recipients.',
                           'input_type': 'selectize',
-                          'select_options': user_emails_to
+                          'select_options': user_emails_to,
+                          'select_all': True
                           },
                          {'label': 'CC',
                           'value': self.config['cc'],
                           'name': 'email_cc',
                           'description': 'The email address(es) to CC.',
                           'input_type': 'selectize',
-                          'select_options': user_emails_cc
+                          'select_options': user_emails_cc,
+                          'select_all': True
                           },
                          {'label': 'BCC',
                           'value': self.config['bcc'],
                           'name': 'email_bcc',
                           'description': 'The email address(es) to BCC.',
                           'input_type': 'selectize',
-                          'select_options': user_emails_bcc
+                          'select_options': user_emails_bcc,
+                          'select_all': True
                           },
                          {'label': 'SMTP Server',
                           'value': self.config['smtp_server'],
@@ -1792,19 +1834,12 @@ class GROUPME(Notifier):
         if self.config['incl_poster'] and kwargs.get('parameters'):
             pretty_metadata = PrettyMetadata(kwargs.get('parameters'))
 
-            # Retrieve the poster from Plex
-            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb',''))
-            if result and result[0]:
-                poster_content = result[0]
-            else:
-                poster_content = ''
-                logger.error("Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
-
-            if poster_content:
+            image = pretty_metadata.get_image()
+            if image:
                 headers = {'X-Access-Token': self.config['access_token'],
                            'Content-Type': 'image/png'}
 
-                r = requests.post('https://image.groupme.com/pictures', headers=headers, data=poster_content)
+                r = requests.post('https://image.groupme.com/pictures', headers=headers, data=image[1])
 
                 if r.status_code == 200:
                     logger.info("Tautulli Notifiers :: {name} poster sent.".format(name=self.NAME))
@@ -2815,7 +2850,7 @@ class PLEXMOBILEAPP(Notifier):
             'data': {
                 'provider': {
                     'identifier': plexpy.CONFIG.PMS_IDENTIFIER,
-                    'title': plexpy.CONFIG.PMS_NAME
+                    'title': helpers.pms_name()
                 }
             }
         }
@@ -3027,18 +3062,10 @@ class PUSHBULLET(Notifier):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
 
-            # Retrieve the poster from Plex
-            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
-            if result and result[0]:
-                poster_content = result[0]
-            else:
-                poster_content = ''
-                logger.error("Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
-
-            if poster_content:
-                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
-                file_json = {'file_name': poster_filename, 'file_type': 'image/png'}
-                files = {'file': (poster_filename, poster_content, 'image/png')}
+            image = pretty_metadata.get_image()
+            if image:
+                file_json = {'file_name': image[0], 'file_type': image[2]}
+                files = {'file': image}
 
                 r = requests.post('https://api.pushbullet.com/v2/upload-request', headers=headers, json=file_json)
 
@@ -3184,47 +3211,42 @@ class PUSHOVER(Notifier):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
 
-            # Retrieve the poster from Plex
-            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
-            if result and result[0]:
-                poster_content = result[0]
-            else:
-                poster_content = ''
-                logger.error("Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
-
-            if poster_content:
-                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
-                files = {'attachment': (poster_filename, poster_content, 'image/png')}
+            image = pretty_metadata.get_image()
+            if image:
+                files = {'attachment': image}
                 headers = {}
 
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
 
     def get_sounds(self):
-        sounds = {
-            '': '',
-            'alien': 'Alien Alarm (long)',
-            'bike': 'Bike',
-            'bugle': 'Bugle',
-            'cashregister': 'Cash Register',
-            'classical': 'Classical',
-            'climb': 'Climb (long)',
-            'cosmic': 'Cosmic',
-            'echo': 'Pushover Echo (long)',
-            'falling': 'Falling',
-            'gamelan': 'Gamelan',
-            'incoming': 'Incoming',
-            'intermission': 'Intermission',
-            'magic': 'Magic',
-            'mechanical': 'Mechanical',
-            'none': 'None (silent)',
-            'persistent': 'Persistent (long)',
-            'pianobar': 'Piano Bar',
-            'pushover': 'Pushover (default)',
-            'siren': 'Siren',
-            'spacealarm': 'Space Alarm',
-            'tugboat': 'Tug Boat',
-            'updown': 'Up Down (long)'
-        }
+        sounds = [
+            {'value': '', 'text': ''},
+            {'value': 'alien', 'text': 'Alien Alarm (long)'},
+            {'value': 'bike', 'text': 'Bike'},
+            {'value': 'bugle', 'text': 'Bugle'},
+            {'value': 'cashregister', 'text': 'Cash Register'},
+            {'value': 'classical', 'text': 'Classical'},
+            {'value': 'climb', 'text': 'Climb (long)'},
+            {'value': 'cosmic', 'text': 'Cosmic'},
+            {'value': 'echo', 'text': 'Pushover Echo (long)'},
+            {'value': 'falling', 'text': 'Falling'},
+            {'value': 'gamelan', 'text': 'Gamelan'},
+            {'value': 'incoming', 'text': 'Incoming'},
+            {'value': 'intermission', 'text': 'Intermission'},
+            {'value': 'magic', 'text': 'Magic'},
+            {'value': 'mechanical', 'text': 'Mechanical'},
+            {'value': 'none', 'text': 'None (silent)'},
+            {'value': 'persistent', 'text': 'Persistent (long)'},
+            {'value': 'pianobar', 'text': 'Piano Bar'},
+            {'value': 'pushover', 'text': 'Pushover (default)'},
+            {'value': 'siren', 'text': 'Siren'},
+            {'value': 'spacealarm', 'text': 'Space Alarm'},
+            {'value': 'tugboat', 'text': 'Tug Boat'},
+            {'value': 'updown', 'text': 'Up Down (long)'},
+            {'value': 'vibrate', 'text': 'Vibrate Only'},
+        ]
+        if self.config['sound'] not in [s['value'] for s in sounds]:
+            sounds.append({'value': self.config['sound'], 'text': self.config['sound']})
 
         return sounds
 
@@ -3265,9 +3287,10 @@ class PUSHOVER(Notifier):
                          {'label': 'Sound',
                           'value': self.config['sound'],
                           'name': 'pushover_sound',
-                          'description': 'Set the notification sound. Leave blank for the default sound.',
-                          'input_type': 'select',
-                          'select_options': self.get_sounds()
+                          'description': 'Select a notification sound or enter a custom sound name. Leave blank for the default sound.',
+                          'input_type': 'selectize',
+                          'select_options': self.get_sounds(),
+                          'select_all': False
                           },
                          {'label': 'Priority',
                           'value': self.config['priority'],
@@ -3408,7 +3431,8 @@ class SCRIPTS(Notifier):
             'TAUTULLI_PUBLIC_URL': plexpy.CONFIG.HTTP_BASE_URL + plexpy.HTTP_ROOT,
             'TAUTULLI_APIKEY': plexpy.CONFIG.API_KEY,
             'TAUTULLI_ENCODING': plexpy.SYS_ENCODING,
-            'TAUTULLI_PYTHON_VERSION': common.PYTHON_VERSION
+            'TAUTULLI_PYTHON_VERSION': common.PYTHON_VERSION,
+            'PLEXAPI_LOG_PATH': os.path.join(plexpy.CONFIG.LOG_DIR, 'plexapi_script.log')
             }
 
         if user_id:
@@ -3842,8 +3866,8 @@ class TAUTULLIREMOTEAPP(Notifier):
         db = database.MonitorDatabase()
 
         try:
-            query = 'SELECT * FROM mobile_devices WHERE official = 1 ' \
-                    'AND onesignal_id IS NOT NULL AND onesignal_id != ""'
+            query = "SELECT * FROM mobile_devices WHERE official = 1 " \
+                    "AND onesignal_id IS NOT NULL AND onesignal_id != ''"
             return db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Notifiers :: Unable to retrieve Tautulli Remote app devices list: %s." % e)
@@ -3962,7 +3986,10 @@ class TELEGRAM(Notifier):
                        }
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
-        data = {'chat_id': self.config['chat_id']}
+        chat_id, *message_thread_id = self.config['chat_id'].split('/')
+        data = {'chat_id': chat_id}
+        if message_thread_id:
+            data['message_thread_id'] = message_thread_id[0]
 
         if self.config['incl_subject']:
             text = subject + '\r\n' + body
@@ -3976,17 +4003,9 @@ class TELEGRAM(Notifier):
             # Grab formatted metadata
             pretty_metadata = PrettyMetadata(kwargs['parameters'])
 
-            # Retrieve the poster from Plex
-            result = pmsconnect.PmsConnect().get_image(img=pretty_metadata.parameters.get('poster_thumb', ''))
-            if result and result[0]:
-                poster_content = result[0]
-            else:
-                poster_content = ''
-                logger.error("Tautulli Notifiers :: Unable to retrieve image for {name}.".format(name=self.NAME))
-
-            if poster_content:
-                poster_filename = 'poster_{}.png'.format(pretty_metadata.parameters['rating_key'])
-                files = {'photo': (poster_filename, poster_content, 'image/png')}
+            image = pretty_metadata.get_image()
+            if image:
+                files = {'photo': image}
 
                 if len(text) > 1024:
                     data['disable_notification'] = True
@@ -4032,7 +4051,8 @@ class TELEGRAM(Notifier):
                           'description': 'Your Telegram Chat ID, Group ID, Channel ID or @channelusername. '
                                          'Contact <a href="' + helpers.anon_url('https://telegram.me/myidbot') +
                                          '" target="_blank">@myidbot</a>'
-                                         ' on Telegram to get an ID.',
+                                         ' on Telegram to get an ID. '
+                                         'For a group topic, append <span class="inline-pre">/topicID</span> to the group ID.',
                           'input_type': 'text'
                           },
                          {'label': 'Include Subject Line',
@@ -4452,8 +4472,8 @@ def check_browser_enabled():
 
 def get_browser_notifications():
     db = database.MonitorDatabase()
-    result = db.select('SELECT notifier_id, subject_text, body_text FROM notify_log '
-                       'WHERE agent_id = 17 AND timestamp >= ? ',
+    result = db.select("SELECT notifier_id, subject_text, body_text FROM notify_log "
+                       "WHERE agent_id = 17 AND timestamp >= ? ",
                        args=[time.time() - 5])
 
     notifications = []

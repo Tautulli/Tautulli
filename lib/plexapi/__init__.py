@@ -23,7 +23,7 @@ X_PLEX_ENABLE_FAST_CONNECT = CONFIG.get('plexapi.enable_fast_connect', False, bo
 
 # Plex Header Configuration
 X_PLEX_PROVIDES = CONFIG.get('header.provides', 'controller')
-X_PLEX_PLATFORM = CONFIG.get('header.platform', CONFIG.get('header.platform', uname()[0]))
+X_PLEX_PLATFORM = CONFIG.get('header.platform', uname()[0])
 X_PLEX_PLATFORM_VERSION = CONFIG.get('header.platform_version', uname()[2])
 X_PLEX_PRODUCT = CONFIG.get('header.product', PROJECT)
 X_PLEX_VERSION = CONFIG.get('header.version', VERSION)

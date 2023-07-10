@@ -30,7 +30,7 @@ class ISDN(dns.rdata.Rdata):
 
     # see: RFC 1183
 
-    __slots__ = ['address', 'subaddress']
+    __slots__ = ["address", "subaddress"]
 
     def __init__(self, rdclass, rdtype, address, subaddress):
         super().__init__(rdclass, rdtype)
@@ -39,31 +39,33 @@ class ISDN(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.subaddress:
-            return '"{}" "{}"'.format(dns.rdata._escapify(self.address),
-                                      dns.rdata._escapify(self.subaddress))
+            return '"{}" "{}"'.format(
+                dns.rdata._escapify(self.address), dns.rdata._escapify(self.subaddress)
+            )
         else:
             return '"%s"' % dns.rdata._escapify(self.address)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True,
-                  relativize_to=None):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         address = tok.get_string()
         tokens = tok.get_remaining(max_tokens=1)
         if len(tokens) >= 1:
             subaddress = tokens[0].unescape().value
         else:
-            subaddress = ''
+            subaddress = ""
         return cls(rdclass, rdtype, address, subaddress)
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.address)
         assert l < 256
-        file.write(struct.pack('!B', l))
+        file.write(struct.pack("!B", l))
         file.write(self.address)
         l = len(self.subaddress)
         if l > 0:
             assert l < 256
-            file.write(struct.pack('!B', l))
+            file.write(struct.pack("!B", l))
             file.write(self.subaddress)
 
     @classmethod
@@ -72,5 +74,5 @@ class ISDN(dns.rdata.Rdata):
         if parser.remaining() > 0:
             subaddress = parser.get_counted_bytes()
         else:
-            subaddress = b''
+            subaddress = b""
         return cls(rdclass, rdtype, address, subaddress)

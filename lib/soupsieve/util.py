@@ -1,8 +1,9 @@
 """Utility."""
+from __future__ import annotations
 from functools import wraps, lru_cache
 import warnings
 import re
-from typing import Callable, Any, Optional, Tuple, List
+from typing import Callable, Any, Optional
 
 DEBUG = 0x00001
 
@@ -75,13 +76,13 @@ def warn_deprecated(message: str, stacklevel: int = 2) -> None:  # pragma: no co
     )
 
 
-def get_pattern_context(pattern: str, index: int) -> Tuple[str, int, int]:
+def get_pattern_context(pattern: str, index: int) -> tuple[str, int, int]:
     """Get the pattern context."""
 
     last = 0
     current_line = 1
     col = 1
-    text = []  # type: List[str]
+    text = []  # type: list[str]
     line = 1
     offset = None  # type: Optional[int]
 

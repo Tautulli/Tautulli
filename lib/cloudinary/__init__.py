@@ -38,7 +38,7 @@ CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAA
 URI_SCHEME = "cloudinary"
 API_VERSION = "v1_1"
 
-VERSION = "1.30.0"
+VERSION = "1.32.0"
 
 _USER_PLATFORM_DETAILS = "; ".join((platform(), "Python {}".format(python_version())))
 
@@ -234,6 +234,7 @@ _http_client = HttpClient()
 
 # FIXME: circular import issue
 from cloudinary.search import Search
+from cloudinary.search_folders import SearchFolders
 
 
 @python_2_unicode_compatible

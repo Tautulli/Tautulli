@@ -168,7 +168,8 @@ def update_metadata(metadata, public_ids, **options):
         "timestamp": utils.now(),
         "metadata": utils.encode_context(metadata),
         "public_ids": utils.build_array(public_ids),
-        "type": options.get("type")
+        "type": options.get("type"),
+        "clear_invalid": options.get("clear_invalid")
     }
 
     return call_api("metadata", params, **options)

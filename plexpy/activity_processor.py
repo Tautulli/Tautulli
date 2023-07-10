@@ -326,72 +326,7 @@ class ActivityProcessor(object):
 
                 # Get the last insert row id
                 last_id = self.db.last_insert_id()
-                new_session = prev_session = None
-                prev_progress_percent = media_watched_percent = 0
-
-                if session['live']:
-                    # Check if we should group the session, select the last guid from the user
-                    query = 'SELECT session_history.id, session_history_metadata.guid, session_history.reference_id ' \
-                            'FROM session_history ' \
-                            'JOIN session_history_metadata ON session_history.id == session_history_metadata.id ' \
-                            'WHERE session_history.user_id = ? ORDER BY session_history.id DESC LIMIT 1 '
-
-                    args = [session['user_id']]
-
-                    result = self.db.select(query=query, args=args)
-
-                    if len(result) > 0:
-                        new_session = {'id': last_id,
-                                       'guid': metadata['guid'],
-                                       'reference_id': last_id}
-
-                        prev_session = {'id': result[0]['id'],
-                                        'guid': result[0]['guid'],
-                                        'reference_id': result[0]['reference_id']}
-
-                else:
-                    # Check if we should group the session, select the last two rows from the user
-                    query = 'SELECT id, rating_key, view_offset, reference_id FROM session_history ' \
-                            'WHERE user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 '
-
-                    args = [session['user_id'], session['rating_key']]
-
-                    result = self.db.select(query=query, args=args)
-
-                    if len(result) > 1:
-                        new_session = {'id': result[0]['id'],
-                                       'rating_key': result[0]['rating_key'],
-                                       'view_offset': result[0]['view_offset'],
-                                       'reference_id': result[0]['reference_id']}
-
-                        prev_session = {'id': result[1]['id'],
-                                        'rating_key': result[1]['rating_key'],
-                                        'view_offset': result[1]['view_offset'],
-                                        'reference_id': result[1]['reference_id']}
-
-                        watched_percent = {'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
-                                           'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
-                                           'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT
-                                           }
-                        prev_progress_percent = helpers.get_percent(prev_session['view_offset'], session['duration'])
-                        media_watched_percent = watched_percent.get(session['media_type'], 0)
-
-                query = 'UPDATE session_history SET reference_id = ? WHERE id = ? '
-
-                # If previous session view offset less than watched percent,
-                # and new session view offset is greater,
-                # then set the reference_id to the previous row,
-                # else set the reference_id to the new id
-                if prev_session is None and new_session is None:
-                    args = [last_id, last_id]
-                elif prev_progress_percent < media_watched_percent and \
-                        prev_session['view_offset'] <= new_session['view_offset'] or \
-                        session['live'] and prev_session['guid'] == new_session['guid']:
-                    args = [prev_session['reference_id'], new_session['id']]
-                else:
-                    args = [new_session['id'], new_session['id']]
-
-                self.db.action(query=query, args=args)
+                self.group_history(last_id, session, metadata)
                 
                 # logger.debug("Tautulli ActivityProcessor :: Successfully written history item, last id for session_history is %s"
                 #              % last_id)
@@ -490,6 +425,14 @@ class ActivityProcessor(object):
                 genres = ";".join(metadata['genres'])
                 labels = ";".join(metadata['labels'])
 
+                marker_credits_first = None
+                marker_credits_final = None
+                for marker in metadata['markers']:
+                    if marker['first']:
+                        marker_credits_first = marker['start_time_offset']
+                    if marker['final']:
+                        marker_credits_final = marker['start_time_offset']
+
                 # logger.debug("Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_metadata table..."
                 #              % session['session_key'])
                 keys = {'id': last_id}
@@ -528,7 +471,9 @@ class ActivityProcessor(object):
                           'live': session['live'],
                           'channel_call_sign': media_info.get('channel_call_sign', ''),
                           'channel_identifier': media_info.get('channel_identifier', ''),
-                          'channel_thumb': media_info.get('channel_thumb', '')
+                          'channel_thumb': media_info.get('channel_thumb', ''),
+                          'marker_credits_first': marker_credits_first,
+                          'marker_credits_final': marker_credits_final
                           }
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
@@ -538,13 +483,87 @@ class ActivityProcessor(object):
             # Return the session row id when the session is successfully written to the database
             return session['id']
 
+    def group_history(self, last_id, session, metadata=None):
+        new_session = prev_session = None
+        prev_watched = None
+
+        if session['live']:
+            # Check if we should group the session, select the last guid from the user
+            query = "SELECT session_history.id, session_history_metadata.guid, session_history.reference_id " \
+                    "FROM session_history " \
+                    "JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
+                    "WHERE session_history.id <= ? AND session_history.user_id = ? ORDER BY session_history.id DESC LIMIT 1 "
+
+            args = [last_id, session['user_id']]
+
+            result = self.db.select(query=query, args=args)
+
+            if len(result) > 0:
+                new_session = {'id': last_id,
+                                'guid': metadata['guid'] if metadata else session['guid'],
+                                'reference_id': last_id}
+
+                prev_session = {'id': result[0]['id'],
+                                'guid': result[0]['guid'],
+                                'reference_id': result[0]['reference_id']}
+
+        else:
+            # Check if we should group the session, select the last two rows from the user
+            query = "SELECT id, rating_key, view_offset, reference_id FROM session_history " \
+                    "WHERE id <= ? AND user_id = ? AND rating_key = ? ORDER BY id DESC LIMIT 2 "
+
+            args = [last_id, session['user_id'], session['rating_key']]
+
+            result = self.db.select(query=query, args=args)
+
+            if len(result) > 1:
+                new_session = {'id': result[0]['id'],
+                                'rating_key': result[0]['rating_key'],
+                                'view_offset': helpers.cast_to_int(result[0]['view_offset']),
+                                'reference_id': result[0]['reference_id']}
+
+                prev_session = {'id': result[1]['id'],
+                                'rating_key': result[1]['rating_key'],
+                                'view_offset': helpers.cast_to_int(result[1]['view_offset']),
+                                'reference_id': result[1]['reference_id']}
+
+                if metadata:
+                    marker_first, marker_final = helpers.get_first_final_marker(metadata['markers'])
+                else:
+                    marker_first = session['marker_credits_first']
+                    marker_final = session['marker_credits_final']
+
+                prev_watched = helpers.check_watched(
+                    session['media_type'], prev_session['view_offset'], session['duration'],
+                    marker_first, marker_final
+                )
+
+        query = "UPDATE session_history SET reference_id = ? WHERE id = ? "
+
+        # If previous session view offset less than watched threshold,
+        # and new session view offset is greater,
+        # then set the reference_id to the previous row,
+        # else set the reference_id to the new id
+        if (prev_watched is False and prev_session['view_offset'] <= new_session['view_offset'] or 
+                session['live'] and prev_session['guid'] == new_session['guid']):
+            if metadata:
+                logger.debug("Tautulli ActivityProcessor :: Grouping history for sessionKey %s", session['session_key'])
+            args = [prev_session['reference_id'], new_session['id']]
+
+        else:
+            if metadata:
+                logger.debug("Tautulli ActivityProcessor :: Not grouping history for sessionKey %s", session['session_key'])
+            args = [last_id, last_id]
+
+        self.db.action(query=query, args=args)
+
     def get_sessions(self, user_id=None, ip_address=None):
-        query = 'SELECT * FROM sessions'
+        query = "SELECT * FROM sessions"
         args = []
 
         if str(user_id).isdigit():
-            ip = ' GROUP BY ip_address' if ip_address else ''
-            query += ' WHERE user_id = ?' + ip
+            ip = " GROUP BY ip_address" if ip_address else ""
+            query += " WHERE user_id = ?" + ip
             args.append(user_id)
 
         sessions = self.db.select(query, args)
@@ -552,8 +571,8 @@ class ActivityProcessor(object):
 
     def get_session_by_key(self, session_key=None):
         if str(session_key).isdigit():
-            session = self.db.select_single('SELECT * FROM sessions '
-                                            'WHERE session_key = ? ',
+            session = self.db.select_single("SELECT * FROM sessions "
+                                            "WHERE session_key = ? ",
                                             args=[session_key])
             if session:
                 return session
@@ -562,8 +581,8 @@ class ActivityProcessor(object):
 
     def get_session_by_id(self, session_id=None):
         if session_id:
-            session = self.db.select_single('SELECT * FROM sessions '
-                                            'WHERE session_id = ? ',
+            session = self.db.select_single("SELECT * FROM sessions "
+                                            "WHERE session_id = ? ",
                                             args=[session_id])
             if session:
                 return session
@@ -589,15 +608,15 @@ class ActivityProcessor(object):
 
     def delete_session(self, session_key=None, row_id=None):
         if str(session_key).isdigit():
-            self.db.action('DELETE FROM sessions WHERE session_key = ?', [session_key])
+            self.db.action("DELETE FROM sessions WHERE session_key = ?", [session_key])
         elif str(row_id).isdigit():
-            self.db.action('DELETE FROM sessions WHERE id = ?', [row_id])
+            self.db.action("DELETE FROM sessions WHERE id = ?", [row_id])
 
     def set_session_last_paused(self, session_key=None, timestamp=None):
         if str(session_key).isdigit():
-            result = self.db.select('SELECT last_paused, paused_counter '
-                                    'FROM sessions '
-                                    'WHERE session_key = ?', args=[session_key])
+            result = self.db.select("SELECT last_paused, paused_counter "
+                                    "FROM sessions "
+                                    "WHERE session_key = ?", args=[session_key])
 
             paused_counter = None
             for session in result:
@@ -618,15 +637,15 @@ class ActivityProcessor(object):
 
     def increment_session_buffer_count(self, session_key=None):
         if str(session_key).isdigit():
-            self.db.action('UPDATE sessions SET buffer_count = buffer_count + 1 '
-                           'WHERE session_key = ?',
+            self.db.action("UPDATE sessions SET buffer_count = buffer_count + 1 "
+                           "WHERE session_key = ?",
                            [session_key])
 
     def get_session_buffer_count(self, session_key=None):
         if str(session_key).isdigit():
-            buffer_count = self.db.select_single('SELECT buffer_count '
-                                                 'FROM sessions '
-                                                 'WHERE session_key = ?',
+            buffer_count = self.db.select_single("SELECT buffer_count "
+                                                 "FROM sessions "
+                                                 "WHERE session_key = ?",
                                                  [session_key])
             if buffer_count:
                 return buffer_count['buffer_count']
@@ -635,15 +654,15 @@ class ActivityProcessor(object):
 
     def set_session_buffer_trigger_time(self, session_key=None):
         if str(session_key).isdigit():
-            self.db.action('UPDATE sessions SET buffer_last_triggered = strftime("%s","now") '
-                           'WHERE session_key = ?',
+            self.db.action("UPDATE sessions SET buffer_last_triggered = strftime('%s', 'now') "
+                           "WHERE session_key = ?",
                            [session_key])
 
     def get_session_buffer_trigger_time(self, session_key=None):
         if str(session_key).isdigit():
-            last_time = self.db.select_single('SELECT buffer_last_triggered '
-                                              'FROM sessions '
-                                              'WHERE session_key = ?',
+            last_time = self.db.select_single("SELECT buffer_last_triggered "
+                                              "FROM sessions "
+                                              "WHERE session_key = ?",
                                               [session_key])
             if last_time:
                 return last_time['buffer_last_triggered']
@@ -652,17 +671,27 @@ class ActivityProcessor(object):
 
     def set_temp_stopped(self):
         stopped_time = helpers.timestamp()
-        self.db.action('UPDATE sessions SET stopped = ?', [stopped_time])
+        self.db.action("UPDATE sessions SET stopped = ?", [stopped_time])
 
     def increment_write_attempts(self, session_key=None):
         if str(session_key).isdigit():
             session = self.get_session_by_key(session_key=session_key)
-            self.db.action('UPDATE sessions SET write_attempts = ? WHERE session_key = ?',
+            self.db.action("UPDATE sessions SET write_attempts = ? WHERE session_key = ?",
                            [session['write_attempts'] + 1, session_key])
 
+    def set_marker(self, session_key=None, marker_idx=None, marker_type=None):
+        marker_args = [
+            int(marker_type == 'intro'),
+            int(marker_type == 'commercial'),
+            int(marker_type == 'credits')
+        ]
+        self.db.action("UPDATE sessions SET intro = ?, commercial = ?, credits = ?, marker = ? "
+                       "WHERE session_key = ?",
+                       marker_args + [marker_idx, session_key])
+
     def set_watched(self, session_key=None):
-        self.db.action('UPDATE sessions SET watched = ?'
-                       'WHERE session_key = ?',
+        self.db.action("UPDATE sessions SET watched = ? "
+                       "WHERE session_key = ?",
                        [1, session_key])
 
     def write_continued_session(self, user_id=None, machine_id=None, media_type=None, stopped=None):
@@ -671,9 +700,42 @@ class ActivityProcessor(object):
         self.db.upsert(table_name='sessions_continued', key_dict=keys, value_dict=values)
 
     def is_initial_stream(self, user_id=None, machine_id=None, media_type=None, started=None):
-        last_session = self.db.select_single('SELECT stopped '
-                                             'FROM sessions_continued '
-                                             'WHERE user_id = ? AND machine_id = ? AND media_type = ? '
-                                             'ORDER BY stopped DESC',
+        last_session = self.db.select_single("SELECT stopped "
+                                             "FROM sessions_continued "
+                                             "WHERE user_id = ? AND machine_id = ? AND media_type = ? "
+                                             "ORDER BY stopped DESC",
                                              [user_id, machine_id, media_type])
         return int(started - last_session.get('stopped', 0) >= plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)
+
+    def regroup_history(self):
+        logger.info("Tautulli ActivityProcessor :: Creating database backup...")
+        if not database.make_backup():
+            return False
+
+        logger.info("Tautulli ActivityProcessor :: Regrouping session history...")
+
+        query = (
+            "SELECT * FROM session_history "
+            "JOIN session_history_metadata ON session_history.id = session_history_metadata.id"
+        )
+        results = self.db.select(query)
+        count = len(results)
+        progress = 0
+
+        for i, session in enumerate(results, start=1):
+            if int(i / count * 10) > progress:
+                progress = int(i / count * 10)
+                logger.info("Tautulli ActivityProcessor :: Regrouping session history: %d%%", progress * 10)
+
+            try:
+                self.group_history(session['id'], session)
+            except Exception as e:
+                logger.error("Tautulli ActivityProcessor :: Error regrouping session history: %s", e)
+                return False
+
+        logger.info("Tautulli ActivityProcessor :: Regrouping session history complete.")
+        return True
+
+
+def regroup_history():
+    ActivityProcessor().regroup_history()

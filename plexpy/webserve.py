@@ -51,6 +51,7 @@ if sys.version_info >= (3, 6):
 import plexpy
 if plexpy.PYTHON2:
     import activity_pinger
+    import activity_processor
     import common
     import config
     import database
@@ -85,6 +86,7 @@ if plexpy.PYTHON2:
         import macos
 else:
     from plexpy import activity_pinger
+    from plexpy import activity_processor
     from plexpy import common
     from plexpy import config
     from plexpy import database
@@ -119,21 +121,25 @@ else:
         from plexpy import macos
 
 
-def serve_template(templatename, **kwargs):
-    interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
-    template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
+TEMPLATE_LOOKUP = None
 
-    _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'],
-                               error_handler=mako_error_handler)
+
+def serve_template(template_name, **kwargs):
+    global TEMPLATE_LOOKUP
+    if TEMPLATE_LOOKUP is None:
+        interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
+        template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.INTERFACE)
+        TEMPLATE_LOOKUP = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'],
+                            error_handler=mako_error_handler)
 
     http_root = plexpy.HTTP_ROOT
-    server_name = plexpy.CONFIG.PMS_NAME
+    server_name = helpers.pms_name()
     cache_param = '?' + (plexpy.CURRENT_VERSION or common.RELEASE)
 
     _session = get_session_info()
 
     try:
-        template = _hplookup.get_template(templatename)
+        template = TEMPLATE_LOOKUP.get_template(template_name)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
                                _session=_session, **kwargs)
     except Exception as e:
@@ -213,7 +219,7 @@ class WebInterface(object):
             "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
-            "pms_name": plexpy.CONFIG.PMS_NAME,
+            "pms_name": helpers.pms_name(),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
 
@@ -222,7 +228,7 @@ class WebInterface(object):
             plexpy.initialize_scheduler()
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
         else:
-            return serve_template(templatename="welcome.html", title="Welcome", config=config)
+            return serve_template(template_name="welcome.html", title="Welcome", config=config)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -282,12 +288,12 @@ class WebInterface(object):
         config = {
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
             "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
-            "pms_name": plexpy.CONFIG.PMS_NAME,
+            "pms_name": helpers.pms_name(),
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG,
             "first_run_complete": plexpy.CONFIG.FIRST_RUN_COMPLETE
         }
-        return serve_template(templatename="index.html", title="Home", config=config)
+        return serve_template(template_name="index.html", title="Home", config=config)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -332,10 +338,10 @@ class WebInterface(object):
         result = pms_connect.get_current_activity()
 
         if result:
-            return serve_template(templatename="current_activity.html", data=result)
+            return serve_template(template_name="current_activity.html", data=result)
         else:
             logger.warn("Unable to retrieve data for get_current_activity.")
-            return serve_template(templatename="current_activity.html", data=None)
+            return serve_template(template_name="current_activity.html", data=None)
 
     @cherrypy.expose
     @requireAuth()
@@ -346,9 +352,9 @@ class WebInterface(object):
 
         if result:
             session = next((s for s in result['sessions'] if s['session_key'] == session_key), None)
-            return serve_template(templatename="current_activity_instance.html", session=session)
+            return serve_template(template_name="current_activity_instance.html", session=session)
         else:
-            return serve_template(templatename="current_activity_instance.html", session=None)
+            return serve_template(template_name="current_activity_instance.html", session=None)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -391,7 +397,7 @@ class WebInterface(object):
             endpoint = endpoint.format(machine_id=plexpy.CONFIG.PMS_IDENTIFIER)
 
         url = base_url + endpoint + ('?' + urlencode(kwargs) if kwargs else '')
-        return serve_template(templatename="xml_shortcut.html", title="Plex XML", url=url)
+        return serve_template(template_name="xml_shortcut.html", title="Plex XML", url=url)
 
     @cherrypy.expose
     @requireAuth()
@@ -401,7 +407,7 @@ class WebInterface(object):
                                                  stats_type=stats_type,
                                                  stats_count=stats_count)
 
-        return serve_template(templatename="home_stats.html", title="Stats", data=stats_data)
+        return serve_template(template_name="home_stats.html", title="Stats", data=stats_data)
 
     @cherrypy.expose
     @requireAuth()
@@ -412,7 +418,7 @@ class WebInterface(object):
 
         stats_data = data_factory.get_library_stats(library_cards=library_cards)
 
-        return serve_template(templatename="library_stats.html", title="Library Stats", data=stats_data)
+        return serve_template(template_name="library_stats.html", title="Library Stats", data=stats_data)
 
     @cherrypy.expose
     @requireAuth()
@@ -422,13 +428,25 @@ class WebInterface(object):
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_recently_added_details(count=count, media_type=media_type)
         except IOError as e:
-            return serve_template(templatename="recently_added.html", data=None)
+            return serve_template(template_name="recently_added.html", data=None)
 
         if result and 'recently_added' in result:
-            return serve_template(templatename="recently_added.html", data=result['recently_added'])
+            return serve_template(template_name="recently_added.html", data=result['recently_added'])
         else:
             logger.warn("Unable to retrieve data for get_recently_added.")
-            return serve_template(templatename="recently_added.html", data=None)
+            return serve_template(template_name="recently_added.html", data=None)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def regroup_history(self, **kwargs):
+        """ Regroup play history in the database."""
+
+        threading.Thread(target=activity_processor.regroup_history).start()
+
+        return {'result': 'success',
+                'message': 'Regrouping play history started. Check the logs to monitor any problems.'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -463,7 +481,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def libraries(self, **kwargs):
-        return serve_template(templatename="libraries.html", title="Libraries")
+        return serve_template(template_name="libraries.html", title="Libraries")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -616,12 +634,12 @@ class WebInterface(object):
                 library_details = library_data.get_details(section_id=section_id)
             except:
                 logger.warn("Unable to retrieve library details for section_id %s " % section_id)
-                return serve_template(templatename="library.html", title="Library", data=None, config=config)
+                return serve_template(template_name="library.html", title="Library", data=None, config=config)
         else:
             logger.debug("Library page requested but no section_id received.")
-            return serve_template(templatename="library.html", title="Library", data=None, config=config)
+            return serve_template(template_name="library.html", title="Library", data=None, config=config)
 
-        return serve_template(templatename="library.html", title="Library", data=library_details, config=config)
+        return serve_template(template_name="library.html", title="Library", data=library_details, config=config)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -634,7 +652,7 @@ class WebInterface(object):
             result = None
             status_message = 'An error occured.'
 
-        return serve_template(templatename="edit_library.html", title="Edit Library",
+        return serve_template(template_name="edit_library.html", title="Edit Library",
                               data=result, server_id=plexpy.CONFIG.PMS_IDENTIFIER, status_message=status_message)
 
     @cherrypy.expose
@@ -681,7 +699,7 @@ class WebInterface(object):
     @requireAuth()
     def library_watch_time_stats(self, section_id=None, **kwargs):
         if not allow_session_library(section_id):
-            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+            return serve_template(template_name="user_watch_time_stats.html", data=None, title="Watch Stats")
 
         if section_id:
             library_data = libraries.Libraries()
@@ -690,16 +708,16 @@ class WebInterface(object):
             result = None
 
         if result:
-            return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
+            return serve_template(template_name="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
             logger.warn("Unable to retrieve data for library_watch_time_stats.")
-            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+            return serve_template(template_name="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
     @requireAuth()
     def library_user_stats(self, section_id=None, **kwargs):
         if not allow_session_library(section_id):
-            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
+            return serve_template(template_name="library_user_stats.html", data=None, title="Player Stats")
 
         if section_id:
             library_data = libraries.Libraries()
@@ -708,16 +726,16 @@ class WebInterface(object):
             result = None
 
         if result:
-            return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
+            return serve_template(template_name="library_user_stats.html", data=result, title="Player Stats")
         else:
             logger.warn("Unable to retrieve data for library_user_stats.")
-            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
+            return serve_template(template_name="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     @requireAuth()
     def library_recently_watched(self, section_id=None, limit='10', **kwargs):
         if not allow_session_library(section_id):
-            return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
+            return serve_template(template_name="user_recently_watched.html", data=None, title="Recently Watched")
 
         if section_id:
             library_data = libraries.Libraries()
@@ -726,16 +744,16 @@ class WebInterface(object):
             result = None
 
         if result:
-            return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
+            return serve_template(template_name="user_recently_watched.html", data=result, title="Recently Watched")
         else:
             logger.warn("Unable to retrieve data for library_recently_watched.")
-            return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
+            return serve_template(template_name="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
     @requireAuth()
     def library_recently_added(self, section_id=None, limit='10', **kwargs):
         if not allow_session_library(section_id):
-            return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
+            return serve_template(template_name="library_recently_added.html", data=None, title="Recently Added")
 
         if section_id:
             pms_connect = pmsconnect.PmsConnect()
@@ -744,10 +762,10 @@ class WebInterface(object):
             result = None
 
         if result and result['recently_added']:
-            return serve_template(templatename="library_recently_added.html", data=result['recently_added'], title="Recently Added")
+            return serve_template(template_name="library_recently_added.html", data=result['recently_added'], title="Recently Added")
         else:
             logger.warn("Unable to retrieve data for library_recently_added.")
-            return serve_template(templatename="library_recently_added.html", data=None, title="Recently Added")
+            return serve_template(template_name="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -775,6 +793,7 @@ class WebInterface(object):
             Returns:
                 json:
                     {"draw": 1,
+                     "last_refreshed": 1678734670,
                      "recordsTotal": 82,
                      "recordsFiltered": 82,
                      "filtered_file_size": 2616760056742,
@@ -929,6 +948,9 @@ class WebInterface(object):
         get_file_sizes_hold = plexpy.CONFIG.GET_FILE_SIZES_HOLD
         section_ids = set(get_file_sizes_hold['section_ids'])
         rating_keys = set(get_file_sizes_hold['rating_keys'])
+
+        section_id = helpers.cast_to_int(section_id)
+        rating_key = helpers.cast_to_int(rating_key)
 
         if (section_id and section_id not in section_ids) or (rating_key and rating_key not in rating_keys):
             if section_id:
@@ -1235,7 +1257,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def users(self, **kwargs):
-        return serve_template(templatename="users.html", title="Users")
+        return serve_template(template_name="users.html", title="Users")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1351,12 +1373,12 @@ class WebInterface(object):
                 user_details = user_data.get_details(user_id=user_id)
             except:
                 logger.warn("Unable to retrieve user details for user_id %s " % user_id)
-                return serve_template(templatename="user.html", title="User", data=None)
+                return serve_template(template_name="user.html", title="User", data=None)
         else:
             logger.debug("User page requested but no user_id received.")
-            return serve_template(templatename="user.html", title="User", data=None)
+            return serve_template(template_name="user.html", title="User", data=None)
 
-        return serve_template(templatename="user.html", title="User", data=user_details)
+        return serve_template(template_name="user.html", title="User", data=user_details)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -1369,7 +1391,7 @@ class WebInterface(object):
             result = None
             status_message = 'An error occured.'
 
-        return serve_template(templatename="edit_user.html", title="Edit User", data=result, status_message=status_message)
+        return serve_template(template_name="edit_user.html", title="Edit User", data=result, status_message=status_message)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -1417,7 +1439,7 @@ class WebInterface(object):
     @requireAuth()
     def user_watch_time_stats(self, user=None, user_id=None, **kwargs):
         if not allow_session_user(user_id):
-            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+            return serve_template(template_name="user_watch_time_stats.html", data=None, title="Watch Stats")
 
         if user_id or user:
             user_data = users.Users()
@@ -1426,16 +1448,16 @@ class WebInterface(object):
             result = None
 
         if result:
-            return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
+            return serve_template(template_name="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
             logger.warn("Unable to retrieve data for user_watch_time_stats.")
-            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+            return serve_template(template_name="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
     @requireAuth()
     def user_player_stats(self, user=None, user_id=None, **kwargs):
         if not allow_session_user(user_id):
-            return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
+            return serve_template(template_name="user_player_stats.html", data=None, title="Player Stats")
 
         if user_id or user:
             user_data = users.Users()
@@ -1444,16 +1466,16 @@ class WebInterface(object):
             result = None
 
         if result:
-            return serve_template(templatename="user_player_stats.html", data=result, title="Player Stats")
+            return serve_template(template_name="user_player_stats.html", data=result, title="Player Stats")
         else:
             logger.warn("Unable to retrieve data for user_player_stats.")
-            return serve_template(templatename="user_player_stats.html", data=None, title="Player Stats")
+            return serve_template(template_name="user_player_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     @requireAuth()
     def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):
         if not allow_session_user(user_id):
-            return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
+            return serve_template(template_name="user_recently_watched.html", data=None, title="Recently Watched")
 
         if user_id or user:
             user_data = users.Users()
@@ -1462,10 +1484,10 @@ class WebInterface(object):
             result = None
 
         if result:
-            return serve_template(templatename="user_recently_watched.html", data=result, title="Recently Watched")
+            return serve_template(template_name="user_recently_watched.html", data=result, title="Recently Watched")
         else:
             logger.warn("Unable to retrieve data for get_user_recently_watched.")
-            return serve_template(templatename="user_recently_watched.html", data=None, title="Recently Watched")
+            return serve_template(template_name="user_recently_watched.html", data=None, title="Recently Watched")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1871,7 +1893,7 @@ class WebInterface(object):
             "database_is_importing": database.IS_IMPORTING,
         }
 
-        return serve_template(templatename="history.html", title="History", config=config)
+        return serve_template(template_name="history.html", title="History", config=config)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1897,7 +1919,7 @@ class WebInterface(object):
                 before (str):                   History before and including the date, "YYYY-MM-DD"
                 after (str):                    History after and including the date, "YYYY-MM-DD"
                 section_id (int):               2
-                media_type (str):               "movie", "episode", "track", "live"
+                media_type (str):               "movie", "episode", "track", "live", "collection", "playlist"
                 transcode_decision (str):       "direct play", "copy", "transcode",
                 guid (str):                     Plex guid for an item, e.g. "com.plexapp.agents.thetvdb://121361/6/1"
                 order_column (str):             "date", "friendly_name", "ip_address", "platform", "player",
@@ -1916,7 +1938,6 @@ class WebInterface(object):
                      "filter_duration": "10 hrs 12 mins",
                      "data":
                         [{"date": 1462687607,
-                          "duration": 263,
                           "friendly_name": "Mother of Dragons",
                           "full_title": "Game of Thrones - The Red Woman",
                           "grandparent_rating_key": 351,
@@ -1938,6 +1959,7 @@ class WebInterface(object):
                           "paused_counter": 0,
                           "percent_complete": 84,
                           "platform": "Windows",
+                          "play_duration": 263,
                           "product": "Plex for Windows",
                           "player": "Castle-PC",
                           "rating_key": 4348,
@@ -1994,47 +2016,55 @@ class WebInterface(object):
             if user:
                 custom_where.append(['session_history.user', user])
         if 'rating_key' in kwargs:
-            rating_key = helpers.split_strip(kwargs.get('rating_key', ''))
-            if rating_key:
-                custom_where.append(['session_history.rating_key', rating_key])
+            if kwargs.get('media_type') in ('collection', 'playlist') and kwargs.get('rating_key'):
+                pms_connect = pmsconnect.PmsConnect()
+                result = pms_connect.get_item_children(rating_key=kwargs.pop('rating_key'), media_type=kwargs.pop('media_type'))
+                rating_keys = [child['rating_key'] for child in result['children_list']]
+                custom_where.append(['session_history_metadata.rating_key OR', rating_keys])
+                custom_where.append(['session_history_metadata.parent_rating_key OR', rating_keys])
+                custom_where.append(['session_history_metadata.grandparent_rating_key OR', rating_keys])
+            else:
+                rating_key = helpers.split_strip(kwargs.pop('rating_key', ''))
+                if rating_key:
+                    custom_where.append(['session_history.rating_key', rating_key])
         if 'parent_rating_key' in kwargs:
-            rating_key = helpers.split_strip(kwargs.get('parent_rating_key', ''))
+            rating_key = helpers.split_strip(kwargs.pop('parent_rating_key', ''))
             if rating_key:
                 custom_where.append(['session_history.parent_rating_key', rating_key])
         if 'grandparent_rating_key' in kwargs:
-            rating_key = helpers.split_strip(kwargs.get('grandparent_rating_key', ''))
+            rating_key = helpers.split_strip(kwargs.pop('grandparent_rating_key', ''))
             if rating_key:
                 custom_where.append(['session_history.grandparent_rating_key', rating_key])
         if 'start_date' in kwargs:
-            start_date = helpers.split_strip(kwargs.get('start_date', ''))
+            start_date = helpers.split_strip(kwargs.pop('start_date', ''))
             if start_date:
                 custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
         if 'before' in kwargs:
-            before = helpers.split_strip(kwargs.get('before', ''))
+            before = helpers.split_strip(kwargs.pop('before', ''))
             if before:
                 custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime")) <', before])
         if 'after' in kwargs:
-            after = helpers.split_strip(kwargs.get('after', ''))
+            after = helpers.split_strip(kwargs.pop('after', ''))
             if after:
                 custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime")) >', after])
         if 'reference_id' in kwargs:
-            reference_id = helpers.split_strip(kwargs.get('reference_id', ''))
+            reference_id = helpers.split_strip(kwargs.pop('reference_id', ''))
             if reference_id:
                 custom_where.append(['session_history.reference_id', reference_id])
         if 'section_id' in kwargs:
-            section_id = helpers.split_strip(kwargs.get('section_id', ''))
+            section_id = helpers.split_strip(kwargs.pop('section_id', ''))
             if section_id:
                 custom_where.append(['session_history.section_id', section_id])
         if 'media_type' in kwargs:
-            media_type = helpers.split_strip(kwargs.get('media_type', ''))
+            media_type = helpers.split_strip(kwargs.pop('media_type', ''))
             if media_type and 'all' not in media_type:
                 custom_where.append(['media_type_live', media_type])
         if 'transcode_decision' in kwargs:
-            transcode_decision = helpers.split_strip(kwargs.get('transcode_decision', ''))
+            transcode_decision = helpers.split_strip(kwargs.pop('transcode_decision', ''))
             if transcode_decision and 'all' not in transcode_decision:
                 custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
         if 'guid' in kwargs:
-            guid = helpers.split_strip(kwargs.get('guid', '').split('?')[0])
+            guid = helpers.split_strip(kwargs.pop('guid', '').split('?')[0])
             if guid:
                 custom_where.append(['session_history_metadata.guid', ['LIKE ' + g + '%' for g in guid]])
 
@@ -2051,7 +2081,7 @@ class WebInterface(object):
         data_factory = datafactory.DataFactory()
         stream_data = data_factory.get_stream_details(row_id, session_key)
 
-        return serve_template(templatename="stream_data.html", title="Stream Data", data=stream_data, user=user)
+        return serve_template(template_name="stream_data.html", title="Stream Data", data=stream_data, user=user)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2142,7 +2172,7 @@ class WebInterface(object):
 
         public = helpers.is_public_ip(ip_address)
 
-        return serve_template(templatename="ip_address_modal.html", title="IP Address Details",
+        return serve_template(template_name="ip_address_modal.html", title="IP Address Details",
                               data=ip_address, public=public, kwargs=kwargs)
 
     @cherrypy.expose
@@ -2181,7 +2211,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def graphs(self, **kwargs):
-        return serve_template(templatename="graphs.html", title="Graphs")
+        return serve_template(template_name="graphs.html", title="Graphs")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2226,7 +2256,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2270,7 +2300,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2314,7 +2344,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2358,7 +2388,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of months of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2402,7 +2432,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2446,7 +2476,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2490,7 +2520,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2533,7 +2563,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2576,7 +2606,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2619,7 +2649,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2662,7 +2692,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
-                user_id (str):          The user id to filter the data
+                user_id (str):          Comma separated list of user id to filter the data
                 grouping (int):         0 or 1
 
             Returns:
@@ -2695,9 +2725,9 @@ class WebInterface(object):
     @requireAuth()
     def history_table_modal(self, **kwargs):
         if kwargs.get('user_id') and not allow_session_user(kwargs['user_id']):
-            return serve_template(templatename="history_table_modal.html", title="History Data", data=None)
+            return serve_template(template_name="history_table_modal.html", title="History Data", data=None)
 
-        return serve_template(templatename="history_table_modal.html", title="History Data", data=kwargs)
+        return serve_template(template_name="history_table_modal.html", title="History Data", data=kwargs)
 
 
     ##### Sync #####
@@ -2705,7 +2735,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def sync(self, **kwargs):
-        return serve_template(templatename="sync.html", title="Synced Items")
+        return serve_template(template_name="sync.html", title="Synced Items")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2764,7 +2794,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def logs(self, **kwargs):
         plex_log_files = log_reader.list_plex_logs()
-        return serve_template(templatename="logs.html", title="Log", plex_log_files=plex_log_files)
+        return serve_template(template_name="logs.html", title="Log", plex_log_files=plex_log_files)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -3158,7 +3188,7 @@ class WebInterface(object):
         for key in ('home_sections', 'home_stats_cards', 'home_library_cards'):
             settings_dict[key] = json.dumps(settings_dict[key])
 
-        return serve_template(templatename="settings.html", title="Settings", config=settings_dict)
+        return serve_template(template_name="settings.html", title="Settings", config=settings_dict)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3349,17 +3379,17 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_configuration_table(self, **kwargs):
-        return serve_template(templatename="configuration_table.html")
+        return serve_template(template_name="configuration_table.html")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_scheduler_table(self, **kwargs):
-        return serve_template(templatename="scheduler_table.html")
+        return serve_template(template_name="scheduler_table.html")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_queue_modal(self, queue=None, **kwargs):
-        return serve_template(templatename="queue_modal.html", queue=queue)
+        return serve_template(template_name="queue_modal.html", queue=queue)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3423,7 +3453,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_notifiers_table(self, **kwargs):
         result = notifiers.get_notifiers()
-        return serve_template(templatename="notifiers_table.html", notifiers_list=result)
+        return serve_template(template_name="notifiers_table.html", notifiers_list=result)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3506,7 +3536,7 @@ class WebInterface(object):
                 for category in common.NOTIFICATION_PARAMETERS for param in category['parameters']
             ]
 
-        return serve_template(templatename="notifier_config.html", notifier=result, parameters=parameters)
+        return serve_template(template_name="notifier_config.html", notifier=result, parameters=parameters)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3589,7 +3619,7 @@ class WebInterface(object):
 
             text.append({'media_type': media_type, 'subject': test_subject, 'body': test_body})
 
-        return serve_template(templatename="notifier_text_preview.html", text=text, agent=agent_name)
+        return serve_template(template_name="notifier_text_preview.html", text=text, agent=agent_name)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3767,7 +3797,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_mobile_devices_table(self, **kwargs):
         result = mobile_app.get_mobile_devices()
-        return serve_template(templatename="mobile_devices_table.html", devices_list=result)
+        return serve_template(template_name="mobile_devices_table.html", devices_list=result)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3790,7 +3820,7 @@ class WebInterface(object):
     def get_mobile_device_config_modal(self, mobile_device_id=None, **kwargs):
         result = mobile_app.get_mobile_device_config(mobile_device_id=mobile_device_id)
 
-        return serve_template(templatename="mobile_device_config.html", device=result)
+        return serve_template(template_name="mobile_device_config.html", device=result)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4000,11 +4030,11 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def import_database_tool(self, app=None, **kwargs):
         if app == 'tautulli':
-            return serve_template(templatename="app_import.html", title="Import Tautulli Database", app="Tautulli")
+            return serve_template(template_name="app_import.html", title="Import Tautulli Database", app="Tautulli")
         elif app == 'plexwatch':
-            return serve_template(templatename="app_import.html", title="Import PlexWatch Database", app="PlexWatch")
+            return serve_template(template_name="app_import.html", title="Import PlexWatch Database", app="PlexWatch")
         elif app == 'plexivity':
-            return serve_template(templatename="app_import.html", title="Import Plexivity Database", app="Plexivity")
+            return serve_template(template_name="app_import.html", title="Import Plexivity Database", app="Plexivity")
 
         logger.warn("No app specified for import.")
         return
@@ -4012,7 +4042,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def import_config_tool(self, **kwargs):
-        return serve_template(templatename="config_import.html", title="Import Tautulli Configuration")
+        return serve_template(template_name="config_import.html", title="Import Tautulli Configuration")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4285,7 +4315,7 @@ class WebInterface(object):
         else:
             new_http_root = '/'
 
-        return serve_template(templatename="shutdown.html", signal=signal, title=title,
+        return serve_template(template_name="shutdown.html", signal=signal, title=title,
                               new_http_root=new_http_root, message=message, timer=timer, quote=quote)
 
     @cherrypy.expose
@@ -4395,7 +4425,7 @@ class WebInterface(object):
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-            return serve_template(templatename="info.html", metadata=metadata, title="Info",
+            return serve_template(template_name="info.html", metadata=metadata, title="Info",
                                   config=config, source=source, user_info=user_info)
         else:
             if get_session_user_id():
@@ -4411,11 +4441,11 @@ class WebInterface(object):
         result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
 
         if result:
-            return serve_template(templatename="info_children_list.html", data=result,
+            return serve_template(template_name="info_children_list.html", data=result,
                                   media_type=media_type, title="Children List")
         else:
             logger.warn("Unable to retrieve data for get_item_children.")
-            return serve_template(templatename="info_children_list.html", data=None, title="Children List")
+            return serve_template(template_name="info_children_list.html", data=None, title="Children List")
 
     @cherrypy.expose
     @requireAuth()
@@ -4425,45 +4455,45 @@ class WebInterface(object):
         result = pms_connect.get_item_children_related(rating_key=rating_key)
 
         if result:
-            return serve_template(templatename="info_collection_list.html", data=result, title=title)
+            return serve_template(template_name="info_collection_list.html", data=result, title=title)
         else:
-            return serve_template(templatename="info_collection_list.html", data=None, title=title)
+            return serve_template(template_name="info_collection_list.html", data=None, title=title)
 
     @cherrypy.expose
     @requireAuth()
-    def item_watch_time_stats(self, rating_key=None, **kwargs):
+    def item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key)
+            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
         else:
             result = None
 
         if result:
-            return serve_template(templatename="user_watch_time_stats.html", data=result, title="Watch Stats")
+            return serve_template(template_name="user_watch_time_stats.html", data=result, title="Watch Stats")
         else:
             logger.warn("Unable to retrieve data for item_watch_time_stats.")
-            return serve_template(templatename="user_watch_time_stats.html", data=None, title="Watch Stats")
+            return serve_template(template_name="user_watch_time_stats.html", data=None, title="Watch Stats")
 
     @cherrypy.expose
     @requireAuth()
-    def item_user_stats(self, rating_key=None, **kwargs):
+    def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, **kwargs)
+            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type, show_all_users=show_all_users)
         else:
             result = None
 
         if result:
-            return serve_template(templatename="library_user_stats.html", data=result, title="Player Stats")
+            return serve_template(template_name="library_user_stats.html", data=result, title="Player Stats")
         else:
             logger.warn("Unable to retrieve data for item_user_stats.")
-            return serve_template(templatename="library_user_stats.html", data=None, title="Player Stats")
+            return serve_template(template_name="library_user_stats.html", data=None, title="Player Stats")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_watch_time_stats(self, rating_key=None, grouping=None, query_days=None, **kwargs):
+    def get_item_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None, **kwargs):
         """  Get the watch time stats for the media item.
 
             ```
@@ -4471,6 +4501,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
+                media_type (str):       Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
 
@@ -4504,7 +4535,9 @@ class WebInterface(object):
 
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key, grouping=grouping,
+            result = item_data.get_watch_time_stats(rating_key=rating_key,
+                                                    media_type=media_type,
+                                                    grouping=grouping,
                                                     query_days=query_days)
             if result:
                 return result
@@ -4518,7 +4551,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_user_stats(self, rating_key=None, grouping=None, **kwargs):
+    def get_item_user_stats(self, rating_key=None, media_type=None, grouping=None, **kwargs):
         """  Get the user stats for the media item.
 
             ```
@@ -4526,6 +4559,7 @@ class WebInterface(object):
                 rating_key (str):       Rating key of the item
 
             Optional parameters:
+                media_type (str):       Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
 
             Returns:
@@ -4554,7 +4588,9 @@ class WebInterface(object):
 
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, grouping=grouping)
+            result = item_data.get_user_stats(rating_key=rating_key,
+                                              media_type=media_type,
+                                              grouping=grouping)
             if result:
                 return result
             else:
@@ -5073,7 +5109,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def search(self, query='', **kwargs):
-        return serve_template(templatename="search.html", title="Search", query=query)
+        return serve_template(template_name="search.html", title="Search", query=query)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5130,10 +5166,10 @@ class WebInterface(object):
                                                 if season['media_index'] == season_index]
 
         if result:
-            return serve_template(templatename="info_search_results_list.html", data=result, title="Search Result List")
+            return serve_template(template_name="info_search_results_list.html", data=result, title="Search Result List")
         else:
             logger.warn("Unable to retrieve data for get_search_results_children.")
-            return serve_template(templatename="info_search_results_list.html", data=None, title="Search Result List")
+            return serve_template(template_name="info_search_results_list.html", data=None, title="Search Result List")
 
 
     ##### Update Metadata #####
@@ -5150,10 +5186,10 @@ class WebInterface(object):
             query['query_string'] = query_string
 
         if query:
-            return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
+            return serve_template(template_name="update_metadata.html", query=query, update=update, title="Info")
         else:
             logger.warn("Unable to retrieve data for update_metadata.")
-            return serve_template(templatename="update_metadata.html", query=query, update=update, title="Info")
+            return serve_template(template_name="update_metadata.html", query=query, update=update, title="Info")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5339,6 +5375,24 @@ class WebInterface(object):
                      "last_viewed_at": "1462165717",
                      "library_name": "TV Shows",
                      "live": 0,
+                     "markers": [
+                        {
+                             "id": 908,
+                             "type": "credits",
+                             "start_time_offset": 2923863,
+                             "end_time_offset": 2998197,
+                             "first": true,
+                             "final": true
+                        },
+                        {
+                             "id": 908,
+                             "type": "intro",
+                             "start_time_offset": 1622,
+                             "end_time_offset": 109135,
+                             "first": null,
+                             "final": null
+                        }
+                     ],
                      "media_index": "1",
                      "media_info": [
                          {
@@ -6185,7 +6239,8 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_home_stats(self, grouping=None, time_range=30, stats_type='plays',
-                       stats_start=0, stats_count=10, stat_id='', **kwargs):
+                       stats_start=0, stats_count=10, stat_id='',
+                       section_id=None, user_id=None, **kwargs):
         """ Get the homepage watch statistics.
 
             ```
@@ -6201,6 +6256,8 @@ class WebInterface(object):
                 stat_id (str):          A single stat to return, 'top_movies', 'popular_movies',
                                         'top_tv', 'popular_tv', 'top_music', 'popular_music', 'top_libraries',
                                         'top_users', 'top_platforms', 'last_watched', 'most_concurrent'
+                section_id (int):       The id of the Plex library section
+                user_id (int):          The id of the Plex user
 
             Returns:
                 json:
@@ -6282,7 +6339,9 @@ class WebInterface(object):
                                              stats_type=stats_type,
                                              stats_start=stats_start,
                                              stats_count=stats_count,
-                                             stat_id=stat_id)
+                                             stat_id=stat_id,
+                                             section_id=section_id,
+                                             user_id=user_id)
 
         if result:
             return result
@@ -6533,7 +6592,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_newsletters_table(self, **kwargs):
         result = newsletters.get_newsletters()
-        return serve_template(templatename="newsletters_table.html", newsletters_list=result)
+        return serve_template(template_name="newsletters_table.html", newsletters_list=result)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -6608,7 +6667,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_newsletter_config_modal(self, newsletter_id=None, **kwargs):
         result = newsletters.get_newsletter_config(newsletter_id=newsletter_id, mask_passwords=True)
-        return serve_template(templatename="newsletter_config.html", newsletter=result)
+        return serve_template(template_name="newsletter_config.html", newsletter=result)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -6716,7 +6775,7 @@ class WebInterface(object):
             elif kwargs.pop('key', None) == plexpy.CONFIG.NEWSLETTER_PASSWORD:
                 return self.newsletter_auth(*args, **kwargs)
             else:
-                return serve_template(templatename="newsletter_auth.html",
+                return serve_template(template_name="newsletter_auth.html",
                                       title="Newsletter Login",
                                       uri=request_uri)
 
@@ -6753,7 +6812,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def newsletter_preview(self, **kwargs):
         kwargs['preview'] = 'true'
-        return serve_template(templatename="newsletter_preview.html",
+        return serve_template(template_name="newsletter_preview.html",
                               title="Newsletter",
                               kwargs=kwargs)
 
@@ -6792,7 +6851,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def support(self, **kwargs):
-        return serve_template(templatename="support.html", title="Support")
+        return serve_template(template_name="support.html", title="Support")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -6947,7 +7006,7 @@ class WebInterface(object):
         if media_type == 'photo_album':
             media_type = 'photoalbum'
 
-        return serve_template(templatename="export_modal.html", title="Export Metadata",
+        return serve_template(template_name="export_modal.html", title="Export Metadata",
                               section_id=section_id, user_id=user_id, rating_key=rating_key,
                               media_type=media_type, sub_media_type=sub_media_type,
                               export_type=export_type, file_formats=file_formats)
@@ -7016,9 +7075,7 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    {"result": "success",
-                     "message": "Metadata export has started."
-                     }
+                    {"export_id": 1}
             ```
         """
         individual_files = helpers.bool_true(individual_files)
@@ -7034,8 +7091,8 @@ class WebInterface(object):
                                  export_type=export_type,
                                  individual_files=individual_files).export()
 
-        if result is True:
-            return {'result': 'success', 'message': 'Metadata export has started.'}
+        if isinstance(result, int):
+            return {'result': 'success', 'message': 'Metadata export has started.', 'export_id': result}
         else:
             return {'result': 'error', 'message': result}
 

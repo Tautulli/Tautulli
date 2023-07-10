@@ -1,5 +1,78 @@
 # Changelog
 
+## v2.12.4 (2023-05-23)
+
+* History:
+  * Fix: Set view offset equal to duration if a stream is stopped within the last 10 sec.
+* Other:
+  * Fix: Database import may fail for some older databases.
+  * Fix: Double-quoted strings for newer versions of SQLite. (#2015, #2057)
+* API:
+  * Change: Return the ID for async API calls (export_metadata, notify, notify_newsletter).
+
+
+## v2.12.3 (2023-04-14)
+
+* Activity:
+  * Fix: Incorrect subtitle decision shown when subtitles are transcoded.
+* History:
+  * Fix: Incorrect order when sorting by the duration column in the history tables.
+* Notifications:
+  * Fix: Logging error when running scripts that use PlexAPI.
+* UI:
+  * Fix: Calculate file sizes setting causing the media info table to fail to load.
+  * Fix: Incorrect artwork and thumbnail shown for Live TV on the Most Active Libraries statistics card.
+* API:
+  * Change: Renamed duration to play_duration in the get_history API response. (Note: duration kept for backwards compatibility.)
+
+
+## v2.12.2 (2023-03-16)
+
+* Other:
+  * Fix: Tautulli not starting on FreeBSD jails.
+
+
+## v2.12.1 (2023-03-14)
+
+* Activity:
+  * Fix: Stop checking for deprecated sync items sessions.
+  * Change: Do not show audio language on activity cards for music.
+* Other:
+  * Fix: Tautulli not starting on macOS.
+
+
+## v2.12.0 (2023-03-13)
+
+* Notifications:
+  * New: Added support for Telegram group topics. (#1980)
+  * New: Added anidb_id and anidb_url notification parameters. (#1973)
+  * New: Added notification triggers for Intro Marker, Commercial Marker, and Credits Marker.
+  * New: Added various intro, commercial, and credits marker notification parameters.
+  * New: Allow setting a custom Pushover notification sound. (#2005)
+  * Change: Notification images are now uploaded directly to Discord without the need for a 3rd party image hosting service.
+  * Change: Automatically strip whitespace from notification condition values.
+  * Change: Trigger watched notifications based on the video watched completion behaviour setting.
+* Exporter:
+  * Fix: Unable to run exporter when using the Snap package. (#2007)
+  * New: Added credits marker, and audio/subtitle settings to export fields.
+* UI:
+  * Fix: Incorrect styling and missing content for collection media info pages.
+  * New: Added edition details field on movie media info pages. (#1957) (Thanks @herby2212)
+  * New: Added setting to change the video watched completion behaviour.
+  * New: Added watch time and user statistics to collection and playlist media info pages. (#1982, #2012) (Thanks @herby2212)
+  * New: Added history table to collection and playlist media info pages.
+  * New: Dynamically change watched status in the UI based on video watched completion behaviour setting.
+  * New: Added hidden setting to override server name.
+  * Change: Move track artist to a details field instead of in the title on track media info pages.
+* API:
+  * New: Added section_id and user_id parameters to get_home_stats API command. (#1944)
+  * New: Added marker info to get_metadata API command results.
+  * New: Added media_type parameter to get_item_watch_time_stats and get_item_user_stats API commands. (#1982) (Thanks @herby2212)
+  * New: Added last_refreshed timestamp to get_library_media_info API command response.
+* Other:
+  * Change: Migrate analytics to Google Analytics 4.
+
+
 ## v2.11.1 (2022-12-22)
 
 * Activity:

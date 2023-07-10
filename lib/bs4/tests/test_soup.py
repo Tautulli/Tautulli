@@ -30,19 +30,11 @@ from bs4.element import (
 
 from . import (
     default_builder,
+    LXML_PRESENT,
     SoupTest,
-    skipIf,
 )
 import warnings
-
-try:
-    from bs4.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
-    LXML_PRESENT = True
-except ImportError as e:
-    LXML_PRESENT = False
     
-PYTHON_3_PRE_3_2 = (sys.version_info[0] == 3 and sys.version_info < (3,2))
-
 class TestConstructor(SoupTest):
 
     def test_short_unicode_input(self):
@@ -139,7 +131,7 @@ class TestConstructor(SoupTest):
         assert " an id " == a['id']
         assert ["a", "class"] == a['class']
 
-        # TreeBuilder takes an argument called 'mutli_valued_attributes'  which lets
+        # TreeBuilder takes an argument called 'multi_valued_attributes'  which lets
         # you customize or disable this. As always, you can customize the TreeBuilder
         # by passing in a keyword argument to the BeautifulSoup constructor.
         soup = self.soup(markup, builder=default_builder, multi_valued_attributes=None)
@@ -219,10 +211,17 @@ class TestConstructor(SoupTest):
 
 
 class TestWarnings(SoupTest):
+    # Note that some of the tests in this class create BeautifulSoup
+    # objects directly rather than using self.soup(). That's
+    # because SoupTest.soup is defined in a different file,
+    # which will throw off the assertion in _assert_warning
+    # that the code that triggered the warning is in the same
+    # file as the test.
 
     def _assert_warning(self, warnings, cls):
         for w in warnings:
             if isinstance(w.message, cls):
+                assert w.filename == __file__
                 return w
         raise Exception("%s warning not found in %r" % (cls, warnings))
     
@@ -243,13 +242,17 @@ class TestWarnings(SoupTest):
 
     def test_no_warning_if_explicit_parser_specified(self):
         with warnings.catch_warnings(record=True) as w:
-            soup = BeautifulSoup("<a><b></b></a>", "html.parser")
+            soup = self.soup("<a><b></b></a>")
         assert [] == w
 
     def test_parseOnlyThese_renamed_to_parse_only(self):
         with warnings.catch_warnings(record=True) as w:
-            soup = self.soup("<a><b></b></a>", parseOnlyThese=SoupStrainer("b"))
-        msg = str(w[0].message)
+            soup = BeautifulSoup(
+                "<a><b></b></a>", "html.parser",
+                parseOnlyThese=SoupStrainer("b"),
+            )
+        warning = self._assert_warning(w, DeprecationWarning)
+        msg = str(warning.message)
         assert "parseOnlyThese" in msg
         assert "parse_only" in msg
         assert b"<b></b>" == soup.encode()
@@ -257,8 +260,11 @@ class TestWarnings(SoupTest):
     def test_fromEncoding_renamed_to_from_encoding(self):
         with warnings.catch_warnings(record=True) as w:
             utf8 = b"\xc3\xa9"
-            soup = self.soup(utf8, fromEncoding="utf8")
-        msg = str(w[0].message)
+            soup = BeautifulSoup(
+                utf8, "html.parser", fromEncoding="utf8"
+            )
+        warning = self._assert_warning(w, DeprecationWarning)
+        msg = str(warning.message)
         assert "fromEncoding" in msg
         assert "from_encoding" in msg
         assert "utf8" == soup.original_encoding
@@ -276,7 +282,7 @@ class TestWarnings(SoupTest):
         # A warning is issued if the "markup" looks like the name of
         # an HTML or text file, or a full path to a file on disk.
         with warnings.catch_warnings(record=True) as w:
-            soup = self.soup("markup" + extension)
+            soup = BeautifulSoup("markup" + extension, "html.parser")
             warning = self._assert_warning(w, MarkupResemblesLocatorWarning)
             assert "looks more like a filename" in str(warning.message)
 
@@ -291,11 +297,11 @@ class TestWarnings(SoupTest):
         with warnings.catch_warnings(record=True) as w:
             soup = self.soup("markup" + extension)
         assert [] == w
-        
+
     def test_url_warning_with_bytes_url(self):
         url = b"http://www.crummybytes.com/"
         with warnings.catch_warnings(record=True) as warning_list:
-            soup = self.soup(url)
+            soup = BeautifulSoup(url, "html.parser")
         warning = self._assert_warning(
             warning_list, MarkupResemblesLocatorWarning
         )
@@ -307,7 +313,7 @@ class TestWarnings(SoupTest):
         with warnings.catch_warnings(record=True) as warning_list:
             # note - this url must differ from the bytes one otherwise
             # python's warnings system swallows the second warning
-            soup = self.soup(url)
+            soup = BeautifulSoup(url, "html.parser")
         warning = self._assert_warning(
             warning_list, MarkupResemblesLocatorWarning
         )
@@ -347,18 +353,22 @@ class TestNewTag(SoupTest):
         assert "foo" == new_tag.name
         assert dict(bar="baz", name="a name") == new_tag.attrs
         assert None == new_tag.parent
-        
+
+    @pytest.mark.skipif(
+        not LXML_PRESENT,
+        reason="lxml not installed, cannot parse XML document"
+    )
+    def test_xml_tag_inherits_self_closing_rules_from_builder(self):
+        xml_soup = BeautifulSoup("", "xml")
+        xml_br = xml_soup.new_tag("br")
+        xml_p = xml_soup.new_tag("p")
+
+        # Both the <br> and <p> tag are empty-element, just because
+        # they have no contents.
+        assert b"<br/>" == xml_br.encode()
+        assert b"<p/>" == xml_p.encode()
+
     def test_tag_inherits_self_closing_rules_from_builder(self):
-        if LXML_PRESENT:
-            xml_soup = BeautifulSoup("", "lxml-xml")
-            xml_br = xml_soup.new_tag("br")
-            xml_p = xml_soup.new_tag("p")
-
-            # Both the <br> and <p> tag are empty-element, just because
-            # they have no contents.
-            assert b"<br/>" == xml_br.encode()
-            assert b"<p/>" == xml_p.encode()
-
         html_soup = BeautifulSoup("", "html.parser")
         html_br = html_soup.new_tag("br")
         html_p = html_soup.new_tag("p")
@@ -450,13 +460,3 @@ class TestEncodingConversion(SoupTest):
         # The internal data structures can be encoded as UTF-8.
         soup_from_unicode = self.soup(self.unicode_data)
         assert soup_from_unicode.encode('utf-8') == self.utf8_data
-
-    @skipIf(
-        PYTHON_3_PRE_3_2,
-        "Bad HTMLParser detected; skipping test of non-ASCII characters in attribute name.")
-    def test_attribute_name_containing_unicode_characters(self):
-        markup = '<div><a \N{SNOWMAN}="snowman"></a></div>'
-        assert self.soup(markup).div.encode("utf8") == markup.encode("utf8")
-
-
-

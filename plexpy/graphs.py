@@ -51,11 +51,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -64,42 +60,42 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT sh.date_played, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, ' \
-                        'SUM(shm.live) AS live_count ' \
-                        'FROM (SELECT *,' \
-                        '      date(started, "unixepoch", "localtime") AS date_played ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY date_played, %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY sh.date_played ' \
-                        'ORDER BY sh.started' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.date_played, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(shm.live) AS live_count " \
+                        "FROM (SELECT *," \
+                        "      date(started, 'unixepoch', 'localtime') AS date_played " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY date_played, %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY sh.date_played " \
+                        "ORDER BY sh.started" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT sh.date_played, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS music_count, ' \
-                        'SUM(CASE WHEN shm.live = 1 ' \
-                        '  THEN sh.d ELSE 0 END) AS live_count ' \
-                        'FROM (SELECT *,' \
-                        '      date(started, "unixepoch", "localtime") AS date_played,' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s' \
-                        '    GROUP BY date_played, %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY sh.date_played ' \
-                        'ORDER BY sh.started' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.date_played, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS music_count, " \
+                        "SUM(CASE WHEN shm.live = 1 " \
+                        "  THEN sh.d ELSE 0 END) AS live_count " \
+                        "FROM (SELECT *," \
+                        "      date(started, 'unixepoch', 'localtime') AS date_played," \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s" \
+                        "    GROUP BY date_played, %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY sh.date_played " \
+                        "ORDER BY sh.started" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -171,11 +167,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -184,58 +176,58 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT sh.daynumber, ' \
-                        '(CASE sh.daynumber ' \
-                        '  WHEN 0 THEN "Sunday" ' \
-                        '  WHEN 1 THEN "Monday" ' \
-                        '  WHEN 2 THEN "Tuesday" ' \
-                        '  WHEN 3 THEN "Wednesday" ' \
-                        '  WHEN 4 THEN "Thursday" ' \
-                        '  WHEN 5 THEN "Friday" ' \
-                        '  ELSE "Saturday" END) AS dayofweek, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, ' \
-                        'SUM(shm.live) AS live_count ' \
-                        'FROM (SELECT *, ' \
-                        '      CAST(strftime("%%w", date(started, "unixepoch", "localtime")) AS INTEGER) AS daynumber' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY daynumber, %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY dayofweek ' \
-                        'ORDER BY sh.daynumber' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.daynumber, " \
+                        "(CASE sh.daynumber " \
+                        "  WHEN 0 THEN 'Sunday' " \
+                        "  WHEN 1 THEN 'Monday' " \
+                        "  WHEN 2 THEN 'Tuesday' " \
+                        "  WHEN 3 THEN 'Wednesday' " \
+                        "  WHEN 4 THEN 'Thursday' " \
+                        "  WHEN 5 THEN 'Friday' " \
+                        "  ELSE 'Saturday' END) AS dayofweek, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(shm.live) AS live_count " \
+                        "FROM (SELECT *, " \
+                        "      CAST(strftime('%%w', date(started, 'unixepoch', 'localtime')) AS INTEGER) AS daynumber" \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY daynumber, %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY dayofweek " \
+                        "ORDER BY sh.daynumber" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT sh.daynumber, ' \
-                        '(CASE sh.daynumber ' \
-                        '  WHEN 0 THEN "Sunday" ' \
-                        '  WHEN 1 THEN "Monday" ' \
-                        '  WHEN 2 THEN "Tuesday" ' \
-                        '  WHEN 3 THEN "Wednesday" ' \
-                        '  WHEN 4 THEN "Thursday" ' \
-                        '  WHEN 5 THEN "Friday" ' \
-                        '  ELSE "Saturday" END) AS dayofweek, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS music_count, ' \
-                        'SUM(CASE WHEN shm.live = 1 ' \
-                        '  THEN sh.d ELSE 0 END) AS live_count ' \
-                        'FROM (SELECT *, ' \
-                        '      CAST(strftime("%%w", date(started, "unixepoch", "localtime")) AS INTEGER) AS daynumber, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s' \
-                        '    GROUP BY daynumber, %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY dayofweek ' \
-                        'ORDER BY sh.daynumber' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.daynumber, " \
+                        "(CASE sh.daynumber " \
+                        "  WHEN 0 THEN 'Sunday' " \
+                        "  WHEN 1 THEN 'Monday' " \
+                        "  WHEN 2 THEN 'Tuesday' " \
+                        "  WHEN 3 THEN 'Wednesday' " \
+                        "  WHEN 4 THEN 'Thursday' " \
+                        "  WHEN 5 THEN 'Friday' " \
+                        "  ELSE 'Saturday' END) AS dayofweek, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS music_count, " \
+                        "SUM(CASE WHEN shm.live = 1 " \
+                        "  THEN sh.d ELSE 0 END) AS live_count " \
+                        "FROM (SELECT *, " \
+                        "      CAST(strftime('%%w', date(started, 'unixepoch', 'localtime')) AS INTEGER) AS daynumber, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s" \
+                        "    GROUP BY daynumber, %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY dayofweek " \
+                        "ORDER BY sh.daynumber" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -308,11 +300,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -321,42 +309,42 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT sh.hourofday, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, ' \
-                        'SUM(shm.live) AS live_count ' \
-                        'FROM (SELECT *, ' \
-                        '      strftime("%%H", datetime(started, "unixepoch", "localtime")) AS hourofday' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY hourofday, %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY sh.hourofday ' \
-                        'ORDER BY sh.hourofday' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.hourofday, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(shm.live) AS live_count " \
+                        "FROM (SELECT *, " \
+                        "      strftime('%%H', datetime(started, 'unixepoch', 'localtime')) AS hourofday" \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY hourofday, %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY sh.hourofday " \
+                        "ORDER BY sh.hourofday" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT sh.hourofday, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS music_count, ' \
-                        'SUM(CASE WHEN shm.live = 1 ' \
-                        '  THEN sh.d ELSE 0 END) AS live_count ' \
-                        'FROM (SELECT *, ' \
-                        '      strftime("%%H", datetime(started, "unixepoch", "localtime")) AS hourofday, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s' \
-                        '    GROUP BY hourofday, %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY sh.hourofday ' \
-                        'ORDER BY sh.hourofday' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.hourofday, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS music_count, " \
+                        "SUM(CASE WHEN shm.live = 1 " \
+                        "  THEN sh.d ELSE 0 END) AS live_count " \
+                        "FROM (SELECT *, " \
+                        "      strftime('%%H', datetime(started, 'unixepoch', 'localtime')) AS hourofday, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s" \
+                        "    GROUP BY hourofday, %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY sh.hourofday " \
+                        "ORDER BY sh.hourofday" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -427,11 +415,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 12
         timestamp = arrow.get(helpers.timestamp()).shift(months=-time_range).floor('month').timestamp()
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -440,42 +424,42 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT sh.datestring, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, ' \
-                        'SUM(shm.live) AS live_count ' \
-                        'FROM (SELECT *, ' \
-                        '      strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) AS datestring' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY datestring, %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY sh.datestring ' \
-                        'ORDER BY sh.datestring' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.datestring, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(shm.live) AS live_count " \
+                        "FROM (SELECT *, " \
+                        "      strftime('%%Y-%%m', datetime(started, 'unixepoch', 'localtime')) AS datestring" \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY datestring, %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY sh.datestring " \
+                        "ORDER BY sh.datestring" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT sh.datestring, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS music_count, ' \
-                        'SUM(CASE WHEN shm.live = 1 ' \
-                        '  THEN sh.d ELSE 0 END) AS live_count ' \
-                        'FROM (SELECT *, ' \
-                        '      strftime("%%Y-%%m", datetime(started, "unixepoch", "localtime")) AS datestring, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s' \
-                        '    GROUP BY datestring, %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY sh.datestring ' \
-                        'ORDER BY sh.datestring' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.datestring, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS music_count, " \
+                        "SUM(CASE WHEN shm.live = 1 " \
+                        "  THEN sh.d ELSE 0 END) AS live_count " \
+                        "FROM (SELECT *, " \
+                        "      strftime('%%Y-%%m', datetime(started, 'unixepoch', 'localtime')) AS datestring, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s" \
+                        "    GROUP BY datestring, %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY sh.datestring " \
+                        "ORDER BY sh.datestring" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -554,11 +538,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -567,44 +547,44 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT sh.platform, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, ' \
-                        'SUM(shm.live) AS live_count, ' \
-                        'COUNT(sh.id) AS total_count ' \
-                        'FROM (SELECT * ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY sh.platform ' \
-                        'ORDER BY total_count DESC, sh.platform ASC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.platform, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(shm.live) AS live_count, " \
+                        "COUNT(sh.id) AS total_count " \
+                        "FROM (SELECT * " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY sh.platform " \
+                        "ORDER BY total_count DESC, sh.platform ASC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT sh.platform, ' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS music_count, ' \
-                        'SUM(CASE WHEN shm.live = 1 ' \
-                        '  THEN sh.d ELSE 0 END) AS live_count, ' \
-                        'SUM(sh.d) AS total_duration ' \
-                        'FROM (SELECT *, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'GROUP BY sh.platform ' \
-                        'ORDER BY total_duration DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.platform, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS music_count, " \
+                        "SUM(CASE WHEN shm.live = 1 " \
+                        "  THEN sh.d ELSE 0 END) AS live_count, " \
+                        "SUM(sh.d) AS total_duration " \
+                        "FROM (SELECT *, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s" \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY sh.platform " \
+                        "ORDER BY total_duration DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -653,11 +633,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -666,50 +642,50 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT u.user_id, u.username, ' \
-                        '(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = "" ' \
-                        '  THEN u.username ELSE u.friendly_name END) AS friendly_name,' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, ' \
-                        'SUM(shm.live) AS live_count, ' \
-                        'COUNT(sh.id) AS total_count ' \
-                        'FROM (SELECT * ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'JOIN users AS u ON u.user_id = sh.user_id ' \
-                        'GROUP BY sh.user_id ' \
-                        'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT u.user_id, u.username, " \
+                        "(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = '' " \
+                        "  THEN u.username ELSE u.friendly_name END) AS friendly_name," \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(shm.live) AS live_count, " \
+                        "COUNT(sh.id) AS total_count " \
+                        "FROM (SELECT * " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "JOIN users AS u ON u.user_id = sh.user_id " \
+                        "GROUP BY sh.user_id " \
+                        "ORDER BY total_count DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT u.user_id, u.username, ' \
-                        '(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = "" ' \
-                        ' THEN u.username ELSE u.friendly_name END) AS friendly_name,' \
-                        'SUM(CASE WHEN sh.media_type = "episode" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS tv_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "movie" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS movie_count, ' \
-                        'SUM(CASE WHEN sh.media_type = "track" AND shm.live = 0 ' \
-                        '  THEN sh.d ELSE 0 END) AS music_count, ' \
-                        'SUM(CASE WHEN shm.live = 1 ' \
-                        '  THEN sh.d ELSE 0 END) AS live_count, ' \
-                        'SUM(sh.d) AS total_duration ' \
-                        'FROM (SELECT *, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '         (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '         AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_metadata AS shm ON shm.id = sh.id ' \
-                        'JOIN users AS u ON u.user_id = sh.user_id ' \
-                        'GROUP BY sh.user_id ' \
-                        'ORDER BY total_duration DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT u.user_id, u.username, " \
+                        "(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = '' " \
+                        " THEN u.username ELSE u.friendly_name END) AS friendly_name," \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "  THEN sh.d ELSE 0 END) AS music_count, " \
+                        "SUM(CASE WHEN shm.live = 1 " \
+                        "  THEN sh.d ELSE 0 END) AS live_count, " \
+                        "SUM(sh.d) AS total_duration " \
+                        "FROM (SELECT *, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "         (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "         AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s" \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "JOIN users AS u ON u.user_id = sh.user_id " \
+                        "GROUP BY sh.user_id " \
+                        "ORDER BY total_duration DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -763,11 +739,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -776,36 +748,36 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT sh.date_played, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN 1 ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN 1 ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN 1 ELSE 0 END) AS tc_count ' \
-                        'FROM (SELECT *, ' \
-                        '      date(started, "unixepoch", "localtime") AS date_played ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY date_played, %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'GROUP BY sh.date_played ' \
-                        'ORDER BY sh.started' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.date_played, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count " \
+                        "FROM (SELECT *, " \
+                        "      date(started, 'unixepoch', 'localtime') AS date_played " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY date_played, %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "GROUP BY sh.date_played " \
+                        "ORDER BY sh.started" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT sh.date_played, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN sh.d ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN sh.d ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN sh.d ELSE 0 END) AS tc_count ' \
-                        'FROM (SELECT *, ' \
-                        '      date(started, "unixepoch", "localtime") AS date_played,' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s' \
-                        '    GROUP BY date_played, %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'GROUP BY sh.date_played ' \
-                        'ORDER BY sh.started' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.date_played, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count " \
+                        "FROM (SELECT *, " \
+                        "      date(started, 'unixepoch', 'localtime') AS date_played," \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s" \
+                        "    GROUP BY date_played, %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "GROUP BY sh.date_played " \
+                        "ORDER BY sh.started" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -860,11 +832,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -873,40 +841,40 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT shmi.video_full_resolution AS resolution, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN 1 ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN 1 ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN 1 ELSE 0 END) AS tc_count, ' \
-                        'COUNT(sh.id) AS total_count ' \
-                        'FROM (SELECT * ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s ' \
-                        '    AND session_history.media_type IN ("movie", "episode") %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'GROUP BY resolution ' \
-                        'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT shmi.video_full_resolution AS resolution, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count, " \
+                        "COUNT(sh.id) AS total_count " \
+                        "FROM (SELECT * " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s " \
+                        "    AND session_history.media_type IN ('movie', 'episode') %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "GROUP BY resolution " \
+                        "ORDER BY total_count DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT shmi.video_full_resolution AS resolution,' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN sh.d ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN sh.d ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN sh.d ELSE 0 END) AS tc_count, ' \
-                        'SUM(sh.d) AS total_duration ' \
-                        'FROM (SELECT *, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s ' \
-                        '    AND session_history.media_type IN ("movie", "episode") %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'GROUP BY resolution ' \
-                        'ORDER BY total_duration DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT shmi.video_full_resolution AS resolution," \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count, " \
+                        "SUM(sh.d) AS total_duration " \
+                        "FROM (SELECT *, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s " \
+                        "    AND session_history.media_type IN ('movie', 'episode') %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "GROUP BY resolution " \
+                        "ORDER BY total_duration DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -941,11 +909,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -954,66 +918,66 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT ' \
-                        '(CASE WHEN shmi.stream_video_full_resolution IS NULL THEN ' \
-                        '  (CASE WHEN shmi.video_decision = "transcode" THEN ' \
-                        '    (CASE ' \
-                        '      WHEN shmi.transcode_height <= 360 THEN "SD" ' \
-                        '      WHEN shmi.transcode_height <= 480 THEN "480" ' \
-                        '      WHEN shmi.transcode_height <= 576 THEN "576" ' \
-                        '      WHEN shmi.transcode_height <= 720 THEN "720" ' \
-                        '      WHEN shmi.transcode_height <= 1080 THEN "1080" ' \
-                        '      WHEN shmi.transcode_height <= 1440 THEN "QHD" ' \
-                        '      WHEN shmi.transcode_height <= 2160 THEN "4k" ' \
-                        '      ELSE "unknown" END)' \
-                        '    ELSE shmi.video_full_resolution END) ' \
-                        '  ELSE shmi.stream_video_full_resolution END) AS resolution, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN 1 ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN 1 ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN 1 ELSE 0 END) AS tc_count, ' \
-                        'COUNT(sh.id) AS total_count ' \
-                        'FROM (SELECT * ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s ' \
-                        '    AND session_history.media_type IN ("movie", "episode") %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'GROUP BY resolution ' \
-                        'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT " \
+                        "(CASE WHEN shmi.stream_video_full_resolution IS NULL THEN " \
+                        "  (CASE WHEN shmi.video_decision = 'transcode' THEN " \
+                        "    (CASE " \
+                        "      WHEN shmi.transcode_height <= 360 THEN 'SD' " \
+                        "      WHEN shmi.transcode_height <= 480 THEN '480' " \
+                        "      WHEN shmi.transcode_height <= 576 THEN '576' " \
+                        "      WHEN shmi.transcode_height <= 720 THEN '720' " \
+                        "      WHEN shmi.transcode_height <= 1080 THEN '1080' " \
+                        "      WHEN shmi.transcode_height <= 1440 THEN 'QHD' " \
+                        "      WHEN shmi.transcode_height <= 2160 THEN '4k' " \
+                        "      ELSE 'unknown' END)" \
+                        "    ELSE shmi.video_full_resolution END) " \
+                        "  ELSE shmi.stream_video_full_resolution END) AS resolution, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count, " \
+                        "COUNT(sh.id) AS total_count " \
+                        "FROM (SELECT * " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s " \
+                        "    AND session_history.media_type IN ('movie', 'episode') %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "GROUP BY resolution " \
+                        "ORDER BY total_count DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT ' \
-                        '(CASE WHEN shmi.stream_video_full_resolution IS NULL THEN ' \
-                        '  (CASE WHEN shmi.video_decision = "transcode" THEN ' \
-                        '    (CASE ' \
-                        '      WHEN shmi.transcode_height <= 360 THEN "SD" ' \
-                        '      WHEN shmi.transcode_height <= 480 THEN "480" ' \
-                        '      WHEN shmi.transcode_height <= 576 THEN "576" ' \
-                        '      WHEN shmi.transcode_height <= 720 THEN "720" ' \
-                        '      WHEN shmi.transcode_height <= 1080 THEN "1080" ' \
-                        '      WHEN shmi.transcode_height <= 1440 THEN "QHD" ' \
-                        '      WHEN shmi.transcode_height <= 2160 THEN "4k" ' \
-                        '      ELSE "unknown" END)' \
-                        '    ELSE shmi.video_full_resolution END) ' \
-                        '  ELSE shmi.stream_video_full_resolution END) AS resolution, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN sh.d ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN sh.d ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN sh.d ELSE 0 END) AS tc_count, ' \
-                        'SUM(sh.d) AS total_duration ' \
-                        'FROM (SELECT *, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s ' \
-                        '    AND session_history.media_type IN ("movie", "episode") %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'GROUP BY resolution ' \
-                        'ORDER BY total_duration DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT " \
+                        "(CASE WHEN shmi.stream_video_full_resolution IS NULL THEN " \
+                        "  (CASE WHEN shmi.video_decision = 'transcode' THEN " \
+                        "    (CASE " \
+                        "      WHEN shmi.transcode_height <= 360 THEN 'SD' " \
+                        "      WHEN shmi.transcode_height <= 480 THEN '480' " \
+                        "      WHEN shmi.transcode_height <= 576 THEN '576' " \
+                        "      WHEN shmi.transcode_height <= 720 THEN '720' " \
+                        "      WHEN shmi.transcode_height <= 1080 THEN '1080' " \
+                        "      WHEN shmi.transcode_height <= 1440 THEN 'QHD' " \
+                        "      WHEN shmi.transcode_height <= 2160 THEN '4k' " \
+                        "      ELSE 'unknown' END)" \
+                        "    ELSE shmi.video_full_resolution END) " \
+                        "  ELSE shmi.stream_video_full_resolution END) AS resolution, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count, " \
+                        "SUM(sh.d) AS total_duration " \
+                        "FROM (SELECT *, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s " \
+                        "    AND session_history.media_type IN ('movie', 'episode') %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "GROUP BY resolution " \
+                        "ORDER BY total_duration DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -1048,11 +1012,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -1061,38 +1021,38 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT sh.platform, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN 1 ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN 1 ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN 1 ELSE 0 END) AS tc_count, ' \
-                        'COUNT(sh.id) AS total_count ' \
-                        'FROM (SELECT * ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'GROUP BY sh.platform ' \
-                        'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.platform, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count, " \
+                        "COUNT(sh.id) AS total_count " \
+                        "FROM (SELECT * " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "GROUP BY sh.platform " \
+                        "ORDER BY total_count DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT sh.platform, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN sh.d ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN sh.d ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN sh.d ELSE 0 END) AS tc_count, ' \
-                        'SUM(sh.d) AS total_duration ' \
-                        'FROM (SELECT *, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'GROUP BY sh.platform ' \
-                        'ORDER BY total_duration DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT sh.platform, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count, " \
+                        "SUM(sh.d) AS total_duration " \
+                        "FROM (SELECT *, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "GROUP BY sh.platform " \
+                        "ORDER BY total_duration DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -1128,11 +1088,7 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = ''
-        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
-        elif user_id and user_id.isdigit():
-            user_cond = 'AND session_history.user_id = %s ' % user_id
+        user_cond = self._make_user_cond(user_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -1141,44 +1097,44 @@ class Graphs(object):
 
         try:
             if y_axis == 'plays':
-                query = 'SELECT u.user_id, u.username, ' \
-                        '(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = "" ' \
-                        '  THEN u.username ELSE u.friendly_name END) AS friendly_name,' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN 1 ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN 1 ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN 1 ELSE 0 END) AS tc_count, ' \
-                        'COUNT(sh.id) AS total_count ' \
-                        'FROM (SELECT * ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'JOIN users AS u ON u.user_id = sh.user_id ' \
-                        'GROUP BY u.user_id ' \
-                        'ORDER BY total_count DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT u.user_id, u.username, " \
+                        "(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = '' " \
+                        "  THEN u.username ELSE u.friendly_name END) AS friendly_name," \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count, " \
+                        "COUNT(sh.id) AS total_count " \
+                        "FROM (SELECT * " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "JOIN users AS u ON u.user_id = sh.user_id " \
+                        "GROUP BY u.user_id " \
+                        "ORDER BY total_count DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
-                query = 'SELECT u.user_id, u.username, ' \
-                        '(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = "" ' \
-                        '  THEN u.username ELSE u.friendly_name END) AS friendly_name,' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "direct play" THEN sh.d ELSE 0 END) AS dp_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "copy" THEN sh.d ELSE 0 END) AS ds_count, ' \
-                        'SUM(CASE WHEN shmi.transcode_decision = "transcode" THEN sh.d ELSE 0 END) AS tc_count, ' \
-                        'SUM(sh.d) AS total_duration ' \
-                        'FROM (SELECT *, ' \
-                        '      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - ' \
-                        '        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) ' \
-                        '        AS d ' \
-                        '    FROM session_history ' \
-                        '    WHERE session_history.stopped >= %s %s ' \
-                        '    GROUP BY %s) AS sh ' \
-                        'JOIN session_history_media_info AS shmi ON shmi.id = sh.id ' \
-                        'JOIN users AS u ON u.user_id = sh.user_id ' \
-                        'GROUP BY u.user_id ' \
-                        'ORDER BY total_duration DESC ' \
-                        'LIMIT 10' % (timestamp, user_cond, group_by)
+                query = "SELECT u.user_id, u.username, " \
+                        "(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = '' " \
+                        "  THEN u.username ELSE u.friendly_name END) AS friendly_name," \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count, " \
+                        "SUM(sh.d) AS total_duration " \
+                        "FROM (SELECT *, " \
+                        "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "        (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "        AS d " \
+                        "    FROM session_history " \
+                        "    WHERE session_history.stopped >= %s %s " \
+                        "    GROUP BY %s) AS sh " \
+                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
+                        "JOIN users AS u ON u.user_id = sh.user_id " \
+                        "GROUP BY u.user_id " \
+                        "ORDER BY total_duration DESC " \
+                        "LIMIT 10" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
         except Exception as e:
@@ -1212,3 +1168,16 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
 
         return output
+
+    def _make_user_cond(self, user_id):
+        """
+        Expects user_id to be a comma-separated list of ints.
+        """
+        user_cond = ''
+        if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
+            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+        elif user_id:
+            user_ids = helpers.split_strip(user_id)
+            if all(id.isdigit() for id in user_ids):
+                user_cond = 'AND session_history.user_id IN (%s) ' % ','.join(user_ids)
+        return user_cond

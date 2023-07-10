@@ -1,16 +1,10 @@
 """Tests to ensure that the lxml tree builder generates good trees."""
 
 import pickle
+import pytest
 import re
 import warnings
-
-try:
-    import lxml.etree
-    LXML_PRESENT = True
-    LXML_VERSION = lxml.etree.LXML_VERSION
-except ImportError as e:
-    LXML_PRESENT = False
-    LXML_VERSION = (0,)
+from . import LXML_PRESENT, LXML_VERSION
 
 if LXML_PRESENT:
     from bs4.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
@@ -23,13 +17,14 @@ from bs4.element import Comment, Doctype, SoupStrainer
 from . import (
     HTMLTreeBuilderSmokeTest,
     XMLTreeBuilderSmokeTest,
+    SOUP_SIEVE_PRESENT,
     SoupTest,
-    skipIf,
 )
 
-@skipIf(
+@pytest.mark.skipif(
     not LXML_PRESENT,
-    "lxml seems not to be present, not testing its tree builder.")
+    reason="lxml seems not to be present, not testing its tree builder."
+)
 class TestLXMLTreeBuilder(SoupTest, HTMLTreeBuilderSmokeTest):
     """See ``HTMLTreeBuilderSmokeTest``."""
 
@@ -54,9 +49,10 @@ class TestLXMLTreeBuilder(SoupTest, HTMLTreeBuilderSmokeTest):
     # In lxml < 2.3.5, an empty doctype causes a segfault. Skip this
     # test if an old version of lxml is installed.
 
-    @skipIf(
+    @pytest.mark.skipif(
         not LXML_PRESENT or LXML_VERSION < (2,3,5,0),
-        "Skipping doctype test for old version of lxml to avoid segfault.")
+        reason="Skipping doctype test for old version of lxml to avoid segfault."
+    )
     def test_empty_doctype(self):
         soup = self.soup("<!DOCTYPE>")
         doctype = soup.contents[0]
@@ -68,7 +64,9 @@ class TestLXMLTreeBuilder(SoupTest, HTMLTreeBuilderSmokeTest):
         with warnings.catch_warnings(record=True) as w:
             soup = BeautifulStoneSoup("<b />")
         assert "<b/>" == str(soup.b)
-        assert "BeautifulStoneSoup class is deprecated" in str(w[0].message)
+        [warning] = w
+        assert warning.filename == __file__
+        assert "BeautifulStoneSoup class is deprecated" in str(warning.message)
 
     def test_tracking_line_numbers(self):
         # The lxml TreeBuilder cannot keep track of line numbers from
@@ -85,9 +83,10 @@ class TestLXMLTreeBuilder(SoupTest, HTMLTreeBuilderSmokeTest):
         assert "sourceline" == soup.p.sourceline.name
         assert "sourcepos" == soup.p.sourcepos.name
         
-@skipIf(
+@pytest.mark.skipif(
     not LXML_PRESENT,
-    "lxml seems not to be present, not testing its XML tree builder.")
+    reason="lxml seems not to be present, not testing its XML tree builder."
+)
 class TestLXMLXMLTreeBuilder(SoupTest, XMLTreeBuilderSmokeTest):
     """See ``HTMLTreeBuilderSmokeTest``."""
 
@@ -148,6 +147,9 @@ class TestLXMLXMLTreeBuilder(SoupTest, XMLTreeBuilderSmokeTest):
         }
 
 
+    @pytest.mark.skipif(
+        not SOUP_SIEVE_PRESENT, reason="Soup Sieve not installed"
+    )
     def test_namespace_interaction_with_select_and_find(self):
         # Demonstrate how namespaces interact with select* and
         # find* methods.

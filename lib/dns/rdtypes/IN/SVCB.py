@@ -3,6 +3,7 @@
 import dns.rdtypes.svcbbase
 import dns.immutable
 
+
 @dns.immutable.immutable
 class SVCB(dns.rdtypes.svcbbase.SVCBBase):
     """SVCB record"""

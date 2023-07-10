@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v3
 
       - name: Set Release Version
         id: get_version
@@ -52,7 +52,7 @@ jobs:
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
-        uses: actions/setup-python@v4.4.0
+        uses: actions/setup-python@v4
         with:
           python-version: '3.9'
           cache: pip
@@ -119,7 +119,10 @@ jobs:
         run: |
           CHANGELOG="$( sed -n '/^## /{p; :loop n; p; /^## /q; b loop}' CHANGELOG.md \
             | sed '$d' | sed '$d' | sed '$d' )"
-          echo "CHANGELOG=${CHANGELOG}" >> $GITHUB_OUTPUT
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "CHANGELOG<<$EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
         uses: actions/create-release@v1

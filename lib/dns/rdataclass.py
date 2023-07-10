@@ -20,8 +20,10 @@
 import dns.enum
 import dns.exception
 
+
 class RdataClass(dns.enum.IntEnum):
     """DNS Rdata Class"""
+
     RESERVED0 = 0
     IN = 1
     INTERNET = IN
@@ -56,7 +58,7 @@ class UnknownRdataclass(dns.exception.DNSException):
     """A DNS class is unknown."""
 
 
-def from_text(text):
+def from_text(text: str) -> RdataClass:
     """Convert text into a DNS rdata class value.
 
     The input text can be a defined DNS RR class mnemonic or
@@ -68,13 +70,13 @@ def from_text(text):
 
     Raises ``ValueError`` if the rdata class value is not >= 0 and <= 65535.
 
-    Returns an ``int``.
+    Returns a ``dns.rdataclass.RdataClass``.
     """
 
     return RdataClass.from_text(text)
 
 
-def to_text(value):
+def to_text(value: RdataClass) -> str:
     """Convert a DNS rdata class value to text.
 
     If the value has a known mnemonic, it will be used, otherwise the
@@ -88,17 +90,18 @@ def to_text(value):
     return RdataClass.to_text(value)
 
 
-def is_metaclass(rdclass):
+def is_metaclass(rdclass: RdataClass) -> bool:
     """True if the specified class is a metaclass.
 
     The currently defined metaclasses are ANY and NONE.
 
-    *rdclass* is an ``int``.
+    *rdclass* is a ``dns.rdataclass.RdataClass``.
     """
 
     if rdclass in _metaclasses:
         return True
     return False
+
 
 ### BEGIN generated RdataClass constants
 

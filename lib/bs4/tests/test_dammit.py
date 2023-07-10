@@ -17,26 +17,24 @@ class TestUnicodeDammit(object):
         dammit = UnicodeDammit(markup)
         assert dammit.unicode_markup == markup
 
-    def test_smart_quotes_to_unicode(self):
+    @pytest.mark.parametrize(
+        "smart_quotes_to,expect_converted",
+        [(None, "\u2018\u2019\u201c\u201d"),
+         ("xml", "&#x2018;&#x2019;&#x201C;&#x201D;"),
+         ("html", "&lsquo;&rsquo;&ldquo;&rdquo;"),
+         ("ascii", "''" + '""'),
+        ]
+    )
+    def test_smart_quotes_to(self, smart_quotes_to, expect_converted):
+        """Verify the functionality of the smart_quotes_to argument
+        to the UnicodeDammit constructor."""
         markup = b"<foo>\x91\x92\x93\x94</foo>"
-        dammit = UnicodeDammit(markup)
-        assert dammit.unicode_markup == "<foo>\u2018\u2019\u201c\u201d</foo>"
-
-    def test_smart_quotes_to_xml_entities(self):
-        markup = b"<foo>\x91\x92\x93\x94</foo>"
-        dammit = UnicodeDammit(markup, smart_quotes_to="xml")
-        assert dammit.unicode_markup == "<foo>&#x2018;&#x2019;&#x201C;&#x201D;</foo>"
-
-    def test_smart_quotes_to_html_entities(self):
-        markup = b"<foo>\x91\x92\x93\x94</foo>"
-        dammit = UnicodeDammit(markup, smart_quotes_to="html")
-        assert dammit.unicode_markup == "<foo>&lsquo;&rsquo;&ldquo;&rdquo;</foo>"
-
-    def test_smart_quotes_to_ascii(self):
-        markup = b"<foo>\x91\x92\x93\x94</foo>"
-        dammit = UnicodeDammit(markup, smart_quotes_to="ascii")
-        assert dammit.unicode_markup == """<foo>''""</foo>"""
-
+        converted = UnicodeDammit(
+            markup, known_definite_encodings=["windows-1252"],
+            smart_quotes_to=smart_quotes_to
+        ).unicode_markup
+        assert converted == "<foo>{}</foo>".format(expect_converted)
+        
     def test_detect_utf8(self):
         utf8 = b"Sacr\xc3\xa9 bleu! \xe2\x98\x83"
         dammit = UnicodeDammit(utf8)
@@ -275,23 +273,24 @@ class TestEntitySubstitution(object):
     def setup_method(self):
         self.sub = EntitySubstitution
 
-    def test_simple_html_substitution(self):
-        # Unicode characters corresponding to named HTML entites
-        # are substituted, and no others.
-        s = "foo\u2200\N{SNOWMAN}\u00f5bar"
-        assert self.sub.substitute_html(s) == "foo&forall;\N{SNOWMAN}&otilde;bar"
 
-    def test_smart_quote_substitution(self):
-        # MS smart quotes are a common source of frustration, so we
-        # give them a special test.
-        quotes = b"\x91\x92foo\x93\x94"
-        dammit = UnicodeDammit(quotes)
-        assert self.sub.substitute_html(dammit.markup) == "&lsquo;&rsquo;foo&ldquo;&rdquo;"
+    @pytest.mark.parametrize(
+        "original,substituted",
+        [
+            # Basic case. Unicode characters corresponding to named
+            # HTML entites are substituted; others are not.
+            ("foo\u2200\N{SNOWMAN}\u00f5bar",
+             "foo&forall;\N{SNOWMAN}&otilde;bar"),
 
+            # MS smart quotes are a common source of frustration, so we
+            # give them a special test.
+            ('‘’foo“”', "&lsquo;&rsquo;foo&ldquo;&rdquo;"),           
+        ]
+    )
+    def test_substitute_html(self, original, substituted):
+        assert self.sub.substitute_html(original) == substituted
+        
     def test_html5_entity(self):
-        # Some HTML5 entities correspond to single- or multi-character
-        # Unicode sequences.
-
         for entity, u in (
             # A few spot checks of our ability to recognize
             # special character sequences and convert them
