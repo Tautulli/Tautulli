@@ -826,11 +826,13 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_concurrent_streams_per_stream_type(self, time_range='30'):
+    def get_total_concurrent_streams_per_stream_type(self, time_range='30', user_id=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
+
+        user_cond = self._make_user_cond(user_id, 'WHERE')
         
         def calc_most_concurrent(result):
             times = []
@@ -858,10 +860,10 @@ class Graphs(object):
             query = 'SELECT sh.date_played, sh.started, sh.stopped, shmi.transcode_decision ' \
                     'FROM (SELECT *, ' \
                         'date(started, "unixepoch", "localtime") AS date_played ' \
-                        'FROM session_history) AS sh ' \
+                        'FROM session_history %s) AS sh ' \
                     'JOIN session_history_media_info AS shmi ON sh.id = shmi.id ' \
                     'WHERE sh.stopped >= %s ' \
-                    'ORDER BY sh.date_played' % timestamp
+                    'ORDER BY sh.date_played' % (user_cond, timestamp)
 
             result = monitor_db.select(query)
         except Exception as e:
@@ -1253,15 +1255,17 @@ class Graphs(object):
 
         return output
 
-    def _make_user_cond(self, user_id):
+    def _make_user_cond(self, user_id, cond_prefix=None):
         """
         Expects user_id to be a comma-separated list of ints.
         """
         user_cond = ''
+        cond_prefix = 'AND' if cond_prefix is None else cond_prefix
+
         if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
-            user_cond = 'AND session_history.user_id = %s ' % session.get_session_user_id()
+            user_cond = cond_prefix + ' session_history.user_id = %s ' % session.get_session_user_id()
         elif user_id:
             user_ids = helpers.split_strip(user_id)
             if all(id.isdigit() for id in user_ids):
-                user_cond = 'AND session_history.user_id IN (%s) ' % ','.join(user_ids)
+                user_cond =cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
         return user_cond

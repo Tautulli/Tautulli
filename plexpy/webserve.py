@@ -2553,7 +2553,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_concurrent_streams_by_stream_type(self, time_range='30', **kwargs):
+    def get_concurrent_streams_by_stream_type(self, time_range='30', user_id=None, **kwargs):
         """ Get graph data for concurrent streams by stream type by date.
 
             ```
@@ -2562,6 +2562,7 @@ class WebInterface(object):
 
             Optional parameters:
                 time_range (str):       The number of days of data to return
+                user_id (str):          Comma separated list of user id to filter the data
 
             Returns:
                 json:
@@ -2577,8 +2578,8 @@ class WebInterface(object):
         """
 
         graph = graphs.Graphs()
-        result = graph.get_total_concurrent_streams_per_stream_type(time_range=time_range)
-        logger.debug(result)
+        result = graph.get_total_concurrent_streams_per_stream_type(time_range=time_range, user_id=user_id)
+
         if result:
             return result
         else:

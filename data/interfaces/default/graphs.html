@@ -558,7 +558,7 @@
             $.ajax({
                 url: "get_concurrent_streams_by_stream_type",
                 type: 'get',
-                data: { time_range: time_range },
+                data: { time_range: time_range, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
@@ -804,7 +804,6 @@
             hc_plays_by_platform_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_user_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
-            hc_concurrent_streams_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_stream_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_platform_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
