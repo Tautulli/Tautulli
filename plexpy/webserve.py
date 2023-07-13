@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 from future.builtins import next
 from future.builtins import object
 from future.builtins import str
-from backports import csv
+import csv
 
 from io import open, BytesIO
 import base64
