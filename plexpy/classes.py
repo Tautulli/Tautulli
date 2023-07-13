@@ -20,9 +20,8 @@
 #########################################
 
 
-from __future__ import unicode_literals
 
-from future.moves.urllib.request import FancyURLopener
+from urllib.request import FancyURLopener
 
 import plexpy
 from plexpy.common import USER_AGENT

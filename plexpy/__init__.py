@@ -13,14 +13,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import range
-from future.builtins import str
 
 import ctypes
 import datetime
 import os
-import future.moves.queue as queue
+import queue
 import sqlite3
 import sys
 import subprocess

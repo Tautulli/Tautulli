@@ -15,11 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import division
-from __future__ import unicode_literals
 
-from future.builtins import zip
-from future.builtins import str
 
 import arrow
 import base64
@@ -50,7 +46,7 @@ import string
 import sys
 import time
 import unicodedata
-from future.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 from xml.dom import minidom
 import xmltodict
 

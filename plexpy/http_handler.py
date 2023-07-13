@@ -15,12 +15,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import object
-from future.builtins import str
 
 from multiprocessing.dummy import Pool as ThreadPool
-from future.moves.urllib.parse import urljoin
+from urllib.parse import urljoin
 
 import certifi
 import requests

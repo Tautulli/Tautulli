@@ -16,12 +16,6 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from __future__ import division
-from __future__ import unicode_literals
-from future.builtins import next
-from future.builtins import map
-from future.builtins import str
-from future.builtins import range
 
 import arrow
 import bleach

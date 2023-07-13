@@ -15,9 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-from future.builtins import object
 
 import base64
 import bleach
@@ -37,8 +34,8 @@ import subprocess
 import sys
 import threading
 import time
-from future.moves.urllib.parse import urlencode
-from future.moves.urllib.parse import urlparse
+from urllib.parse import urlencode
+from urllib.parse import urlparse
 
 try:
     from Cryptodome.Protocol.KDF import PBKDF2

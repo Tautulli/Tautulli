@@ -20,10 +20,9 @@
 # Form based authentication for CherryPy. Requires the
 # Session tool to be loaded.
 
-from future.builtins import object
 
 from datetime import datetime, timedelta
-from future.moves.urllib.parse import quote, unquote
+from urllib.parse import quote, unquote
 
 import cherrypy
 from hashing_passwords import check_hash

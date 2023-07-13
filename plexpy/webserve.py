@@ -15,10 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import next
-from future.builtins import object
-from future.builtins import str
 import csv
 
 from io import open, BytesIO
@@ -31,7 +27,7 @@ import shutil
 import sys
 import threading
 import zipfile
-from future.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
 
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_fileobj, serve_download
