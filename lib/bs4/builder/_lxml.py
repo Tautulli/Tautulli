@@ -22,6 +22,7 @@ from bs4.element import (
     XMLProcessingInstruction,
 )
 from bs4.builder import (
+    DetectsXMLParsedAsHTML,
     FAST,
     HTML,
     HTMLTreeBuilder,
@@ -62,10 +63,13 @@ class LXMLTreeBuilderForXML(TreeBuilder):
     # But instead we build an XMLParser or HTMLParser object to serve
     # as the target of parse messages, and those messages don't include
     # line numbers.
+    # See: https://bugs.launchpad.net/lxml/+bug/1846906
     
     def initialize_soup(self, soup):
         """Let the BeautifulSoup object know about the standard namespace
         mapping.
+
+        :param soup: A `BeautifulSoup`.
         """
         super(LXMLTreeBuilderForXML, self).initialize_soup(soup)
         self._register_namespaces(self.DEFAULT_NSMAPS)
@@ -75,29 +79,51 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         while parsing the document.
 
         This might be useful later on when creating CSS selectors.
+
+        This will track (almost) all namespaces, even ones that were
+        only in scope for part of the document. If two namespaces have
+        the same prefix, only the first one encountered will be
+        tracked. Un-prefixed namespaces are not tracked.
+
+        :param mapping: A dictionary mapping namespace prefixes to URIs.
         """
         for key, value in list(mapping.items()):
+            # This is 'if key' and not 'if key is not None' because we
+            # don't track un-prefixed namespaces. Soupselect will
+            # treat an un-prefixed namespace as the default, which
+            # causes confusion in some cases.
             if key and key not in self.soup._namespaces:
                 # Let the BeautifulSoup object know about a new namespace.
                 # If there are multiple namespaces defined with the same
                 # prefix, the first one in the document takes precedence.
                 self.soup._namespaces[key] = value
-
+                
     def default_parser(self, encoding):
-        # This can either return a parser object or a class, which
-        # will be instantiated with default arguments.
+        """Find the default parser for the given encoding.
+
+        :param encoding: A string.
+        :return: Either a parser object or a class, which
+          will be instantiated with default arguments.
+        """
         if self._default_parser is not None:
             return self._default_parser
         return etree.XMLParser(
             target=self, strip_cdata=False, recover=True, encoding=encoding)
 
     def parser_for(self, encoding):
+        """Instantiate an appropriate parser for the given encoding.
+
+        :param encoding: A string.
+        :return: A parser object such as an `etree.XMLParser`.
+        """
         # Use the default parser.
         parser = self.default_parser(encoding)
 
         if isinstance(parser, Callable):
             # Instantiate the parser with default arguments
-            parser = parser(target=self, strip_cdata=False, encoding=encoding)
+            parser = parser(
+                target=self, strip_cdata=False, recover=True, encoding=encoding
+            )
         return parser
 
     def __init__(self, parser=None, empty_element_tags=None, **kwargs):
@@ -109,6 +135,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
             self.empty_element_tags = set(empty_element_tags)
         self.soup = None
         self.nsmaps = [self.DEFAULT_NSMAPS_INVERTED]
+        self.active_namespace_prefixes = [dict(self.DEFAULT_NSMAPS)]
         super(LXMLTreeBuilderForXML, self).__init__(**kwargs)
         
     def _getNsTag(self, tag):
@@ -122,26 +149,49 @@ class LXMLTreeBuilderForXML(TreeBuilder):
     def prepare_markup(self, markup, user_specified_encoding=None,
                        exclude_encodings=None,
                        document_declared_encoding=None):
-        """
-        :yield: A series of 4-tuples.
+        """Run any preliminary steps necessary to make incoming markup
+        acceptable to the parser.
+
+        lxml really wants to get a bytestring and convert it to
+        Unicode itself. So instead of using UnicodeDammit to convert
+        the bytestring to Unicode using different encodings, this
+        implementation uses EncodingDetector to iterate over the
+        encodings, and tell lxml to try to parse the document as each
+        one in turn.
+
+        :param markup: Some markup -- hopefully a bytestring.
+        :param user_specified_encoding: The user asked to try this encoding.
+        :param document_declared_encoding: The markup itself claims to be
+            in this encoding.
+        :param exclude_encodings: The user asked _not_ to try any of
+            these encodings.
+
+        :yield: A series of 4-tuples:
          (markup, encoding, declared encoding,
           has undergone character replacement)
 
-        Each 4-tuple represents a strategy for parsing the document.
+         Each 4-tuple represents a strategy for converting the
+         document to Unicode and parsing it. Each strategy will be tried 
+         in turn.
         """
-        # Instead of using UnicodeDammit to convert the bytestring to
-        # Unicode using different encodings, use EncodingDetector to
-        # iterate over the encodings, and tell lxml to try to parse
-        # the document as each one in turn.
         is_html = not self.is_xml
         if is_html:
             self.processing_instruction_class = ProcessingInstruction
+            # We're in HTML mode, so if we're given XML, that's worth
+            # noting.
+            DetectsXMLParsedAsHTML.warn_if_markup_looks_like_xml(markup)
         else:
             self.processing_instruction_class = XMLProcessingInstruction
 
         if isinstance(markup, str):
             # We were given Unicode. Maybe lxml can parse Unicode on
             # this system?
+
+            # TODO: This is a workaround for
+            # https://bugs.launchpad.net/lxml/+bug/1948551.
+            # We can remove it once the upstream issue is fixed.
+            if len(markup) > 0 and markup[0] == u'\N{BYTE ORDER MARK}':
+                markup = markup[1:]
             yield markup, None, document_declared_encoding, False
 
         if isinstance(markup, str):
@@ -150,9 +200,19 @@ class LXMLTreeBuilderForXML(TreeBuilder):
             yield (markup.encode("utf8"), "utf8",
                    document_declared_encoding, False)
 
-        try_encodings = [user_specified_encoding, document_declared_encoding]
+        # This was provided by the end-user; treat it as a known
+        # definite encoding per the algorithm laid out in the HTML5
+        # spec.  (See the EncodingDetector class for details.)
+        known_definite_encodings = [user_specified_encoding]
+
+        # This was found in the document; treat it as a slightly lower-priority
+        # user encoding.
+        user_encodings = [document_declared_encoding]
         detector = EncodingDetector(
-            markup, try_encodings, is_html, exclude_encodings)
+            markup, known_definite_encodings=known_definite_encodings,
+            user_encodings=user_encodings, is_html=is_html,
+            exclude_encodings=exclude_encodings
+        )
         for encoding in detector.encodings:
             yield (detector.markup, encoding, document_declared_encoding, False)
 
@@ -200,6 +260,20 @@ class LXMLTreeBuilderForXML(TreeBuilder):
             # mappings.
             self.nsmaps.append(_invert(nsmap))
 
+            # The currently active namespace prefixes have
+            # changed. Calculate the new mapping so it can be stored
+            # with all Tag objects created while these prefixes are in
+            # scope.
+            current_mapping = dict(self.active_namespace_prefixes[-1])
+            current_mapping.update(nsmap)
+
+            # We should not track un-prefixed namespaces as we can only hold one
+            # and it will be recognized as the default namespace by soupsieve,
+            # which may be confusing in some situations.
+            if '' in current_mapping:
+                del current_mapping['']
+            self.active_namespace_prefixes.append(current_mapping)
+            
             # Also treat the namespace mapping as a set of attributes on the
             # tag, so we can recreate it later.
             attrs = attrs.copy()
@@ -224,8 +298,11 @@ class LXMLTreeBuilderForXML(TreeBuilder):
 
         namespace, name = self._getNsTag(name)
         nsprefix = self._prefix_for_namespace(namespace)
-        self.soup.handle_starttag(name, namespace, nsprefix, attrs)
-
+        self.soup.handle_starttag(
+            name, namespace, nsprefix, attrs,
+            namespaces=self.active_namespace_prefixes[-1]
+        )
+        
     def _prefix_for_namespace(self, namespace):
         """Find the currently active prefix for the given namespace."""
         if namespace is None:
@@ -249,13 +326,20 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         if len(self.nsmaps) > 1:
             # This tag, or one of its parents, introduced a namespace
             # mapping, so pop it off the stack.
-            self.nsmaps.pop()
+            out_of_scope_nsmap = self.nsmaps.pop()
 
+            if out_of_scope_nsmap is not None:
+                # This tag introduced a namespace mapping which is no
+                # longer in scope. Recalculate the currently active
+                # namespace prefixes.
+                self.active_namespace_prefixes.pop()
+            
     def pi(self, target, data):
         self.soup.endData()
-        self.soup.handle_data(target + ' ' + data)
+        data = target + ' ' + data
+        self.soup.handle_data(data)
         self.soup.endData(self.processing_instruction_class)
-
+        
     def data(self, content):
         self.soup.handle_data(content)
 

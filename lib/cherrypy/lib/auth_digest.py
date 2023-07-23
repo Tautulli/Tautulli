@@ -23,8 +23,7 @@ of plaintext passwords as the credentials store::
 import time
 import functools
 from hashlib import md5
-
-from six.moves.urllib.request import parse_http_list, parse_keqv_list
+from urllib.request import parse_http_list, parse_keqv_list
 
 import cherrypy
 from cherrypy._cpcompat import ntob, tonative
@@ -102,13 +101,12 @@ def get_ha1_file_htdigest(filename):
     """
     def get_ha1(realm, username):
         result = None
-        f = open(filename, 'r')
-        for line in f:
-            u, r, ha1 = line.rstrip().split(':')
-            if u == username and r == realm:
-                result = ha1
-                break
-        f.close()
+        with open(filename, 'r') as f:
+            for line in f:
+                u, r, ha1 = line.rstrip().split(':')
+                if u == username and r == realm:
+                    result = ha1
+                    break
         return result
 
     return get_ha1

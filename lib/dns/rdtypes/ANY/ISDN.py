@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -16,83 +18,61 @@
 import struct
 
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.tokenizer
-from dns._compat import text_type
 
 
+@dns.immutable.immutable
 class ISDN(dns.rdata.Rdata):
 
-    """ISDN record
+    """ISDN record"""
 
-    @ivar address: the ISDN address
-    @type address: string
-    @ivar subaddress: the ISDN subaddress (or '' if not present)
-    @type subaddress: string
-    @see: RFC 1183"""
+    # see: RFC 1183
 
-    __slots__ = ['address', 'subaddress']
+    __slots__ = ["address", "subaddress"]
 
     def __init__(self, rdclass, rdtype, address, subaddress):
-        super(ISDN, self).__init__(rdclass, rdtype)
-        if isinstance(address, text_type):
-            self.address = address.encode()
-        else:
-            self.address = address
-        if isinstance(address, text_type):
-            self.subaddress = subaddress.encode()
-        else:
-            self.subaddress = subaddress
+        super().__init__(rdclass, rdtype)
+        self.address = self._as_bytes(address, True, 255)
+        self.subaddress = self._as_bytes(subaddress, True, 255)
 
     def to_text(self, origin=None, relativize=True, **kw):
         if self.subaddress:
-            return '"%s" "%s"' % (dns.rdata._escapify(self.address),
-                                  dns.rdata._escapify(self.subaddress))
+            return '"{}" "{}"'.format(
+                dns.rdata._escapify(self.address), dns.rdata._escapify(self.subaddress)
+            )
         else:
             return '"%s"' % dns.rdata._escapify(self.address)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         address = tok.get_string()
-        t = tok.get()
-        if not t.is_eol_or_eof():
-            tok.unget(t)
-            subaddress = tok.get_string()
+        tokens = tok.get_remaining(max_tokens=1)
+        if len(tokens) >= 1:
+            subaddress = tokens[0].unescape().value
         else:
-            tok.unget(t)
-            subaddress = ''
-        tok.get_eol()
+            subaddress = ""
         return cls(rdclass, rdtype, address, subaddress)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         l = len(self.address)
         assert l < 256
-        file.write(struct.pack('!B', l))
+        file.write(struct.pack("!B", l))
         file.write(self.address)
         l = len(self.subaddress)
         if l > 0:
             assert l < 256
-            file.write(struct.pack('!B', l))
+            file.write(struct.pack("!B", l))
             file.write(self.subaddress)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        l = wire[current]
-        current += 1
-        rdlen -= 1
-        if l > rdlen:
-            raise dns.exception.FormError
-        address = wire[current: current + l].unwrap()
-        current += l
-        rdlen -= l
-        if rdlen > 0:
-            l = wire[current]
-            current += 1
-            rdlen -= 1
-            if l != rdlen:
-                raise dns.exception.FormError
-            subaddress = wire[current: current + l].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = parser.get_counted_bytes()
+        if parser.remaining() > 0:
+            subaddress = parser.get_counted_bytes()
         else:
-            subaddress = ''
+            subaddress = b""
         return cls(rdclass, rdtype, address, subaddress)
-

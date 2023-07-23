@@ -233,8 +233,9 @@ DOCUMENTATION :: END
                 data: {
                     old_rating_key: '${query["rating_key"]}',
                     new_rating_key: new_rating_key,
-                    media_type: '${query["media_type"]}'
-                    },
+                    media_type: '${query["media_type"]}',
+                    single_update: true
+                },
                 async: true,
                 success: function (data) {
                     window.location.href = new_href;

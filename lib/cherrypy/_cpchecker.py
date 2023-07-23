@@ -1,9 +1,7 @@
 """Checker for CherryPy sites and mounted apps."""
 import os
 import warnings
-
-import six
-from six.moves import builtins
+import builtins
 
 import cherrypy
 
@@ -70,14 +68,14 @@ class Checker(object):
 
     def check_site_config_entries_in_app_config(self):
         """Check for mounted Applications that have site-scoped config."""
-        for sn, app in six.iteritems(cherrypy.tree.apps):
+        for sn, app in cherrypy.tree.apps.items():
             if not isinstance(app, cherrypy.Application):
                 continue
 
             msg = []
-            for section, entries in six.iteritems(app.config):
+            for section, entries in app.config.items():
                 if section.startswith('/'):
-                    for key, value in six.iteritems(entries):
+                    for key, value in entries.items():
                         for n in ('engine.', 'server.', 'tree.', 'checker.'):
                             if key.startswith(n):
                                 msg.append('[%s] %s = %s' %

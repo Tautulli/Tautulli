@@ -8,14 +8,12 @@ OAuth 1.0 RFC 5849. It validates the correctness of access token requests,
 creates and persists tokens as well as create the proper response to be
 returned to the client.
 """
-from __future__ import absolute_import, unicode_literals
-
 import logging
 
 from oauthlib.common import urlencode
 
-from .base import BaseEndpoint
 from .. import errors
+from .base import BaseEndpoint
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +35,8 @@ class AccessTokenEndpoint(BaseEndpoint):
         Similar to OAuth 2, indication of granted scopes will be included as a
         space separated list in ``oauth_authorized_realms``.
 
-        :param request: An oauthlib.common.Request object.
+        :param request: OAuthlib request.
+        :type request: oauthlib.common.Request
         :returns: The token as an urlencoded string.
         """
         request.realms = self.request_validator.get_realms(
@@ -120,7 +119,8 @@ class AccessTokenEndpoint(BaseEndpoint):
     def validate_access_token_request(self, request):
         """Validate an access token request.
 
-        :param request: An oauthlib.common.Request object.
+        :param request: OAuthlib request.
+        :type request: oauthlib.common.Request
         :raises: OAuth1Error if the request is invalid.
         :returns: A tuple of 2 elements.
                   1. The validation result (True or False).
@@ -180,7 +180,7 @@ class AccessTokenEndpoint(BaseEndpoint):
         # token credentials to the client, and ensure that the temporary
         # credentials have not expired or been used before.  The server MUST
         # also verify the verification code received from the client.
-        # .. _`Section 3.2`: http://tools.ietf.org/html/rfc5849#section-3.2
+        # .. _`Section 3.2`: https://tools.ietf.org/html/rfc5849#section-3.2
         #
         # Note that early exit would enable resource owner authorization
         # verifier enumertion.

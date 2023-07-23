@@ -74,8 +74,15 @@ class _GNTPBase(object):
 		self.headers = {}
 		self.resources = {}
 
-	def __str__(self):
-		return self.encode()
+	# For Python2 we can just return the bytes as is without worry
+	# but on Python3 we want to make sure we return the packet as
+	# a unicode string so that things like logging won't get confused
+	if gntp.shim.PY2:
+		def __str__(self):
+			return self.encode()
+	else:
+		def __str__(self):
+			return gntp.shim.u(self.encode())
 
 	def _parse_info(self, data):
 		"""Parse the first line of a GNTP message to get security and other info values

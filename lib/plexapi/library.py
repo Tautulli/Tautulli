@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 import re
 from datetime import datetime
-from urllib.parse import quote, quote_plus, urlencode
+from urllib.parse import quote_plus, urlencode
 
 from plexapi import X_PLEX_CONTAINER_SIZE, log, media, utils
 from plexapi.base import OPERATORS, PlexObject
 from plexapi.exceptions import BadRequest, NotFound
 from plexapi.settings import Setting
-from plexapi.utils import deprecated
+from plexapi.utils import cached_property, deprecated
 
 
 class Library(PlexObject):
@@ -26,47 +26,84 @@ class Library(PlexObject):
 
     def _loadData(self, data):
         self._data = data
-        self._sectionsByID = {}  # cached Section UUIDs
         self.identifier = data.attrib.get('identifier')
         self.mediaTagVersion = data.attrib.get('mediaTagVersion')
         self.title1 = data.attrib.get('title1')
         self.title2 = data.attrib.get('title2')
+        self._sectionsByID = {}  # cached sections by key
+        self._sectionsByTitle = {}  # cached sections by title
+
+    def _loadSections(self):
+        """ Loads and caches all the library sections. """
+        key = '/library/sections'
+        self._sectionsByID = {}
+        self._sectionsByTitle = {}
+        for elem in self._server.query(key):
+            for cls in (MovieSection, ShowSection, MusicSection, PhotoSection):
+                if elem.attrib.get('type') == cls.TYPE:
+                    section = cls(self._server, elem, key)
+                    self._sectionsByID[section.key] = section
+                    self._sectionsByTitle[section.title.lower().strip()] = section
 
     def sections(self):
         """ Returns a list of all media sections in this library. Library sections may be any of
             :class:`~plexapi.library.MovieSection`, :class:`~plexapi.library.ShowSection`,
             :class:`~plexapi.library.MusicSection`, :class:`~plexapi.library.PhotoSection`.
         """
-        key = '/library/sections'
-        sections = []
-        for elem in self._server.query(key):
-            for cls in (MovieSection, ShowSection, MusicSection, PhotoSection):
-                if elem.attrib.get('type') == cls.TYPE:
-                    section = cls(self._server, elem, key)
-                    self._sectionsByID[section.key] = section
-                    sections.append(section)
-        return sections
+        self._loadSections()
+        return list(self._sectionsByID.values())
 
-    def section(self, title=None):
+    def section(self, title):
         """ Returns the :class:`~plexapi.library.LibrarySection` that matches the specified title.
 
             Parameters:
                 title (str): Title of the section to return.
         """
-        for section in self.sections():
-            if section.title.lower() == title.lower():
-                return section
-        raise NotFound('Invalid library section: %s' % title)
+        normalized_title = title.lower().strip()
+        if not self._sectionsByTitle or normalized_title not in self._sectionsByTitle:
+            self._loadSections()
+        try:
+            return self._sectionsByTitle[normalized_title]
+        except KeyError:
+            raise NotFound(f'Invalid library section: {title}') from None
 
     def sectionByID(self, sectionID):
         """ Returns the :class:`~plexapi.library.LibrarySection` that matches the specified sectionID.
 
             Parameters:
                 sectionID (int): ID of the section to return.
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: The library section ID is not found on the server.
         """
         if not self._sectionsByID or sectionID not in self._sectionsByID:
-            self.sections()
-        return self._sectionsByID[sectionID]
+            self._loadSections()
+        try:
+            return self._sectionsByID[sectionID]
+        except KeyError:
+            raise NotFound(f'Invalid library sectionID: {sectionID}') from None
+
+    def hubs(self, sectionID=None, identifier=None, **kwargs):
+        """ Returns a list of :class:`~plexapi.library.Hub` across all library sections.
+
+            Parameters:
+                sectionID (int or str or list, optional):
+                    IDs of the sections to limit results or "playlists".
+                identifier (str or list, optional):
+                    Names of identifiers to limit results.
+                    Available on `Hub` instances as the `hubIdentifier` attribute.
+                    Examples: 'home.continue' or 'home.ondeck'
+        """
+        if sectionID:
+            if not isinstance(sectionID, list):
+                sectionID = [sectionID]
+            kwargs['contentDirectoryID'] = ",".join(map(str, sectionID))
+        if identifier:
+            if not isinstance(identifier, list):
+                identifier = [identifier]
+            kwargs['identifier'] = ",".join(identifier)
+        key = f'/hubs{utils.joinArgs(kwargs)}'
+        return self.fetchItems(key)
 
     def all(self, **kwargs):
         """ Returns a list of all media from all library sections.
@@ -89,7 +126,7 @@ class Library(PlexObject):
     def search(self, title=None, libtype=None, **kwargs):
         """ Searching within a library section is much more powerful. It seems certain
             attributes on the media objects can be targeted to filter this search down
-            a bit, but I havent found the documentation for it.
+            a bit, but I haven't found the documentation for it.
 
             Example: "studio=Comedy%20Central" or "year=1999" "title=Kung Fu" all work. Other items
             such as actor=<id> seem to work, but require you already know the id of the actor.
@@ -102,7 +139,7 @@ class Library(PlexObject):
             args['type'] = utils.searchType(libtype)
         for attr, value in kwargs.items():
             args[attr] = value
-        key = '/library/all%s' % utils.joinArgs(args)
+        key = f'/library/all{utils.joinArgs(args)}'
         return self.fetchItems(key)
 
     def cleanBundles(self):
@@ -113,11 +150,13 @@ class Library(PlexObject):
         """
         # TODO: Should this check the response for success or the correct mediaprefix?
         self._server.query('/library/clean/bundles?async=1', method=self._server._session.put)
+        return self
 
     def emptyTrash(self):
         """ If a library has items in the Library Trash, use this option to empty the Trash. """
         for section in self.sections():
             section.emptyTrash()
+        return self
 
     def optimize(self):
         """ The Optimize option cleans up the server database from unused or fragmented data.
@@ -125,21 +164,25 @@ class Library(PlexObject):
             library, you may like to optimize the database.
         """
         self._server.query('/library/optimize?async=1', method=self._server._session.put)
+        return self
 
     def update(self):
         """ Scan this library for new items."""
         self._server.query('/library/sections/all/refresh')
+        return self
 
     def cancelUpdate(self):
         """ Cancel a library update. """
         key = '/library/sections/all/refresh'
         self._server.query(key, method=self._server._session.delete)
+        return self
 
     def refresh(self):
         """ Forces a download of fresh media information from the internet.
             This can take a long time. Any locked fields are not modified.
         """
         self._server.query('/library/sections/all/refresh?force=1')
+        return self
 
     def deleteMediaPreviews(self):
         """ Delete the preview thumbnails for the all sections. This cannot be
@@ -147,6 +190,7 @@ class Library(PlexObject):
         """
         for section in self.sections():
             section.deleteMediaPreviews()
+        return self
 
     def add(self, name='', type='', agent='', scanner='', location='', language='en', *args, **kwargs):
         """ Simplified add for the most common options.
@@ -155,7 +199,7 @@ class Library(PlexObject):
                 name (str): Name of the library
                 agent (str): Example com.plexapp.agents.imdb
                 type (str): movie, show, # check me
-                location (str): /path/to/files
+                location (str or list): /path/to/files, ["/path/to/files", "/path/to/morefiles"]
                 language (str): Two letter language fx en
                 kwargs (dict): Advanced options should be passed as a dict. where the id is the key.
 
@@ -294,8 +338,16 @@ class Library(PlexObject):
                   40:South Africa, 41:Spain, 42:Sweden, 43:Switzerland, 44:Taiwan, 45:Trinidad,
                   46:United Kingdom, 47:United States, 48:Uruguay, 49:Venezuela.
         """
-        part = '/library/sections?name=%s&type=%s&agent=%s&scanner=%s&language=%s&location=%s' % (
-            quote_plus(name), type, agent, quote_plus(scanner), language, quote_plus(location))  # noqa E126
+        if isinstance(location, str):
+            location = [location]
+        locations = []
+        for path in location:
+            if not self._server.isBrowsable(path):
+                raise BadRequest(f'Path: {path} does not exist.')
+            locations.append(('location', path))
+
+        part = (f'/library/sections?name={quote_plus(name)}&type={type}&agent={agent}'
+                f'&scanner={quote_plus(scanner)}&language={language}&{urlencode(locations, doseq=True)}')
         if kwargs:
             part += urlencode(kwargs)
         return self._server.query(part, method=self._server._session.post)
@@ -310,6 +362,16 @@ class Library(PlexObject):
         for section in self.sections():
             hist.extend(section.history(maxresults=maxresults, mindate=mindate))
         return hist
+
+    def tags(self, tag):
+        """ Returns a list of :class:`~plexapi.library.LibraryMediaTag` objects for the specified tag.
+
+            Parameters:
+                tag (str): Tag name (see :data:`~plexapi.utils.TAGTYPES`).
+        """
+        tagType = utils.tagType(tag)
+        data = self._server.query(f'/library/tags?type={tagType}')
+        return self.findItems(data)
 
 
 class LibrarySection(PlexObject):
@@ -352,10 +414,12 @@ class LibrarySection(PlexObject):
         self.type = data.attrib.get('type')
         self.updatedAt = utils.toDatetime(data.attrib.get('updatedAt'))
         self.uuid = data.attrib.get('uuid')
-        # Private attrs as we dont want a reload.
+        # Private attrs as we don't want a reload.
         self._filterTypes = None
         self._fieldTypes = None
         self._totalViewSize = None
+        self._totalDuration = None
+        self._totalStorage = None
 
     def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, **kwargs):
         """ Load the specified key to find and build all items with the specified tag
@@ -391,10 +455,37 @@ class LibrarySection(PlexObject):
                 item.librarySectionID = librarySectionID
         return items
 
-    @property
+    @cached_property
     def totalSize(self):
         """ Returns the total number of items in the library for the default library type. """
         return self.totalViewSize(includeCollections=False)
+
+    @property
+    def totalDuration(self):
+        """ Returns the total duration (in milliseconds) of items in the library. """
+        if self._totalDuration is None:
+            self._getTotalDurationStorage()
+        return self._totalDuration
+
+    @property
+    def totalStorage(self):
+        """ Returns the total storage (in bytes) of items in the library. """
+        if self._totalStorage is None:
+            self._getTotalDurationStorage()
+        return self._totalStorage
+
+    def _getTotalDurationStorage(self):
+        """ Queries the Plex server for the total library duration and storage and caches the values. """
+        data = self._server.query('/media/providers?includeStorage=1')
+        xpath = (
+            './MediaProvider[@identifier="com.plexapp.plugins.library"]'
+            '/Feature[@type="content"]'
+            f'/Directory[@id="{self.key}"]'
+        )
+        directory = next(iter(data.findall(xpath)), None)
+        if directory:
+            self._totalDuration = utils.cast(int, directory.attrib.get('durationTotal'))
+            self._totalStorage = utils.cast(int, directory.attrib.get('storageTotal'))
 
     def totalViewSize(self, libtype=None, includeCollections=True):
         """ Returns the total number of items in the library for a specified libtype.
@@ -418,47 +509,157 @@ class LibrarySection(PlexObject):
                 args['clusterZoomLevel'] = 1
             else:
                 args['type'] = utils.searchType(libtype)
-        part = '/library/sections/%s/all%s' % (self.key, utils.joinArgs(args))
+        part = f'/library/sections/{self.key}/all{utils.joinArgs(args)}'
         data = self._server.query(part)
         return utils.cast(int, data.attrib.get("totalSize"))
 
     def delete(self):
         """ Delete a library section. """
         try:
-            return self._server.query('/library/sections/%s' % self.key, method=self._server._session.delete)
+            return self._server.query(f'/library/sections/{self.key}', method=self._server._session.delete)
         except BadRequest:  # pragma: no cover
-            msg = 'Failed to delete library %s' % self.key
+            msg = f'Failed to delete library {self.key}'
             msg += 'You may need to allow this permission in your Plex settings.'
             log.error(msg)
             raise
 
-    def reload(self, key=None):
-        return self._server.library.section(self.title)
+    def reload(self):
+        """ Reload the data for the library section. """
+        self._server.library._loadSections()
+        newLibrary = self._server.library.sectionByID(self.key)
+        self.__dict__.update(newLibrary.__dict__)
+        return self
 
     def edit(self, agent=None, **kwargs):
-        """ Edit a library (Note: agent is required). See :class:`~plexapi.library.Library` for example usage.
+        """ Edit a library. See :class:`~plexapi.library.Library` for example usage.
 
             Parameters:
+                agent (str, optional): The library agent.
                 kwargs (dict): Dict of settings to edit.
         """
         if not agent:
             agent = self.agent
-        part = '/library/sections/%s?agent=%s&%s' % (self.key, agent, urlencode(kwargs))
-        self._server.query(part, method=self._server._session.put)
 
-        # Reload this way since the self.key dont have a full path, but is simply a id.
-        for s in self._server.library.sections():
-            if s.key == self.key:
-                return s
+        locations = []
+        if kwargs.get('location'):
+            if isinstance(kwargs['location'], str):
+                kwargs['location'] = [kwargs['location']]
+            for path in kwargs.pop('location'):
+                if not self._server.isBrowsable(path):
+                    raise BadRequest(f'Path: {path} does not exist.')
+                locations.append(('location', path))
+
+        params = list(kwargs.items()) + locations
+
+        part = f'/library/sections/{self.key}?agent={agent}&{urlencode(params, doseq=True)}'
+        self._server.query(part, method=self._server._session.put)
+        return self
+
+    def addLocations(self, location):
+        """ Add a location to a library.
+        
+            Parameters:
+                location (str or list): A single folder path, list of paths.
+
+            Example:
+
+                .. code-block:: python
+
+                LibrarySection.addLocations('/path/1')
+                LibrarySection.addLocations(['/path/1', 'path/2', '/path/3'])
+        """
+        locations = self.locations
+        if isinstance(location, str):
+            location = [location]
+        for path in location:
+            if not self._server.isBrowsable(path):
+                raise BadRequest(f'Path: {path} does not exist.')
+            locations.append(path)
+        return self.edit(location=locations)
+
+    def removeLocations(self, location):
+        """ Remove a location from a library.
+        
+            Parameters:
+                location (str or list): A single folder path, list of paths.
+
+            Example:
+
+                .. code-block:: python
+
+                LibrarySection.removeLocations('/path/1')
+                LibrarySection.removeLocations(['/path/1', 'path/2', '/path/3'])
+        """
+        locations = self.locations
+        if isinstance(location, str):
+            location = [location]
+        for path in location:
+            if path in locations:
+                locations.remove(path)
+            else:
+                raise BadRequest(f'Path: {location} does not exist in the library.')
+        if len(locations) == 0:
+            raise BadRequest('You are unable to remove all locations from a library.')
+        return self.edit(location=locations)
 
     def get(self, title):
         """ Returns the media item with the specified title.
 
             Parameters:
                 title (str): Title of the item to return.
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: The title is not found in the library.
         """
-        key = '/library/sections/%s/all?title=%s' % (self.key, quote(title, safe=''))
-        return self.fetchItem(key, title__iexact=title)
+        try:
+            return self.search(title)[0]
+        except IndexError:
+            raise NotFound(f"Unable to find item '{title}'") from None
+
+    def getGuid(self, guid):
+        """ Returns the media item with the specified external Plex, IMDB, TMDB, or TVDB ID.
+            Note: Only available for the Plex Movie and Plex TV Series agents.
+
+            Parameters:
+                guid (str): The external guid of the item to return.
+                    Examples: Plex ``plex://show/5d9c086c46115600200aa2fe``
+                    IMDB ``imdb://tt0944947``, TMDB ``tmdb://1399``, TVDB ``tvdb://121361``.
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: The guid is not found in the library.
+
+            Example:
+
+                .. code-block:: python
+
+                    result1 = library.getGuid('plex://show/5d9c086c46115600200aa2fe')
+                    result2 = library.getGuid('imdb://tt0944947')
+                    result3 = library.getGuid('tmdb://1399')
+                    result4 = library.getGuid('tvdb://121361')
+
+                    # Alternatively, create your own guid lookup dictionary for faster performance
+                    guidLookup = {}
+                    for item in library.all():
+                        guidLookup[item.guid] = item
+                        guidLookup.update({guid.id: item for guid in item.guids}}
+
+                    result1 = guidLookup['plex://show/5d9c086c46115600200aa2fe']
+                    result2 = guidLookup['imdb://tt0944947']
+                    result3 = guidLookup['tmdb://1399']
+                    result4 = guidLookup['tvdb://121361']
+
+        """
+
+        try:
+            if guid.startswith('plex://'):
+                result = self.search(guid=guid)[0]
+                return result
+            else:
+                dummy = self.search(maxresults=1)[0]
+                match = dummy.matches(agent=self.agent, title=guid.replace('://', '-'))
+                return self.search(guid=match[0].guid)[0]
+        except IndexError:
+            raise NotFound(f"Guid '{guid}' is not found in the library") from None
 
     def all(self, libtype=None, **kwargs):
         """ Returns a list of all items from this library section.
@@ -470,23 +671,35 @@ class LibrarySection(PlexObject):
     def folders(self):
         """ Returns a list of available :class:`~plexapi.library.Folder` for this library section.
         """
-        key = '/library/sections/%s/folder' % self.key
+        key = f'/library/sections/{self.key}/folder'
         return self.fetchItems(key, Folder)
+
+    def managedHubs(self):
+        """ Returns a list of available :class:`~plexapi.library.ManagedHub` for this library section.
+        """
+        key = f'/hubs/sections/{self.key}/manage'
+        return self.fetchItems(key, ManagedHub)
+
+    def resetManagedHubs(self):
+        """ Reset the managed hub customizations for this library section.
+        """
+        key = f'/hubs/sections/{self.key}/manage'
+        self._server.query(key, method=self._server._session.delete)
 
     def hubs(self):
         """ Returns a list of available :class:`~plexapi.library.Hub` for this library section.
         """
-        key = '/hubs/sections/%s' % self.key
+        key = f'/hubs/sections/{self.key}?includeStations=1'
         return self.fetchItems(key)
 
     def agents(self):
         """ Returns a list of available :class:`~plexapi.media.Agent` for this library section.
         """
-        return self._server.agents(utils.searchType(self.type))
+        return self._server.agents(self.type)
 
     def settings(self):
         """ Returns a list of all library settings. """
-        key = '/library/sections/%s/prefs' % self.key
+        key = f'/library/sections/{self.key}/prefs'
         data = self._server.query(key)
         return self.findItems(data, cls=Setting)
 
@@ -494,7 +707,7 @@ class LibrarySection(PlexObject):
         """ Edit a library's advanced settings. """
         data = {}
         idEnums = {}
-        key = 'prefs[%s]'
+        key = 'prefs[{}]'
 
         for setting in self.settings():
             if setting.type != 'bool':
@@ -506,35 +719,66 @@ class LibrarySection(PlexObject):
             try:
                 enums = idEnums[settingID]
             except KeyError:
-                raise NotFound('%s not found in %s' % (value, list(idEnums.keys())))
+                raise NotFound(f'{value} not found in {list(idEnums.keys())}')
             if value in enums:
-                data[key % settingID] = value
+                data[key.format(settingID)] = value
             else:
-                raise NotFound('%s not found in %s' % (value, enums))
+                raise NotFound(f'{value} not found in {enums}')
 
-        self.edit(**data)
+        return self.edit(**data)
 
     def defaultAdvanced(self):
         """ Edit all of library's advanced settings to default. """
         data = {}
-        key = 'prefs[%s]'
+        key = 'prefs[{}]'
         for setting in self.settings():
             if setting.type == 'bool':
-                data[key % setting.id] = int(setting.default)
+                data[key.format(setting.id)] = int(setting.default)
             else:
-                data[key % setting.id] = setting.default
+                data[key.format(setting.id)] = setting.default
 
-        self.edit(**data)
+        return self.edit(**data)
+
+    def _lockUnlockAllField(self, field, libtype=None, locked=True):
+        """ Lock or unlock a field for all items in the library. """
+        libtype = libtype or self.TYPE
+        args = {
+            'type': utils.searchType(libtype),
+            f'{field}.locked': int(locked)
+        }
+        key = f'/library/sections/{self.key}/all{utils.joinArgs(args)}'
+        self._server.query(key, method=self._server._session.put)
+        return self
+
+    def lockAllField(self, field, libtype=None):
+        """ Lock a field for all items in the library.
+        
+            Parameters:
+                field (str): The field to lock (e.g. thumb, rating, collection).
+                libtype (str, optional): The library type to lock (movie, show, season, episode,
+                    artist, album, track, photoalbum, photo). Default is the main library type.
+        """
+        return self._lockUnlockAllField(field, libtype=libtype, locked=True)
+
+    def unlockAllField(self, field, libtype=None):
+        """ Unlock a field for all items in the library.
+        
+            Parameters:
+                field (str): The field to unlock (e.g. thumb, rating, collection).
+                libtype (str, optional): The library type to lock (movie, show, season, episode,
+                    artist, album, track, photoalbum, photo). Default is the main library type.
+        """
+        return self._lockUnlockAllField(field, libtype=libtype, locked=False)
 
     def timeline(self):
         """ Returns a timeline query for this library section. """
-        key = '/library/sections/%s/timeline' % self.key
+        key = f'/library/sections/{self.key}/timeline'
         data = self._server.query(key)
         return LibraryTimeline(self, data)
 
     def onDeck(self):
         """ Returns a list of media items on deck from this library section. """
-        key = '/library/sections/%s/onDeck' % self.key
+        key = f'/library/sections/{self.key}/onDeck'
         return self.fetchItems(key)
 
     def recentlyAdded(self, maxresults=50, libtype=None):
@@ -549,20 +793,22 @@ class LibrarySection(PlexObject):
         return self.search(sort='addedAt:desc', maxresults=maxresults, libtype=libtype)
 
     def firstCharacter(self):
-        key = '/library/sections/%s/firstCharacter' % self.key
+        key = f'/library/sections/{self.key}/firstCharacter'
         return self.fetchItems(key, cls=FirstCharacter)
 
     def analyze(self):
         """ Run an analysis on all of the items in this library section. See
             See :func:`~plexapi.base.PlexPartialObject.analyze` for more details.
         """
-        key = '/library/sections/%s/analyze' % self.key
+        key = f'/library/sections/{self.key}/analyze'
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def emptyTrash(self):
         """ If a section has items in the Trash, use this option to empty the Trash. """
-        key = '/library/sections/%s/emptyTrash' % self.key
+        key = f'/library/sections/{self.key}/emptyTrash'
         self._server.query(key, method=self._server._session.put)
+        return self
 
     def update(self, path=None):
         """ Scan this section for new media.
@@ -570,46 +816,54 @@ class LibrarySection(PlexObject):
             Parameters:
                 path (str, optional): Full path to folder to scan.
         """
-        key = '/library/sections/%s/refresh' % self.key
+        key = f'/library/sections/{self.key}/refresh'
         if path is not None:
-            key += '?path=%s' % quote_plus(path)
+            key += f'?path={quote_plus(path)}'
         self._server.query(key)
+        return self
 
     def cancelUpdate(self):
         """ Cancel update of this Library Section. """
-        key = '/library/sections/%s/refresh' % self.key
+        key = f'/library/sections/{self.key}/refresh'
         self._server.query(key, method=self._server._session.delete)
+        return self
 
     def refresh(self):
         """ Forces a download of fresh media information from the internet.
             This can take a long time. Any locked fields are not modified.
         """
-        key = '/library/sections/%s/refresh?force=1' % self.key
+        key = f'/library/sections/{self.key}/refresh?force=1'
         self._server.query(key)
+        return self
 
     def deleteMediaPreviews(self):
         """ Delete the preview thumbnails for items in this library. This cannot
             be undone. Recreating media preview files can take hours or even days.
         """
-        key = '/library/sections/%s/indexes' % self.key
+        key = f'/library/sections/{self.key}/indexes'
         self._server.query(key, method=self._server._session.delete)
+        return self
 
     def _loadFilters(self):
         """ Retrieves and caches the list of :class:`~plexapi.library.FilteringType` and
             list of :class:`~plexapi.library.FilteringFieldType` for this library section.
         """
-        _key = ('/library/sections/%s/%s?includeMeta=1&includeAdvanced=1'
-               '&X-Plex-Container-Start=0&X-Plex-Container-Size=0')
+        _key = ('/library/sections/{key}/{filter}?includeMeta=1&includeAdvanced=1'
+                '&X-Plex-Container-Start=0&X-Plex-Container-Size=0')
                
-        key = _key % (self.key, 'all')
+        key = _key.format(key=self.key, filter='all')
         data = self._server.query(key)
         self._filterTypes = self.findItems(data, FilteringType, rtag='Meta')
         self._fieldTypes = self.findItems(data, FilteringFieldType, rtag='Meta')
 
         if self.TYPE != 'photo':  # No collections for photo library
-            key = _key % (self.key, 'collections')
+            key = _key.format(key=self.key, filter='collections')
             data = self._server.query(key)
             self._filterTypes.extend(self.findItems(data, FilteringType, rtag='Meta'))
+
+        # Manually add guid field type, only allowing "is" operator
+        guidFieldType = '<FieldType type="guid"><Operator key="=" title="is"/></FieldType>'
+        self._fieldTypes.append(self._manuallyLoadXML(guidFieldType, FilteringFieldType))
 
     def filterTypes(self):
         """ Returns a list of available :class:`~plexapi.library.FilteringType` for this library section. """
@@ -632,9 +886,8 @@ class LibrarySection(PlexObject):
             return next(f for f in self.filterTypes() if f.type == libtype)
         except StopIteration:
             availableLibtypes = [f.type for f in self.filterTypes()]
-            raise NotFound('Unknown libtype "%s" for this library. '
-                           'Available libtypes: %s'
-                           % (libtype, availableLibtypes)) from None
+            raise NotFound(f'Unknown libtype "{libtype}" for this library. '
+                           f'Available libtypes: {availableLibtypes}') from None
 
     def fieldTypes(self):
         """ Returns a list of available :class:`~plexapi.library.FilteringFieldType` for this library section. """
@@ -656,9 +909,8 @@ class LibrarySection(PlexObject):
             return next(f for f in self.fieldTypes() if f.type == fieldType)
         except StopIteration:
             availableFieldTypes = [f.type for f in self.fieldTypes()]
-            raise NotFound('Unknown field type "%s" for this library. '
-                           'Available field types: %s'
-                           % (fieldType, availableFieldTypes)) from None
+            raise NotFound(f'Unknown field type "{fieldType}" for this library. '
+                           f'Available field types: {availableFieldTypes}') from None
 
     def listFilters(self, libtype=None):
         """ Returns a list of available :class:`~plexapi.library.FilteringFilter` for a specified libtype.
@@ -733,7 +985,7 @@ class LibrarySection(PlexObject):
                     field = 'genre'  # Available filter field from listFields()
                     filterField = next(f for f in library.listFields() if f.key.endswith(field))
                     availableOperators = [o.key for o in library.listOperators(filterField.type)]
-                    print("Available operators for %s:" % field, availableOperators)
+                    print(f"Available operators for {field}:", availableOperators)
 
         """
         return self.getFieldType(fieldType).operators
@@ -760,22 +1012,21 @@ class LibrarySection(PlexObject):
 
                     field = 'genre'  # Available filter field from listFilters()
                     availableChoices = [f.title for f in library.listFilterChoices(field)]
-                    print("Available choices for %s:" % field, availableChoices)
+                    print(f"Available choices for {field}:", availableChoices)
 
         """
         if isinstance(field, str):
             match = re.match(r'(?:([a-zA-Z]*)\.)?([a-zA-Z]+)', field)
             if not match:
-                raise BadRequest('Invalid filter field: %s' % field)
+                raise BadRequest(f'Invalid filter field: {field}')
             _libtype, field = match.groups()
             libtype = _libtype or libtype or self.TYPE
             try:
                 field = next(f for f in self.listFilters(libtype) if f.filter == field)
             except StopIteration:
                 availableFilters = [f.filter for f in self.listFilters(libtype)]
-                raise NotFound('Unknown filter field "%s" for libtype "%s". '
-                               'Available filters: %s'
-                               % (field, libtype, availableFilters)) from None
+                raise NotFound(f'Unknown filter field "{field}" for libtype "{libtype}". '
+                               f'Available filters: {availableFilters}') from None
                 
         data = self._server.query(field.key)
         return self.findItems(data, FilterChoice)
@@ -786,7 +1037,7 @@ class LibrarySection(PlexObject):
         """
         match = re.match(r'(?:([a-zA-Z]*)\.)?([a-zA-Z]+)([!<>=&]*)', field)
         if not match:
-            raise BadRequest('Invalid filter field: %s' % field)
+            raise BadRequest(f'Invalid filter field: {field}')
         _libtype, field, operator = match.groups()
         libtype = _libtype or libtype or self.TYPE
 
@@ -800,9 +1051,8 @@ class LibrarySection(PlexObject):
                         break
             else:
                 availableFields = [f.key for f in self.listFields(libtype)]
-                raise NotFound('Unknown filter field "%s" for libtype "%s". '
-                               'Available filter fields: %s'
-                               % (field, libtype, availableFields)) from None
+                raise NotFound(f'Unknown filter field "{field}" for libtype "{libtype}". '
+                               f'Available filter fields: {availableFields}') from None
 
         field = filterField.key
         operator = self._validateFieldOperator(filterField, operator)
@@ -833,9 +1083,8 @@ class LibrarySection(PlexObject):
             next(o for o in fieldType.operators if o.key == operator)
         except StopIteration:
             availableOperators = [o.key for o in self.listOperators(filterField.type)]
-            raise NotFound('Unknown operator "%s" for filter field "%s". '
-                           'Available operators: %s'
-                           % (operator, filterField.key, availableOperators)) from None
+            raise NotFound(f'Unknown operator "{operator}" for filter field "{filterField.key}". '
+                           f'Available operators: {availableOperators}') from None
 
         return '&=' if and_operator else operator
 
@@ -847,12 +1096,6 @@ class LibrarySection(PlexObject):
             values = [values]
 
         fieldType = self.getFieldType(filterField.type)
-        choiceTypes = {'tag', 'subtitleLanguage', 'audioLanguage', 'resolution'}
-        if fieldType.type in choiceTypes:
-            filterChoices = self.listFilterChoices(filterField.key, libtype)
-        else:
-            filterChoices = []
-
         results = []
 
         try:
@@ -865,15 +1108,12 @@ class LibrarySection(PlexObject):
                     value = float(value) if '.' in str(value) else int(value)
                 elif fieldType.type == 'string':
                     value = str(value)
-                elif fieldType.type in choiceTypes:
-                    value = str((value.id or value.tag) if isinstance(value, media.MediaTag) else value)
-                    matchValue = value.lower()
-                    value = next((f.key for f in filterChoices
-                                  if matchValue in {f.key.lower(), f.title.lower()}), value)
+                elif fieldType.type in {'tag', 'subtitleLanguage', 'audioLanguage', 'resolution'}:
+                    value = self._validateFieldValueTag(value, filterField, libtype)
                 results.append(str(value))
         except (ValueError, AttributeError):
-            raise BadRequest('Invalid value "%s" for filter field "%s", value should be type %s'
-                             % (value, filterField.key, fieldType.type)) from None
+            raise BadRequest(f'Invalid value "{value}" for filter field "{filterField.key}", '
+                             f'value should be type {fieldType.type}') from None
     
         return results
 
@@ -888,26 +1128,49 @@ class LibrarySection(PlexObject):
         else:
             return int(utils.toDatetime(value, '%Y-%m-%d').timestamp())
 
+    def _validateFieldValueTag(self, value, filterField, libtype):
+        """ Validates a filter tag value. A filter tag value can be a :class:`~plexapi.library.FilterChoice` object,
+            a :class:`~plexapi.media.MediaTag` object, the exact name :attr:`MediaTag.tag` (*str*),
+            or the exact id :attr:`MediaTag.id` (*int*).
+        """
+        if isinstance(value, FilterChoice):
+            return value.key
+        if isinstance(value, (media.MediaTag, LibraryMediaTag)):
+            value = str(value.id or value.tag)
+        else:
+            value = str(value)
+        filterChoices = self.listFilterChoices(filterField.key, libtype)
+        matchValue = value.lower()
+        return next((f.key for f in filterChoices if matchValue in {f.key.lower(), f.title.lower()}), value)
+
     def _validateSortFields(self, sort, libtype=None):
-        """ Validates a list of filter sort fields is available for the library.
+        """ Validates a list of filter sort fields is available for the library. Sort fields can be a
+            list of :class:`~plexapi.library.FilteringSort` objects, or a comma separated string.
             Returns the validated comma separated sort fields string.
         """
         if isinstance(sort, str):
             sort = sort.split(',')
 
+        if not isinstance(sort, (list, tuple)):
+            sort = [sort]
+
         validatedSorts = []
         for _sort in sort:
-            validatedSorts.append(self._validateSortField(_sort.strip(), libtype))
+            validatedSorts.append(self._validateSortField(_sort, libtype))
 
         return ','.join(validatedSorts)
 
     def _validateSortField(self, sort, libtype=None):
-        """ Validates a filter sort field is available for the library.
+        """ Validates a filter sort field is available for the library. A sort field can be a
+            :class:`~plexapi.library.FilteringSort` object, or a string.
             Returns the validated sort field string.
         """
-        match = re.match(r'(?:([a-zA-Z]*)\.)?([a-zA-Z]+):?([a-zA-Z]*)', sort)
+        if isinstance(sort, FilteringSort):
+            return f'{libtype or self.TYPE}.{sort.key}:{sort.defaultDirection}'
+
+        match = re.match(r'(?:([a-zA-Z]*)\.)?([a-zA-Z]+):?([a-zA-Z]*)', sort.strip())
         if not match:
-            raise BadRequest('Invalid filter sort: %s' % sort)
+            raise BadRequest(f'Invalid filter sort: {sort}')
         _libtype, sortField, sortDir = match.groups()
         libtype = _libtype or libtype or self.TYPE
 
@@ -915,22 +1178,16 @@ class LibrarySection(PlexObject):
             filterSort = next(f for f in self.listSorts(libtype) if f.key == sortField)
         except StopIteration:
             availableSorts = [f.key for f in self.listSorts(libtype)]
-            raise NotFound('Unknown sort field "%s" for libtype "%s". '
-                           'Available sort fields: %s'
-                           % (sortField, libtype, availableSorts)) from None
+            raise NotFound(f'Unknown sort field "{sortField}" for libtype "{libtype}". '
+                           f'Available sort fields: {availableSorts}') from None
 
         sortField = libtype + '.' + filterSort.key
 
-        if not sortDir:
-            sortDir = filterSort.defaultDirection
-
-        availableDirections = ['asc', 'desc', 'nullsLast']
+        availableDirections = ['', 'asc', 'desc', 'nullsLast']
         if sortDir not in availableDirections:
-            raise NotFound('Unknown sort direction "%s". '
-                           'Available sort directions: %s'
-                           % (sortDir, availableDirections))
+            raise NotFound(f'Unknown sort direction "{sortDir}". Available sort directions: {availableDirections}')
 
-        return '%s:%s' % (sortField, sortDir)
+        return f'{sortField}:{sortDir}' if sortDir else sortField
 
     def _validateAdvancedSearch(self, filters, libtype):
         """ Validates an advanced search filter dictionary.
@@ -952,7 +1209,7 @@ class LibrarySection(PlexObject):
 
                 for value in values:
                     validatedFilters.extend(self._validateAdvancedSearch(value, libtype))
-                    validatedFilters.append('%s=1' % field.lower())
+                    validatedFilters.append(f'{field.lower()}=1')
 
                 del validatedFilters[-1]
                 validatedFilters.append('pop=1')
@@ -968,6 +1225,8 @@ class LibrarySection(PlexObject):
         """
         args = {}
         filter_args = []
+
+        args['includeGuids'] = int(bool(kwargs.pop('includeGuids', True)))
         for field, values in list(kwargs.items()):
             if field.split('__')[-1] not in OPERATORS:
                 filter_args.append(self._validateFilterField(field, values, libtype))
@@ -989,7 +1248,7 @@ class LibrarySection(PlexObject):
         joined_args = utils.joinArgs(args).lstrip('?')
         joined_filter_args = '&'.join(filter_args) if filter_args else ''
         params = '&'.join([joined_args, joined_filter_args]).strip('&')
-        key = '/library/sections/%s/all?%s' % (self.key, params)
+        key = f'/library/sections/{self.key}/all?{params}'
 
         if returnKwargs:
             return key, kwargs
@@ -1009,9 +1268,8 @@ class LibrarySection(PlexObject):
 
             Parameters:
                 title (str, optional): General string query to search for. Partial string matches are allowed.
-                sort (str or list, optional): A string of comma separated sort fields or a list of sort fields
-                    in the format ``column:dir``.
-                    See :func:`~plexapi.library.LibrarySection.listSorts` to get a list of available sort fields.
+                sort (:class:`~plexapi.library.FilteringSort` or str or list, optional): A field to sort the results.
+                    See the details below for more info.
                 maxresults (int, optional): Only return the specified number of results.
                 libtype (str, optional): Return results of a specific type (movie, show, season, episode,
                     artist, album, track, photoalbum, photo, collection) (e.g. ``libtype='episode'`` will only
@@ -1027,6 +1285,28 @@ class LibrarySection(PlexObject):
                 :exc:`~plexapi.exceptions.BadRequest`: When the sort or filter is invalid.
                 :exc:`~plexapi.exceptions.NotFound`: When applying an unknown sort or filter.
 
+            **Sorting Results**
+
+            The search results can be sorted by including the ``sort`` parameter.
+
+            * See :func:`~plexapi.library.LibrarySection.listSorts` to get a list of available sort fields.
+
+            The ``sort`` parameter can be a :class:`~plexapi.library.FilteringSort` object or a sort string in the
+            format ``field:dir``. The sort direction ``dir`` can be ``asc``, ``desc``, or ``nullsLast``. Omitting the
+            sort direction or using a :class:`~plexapi.library.FilteringSort` object will sort the results in the default
+            direction of the field. Multi-sorting on multiple fields can be achieved by using a comma separated list of
+            sort strings, or a list of :class:`~plexapi.library.FilteringSort` object or strings.
+
+            Examples:
+
+                .. code-block:: python
+
+                    library.search(sort="titleSort:desc")  # Sort title in descending order
+                    library.search(sort="titleSort")  # Sort title in the default order
+                    # Multi-sort by year in descending order, then by audience rating in descending order
+                    library.search(sort="year:desc,audienceRating:desc")
+                    library.search(sort=["year:desc", "audienceRating:desc"])
+
             **Using Plex Filters**
 
             Any of the available custom filters can be applied to the search results
@@ -1036,7 +1316,7 @@ class LibrarySection(PlexObject):
             * See :func:`~plexapi.library.LibrarySection.listOperators` to get a list of all available operators.
             * See :func:`~plexapi.library.LibrarySection.listFilterChoices` to get a list of all available filter values.
 
-            The following filter fields are just some examples of the possible filters. The list is not exaustive,
+            The following filter fields are just some examples of the possible filters. The list is not exhaustive,
             and not all filters apply to all library types.
 
             * **actor** (:class:`~plexapi.media.MediaTag`): Search for the name of an actor.
@@ -1065,8 +1345,9 @@ class LibrarySection(PlexObject):
             * **writer** (:class:`~plexapi.media.MediaTag`): Search for the name of a writer.
             * **year** (*int*): Search for a specific year.
 
-            Tag type filter values can be a :class:`~plexapi.media.MediaTag` object, the exact name
-            :attr:`MediaTag.tag` (*str*), or the exact id :attr:`MediaTag.id` (*int*).
+            Tag type filter values can be a :class:`~plexapi.library.FilterChoice` object,
+            :class:`~plexapi.media.MediaTag` object, the exact name :attr:`MediaTag.tag` (*str*),
+            or the exact id :attr:`MediaTag.id` (*int*).
             
             Date type filter values can be a ``datetime`` object, a relative date using a one of the
             available date suffixes (e.g. ``30d``) (*str*), or a date in ``YYYY-MM-DD`` (*str*) format.
@@ -1098,7 +1379,7 @@ class LibrarySection(PlexObject):
             Some filters may be prefixed by the ``libtype`` separated by a ``.`` (e.g. ``show.collection``,
             ``episode.title``, ``artist.style``, ``album.genre``, ``track.userRating``, etc.). This should not be
             confused with the ``libtype`` parameter. If no ``libtype`` prefix is provided, then the default library
-            type is assumed. For example, in a TV show library ``viewCout`` is assumed to be ``show.viewCount``.
+            type is assumed. For example, in a TV show library ``viewCount`` is assumed to be ``show.viewCount``.
             If you want to filter using episode view count then you must specify ``episode.viewCount`` explicitly.
             In addition, if the filter does not exist for the default library type it will fallback to the most
             specific ``libtype`` available. For example, ``show.unwatched`` does not exists so it will fallback to
@@ -1125,48 +1406,47 @@ class LibrarySection(PlexObject):
 
             **Using Plex Operators**
 
-            Operators can be appended to the filter field to narrow down results with more granularity. If no
-            operator is specified, the default operator is assumed to be ``=``. The following is a list of
-            possible operators depending on the data type of the filter being applied. A special ``&`` operator
-            can also be used to ``AND`` together a list of values.
+            Operators can be appended to the filter field to narrow down results with more granularity.
+            The following is a list of possible operators depending on the data type of the filter being applied.
+            A special ``&`` operator can also be used to ``AND`` together a list of values.
 
             Type: :class:`~plexapi.media.MediaTag` or *subtitleLanguage* or *audioLanguage*
 
-            * ``=``: ``is``
-            * ``!=``: ``is not``
+            * no operator: ``is``
+            * ``!``: ``is not``
 
             Type: *int*
 
-            * ``=``: ``is``
-            * ``!=``: ``is not``
-            * ``>>=``: ``is greater than``
-            * ``<<=``: ``is less than``
+            * no operator: ``is``
+            * ``!``: ``is not``
+            * ``>>``: ``is greater than``
+            * ``<<``: ``is less than``
 
             Type: *str*
 
-            * ``=``: ``contains``
-            * ``!=``: ``does not contain``
-            * ``==``: ``is``
-            * ``!==``: ``is not``
-            * ``<=``: ``begins with``
-            * ``>=``: ``ends with``
+            * no operator: ``contains``
+            * ``!``: ``does not contain``
+            * ``=``: ``is``
+            * ``!=``: ``is not``
+            * ``<``: ``begins with``
+            * ``>``: ``ends with``
 
             Type: *bool*
 
-            * ``=``: ``is true``
-            * ``!=``: ``is false``
+            * no operator: ``is true``
+            * ``!``: ``is false``
 
             Type: *datetime*
 
-            * ``<<=``: ``is before``
-            * ``>>=``: ``is after``
+            * ``<<``: ``is before``
+            * ``>>``: ``is after``
 
-            Type: *resolution*
+            Type: *resolution* or *guid*
 
-            * ``=``: ``is``
+            * no operator: ``is``
 
             Operators cannot be included directly in the function parameters so the filters
-            must be provided as a filters dictionary. The trailing ``=`` on the operator may be excluded.
+            must be provided as a filters dictionary.
 
             Examples:
 
@@ -1344,7 +1624,7 @@ class LibrarySection(PlexObject):
 
         key = self._buildSearchKey(title=title, sort=sort, libtype=libtype, **kwargs)
 
-        sync_item.location = 'library://%s/directory/%s' % (self.uuid, quote_plus(key))
+        sync_item.location = f'library://{self.uuid}/directory/{quote_plus(key)}'
         sync_item.policy = policy
         sync_item.mediaSettings = mediaSettings
 
@@ -1372,10 +1652,14 @@ class LibrarySection(PlexObject):
 
             Parameters:
                 title (str): Title of the item to return.
+
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: Unable to find collection.
         """
-        results = self.collections(title__iexact=title)
-        if results:
-            return results[0]
+        try:
+            return self.collections(title=title, title__iexact=title)[0]
+        except IndexError:
+            raise NotFound(f'Unable to find collection with title "{title}".') from None
 
     def collections(self, **kwargs):
         """ Returns a list of collections from this library section.
@@ -1384,28 +1668,32 @@ class LibrarySection(PlexObject):
         return self.search(libtype='collection', **kwargs)
 
     def createPlaylist(self, title, items=None, smart=False, limit=None,
-                       sort=None, filters=None, **kwargs):
+                       sort=None, filters=None, m3ufilepath=None, **kwargs):
         """ Alias for :func:`~plexapi.server.PlexServer.createPlaylist` using this
             :class:`~plexapi.library.LibrarySection`.
         """
         return self._server.createPlaylist(
             title, section=self, items=items, smart=smart, limit=limit,
-            sort=sort, filters=filters, **kwargs)
+            sort=sort, filters=filters, m3ufilepath=m3ufilepath, **kwargs)
 
     def playlist(self, title):
         """ Returns the playlist with the specified title.
 
             Parameters:
                 title (str): Title of the item to return.
-        """
-        results = self.playlists(title__iexact=title)
-        if results:
-            return results[0]
 
-    def playlists(self, **kwargs):
+            Raises:
+                :exc:`~plexapi.exceptions.NotFound`: Unable to find playlist.
+        """
+        try:
+            return self.playlists(title=title, title__iexact=title)[0]
+        except IndexError:
+            raise NotFound(f'Unable to find playlist with title "{title}".') from None
+
+    def playlists(self, sort=None, **kwargs):
         """ Returns a list of playlists from this library section. """
-        key = '/playlists?type=15&playlistType=%s&sectionID=%s' % (self.CONTENT_TYPE, self.key)
-        return self.fetchItems(key, **kwargs)
+        return self._server.playlists(
+            playlistType=self.CONTENT_TYPE, sectionId=self.key, sort=sort, **kwargs)
 
     @deprecated('use "listFields" instead')
     def filterFields(self, mediaType=None):
@@ -1414,6 +1702,23 @@ class LibrarySection(PlexObject):
     @deprecated('use "listFilterChoices" instead')
     def listChoices(self, category, libtype=None, **kwargs):
         return self.listFilterChoices(field=category, libtype=libtype)
+
+    def getWebURL(self, base=None, tab=None, key=None):
+        """ Returns the Plex Web URL for the library.
+
+            Parameters:
+                base (str): The base URL before the fragment (``#!``).
+                    Default is https://app.plex.tv/desktop.
+                tab (str): The library tab (recommended, library, collections, playlists, timeline).
+                key (str): A hub key.
+        """
+        params = {'source': self.key}
+        if tab is not None:
+            params['pivot'] = tab
+        if key is not None:
+            params['key'] = key
+            params['pageType'] = 'list'
+        return self._server._buildWebURL(base=base, **params)
 
 
 class MovieSection(LibrarySection):
@@ -1574,13 +1879,12 @@ class MusicSection(LibrarySection):
 
     def albums(self):
         """ Returns a list of :class:`~plexapi.audio.Album` objects in this section. """
-        key = '/library/sections/%s/albums' % self.key
+        key = f'/library/sections/{self.key}/albums'
         return self.fetchItems(key)
 
     def stations(self):
-        """ Returns a list of :class:`~plexapi.audio.Album` objects in this section. """
-        key = '/hubs/sections/%s?includeStations=1' % self.key
-        return self.fetchItems(key, cls=Station)
+        """ Returns a list of :class:`~plexapi.playlist.Playlist` stations in this section. """
+        return next((hub.items for hub in self.hubs() if hub.context == 'hub.music.stations'), None)
 
     def searchArtists(self, **kwargs):
         """ Search for an artist. See :func:`~plexapi.library.LibrarySection.search` for usage. """
@@ -1794,6 +2098,7 @@ class Hub(PlexObject):
             context (str): The context of the hub.
             hubKey (str): API URL for these specific hub items.
             hubIdentifier (str): The identifier of the hub.
+            items (list): List of items in the hub.
             key (str): API URL for the hub.
             more (bool): True if there are more items to load (call reload() to fetch all items).
             size (int): The number of items in the hub.
@@ -1816,6 +2121,7 @@ class Hub(PlexObject):
         self.style = data.attrib.get('style')
         self.title = data.attrib.get('title')
         self.type = data.attrib.get('type')
+        self._section = None  # cache for self.section
 
     def __len__(self):
         return self.size
@@ -1827,11 +2133,19 @@ class Hub(PlexObject):
             self.more = False
             self.size = len(self.items)
 
+    def section(self):
+        """ Returns the :class:`~plexapi.library.LibrarySection` this hub belongs to.
+        """
+        if self._section is None:
+            self._section = self._server.library.sectionByID(self.librarySectionID)
+        return self._section
 
-class HubMediaTag(PlexObject):
-    """ Base class of hub media tag search results.
+
+class LibraryMediaTag(PlexObject):
+    """ Base class of library media tags.
 
         Attributes:
+            TAG (str): 'Directory'
             count (int): The number of items where this tag is found.
             filter (str): The URL filter for the tag.
             id (int): The id of the tag.
@@ -1874,53 +2188,33 @@ class HubMediaTag(PlexObject):
     def items(self, *args, **kwargs):
         """ Return the list of items within this tag. """
         if not self.key:
-            raise BadRequest('Key is not defined for this tag: %s' % self.tag)
+            raise BadRequest(f'Key is not defined for this tag: {self.tag}')
         return self.fetchItems(self.key)
 
 
 @utils.registerPlexObject
-class Tag(HubMediaTag):
-    """ Represents a single Tag hub search media tag.
+class Aperture(LibraryMediaTag):
+    """ Represents a single Aperture library media tag.
 
         Attributes:
-            TAGTYPE (int): 0
+            TAGTYPE (int): 202
     """
-    TAGTYPE = 0
+    TAGTYPE = 202
 
 
 @utils.registerPlexObject
-class Genre(HubMediaTag):
-    """ Represents a single Genre hub search media tag.
+class Art(LibraryMediaTag):
+    """ Represents a single Art library media tag.
 
         Attributes:
-            TAGTYPE (int): 1
+            TAGTYPE (int): 313
     """
-    TAGTYPE = 1
+    TAGTYPE = 313
 
 
 @utils.registerPlexObject
-class Director(HubMediaTag):
-    """ Represents a single Director hub search media tag.
-
-        Attributes:
-            TAGTYPE (int): 4
-    """
-    TAGTYPE = 4
-
-
-@utils.registerPlexObject
-class Actor(HubMediaTag):
-    """ Represents a single Actor hub search media tag.
-
-        Attributes:
-            TAGTYPE (int): 6
-    """
-    TAGTYPE = 6
-
-
-@utils.registerPlexObject
-class AutoTag(HubMediaTag):
-    """ Represents a single AutoTag hub search media tag.
+class Autotag(LibraryMediaTag):
+    """ Represents a single Autotag library media tag.
 
         Attributes:
             TAGTYPE (int): 207
@@ -1929,8 +2223,210 @@ class AutoTag(HubMediaTag):
 
 
 @utils.registerPlexObject
-class Place(HubMediaTag):
-    """ Represents a single Place hub search media tag.
+class Banner(LibraryMediaTag):
+    """ Represents a single Banner library media tag.
+
+        Attributes:
+            TAGTYPE (int): 311
+    """
+    TAGTYPE = 311
+
+
+@utils.registerPlexObject
+class Chapter(LibraryMediaTag):
+    """ Represents a single Chapter library media tag.
+
+        Attributes:
+            TAGTYPE (int): 9
+    """
+    TAGTYPE = 9
+
+
+@utils.registerPlexObject
+class Collection(LibraryMediaTag):
+    """ Represents a single Collection library media tag.
+
+        Attributes:
+            TAGTYPE (int): 2
+    """
+    TAGTYPE = 2
+
+
+@utils.registerPlexObject
+class Concert(LibraryMediaTag):
+    """ Represents a single Concert library media tag.
+
+        Attributes:
+            TAGTYPE (int): 306
+    """
+    TAGTYPE = 306
+
+
+@utils.registerPlexObject
+class Country(LibraryMediaTag):
+    """ Represents a single Country library media tag.
+
+        Attributes:
+            TAGTYPE (int): 8
+    """
+    TAGTYPE = 8
+
+
+@utils.registerPlexObject
+class Device(LibraryMediaTag):
+    """ Represents a single Device library media tag.
+
+        Attributes:
+            TAGTYPE (int): 206
+    """
+    TAGTYPE = 206
+
+
+@utils.registerPlexObject
+class Director(LibraryMediaTag):
+    """ Represents a single Director library media tag.
+
+        Attributes:
+            TAGTYPE (int): 4
+    """
+    TAGTYPE = 4
+
+
+@utils.registerPlexObject
+class Exposure(LibraryMediaTag):
+    """ Represents a single Exposure library media tag.
+
+        Attributes:
+            TAGTYPE (int): 203
+    """
+    TAGTYPE = 203
+
+
+@utils.registerPlexObject
+class Format(LibraryMediaTag):
+    """ Represents a single Format library media tag.
+
+        Attributes:
+            TAGTYPE (int): 302
+    """
+    TAGTYPE = 302
+
+
+@utils.registerPlexObject
+class Genre(LibraryMediaTag):
+    """ Represents a single Genre library media tag.
+
+        Attributes:
+            TAGTYPE (int): 1
+    """
+    TAGTYPE = 1
+
+
+@utils.registerPlexObject
+class Guid(LibraryMediaTag):
+    """ Represents a single Guid library media tag.
+
+        Attributes:
+            TAGTYPE (int): 314
+    """
+    TAGTYPE = 314
+
+
+@utils.registerPlexObject
+class ISO(LibraryMediaTag):
+    """ Represents a single ISO library media tag.
+
+        Attributes:
+            TAGTYPE (int): 204
+    """
+    TAGTYPE = 204
+
+
+@utils.registerPlexObject
+class Label(LibraryMediaTag):
+    """ Represents a single Label library media tag.
+
+        Attributes:
+            TAGTYPE (int): 11
+    """
+    TAGTYPE = 11
+
+
+@utils.registerPlexObject
+class Lens(LibraryMediaTag):
+    """ Represents a single Lens library media tag.
+
+        Attributes:
+            TAGTYPE (int): 205
+    """
+    TAGTYPE = 205
+
+
+@utils.registerPlexObject
+class Make(LibraryMediaTag):
+    """ Represents a single Make library media tag.
+
+        Attributes:
+            TAGTYPE (int): 200
+    """
+    TAGTYPE = 200
+
+
+@utils.registerPlexObject
+class Marker(LibraryMediaTag):
+    """ Represents a single Marker library media tag.
+
+        Attributes:
+            TAGTYPE (int): 12
+    """
+    TAGTYPE = 12
+
+
+@utils.registerPlexObject
+class MediaProcessingTarget(LibraryMediaTag):
+    """ Represents a single MediaProcessingTarget library media tag.
+
+        Attributes:
+            TAG (str): 'Tag'
+            TAGTYPE (int): 42
+    """
+    TAG = 'Tag'
+    TAGTYPE = 42
+
+
+@utils.registerPlexObject
+class Model(LibraryMediaTag):
+    """ Represents a single Model library media tag.
+
+        Attributes:
+            TAGTYPE (int): 201
+    """
+    TAGTYPE = 201
+
+
+@utils.registerPlexObject
+class Mood(LibraryMediaTag):
+    """ Represents a single Mood library media tag.
+
+        Attributes:
+            TAGTYPE (int): 300
+    """
+    TAGTYPE = 300
+
+
+@utils.registerPlexObject
+class Network(LibraryMediaTag):
+    """ Represents a single Network library media tag.
+
+        Attributes:
+            TAGTYPE (int): 319
+    """
+    TAGTYPE = 319
+
+
+@utils.registerPlexObject
+class Place(LibraryMediaTag):
+    """ Represents a single Place library media tag.
 
         Attributes:
             TAGTYPE (int): 400
@@ -1939,36 +2435,113 @@ class Place(HubMediaTag):
 
 
 @utils.registerPlexObject
-class Station(PlexObject):
-    """ Represents the Station area in the MusicSection.
+class Poster(LibraryMediaTag):
+    """ Represents a single Poster library media tag.
 
         Attributes:
-            TITLE (str): 'Stations'
-            TYPE (str): 'station'
-            hubIdentifier (str): Unknown.
-            size (int): Number of items found.
-            title (str): Title of this Hub.
-            type (str): Type of items in the Hub.
-            more (str): Unknown.
-            style (str): Unknown
-            items (str): List of items in the Hub.
+            TAGTYPE (int): 312
     """
-    TITLE = 'Stations'
-    TYPE = 'station'
+    TAGTYPE = 312
 
-    def _loadData(self, data):
-        """ Load attribute values from Plex XML response. """
-        self._data = data
-        self.hubIdentifier = data.attrib.get('hubIdentifier')
-        self.size = utils.cast(int, data.attrib.get('size'))
-        self.title = data.attrib.get('title')
-        self.type = data.attrib.get('type')
-        self.more = data.attrib.get('more')
-        self.style = data.attrib.get('style')
-        self.items = self.findItems(data)
 
-    def __len__(self):
-        return self.size
+@utils.registerPlexObject
+class Producer(LibraryMediaTag):
+    """ Represents a single Producer library media tag.
+
+        Attributes:
+            TAGTYPE (int): 7
+    """
+    TAGTYPE = 7
+
+
+@utils.registerPlexObject
+class RatingImage(LibraryMediaTag):
+    """ Represents a single RatingImage library media tag.
+
+        Attributes:
+            TAGTYPE (int): 316
+    """
+    TAGTYPE = 316
+
+
+@utils.registerPlexObject
+class Review(LibraryMediaTag):
+    """ Represents a single Review library media tag.
+
+        Attributes:
+            TAGTYPE (int): 10
+    """
+    TAGTYPE = 10
+
+
+@utils.registerPlexObject
+class Role(LibraryMediaTag):
+    """ Represents a single Role library media tag.
+
+        Attributes:
+            TAGTYPE (int): 6
+    """
+    TAGTYPE = 6
+
+
+@utils.registerPlexObject
+class Similar(LibraryMediaTag):
+    """ Represents a single Similar library media tag.
+
+        Attributes:
+            TAGTYPE (int): 305
+    """
+    TAGTYPE = 305
+
+
+@utils.registerPlexObject
+class Studio(LibraryMediaTag):
+    """ Represents a single Studio library media tag.
+
+        Attributes:
+            TAGTYPE (int): 318
+    """
+    TAGTYPE = 318
+
+
+@utils.registerPlexObject
+class Style(LibraryMediaTag):
+    """ Represents a single Style library media tag.
+
+        Attributes:
+            TAGTYPE (int): 301
+    """
+    TAGTYPE = 301
+
+
+@utils.registerPlexObject
+class Tag(LibraryMediaTag):
+    """ Represents a single Tag library media tag.
+
+        Attributes:
+            TAGTYPE (int): 0
+    """
+    TAGTYPE = 0
+
+
+@utils.registerPlexObject
+class Theme(LibraryMediaTag):
+    """ Represents a single Theme library media tag.
+
+        Attributes:
+            TAGTYPE (int): 317
+    """
+    TAGTYPE = 317
+
+
+@utils.registerPlexObject
+class Writer(LibraryMediaTag):
+    """ Represents a single Writer library media tag.
+
+        Attributes:
+            TAGTYPE (int): 5
+    """
+    TAGTYPE = 5
 
 
 class FilteringType(PlexObject):
@@ -1988,7 +2561,7 @@ class FilteringType(PlexObject):
 
     def __repr__(self):
         _type = self._clean(self.firstAttr('type'))
-        return '<%s>' % ':'.join([p for p in [self.__class__.__name__, _type] if p])
+        return f"<{':'.join([p for p in [self.__class__.__name__, _type] if p])}>"
 
     def _loadData(self, data):
         self._data = data
@@ -2000,21 +2573,66 @@ class FilteringType(PlexObject):
         self.title = data.attrib.get('title')
         self.type = data.attrib.get('type')
 
-        # Add additional manual sorts and fields which are available
+        self._librarySectionID = self._parent().key
+
+        # Add additional manual filters, sorts, and fields which are available
         # but not exposed on the Plex server
+        self.filters += self._manualFilters()
         self.sorts += self._manualSorts()
         self.fields += self._manualFields()
+
+    def _manualFilters(self):
+        """ Manually add additional filters which are available
+            but not exposed on the Plex server.
+        """
+        # Filters: (filter, type, title)
+        additionalFilters = [
+        ]
+
+        if self.type == 'season':
+            additionalFilters.extend([
+                ('label', 'string', 'Labels')
+            ])
+        elif self.type == 'episode':
+            additionalFilters.extend([
+                ('label', 'string', 'Labels')
+            ])
+        elif self.type == 'artist':
+            additionalFilters.extend([
+                ('label', 'string', 'Labels')
+            ])
+        elif self.type == 'track':
+            additionalFilters.extend([
+                ('label', 'string', 'Labels')
+            ])
+        elif self.type == 'collection':
+            additionalFilters.extend([
+                ('label', 'string', 'Labels')
+            ])
+
+        manualFilters = []
+        for filterTag, filterType, filterTitle in additionalFilters:
+            filterKey = f'/library/sections/{self._librarySectionID}/{filterTag}?type={utils.searchType(self.type)}'
+            filterXML = (
+                f'<Filter filter="{filterTag}" '
+                f'filterType="{filterType}" '
+                f'key="{filterKey}" '
+                f'title="{filterTitle}" '
+                f'type="filter" />'
+            )
+            manualFilters.append(self._manuallyLoadXML(filterXML, FilteringFilter))
+
+        return manualFilters
 
     def _manualSorts(self):
         """ Manually add additional sorts which are available
             but not exposed on the Plex server.
         """
-        # Sorts: key, dir, title
+        # Sorts: (key, dir, title)
         additionalSorts = [
             ('guid', 'asc', 'Guid'),
             ('id', 'asc', 'Rating Key'),
-            ('index', 'asc', '%s Number' % self.type.capitalize()),
-            ('random', 'asc', 'Random'),
+            ('index', 'asc', f'{self.type.capitalize()} Number'),
             ('summary', 'asc', 'Summary'),
             ('tagline', 'asc', 'Tagline'),
             ('updatedAt', 'asc', 'Date Updated')
@@ -2029,15 +2647,23 @@ class FilteringType(PlexObject):
             additionalSorts.extend([
                 ('absoluteIndex', 'asc', 'Absolute Index')
             ])
-        if self.type == 'collection':
+        elif self.type == 'photo':
+            additionalSorts.extend([
+                ('viewUpdatedAt', 'desc', 'View Updated At')
+            ])
+        elif self.type == 'collection':
             additionalSorts.extend([
                 ('addedAt', 'asc', 'Date Added')
             ])
 
         manualSorts = []
         for sortField, sortDir, sortTitle in additionalSorts:
-            sortXML = ('<Sort defaultDirection="%s" descKey="%s:desc" key="%s" title="%s" />'
-                       % (sortDir, sortField, sortField, sortTitle))
+            sortXML = (
+                f'<Sort defaultDirection="{sortDir}" '
+                f'descKey="{sortField}:desc" '
+                f'key="{sortField}" '
+                f'title="{sortTitle}" />'
+            )
             manualSorts.append(self._manuallyLoadXML(sortXML, FilteringSort))
 
         return manualSorts
@@ -2046,12 +2672,12 @@ class FilteringType(PlexObject):
         """ Manually add additional fields which are available
             but not exposed on the Plex server.
         """
-        # Fields: key, type, title
+        # Fields: (key, type, title)
         additionalFields = [
-            ('guid', 'string', 'Guid'),
+            ('guid', 'guid', 'Guid'),
             ('id', 'integer', 'Rating Key'),
-            ('index', 'integer', '%s Number' % self.type.capitalize()),
-            ('lastRatedAt', 'date', '%s Last Rated' % self.type.capitalize()),
+            ('index', 'integer', f'{self.type.capitalize()} Number'),
+            ('lastRatedAt', 'date', f'{self.type.capitalize()} Last Rated'),
             ('updatedAt', 'date', 'Date Updated')
         ]
 
@@ -2072,35 +2698,42 @@ class FilteringType(PlexObject):
             additionalFields.extend([
                 ('addedAt', 'date', 'Date Season Added'),
                 ('unviewedLeafCount', 'integer', 'Episode Unplayed Count'),
-                ('year', 'integer', 'Season Year')
+                ('year', 'integer', 'Season Year'),
+                ('label', 'tag', 'Label')
             ])
         elif self.type == 'episode':
             additionalFields.extend([
                 ('audienceRating', 'integer', 'Audience Rating'),
                 ('duration', 'integer', 'Duration'),
                 ('rating', 'integer', 'Critic Rating'),
-                ('viewOffset', 'integer', 'View Offset')
+                ('viewOffset', 'integer', 'View Offset'),
+                ('label', 'tag', 'Label')
             ])
         elif self.type == 'artist':
             additionalFields.extend([
-                ('lastViewedAt', 'date', 'Artist Last Played')
+                ('label', 'tag', 'Label')
             ])
         elif self.type == 'track':
             additionalFields.extend([
                 ('duration', 'integer', 'Duration'),
-                ('viewOffset', 'integer', 'View Offset')
+                ('viewOffset', 'integer', 'View Offset'),
+                ('label', 'tag', 'Label')
             ])
         elif self.type == 'collection':
             additionalFields.extend([
-                ('addedAt', 'date', 'Date Added')
+                ('addedAt', 'date', 'Date Added'),
+                ('label', 'tag', 'Label')
             ])
 
         prefix = '' if self.type == 'movie' else self.type + '.'
 
         manualFields = []
         for field, fieldType, fieldTitle in additionalFields:
-            fieldXML = ('<Field key="%s%s" title="%s" type="%s"/>'
-                       % (prefix, field, fieldTitle, fieldType))
+            fieldXML = (
+                f'<Field key="{prefix}{field}" '
+                f'title="{fieldTitle}" '
+                f'type="{fieldType}"/>'
+            )
             manualFields.append(self._manuallyLoadXML(fieldXML, FilteringField))
 
         return manualFields
@@ -2190,7 +2823,7 @@ class FilteringFieldType(PlexObject):
 
     def __repr__(self):
         _type = self._clean(self.firstAttr('type'))
-        return '<%s>' % ':'.join([p for p in [self.__class__.__name__, _type] if p])
+        return f"<{':'.join([p for p in [self.__class__.__name__, _type] if p])}>"
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
@@ -2239,6 +2872,137 @@ class FilterChoice(PlexObject):
         self.thumb = data.attrib.get('thumb')
         self.title = data.attrib.get('title')
         self.type = data.attrib.get('type')
+
+
+class ManagedHub(PlexObject):
+    """ Represents a Managed Hub (recommendation) inside a library.
+
+        Attributes:
+            TAG (str): 'Hub'
+            deletable (bool): True if the Hub can be deleted (promoted collection).
+            homeVisibility (str): Promoted home visibility (none, all, admin, or shared).
+            identifier (str): Hub identifier for the managed hub.
+            promotedToOwnHome (bool): Promoted to own home.
+            promotedToRecommended (bool): Promoted to recommended.
+            promotedToSharedHome (bool): Promoted to shared home.
+            recommendationsVisibility (str): Promoted recommendation visibility (none or all).
+            title (str): Title of managed hub.
+    """
+    TAG = 'Hub'
+
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        self._data = data
+        self.deletable = utils.cast(bool, data.attrib.get('deletable', True))
+        self.homeVisibility = data.attrib.get('homeVisibility', 'none')
+        self.identifier = data.attrib.get('identifier')
+        self.promotedToOwnHome = utils.cast(bool, data.attrib.get('promotedToOwnHome', False))
+        self.promotedToRecommended = utils.cast(bool, data.attrib.get('promotedToRecommended', False))
+        self.promotedToSharedHome = utils.cast(bool, data.attrib.get('promotedToSharedHome', False))
+        self.recommendationsVisibility = data.attrib.get('recommendationsVisibility', 'none')
+        self.title = data.attrib.get('title')
+        self._promoted = True  # flag to indicate if this hub has been promoted on the list of managed recommendations
+
+        parent = self._parent()
+        self.librarySectionID = parent.key if isinstance(parent, LibrarySection) else parent.librarySectionID
+
+    def reload(self):
+        """ Reload the data for this managed hub. """
+        key = f'/hubs/sections/{self.librarySectionID}/manage'
+        hub = self.fetchItem(key, self.__class__, identifier=self.identifier)
+        self.__dict__.update(hub.__dict__)
+        return self
+
+    def move(self, after=None):
+        """ Move a managed hub to a new position in the library's Managed Recommendations.
+
+            Parameters:
+                after (obj): :class:`~plexapi.library.ManagedHub` object to move the item after in the collection.
+
+            Raises:
+                :class:`plexapi.exceptions.BadRequest`: When trying to move a Hub that is not a Managed Recommendation.
+        """
+        if not self._promoted:
+            raise BadRequest('Collection must be a Managed Recommendation to be moved')
+        key = f'/hubs/sections/{self.librarySectionID}/manage/{self.identifier}/move'
+        if after:
+            key = f'{key}?after={after.identifier}'
+        self._server.query(key, method=self._server._session.put)
+
+    def remove(self):
+        """ Removes a managed hub from the library's Managed Recommendations.
+
+            Raises:
+                :class:`plexapi.exceptions.BadRequest`: When trying to remove a Hub that is not a Managed Recommendation
+                    or when the Hub cannot be removed.
+        """
+        if not self._promoted:
+            raise BadRequest('Collection must be a Managed Recommendation to be removed')
+        if not self.deletable:
+            raise BadRequest(f'{self.title} managed hub cannot be removed' % self.title)
+        key = f'/hubs/sections/{self.librarySectionID}/manage/{self.identifier}'
+        self._server.query(key, method=self._server._session.delete)
+
+    def updateVisibility(self, recommended=None, home=None, shared=None):
+        """ Update the managed hub's visibility settings.
+
+            Parameters:
+                recommended (bool): True to make visible on your Library Recommended page. False to hide. Default None.
+                home (bool): True to make visible on your Home page. False to hide. Default None.
+                shared (bool): True to make visible on your Friends' Home page. False to hide. Default None.
+
+            Example:
+
+                .. code-block:: python
+
+                    managedHub.updateVisibility(recommended=True, home=True, shared=False).reload()
+                    # or using chained methods
+                    managedHub.promoteRecommended().promoteHome().demoteShared().reload()
+        """
+        params = {
+            'promotedToRecommended': int(self.promotedToRecommended),
+            'promotedToOwnHome': int(self.promotedToOwnHome),
+            'promotedToSharedHome': int(self.promotedToSharedHome),
+        }
+        if recommended is not None:
+            params['promotedToRecommended'] = int(recommended)
+        if home is not None:
+            params['promotedToOwnHome'] = int(home)
+        if shared is not None:
+            params['promotedToSharedHome'] = int(shared)
+
+        if not self._promoted:
+            params['metadataItemId'] = self.identifier.rsplit('.')[-1]
+            key = f'/hubs/sections/{self.librarySectionID}/manage'
+            self._server.query(key, method=self._server._session.post, params=params)
+        else:
+            key = f'/hubs/sections/{self.librarySectionID}/manage/{self.identifier}'
+            self._server.query(key, method=self._server._session.put, params=params)
+        return self.reload()
+
+    def promoteRecommended(self):
+        """ Show the managed hub on your Library Recommended Page. """
+        return self.updateVisibility(recommended=True)
+
+    def demoteRecommended(self):
+        """ Hide the managed hub on your Library Recommended Page. """
+        return self.updateVisibility(recommended=False)
+
+    def promoteHome(self):
+        """ Show the managed hub on your Home Page. """
+        return self.updateVisibility(home=True)
+
+    def demoteHome(self):
+        """ Hide the manged hub on your Home Page. """
+        return self.updateVisibility(home=False)
+
+    def promoteShared(self):
+        """ Show the managed hub on your Friends' Home Page. """
+        return self.updateVisibility(shared=True)
+
+    def demoteShared(self):
+        """ Hide the managed hub on your Friends' Home Page. """
+        return self.updateVisibility(shared=False)
 
 
 class Folder(PlexObject):

@@ -1,14 +1,10 @@
 """Tests for the HTTP server."""
-# -*- coding: utf-8 -*-
-# vim: set fileencoding=utf-8 :
-
-from __future__ import absolute_import, division, print_function
 
 from cheroot.wsgi import PathInfoDispatcher
 
 
 def wsgi_invoke(app, environ):
-    """Serve 1 requeset from a WSGI application."""
+    """Serve 1 request from a WSGI application."""
     response = {}
 
     def start_response(status, headers):
@@ -25,7 +21,7 @@ def wsgi_invoke(app, environ):
 
 
 def test_dispatch_no_script_name():
-    """Despatch despite lack of SCRIPT_NAME in environ."""
+    """Dispatch despite lack of ``SCRIPT_NAME`` in environ."""
     # Bare bones WSGI hello world app (from PEP 333).
     def app(environ, start_response):
         start_response(

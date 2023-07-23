@@ -1,20 +1,19 @@
 """Extensions to unittest for web frameworks.
 
-Use the WebCase.getPage method to request a page from your HTTP server.
+Use the :py:meth:`WebCase.getPage` method to request a page
+from your HTTP server.
+
 Framework Integration
 =====================
 If you have control over your server process, you can handle errors
 in the server-side of the HTTP conversation a bit better. You must run
-both the client (your WebCase tests) and the server in the same process
-(but in separate threads, obviously).
+both the client (your :py:class:`WebCase` tests) and the server in the
+same process (but in separate threads, obviously).
 When an error occurs in the framework, call server_error. It will print
 the traceback to stdout, and keep any assertions you have from running
 (the assumption is that, if the server errors, the page output will not
 be of further significance to your tests).
 """
-
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
 
 import pprint
 import re
@@ -24,12 +23,11 @@ import time
 import traceback
 import os
 import json
-import unittest
+import unittest  # pylint: disable=deprecated-module,preferred-module
 import warnings
 import functools
-
-from six.moves import http_client, map, urllib_parse
-import six
+import http.client
+import urllib.parse
 
 from more_itertools.more import always_iterable
 import jaraco.functools
@@ -103,7 +101,7 @@ class WebCase(unittest.TestCase):
 
     HOST = '127.0.0.1'
     PORT = 8000
-    HTTP_CONN = http_client.HTTPConnection
+    HTTP_CONN = http.client.HTTPConnection
     PROTOCOL = 'HTTP/1.1'
 
     scheme = 'http'
@@ -122,10 +120,10 @@ class WebCase(unittest.TestCase):
     def _Conn(self):
         """Return HTTPConnection or HTTPSConnection based on self.scheme.
 
-        * from http.client.
+        * from :py:mod:`python:http.client`.
         """
         cls_name = '{scheme}Connection'.format(scheme=self.scheme.upper())
-        return getattr(http_client, cls_name)
+        return getattr(http.client, cls_name)
 
     def get_conn(self, auto_open=False):
         """Return a connection to our HTTP server."""
@@ -157,7 +155,7 @@ class WebCase(unittest.TestCase):
 
     @property
     def persistent(self):
-        """Presense of the persistent HTTP connection."""
+        """Presence of the persistent HTTP connection."""
         return hasattr(self.HTTP_CONN, '__class__')
 
     @persistent.setter
@@ -176,7 +174,9 @@ class WebCase(unittest.TestCase):
         self, url, headers=None, method='GET', body=None,
         protocol=None, raise_subcls=(),
     ):
-        """Open the url with debugging support. Return status, headers, body.
+        """Open the url with debugging support.
+
+        Return status, headers, body.
 
         url should be the identifier passed to the server, typically a
         server-absolute path and query string (sent between method and
@@ -184,22 +184,22 @@ class WebCase(unittest.TestCase):
         enabled in the server.
 
         If the application under test generates absolute URIs, be sure
-        to wrap them first with strip_netloc::
+        to wrap them first with :py:func:`strip_netloc`::
 
-            class MyAppWebCase(WebCase):
-                def getPage(url, *args, **kwargs):
-                    super(MyAppWebCase, self).getPage(
-                        cheroot.test.webtest.strip_netloc(url),
-                        *args, **kwargs
-                    )
+            >>> class MyAppWebCase(WebCase):
+            ...     def getPage(url, *args, **kwargs):
+            ...         super(MyAppWebCase, self).getPage(
+            ...             cheroot.test.webtest.strip_netloc(url),
+            ...             *args, **kwargs
+            ...         )
 
-        `raise_subcls` is passed through to openURL.
+        ``raise_subcls`` is passed through to :py:func:`openURL`.
         """
         ServerError.on = False
 
-        if isinstance(url, six.text_type):
+        if isinstance(url, str):
             url = url.encode('utf-8')
-        if isinstance(body, six.text_type):
+        if isinstance(body, str):
             body = body.encode('utf-8')
 
         # for compatibility, support raise_subcls is None
@@ -247,7 +247,7 @@ class WebCase(unittest.TestCase):
 
     console_height = 30
 
-    def _handlewebError(self, msg):
+    def _handlewebError(self, msg):  # noqa: C901  # FIXME
         print('')
         print('    ERROR: %s' % msg)
 
@@ -382,7 +382,7 @@ class WebCase(unittest.TestCase):
 
     def assertBody(self, value, msg=None):
         """Fail if value != self.body."""
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             value = value.encode(self.encoding)
         if value != self.body:
             if msg is None:
@@ -393,7 +393,7 @@ class WebCase(unittest.TestCase):
 
     def assertInBody(self, value, msg=None):
         """Fail if value not in self.body."""
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             value = value.encode(self.encoding)
         if value not in self.body:
             if msg is None:
@@ -402,7 +402,7 @@ class WebCase(unittest.TestCase):
 
     def assertNotInBody(self, value, msg=None):
         """Fail if value in self.body."""
-        if isinstance(value, six.text_type):
+        if isinstance(value, str):
             value = value.encode(self.encoding)
         if value in self.body:
             if msg is None:
@@ -411,7 +411,7 @@ class WebCase(unittest.TestCase):
 
     def assertMatchesBody(self, pattern, msg=None, flags=0):
         """Fail if value (a regex pattern) is not in self.body."""
-        if isinstance(pattern, six.text_type):
+        if isinstance(pattern, str):
             pattern = pattern.encode(self.encoding)
         if re.search(pattern, self.body, flags) is None:
             if msg is None:
@@ -430,7 +430,7 @@ def cleanHeaders(headers, method, body, host, port):
     # Add the required Host request header if not present.
     # [This specifies the host:port of the server, not the client.]
     found = False
-    for k, v in headers:
+    for k, _v in headers:
         if k.lower() == 'host':
             found = True
             break
@@ -460,25 +460,7 @@ def shb(response):
     """Return status, headers, body the way we like from a response."""
     resp_status_line = '%s %s' % (response.status, response.reason)
 
-    if not six.PY2:
-        return resp_status_line, response.getheaders(), response.read()
-
-    h = []
-    key, value = None, None
-    for line in response.msg.headers:
-        if line:
-            if line[0] in ' \t':
-                value += line.strip()
-            else:
-                if key and value:
-                    h.append((key, value))
-                key, value = line.split(':', 1)
-                key = key.strip()
-                value = value.strip()
-    if key and value:
-        h.append((key, value))
-
-    return resp_status_line, h, response.read()
+    return resp_status_line, response.getheaders(), response.read()
 
 
 # def openURL(*args, raise_subcls=(), **kwargs):
@@ -487,16 +469,16 @@ def openURL(*args, **kwargs):
     """
     Open a URL, retrying when it fails.
 
-    Specify `raise_subcls` (class or tuple of classes) to exclude
+    Specify ``raise_subcls`` (class or tuple of classes) to exclude
     those socket.error subclasses from being suppressed and retried.
     """
     raise_subcls = kwargs.pop('raise_subcls', ())
     opener = functools.partial(_open_url_once, *args, **kwargs)
 
     def on_exception():
-        type_, exc = sys.exc_info()[:2]
+        exc = sys.exc_info()[1]
         if isinstance(exc, raise_subcls):
-            raise
+            raise exc
         time.sleep(0.5)
 
     # Try up to 10 times
@@ -510,7 +492,7 @@ def openURL(*args, **kwargs):
 
 def _open_url_once(
     url, headers=None, method='GET', body=None,
-    host='127.0.0.1', port=8000, http_conn=http_client.HTTPConnection,
+    host='127.0.0.1', port=8000, http_conn=http.client.HTTPConnection,
     protocol='HTTP/1.1', ssl_context=None,
 ):
     """Open the given HTTP resource and return status, headers, and body."""
@@ -526,7 +508,7 @@ def _open_url_once(
         conn = http_conn(interface(host), port, **kw)
     conn._http_vsn_str = protocol
     conn._http_vsn = int(''.join([x for x in protocol if x.isdigit()]))
-    if not six.PY2 and isinstance(url, bytes):
+    if isinstance(url, bytes):
         url = url.decode()
     conn.putrequest(
         method.upper(), url, skip_host=True,
@@ -553,7 +535,11 @@ def strip_netloc(url):
     server-absolute portion.
 
     Useful for wrapping an absolute-URI for which only the
-    path is expected (such as in calls to getPage).
+    path is expected (such as in calls to :py:meth:`WebCase.getPage`).
+
+    .. testsetup::
+
+       from cheroot.test.webtest import strip_netloc
 
     >>> strip_netloc('https://google.com/foo/bar?bing#baz')
     '/foo/bar?bing'
@@ -564,10 +550,10 @@ def strip_netloc(url):
     >>> strip_netloc('/foo/bar?bing#baz')
     '/foo/bar?bing'
     """
-    parsed = urllib_parse.urlparse(url)
-    scheme, netloc, path, params, query, fragment = parsed
+    parsed = urllib.parse.urlparse(url)
+    _scheme, _netloc, path, params, query, _fragment = parsed
     stripped = '', '', path, params, query, ''
-    return urllib_parse.urlunparse(stripped)
+    return urllib.parse.urlunparse(stripped)
 
 
 # Add any exceptions which your web framework handles

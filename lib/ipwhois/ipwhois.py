@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Philip Hane
+# Copyright (c) 2013-2020 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -42,17 +42,12 @@ class IPWhois:
             seconds. Defaults to 5.
         proxy_opener (:obj:`urllib.request.OpenerDirector`): The request for
             proxy support. Defaults to None.
-        allow_permutations (:obj:`bool`): Allow net.Net() to use additional
-            methods if DNS lookups to Cymru fail. *WARNING* deprecated in
-            favor of new argument asn_methods. Defaults to False.
     """
 
-    def __init__(self, address, timeout=5, proxy_opener=None,
-                 allow_permutations=False):
+    def __init__(self, address, timeout=5, proxy_opener=None):
 
         self.net = Net(
-            address=address, timeout=timeout, proxy_opener=proxy_opener,
-            allow_permutations=allow_permutations
+            address=address, timeout=timeout, proxy_opener=proxy_opener
         )
         self.ipasn = IPASN(self.net)
 
@@ -71,7 +66,7 @@ class IPWhois:
 
     def lookup_whois(self, inc_raw=False, retry_count=3, get_referral=False,
                      extra_blacklist=None, ignore_referral_errors=False,
-                     field_list=None, asn_alts=None, extra_org_map=None,
+                     field_list=None, extra_org_map=None,
                      inc_nir=True, nir_field_list=None, asn_methods=None,
                      get_asn_description=True):
         """
@@ -95,10 +90,6 @@ class IPWhois:
                 ['name', 'handle', 'description', 'country', 'state', 'city',
                 'address', 'postal_code', 'emails', 'created', 'updated']
                 If None, defaults to all.
-            asn_alts (:obj:`list`): Additional lookup types to attempt if the
-                ASN dns lookup fails. Allow permutations must be enabled.
-                If None, defaults to all ['whois', 'http']. *WARNING*
-                deprecated in favor of new argument asn_methods.
             extra_org_map (:obj:`dict`): Dictionary mapping org handles to
                 RIRs. This is for limited cases where ARIN REST (ASN fallback
                 HTTP lookup) does not show an RIR as the org handle e.g., DNIC
@@ -161,7 +152,7 @@ class IPWhois:
         log.debug('ASN lookup for {0}'.format(self.address_str))
 
         asn_data = self.ipasn.lookup(
-            inc_raw=inc_raw, retry_count=retry_count, asn_alts=asn_alts,
+            inc_raw=inc_raw, retry_count=retry_count,
             extra_org_map=extra_org_map, asn_methods=asn_methods,
             get_asn_description=get_asn_description
         )
@@ -206,9 +197,9 @@ class IPWhois:
 
     def lookup_rdap(self, inc_raw=False, retry_count=3, depth=0,
                     excluded_entities=None, bootstrap=False,
-                    rate_limit_timeout=120, asn_alts=None, extra_org_map=None,
+                    rate_limit_timeout=120, extra_org_map=None,
                     inc_nir=True, nir_field_list=None, asn_methods=None,
-                    get_asn_description=True):
+                    get_asn_description=True, root_ent_check=True):
         """
         The function for retrieving and parsing whois information for an IP
         address via HTTP (RDAP).
@@ -233,10 +224,6 @@ class IPWhois:
             rate_limit_timeout (:obj:`int`): The number of seconds to wait
                 before retrying when a rate limit notice is returned via
                 rdap+json. Defaults to 120.
-            asn_alts (:obj:`list`): Additional lookup types to attempt if the
-                ASN dns lookup fails. Allow permutations must be enabled.
-                If None, defaults to all ['whois', 'http']. *WARNING*
-                deprecated in favor of new argument asn_methods.
             extra_org_map (:obj:`dict`): Dictionary mapping org handles to
                 RIRs. This is for limited cases where ARIN REST (ASN fallback
                 HTTP lookup) does not show an RIR as the org handle e.g., DNIC
@@ -260,6 +247,9 @@ class IPWhois:
             get_asn_description (:obj:`bool`): Whether to run an additional
                 query when pulling ASN information via dns, in order to get
                 the ASN description. Defaults to True.
+            root_ent_check (:obj:`bool`): If True, will perform
+                additional RDAP HTTP queries for missing entity data at the
+                root level. Defaults to True.
 
         Returns:
             dict: The IP RDAP lookup results
@@ -303,7 +293,7 @@ class IPWhois:
             # Retrieve the ASN information.
             log.debug('ASN lookup for {0}'.format(self.address_str))
             asn_data = self.ipasn.lookup(
-                inc_raw=inc_raw, retry_count=retry_count, asn_alts=asn_alts,
+                inc_raw=inc_raw, retry_count=retry_count,
                 extra_org_map=extra_org_map, asn_methods=asn_methods,
                 get_asn_description=get_asn_description
             )
@@ -318,7 +308,8 @@ class IPWhois:
             inc_raw=inc_raw, retry_count=retry_count, asn_data=asn_data,
             depth=depth, excluded_entities=excluded_entities,
             response=response, bootstrap=bootstrap,
-            rate_limit_timeout=rate_limit_timeout
+            rate_limit_timeout=rate_limit_timeout,
+            root_ent_check=root_ent_check
         )
 
         # Add the RDAP information to the return dictionary.

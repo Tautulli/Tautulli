@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -14,8 +16,15 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.dsbase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class CDS(dns.rdtypes.dsbase.DSBase):
 
     """CDS record"""
+
+    _digest_length_by_type = {
+        **dns.rdtypes.dsbase.DSBase._digest_length_by_type,
+        0: 1,  # delete, RFC 8078 Sec. 4 (including Errata ID 5049)
+    }

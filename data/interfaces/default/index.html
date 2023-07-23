@@ -42,10 +42,10 @@
                 <h3 class="pull-left">Watch Statistics</h3>
                 <div class="button-bar">
                     <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles" style="margin-right: 3px">
-                        <label class="btn btn-dark">
+                        <label class="btn btn-dark btn-filter">
                             <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="plays" autocomplete="off"> Play Count
                         </label>
-                        <label class="btn btn-dark">
+                        <label class="btn btn-dark btn-filter">
                             <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="duration" autocomplete="off"> Play Duration
                         </label>
                     </div>
@@ -100,19 +100,19 @@
                 </ul>
                 <div class="button-bar">
                     <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
-                        <label class="btn btn-dark" id="recently-added-label-all">
+                        <label class="btn btn-dark btn-filter" id="recently-added-label-all">
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="all" autocomplete="off"> All
                         </label>
-                        <label class="btn btn-dark" id="recently-added-label-movies">
+                        <label class="btn btn-dark btn-filter" id="recently-added-label-movies">
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
                         </label>
-                        <label class="btn btn-dark" id="recently-added-label-tv">
+                        <label class="btn btn-dark btn-filter" id="recently-added-label-tv">
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
                         </label>
-                        <label class="btn btn-dark" id="recently-added-label-music">
+                        <label class="btn btn-dark btn-filter" id="recently-added-label-music">
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-artist" value="artist" autocomplete="off"> Music
                         </label>
-                        <label class="btn btn-dark" id="recently-added-label-other_video">
+                        <label class="btn btn-dark btn-filter" id="recently-added-label-other_video">
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-other_video" value="other_video" autocomplete="off"> Videos
                         </label>
                     </div>
@@ -483,8 +483,8 @@
 
                         var video_decision = '';
                         if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.stream_video_decision) {
-                            var v_bd =  (s.video_dynamic_range === 'HDR') ? ' ' + s.video_dynamic_range : '';
-                            var sv_bd =  (s.video_dynamic_range === 'HDR') ? ' ' + s.stream_video_dynamic_range : '';
+                            var v_bd =  (s.video_dynamic_range !== 'SDR') ? ' ' + s.video_dynamic_range : '';
+                            var sv_bd =  (s.stream_video_dynamic_range !== 'SDR' || v_bd) ? ' ' + s.stream_video_dynamic_range : '';
                             var v_res= '';
                             switch (s.video_resolution.toLowerCase()) {
                                 case 'sd':
@@ -523,14 +523,15 @@
 
                         var audio_decision = '';
                         if (['movie', 'episode', 'clip', 'track'].indexOf(s.media_type) > -1 && s.stream_audio_decision) {
+                            var audio_language = (s.media_type !== 'track') ? (s.audio_language || 'Unknown') + ' - ' : '';
                             var a_codec = (s.audio_codec === 'truehd') ? 'TrueHD' : s.audio_codec.toUpperCase();
                             var sa_codec = (s.stream_audio_codec === 'truehd') ? 'TrueHD' : s.stream_audio_codec.toUpperCase();
                             if (s.stream_audio_decision === 'transcode') {
-                                audio_decision = 'Transcode (' + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' <i class="fa fa-long-arrow-right"></i> ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Transcode (' + audio_language + a_codec + ' ' + capitalizeFirstLetter(s.audio_channel_layout.split('(')[0]) + ' <i class="fa fa-long-arrow-right"></i> ' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else if (s.stream_audio_decision === 'copy') {
-                                audio_decision = 'Direct Stream (' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Direct Stream (' + audio_language + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             } else {
-                                audio_decision = 'Direct Play (' + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
+                                audio_decision = 'Direct Play (' + audio_language + sa_codec + ' ' + capitalizeFirstLetter(s.stream_audio_channel_layout.split('(')[0]) + ')';
                             }
                         }
                         $('#audio_decision-' + key).html(audio_decision);
@@ -539,13 +540,13 @@
                         if (['movie', 'episode', 'clip'].indexOf(s.media_type) > -1 && s.subtitles === 1) {
                             var subtitle_codec = (s.stream_subtitle_codec && s.stream_subtitle_transient) ? 'None' : s.subtitle_codec.toUpperCase();
                             if (s.stream_subtitle_decision === 'transcode') {
-                                subtitle_decision = 'Transcode (' + subtitle_codec + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_subtitle_codec.toUpperCase() + ')';
+                                subtitle_decision = 'Transcode ('+ (s.subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ' <i class="fa fa-long-arrow-right"></i> ' + s.stream_subtitle_codec.toUpperCase() + ')';
                             } else if (s.stream_subtitle_decision === 'copy') {
-                                subtitle_decision = 'Direct Stream (' + subtitle_codec + ')';
+                                subtitle_decision = 'Direct Stream ('+ (s.subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ')';
                             } else if (s.stream_subtitle_decision === 'burn') {
-                                subtitle_decision = 'Burn (' + subtitle_codec + ')';
+                                subtitle_decision = 'Burn ('+ (s.subtitle_language || 'Unknown')+ ' - ' + subtitle_codec + ')';
                             } else {
-                                subtitle_decision = 'Direct Play (' + ((s.synced_version === '1') ? subtitle_codec : s.stream_subtitle_codec.toUpperCase()) + ')';
+                                subtitle_decision = 'Direct Play ('+ (s.subtitle_language || 'Unknown')+ ' - ' + ((s.synced_version === '1') ? subtitle_codec : s.stream_subtitle_codec.toUpperCase()) + ')';
                             }
                         }
                         $('#subtitle_decision-' + key).html(subtitle_decision);
@@ -590,8 +591,10 @@
                         }
 
                         // Update the progress bars
-                        $('#buffer-bar-' + key).css({width: parseInt(s.transcode_progress) + '%'}).html(s.transcode_progress + '%')
-                            .attr('data-original-title', 'Transcoder Progress ' + s.transcode_progress + '%');
+                        var duration = parseInt(s.duration);
+                        var transcode_progress = duration ? Math.round(s.transcode_max_offset_available * 1000 / duration * 100) : s.transcode_progress;
+                        $('#buffer-bar-' + key).css({width: parseInt(transcode_progress) + '%'}).html(transcode_progress + '%')
+                            .attr('data-original-title', 'Transcoder Progress ' + transcode_progress + '%');
                         if (s.live !== 1) {
                             var progress_bar = $('#progress-bar-' + key);
                             progress_bar.data('state', s.state);
@@ -701,7 +704,10 @@
 
     $('#currentActivity').on('click', '.external_ip-modal', function () {
         $.get('get_ip_address_details', {
-            ip_address: $(this).data('ip')
+            ip_address: $(this).data('ip'),
+            location: $(this).data('location'),
+            secure: $(this).data('secure'),
+            relayed: $(this).data('relayed')
         }).then(function (jqXHR) {
             $("#ip-info-modal").html(jqXHR);
         });
@@ -791,6 +797,8 @@
             var grandparent_rating_key = $(elem).data('grandparent_rating_key');
             var guid = $(elem).data('guid');
             var live = $(elem).data('live');
+            var library_art = $(elem).data('library_art');
+            var library_thumb = $(elem).data('library_thumb');
             var [height, fallback_poster, fallback_art] = [450, 'poster', 'art'];
             if ($.inArray(stat_id, ['top_music', 'popular_music']) > -1) {
                 [height, fallback_poster, fallback_art] = [300, 'cover', 'art'];
@@ -802,18 +810,18 @@
             if (stat_id === 'most_concurrent') {
                 return
             } else if (stat_id === 'top_libraries') {
-                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, null, 500, 280, 40, '282828', 3, fallback_art) + ')');
+                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art || library_art, null, 500, 280, 40, '282828', 3, fallback_art) + ')');
                 $('#stats-thumb-' + stat_id).removeClass(function (index, className) {
                     return (className.match (/(^|\s)svg-icon library-\S+/g) || []).join(' ')});
-                if (thumb.startsWith('http')) {
-                    $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, null, 300, 300, null, null, null, 'cover') + ')');
+                if (library_thumb.startsWith('http')) {
+                    $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', library_thumb, null, 100, 100, null, null, null, 'cover') + ')');
                 } else {
                     $('#stats-thumb-' + stat_id).css('background-image', '')
                         .addClass('svg-icon library-' + library_type);
                 }
             } else if (stat_id === 'top_users') {
-                loadBlurHash($('#stats-background-' + stat_id), page('pms_image_proxy', user_thumb || 'interfaces/default/images/gravatar-default.png', null, 80, 80, 40, '282828', 0, 'user'));
-                $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', user_thumb || 'interfaces/default/images/gravatar-default.png', null, 80, 80, null, null, null, 'user') + ')');
+                loadBlurHash($('#stats-background-' + stat_id), page('pms_image_proxy', user_thumb || 'interfaces/default/images/gravatar-default.png', null, 100, 100, 40, '282828', 0, 'user'));
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', user_thumb || 'interfaces/default/images/gravatar-default.png', null, 100, 100, null, null, null, 'user') + ')');
                 if (user_id) {
                     href = page('user', user_id);
                 }
@@ -838,7 +846,7 @@
                 $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, img_rating_key, 500, 280, 40, '282828', 3, fallback_art) + ')');
                 $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, height, null, null, null, fallback_poster) + ')');
                 $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, height, 60, '282828', 3, fallback_poster) + ')');
-                $('#library-stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, img_rating_key, 500, 280, 40, '282828', 3, fallback_art) + ')');
+                $('#library-stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art || library_art, img_rating_key, 500, 280, 40, '282828', 3, library_art || fallback_art) + ')');
                 if (thumb.startsWith('http')) {
                     $('#library-stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, 300, null, null, null, 'cover') + ')')
                         .removeClass('svg-icon library-' + stat_id);

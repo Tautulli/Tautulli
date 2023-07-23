@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2004-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -13,13 +15,20 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import dns.rdtypes.dnskeybase
-from dns.rdtypes.dnskeybase import flags_to_text_set, flags_from_text_set
+import dns.rdtypes.dnskeybase  # lgtm[py/import-and-import-from]
+import dns.immutable
+
+# pylint: disable=unused-import
+from dns.rdtypes.dnskeybase import (
+    SEP,
+    REVOKE,
+    ZONE,
+)  # noqa: F401  lgtm[py/unused-import]
+
+# pylint: enable=unused-import
 
 
-__all__ = ['flags_to_text_set', 'flags_from_text_set']
-
-
+@dns.immutable.immutable
 class CDNSKEY(dns.rdtypes.dnskeybase.DNSKEYBase):
 
     """CDNSKEY record"""

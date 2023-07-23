@@ -2,11 +2,13 @@
 
 from __future__ import division
 
+from asyncio import iscoroutinefunction
 from datetime import date, datetime, time, timedelta, tzinfo
 from calendar import timegm
 from functools import partial
 from inspect import isclass, ismethod
 import re
+import sys
 
 from pytz import timezone, utc, FixedOffset
 import six
@@ -21,19 +23,10 @@ try:
 except ImportError:
     TIMEOUT_MAX = 4294967  # Maximum value accepted by Event.wait() on Windows
 
-try:
-    from asyncio import iscoroutinefunction
-except ImportError:
-    try:
-        from trollius import iscoroutinefunction
-    except ImportError:
-        def iscoroutinefunction(func):
-            return False
-
 __all__ = ('asint', 'asbool', 'astimezone', 'convert_to_datetime', 'datetime_to_utc_timestamp',
            'utc_timestamp_to_datetime', 'timedelta_seconds', 'datetime_ceil', 'get_callable_name',
            'obj_to_ref', 'ref_to_obj', 'maybe_ref', 'repr_escape', 'check_callable_args',
-           'TIMEOUT_MAX')
+           'normalize', 'localize', 'TIMEOUT_MAX')
 
 
 class _Undefined(object):
@@ -89,9 +82,7 @@ def astimezone(obj):
     if isinstance(obj, six.string_types):
         return timezone(obj)
     if isinstance(obj, tzinfo):
-        if not hasattr(obj, 'localize') or not hasattr(obj, 'normalize'):
-            raise TypeError('Only timezones from the pytz library are supported')
-        if obj.zone == 'local':
+        if obj.tzname(None) == 'local':
             raise ValueError(
                 'Unable to determine the name of the local timezone -- you must explicitly '
                 'specify the name of the local timezone. Please refrain from using timezones like '
@@ -161,11 +152,7 @@ def convert_to_datetime(input, tz, arg_name):
     if isinstance(tz, six.string_types):
         tz = timezone(tz)
 
-    try:
-        return tz.localize(datetime_, is_dst=None)
-    except AttributeError:
-        raise TypeError(
-            'Only pytz timezones are supported (need the localize() and normalize() methods)')
+    return localize(datetime_, tz)
 
 
 def datetime_to_utc_timestamp(timeval):
@@ -352,7 +339,10 @@ def check_callable_args(func, args, kwargs):
     has_varargs = has_var_kwargs = False
 
     try:
-        sig = signature(func)
+        if sys.version_info >= (3, 5):
+            sig = signature(func, follow_wrapped=False)
+        else:
+            sig = signature(func)
     except ValueError:
         # signature() doesn't work against every kind of callable
         return
@@ -427,3 +417,14 @@ def iscoroutinefunction_partial(f):
     # The asyncio version of iscoroutinefunction includes testing for @coroutine
     # decorations vs. the inspect version which does not.
     return iscoroutinefunction(f)
+
+
+def normalize(dt):
+    return datetime.fromtimestamp(dt.timestamp(), dt.tzinfo)
+
+
+def localize(dt, tzinfo):
+    if hasattr(tzinfo, 'localize'):
+        return tzinfo.localize(dt)
+
+    return normalize(dt.replace(tzinfo=tzinfo))

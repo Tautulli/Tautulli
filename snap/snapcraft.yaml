@@ -7,22 +7,38 @@ description: >
   The only thing missing is "why they watched it", but who am I to question your 42 plays of Frozen. 
   All statistics are presented in a nice and clean interface with many tables and graphs, which makes it easy to brag about your server to everyone else.
 
-base: core18
+base: core20
 confinement: strict
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+
+plugs:
+  shared-memory:
+    private: true
 
 parts:
   tautulli:
     plugin: dump
     source: .
     stage-packages:
-      - python3.8
+      - python3
       - python3-openssl
       - python3-pycryptodome
       - python3-setuptools
+      - python3-pkg-resources
     build-packages:
       - git
+      - python3
+      - python3-openssl
+      - python3-pycryptodome
+      - python3-setuptools
+      - python3-pkg-resources
     override-pull: |
       snapcraftctl pull
+      git config --global --add safe.directory /data/parts/tautulli/src
       TAG_FULL=$(git describe --tag)
       TAG=$(echo $TAG_FULL | grep -oP '(v\d+\.\d+\.\d+(?>-beta)?)')
       BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -46,15 +62,14 @@ parts:
       echo $COMMIT > version.txt
       snapcraftctl set-version "$VERSION"
       snapcraftctl set-grade "$GRADE"
+    override-prime: |
+      snapcraftctl prime
+      mkdir -p usr/bin
+      ln -s /usr/bin/python3 usr/bin/python3
 
 apps:
   tautulli:
-    command: >
-      usr/bin/python3 $SNAP/Tautulli.py
-        --datadir $SNAP_USER_COMMON/Tautulli
-        --config $SNAP_USER_COMMON/Tautulli/config.ini
-        --quiet
-        --nolaunch
+    command: usr/bin/python3 $SNAP/Tautulli.py --datadir $SNAP_USER_COMMON/Tautulli --config $SNAP_USER_COMMON/Tautulli/config.ini --quiet --nolaunch
     daemon: simple
     restart-condition: on-abnormal
     restart-delay: 5s
@@ -62,5 +77,7 @@ apps:
       - home
       - network
       - network-bind
+      - removable-media
     environment:
+      PYTHONPATH: $SNAP/usr/lib/python3/dist-packages:$PYTHONPATH
       TAUTULLI_SNAP: "True"

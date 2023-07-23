@@ -1,6 +1,7 @@
 name: Publish Snap
 
 on:
+  workflow_dispatch: ~
   push:
     branches: [master, beta, nightly]
     tags: [v*]
@@ -14,32 +15,27 @@ jobs:
       fail-fast: false
       matrix:
         architecture:
-          - i386
           - amd64
           - arm64
           - armhf
-          - ppc64el
-          #- s390x  # broken at the moment
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Prepare
         id: prepare
         run: |
           git fetch --prune --unshallow --tags
           if [[ $GITHUB_REF == refs/tags/*-beta || $GITHUB_REF == refs/heads/beta ]]; then
-            echo ::set-output name=RELEASE::beta
+            echo "RELEASE=beta" >> $GITHUB_OUTPUT
           elif [[ $GITHUB_REF == refs/tags/* || $GITHUB_REF == refs/heads/master ]]; then
-            echo ::set-output name=RELEASE::stable
+            echo "RELEASE=stable" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=RELEASE::edge
+            echo "RELEASE=edge" >> $GITHUB_OUTPUT
           fi
 
       - name: Set Up QEMU
-        uses: docker/setup-qemu-action@v1
-        with:
-          image: tonistiigi/binfmt@sha256:df15403e06a03c2f461c1f7938b171fda34a5849eb63a70e2a2109ed5a778bde
+        uses: docker/setup-qemu-action@v2
 
       - name: Build Snap Package
         uses: diddlesnaps/snapcraft-multiarch-action@v1
@@ -48,7 +44,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Upload Snap Package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Tautulli-snap-package-${{ matrix.architecture }}
           path: ${{ steps.build.outputs.snap }}
@@ -61,8 +57,9 @@ jobs:
       - name: Publish Snap Package
         uses: snapcore/action-publish@v1
         if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/nightly'
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_LOGIN }}
         with:
-          store_login: ${{ secrets.SNAP_LOGIN }}
           snap: ${{ steps.build.outputs.snap }}
           release: ${{ steps.prepare.outputs.RELEASE }}
 
@@ -73,16 +70,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get Build Job Status
-        uses: technote-space/workflow-conclusion-action@v1
+        uses: technote-space/workflow-conclusion-action@v3.0
 
       - name: Combine Job Status
         id: status
         run: |
           failures=(neutral, skipped, timed_out, action_required)
           if [[ ${array[@]} =~ $WORKFLOW_CONCLUSION ]]; then
-            echo ::set-output name=status::failure
+            echo "status=failure" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=status::$WORKFLOW_CONCLUSION
+            echo "status=$WORKFLOW_CONCLUSION" >> $GITHUB_OUTPUT
           fi
 
       - name: Post Status to Discord

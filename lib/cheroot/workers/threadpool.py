@@ -1,16 +1,16 @@
-"""A thread-based worker pool."""
+"""A thread-based worker pool.
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
+.. spelling::
 
+   joinable
+"""
 
 import collections
 import threading
 import time
 import socket
 import warnings
-
-from six.moves import queue
+import queue
 
 from jaraco.functools import pass_none
 
@@ -103,18 +103,13 @@ class WorkerThread(threading.Thread):
 
         Retrieves incoming connections from thread pool.
         """
-        self.server.stats['Worker Threads'][self.getName()] = self.stats
+        self.server.stats['Worker Threads'][self.name] = self.stats
         try:
             self.ready = True
             while True:
                 conn = self.server.requests.get()
                 if conn is _SHUTDOWNREQUEST:
                     return
-
-                # Just close the connection and move on.
-                if conn.closeable:
-                    conn.close()
-                    continue
 
                 self.conn = conn
                 is_stats_enabled = self.server.stats['Enabled']
@@ -125,7 +120,7 @@ class WorkerThread(threading.Thread):
                     keep_conn_open = conn.communicate()
                 finally:
                     if keep_conn_open:
-                        self.server.connections.put(conn)
+                        self.server.put_conn(conn)
                     else:
                         conn.close()
                     if is_stats_enabled:
@@ -173,10 +168,13 @@ class ThreadPool:
 
     def start(self):
         """Start the pool of threads."""
-        for i in range(self.min):
+        for _ in range(self.min):
             self._threads.append(WorkerThread(self.server))
         for worker in self._threads:
-            worker.setName('CP Server ' + worker.getName())
+            worker.name = (
+                'CP Server {worker_name!s}'.
+                format(worker_name=worker.name)
+            )
             worker.start()
         for worker in self._threads:
             while not worker.ready:
@@ -184,7 +182,7 @@ class ThreadPool:
 
     @property
     def idle(self):  # noqa: D401; irrelevant for properties
-        """Number of worker threads which are idle. Read-only."""
+        """Number of worker threads which are idle. Read-only."""  # noqa: D401
         idles = len([t for t in self._threads if t.conn is None])
         return max(idles - len(self._pending_shutdowns), 0)
 
@@ -192,7 +190,7 @@ class ThreadPool:
         """Put request into queue.
 
         Args:
-            obj (cheroot.server.HTTPConnection): HTTP connection
+            obj (:py:class:`~cheroot.server.HTTPConnection`): HTTP connection
                 waiting to be processed
         """
         self._queue.put(obj, block=True, timeout=self._queue_put_timeout)
@@ -223,7 +221,10 @@ class ThreadPool:
 
     def _spawn_worker(self):
         worker = WorkerThread(self.server)
-        worker.setName('CP Server ' + worker.getName())
+        worker.name = (
+            'CP Server {worker_name!s}'.
+            format(worker_name=worker.name)
+        )
         worker.start()
         return worker
 
@@ -245,7 +246,7 @@ class ThreadPool:
         # put shutdown requests on the queue equal to the number of threads
         # to remove. As each request is processed by a worker, that worker
         # will terminate and be culled from the list.
-        for n in range(n_to_remove):
+        for _ in range(n_to_remove):
             self._pending_shutdowns.append(None)
             self._queue.put(_SHUTDOWNREQUEST)
 
@@ -274,8 +275,9 @@ class ThreadPool:
             self._queue.put(_SHUTDOWNREQUEST)
 
         ignored_errors = (
-            # TODO: explain this exception.
-            AssertionError,
+            # Raised when start_response called >1 time w/o exc_info or
+            # wsgi write is called before start_response. See cheroot#261
+            RuntimeError,
             # Ignore repeated Ctrl-C. See cherrypy#691.
             KeyboardInterrupt,
         )
@@ -314,7 +316,7 @@ class ThreadPool:
         return (
             thread
             for thread in threads
-            if thread is not threading.currentThread()
+            if thread is not threading.current_thread()
         )
 
     @property

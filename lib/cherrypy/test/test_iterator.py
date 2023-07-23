@@ -1,5 +1,3 @@
-import six
-
 import cherrypy
 from cherrypy.test import helper
 
@@ -88,7 +86,7 @@ class IteratorTest(helper.CPWebCase):
             @cherrypy.expose
             def count(self, clsname):
                 cherrypy.response.headers['Content-Type'] = 'text/plain'
-                return six.text_type(globals()[clsname].created)
+                return str(globals()[clsname].created)
 
             @cherrypy.expose
             def getall(self, clsname):
@@ -139,7 +137,7 @@ class IteratorTest(helper.CPWebCase):
             headers = response.getheaders()
             for header_name, header_value in headers:
                 if header_name.lower() == 'content-length':
-                    expected = six.text_type(1024 * 16 * 256)
+                    expected = str(1024 * 16 * 256)
                     assert header_value == expected, header_value
                     break
             else:

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 oauthlib.oauth2.rfc6749
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -6,11 +5,10 @@ oauthlib.oauth2.rfc6749
 This module is an implementation of various logic needed
 for consuming and providing OAuth 2.0 RFC6749.
 """
-from __future__ import absolute_import, unicode_literals
-
 import logging
 
 from oauthlib.common import Request
+from oauthlib.oauth2.rfc6749 import utils
 
 from .base import BaseEndpoint, catch_errors_and_unavailability
 
@@ -58,7 +56,7 @@ class AuthorizationEndpoint(BaseEndpoint):
 
         # Enforced through the design of oauthlib.common.Request
 
-    .. _`Appendix B`: http://tools.ietf.org/html/rfc6749#appendix-B
+    .. _`Appendix B`: https://tools.ietf.org/html/rfc6749#appendix-B
     """
 
     def __init__(self, default_response_type, default_token_type,
@@ -108,7 +106,9 @@ class AuthorizationEndpoint(BaseEndpoint):
         """Extract response_type and route to the designated handler."""
         request = Request(
             uri, http_method=http_method, body=body, headers=headers)
-        request.scopes = None
+
+        request.scopes = utils.scope_to_list(request.scope)
+
         response_type_handler = self.response_types.get(
             request.response_type, self.default_response_type_handler)
         return response_type_handler.validate_authorization_request(request)

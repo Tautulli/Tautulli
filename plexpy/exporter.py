@@ -102,7 +102,7 @@ class Export(object):
     METADATA_LEVELS = (0, 1, 2, 3, 9)
     MEDIA_INFO_LEVELS = (0, 1, 2, 3, 9)
     IMAGE_LEVELS = (0, 1, 2, 9)
-    FILE_FORMATS = ('csv', 'json', 'xml', 'm3u8')
+    FILE_FORMATS = ('csv', 'json', 'xml', 'm3u')
     EXPORT_TYPES = ('all', 'collection', 'playlist')
 
     def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
@@ -141,8 +141,8 @@ class Export(object):
         self.exported_items = 0
         self.success = False
 
-        # Reset export options for m3u8
-        if self.file_format == 'm3u8':
+        # Reset export options for m3u
+        if self.file_format == 'm3u':
             self.metadata_level = 1
             self.media_info_level = 1
             self.thumb_level = 0
@@ -185,6 +185,8 @@ class Export(object):
                 },
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
+                'editionTitle': None,
+                'enableCreditsMarkerGeneration': None,
                 'fields': {
                     'name': None,
                     'locked': None
@@ -197,6 +199,7 @@ class Export(object):
                 'guids': {
                     'id': None
                 },
+                'hasCreditsMarker': None,
                 'hasPreviewThumbnails': None,
                 'key': None,
                 'labels': {
@@ -210,6 +213,14 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'markers': {
+                    'end': None,
+                    'final': None,
+                    'first': None,
+                    'id': None,
+                    'start': None,
+                    'type': None
+                },
                 'media': {
                     'aspectRatio': None,
                     'audioChannels': None,
@@ -265,6 +276,7 @@ class Export(object):
                             'key': None,
                             'language': None,
                             'languageCode': None,
+                            'languageTag': None,
                             'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
@@ -316,6 +328,7 @@ class Export(object):
                             'key': None,
                             'language': None,
                             'languageCode': None,
+                            'languageTag': None,
                             'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
@@ -340,6 +353,7 @@ class Export(object):
                             'key': None,
                             'language': None,
                             'languageCode': None,
+                            'languageTag': None,
                             'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
@@ -371,6 +385,7 @@ class Export(object):
                 'studio': None,
                 'summary': None,
                 'tagline': None,
+                'theme': None,
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
@@ -398,6 +413,7 @@ class Export(object):
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
+                'audioLanguage': None,
                 'autoDeletionItemPolicyUnwatchedLibrary': None,
                 'autoDeletionItemPolicyWatchedLibrary': None,
                 'banner': None,
@@ -410,6 +426,7 @@ class Export(object):
                 'contentRating': None,
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
+                'enableCreditsMarkerGeneration': None,
                 'episodeSort': None,
                 'fields': {
                     'name': None,
@@ -449,8 +466,11 @@ class Export(object):
                     'role': None,
                     'thumb': None
                 },
+                'seasonCount': None,
                 'showOrdering': None,
                 'studio': None,
+                'subtitleLanguage': None,
+                'subtitleMode': None,
                 'summary': None,
                 'tagline': None,
                 'theme': None,
@@ -476,6 +496,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
+                'audioLanguage': None,
                 'collections': {
                     'id': None,
                     'tag': None
@@ -490,6 +511,10 @@ class Export(object):
                 },
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'lastRatedAt': helpers.datetime_to_iso,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'leafCount': None,
@@ -506,6 +531,8 @@ class Export(object):
                 'parentTitle': None,
                 'ratingKey': None,
                 'seasonNumber': None,
+                'subtitleLanguage': None,
+                'subtitleMode': None,
                 'summary': None,
                 'thumb': None,
                 'thumbBlurHash': None,
@@ -566,10 +593,16 @@ class Export(object):
                 'guids': {
                     'id': None
                 },
+                'hasCommercialMarker': None,
+                'hasCreditsMarker': None,
                 'hasIntroMarker': None,
                 'hasPreviewThumbnails': None,
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'lastRatedAt': helpers.datetime_to_iso,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'librarySectionID': None,
@@ -578,6 +611,9 @@ class Export(object):
                 'locations': None,
                 'markers': {
                     'end': None,
+                    'final': None,
+                    'first': None,
+                    'id': None,
                     'start': None,
                     'type': None
                 },
@@ -636,6 +672,7 @@ class Export(object):
                             'key': None,
                             'language': None,
                             'languageCode': None,
+                            'languageTag': None,
                             'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
@@ -687,6 +724,7 @@ class Export(object):
                             'key': None,
                             'language': None,
                             'languageCode': None,
+                            'languageTag': None,
                             'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
@@ -711,6 +749,7 @@ class Export(object):
                             'key': None,
                             'language': None,
                             'languageCode': None,
+                            'languageTag': None,
                             'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
@@ -732,8 +771,18 @@ class Export(object):
                 'parentThumb': None,
                 'parentTitle': None,
                 'parentYear': None,
+                'producers': {
+                    'id': None,
+                    'tag': None
+                },
                 'rating': None,
                 'ratingKey': None,
+                'roles': {
+                    'id': None,
+                    'tag': None,
+                    'role': None,
+                    'thumb': None
+                },
                 'seasonEpisode': None,
                 'seasonNumber': None,
                 'summary': None,
@@ -779,8 +828,15 @@ class Export(object):
                     'tag': None
                 },
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'lastRatedAt': helpers.datetime_to_iso,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'librarySectionID': None,
@@ -802,6 +858,7 @@ class Export(object):
                     'tag': None
                 },
                 'summary': None,
+                'theme': None,
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
@@ -829,11 +886,19 @@ class Export(object):
                     'name': None,
                     'locked': None
                 },
+                'formats': {
+                    'id': None,
+                    'tag': None
+                },
                 'genres': {
                     'id': None,
                     'tag': None
                 },
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
+                'hasSonicAnalysis': None,
                 'index': None,
                 'key': None,
                 'labels': {
@@ -851,16 +916,22 @@ class Export(object):
                     'id': None,
                     'tag': None
                 },
+                'musicAnalysisVersion': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
                 'parentGuid': None,
                 'parentKey': None,
                 'parentRatingKey': None,
+                'parentTheme': None,
                 'parentThumb': None,
                 'parentTitle': None,
                 'rating': None,
                 'ratingKey': None,
                 'studio': None,
                 'styles': {
+                    'id': None,
+                    'tag': None
+                },
+                'subformats': {
                     'id': None,
                     'tag': None
                 },
@@ -900,11 +971,20 @@ class Export(object):
                 'grandparentGuid': None,
                 'grandparentKey': None,
                 'grandparentRatingKey': None,
+                'grandparentTheme': None,
                 'grandparentThumb': None,
                 'grandparentTitle': None,
                 'guid': None,
+                'guids': {
+                    'id': None
+                },
+                'hasSonicAnalysis': None,
                 'index': None,
                 'key': None,
+                'labels': {
+                    'id': None,
+                    'tag': None
+                },
                 'lastRatedAt': helpers.datetime_to_iso,
                 'lastViewedAt': helpers.datetime_to_iso,
                 'librarySectionID': None,
@@ -947,6 +1027,7 @@ class Export(object):
                             'key': None,
                             'language': None,
                             'languageCode': None,
+                            'languageTag': None,
                             'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
@@ -979,6 +1060,7 @@ class Export(object):
                             'key': None,
                             'language': None,
                             'languageCode': None,
+                            'languageTag': None,
                             'requiredBandwidths': None,
                             'selected': None,
                             'streamType': None,
@@ -995,6 +1077,7 @@ class Export(object):
                     'id': None,
                     'tag': None
                 },
+                'musicAnalysisVersion': None,
                 'originalTitle': None,
                 'parentGuid': None,
                 'parentIndex': None,
@@ -1004,6 +1087,7 @@ class Export(object):
                 'parentTitle': None,
                 'ratingCount': None,
                 'ratingKey': None,
+                'skipCount': None,
                 'summary': None,
                 'thumb': None,
                 'thumbBlurHash': None,
@@ -1120,6 +1204,7 @@ class Export(object):
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
                 'childCount': None,
+                'collectionFilterBasedOnUser': None,
                 'collectionMode': None,
                 'collectionSort': None,
                 'contentRating': None,
@@ -1143,6 +1228,7 @@ class Export(object):
                 'ratingKey': None,
                 'subtype': None,
                 'summary': None,
+                'theme': None,
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
@@ -1204,14 +1290,16 @@ class Export(object):
             _media_type = 'movie'
             _metadata_levels = {
                 1: [
-                    'ratingKey', 'title', 'titleSort', 'originalTitle', 'originallyAvailableAt', 'year', 'addedAt',
+                    'ratingKey', 'title', 'titleSort', 'originalTitle', 'editionTitle', 'originallyAvailableAt', 'year', 'addedAt',
                     'rating', 'ratingImage', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
-                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type'
+                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type',
+                    'hasCreditsMarker'
                 ],
                 2: [
                     'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
                     'countries.tag', 'genres.tag', 'collections.tag', 'labels.tag',
-                    'fields.name', 'fields.locked', 'guids.id'
+                    'fields.name', 'fields.locked', 'guids.id',
+                    'markers.type', 'markers.start', 'markers.end', 'markers.first', 'markers.final'
                 ],
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
@@ -1269,7 +1357,7 @@ class Export(object):
                 1: [
                     'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'originalTitle', 'year', 'addedAt',
                     'rating', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating', 'network',
-                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount',
+                    'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount', 'seasonCount',
                     'seasons'
                 ],
                 2: [
@@ -1318,12 +1406,13 @@ class Export(object):
                     'rating', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating',
                     'summary', 'guid', 'duration', 'durationHuman', 'type', 'episodeNumber', 'seasonEpisode',
                     'parentTitle', 'parentRatingKey', 'parentGuid', 'parentYear', 'seasonNumber',
-                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid', 'hasIntroMarker'
+                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid',
+                    'hasCommercialMarker', 'hasCreditsMarker', 'hasIntroMarker'
                 ],
                 2: [
-                    'collections.tag', 'directors.tag', 'writers.tag',
+                    'collections.tag', 'directors.tag', 'writers.tag', 'producers.tag', 'roles.tag', 'roles.role',
                     'fields.name', 'fields.locked', 'guids.id',
-                    'markers.type', 'markers.start', 'markers.end'
+                    'markers.type', 'markers.start', 'markers.end', 'markers.first', 'markers.final'
                 ],
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
@@ -1388,7 +1477,7 @@ class Export(object):
                 ],
                 2: [
                     'collections.tag', 'genres.tag', 'countries.tag', 'moods.tag', 'similar.tag', 'styles.tag',
-                    'fields.name', 'fields.locked'
+                    'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
                     'art', 'thumb', 'key',
@@ -1407,11 +1496,13 @@ class Export(object):
                     'rating', 'userRating', 'studio', 'year',
                     'summary', 'guid', 'type', 'index',
                     'parentTitle', 'parentRatingKey', 'parentGuid',
+                    'hasSonicAnalysis',
                     'tracks'
                 ],
                 2: [
-                    'collections.tag', 'genres.tag', 'labels.tag', 'moods.tag', 'styles.tag',
-                    'fields.name', 'fields.locked'
+                    'collections.tag', 'formats.tag', 'genres.tag', 'labels.tag',
+                    'moods.tag', 'styles.tag', 'subformats.tag',
+                    'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
                     'art', 'thumb', 'key',
@@ -1431,11 +1522,12 @@ class Export(object):
                     'userRating', 'ratingCount',
                     'summary', 'guid', 'duration', 'durationHuman', 'type', 'trackNumber',
                     'parentTitle', 'parentRatingKey', 'parentGuid', 'parentIndex',
-                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid'
+                    'grandparentTitle', 'grandparentRatingKey', 'grandparentGuid',
+                    'hasSonicAnalysis'
                 ],
                 2: [
                     'collections.tag', 'moods.tag',
-                    'fields.name', 'fields.locked'
+                    'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
                     'art', 'thumb', 'key',
@@ -1745,7 +1837,7 @@ class Export(object):
 
         threading.Thread(target=self._real_export).start()
 
-        return True
+        return self.export_id
 
     def add_export(self):
         keys = {
@@ -1815,7 +1907,11 @@ class Export(object):
             # Only playlists export allowed for users
             items = self.obj.playlists()
         else:
-            method = getattr(self.obj, self.export_type)
+            if self.export_type != 'all':
+                export_method = self.export_type + 's'
+            else:
+                export_method = self.export_type
+            method = getattr(self.obj, export_method)
             items = method()
 
         self.total_items = len(items)
@@ -1889,22 +1985,21 @@ class Export(object):
             with open(filepath, 'w', encoding='utf-8') as outfile:
                 outfile.write(xml_data)
 
-        elif self.file_format == 'm3u8':
-            m3u8_data = self.data_to_m3u8(result, obj)
+        elif self.file_format == 'm3u':
+            m3u_data = self.data_to_m3u(result, obj)
             with open(filepath, 'w', encoding='utf-8') as outfile:
-                outfile.write(m3u8_data)
+                outfile.write(m3u_data)
 
         self.file_size += os.path.getsize(filepath)
 
     def _exported_images(self, title):
-        images_dirpath = get_export_dirpath(self.directory, images_directory=title)
+        dirpath = get_export_dirpath(self.directory)
 
-        if os.path.exists(images_dirpath):
-            for f in os.listdir(images_dirpath):
-                if f.endswith('.thumb.jpg'):
-                    self.exported_thumb = True
-                elif f.endswith('.art.jpg'):
-                    self.exported_art = True
+        for root, dirs, files in os.walk(dirpath):
+            if any(f.endswith('.thumb.jpg') for f in files):
+                self.exported_thumb = True
+            elif any(f.endswith('.art.jpg') for f in files):
+                self.exported_art = True
 
     def _media_type(self, obj):
         return 'photoalbum' if self.is_photoalbum(obj) else obj.type
@@ -2049,36 +2144,36 @@ class Export(object):
 
         return helpers.dict_to_xml(xml_metadata, root_node='export', indent=4)
 
-    def data_to_m3u8(self, data, obj):
-        items = self._get_m3u8_items(data)
+    def data_to_m3u(self, data, obj):
+        items = self._get_m3u_items(data)
 
-        m3u8_metadata = {'title': obj.title, 'type': obj.media_type}
+        m3u_metadata = {'title': obj.title, 'type': obj.media_type}
         if obj.rating_key:
-            m3u8_metadata['ratingKey'] = obj.rating_key
+            m3u_metadata['ratingKey'] = obj.rating_key
         if obj.user_id:
-            m3u8_metadata['userID'] = obj.user_id
+            m3u_metadata['userID'] = obj.user_id
         if obj.section_id:
-            m3u8_metadata['sectionID'] = obj.section_id
+            m3u_metadata['sectionID'] = obj.section_id
 
-        m3u8 = '#EXTM3U\n'
-        m3u8 += '# Playlist: {title}\n# {metadata}\n\n'.format(title=obj.title, metadata=json.dumps(m3u8_metadata))
-        m3u8_item_template = '# {metadata}\n#EXTINF:{duration},{title}\n{location}\n'
-        m3u8_items = []
+        m3u = '#EXTM3U\n'
+        m3u += '# Playlist: {title}\n# {metadata}\n\n'.format(title=obj.title, metadata=json.dumps(m3u_metadata))
+        m3u_item_template = '# {metadata}\n#EXTINF:{duration},{title}\n{location}\n'
+        m3u_items = []
 
         for item in items:
-            m3u8_values = {
+            m3u_values = {
                 'duration': item.pop('duration'),
                 'title': item.pop('title'),
                 'location': item.pop('location'),
                 'metadata': json.dumps(item)
             }
-            m3u8_items.append(m3u8_item_template.format(**m3u8_values))
+            m3u_items.append(m3u_item_template.format(**m3u_values))
 
-        m3u8 = m3u8 + '\n'.join(m3u8_items)
+        m3u = m3u + '\n'.join(m3u_items)
 
-        return m3u8
+        return m3u
 
-    def _get_m3u8_items(self, data):
+    def _get_m3u_items(self, data):
         items = []
 
         for d in data:
@@ -2097,7 +2192,7 @@ class Export(object):
                 items.append(metadata)
 
             for child_media_type in self.CHILD_MEDIA_TYPES[d['type']]:
-                child_locations = self._get_m3u8_items(d[self.PLURAL_MEDIA_TYPES[child_media_type]])
+                child_locations = self._get_m3u_items(d[self.PLURAL_MEDIA_TYPES[child_media_type]])
                 items.extend(child_locations)
 
         return items
@@ -2196,9 +2291,9 @@ class ExportObject(Export):
 
 def get_export(export_id):
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT timestamp, title, file_format, thumb_level, art_level, '
-                              'individual_files, complete '
-                              'FROM exports WHERE id = ?',
+    result = db.select_single("SELECT timestamp, title, file_format, thumb_level, art_level, "
+                              "individual_files, complete "
+                              "FROM exports WHERE id = ?",
                               [export_id])
 
     if result:
@@ -2229,7 +2324,7 @@ def delete_export(export_id):
         if deleted:
             logger.info("Tautulli Exporter :: Deleting export_id %s from the database.", export_id)
             db = database.MonitorDatabase()
-            result = db.action('DELETE FROM exports WHERE id = ?', args=[export_id])
+            result = db.action("DELETE FROM exports WHERE id = ?", args=[export_id])
 
         return deleted
     else:
@@ -2254,7 +2349,7 @@ def delete_all_exports():
 
 def cancel_exports():
     db = database.MonitorDatabase()
-    db.action('UPDATE exports SET complete = -1 WHERE complete = 0')
+    db.action("UPDATE exports SET complete = -1 WHERE complete = 0")
 
 
 def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=None):
@@ -2273,27 +2368,27 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
     if rating_key:
         custom_where.append(['exports.rating_key', rating_key])
 
-    columns = ['exports.id AS export_id',
-               'exports.timestamp',
-               'exports.section_id',
-               'exports.user_id',
-               'exports.rating_key',
-               'exports.media_type',
-               'CASE WHEN exports.media_type = "photoalbum" THEN "Photo Album" ELSE '
-               'UPPER(SUBSTR(exports.media_type, 1, 1)) || SUBSTR(exports.media_type, 2) END '
-               'AS media_type_title',
-               'exports.title',
-               'exports.file_format',
-               'exports.metadata_level',
-               'exports.media_info_level',
-               'exports.thumb_level',
-               'exports.art_level',
-               'exports.custom_fields',
-               'exports.individual_files',
-               'exports.file_size',
-               'exports.complete',
-               'exports.total_items',
-               'exports.exported_items'
+    columns = ["exports.id AS export_id",
+               "exports.timestamp",
+               "exports.section_id",
+               "exports.user_id",
+               "exports.rating_key",
+               "exports.media_type",
+               "CASE WHEN exports.media_type = 'photoalbum' THEN 'Photo Album' ELSE "
+               "UPPER(SUBSTR(exports.media_type, 1, 1)) || SUBSTR(exports.media_type, 2) END "
+               "AS media_type_title",
+               "exports.title",
+               "exports.file_format",
+               "exports.metadata_level",
+               "exports.media_info_level",
+               "exports.thumb_level",
+               "exports.art_level",
+               "exports.custom_fields",
+               "exports.individual_files",
+               "exports.file_size",
+               "exports.complete",
+               "exports.total_items",
+               "exports.exported_items"
                ]
     try:
         query = data_tables.ssp_query(table_name='exports',
@@ -2478,7 +2573,6 @@ def build_export_docs():
             child_table_rows.append(table_row.format(**child_row))
         return child_table_rows
 
-    contents = []
     sections = []
 
     for media_type, (thumb, art) in export.MEDIA_TYPES.items():
@@ -2538,11 +2632,19 @@ def build_export_docs():
         section = section_head.format(anchor=media_type, section=section_title) + '\n\n'.join(details)
 
         if media_type == 'collection':
-            section += '\n\n* <a id="collection-item">**Note:**</a> Collection `items` can be [Movies](#movie) or [Shows](#show) ' \
-                       'depending on the collection.'
+            section += (
+                '\n\n* <a id="collection-item">**Note:**</a> Collection `items` can be '
+                '[Movies](#movie), '
+                '[Shows](#show), [Seasons](#season), [Episodes](#episode), '
+                '[Artists](#artist), [Albums](#album), or [Tracks](#track) '
+                'depending on the type of collection.'
+            )
         elif media_type == 'playlist':
-            section += '\n\n* <a id="playlist-item">**Note:**</a> Playlist `items` can be [Movies](#movie), [Episodes](#episode), ' \
-                       '[Tracks](#track), or [Photos](#photo) depending on the playlist.'
+            section += (
+                '\n\n* <a id="playlist-item">**Note:**</a> Playlist `items` can be '
+                '[Movies](#movie), [Episodes](#episode), [Tracks](#track), or [Photos](#photo) '
+                'depending on the type of playlist.'
+            )
 
         sections.append(section)
 

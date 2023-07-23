@@ -25,13 +25,7 @@ as you want in one instance by using a PathInfoDispatcher::
     server = wsgi.Server(addr, d)
 """
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import sys
-
-import six
-from six.moves import filter
 
 from . import server
 from .workers import threadpool
@@ -119,10 +113,7 @@ class Gateway(server.Gateway):
                 corresponding class
 
         """
-        return dict(
-            (gw.version, gw)
-            for gw in cls.__subclasses__()
-        )
+        return {gw.version: gw for gw in cls.__subclasses__()}
 
     def get_environ(self):
         """Return a new environ dict targeting the given wsgi.version."""
@@ -143,7 +134,7 @@ class Gateway(server.Gateway):
         response = self.req.server.wsgi_app(self.env, self.start_response)
         try:
             for chunk in filter(None, response):
-                if not isinstance(chunk, six.binary_type):
+                if not isinstance(chunk, bytes):
                     raise ValueError('WSGI Applications must yield bytes')
                 self.write(chunk)
         finally:
@@ -152,12 +143,12 @@ class Gateway(server.Gateway):
             if hasattr(response, 'close'):
                 response.close()
 
-    def start_response(self, status, headers, exc_info=None):
+    def start_response(self, status, headers, exc_info=None):  # noqa: WPS238
         """WSGI callable to begin the HTTP response."""
         # "The application may call start_response more than once,
         # if and only if the exc_info argument is provided."
         if self.started_response and not exc_info:
-            raise AssertionError(
+            raise RuntimeError(
                 'WSGI start_response called a second '
                 'time with no exc_info.',
             )
@@ -167,10 +158,8 @@ class Gateway(server.Gateway):
         # sent, start_response must raise an error, and should raise the
         # exc_info tuple."
         if self.req.sent_headers:
-            try:
-                six.reraise(*exc_info)
-            finally:
-                exc_info = None
+            value = exc_info[1]
+            raise value
 
         self.req.status = self._encode_status(status)
 
@@ -195,12 +184,10 @@ class Gateway(server.Gateway):
         """Cast status to bytes representation of current Python version.
 
         According to :pep:`3333`, when using Python 3, the response status
-        and headers must be bytes masquerading as unicode; that is, they
+        and headers must be bytes masquerading as Unicode; that is, they
         must be of type "str" but are restricted to code points in the
-        "latin-1" set.
+        "Latin-1" set.
         """
-        if six.PY2:
-            return status
         if not isinstance(status, str):
             raise TypeError('WSGI response status is not of type str.')
         return status.encode('ISO-8859-1')
@@ -212,7 +199,7 @@ class Gateway(server.Gateway):
         data from the iterable returned by the WSGI application).
         """
         if not self.started_response:
-            raise AssertionError('WSGI write called before start_response.')
+            raise RuntimeError('WSGI write called before start_response.')
 
         chunklen = len(chunk)
         rbo = self.remaining_bytes_out
@@ -276,7 +263,7 @@ class Gateway_10(Gateway):
             'wsgi.version': self.version,
         }
 
-        if isinstance(req.server.bind_addr, six.string_types):
+        if isinstance(req.server.bind_addr, str):
             # AF_UNIX. This isn't really allowed by WSGI, which doesn't
             # address unix domain sockets. But it's better than nothing.
             env['SERVER_PORT'] = ''
@@ -300,7 +287,11 @@ class Gateway_10(Gateway):
 
         # Request headers
         env.update(
-            ('HTTP_' + bton(k).upper().replace('-', '_'), bton(v))
+            (
+                'HTTP_{header_name!s}'.
+                format(header_name=bton(k).upper().replace('-', '_')),
+                bton(v),
+            )
             for k, v in req.inheaders.items()
         )
 
@@ -321,7 +312,7 @@ class Gateway_10(Gateway):
 class Gateway_u0(Gateway_10):
     """A Gateway class to interface HTTPServer with WSGI u.0.
 
-    WSGI u.0 is an experimental protocol, which uses unicode for keys
+    WSGI u.0 is an experimental protocol, which uses Unicode for keys
     and values in both Python 2 and Python 3.
     """
 
@@ -331,10 +322,10 @@ class Gateway_u0(Gateway_10):
         """Return a new environ dict targeting the given wsgi.version."""
         req = self.req
         env_10 = super(Gateway_u0, self).get_environ()
-        env = dict(map(self._decode_key, env_10.items()))
+        env = dict(env_10.items())
 
         # Request-URI
-        enc = env.setdefault(six.u('wsgi.url_encoding'), six.u('utf-8'))
+        enc = env.setdefault('wsgi.url_encoding', 'utf-8')
         try:
             env['PATH_INFO'] = req.path.decode(enc)
             env['QUERY_STRING'] = req.qs.decode(enc)
@@ -344,24 +335,9 @@ class Gateway_u0(Gateway_10):
             env['PATH_INFO'] = env_10['PATH_INFO']
             env['QUERY_STRING'] = env_10['QUERY_STRING']
 
-        env.update(map(self._decode_value, env.items()))
+        env.update(env.items())
 
         return env
-
-    @staticmethod
-    def _decode_key(item):
-        k, v = item
-        if six.PY2:
-            k = k.decode('ISO-8859-1')
-        return k, v
-
-    @staticmethod
-    def _decode_value(item):
-        k, v = item
-        skip_keys = 'REQUEST_URI', 'wsgi.input'
-        if not six.PY2 or not isinstance(v, bytes) or k in skip_keys:
-            return k, v
-        return k, v.decode('ISO-8859-1')
 
 
 wsgi_gateways = Gateway.gateway_map()
@@ -409,7 +385,7 @@ class PathInfoDispatcher:
         path = environ['PATH_INFO'] or '/'
         for p, app in self.apps:
             # The apps list should be sorted by length, descending.
-            if path.startswith(p + '/') or path == p:
+            if path.startswith('{path!s}/'.format(path=p)) or path == p:
                 environ = environ.copy()
                 environ['SCRIPT_NAME'] = environ.get('SCRIPT_NAME', '') + p
                 environ['PATH_INFO'] = path[len(p):]

@@ -79,7 +79,6 @@ select.form-control {
     color: #eee !important;
     border: 0px solid #444 !important;
     background: #555 !important;
-    padding: 1px 2px;
     transition: background-color .3s;
 }
 .selectize-control.form-control .selectize-input {
@@ -87,7 +86,6 @@ select.form-control {
     align-items: center;
     flex-wrap: wrap;
     margin-bottom: 4px;
-    padding-left: 5px;
 }
 .selectize-control.form-control.selectize-pms-ip .selectize-input {
     padding-left: 12px !important;
@@ -121,6 +119,16 @@ select.form-control {
 #condition-widget .fa-plus,
 #condition-widget .fa-minus {
     cursor: pointer;
+}
+#condition-widget .condition-operator-col {
+    padding-left: 0;
+    padding-right: 0;
+}
+@media (max-width: 767px) {
+    #condition-widget .condition-operator-col {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
 }
 .react-selectize.root-node .react-selectize-control .react-selectize-placeholder {
     color: #eee !important;
@@ -224,6 +232,9 @@ select.form-control:focus,
 select.form-control option {
     color: #555;
     background-color: #eee;
+}
+select.btn {
+    text-align: left;
 }
 img {
     -webkit-box-sizing: content-box;
@@ -677,6 +688,13 @@ textarea.form-control:focus {
 .btn-form:focus {
     color: #eee;
 }
+.btn-filter.active,
+.btn-filter.active.focus {
+  background-color: #b7800a !important;
+}
+.btn-filter.active:hover {
+  background-color: #896007 !important;
+}
 .form-control-feedback {
     color: #E5A00D;
     margin: 5px 40px 5px 0;
@@ -986,6 +1004,12 @@ a .users-poster-face:hover {
     text-align: right;
     font-size: 10px;
     z-index: 2;
+}
+.dashboard-activity-info-channel {
+    display: inline-block;
+    max-width: 75px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 .dashboard-activity-progress {
     width: 100%;
@@ -1827,15 +1851,32 @@ a:hover .summary-poster-face-track .summary-poster-face-overlay span {
     max-height: 15px;
     margin: 0 5px;
 }
-.summary-content-summary {
+.summary-content-text {
     overflow: hidden;
     color: #eee;
     float: left;
     position: relative;
     clear: both;
-    height: auto;
-    max-height: 160px;
-    padding-bottom: 0px;
+    padding-bottom: 0;
+}
+.summary-content-tagline {
+    font-weight: bold;
+}
+.summary-content-summary {
+    height: 60px;
+}
+.summary-content-summary p {
+    margin-bottom: 0;
+}
+.summary-toggle {
+    display: none;
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.summary-toggle a {
+    color: #999;
 }
 .summary-content-people-wrapper {
     margin-right: 20px;
@@ -2873,7 +2914,7 @@ a .home-platforms-list-cover-face:hover
     margin-bottom: -20px;
     width: 100%;
     max-width: 1750px;
-    overflow: hidden;
+    display: flow-root;
 }
 .table-card-back td {
     font-size: 12px;
@@ -3659,10 +3700,6 @@ a.no-highlight:hover {
 }
 .login-container .form-group {
     margin-bottom: 20px;
-}
-.login-container .form-group label {
-    font-weight: 400;
-    color: #999;
 }
 .login-container .form-control {
     height: 38px;
@@ -4507,4 +4544,20 @@ a.donate-with-crypto::after {
     opacity: 1;
     top: 0;
     left: 0;
+}
+
+#api_qr_code {
+    width: 100%;
+    padding: 0;
+    margin: 0 0 10px;
+    line-height: 1;
+    text-align: center;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.docker-mount {
+    margin: 20px auto 0 auto;
+    position: relative;
 }

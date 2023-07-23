@@ -178,9 +178,11 @@ def run():
 
     # Set authentication token (if one is available)
     if plexpy.CONFIG.PMS_TOKEN:
-        header = ["X-Plex-Token: %s" % plexpy.CONFIG.PMS_TOKEN]
+        header = {"X-Plex-Token": plexpy.CONFIG.PMS_TOKEN}
     else:
-        header = []
+        header = None
+
+    timeout = plexpy.CONFIG.PMS_TIMEOUT
 
     global ws_shutdown
     ws_shutdown = False
@@ -189,7 +191,7 @@ def run():
     # Try an open the websocket connection
     logger.info("Tautulli WebSocket :: Opening %swebsocket." % secure)
     try:
-        plexpy.WEBSOCKET = create_connection(uri, header=header, sslopt=sslopt)
+        plexpy.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
         logger.info("Tautulli WebSocket :: Ready")
         plexpy.WS_CONNECTED = True
     except (websocket.WebSocketException, IOError, Exception) as e:
@@ -222,7 +224,7 @@ def run():
                 logger.warn("Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
 
                 try:
-                    plexpy.WEBSOCKET = create_connection(uri, header=header)
+                    plexpy.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
                     logger.info("Tautulli WebSocket :: Ready")
                     plexpy.WS_CONNECTED = True
                 except (websocket.WebSocketException, IOError, Exception) as e:

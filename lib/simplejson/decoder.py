@@ -109,6 +109,8 @@ def py_scanstring(s, end, encoding=None, strict=True,
                 uni = int(esc, 16)
             except ValueError:
                 raise JSONDecodeError(msg, s, end - 1)
+            if uni < 0 or uni > _maxunicode:
+                raise JSONDecodeError(msg, s, end - 1)
             end += 5
             # Check for surrogate pair on UCS-4 systems
             # Note that this will join high/low surrogate pairs

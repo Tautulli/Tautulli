@@ -56,11 +56,12 @@
                                     <div class="form-group">
                                         <label for="time_frame">Time Frame</label>
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-5">
                                                 <div class="input-group newsletter-time_frame">
                                                     <span class="input-group-addon form-control btn-dark inactive">Last</span>
                                                     <input type="number" class="form-control" id="newsletter_config_time_frame" name="newsletter_config_time_frame" value="${newsletter['config']['time_frame']}">
                                                     <select class="form-control" id="newsletter_config_time_frame_units" name="newsletter_config_time_frame_units">
+                                                        <option value="months" ${'selected' if newsletter['config']['time_frame_units'] == 'months' else ''}>months</option>
                                                         <option value="days" ${'selected' if newsletter['config']['time_frame_units'] == 'days' else ''}>days</option>
                                                         <option value="hours" ${'selected' if newsletter['config']['time_frame_units'] == 'hours' else ''}>hours</option>
                                                     </select>
@@ -141,8 +142,10 @@
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                    % if item['select_all']:
                                                     <option value="select-all">Select All</option>
                                                     <option value="remove-all">Remove All</option>
+                                                    % endif
                                                     % if isinstance(item['select_options'], dict):
                                                     % for section, options in item['select_options'].items():
                                                     <optgroup label="${section}">
@@ -152,7 +155,9 @@
                                                     </optgroup>
                                                     % endfor
                                                     % else:
+                                                    % if item['select_all']:
                                                     <option value="border-all"></option>
+                                                    % endif
                                                     % for option in sorted(item['select_options'], key=lambda x: x['text'].lower()):
                                                         <option value="${option['value']}">${option['text']}</option>
                                                     % endfor
@@ -176,7 +181,7 @@
                                         <p class="help-block">
                                             Optional: Enter a unique ID name to create a static URL to the <em>last sent scheduled newsletter</em> at <span class="inline-pre">${http_root}newsletter/id/&lt;id_name&gt;</span>.
                                             Only letters (a-z), numbers (0-9), underscores (_) and hyphens (-) are allowed. Leave blank to disable.<br>
-                                            Note: Test newsletters are not considered as scheduled newsletters.
+                                            Note: Test newsletters are not considered scheduled newsletters.
                                         </p>
                                     </div>
                                     <div class="form-group">
@@ -724,6 +729,9 @@
 
     $('#duplicate-newsletter-item').click(function() {
         var msg = 'Are you sure you want to duplicate this <strong>${newsletter["agent_label"]}</strong> newsletter?';
+        if ($('#set_newsletter_config .form-control[id$=_password]').val()) {
+            msg += '<br><br>Note: Saved passwords will not be copied over and must be re-entered.';
+        }
         var url = 'add_newsletter_config';
         confirmAjaxCall(url, msg, { agent_id: '${newsletter["agent_id"]}' }, null, duplicateCallback);
     });

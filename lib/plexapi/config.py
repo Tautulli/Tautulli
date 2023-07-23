@@ -29,7 +29,7 @@ class PlexConfig(ConfigParser):
         """
         try:
             # First: check environment variable is set
-            envkey = 'PLEXAPI_%s' % key.upper().replace('.', '_')
+            envkey = f"PLEXAPI_{key.upper().replace('.', '_')}"
             value = os.environ.get(envkey)
             if value is None:
                 # Second: check the config file has attr
@@ -62,4 +62,5 @@ def reset_base_headers():
         'X-Plex-Device-Name': plexapi.X_PLEX_DEVICE_NAME,
         'X-Plex-Client-Identifier': plexapi.X_PLEX_IDENTIFIER,
         'X-Plex-Sync-Version': '2',
+        'X-Plex-Features': 'external-media',
     }

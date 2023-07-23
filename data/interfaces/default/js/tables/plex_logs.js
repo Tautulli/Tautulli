@@ -6,6 +6,10 @@ var plex_log_table_options = {
     "order": [ 0, 'desc'],
     "pageLength": 50,
     "stateSave": true,
+    "stateSaveParams": function (settings, data) {
+        data.search.search = "";
+        data.start = 0;
+    },
     "stateDuration": 0,
     "language": {
                 "search": "Search: ",

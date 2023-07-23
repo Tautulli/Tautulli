@@ -1,7 +1,7 @@
 # Copyright (c) 2014 Roger Light <roger@atchoo.org>
 #
 # All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Public License v1.0
+# are made available under the terms of the Eclipse Public License v2.0
 # and Eclipse Distribution License v1.0 which accompany this distribution.
 #
 # The Eclipse Public License is available at
@@ -18,51 +18,59 @@ of messages in a one-shot manner. In other words, they are useful for the
 situation where you have a single/multiple messages you want to publish to a
 broker, then disconnect and nothing else is required.
 """
+from __future__ import absolute_import
 
-import paho.mqtt.client as mqtt
+import collections
+
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
+
+from .. import mqtt
+from . import client as paho
 
 
-def _do_publish(c):
+def _do_publish(client):
     """Internal function"""
-    m = c._userdata[0]
-    c._userdata = c._userdata[1:]
-    if type(m) is dict:
-        topic = m['topic']
-        try:
-            payload = m['payload']
-        except KeyError:
-            payload = None
-        try:
-            qos = m['qos']
-        except KeyError:
-            qos = 0
-        try:
-            retain = m['retain']
-        except KeyError:
-            retain = False
-    elif type(m) is tuple:
-        (topic, payload, qos, retain) = m
+
+    message = client._userdata.popleft()
+
+    if isinstance(message, dict):
+        client.publish(**message)
+    elif isinstance(message, (tuple, list)):
+        client.publish(*message)
     else:
-        raise ValueError('message must be a dict or a tuple')
-
-    c.publish(topic, payload, qos, retain)
+        raise TypeError('message must be a dict, tuple, or list')
 
 
-def _on_connect(c, userdata, flags, rc):
+def _on_connect(client, userdata, flags, rc):
     """Internal callback"""
-    _do_publish(c)
+    #pylint: disable=invalid-name, unused-argument
 
+    if rc == 0:
+        if len(userdata) > 0:
+            _do_publish(client)
+    else:
+        raise mqtt.MQTTException(paho.connack_string(rc))
 
-def _on_publish(c, userdata, mid):
+def _on_connect_v5(client, userdata, flags, rc, properties):
+    """Internal v5 callback"""
+    _on_connect(client, userdata, flags, rc)
+
+def _on_publish(client, userdata, mid):
     """Internal callback"""
+    #pylint: disable=unused-argument
+
     if len(userdata) == 0:
-        c.disconnect()
+        client.disconnect()
     else:
-        _do_publish(c)
+        _do_publish(client)
 
 
 def multiple(msgs, hostname="localhost", port=1883, client_id="", keepalive=60,
-             will=None, auth=None, tls=None, protocol=mqtt.MQTTv31):
+             will=None, auth=None, tls=None, protocol=paho.MQTTv311,
+             transport="tcp", proxy_args=None):
     """Publish multiple messages to a broker, then disconnect cleanly.
 
     This function creates an MQTT client, connects to a broker and publishes a
@@ -85,86 +93,85 @@ def multiple(msgs, hostname="localhost", port=1883, client_id="", keepalive=60,
 
            If a tuple, then it must be of the form:
            ("<topic>", "<payload>", qos, retain)
+
     hostname : a string containing the address of the broker to connect to.
                Defaults to localhost.
+
     port : the port to connect to the broker on. Defaults to 1883.
+
     client_id : the MQTT client id to use. If "" or None, the Paho library will
                 generate a client id automatically.
+
     keepalive : the keepalive timeout value for the client. Defaults to 60
                 seconds.
+
     will : a dict containing will parameters for the client: will = {'topic':
            "<topic>", 'payload':"<payload">, 'qos':<qos>, 'retain':<retain>}.
            Topic is required, all other parameters are optional and will
            default to None, 0 and False respectively.
            Defaults to None, which indicates no will should be used.
+
     auth : a dict containing authentication parameters for the client:
            auth = {'username':"<username>", 'password':"<password>"}
            Username is required, password is optional and will default to None
            if not provided.
            Defaults to None, which indicates no authentication is to be used.
+
     tls : a dict containing TLS configuration parameters for the client:
           dict = {'ca_certs':"<ca_certs>", 'certfile':"<certfile>",
           'keyfile':"<keyfile>", 'tls_version':"<tls_version>",
-          'ciphers':"<ciphers">}
+          'ciphers':"<ciphers">, 'insecure':"<bool>"}
           ca_certs is required, all other parameters are optional and will
           default to None if not provided, which results in the client using
           the default behaviour - see the paho.mqtt.client documentation.
+          Alternatively, tls input can be an SSLContext object, which will be
+          processed using the tls_set_context method.
           Defaults to None, which indicates that TLS should not be used.
+
+    transport : set to "tcp" to use the default setting of transport which is
+          raw TCP. Set to "websockets" to use WebSockets as the transport.
+    proxy_args: a dictionary that will be given to the client.
     """
 
-    if type(msgs) is not list:
-        raise ValueError('msgs must be a list')
+    if not isinstance(msgs, Iterable):
+        raise TypeError('msgs must be an iterable')
 
-    client = mqtt.Client(client_id=client_id,
-                         userdata=msgs, protocol=protocol)
+
+    client = paho.Client(client_id=client_id, userdata=collections.deque(msgs),
+                         protocol=protocol, transport=transport)
+
     client.on_publish = _on_publish
-    client.on_connect = _on_connect
+    if protocol == mqtt.client.MQTTv5:
+        client.on_connect = _on_connect_v5
+    else:
+        client.on_connect = _on_connect
 
-    if auth is not None:
-        username = auth['username']
-        try:
-            password = auth['password']
-        except KeyError:
-            password = None
-        client.username_pw_set(username, password)
+    if proxy_args is not None:
+        client.proxy_set(**proxy_args)
+
+    if auth:
+        username = auth.get('username')
+        if username:
+            password = auth.get('password')
+            client.username_pw_set(username, password)
+        else:
+            raise KeyError("The 'username' key was not found, this is "
+                           "required for auth")
 
     if will is not None:
-        will_topic = will['topic']
-        try:
-            will_payload = will['payload']
-        except KeyError:
-            will_payload = None
-        try:
-            will_qos = will['qos']
-        except KeyError:
-            will_qos = 0
-        try:
-            will_retain = will['retain']
-        except KeyError:
-            will_retain = False
-
-        client.will_set(will_topic, will_payload, will_qos, will_retain)
+        client.will_set(**will)
 
     if tls is not None:
-        ca_certs = tls['ca_certs']
-        try:
-            certfile = tls['certfile']
-        except KeyError:
-            certfile = None
-        try:
-            keyfile = tls['keyfile']
-        except KeyError:
-            keyfile = None
-        try:
-            tls_version = tls['tls_version']
-        except KeyError:
-            tls_version = None
-        try:
-            ciphers = tls['ciphers']
-        except KeyError:
-            ciphers = None
-        client.tls_set(ca_certs, certfile, keyfile, tls_version=tls_version,
-                       ciphers=ciphers)
+        if isinstance(tls, dict):
+            insecure = tls.pop('insecure', False)
+            client.tls_set(**tls)
+            if insecure:
+                # Must be set *after* the `client.tls_set()` call since it sets
+                # up the SSL context that `client.tls_insecure_set` alters.
+                client.tls_insecure_set(insecure)
+        else:
+            # Assume input is SSLContext object
+            client.tls_set_context(tls)
 
     client.connect(hostname, port, keepalive)
     client.loop_forever()
@@ -172,7 +179,7 @@ def multiple(msgs, hostname="localhost", port=1883, client_id="", keepalive=60,
 
 def single(topic, payload=None, qos=0, retain=False, hostname="localhost",
            port=1883, client_id="", keepalive=60, will=None, auth=None,
-           tls=None, protocol=mqtt.MQTTv31):
+           tls=None, protocol=paho.MQTTv311, transport="tcp", proxy_args=None):
     """Publish a single message to a broker, then disconnect cleanly.
 
     This function creates an MQTT client, connects to a broker and publishes a
@@ -181,37 +188,54 @@ def single(topic, payload=None, qos=0, retain=False, hostname="localhost",
 
     topic : the only required argument must be the topic string to which the
             payload will be published.
+
     payload : the payload to be published. If "" or None, a zero length payload
               will be published.
+
     qos : the qos to use when publishing,  default to 0.
+
     retain : set the message to be retained (True) or not (False).
+
     hostname : a string containing the address of the broker to connect to.
                Defaults to localhost.
+
     port : the port to connect to the broker on. Defaults to 1883.
+
     client_id : the MQTT client id to use. If "" or None, the Paho library will
                 generate a client id automatically.
+
     keepalive : the keepalive timeout value for the client. Defaults to 60
                 seconds.
+
     will : a dict containing will parameters for the client: will = {'topic':
            "<topic>", 'payload':"<payload">, 'qos':<qos>, 'retain':<retain>}.
            Topic is required, all other parameters are optional and will
            default to None, 0 and False respectively.
            Defaults to None, which indicates no will should be used.
+
     auth : a dict containing authentication parameters for the client:
            auth = {'username':"<username>", 'password':"<password>"}
            Username is required, password is optional and will default to None
            if not provided.
            Defaults to None, which indicates no authentication is to be used.
+
     tls : a dict containing TLS configuration parameters for the client:
           dict = {'ca_certs':"<ca_certs>", 'certfile':"<certfile>",
           'keyfile':"<keyfile>", 'tls_version':"<tls_version>",
-          'ciphers':"<ciphers">}
+          'ciphers':"<ciphers">, 'insecure':"<bool>"}
           ca_certs is required, all other parameters are optional and will
           default to None if not provided, which results in the client using
           the default behaviour - see the paho.mqtt.client documentation.
           Defaults to None, which indicates that TLS should not be used.
+          Alternatively, tls input can be an SSLContext object, which will be
+          processed using the tls_set_context method.
+
+    transport : set to "tcp" to use the default setting of transport which is
+          raw TCP. Set to "websockets" to use WebSockets as the transport.
+    proxy_args: a dictionary that will be given to the client.
     """
 
     msg = {'topic':topic, 'payload':payload, 'qos':qos, 'retain':retain}
-    multiple([msg], hostname, port, client_id, keepalive, will, auth, tls, protocol)
 
+    multiple([msg], hostname, port, client_id, keepalive, will, auth, tls,
+             protocol, transport, proxy_args)

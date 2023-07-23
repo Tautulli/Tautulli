@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Philip Hane
+# Copyright (c) 2013-2020 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -61,21 +61,21 @@ ASN_ORIGIN_WHOIS = {
 
 ASN_ORIGIN_HTTP = {
     'radb': {
-        'url': 'http://www.radb.net/query/',
+        'url': 'http://www.radb.net/query',
         'form_data_asn_field': 'keywords',
         'form_data': {
             'advanced_query': '1',
             'query': 'Query',
-            '-T option': 'inet-rtr',
+            # '-T option': 'inet-rtr',
             'ip_option': '',
             '-i': '1',
             '-i option': 'origin'
         },
         'fields': {
-            'description': r'(descr):[^\S\n]+(?P<val>.+?)\<br\>',
-            'maintainer': r'(mnt-by):[^\S\n]+(?P<val>.+?)\<br\>',
-            'updated': r'(changed):[^\S\n]+(?P<val>.+?)\<br\>',
-            'source': r'(source):[^\S\n]+(?P<val>.+?)\<br\>',
+            'description': r'(descr):[^\S\n]+(?P<val>.+?)\n',
+            'maintainer': r'(mnt-by):[^\S\n]+(?P<val>.+?)\n',
+            'updated': r'(changed):[^\S\n]+(?P<val>.+?)\n',
+            'source': r'(source):[^\S\n]+(?P<val>.+?)\<',
         }
     },
 }
@@ -168,16 +168,6 @@ class IPASN:
                                 ''.format(response, e)[:100])
 
         return ret
-
-    def _parse_fields_dns(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('IPASN._parse_fields_dns() has been deprecated and will be '
-             'removed. You should now use IPASN.parse_fields_dns().')
-        return self.parse_fields_dns(*args, **kwargs)
 
     def parse_fields_verbose_dns(self, response):
         """
@@ -293,16 +283,6 @@ class IPASN:
 
         return ret
 
-    def _parse_fields_whois(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('IPASN._parse_fields_whois() has been deprecated and will be '
-             'removed. You should now use IPASN.parse_fields_whois().')
-        return self.parse_fields_whois(*args, **kwargs)
-
     def parse_fields_http(self, response, extra_org_map=None):
         """
         The function for parsing ASN fields from a http response.
@@ -403,19 +383,8 @@ class IPASN:
 
         return asn_data
 
-    def _parse_fields_http(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('IPASN._parse_fields_http() has been deprecated and will be '
-             'removed. You should now use IPASN.parse_fields_http().')
-        return self.parse_fields_http(*args, **kwargs)
-
-    def lookup(self, inc_raw=False, retry_count=3, asn_alts=None,
-               extra_org_map=None, asn_methods=None,
-               get_asn_description=True):
+    def lookup(self, inc_raw=False, retry_count=3, extra_org_map=None,
+               asn_methods=None, get_asn_description=True):
         """
         The wrapper function for retrieving and parsing ASN information for an
         IP address.
@@ -426,10 +395,6 @@ class IPASN:
             retry_count (:obj:`int`): The number of times to retry in case
                 socket errors, timeouts, connection resets, etc. are
                 encountered. Defaults to 3.
-            asn_alts (:obj:`list`): Additional lookup types to attempt if the
-                ASN dns lookup fails. Allow permutations must be enabled.
-                Defaults to all ['whois', 'http']. *WARNING* deprecated in
-                favor of new argument asn_methods. Defaults to None.
             extra_org_map (:obj:`dict`): Mapping org handles to RIRs. This is
                 for limited cases where ARIN REST (ASN fallback HTTP lookup)
                 does not show an RIR as the org handle e.g., DNIC (which is
@@ -466,17 +431,7 @@ class IPASN:
 
         if asn_methods is None:
 
-            if asn_alts is None:
-
-                lookups = ['dns', 'whois', 'http']
-
-            else:
-
-                from warnings import warn
-                warn('IPASN.lookup() asn_alts argument has been deprecated '
-                     'and will be removed. You should now use the asn_methods '
-                     'argument.')
-                lookups = ['dns'] + asn_alts
+            lookups = ['dns', 'whois', 'http']
 
         else:
 
@@ -491,12 +446,6 @@ class IPASN:
         asn_data = None
         dns_success = False
         for index, lookup_method in enumerate(lookups):
-
-            if index > 0 and not asn_methods and not (
-                    self._net.allow_permutations):
-
-                raise ASNRegistryError('ASN registry lookup failed. '
-                                       'Permutations not allowed.')
 
             if lookup_method == 'dns':
 
@@ -706,16 +655,6 @@ class ASNOrigin:
 
         return ret
 
-    def _parse_fields(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('ASNOrigin._parse_fields() has been deprecated and will be '
-             'removed. You should now use ASNOrigin.parse_fields().')
-        return self.parse_fields(*args, **kwargs)
-
     def get_nets_radb(self, response, is_http=False):
         """
         The function for parsing network blocks from ASN origin data.
@@ -743,7 +682,7 @@ class ASNOrigin:
         nets = []
 
         if is_http:
-            regex = r'route(?:6)?:[^\S\n]+(?P<val>.+?)<br>'
+            regex = r'route(?:6)?:[^\S\n]+(?P<val>.+?)\n'
         else:
             regex = r'^route(?:6)?:[^\S\n]+(?P<val>.+|.+)$'
 
@@ -769,18 +708,8 @@ class ASNOrigin:
 
         return nets
 
-    def _get_nets_radb(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('ASNOrigin._get_nets_radb() has been deprecated and will be '
-             'removed. You should now use ASNOrigin.get_nets_radb().')
-        return self.get_nets_radb(*args, **kwargs)
-
     def lookup(self, asn=None, inc_raw=False, retry_count=3, response=None,
-               field_list=None, asn_alts=None, asn_methods=None):
+               field_list=None, asn_methods=None):
         """
         The function for retrieving and parsing ASN origin whois information
         via port 43/tcp (WHOIS).
@@ -797,9 +726,6 @@ class ASNOrigin:
             field_list (:obj:`list`): If provided, fields to parse:
                 ['description', 'maintainer', 'updated', 'source']
                 If None, defaults to all.
-            asn_alts (:obj:`list`): Additional lookup types to attempt if the
-                ASN whois lookup fails. If None, defaults to all ['http'].
-                *WARNING* deprecated in favor of new argument asn_methods.
             asn_methods (:obj:`list`): ASN lookup types to attempt, in order.
                 If None, defaults to all ['whois', 'http'].
 
@@ -828,17 +754,7 @@ class ASNOrigin:
 
         if asn_methods is None:
 
-            if asn_alts is None:
-
-                lookups = ['whois', 'http']
-
-            else:
-
-                from warnings import warn
-                warn('ASNOrigin.lookup() asn_alts argument has been deprecated'
-                     ' and will be removed. You should now use the asn_methods'
-                     ' argument.')
-                lookups = ['whois'] + asn_alts
+            lookups = ['whois', 'http']
 
         else:
 
@@ -875,6 +791,8 @@ class ASNOrigin:
                             asn=asn, retry_count=retry_count
                         )
 
+                        break
+
                     except (WhoisLookupError, WhoisRateLimitError) as e:
 
                         log.debug('ASN origin WHOIS lookup failed: {0}'
@@ -888,16 +806,21 @@ class ASNOrigin:
                         log.debug('Response not given, perform ASN origin '
                                   'HTTP lookup for: {0}'.format(asn))
 
-                        tmp = ASN_ORIGIN_HTTP['radb']['form_data']
-                        tmp[str(ASN_ORIGIN_HTTP['radb']['form_data_asn_field']
-                                )] = asn
+                        # tmp = ASN_ORIGIN_HTTP['radb']['form_data']
+                        # tmp[str(
+                        # ASN_ORIGIN_HTTP['radb']['form_data_asn_field']
+                        # )] = asn
                         response = self._net.get_http_raw(
-                            url=ASN_ORIGIN_HTTP['radb']['url'],
+                            url=('{0}?advanced_query=1&keywords={1}&-T+option'
+                                 '=&ip_option=&-i=1&-i+option=origin'
+                                 ).format(ASN_ORIGIN_HTTP['radb']['url'], asn),
                             retry_count=retry_count,
-                            request_type='POST',
-                            form_data=tmp
+                            request_type='GET',
+                            # form_data=tmp
                         )
                         is_http = True   # pragma: no cover
+
+                        break
 
                     except HTTPLookupError as e:
 

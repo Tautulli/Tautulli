@@ -30,7 +30,7 @@
 
     <!-- ICONS -->
     <!-- Android -->
-    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.6.0" crossorigin="use-credentials">
+    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.9.0" crossorigin="use-credentials">
     <meta name="theme-color" content="#282a2d">
     <!-- Apple -->
     <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.6.0">
@@ -236,6 +236,7 @@ ${next.modalIncludes()}
                 <ul id="donation_type" class="nav nav-pills" role="tablist" style="display: flex; justify-content: center; margin: 10px 0;">
                     <li class="active"><a href="#github-donation" role="tab" data-toggle="tab">GitHub</a></li>
                     <li><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
+                    <li><a href="#stripe-donation" role="tab" data-toggle="tab">Stripe</a></li>
                     <li><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
                     <li><a href="#crypto-donation" role="tab" data-toggle="tab">Crypto</a></li>
                 </ul>
@@ -244,31 +245,51 @@ ${next.modalIncludes()}
                         <p>
                             Click the button below to continue to GitHub.
                         </p>
-                        <a href="${anon_url('https://github.com/sponsors/JonnyWong16')}" target="_blank" rel="noreferrer" class="btn btn-sm btn-default" style="font-weight: 600;">
-                            <i class="fa fa-heart fa-sm" style="color: #ea4aaa;"></i>&nbsp; Sponsor
-                        </a>
+                        <p>
+                            <a href="${anon_url('https://github.com/sponsors/JonnyWong16')}" target="_blank" rel="noreferrer" class="btn btn-sm btn-default" style="font-weight: 600;">
+                                <i class="fa fa-heart fa-sm" style="color: #ea4aaa;"></i>&nbsp; Sponsor
+                            </a>
+                        </p>
+                        <p class="small-muted">(GitHub does not have a fee)</p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="patreon-donation" style="text-align: center">
                         <p>
                             Click the button below to continue to Patreon.
                         </p>
-                        <a href="${anon_url('https://www.patreon.com/join/tautulli')}" target="_blank" rel="noreferrer">
-                            <img src="images/become_a_patron_button.png" alt="Become a Patron" width="170" height="40">
-                        </a>
+                        <p>
+                            <a href="${anon_url('https://www.patreon.com/join/tautulli')}" target="_blank" rel="noreferrer">
+                                <img src="images/become_a_patron_button.png" alt="Become a Patron" width="170" height="40">
+                            </a>
+                        </p>
+                        <p class="small-muted">(Patreon has a fee)</p>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="stripe-donation" style="text-align: center">
+                        <p>
+                            Click the button below to continue to Stripe.
+                        </p>
+                        <p>
+                            <a href="${anon_url('https://donate.stripe.com/5kA7vnb7dczVbxC9AA')}" target="_blank" rel="noreferrer">
+                                <img src="images/Stripe_wordmark_-_white_small_28px.png" alt="Stripe" style="background-color: #7068fe; border-radius: 3px; padding: 3px;">
+                            </a>
+                        </p>
+                        <p class="small-muted">(Stripe has a fee)</p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="paypal-donation" style="text-align: center">
                         <p>
                             Click the button below to continue to PayPal.
                         </p>
-                        <a href="${anon_url('https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=6XPPKTDSX9QFL&lc=US&item_name=Tautulli&currency_code=USD&bn=PP%2dDonationsBF%3abtn_donate_LG%2egif%3aNonHosted')}" target="_blank" rel="noreferrer">
-                            <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
-                        </a>
+                        <p>
+                            <a href="${anon_url('https://www.paypal.com/donate/?hosted_button_id=CUHSQ99KAKC5Q')}" target="_blank" rel="noreferrer">
+                                <img src="images/gold-rect-paypal-34px.png" alt="PayPal">
+                            </a>
+                        </p>
+                        <p class="small-muted">(PayPal has a fee)</p>
                     </div>
                     <div role="tabpanel" class="tab-pane" id="crypto-donation" style="text-align: center">
                         <p>
                             Click the button below to continue to Coinbase.
                         </p>
-                        <a href="https://blankrefer.com/?https://commerce.coinbase.com/checkout/8a9fa08c-8a38-409e-9220-868124c4ba0c" target="_blank" rel="noreferrer" class="donate-with-crypto">
+                        <a href="${anon_url('https://commerce.coinbase.com/checkout/8a9fa08c-8a38-409e-9220-868124c4ba0c')}" target="_blank" rel="noreferrer" class="donate-with-crypto">
                             <span>Donate with Crypto</span>
                         </a>
                     </div>
@@ -301,7 +322,7 @@ ${next.modalIncludes()}
     </div>
 </div>
 
-<script src="${http_root}js/jquery-3.5.1.min.js"></script>
+<script src="${http_root}js/jquery-3.6.0.min.js"></script>
 <script src="${http_root}js/bootstrap.min.js"></script>
 <script src="${http_root}js/bootstrap-hover-dropdown.min.js"></script>
 <script src="${http_root}js/moment-with-locales.min.js"></script>

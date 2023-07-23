@@ -1,17 +1,23 @@
 """Tests for TCP connection handling, including proper and timely close."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
+import errno
 import socket
 import time
+import logging
+import traceback as traceback_
+from collections import namedtuple
+import http.client
+import urllib.request
 
-from six.moves import range, http_client, urllib
-
-import six
 import pytest
+from jaraco.text import trim, unwrap
 
 from cheroot.test import helper, webtest
+from cheroot._compat import IS_CI, IS_MACOS, IS_PYPY, IS_WINDOWS
+import cheroot.server
+
+
+IS_SLOW_ENV = IS_MACOS or IS_WINDOWS
 
 
 timeout = 1
@@ -26,7 +32,7 @@ class Controller(helper.Controller):
         return 'Hello, world!'
 
     def pov(req, resp):
-        """Render pov value."""
+        """Render ``pov`` value."""
         return pov
 
     def stream(req, resp):
@@ -43,8 +49,10 @@ class Controller(helper.Controller):
     def upload(req, resp):
         """Process file upload and render thank."""
         if not req.environ['REQUEST_METHOD'] == 'POST':
-            raise AssertionError("'POST' != request.method %r" %
-                                 req.environ['REQUEST_METHOD'])
+            raise AssertionError(
+                "'POST' != request.method %r" %
+                req.environ['REQUEST_METHOD'],
+            )
         return "thanks for '%s'" % req.environ['wsgi.input'].read()
 
     def custom_204(req, resp):
@@ -82,8 +90,6 @@ class Controller(helper.Controller):
         WSGI 1.0 is a mess around unicode. Create endpoints
         that match the PATH_INFO that it produces.
         """
-        if six.PY2:
-            return string
         return string.encode('utf-8').decode('latin-1')
 
     handlers = {
@@ -103,9 +109,33 @@ class Controller(helper.Controller):
     }
 
 
+class ErrorLogMonitor:
+    """Mock class to access the server error_log calls made by the server."""
+
+    ErrorLogCall = namedtuple('ErrorLogCall', ['msg', 'level', 'traceback'])
+
+    def __init__(self):
+        """Initialize the server error log monitor/interceptor.
+
+        If you need to ignore a particular error message use the property
+        ``ignored_msgs`` by appending to the list the expected error messages.
+        """
+        self.calls = []
+        # to be used the the teardown validation
+        self.ignored_msgs = []
+
+    def __call__(self, msg='', level=logging.INFO, traceback=False):
+        """Intercept the call to the server error_log method."""
+        if traceback:
+            tblines = traceback_.format_exc()
+        else:
+            tblines = ''
+        self.calls.append(ErrorLogMonitor.ErrorLogCall(msg, level, tblines))
+
+
 @pytest.fixture
-def testing_server(wsgi_server_client):
-    """Attach a WSGI app to the given server and pre-configure it."""
+def raw_testing_server(wsgi_server_client):
+    """Attach a WSGI app to the given server and preconfigure it."""
     app = Controller()
 
     def _timeout(req, resp):
@@ -117,7 +147,35 @@ def testing_server(wsgi_server_client):
     wsgi_server.timeout = timeout
     wsgi_server.server_client = wsgi_server_client
     wsgi_server.keep_alive_conn_limit = 2
+
     return wsgi_server
+
+
+@pytest.fixture
+def testing_server(raw_testing_server, monkeypatch):
+    """Modify the "raw" base server to monitor the error_log messages.
+
+    If you need to ignore a particular error message use the property
+    ``testing_server.error_log.ignored_msgs`` by appending to the list
+    the expected error messages.
+    """
+    # patch the error_log calls of the server instance
+    monkeypatch.setattr(raw_testing_server, 'error_log', ErrorLogMonitor())
+
+    yield raw_testing_server
+
+    # Teardown verification, in case that the server logged an
+    # error that wasn't notified to the client or we just made a mistake.
+    # pylint: disable=possibly-unused-variable
+    for c_msg, c_level, c_traceback in raw_testing_server.error_log.calls:
+        if c_level <= logging.WARNING:
+            continue
+
+        assert c_msg in raw_testing_server.error_log.ignored_msgs, (
+            'Found error in the error log: '
+            "message = '{c_msg}', level = '{c_level}'\n"
+            '{c_traceback}'.format(**locals()),
+        )
 
 
 @pytest.fixture
@@ -178,7 +236,7 @@ def test_HTTP11_persistent_connections(test_client):
     assert header_has_value('Connection', 'close', actual_headers)
 
     # Make another request on the same connection, which should error.
-    with pytest.raises(http_client.NotConnected):
+    with pytest.raises(http.client.NotConnected):
         test_client.get('/pov', http_conn=http_connection)
 
 
@@ -245,7 +303,7 @@ def test_streaming_11(test_client, set_cl):
 
             # Make another request on the same connection, which should
             # error.
-            with pytest.raises(http_client.NotConnected):
+            with pytest.raises(http.client.NotConnected):
                 test_client.get('/pov', http_conn=http_connection)
 
         # Try HEAD.
@@ -259,6 +317,9 @@ def test_streaming_11(test_client, set_cl):
         assert status_line[4:] == 'OK'
         assert actual_resp_body == b''
         assert not header_exists('Transfer-Encoding', actual_headers)
+
+    # Prevent the resource warnings:
+    http_connection.close()
 
 
 @pytest.mark.parametrize(
@@ -325,7 +386,7 @@ def test_streaming_10(test_client, set_cl):
         assert not header_exists('Transfer-Encoding', actual_headers)
 
         # Make another request on the same connection, which should error.
-        with pytest.raises(http_client.NotConnected):
+        with pytest.raises(http.client.NotConnected):
             test_client.get(
                 '/pov', http_conn=http_connection,
                 protocol='HTTP/1.0',
@@ -333,12 +394,22 @@ def test_streaming_10(test_client, set_cl):
 
     test_client.server_instance.protocol = original_server_protocol
 
+    # Prevent the resource warnings:
+    http_connection.close()
+
 
 @pytest.mark.parametrize(
     'http_server_protocol',
     (
         'HTTP/1.0',
-        'HTTP/1.1',
+        pytest.param(
+            'HTTP/1.1',
+            marks=pytest.mark.xfail(
+                IS_PYPY and IS_CI,
+                reason='Fails under PyPy in CI for unknown reason',
+                strict=False,
+            ),
+        ),
     ),
 )
 def test_keepalive(test_client, http_server_protocol):
@@ -375,6 +446,11 @@ def test_keepalive(test_client, http_server_protocol):
     assert status_line[4:] == 'OK'
     assert actual_resp_body == pov.encode()
     assert header_has_value('Connection', 'Keep-Alive', actual_headers)
+    assert header_has_value(
+        'Keep-Alive',
+        'timeout={test_client.server_instance.timeout}'.format(**locals()),
+        actual_headers,
+    )
 
     # Remove the keep-alive header again.
     status_line, actual_headers, actual_resp_body = test_client.get(
@@ -386,8 +462,12 @@ def test_keepalive(test_client, http_server_protocol):
     assert status_line[4:] == 'OK'
     assert actual_resp_body == pov.encode()
     assert not header_exists('Connection', actual_headers)
+    assert not header_exists('Keep-Alive', actual_headers)
 
     test_client.server_instance.protocol = original_server_protocol
+
+    # Prevent the resource warnings:
+    http_connection.close()
 
 
 def test_keepalive_conn_management(test_client):
@@ -401,7 +481,7 @@ def test_keepalive_conn_management(test_client):
         http_connection.connect()
         return http_connection
 
-    def request(conn):
+    def request(conn, keepalive=True):
         status_line, actual_headers, actual_resp_body = test_client.get(
             '/page3', headers=[('Connection', 'Keep-Alive')],
             http_conn=conn, protocol='HTTP/1.0',
@@ -410,59 +490,213 @@ def test_keepalive_conn_management(test_client):
         assert actual_status == 200
         assert status_line[4:] == 'OK'
         assert actual_resp_body == pov.encode()
-        assert header_has_value('Connection', 'Keep-Alive', actual_headers)
+        if keepalive:
+            assert header_has_value('Connection', 'Keep-Alive', actual_headers)
+            assert header_has_value(
+                'Keep-Alive',
+                'timeout={test_client.server_instance.timeout}'.
+                format(**locals()),
+                actual_headers,
+            )
+        else:
+            assert not header_exists('Connection', actual_headers)
+            assert not header_exists('Keep-Alive', actual_headers)
+
+    def check_server_idle_conn_count(count, timeout=1.0):
+        deadline = time.time() + timeout
+        while True:
+            n = test_client.server_instance._connections._num_connections
+            if n == count:
+                return
+            assert time.time() <= deadline, (
+                'idle conn count mismatch, wanted {count}, got {n}'.
+                format(**locals()),
+            )
 
     disconnect_errors = (
-        http_client.BadStatusLine,
-        http_client.CannotSendRequest,
-        http_client.NotConnected,
+        http.client.BadStatusLine,
+        http.client.CannotSendRequest,
+        http.client.NotConnected,
     )
 
     # Make a new connection.
     c1 = connection()
     request(c1)
+    check_server_idle_conn_count(1)
 
     # Make a second one.
     c2 = connection()
     request(c2)
+    check_server_idle_conn_count(2)
 
     # Reusing the first connection should still work.
     request(c1)
+    check_server_idle_conn_count(2)
 
-    # Creating a new connection should still work.
+    # Creating a new connection should still work, but we should
+    # have run out of available connections to keep alive, so the
+    # server should tell us to close.
     c3 = connection()
-    request(c3)
+    request(c3, keepalive=False)
+    check_server_idle_conn_count(2)
 
-    # Allow a tick.
-    time.sleep(0.2)
-
-    # That's three connections, we should expect the one used less recently
-    # to be expired.
+    # Show that the third connection was closed.
     with pytest.raises(disconnect_errors):
-        request(c2)
-
-    # But the oldest created one should still be valid.
-    # (As well as the newest one).
-    request(c1)
-    request(c3)
+        request(c3)
+    check_server_idle_conn_count(2)
 
     # Wait for some of our timeout.
-    time.sleep(1.0)
+    time.sleep(1.2)
 
-    # Refresh the third connection.
-    request(c3)
+    # Refresh the second connection.
+    request(c2)
+    check_server_idle_conn_count(2)
 
     # Wait for the remainder of our timeout, plus one tick.
     time.sleep(1.2)
+    check_server_idle_conn_count(1)
 
     # First connection should now be expired.
     with pytest.raises(disconnect_errors):
         request(c1)
+    check_server_idle_conn_count(1)
 
-    # But the third one should still be valid.
-    request(c3)
+    # But the second one should still be valid.
+    request(c2)
+    check_server_idle_conn_count(1)
 
+    # Restore original timeout.
     test_client.server_instance.timeout = timeout
+
+    # Prevent the resource warnings:
+    c1.close()
+    c2.close()
+    c3.close()
+
+
+@pytest.mark.parametrize(
+    ('simulated_exception', 'error_number', 'exception_leaks'),
+    (
+        pytest.param(
+            socket.error, errno.ECONNRESET, False,
+            id='socket.error(ECONNRESET)',
+        ),
+        pytest.param(
+            socket.error, errno.EPIPE, False,
+            id='socket.error(EPIPE)',
+        ),
+        pytest.param(
+            socket.error, errno.ENOTCONN, False,
+            id='simulated socket.error(ENOTCONN)',
+        ),
+        pytest.param(
+            None,  # <-- don't raise an artificial exception
+            errno.ENOTCONN, False,
+            id='real socket.error(ENOTCONN)',
+            marks=pytest.mark.xfail(
+                IS_WINDOWS,
+                reason='Now reproducible this way on Windows',
+            ),
+        ),
+        pytest.param(
+            socket.error, errno.ESHUTDOWN, False,
+            id='socket.error(ESHUTDOWN)',
+        ),
+        pytest.param(RuntimeError, 666, True, id='RuntimeError(666)'),
+        pytest.param(socket.error, -1, True, id='socket.error(-1)'),
+    ) + (
+            pytest.param(
+                ConnectionResetError, errno.ECONNRESET, False,
+                id='ConnectionResetError(ECONNRESET)',
+            ),
+            pytest.param(
+                BrokenPipeError, errno.EPIPE, False,
+                id='BrokenPipeError(EPIPE)',
+            ),
+            pytest.param(
+                BrokenPipeError, errno.ESHUTDOWN, False,
+                id='BrokenPipeError(ESHUTDOWN)',
+            ),
+    ),
+)
+def test_broken_connection_during_tcp_fin(
+        error_number, exception_leaks,
+        mocker, monkeypatch,
+        simulated_exception, test_client,
+):
+    """Test there's no traceback on broken connection during close.
+
+    It artificially causes :py:data:`~errno.ECONNRESET` /
+    :py:data:`~errno.EPIPE` / :py:data:`~errno.ESHUTDOWN` /
+    :py:data:`~errno.ENOTCONN` as well as unrelated :py:exc:`RuntimeError`
+    and :py:exc:`socket.error(-1) <socket.error>` on the server socket when
+    :py:meth:`socket.shutdown() <socket.socket.shutdown>` is called. It's
+    triggered by closing the client socket before the server had a chance
+    to respond.
+
+    The expectation is that only :py:exc:`RuntimeError` and a
+    :py:exc:`socket.error` with an unusual error code would leak.
+
+    With the :py:data:`None`-parameter, a real non-simulated
+    :py:exc:`OSError(107, 'Transport endpoint is not connected')
+    <OSError>` happens.
+    """
+    exc_instance = (
+        None if simulated_exception is None
+        else simulated_exception(error_number, 'Simulated socket error')
+    )
+    old_close_kernel_socket = (
+        test_client.server_instance.
+        ConnectionClass._close_kernel_socket
+    )
+
+    def _close_kernel_socket(self):
+        monkeypatch.setattr(  # `socket.shutdown` is read-only otherwise
+            self, 'socket',
+            mocker.mock_module.Mock(wraps=self.socket),
+        )
+        if exc_instance is not None:
+            monkeypatch.setattr(
+                self.socket, 'shutdown',
+                mocker.mock_module.Mock(side_effect=exc_instance),
+            )
+        _close_kernel_socket.fin_spy = mocker.spy(self.socket, 'shutdown')
+
+        try:
+            old_close_kernel_socket(self)
+        except simulated_exception:
+            _close_kernel_socket.exception_leaked = True
+        else:
+            _close_kernel_socket.exception_leaked = False
+
+    monkeypatch.setattr(
+        test_client.server_instance.ConnectionClass,
+        '_close_kernel_socket',
+        _close_kernel_socket,
+    )
+
+    conn = test_client.get_connection()
+    conn.auto_open = False
+    conn.connect()
+    conn.send(b'GET /hello HTTP/1.1')
+    conn.send(('Host: %s' % conn.host).encode('ascii'))
+    conn.close()
+
+    # Let the server attempt TCP shutdown:
+    for _ in range(10 * (2 if IS_SLOW_ENV else 1)):
+        time.sleep(0.1)
+        if hasattr(_close_kernel_socket, 'exception_leaked'):
+            break
+
+    if exc_instance is not None:  # simulated by us
+        assert _close_kernel_socket.fin_spy.spy_exception is exc_instance
+    else:  # real
+        assert isinstance(
+            _close_kernel_socket.fin_spy.spy_exception, socket.error,
+        )
+        assert _close_kernel_socket.fin_spy.spy_exception.errno == error_number
+
+    assert _close_kernel_socket.exception_leaked is exception_leaks
 
 
 @pytest.mark.parametrize(
@@ -475,7 +709,7 @@ def test_keepalive_conn_management(test_client):
 def test_HTTP11_Timeout(test_client, timeout_before_headers):
     """Check timeout without sending any data.
 
-    The server will close the conn with a 408.
+    The server will close the connection with a 408.
     """
     conn = test_client.get_connection()
     conn.auto_open = False
@@ -537,7 +771,7 @@ def test_HTTP11_Timeout_after_request(test_client):
     response = conn.response_class(conn.sock, method='GET')
     try:
         response.begin()
-    except (socket.error, http_client.BadStatusLine):
+    except (socket.error, http.client.BadStatusLine):
         pass
     except Exception as ex:
         pytest.fail(fail_msg % ex)
@@ -567,7 +801,7 @@ def test_HTTP11_Timeout_after_request(test_client):
     response = conn.response_class(conn.sock, method='GET')
     try:
         response.begin()
-    except (socket.error, http_client.BadStatusLine):
+    except (socket.error, http.client.BadStatusLine):
         pass
     except Exception as ex:
         pytest.fail(fail_msg % ex)
@@ -594,7 +828,7 @@ def test_HTTP11_Timeout_after_request(test_client):
 def test_HTTP11_pipelining(test_client):
     """Test HTTP/1.1 pipelining.
 
-    httplib doesn't support this directly.
+    :py:mod:`http.client` doesn't support this directly.
     """
     conn = test_client.get_connection()
 
@@ -617,8 +851,7 @@ def test_HTTP11_pipelining(test_client):
         # ``conn.sock``. Until that bug get's fixed we will
         # monkey patch the ``response`` instance.
         # https://bugs.python.org/issue23377
-        if not six.PY2:
-            response.fp = conn.sock.makefile('rb', 0)
+        response.fp = conn.sock.makefile('rb', 0)
         response.begin()
         body = response.read(13)
         assert response.status == 200
@@ -639,7 +872,7 @@ def test_100_Continue(test_client):
     conn = test_client.get_connection()
 
     # Try a page without an Expect request header first.
-    # Note that httplib's response.begin automatically ignores
+    # Note that http.client's response.begin automatically ignores
     # 100 Continue responses, so we must manually check for it.
     conn.putrequest('POST', '/upload', skip_host=True)
     conn.putheader('Host', conn.host)
@@ -648,7 +881,7 @@ def test_100_Continue(test_client):
     conn.endheaders()
     conn.send(b"d'oh")
     response = conn.response_class(conn.sock, method='POST')
-    version, status, reason = response._read_status()
+    _version, status, _reason = response._read_status()
     assert status != 100
     conn.close()
 
@@ -681,7 +914,7 @@ def test_100_Continue(test_client):
 
     # ...get the final response
     response.begin()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 200
     expected_resp_body = ("thanks for '%s'" % body).encode()
@@ -714,7 +947,7 @@ def test_readall_or_close(test_client, max_request_body_size):
     response = conn.response_class(conn.sock, method='POST')
 
     # ...assert and then skip the 100 response
-    version, status, reason = response._read_status()
+    _version, status, _reason = response._read_status()
     assert status == 100
     skip = True
     while skip:
@@ -725,7 +958,7 @@ def test_readall_or_close(test_client, max_request_body_size):
 
     # ...get the final response
     response.begin()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 500
 
@@ -798,13 +1031,18 @@ def test_No_Message_Body(test_client):
     assert actual_resp_body == b''
     assert not header_exists('Connection', actual_headers)
 
+    # Prevent the resource warnings:
+    http_connection.close()
+
 
 @pytest.mark.xfail(
-    reason='Server does not correctly read trailers/ending of the previous '
-           'HTTP request, thus the second request fails as the server tries '
-           r"to parse b'Content-Type: application/json\r\n' as a "
-           'Request-Line. This results in HTTP status code 400, instead of 413'
-           'Ref: https://github.com/cherrypy/cheroot/issues/69',
+    reason=unwrap(
+        trim("""
+        Headers from earlier request leak into the request
+        line for a subsequent request, resulting in 400
+        instead of 413. See cherrypy/cheroot#69 for details.
+        """),
+    ),
 )
 def test_Chunked_Encoding(test_client):
     """Test HTTP uploads with chunked transfer-encoding."""
@@ -828,7 +1066,7 @@ def test_Chunked_Encoding(test_client):
     conn.endheaders()
     conn.send(body)
     response = conn.getresponse()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 200
     assert status_line[4:] == 'OK'
@@ -837,7 +1075,7 @@ def test_Chunked_Encoding(test_client):
 
     # Try a chunked request that exceeds server.max_request_body_size.
     # Note that the delimiters and trailer are included.
-    body = b'3e3\r\n' + (b'x' * 995) + b'\r\n0\r\n\r\n'
+    body = b'\r\n'.join((b'3e3', b'x' * 995, b'0', b'', b''))
     conn.putrequest('POST', '/upload', skip_host=True)
     conn.putheader('Host', conn.host)
     conn.putheader('Transfer-Encoding', 'chunked')
@@ -868,7 +1106,7 @@ def test_Content_Length_in(test_client):
     conn.putheader('Content-Length', '9999')
     conn.endheaders()
     response = conn.getresponse()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 413
     expected_resp_body = (
@@ -881,7 +1119,7 @@ def test_Content_Length_in(test_client):
 
 def test_Content_Length_not_int(test_client):
     """Test that malicious Content-Length header returns 400."""
-    status_line, actual_headers, actual_resp_body = test_client.post(
+    status_line, _actual_headers, actual_resp_body = test_client.post(
         '/upload',
         headers=[
             ('Content-Type', 'text/plain'),
@@ -895,7 +1133,7 @@ def test_Content_Length_not_int(test_client):
 
 
 @pytest.mark.parametrize(
-    'uri,expected_resp_status,expected_resp_body',
+    ('uri', 'expected_resp_status', 'expected_resp_body'),
     (
         (
             '/wrong_cl_buffered', 500,
@@ -921,13 +1159,23 @@ def test_Content_Length_out(
     conn.endheaders()
 
     response = conn.getresponse()
-    status_line, actual_headers, actual_resp_body = webtest.shb(response)
+    status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
 
     assert actual_status == expected_resp_status
     assert actual_resp_body == expected_resp_body
 
     conn.close()
+
+    # the server logs the exception that we had verified from the
+    # client perspective. Tell the error_log verification that
+    # it can ignore that message.
+    test_client.server_instance.error_log.ignored_msgs.extend((
+        # Python 3.7+:
+        "ValueError('Response body exceeds the declared Content-Length.')",
+        # Python 2.7-3.6 (macOS?):
+        "ValueError('Response body exceeds the declared Content-Length.',)",
+    ))
 
 
 @pytest.mark.xfail(
@@ -970,11 +1218,94 @@ def test_No_CRLF(test_client, invalid_terminator):
     # Initialize a persistent HTTP connection
     conn = test_client.get_connection()
 
-    # (b'%s' % b'') is not supported in Python 3.4, so just use +
-    conn.send(b'GET /hello HTTP/1.1' + invalid_terminator)
+    # (b'%s' % b'') is not supported in Python 3.4, so just use bytes.join()
+    conn.send(b''.join((b'GET /hello HTTP/1.1', invalid_terminator)))
     response = conn.response_class(conn.sock, method='GET')
     response.begin()
     actual_resp_body = response.read()
     expected_resp_body = b'HTTP requires CRLF terminators'
     assert actual_resp_body == expected_resp_body
     conn.close()
+
+
+class FaultySelect:
+    """Mock class to insert errors in the selector.select method."""
+
+    def __init__(self, original_select):
+        """Initilize helper class to wrap the selector.select method."""
+        self.original_select = original_select
+        self.request_served = False
+        self.os_error_triggered = False
+
+    def __call__(self, timeout):
+        """Intercept the calls to selector.select."""
+        if self.request_served:
+            self.os_error_triggered = True
+            raise OSError('Error while selecting the client socket.')
+
+        return self.original_select(timeout)
+
+
+class FaultyGetMap:
+    """Mock class to insert errors in the selector.get_map method."""
+
+    def __init__(self, original_get_map):
+        """Initilize helper class to wrap the selector.get_map method."""
+        self.original_get_map = original_get_map
+        self.sabotage_conn = False
+        self.conn_closed = False
+
+    def __call__(self):
+        """Intercept the calls to selector.get_map."""
+        sabotage_targets = (
+            conn for _, (_, _, _, conn) in self.original_get_map().items()
+            if isinstance(conn, cheroot.server.HTTPConnection)
+        ) if self.sabotage_conn and not self.conn_closed else ()
+
+        for conn in sabotage_targets:
+            # close the socket to cause OSError
+            conn.close()
+            self.conn_closed = True
+
+        return self.original_get_map()
+
+
+def test_invalid_selected_connection(test_client, monkeypatch):
+    """Test the error handling segment of HTTP connection selection.
+
+    See :py:meth:`cheroot.connections.ConnectionManager.get_conn`.
+    """
+    # patch the select method
+    faux_select = FaultySelect(
+        test_client.server_instance._connections._selector.select,
+    )
+    monkeypatch.setattr(
+        test_client.server_instance._connections._selector,
+        'select',
+        faux_select,
+    )
+
+    # patch the get_map method
+    faux_get_map = FaultyGetMap(
+        test_client.server_instance._connections._selector._selector.get_map,
+    )
+
+    monkeypatch.setattr(
+        test_client.server_instance._connections._selector._selector,
+        'get_map',
+        faux_get_map,
+    )
+
+    # request a page with connection keep-alive to make sure
+    # we'll have a connection to be modified.
+    resp_status, _resp_headers, _resp_body = test_client.request(
+        '/page1', headers=[('Connection', 'Keep-Alive')],
+    )
+
+    assert resp_status == '200 OK'
+    # trigger the internal errors
+    faux_get_map.sabotage_conn = faux_select.request_served = True
+    # give time to make sure the error gets handled
+    time.sleep(test_client.server_instance.expiration_interval * 2)
+    assert faux_select.os_error_triggered
+    assert faux_get_map.conn_closed

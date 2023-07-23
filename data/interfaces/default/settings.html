@@ -21,6 +21,16 @@
 
 <%def name="body()">
 <div class="container">
+    % if plexpy.CONFIG.CHECK_DOCKER_MOUNT and plexpy.DOCKER and not plexpy.DOCKER_MOUNT:
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-danger docker-mount" role="alert">
+                The <span class="inline-pre">/config</span> volume mount was not configured properly for the Docker container.
+                All data may be cleared when the container is recreated or updated.
+            </div>
+        </div>
+    </div>
+    % endif
     <div class="row">
         <div class="col-md-12">
             <div class='card-back-full'>
@@ -56,7 +66,7 @@
                 <li role="presentation"><a id="nav-tabs-newsletter_agents" href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
                 <li role="presentation"><a id="nav-tabs-3rd_party_apis" href="#tabs-3rd_party_apis" aria-controls="tabs-3rd_party_apis" role="tab" data-toggle="tab">3rd Party APIs</a></li>
                 <li role="presentation"><a id="nav-tabs-import_backups" href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
-                <li role="presentation"><a id="nav-tabs-remote_app" href="#tabs-remote_app" aria-controls="tabs-remote_app" role="tab" data-toggle="tab">Tautulli Remote App</a></li>
+                <li role="presentation"><a id="nav-tabs-remote_app" href="#tabs-remote_app" aria-controls="tabs-remote_app" role="tab" data-toggle="tab">Tautulli Remote App <span class="pull-right"><i class="fa fa-fw fa-android"></i><i class="fa fa-fw fa-apple"></i></span></a></li>
             </ul>
         </div>
         <div class="col-md-9">
@@ -124,12 +134,6 @@
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
-                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Play History
-                            </label>
-                            <p class="help-block">Group play history for the same item and user as a single entry when progress is less than the watched percent.</p>
-                        </div>
-                        <div class="checkbox advanced-setting">
-                            <label>
                                 <input type="checkbox" id="history_table_activity" name="history_table_activity" value="1" ${config['history_table_activity']}> Current Activity in History Tables
                             </label>
                             <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
@@ -145,8 +149,17 @@
                                 <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
                             </label>
                             <p class="help-block">
-                                Enable to mask passwords, access tokens, and public IP addresses with asterisks (*) in the logs.<br />
+                                Enable to mask passwords, access tokens, and public IP addresses, and email addresses with asterisks (*) in the logs.<br />
                                 Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="log_blacklist_usernames" name="log_blacklist_usernames" value="1" ${config['log_blacklist_usernames']}> Mask Usernames in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask Plex usernames with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked.
                             </p>
                         </div>
 
@@ -193,6 +206,39 @@
                                 <div id="music_watched_percent_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
                             <p class="help-block">Set the percentage for a music track to be considered as listened. Minimum 50, Maximum 95.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="music_watched_percent">Video Watched Completion Behaviour</label>
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <select class="form-control" id="watched_marker" name="watched_marker">
+                                        <option value="0" ${'selected' if config['watched_marker'] == 0 else ''}>At selected threshold percentage</option>
+                                        <option value="1" ${'selected' if config['watched_marker'] == 1 else ''}>At final credits marker position</option>
+                                        <option value="2" ${'selected' if config['watched_marker'] == 2 else ''}>At first credits marker position</option>
+                                        <option value="3" ${'selected' if config['watched_marker'] == 3 else ''}>Earliest between threshold percent and first credits marker</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">Decide whether to use end credits markers to determine the 'watched' state of video items. When markers are not available the selected threshold percentage will be used.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Play History
+                            </label>
+                            <p class="help-block">Group play history for the same item and user as a single entry when progress is less than the watched percent.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label>Regroup Play History</label>
+                            <p class="help-block">
+                                Fix grouping of play history in the database.<br />
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="regroup_history">Regroup</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group advanced-setting">
                             <label>Flush Temporary Sessions</label>
@@ -630,14 +676,25 @@
                             </div>
                         </div>
 
-                        <div class="form-group advanced-setting">
-                            <label for="anon_redirect">Anonymous Redirect</label>
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" name="anon_redirect_dynamic" id="anon_redirect_dynamic" value="1" ${config['anon_redirect_dynamic']} /> Use Dynamic Anonymous Redirect Service
+                            </label>
+                            <p class="help-block">
+                                Allow Tautulli to use the dynamic anonymous redirect service listed <a href="${anon_url('https://tautulli.com/anonymizer.txt')}" target="_blank" rel="noreferrer">here</a>.
+                                Disable to specify your own service.
+                            </p>
+                        </div>
+                        <div id="anon_redirect_options">
+                            <div class="form-group advanced-setting">
+                                <label for="anon_redirect">Anonymous Redirect Service</label>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <input type="text" class="form-control" id="anon_redirect" name="anon_redirect" value="${config['anon_redirect']}" size="30">
+                                    </div>
                                 </div>
+                                <p class="help-block">Backlink protection via anonymizer service, must end in "?". Leave blank to disable.</p>
                             </div>
-                            <p class="help-block">Backlink protection via anonymizer service, must end in "?".</p>
                         </div>
 
                         <div class="padded-header">
@@ -967,22 +1024,13 @@
                             <label for="pms_token">Plex.tv Account Token</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="input-group">
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
-                                        </span>
-                                        <input type="password" class="form-control" id="pms_token" name="pms_token" value="${config['pms_token']}" data-parsley-trigger="change" data-parsley-errors-container="#pms_token_error" required readonly>
-                                        <span class="input-group-btn">
-                                            <button id="sign-in-plex" class="btn btn-form" type="button">Fetch Token</button>
-                                        </span>
-                                    </div>
-                                    <span class="form-control-feedback" id="token_verify" aria-hidden="true" style="right: 80px;"></span>
+                                    <button id="sign-in-plex" class="btn btn-form" type="button">Fetch New Token</button>
+                                    <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                                 </div>
-                                <div id="pms_token_error" class="alert alert-danger settings-alert" role="alert"></div>
                             </div>
-                            <p class="help-block">Token for Plex.tv authentication.</p>
+                            <p class="help-block">Fetch a new Plex.tv account authentication token.</p>
                         </div>
-                        <input type="hidden" id="pms_uuid" name="pms_uuid" value="${config['pms_uuid']}">
+                        <input type="hidden" id="pms_client_id" name="pms_client_id" value="${config['pms_client_id']}">
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
@@ -1579,9 +1627,9 @@
                             <p class="help-block">
                                 Get the Tautulli Remote app on
                                 <a href="${anon_url('https://play.google.com/store/apps/details?id=com.tautulli.tautulli_remote')}" target="_blank" rel="noreferrer">Google Play</a>
-                                to access Tautulli from your mobile device,
-                                or beta test for iOS on
-                                <a href="${anon_url('https://testflight.apple.com/join/G29OmIm1')}" target="_blank" rel="noreferrer">TestFlight</a>.
+                                or the
+                                <a href="${anon_url('https://apps.apple.com/us/app/tautulli-remote/id1570909086?platform=iphone')}" target="_blank" rel="noreferrer">App Store</a>
+                                to access Tautulli from your mobile device.
                                 <br />
                             </p>
                             <p class="help-block">
@@ -1589,7 +1637,7 @@
                                     <a href="${anon_url('https://play.google.com/store/apps/details?id=com.tautulli.tautulli_remote')}" target="_blank" rel="noreferrer"><img alt="Get it on Google Play" src="images/google-play-badge.svg" /></a>
                                 </span>
                                 <span class="app-badge">
-                                    <a href="${anon_url('https://testflight.apple.com/join/G29OmIm1')}" target="_blank" rel="noreferrer"><img alt="Download on TestFlight" src="images/testflight-badge.png" /></a>
+                                    <a href="${anon_url('https://apps.apple.com/us/app/tautulli-remote/id1570909086?platform=iphone')}" target="_blank" rel="noreferrer"><img alt="Download on the App Store" src="images/app-store-badge.svg" /></a>
                                 </span>
                                 <span class="app-badge">
                                     <small>Google Play and the Google Play logo are trademarks of Google LLC.</small>
@@ -1620,7 +1668,7 @@
 </div>
 <div id="token_error_bar" style="display: none;">
     <i class="fa fa-exclamation-triangle"></i> Your Plex.tv token is no longer valid.<br>
-    Please <a data-tab-destination="plex_media_server" data-target="pms_token">fetch a new token</a>.
+    Please <a data-tab-destination="plex_media_server" data-target="sign-in-plex">fetch a new token</a>.
 </div>
 </%def>
 
@@ -2077,7 +2125,7 @@ Rating: {rating}/10   --> Rating: /10
                     Note: OneSignal.com must not be blocked (e.g. in Pi-hole) for device registration.
                 </p>
                 <label>QR Code</label>
-                <pre id="api_qr_code" style="text-align: center"></pre>
+                <div id="api_qr_code"></div>
                 <label>Tautulli Address</label>
                 <input type="text" class="form-control" id="api_qr_address">
                 <p class="help-block" id="api_qr_localhost" style="display: none;">
@@ -2140,7 +2188,7 @@ Rating: {rating}/10   --> Rating: /10
 <script src="${http_root}js/parsley.min.js"></script>
 <script src="${http_root}js/Sortable.min.js"></script>
 <script src="${http_root}js/jquery.inputaffix.min.js"></script>
-<script src="${http_root}js/jquery.qrcode.min.js"></script>
+<script src="${http_root}js/kjua.min.js"></script>
 <script>
     function getConfigurationTable() {
         $.ajax({
@@ -2372,6 +2420,7 @@ $(document).ready(function() {
 
     initConfigCheckbox('#api_enabled');
     initConfigCheckbox('#enable_https');
+    initConfigCheckbox('#anon_redirect_dynamic', null, true);
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');
     initConfigCheckbox('#monitor_pms_updates');
@@ -2464,6 +2513,12 @@ $(document).ready(function() {
     $("#clear_exports").click(function () {
         var msg = 'Are you sure you want to clear the Tautulli metadata exports?';
         var url = 'delete_export?delete_all=true';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#regroup_history").click(function () {
+        var msg = 'Are you sure you want to regroup play history in the database?<br /><br /><strong>This make take a long time for large databases.<br />Regrouping will continue in the background.</strong>';
+        var url = 'regroup_history';
         confirmAjaxCall(url, msg);
     });
 
@@ -2627,12 +2682,9 @@ $(document).ready(function() {
     });
     var select_pms = $select_pms[0].selectize;
 
-    function getServerOptions(token) {
+    function getServerOptions() {
         $.ajax({
             url: 'discover',
-            data: {
-                token: token
-            },
             success: function (result) {
                 if (result) {
                     var existing_ip = $('#pms_ip').val();
@@ -2674,10 +2726,17 @@ $(document).ready(function() {
                 },
                 cache: true,
                 async: true,
-                timeout: 10000,
+                timeout: 30000,
                 error: function (jqXHR, textStatus, errorThrown) {
                     $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
                     $("#pms_ip_group").addClass("has-error");
+                    var msg = 'Could not verify your server.'
+                    if (textStatus === 'timeout') {
+                        msg += ' Server took too long to respond.'
+                    } else {
+                        msg += ' Error: ' + jqXHR.status
+                    }
+                    showMsg('<i class="fa fa-exclamation-circle"></i> ' + msg, false, true, 5000, true)
                 },
                 success: function(xhr, status) {
                     var result = xhr;
@@ -2715,7 +2774,7 @@ $(document).ready(function() {
         } else {
             $("#pms_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
             $("#pms_ip_group").addClass("has-error");
-            showMsg('<i class="fa fa-exclamation-circle"></i> Could not verify your server.', false, true, 5000, true)
+            showMsg('<i class="fa fa-exclamation-circle"></i> Plex IP address and port cannot be blank.', false, true, 5000, true)
         }
     }
 
@@ -2734,12 +2793,8 @@ $(document).ready(function() {
     });
 
     $.ajax({
-        url: "https://plex.tv/api/resources",
+        url: "check_pms_token",
         type: 'GET',
-        dataType: 'json',
-        beforeSend: function (xhr) {
-            xhr.setRequestHeader('X-Plex-Token', $('#pms_token').val());
-        },
         statusCode: {
             401: function (xhr, status) {
                 $("#updatebar").hide();
@@ -2749,20 +2804,22 @@ $(document).ready(function() {
     });
 
     function OAuthPreFunction() {
-        $("#token_verify").html('<i class="fa fa-refresh fa-spin"></i>').fadeIn('fast');
+        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
     }
     function OAuthSuccessCallback(authToken) {
-        $("#pms_token").val(authToken);
-        $("#token_verify").html('<i class="fa fa-check"></i>').fadeIn('fast');
-        $('#token_error_bar').hide();
-        getServerOptions(authToken);
+        $.post('save_pms_token', { token: authToken, client_id: $('#pms_client_id').val() }, function() {
+            showMsg('<i class="fa fa-check"></i> Saved new Plex.tv token.', false, true, 5000);
+            getServerOptions();
+        });
+        $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
+        $("#token_error_bar").hide();
     }
     function OAuthErrorCallback() {
-        $("#token_verify").html('<i class="fa fa-close"></i>').fadeIn('fast');
+        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');
     }
 
     $('#sign-in-plex').click(function() {
-        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction, $('#pms_client_id').val(uuidv4()).val());
     });
 
     // Load database import modal
@@ -2935,27 +2992,18 @@ $(document).ready(function() {
             var update_channel = update_params.pms_update_channel;
             var update_distro = update_params.pms_update_distro;
             var update_distro_build = update_params.pms_update_distro_build;
-            var plex_update_channel = update_params.plex_update_channel;
 
             $('#pms_update_channel option[value=beta]').remove();
             if (plexpass) {
-                var selected = (update_channel == 'beta') ? true : false;
-                $('#pms_update_channel')
-                    .append($('<option></option>')
-                    .text('Beta')
-                    .val('beta')
-                    .prop('selected', selected));
+                $('#pms_update_channel').append($('<option></option>').text('Beta').val('beta'))
             }
-
-            var download_url = 'https://plex.tv/api/downloads/' + (plex_update_channel === 'plexpass' ? '5' : '1') + '.json?channel=' + plex_update_channel;
+            $('#pms_update_channel option[value=' + update_channel + ']').prop('selected', true);
 
             $.ajax({
-                url: download_url,
+                url: 'get_pms_downloads',
                 type: 'GET',
+                data: { update_channel: update_channel },
                 dataType: 'json',
-                beforeSend: function (xhr) {
-                    xhr.setRequestHeader('X-Plex-Token', $('#pms_token').val());
-                },
                 success: function (downloads) {
                     var platform_downloads = downloads.computer[platform] || downloads.nas[platform];
                     if (platform_downloads) {

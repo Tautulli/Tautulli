@@ -1,0 +1,25 @@
+name: Submit winget
+
+on:
+  workflow_dispatch: ~
+  release:
+    types: [published]
+
+jobs:
+  winget:
+    name: Submit Winget Package
+    runs-on: windows-latest
+    if: ${{ !github.event.release.prerelease }}
+    steps:
+      - name: Submit package to Windows Package Manager Community Repository
+        run: |
+          $wingetPackage = "Tautulli.Tautulli"
+          $gitToken = "${{ secrets.WINGET_TOKEN }}"
+
+          $github = Invoke-RestMethod -uri "https://api.github.com/repos/Tautulli/Tautulli/releases/latest"
+          $installerUrl = $github | Select -ExpandProperty assets -First 1 | Where-Object -Property name -match "Tautulli-windows-.*-x64.exe" | Select -ExpandProperty browser_download_url
+          $version = "$($github.tag_name.Trim('v')).1"
+          
+          # getting latest wingetcreate file
+          iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe update $wingetPackage -s -v $version -u $installerUrl -t $gitToken

@@ -48,7 +48,7 @@ def get_server_resources(return_presence=False, return_server=False, return_info
     if not return_presence and not return_info:
         logger.info("Tautulli PlexTV :: Requesting resources for server...")
 
-    server = {'pms_name': plexpy.CONFIG.PMS_NAME,
+    server = {'pms_name': helpers.pms_name(),
               'pms_version': plexpy.CONFIG.PMS_VERSION,
               'pms_platform': plexpy.CONFIG.PMS_PLATFORM,
               'pms_ip': plexpy.CONFIG.PMS_IP,
@@ -164,7 +164,6 @@ class PlexTV(object):
 
             if not self.token:
                 logger.error("Tautulli PlexTV :: PlexTV called, but no token provided.")
-                return
 
         self.request_handler = http_handler.HTTPHandler(urls=self.urls,
                                                         token=self.token,
@@ -277,13 +276,14 @@ class PlexTV(object):
 
         return request
 
-    def get_plextv_resources(self, include_https=False, output_format=''):
+    def get_plextv_resources(self, include_https=False, return_response=False, output_format=''):
         if include_https:
             uri = '/api/resources?includeHttps=1'
         else:
             uri = '/api/resources'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
+                                                    return_response=return_response,
                                                     output_format=output_format)
 
         return request
@@ -331,6 +331,14 @@ class PlexTV(object):
 
         return request
 
+    def get_public_ip(self, output_format=''):
+        uri = '/:/ip'
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_plextv_geoip(self, ip_address='', output_format=''):
         uri = '/api/v2/geoip?ip_address=%s' % ip_address
         request = self.request_handler.make_request(uri=uri,
@@ -356,6 +364,7 @@ class PlexTV(object):
         for a in xml_head:
             own_details = {"user_id": helpers.get_xml_attr(a, 'id'),
                            "username": helpers.get_xml_attr(a, 'username'),
+                           "title": helpers.get_xml_attr(a, 'title'),
                            "thumb": helpers.get_xml_attr(a, 'thumb'),
                            "email": helpers.get_xml_attr(a, 'email'),
                            "is_active": 1,
@@ -383,7 +392,8 @@ class PlexTV(object):
 
         for a in xml_head:
             friend = {"user_id": helpers.get_xml_attr(a, 'id'),
-                      "username": helpers.get_xml_attr(a, 'title'),
+                      "username": helpers.get_xml_attr(a, 'username'),
+                      "title": helpers.get_xml_attr(a, 'title'),
                       "thumb": helpers.get_xml_attr(a, 'thumb'),
                       "email": helpers.get_xml_attr(a, 'email'),
                       "is_active": 1,
@@ -753,7 +763,16 @@ class PlexTV(object):
 
         return clean_servers
 
-    def get_plex_downloads(self):
+    def get_plex_downloads(self, update_channel):
+        plex_downloads = self.get_plextv_downloads(plexpass=(update_channel == 'beta'))
+
+        try:
+            return json.loads(plex_downloads)
+        except Exception as e:
+            logger.warn("Tautulli PlexTV :: Unable to load JSON for get_plex_updates: %s", e)
+            return {}
+
+    def get_plex_update(self):
         logger.debug("Tautulli PlexTV :: Retrieving current server version.")
 
         pms_connect = pmsconnect.PmsConnect()
@@ -762,12 +781,9 @@ class PlexTV(object):
         update_channel = pms_connect.get_server_update_channel()
 
         logger.debug("Tautulli PlexTV :: Plex update channel is %s." % update_channel)
-        plex_downloads = self.get_plextv_downloads(plexpass=(update_channel == 'beta'))
+        available_downloads = self.get_plex_downloads(update_channel=update_channel)
 
-        try:
-            available_downloads = json.loads(plex_downloads)
-        except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to load JSON for get_plex_updates.")
+        if not available_downloads:
             return {}
 
         # Get the updates for the platform
@@ -921,15 +937,15 @@ class PlexTV(object):
             if len(coordinates) == 2:
                 latitude, longitude = [helpers.cast_to_float(c) for c in coordinates]
 
-            geo_info = {"code": helpers.get_xml_attr(a, 'code') or None,
+            geo_info = {"city": helpers.get_xml_attr(a, 'city') or None,
+                        "code": helpers.get_xml_attr(a, 'code') or None,
+                        "continent": helpers.get_xml_attr(a, 'continent_code') or None,
                         "country": helpers.get_xml_attr(a, 'country') or None,
-                        "region": helpers.get_xml_attr(a, 'subdivisions') or None,
-                        "city": helpers.get_xml_attr(a, 'city') or None,
-                        "postal_code": helpers.get_xml_attr(a, 'postal_code') or None,
-                        "timezone": helpers.get_xml_attr(a, 'time_zone') or None,
                         "latitude": latitude,
                         "longitude": longitude,
-                        "continent": None,  # keep for backwards compatibility with GeoLite2
+                        "postal_code": helpers.get_xml_attr(a, 'postal_code') or None,
+                        "region": helpers.get_xml_attr(a, 'subdivisions') or None,
+                        "timezone": helpers.get_xml_attr(a, 'time_zone') or None,
                         "accuracy": None   # keep for backwards compatibility with GeoLite2
                         }
 

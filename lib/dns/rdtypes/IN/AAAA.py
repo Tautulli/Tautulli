@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -14,41 +16,37 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.exception
-import dns.inet
+import dns.immutable
+import dns.ipv6
 import dns.rdata
 import dns.tokenizer
 
 
+@dns.immutable.immutable
 class AAAA(dns.rdata.Rdata):
 
-    """AAAA record.
+    """AAAA record."""
 
-    @ivar address: an IPv6 address
-    @type address: string (in the standard IPv6 format)"""
-
-    __slots__ = ['address']
+    __slots__ = ["address"]
 
     def __init__(self, rdclass, rdtype, address):
-        super(AAAA, self).__init__(rdclass, rdtype)
-        # check that it's OK
-        dns.inet.inet_pton(dns.inet.AF_INET6, address)
-        self.address = address
+        super().__init__(rdclass, rdtype)
+        self.address = self._as_ipv6_address(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
         return self.address
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         address = tok.get_identifier()
-        tok.get_eol()
         return cls(rdclass, rdtype, address)
 
-    def to_wire(self, file, compress=None, origin=None):
-        file.write(dns.inet.inet_pton(dns.inet.AF_INET6, self.address))
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
+        file.write(dns.ipv6.inet_aton(self.address))
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        address = dns.inet.inet_ntop(dns.inet.AF_INET6,
-                                     wire[current: current + rdlen])
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = parser.get_remaining()
         return cls(rdclass, rdtype, address)
-

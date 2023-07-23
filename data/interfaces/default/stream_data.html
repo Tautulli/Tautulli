@@ -218,13 +218,12 @@ DOCUMENTATION :: END
                         <td>${data['stream_audio_channels']}</td>
                         <td>${data['audio_channels']}</td>
                     </tr>
-                    % if data['stream_audio_language'] != '':
                     <tr>
                         <td>Language</td>
-                        <td>${data['stream_audio_language']}</td>
-                        <td>${data['audio_language']}</td>
+                        <td>-</td>
+                        <td>${data['audio_language'] or 'Unknown'}</td>
                     </tr>
-                    % endif
+
                 </tbody>
             </table>
             % if data['subtitles'] == 1:
@@ -235,7 +234,7 @@ DOCUMENTATION :: END
                             Subtitles
                         </th>
                         <th>
-                            ${data['stream_subtitle_decision']}
+                            ${'direct play' if data['stream_subtitle_decision'] not in ('transcode', 'copy', 'burn') else data['stream_subtitle_decision']}
                         </th>
                     </tr>
                 </thead>
@@ -245,6 +244,18 @@ DOCUMENTATION :: END
                         <td>${data['stream_subtitle_codec'].upper() or '-'}</td>
                         <td>${data['subtitle_codec'].upper()}</td>
                     </tr>
+                    <tr>
+                        <td>Language</td>
+                        <td>-</td>
+                        <td>${data['subtitle_language'] or 'Unknown'}</td>
+                    </tr>
+                    % if data['subtitle_forced']:
+                    <tr>
+                        <td>Forced</td>
+                        <td>-</td>
+                        <td>${bool(data['subtitle_forced'])}</td>
+                    </tr>
+                    % endif
                 </tbody>
             </table>
             % endif

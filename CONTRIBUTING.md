@@ -9,12 +9,12 @@ All pull requests should be based on the `nightly` branch, to minimize cross mer
 ### Python Code
 
 #### Compatibility
-The code should work with Python 3.6+. Note that Tautulli runs on many different platforms.
+The code should work with Python 3.7+. Note that Tautulli runs on many different platforms.
 
 Re-use existing code. Do not hesitate to add logging in your code. You can the logger module `plexpy.logger.*` for this. Web requests are invoked via `plexpy.request.*` and derived ones. Use these methods to automatically add proper and meaningful error handling.
 
 #### Code conventions
-Although Tautulli did not adapt a code convention in the past, we try to follow the [PEP8](http://legacy.python.org/dev/peps/pep-0008/) conventions for future code. A short summary to remind you (copied from http://wiki.ros.org/PyStyleGuide):
+Although Tautulli did not adopt a code convention in the past, we try to follow [PEP8](http://legacy.python.org/dev/peps/pep-0008/) conventions for future code. A short summary to remind you (copied from http://wiki.ros.org/PyStyleGuide):
 
  * 4 space indentation
  * 80 characters per line

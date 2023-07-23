@@ -9,16 +9,10 @@ import logging
 
 from oauthlib.common import add_params_to_uri
 from oauthlib.common import urldecode as _urldecode
-from oauthlib.oauth1 import (
-    SIGNATURE_HMAC, SIGNATURE_RSA, SIGNATURE_TYPE_AUTH_HEADER
-)
+from oauthlib.oauth1 import SIGNATURE_HMAC, SIGNATURE_RSA, SIGNATURE_TYPE_AUTH_HEADER
 import requests
 
 from . import OAuth1
-
-import sys
-if sys.version > "3":
-    unicode = str
 
 
 log = logging.getLogger(__name__)
@@ -28,13 +22,13 @@ def urldecode(body):
     """Parse query or json to python dictionary"""
     try:
         return _urldecode(body)
-    except:
+    except Exception:
         import json
+
         return json.loads(body)
 
 
 class TokenRequestDenied(ValueError):
-
     def __init__(self, message, response):
         super(TokenRequestDenied, self).__init__(message)
         self.response = response
@@ -110,18 +104,21 @@ class OAuth1Session(requests.Session):
     <Response [200]>
     """
 
-    def __init__(self, client_key,
-            client_secret=None,
-            resource_owner_key=None,
-            resource_owner_secret=None,
-            callback_uri=None,
-            signature_method=SIGNATURE_HMAC,
-            signature_type=SIGNATURE_TYPE_AUTH_HEADER,
-            rsa_key=None,
-            verifier=None,
-            client_class=None,
-            force_include_body=False,
-            **kwargs):
+    def __init__(
+        self,
+        client_key,
+        client_secret=None,
+        resource_owner_key=None,
+        resource_owner_secret=None,
+        callback_uri=None,
+        signature_method=SIGNATURE_HMAC,
+        signature_type=SIGNATURE_TYPE_AUTH_HEADER,
+        rsa_key=None,
+        verifier=None,
+        client_class=None,
+        force_include_body=False,
+        **kwargs
+    ):
         """Construct the OAuth 1 session.
 
         :param client_key: A client specific identifier.
@@ -158,19 +155,41 @@ class OAuth1Session(requests.Session):
         :param **kwargs: Additional keyword arguments passed to `OAuth1`
         """
         super(OAuth1Session, self).__init__()
-        self._client = OAuth1(client_key,
-                client_secret=client_secret,
-                resource_owner_key=resource_owner_key,
-                resource_owner_secret=resource_owner_secret,
-                callback_uri=callback_uri,
-                signature_method=signature_method,
-                signature_type=signature_type,
-                rsa_key=rsa_key,
-                verifier=verifier,
-                client_class=client_class,
-                force_include_body=force_include_body,
-                **kwargs)
+        self._client = OAuth1(
+            client_key,
+            client_secret=client_secret,
+            resource_owner_key=resource_owner_key,
+            resource_owner_secret=resource_owner_secret,
+            callback_uri=callback_uri,
+            signature_method=signature_method,
+            signature_type=signature_type,
+            rsa_key=rsa_key,
+            verifier=verifier,
+            client_class=client_class,
+            force_include_body=force_include_body,
+            **kwargs
+        )
         self.auth = self._client
+
+    @property
+    def token(self):
+        oauth_token = self._client.client.resource_owner_key
+        oauth_token_secret = self._client.client.resource_owner_secret
+        oauth_verifier = self._client.client.verifier
+
+        token_dict = {}
+        if oauth_token:
+            token_dict["oauth_token"] = oauth_token
+        if oauth_token_secret:
+            token_dict["oauth_token_secret"] = oauth_token_secret
+        if oauth_verifier:
+            token_dict["oauth_verifier"] = oauth_verifier
+
+        return token_dict
+
+    @token.setter
+    def token(self, value):
+        self._populate_attributes(value)
 
     @property
     def authorized(self):
@@ -187,9 +206,9 @@ class OAuth1Session(requests.Session):
         else:
             # other methods of authentication use all three pieces
             return (
-                bool(self._client.client.client_secret) and
-                bool(self._client.client.resource_owner_key) and
-                bool(self._client.client.resource_owner_secret)
+                bool(self._client.client.client_secret)
+                and bool(self._client.client.resource_owner_key)
+                and bool(self._client.client.resource_owner_secret)
             )
 
     def authorization_url(self, url, request_token=None, **kwargs):
@@ -234,12 +253,12 @@ class OAuth1Session(requests.Session):
         >>> oauth_session.authorization_url(authorization_url)
         'https://api.twitter.com/oauth/authorize?oauth_token=sdf0o9823sjdfsdf&oauth_callback=https%3A%2F%2F127.0.0.1%2Fcallback'
         """
-        kwargs['oauth_token'] = request_token or self._client.client.resource_owner_key
-        log.debug('Adding parameters %s to url %s', kwargs, url)
+        kwargs["oauth_token"] = request_token or self._client.client.resource_owner_key
+        log.debug("Adding parameters %s to url %s", kwargs, url)
         return add_params_to_uri(url, kwargs.items())
 
     def fetch_request_token(self, url, realm=None, **request_kwargs):
-        """Fetch a request token.
+        r"""Fetch a request token.
 
         This is the first step in the OAuth 1 workflow. A request token is
         obtained by making a signed post request to url. The token is then
@@ -249,7 +268,7 @@ class OAuth1Session(requests.Session):
         :param url: The request token endpoint URL.
         :param realm: A list of realms to request access to.
         :param \*\*request_kwargs: Optional arguments passed to ''post''
-        function in ''requests.Session''
+            function in ''requests.Session''
         :returns: The response in dict format.
 
         Note that a previously set callback_uri will be reset for your
@@ -264,9 +283,9 @@ class OAuth1Session(requests.Session):
             'oauth_token_secret': '2kjshdfp92i34asdasd',
         }
         """
-        self._client.client.realm = ' '.join(realm) if realm else None
+        self._client.client.realm = " ".join(realm) if realm else None
         token = self._fetch_token(url, **request_kwargs)
-        log.debug('Resetting callback_uri and realm (not needed in next phase).')
+        log.debug("Resetting callback_uri and realm (not needed in next phase).")
         self._client.client.callback_uri = None
         self._client.client.realm = None
         return token
@@ -299,10 +318,10 @@ class OAuth1Session(requests.Session):
         """
         if verifier:
             self._client.client.verifier = verifier
-        if not getattr(self._client.client, 'verifier', None):
-            raise VerifierMissing('No client verifier has been set.')
+        if not getattr(self._client.client, "verifier", None):
+            raise VerifierMissing("No client verifier has been set.")
         token = self._fetch_token(url, **request_kwargs)
-        log.debug('Resetting verifier attribute, should not be used anymore.')
+        log.debug("Resetting verifier attribute, should not be used anymore.")
         self._client.client.verifier = None
         return token
 
@@ -322,28 +341,27 @@ class OAuth1Session(requests.Session):
             'oauth_verifier: 'w34o8967345',
         }
         """
-        log.debug('Parsing token from query part of url %s', url)
+        log.debug("Parsing token from query part of url %s", url)
         token = dict(urldecode(urlparse(url).query))
-        log.debug('Updating internal client token attribute.')
+        log.debug("Updating internal client token attribute.")
         self._populate_attributes(token)
+        self.token = token
         return token
 
     def _populate_attributes(self, token):
-        if 'oauth_token' in token:
-            self._client.client.resource_owner_key = token['oauth_token']
+        if "oauth_token" in token:
+            self._client.client.resource_owner_key = token["oauth_token"]
         else:
             raise TokenMissing(
-                'Response does not contain a token: {resp}'.format(resp=token),
-                token,
+                "Response does not contain a token: {resp}".format(resp=token), token
             )
-        if 'oauth_token_secret' in token:
-            self._client.client.resource_owner_secret = (
-                token['oauth_token_secret'])
-        if 'oauth_verifier' in token:
-            self._client.client.verifier = token['oauth_verifier']
+        if "oauth_token_secret" in token:
+            self._client.client.resource_owner_secret = token["oauth_token_secret"]
+        if "oauth_verifier" in token:
+            self._client.client.verifier = token["oauth_verifier"]
 
     def _fetch_token(self, url, **request_kwargs):
-        log.debug('Fetching token from %s using client %s', url, self._client.client)
+        log.debug("Fetching token from %s using client %s", url, self._client.client)
         r = self.post(url, **request_kwargs)
 
         if r.status_code >= 400:
@@ -352,17 +370,21 @@ class OAuth1Session(requests.Session):
 
         log.debug('Decoding token from response "%s"', r.text)
         try:
-            token = dict(urldecode(r.text))
+            token = dict(urldecode(r.text.strip()))
         except ValueError as e:
-            error = ("Unable to decode token from token response. "
-                     "This is commonly caused by an unsuccessful request where"
-                     " a non urlencoded error message is returned. "
-                     "The decoding error was %s""" % e)
+            error = (
+                "Unable to decode token from token response. "
+                "This is commonly caused by an unsuccessful request where"
+                " a non urlencoded error message is returned. "
+                "The decoding error was %s"
+                "" % e
+            )
             raise ValueError(error)
 
-        log.debug('Obtained token %s', token)
-        log.debug('Updating internal client attributes from token data.')
+        log.debug("Obtained token %s", token)
+        log.debug("Updating internal client attributes from token data.")
         self._populate_attributes(token)
+        self.token = token
         return token
 
     def rebuild_auth(self, prepared_request, response):
@@ -370,9 +392,9 @@ class OAuth1Session(requests.Session):
         When being redirected we should always strip Authorization
         header, since nonce may not be reused as per OAuth spec.
         """
-        if 'Authorization' in prepared_request.headers:
+        if "Authorization" in prepared_request.headers:
             # If we get redirected to a new host, we should strip out
             # any authentication headers.
-            prepared_request.headers.pop('Authorization', True)
+            prepared_request.headers.pop("Authorization", True)
             prepared_request.prepare_auth(self.auth)
         return

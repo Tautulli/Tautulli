@@ -96,5 +96,5 @@ class ParseTweet(object):
 
     @staticmethod
     def getURLs(tweet):
-        """ URL : [http://]?[\w\.?/]+"""
+        r""" URL : [http://]?[\w\.?/]+"""
         return re.findall(ParseTweet.regexp["URL"], tweet)

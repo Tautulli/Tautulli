@@ -77,9 +77,10 @@ DOCUMENTATION :: END
         <% fallback = 'art-live' if row0['live'] else 'art' %>
         <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], row0['rating_key'], 500, 280, 40, '282828', 3, fallback=fallback)});">
         % elif stat_id == 'top_libraries':
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], None, 500, 280, 40, '282828', 3, fallback='art')});">
+        <% fallback = 'art-live' if row0['live'] else row0['library_art'] %>
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'] or row0['library_art'], None, 500, 280, 40, '282828', 3, fallback=fallback)});" data-library_art="${row0['library_art']}">
         % elif stat_id == 'top_users':
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" data-blurhash="${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 80, 80, 40, '282828', 0, fallback='user')}">
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" data-blurhash="${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 100, 100, 40, '282828', 0, fallback='user')}">
         % elif stat_id == 'top_platforms':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
         % else:
@@ -102,22 +103,22 @@ DOCUMENTATION :: END
                         if row0['live']:
                             href = page('info', row0['rating_key'], row0['guid'], history=True, live=row0['live'])
                         else:
-                            href = page('info', row0['rating_key'])
+                            href = page('info', row0['rating_key'], history=True)
                 %>
                 <a id="stats-thumb-url-${stat_id}" href="${href}" title="${row0['title']}">
                     <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback.split('-')[0]}" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['grandparent_rating_key'] or row0['rating_key'], 300, height, fallback=fallback)});"></div>
                 </a>
             </div>
             % elif stat_id == 'top_libraries':
-                % if row0['thumb'].startswith('http'):
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['thumb'], None, 80, 80)});"></div>
+                % if row0['library_thumb'].startswith('http'):
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['library_thumb'], None, 100, 100, fallback='cover')});"></div>
                 % else:
                 <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['section_type']} hidden-xs"></div>
                 % endif
             % elif stat_id == 'top_users':
             <% user_href = page('user', row0['user_id']) if row0['user_id'] else '#' %>
             <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['user']}" class="hidden-xs">
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 80, 80, fallback='user')})"></div>
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 100, 100, fallback='user')})"></div>
             </a>
             % elif stat_id == 'top_platforms':
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon platform-${row0['platform_name']} transparent hidden-xs"></div>
@@ -147,7 +148,8 @@ DOCUMENTATION :: END
                                 data-rating_key="${row.get('rating_key')}" data-grandparent_rating_key="${row.get('grandparent_rating_key')}" data-guid="${row.get('guid')}" data-title="${row.get('title')}"
                                 data-art="${row.get('art')}" data-thumb="${row.get('thumb')}" data-platform="${row.get('platform_name')}" data-library-type="${row.get('section_type')}"
                                 data-user_id="${row.get('user_id')}" data-user="${row.get('user')}" data-friendly_name="${row.get('friendly_name')}" data-user_thumb="${row.get('user_thumb')}"
-                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}">
+                                data-last_watch="${row.get('last_watch')}" data-started="${row.get('started')}" data-live="${row.get('live')}"
+                                data-library_art="${row.get('library_art', '')}" data-library_thumb="${row.get('library_thumb', '')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
                                     % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
@@ -157,7 +159,7 @@ DOCUMENTATION :: END
                                             if row['live']:
                                                 href = page('info', row['rating_key'], row['guid'], history=True, live=row['live'])
                                             else:
-                                                href = page('info', row['rating_key'])
+                                                href = page('info', row['rating_key'], history=True)
                                     %>
                                     <a href="${href}" title="${row['title']}">
                                         ${row['title']}

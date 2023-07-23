@@ -24,6 +24,10 @@ history_table_options = {
     },
     "pagingType": "full_numbers",
     "stateSave": true,
+    "stateSaveParams": function (settings, data) {
+        data.search.search = "";
+        data.start = 0;
+    },
     "stateDuration": 0,
     "processing": false,
     "serverSide": true,
@@ -102,7 +106,7 @@ history_table_options = {
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
                     isPrivateIP(cellData).then(function () {
-                        $(td).html(cellData || 'n/a');
+                        $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">'+ cellData + '</a>');
                     }, function () {
                         external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
                         $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">'+ external_ip + cellData + '</a>');
@@ -243,7 +247,7 @@ history_table_options = {
         },
         {
             "targets": [11],
-            "data": "duration",
+            "data": "play_duration",
             "render": function (data, type, full) {
                 if (data !== null) {
                     return Math.round(moment.duration(data, 'seconds').as('minutes')) + ' mins';
@@ -375,7 +379,10 @@ $('.history_table').on('click', '> tbody > tr > td.modal-control-ip', function (
     var rowData = row.data();
 
     $.get('get_ip_address_details', {
-        ip_address: rowData['ip_address']
+        ip_address: rowData['ip_address'],
+        location: rowData['location'],
+        secure: rowData['secure'],
+        relayed: rowData['relayed']
     }).then(function (jqXHR) {
         $("#ip-info-modal").html(jqXHR);
     });
@@ -460,7 +467,7 @@ function childTableOptions(rowData) {
     history_child_options.lengthChange = false;
     history_child_options.info = false;
     history_child_options.pageLength = 10;
-    history_child_options.bStateSave = false;
+    history_child_options.saveState = false;
     history_child_options.ajax = {
         url: 'get_history',
         type: 'post',
@@ -472,7 +479,7 @@ function childTableOptions(rowData) {
             };
         }
     }
-    history_child_options.fnDrawCallback = function (settings) {
+    history_child_options.drawCallback = function (settings) {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
@@ -522,7 +529,7 @@ function childTableFormat(rowData) {
                 '<th align="left" id="started">Started</th>' +
                 '<th align="left" id="paused_counter">Paused</th>' +
                 '<th align="left" id="stopped">Stopped</th>' +
-                '<th align="left" id="duration">Duration</th>' +
+                '<th align="left" id="play_duration">Duration</th>' +
                 '<th align="left" id="percent_complete"></th>' +
             '</tr>' +
             '</thead>' +
@@ -571,7 +578,10 @@ function createChildTable(row, rowData) {
         var childRowData = childRow.data();
 
         $.get('get_ip_address_details', {
-            ip_address: childRowData['ip_address']
+            ip_address: childRowData['ip_address'],
+            location: rowData['location'],
+            secure: rowData['secure'],
+            relayed: rowData['relayed']
         }).then(function (jqXHR) {
             $("#ip-info-modal").html(jqXHR);
         });

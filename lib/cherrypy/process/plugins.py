@@ -6,11 +6,10 @@ import signal as _signal
 import sys
 import time
 import threading
-
-from six.moves import _thread
+import _thread
 
 from cherrypy._cpcompat import text_or_bytes
-from cherrypy._cpcompat import ntob, Timer
+from cherrypy._cpcompat import ntob
 
 # _module__file__base is used by Autoreload to make
 # absolute any filenames retrieved from sys.modules which are not
@@ -367,7 +366,7 @@ class Daemonizer(SimplePlugin):
         # "The general problem with making fork() work in a multi-threaded
         #  world is what to do with all of the threads..."
         # So we check for active threads:
-        if threading.activeCount() != 1:
+        if threading.active_count() != 1:
             self.bus.log('There are %r active threads. '
                          'Daemonizing now may cause strange failures.' %
                          threading.enumerate(), level=30)
@@ -437,7 +436,8 @@ class PIDFile(SimplePlugin):
         if self.finalized:
             self.bus.log('PID %r already written to %r.' % (pid, self.pidfile))
         else:
-            open(self.pidfile, 'wb').write(ntob('%s\n' % pid, 'utf8'))
+            with open(self.pidfile, 'wb') as f:
+                f.write(ntob('%s\n' % pid, 'utf8'))
             self.bus.log('PID %r written to %r.' % (pid, self.pidfile))
             self.finalized = True
     start.priority = 70
@@ -452,7 +452,7 @@ class PIDFile(SimplePlugin):
             pass
 
 
-class PerpetualTimer(Timer):
+class PerpetualTimer(threading.Timer):
 
     """A responsive subclass of threading.Timer whose run() method repeats.
 
@@ -553,7 +553,7 @@ class Monitor(SimplePlugin):
             if self.thread is None:
                 self.thread = BackgroundTask(self.frequency, self.callback,
                                              bus=self.bus)
-                self.thread.setName(threadname)
+                self.thread.name = threadname
                 self.thread.start()
                 self.bus.log('Started monitor thread %r.' % threadname)
             else:
@@ -566,8 +566,8 @@ class Monitor(SimplePlugin):
             self.bus.log('No thread running for %s.' %
                          self.name or self.__class__.__name__)
         else:
-            if self.thread is not threading.currentThread():
-                name = self.thread.getName()
+            if self.thread is not threading.current_thread():
+                name = self.thread.name
                 self.thread.cancel()
                 if not self.thread.daemon:
                     self.bus.log('Joining %r' % name)
@@ -627,7 +627,10 @@ class Autoreloader(Monitor):
 
     def sysfiles(self):
         """Return a Set of sys.modules filenames to monitor."""
-        search_mod_names = filter(re.compile(self.match).match, sys.modules)
+        search_mod_names = filter(
+            re.compile(self.match).match,
+            list(sys.modules.keys()),
+        )
         mods = map(sys.modules.get, search_mod_names)
         return set(filter(None, map(self._file_for_module, mods)))
 
@@ -690,7 +693,7 @@ class Autoreloader(Monitor):
                                      filename)
                         self.thread.cancel()
                         self.bus.log('Stopped thread %r.' %
-                                     self.thread.getName())
+                                     self.thread.name)
                         self.bus.restart()
                         return
 

@@ -22,8 +22,8 @@ from pytz.tzfile import build_tzinfo
 
 
 # The IANA (nee Olson) database is updated several times a year.
-OLSON_VERSION = '2019c'
-VERSION = '2019.3'  # pip compatible version number.
+OLSON_VERSION = '2022g'
+VERSION = '2022.7.1'  # pip compatible version number.
 __version__ = VERSION
 
 OLSEN_VERSION = OLSON_VERSION  # Old releases had this misspelling
@@ -34,7 +34,7 @@ __all__ = [
     'NonExistentTimeError', 'UnknownTimeZoneError',
     'all_timezones', 'all_timezones_set',
     'common_timezones', 'common_timezones_set',
-    'BaseTzInfo',
+    'BaseTzInfo', 'FixedOffset',
 ]
 
 
@@ -86,7 +86,7 @@ def open_resource(name):
     """
     name_parts = name.lstrip('/').split('/')
     for part in name_parts:
-        if part == os.path.pardir or os.path.sep in part:
+        if part == os.path.pardir or os.sep in part:
             raise ValueError('Bad path segment: %r' % part)
     zoneinfo_dir = os.environ.get('PYTZ_TZDATADIR', None)
     if zoneinfo_dir is not None:
@@ -111,6 +111,13 @@ def open_resource(name):
 def resource_exists(name):
     """Return true if the given resource exists"""
     try:
+        if os.environ.get('PYTZ_SKIPEXISTSCHECK', ''):
+            # In "standard" distributions, we can assume that
+            # all the listed timezones are present. As an
+            # import-speed optimization, you can set the
+            # PYTZ_SKIPEXISTSCHECK flag to skip checking
+            # for the presence of the resource file on disk.
+            return True
         open_resource(name).close()
         return True
     except IOError:
@@ -195,7 +202,7 @@ def _case_insensitive_zone_lookup(zone):
     """case-insensitively matching timezone, else return zone unchanged"""
     global _all_timezones_lower_to_standard
     if _all_timezones_lower_to_standard is None:
-        _all_timezones_lower_to_standard = dict((tz.lower(), tz) for tz in all_timezones)  # noqa
+        _all_timezones_lower_to_standard = dict((tz.lower(), tz) for tz in _all_timezones_unchecked)  # noqa
     return _all_timezones_lower_to_standard.get(zone.lower()) or zone  # noqa
 
 
@@ -263,8 +270,8 @@ def _UTC():
     module global.
 
     These examples belong in the UTC class above, but it is obscured; or in
-    the README.txt, but we are not depending on Python 2.4 so integrating
-    the README.txt examples with the unit tests is not trivial.
+    the README.rst, but we are not depending on Python 2.4 so integrating
+    the README.rst examples with the unit tests is not trivial.
 
     >>> import datetime, pickle
     >>> dt = datetime.datetime(2005, 3, 1, 14, 13, 21, tzinfo=utc)
@@ -507,7 +514,7 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-all_timezones = \
+_all_timezones_unchecked = \
 ['Africa/Abidjan',
  'Africa/Accra',
  'Africa/Addis_Ababa',
@@ -603,6 +610,7 @@ all_timezones = \
  'America/Cayman',
  'America/Chicago',
  'America/Chihuahua',
+ 'America/Ciudad_Juarez',
  'America/Coral_Harbour',
  'America/Cordoba',
  'America/Costa_Rica',
@@ -683,6 +691,7 @@ all_timezones = \
  'America/North_Dakota/Beulah',
  'America/North_Dakota/Center',
  'America/North_Dakota/New_Salem',
+ 'America/Nuuk',
  'America/Ojinaga',
  'America/Panama',
  'America/Pangnirtung',
@@ -956,6 +965,7 @@ all_timezones = \
  'Europe/Kaliningrad',
  'Europe/Kiev',
  'Europe/Kirov',
+ 'Europe/Kyiv',
  'Europe/Lisbon',
  'Europe/Ljubljana',
  'Europe/London',
@@ -1050,6 +1060,7 @@ all_timezones = \
  'Pacific/Guam',
  'Pacific/Honolulu',
  'Pacific/Johnston',
+ 'Pacific/Kanton',
  'Pacific/Kiritimati',
  'Pacific/Kosrae',
  'Pacific/Kwajalein',
@@ -1101,7 +1112,7 @@ all_timezones = \
  'WET',
  'Zulu']
 all_timezones = LazyList(
-        tz for tz in all_timezones if resource_exists(tz))
+        tz for tz in _all_timezones_unchecked if resource_exists(tz))
         
 all_timezones_set = LazySet(all_timezones)
 common_timezones = \
@@ -1194,6 +1205,7 @@ common_timezones = \
  'America/Cayman',
  'America/Chicago',
  'America/Chihuahua',
+ 'America/Ciudad_Juarez',
  'America/Costa_Rica',
  'America/Creston',
  'America/Cuiaba',
@@ -1210,7 +1222,6 @@ common_timezones = \
  'America/Fort_Nelson',
  'America/Fortaleza',
  'America/Glace_Bay',
- 'America/Godthab',
  'America/Goose_Bay',
  'America/Grand_Turk',
  'America/Grenada',
@@ -1258,15 +1269,14 @@ common_timezones = \
  'America/Montserrat',
  'America/Nassau',
  'America/New_York',
- 'America/Nipigon',
  'America/Nome',
  'America/Noronha',
  'America/North_Dakota/Beulah',
  'America/North_Dakota/Center',
  'America/North_Dakota/New_Salem',
+ 'America/Nuuk',
  'America/Ojinaga',
  'America/Panama',
- 'America/Pangnirtung',
  'America/Paramaribo',
  'America/Phoenix',
  'America/Port-au-Prince',
@@ -1274,7 +1284,6 @@ common_timezones = \
  'America/Porto_Velho',
  'America/Puerto_Rico',
  'America/Punta_Arenas',
- 'America/Rainy_River',
  'America/Rankin_Inlet',
  'America/Recife',
  'America/Regina',
@@ -1295,7 +1304,6 @@ common_timezones = \
  'America/Swift_Current',
  'America/Tegucigalpa',
  'America/Thule',
- 'America/Thunder_Bay',
  'America/Tijuana',
  'America/Toronto',
  'America/Tortola',
@@ -1412,7 +1420,6 @@ common_timezones = \
  'Australia/Adelaide',
  'Australia/Brisbane',
  'Australia/Broken_Hill',
- 'Australia/Currie',
  'Australia/Darwin',
  'Australia/Eucla',
  'Australia/Hobart',
@@ -1448,8 +1455,8 @@ common_timezones = \
  'Europe/Istanbul',
  'Europe/Jersey',
  'Europe/Kaliningrad',
- 'Europe/Kiev',
  'Europe/Kirov',
+ 'Europe/Kyiv',
  'Europe/Lisbon',
  'Europe/Ljubljana',
  'Europe/London',
@@ -1477,7 +1484,6 @@ common_timezones = \
  'Europe/Tallinn',
  'Europe/Tirane',
  'Europe/Ulyanovsk',
- 'Europe/Uzhgorod',
  'Europe/Vaduz',
  'Europe/Vatican',
  'Europe/Vienna',
@@ -1485,7 +1491,6 @@ common_timezones = \
  'Europe/Volgograd',
  'Europe/Warsaw',
  'Europe/Zagreb',
- 'Europe/Zaporozhye',
  'Europe/Zurich',
  'GMT',
  'Indian/Antananarivo',
@@ -1506,7 +1511,6 @@ common_timezones = \
  'Pacific/Chuuk',
  'Pacific/Easter',
  'Pacific/Efate',
- 'Pacific/Enderbury',
  'Pacific/Fakaofo',
  'Pacific/Fiji',
  'Pacific/Funafuti',
@@ -1515,6 +1519,7 @@ common_timezones = \
  'Pacific/Guadalcanal',
  'Pacific/Guam',
  'Pacific/Honolulu',
+ 'Pacific/Kanton',
  'Pacific/Kiritimati',
  'Pacific/Kosrae',
  'Pacific/Kwajalein',

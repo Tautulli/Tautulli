@@ -1,4 +1,6 @@
-# Copyright (C) 2001-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+# Copyright (C) 2001-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -15,15 +17,14 @@
 
 """Help for building DNS wire format messages"""
 
-from io import BytesIO
+import contextlib
+import io
 import struct
 import random
 import time
-import sys
 
 import dns.exception
 import dns.tsig
-from ._compat import long
 
 
 QUESTION = 0
@@ -32,8 +33,7 @@ AUTHORITY = 2
 ADDITIONAL = 3
 
 
-class Renderer(object):
-
+class Renderer:
     """Helper class for building DNS wire-format messages.
 
     Most applications can use the higher-level L{dns.message.Message}
@@ -48,50 +48,40 @@ class Renderer(object):
         r.add_rrset(dns.renderer.ANSWER, rrset_1)
         r.add_rrset(dns.renderer.ANSWER, rrset_2)
         r.add_rrset(dns.renderer.AUTHORITY, ns_rrset)
+        r.add_rrset(dns.renderer.ADDITIONAL, ad_rrset_1)
+        r.add_rrset(dns.renderer.ADDITIONAL, ad_rrset_2)
         r.add_edns(0, 0, 4096)
-        r.add_rrset(dns.renderer.ADDTIONAL, ad_rrset_1)
-        r.add_rrset(dns.renderer.ADDTIONAL, ad_rrset_2)
         r.write_header()
         r.add_tsig(keyname, secret, 300, 1, 0, '', request_mac)
         wire = r.get_wire()
 
-    @ivar output: where rendering is written
-    @type output: BytesIO object
-    @ivar id: the message id
-    @type id: int
-    @ivar flags: the message flags
-    @type flags: int
-    @ivar max_size: the maximum size of the message
-    @type max_size: int
-    @ivar origin: the origin to use when rendering relative names
-    @type origin: dns.name.Name object
-    @ivar compress: the compression table
-    @type compress: dict
-    @ivar section: the section currently being rendered
-    @type section: int (dns.renderer.QUESTION, dns.renderer.ANSWER,
-    dns.renderer.AUTHORITY, or dns.renderer.ADDITIONAL)
-    @ivar counts: list of the number of RRs in each section
-    @type counts: int list of length 4
-    @ivar mac: the MAC of the rendered message (if TSIG was used)
-    @type mac: string
+    If padding is going to be used, then the OPT record MUST be
+    written after everything else in the additional section except for
+    the TSIG (if any).
+
+    output, an io.BytesIO, where rendering is written
+
+    id: the message id
+
+    flags: the message flags
+
+    max_size: the maximum size of the message
+
+    origin: the origin to use when rendering relative names
+
+    compress: the compression table
+
+    section: an int, the section currently being rendered
+
+    counts: list of the number of RRs in each section
+
+    mac: the MAC of the rendered message (if TSIG was used)
     """
 
     def __init__(self, id=None, flags=0, max_size=65535, origin=None):
-        """Initialize a new renderer.
+        """Initialize a new renderer."""
 
-        @param id: the message id
-        @type id: int
-        @param flags: the DNS message flags
-        @type flags: int
-        @param max_size: the maximum message size; the default is 65535.
-        If rendering results in a message greater than I{max_size},
-        then L{dns.exception.TooBig} will be raised.
-        @type max_size: int
-        @param origin: the origin to use when rendering relative names
-        @type origin: dns.name.Name or None.
-        """
-
-        self.output = BytesIO()
+        self.output = io.BytesIO()
         if id is None:
             self.id = random.randint(0, 65535)
         else:
@@ -102,16 +92,15 @@ class Renderer(object):
         self.compress = {}
         self.section = QUESTION
         self.counts = [0, 0, 0, 0]
-        self.output.write(b'\x00' * 12)
-        self.mac = ''
+        self.output.write(b"\x00" * 12)
+        self.mac = ""
+        self.reserved = 0
+        self.was_padded = False
 
     def _rollback(self, where):
-        """Truncate the output buffer at offset I{where}, and remove any
+        """Truncate the output buffer at offset *where*, and remove any
         compression table entries that pointed beyond the truncation
         point.
-
-        @param where: the offset
-        @type where: int
         """
 
         self.output.seek(where)
@@ -129,9 +118,7 @@ class Renderer(object):
         Sections must be rendered order: QUESTION, ANSWER, AUTHORITY,
         ADDITIONAL.  Sections may be empty.
 
-        @param section: the section
-        @type section: int
-        @raises dns.exception.FormError: an attempt was made to set
+        Raises dns.exception.FormError if an attempt was made to set
         a section value less than the current section.
         """
 
@@ -140,25 +127,21 @@ class Renderer(object):
                 raise dns.exception.FormError
             self.section = section
 
-    def add_question(self, qname, rdtype, rdclass=dns.rdataclass.IN):
-        """Add a question to the message.
+    @contextlib.contextmanager
+    def _track_size(self):
+        start = self.output.tell()
+        yield start
+        if self.output.tell() > self.max_size:
+            self._rollback(start)
+            raise dns.exception.TooBig
 
-        @param qname: the question name
-        @type qname: dns.name.Name
-        @param rdtype: the question rdata type
-        @type rdtype: int
-        @param rdclass: the question rdata class
-        @type rdclass: int
-        """
+    def add_question(self, qname, rdtype, rdclass=dns.rdataclass.IN):
+        """Add a question to the message."""
 
         self._set_section(QUESTION)
-        before = self.output.tell()
-        qname.to_wire(self.output, self.compress, self.origin)
-        self.output.write(struct.pack("!HH", rdtype, rdclass))
-        after = self.output.tell()
-        if after >= self.max_size:
-            self._rollback(before)
-            raise dns.exception.TooBig
+        with self._track_size():
+            qname.to_wire(self.output, self.compress, self.origin)
+            self.output.write(struct.pack("!HH", rdtype, rdclass))
         self.counts[QUESTION] += 1
 
     def add_rrset(self, section, rrset, **kw):
@@ -166,20 +149,11 @@ class Renderer(object):
 
         Any keyword arguments are passed on to the rdataset's to_wire()
         routine.
-
-        @param section: the section
-        @type section: int
-        @param rrset: the rrset
-        @type rrset: dns.rrset.RRset object
         """
 
         self._set_section(section)
-        before = self.output.tell()
-        n = rrset.to_wire(self.output, self.compress, self.origin, **kw)
-        after = self.output.tell()
-        if after >= self.max_size:
-            self._rollback(before)
-            raise dns.exception.TooBig
+        with self._track_size():
+            n = rrset.to_wire(self.output, self.compress, self.origin, **kw)
         self.counts[section] += n
 
     def add_rdataset(self, section, name, rdataset, **kw):
@@ -188,124 +162,126 @@ class Renderer(object):
 
         Any keyword arguments are passed on to the rdataset's to_wire()
         routine.
-
-        @param section: the section
-        @type section: int
-        @param name: the owner name
-        @type name: dns.name.Name object
-        @param rdataset: the rdataset
-        @type rdataset: dns.rdataset.Rdataset object
         """
 
         self._set_section(section)
-        before = self.output.tell()
-        n = rdataset.to_wire(name, self.output, self.compress, self.origin,
-                             **kw)
-        after = self.output.tell()
-        if after >= self.max_size:
-            self._rollback(before)
-            raise dns.exception.TooBig
+        with self._track_size():
+            n = rdataset.to_wire(name, self.output, self.compress, self.origin, **kw)
         self.counts[section] += n
 
-    def add_edns(self, edns, ednsflags, payload, options=None):
-        """Add an EDNS OPT record to the message.
+    def add_opt(self, opt, pad=0, opt_size=0, tsig_size=0):
+        """Add *opt* to the additional section, applying padding if desired.  The
+        padding will take the specified precomputed OPT size and TSIG size into
+        account.
 
-        @param edns: The EDNS level to use.
-        @type edns: int
-        @param ednsflags: EDNS flag values.
-        @type ednsflags: int
-        @param payload: The EDNS sender's payload field, which is the maximum
-        size of UDP datagram the sender can handle.
-        @type payload: int
-        @param options: The EDNS options list
-        @type options: list of dns.edns.Option instances
-        @see: RFC 2671
-        """
+        Note that we don't have reliable way of knowing how big a GSS-TSIG digest
+        might be, so we we might not get an even multiple of the pad in that case."""
+        if pad:
+            ttl = opt.ttl
+            assert opt_size >= 11
+            opt_rdata = opt[0]
+            size_without_padding = self.output.tell() + opt_size + tsig_size
+            remainder = size_without_padding % pad
+            if remainder:
+                pad = b"\x00" * (pad - remainder)
+            else:
+                pad = b""
+            options = list(opt_rdata.options)
+            options.append(dns.edns.GenericOption(dns.edns.OptionType.PADDING, pad))
+            opt = dns.message.Message._make_opt(ttl, opt_rdata.rdclass, options)
+            self.was_padded = True
+        self.add_rrset(ADDITIONAL, opt)
+
+    def add_edns(self, edns, ednsflags, payload, options=None):
+        """Add an EDNS OPT record to the message."""
 
         # make sure the EDNS version in ednsflags agrees with edns
-        ednsflags &= long(0xFF00FFFF)
-        ednsflags |= (edns << 16)
-        self._set_section(ADDITIONAL)
-        before = self.output.tell()
-        self.output.write(struct.pack('!BHHIH', 0, dns.rdatatype.OPT, payload,
-                                      ednsflags, 0))
-        if options is not None:
-            lstart = self.output.tell()
-            for opt in options:
-                stuff = struct.pack("!HH", opt.otype, 0)
-                self.output.write(stuff)
-                start = self.output.tell()
-                opt.to_wire(self.output)
-                end = self.output.tell()
-                assert end - start < 65536
-                self.output.seek(start - 2)
-                stuff = struct.pack("!H", end - start)
-                self.output.write(stuff)
-                self.output.seek(0, 2)
-            lend = self.output.tell()
-            assert lend - lstart < 65536
-            self.output.seek(lstart - 2)
-            stuff = struct.pack("!H", lend - lstart)
-            self.output.write(stuff)
-            self.output.seek(0, 2)
-        after = self.output.tell()
-        if after >= self.max_size:
-            self._rollback(before)
-            raise dns.exception.TooBig
-        self.counts[ADDITIONAL] += 1
+        ednsflags &= 0xFF00FFFF
+        ednsflags |= edns << 16
+        opt = dns.message.Message._make_opt(ednsflags, payload, options)
+        self.add_opt(opt)
 
-    def add_tsig(self, keyname, secret, fudge, id, tsig_error, other_data,
-                 request_mac, algorithm=dns.tsig.default_algorithm):
-        """Add a TSIG signature to the message.
+    def add_tsig(
+        self,
+        keyname,
+        secret,
+        fudge,
+        id,
+        tsig_error,
+        other_data,
+        request_mac,
+        algorithm=dns.tsig.default_algorithm,
+    ):
+        """Add a TSIG signature to the message."""
 
-        @param keyname: the TSIG key name
-        @type keyname: dns.name.Name object
-        @param secret: the secret to use
-        @type secret: string
-        @param fudge: TSIG time fudge
-        @type fudge: int
-        @param id: the message id to encode in the tsig signature
-        @type id: int
-        @param tsig_error: TSIG error code; default is 0.
-        @type tsig_error: int
-        @param other_data: TSIG other data.
-        @type other_data: string
-        @param request_mac: This message is a response to the request which
-        had the specified MAC.
-        @type request_mac: string
-        @param algorithm: the TSIG algorithm to use
-        @type algorithm: dns.name.Name object
-        """
-
-        self._set_section(ADDITIONAL)
-        before = self.output.tell()
         s = self.output.getvalue()
-        (tsig_rdata, self.mac, ctx) = dns.tsig.sign(s,
-                                                    keyname,
-                                                    secret,
-                                                    int(time.time()),
-                                                    fudge,
-                                                    id,
-                                                    tsig_error,
-                                                    other_data,
-                                                    request_mac,
-                                                    algorithm=algorithm)
-        keyname.to_wire(self.output, self.compress, self.origin)
-        self.output.write(struct.pack('!HHIH', dns.rdatatype.TSIG,
-                                      dns.rdataclass.ANY, 0, 0))
-        rdata_start = self.output.tell()
-        self.output.write(tsig_rdata)
+
+        if isinstance(secret, dns.tsig.Key):
+            key = secret
+        else:
+            key = dns.tsig.Key(keyname, secret, algorithm)
+        tsig = dns.message.Message._make_tsig(
+            keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
+        )
+        (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()), request_mac)
+        self._write_tsig(tsig, keyname)
+
+    def add_multi_tsig(
+        self,
+        ctx,
+        keyname,
+        secret,
+        fudge,
+        id,
+        tsig_error,
+        other_data,
+        request_mac,
+        algorithm=dns.tsig.default_algorithm,
+    ):
+        """Add a TSIG signature to the message. Unlike add_tsig(), this can be
+        used for a series of consecutive DNS envelopes, e.g. for a zone
+        transfer over TCP [RFC2845, 4.4].
+
+        For the first message in the sequence, give ctx=None. For each
+        subsequent message, give the ctx that was returned from the
+        add_multi_tsig() call for the previous message."""
+
+        s = self.output.getvalue()
+
+        if isinstance(secret, dns.tsig.Key):
+            key = secret
+        else:
+            key = dns.tsig.Key(keyname, secret, algorithm)
+        tsig = dns.message.Message._make_tsig(
+            keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
+        )
+        (tsig, ctx) = dns.tsig.sign(
+            s, key, tsig[0], int(time.time()), request_mac, ctx, True
+        )
+        self._write_tsig(tsig, keyname)
+        return ctx
+
+    def _write_tsig(self, tsig, keyname):
+        if self.was_padded:
+            compress = None
+        else:
+            compress = self.compress
+        self._set_section(ADDITIONAL)
+        with self._track_size():
+            keyname.to_wire(self.output, compress, self.origin)
+            self.output.write(
+                struct.pack("!HHIH", dns.rdatatype.TSIG, dns.rdataclass.ANY, 0, 0)
+            )
+            rdata_start = self.output.tell()
+            tsig.to_wire(self.output)
+
         after = self.output.tell()
-        assert after - rdata_start < 65536
-        if after >= self.max_size:
-            self._rollback(before)
-            raise dns.exception.TooBig
         self.output.seek(rdata_start - 2)
-        self.output.write(struct.pack('!H', after - rdata_start))
+        self.output.write(struct.pack("!H", after - rdata_start))
         self.counts[ADDITIONAL] += 1
         self.output.seek(10)
-        self.output.write(struct.pack('!H', self.counts[ADDITIONAL]))
-        self.output.seek(0, 2)
+        self.output.write(struct.pack("!H", self.counts[ADDITIONAL]))
+        self.output.seek(0, io.SEEK_END)
 
     def write_header(self):
         """Write the DNS message header.
@@ -316,15 +292,34 @@ class Renderer(object):
         """
 
         self.output.seek(0)
-        self.output.write(struct.pack('!HHHHHH', self.id, self.flags,
-                                      self.counts[0], self.counts[1],
-                                      self.counts[2], self.counts[3]))
-        self.output.seek(0, 2)
+        self.output.write(
+            struct.pack(
+                "!HHHHHH",
+                self.id,
+                self.flags,
+                self.counts[0],
+                self.counts[1],
+                self.counts[2],
+                self.counts[3],
+            )
+        )
+        self.output.seek(0, io.SEEK_END)
 
     def get_wire(self):
-        """Return the wire format message.
-
-        @rtype: string
-        """
+        """Return the wire format message."""
 
         return self.output.getvalue()
+
+    def reserve(self, size: int) -> None:
+        """Reserve *size* bytes."""
+        if size < 0:
+            raise ValueError("reserved amount must be non-negative")
+        if size > self.max_size:
+            raise ValueError("cannot reserve more than the maximum size")
+        self.reserved += size
+        self.max_size -= size
+
+    def release_reserved(self) -> None:
+        """Release the reserved bytes."""
+        self.max_size += self.reserved
+        self.reserved = 0

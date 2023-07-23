@@ -289,32 +289,33 @@ class API2(object):
                      }
             ```
         """
-
         interface_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/')
         interface_list = [name for name in os.listdir(interface_dir) if
                           os.path.isdir(os.path.join(interface_dir, name))]
 
         conf = plexpy.CONFIG._config
-        config = {}
+        settings = {}
 
         # Truthify the dict
         for k, v in conf.items():
             if isinstance(v, dict):
                 d = {}
                 for kk, vv in v.items():
+                    if kk.upper() in config._DO_NOT_DOWNLOAD_KEYS:
+                        vv = None
                     if vv == '0' or vv == '1':
                         d[kk] = bool(vv)
                     else:
                         d[kk] = vv
-                config[k] = d
+                settings[k] = d
             if k == 'General':
-                config[k]['interface'] = interface_dir
-                config[k]['interface_list'] = interface_list
+                settings[k]['interface'] = interface_dir
+                settings[k]['interface_list'] = interface_list
 
         if key:
-            return config.get(key)
+            return settings.get(key)
 
-        return config
+        return settings
 
     def sql(self, query=''):
         """ Query the Tautulli database with raw SQL. Automatically makes a backup of
@@ -504,7 +505,8 @@ class API2(object):
                 script_args (str):      The arguments for script notifications
 
             Returns:
-                None
+                json:
+                    {"notification_id": 1}
             ```
         """
         if not notifier_id:
@@ -526,14 +528,14 @@ class API2(object):
                                               body=body,
                                               **kwargs)
 
-        if success:
+        if isinstance(success, int):
             self._api_msg = 'Notification sent.'
             self._api_result_type = 'success'
+            return {'notification_id': success}
         else:
             self._api_msg = 'Notification failed.'
             self._api_result_type = 'error'
-
-        return
+            return
 
     def notify_newsletter(self, newsletter_id='', subject='', body='', message='', **kwargs):
         """ Send a newsletter using Tautulli.
@@ -548,7 +550,8 @@ class API2(object):
                 message (str):          The message of the newsletter
 
             Returns:
-                None
+                json:
+                    {"newsletter_notification_id": 1}
             ```
         """
         if not newsletter_id:
@@ -571,14 +574,14 @@ class API2(object):
                                             message=message,
                                             **kwargs)
 
-        if success:
+        if isinstance(success, int):
             self._api_msg = 'Newsletter sent.'
             self._api_result_type = 'success'
+            return {'newsletter_notification_id': success}
         else:
             self._api_msg = 'Newsletter failed.'
             self._api_result_type = 'error'
-
-        return
+            return
 
     def _api_make_md(self):
         """ Tries to make a API.md to simplify the api docs. """
@@ -823,7 +826,7 @@ General optional parameters:
 
         if self._api_result_type == 'success' and not self._api_response_code:
             self._api_response_code = 200
-        elif self._api_result_type == 'error' and not self._api_response_code:
+        elif self._api_result_type == 'error' and self._api_response_code != 500:
             self._api_response_code = 400
 
         if not self._api_response_code:

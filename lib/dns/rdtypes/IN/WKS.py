@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -17,48 +19,46 @@ import socket
 import struct
 
 import dns.ipv4
+import dns.immutable
 import dns.rdata
-from dns._compat import xrange
 
-_proto_tcp = socket.getprotobyname('tcp')
-_proto_udp = socket.getprotobyname('udp')
+try:
+    _proto_tcp = socket.getprotobyname("tcp")
+    _proto_udp = socket.getprotobyname("udp")
+except OSError:
+    # Fall back to defaults in case /etc/protocols is unavailable.
+    _proto_tcp = 6
+    _proto_udp = 17
 
 
+@dns.immutable.immutable
 class WKS(dns.rdata.Rdata):
 
-    """WKS record
+    """WKS record"""
 
-    @ivar address: the address
-    @type address: string
-    @ivar protocol: the protocol
-    @type protocol: int
-    @ivar bitmap: the bitmap
-    @type bitmap: string
-    @see: RFC 1035"""
+    # see: RFC 1035
 
-    __slots__ = ['address', 'protocol', 'bitmap']
+    __slots__ = ["address", "protocol", "bitmap"]
 
     def __init__(self, rdclass, rdtype, address, protocol, bitmap):
-        super(WKS, self).__init__(rdclass, rdtype)
-        self.address = address
-        self.protocol = protocol
-        if not isinstance(bitmap, bytearray):
-            self.bitmap = bytearray(bitmap)
-        else:
-            self.bitmap = bitmap
+        super().__init__(rdclass, rdtype)
+        self.address = self._as_ipv4_address(address)
+        self.protocol = self._as_uint8(protocol)
+        self.bitmap = self._as_bytes(bitmap)
 
     def to_text(self, origin=None, relativize=True, **kw):
         bits = []
-        for i in xrange(0, len(self.bitmap)):
-            byte = self.bitmap[i]
-            for j in xrange(0, 8):
+        for i, byte in enumerate(self.bitmap):
+            for j in range(0, 8):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
-        text = ' '.join(bits)
-        return '%s %d %s' % (self.address, self.protocol, text)
+        text = " ".join(bits)
+        return "%s %d %s" % (self.address, self.protocol, text)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
         address = tok.get_string()
         protocol = tok.get_string()
         if protocol.isdigit():
@@ -66,12 +66,10 @@ class WKS(dns.rdata.Rdata):
         else:
             protocol = socket.getprotobyname(protocol)
         bitmap = bytearray()
-        while 1:
-            token = tok.get().unescape()
-            if token.is_eol_or_eof():
-                break
-            if token.value.isdigit():
-                serv = int(token.value)
+        for token in tok.get_remaining():
+            value = token.unescape().value
+            if value.isdigit():
+                serv = int(value)
             else:
                 if protocol != _proto_udp and protocol != _proto_tcp:
                     raise NotImplementedError("protocol must be TCP or UDP")
@@ -79,28 +77,25 @@ class WKS(dns.rdata.Rdata):
                     protocol_text = "udp"
                 else:
                     protocol_text = "tcp"
-                serv = socket.getservbyname(token.value, protocol_text)
+                serv = socket.getservbyname(value, protocol_text)
             i = serv // 8
             l = len(bitmap)
             if l < i + 1:
-                for j in xrange(l, i + 1):
+                for _ in range(l, i + 1):
                     bitmap.append(0)
             bitmap[i] = bitmap[i] | (0x80 >> (serv % 8))
         bitmap = dns.rdata._truncate_bitmap(bitmap)
         return cls(rdclass, rdtype, address, protocol, bitmap)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(dns.ipv4.inet_aton(self.address))
-        protocol = struct.pack('!B', self.protocol)
+        protocol = struct.pack("!B", self.protocol)
         file.write(protocol)
         file.write(self.bitmap)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        address = dns.ipv4.inet_ntoa(wire[current: current + 4])
-        protocol, = struct.unpack('!B', wire[current + 4: current + 5])
-        current += 5
-        rdlen -= 5
-        bitmap = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        address = parser.get_bytes(4)
+        protocol = parser.get_uint8()
+        bitmap = parser.get_remaining()
         return cls(rdclass, rdtype, address, protocol, bitmap)
-

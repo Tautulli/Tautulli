@@ -1,20 +1,17 @@
-"""self-explanatory."""
+"""Tests for :py:mod:`cheroot.makefile`."""
 
 from cheroot import makefile
 
 
-__metaclass__ = type
-
-
 class MockSocket:
-    """Mocks a socket."""
+    """A mock socket."""
 
     def __init__(self):
-        """Initialize."""
+        """Initialize :py:class:`MockSocket`."""
         self.messages = []
 
     def recv_into(self, buf):
-        """Simulate recv_into for Python 3."""
+        """Simulate ``recv_into`` for Python 3."""
         if not self.messages:
             return 0
         msg = self.messages.pop(0)
@@ -23,7 +20,7 @@ class MockSocket:
         return len(msg)
 
     def recv(self, size):
-        """Simulate recv for Python 2."""
+        """Simulate ``recv`` for Python 2."""
         try:
             return self.messages.pop(0)
         except IndexError:
@@ -44,7 +41,7 @@ def test_bytes_read():
 
 
 def test_bytes_written():
-    """Writer should capture bytes writtten."""
+    """Writer should capture bytes written."""
     sock = MockSocket()
     sock.messages.append(b'foo')
     wfile = makefile.MakeFile(sock, 'w')

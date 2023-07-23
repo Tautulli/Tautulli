@@ -304,27 +304,27 @@ def import_from_plexivity(database_file=None, table_name=None, import_ignore_int
         logger.debug("Tautulli Importer :: Unable to refresh the users list. Aborting import.")
         return None
 
-    query = 'SELECT id AS id, ' \
-            'time AS started, ' \
-            'stopped, ' \
-            'null AS user_id, ' \
-            'user, ' \
-            'ip_address, ' \
-            'paused_counter, ' \
-            'platform AS player, ' \
-            'null AS platform, ' \
-            'null as machine_id, ' \
-            'null AS media_type, ' \
-            'null AS view_offset, ' \
-            'xml, ' \
-            'rating as content_rating,' \
-            'summary,' \
-            'title AS full_title,' \
-            '(case when orig_title_ep = "n/a" then orig_title else ' \
-            'orig_title_ep end) as title,' \
-            '(case when orig_title_ep != "n/a" then orig_title else ' \
-            'null end) as grandparent_title ' \
-            'FROM ' + table_name + ' ORDER BY id'
+    query = "SELECT id AS id, " \
+            "time AS started, " \
+            "stopped, " \
+            "null AS user_id, " \
+            "user, " \
+            "ip_address, " \
+            "paused_counter, " \
+            "platform AS player, " \
+            "null AS platform, " \
+            "null as machine_id, " \
+            "null AS media_type, " \
+            "null AS view_offset, " \
+            "xml, " \
+            "rating as content_rating," \
+            "summary," \
+            "title AS full_title," \
+            "(case when orig_title_ep = 'n/a' then orig_title else " \
+            "orig_title_ep end) as title," \
+            "(case when orig_title_ep != 'n/a' then orig_title else " \
+            "null end) as grandparent_title " \
+            "FROM " + table_name + " ORDER BY id"
 
     result = connection.execute(query)
 
@@ -349,8 +349,8 @@ def import_from_plexivity(database_file=None, table_name=None, import_ignore_int
         else:
             user_id = extracted_xml['user_id']
 
-        session_history = {'started': arrow.get(row['started']).timestamp,
-                           'stopped': arrow.get(row['stopped']).timestamp,
+        session_history = {'started': arrow.get(row['started']).timestamp(),
+                           'stopped': arrow.get(row['stopped']).timestamp(),
                            'rating_key': extracted_xml['rating_key'],
                            'title': row['title'],
                            'parent_title': extracted_xml['parent_title'],
@@ -456,9 +456,9 @@ def import_users():
     logger.debug("Tautulli Importer :: Importing Plexivity Users...")
     monitor_db = database.MonitorDatabase()
 
-    query = 'INSERT OR IGNORE INTO users (user_id, username) ' \
-            'SELECT user_id, user ' \
-            'FROM session_history WHERE user_id != 1 GROUP BY user_id'
+    query = "INSERT OR IGNORE INTO users (user_id, username) " \
+            "SELECT user_id, user " \
+            "FROM session_history WHERE user_id != 1 GROUP BY user_id"
 
     try:
         monitor_db.action(query)

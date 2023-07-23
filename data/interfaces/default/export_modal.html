@@ -226,7 +226,7 @@ DOCUMENTATION :: END
     getExportFields();
 
     $('#export_file_format').on('change', function() {
-        if ($(this).val() === 'm3u8') {
+        if ($(this).val() === 'm3u') {
             $('#export_metadata_level').prop('disabled', true);
             $('#export_media_info_level').prop('disabled', true);
             $("#export_thumb_level").prop('disabled', true);

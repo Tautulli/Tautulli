@@ -160,6 +160,9 @@ def build_custom_where(custom_where=[]):
                 elif str(w_).startswith('LIKE '):
                     c_where += w[0] + ' LIKE ?'
                     args.append(w_[5:])
+                elif w[0].endswith('<') or w[0].endswith('>'):
+                    c_where += w[0] + '= ?'
+                    args.append(w_)
                 else:
                     c_where += w[0] + ' = ?'
                     args.append(w_)
@@ -171,6 +174,9 @@ def build_custom_where(custom_where=[]):
             elif str(w[1]).startswith('LIKE '):
                 c_where += w[0] + ' LIKE ?'
                 args.append(w[1][5:])
+            elif w[0].endswith('<') or w[0].endswith('>'):
+                c_where += w[0] + '= ?'
+                args.append(w[1])
             else:
                 c_where += w[0] + ' = ?'
                 args.append(w[1])

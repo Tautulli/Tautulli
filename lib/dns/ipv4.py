@@ -1,4 +1,6 @@
-# Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+# Copyright (C) 2003-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -15,45 +17,49 @@
 
 """IPv4 helper functions."""
 
+from typing import Union
+
 import struct
 
 import dns.exception
-from ._compat import binary_type
 
-def inet_ntoa(address):
-    """Convert an IPv4 address in network form to text form.
 
-    @param address: The IPv4 address
-    @type address: string
-    @returns: string
+def inet_ntoa(address: bytes) -> str:
+    """Convert an IPv4 address in binary form to text form.
+
+    *address*, a ``bytes``, the IPv4 address in binary form.
+
+    Returns a ``str``.
     """
+
     if len(address) != 4:
         raise dns.exception.SyntaxError
-    if not isinstance(address, bytearray):
-        address = bytearray(address)
-    return (u'%u.%u.%u.%u' % (address[0], address[1],
-                              address[2], address[3])).encode()
+    return "%u.%u.%u.%u" % (address[0], address[1], address[2], address[3])
 
-def inet_aton(text):
-    """Convert an IPv4 address in text form to network form.
 
-    @param text: The IPv4 address
-    @type text: string
-    @returns: string
+def inet_aton(text: Union[str, bytes]) -> bytes:
+    """Convert an IPv4 address in text form to binary form.
+
+    *text*, a ``str`` or ``bytes``, the IPv4 address in textual form.
+
+    Returns a ``bytes``.
     """
-    if not isinstance(text, binary_type):
-        text = text.encode()
-    parts = text.split(b'.')
+
+    if not isinstance(text, bytes):
+        btext = text.encode()
+    else:
+        btext = text
+    parts = btext.split(b".")
     if len(parts) != 4:
         raise dns.exception.SyntaxError
     for part in parts:
         if not part.isdigit():
             raise dns.exception.SyntaxError
-        if len(part) > 1 and part[0] == '0':
+        if len(part) > 1 and part[0] == ord("0"):
             # No leading zeros
             raise dns.exception.SyntaxError
     try:
-        bytes = [int(part) for part in parts]
-        return struct.pack('BBBB', *bytes)
-    except:
+        b = [int(part) for part in parts]
+        return struct.pack("BBBB", *b)
+    except Exception:
         raise dns.exception.SyntaxError

@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2006, 2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -14,10 +16,12 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import dns.rdtypes.txtbase
+import dns.immutable
 
 
+@dns.immutable.immutable
 class SPF(dns.rdtypes.txtbase.TXTBase):
 
-    """SPF record
+    """SPF record"""
 
-    @see: RFC 4408"""
+    # see: RFC 4408

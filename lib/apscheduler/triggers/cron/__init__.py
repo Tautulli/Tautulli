@@ -6,7 +6,8 @@ import six
 from apscheduler.triggers.base import BaseTrigger
 from apscheduler.triggers.cron.fields import (
     BaseField, MonthField, WeekField, DayOfMonthField, DayOfWeekField, DEFAULT_VALUES)
-from apscheduler.util import datetime_ceil, convert_to_datetime, datetime_repr, astimezone
+from apscheduler.util import (
+    datetime_ceil, convert_to_datetime, datetime_repr, astimezone, localize, normalize)
 
 
 class CronTrigger(BaseTrigger):
@@ -16,7 +17,7 @@ class CronTrigger(BaseTrigger):
 
     :param int|str year: 4-digit year
     :param int|str month: month (1-12)
-    :param int|str day: day of the (1-31)
+    :param int|str day: day of month (1-31)
     :param int|str week: ISO week (1-53)
     :param int|str day_of_week: number or name of weekday (0-6 or mon,tue,wed,thu,fri,sat,sun)
     :param int|str hour: hour (0-23)
@@ -26,7 +27,7 @@ class CronTrigger(BaseTrigger):
     :param datetime|str end_date: latest possible date/time to trigger on (inclusive)
     :param datetime.tzinfo|str timezone: time zone to use for the date/time calculations (defaults
         to scheduler timezone)
-    :param int|None jitter: advance or delay the job execution by ``jitter`` seconds at most.
+    :param int|None jitter: delay the job execution by ``jitter`` seconds at most
 
     .. note:: The first weekday is always **monday**.
     """
@@ -143,7 +144,7 @@ class CronTrigger(BaseTrigger):
                     i += 1
 
         difference = datetime(**values) - dateval.replace(tzinfo=None)
-        return self.timezone.normalize(dateval + difference), fieldnum
+        return normalize(dateval + difference), fieldnum
 
     def _set_field_value(self, dateval, fieldnum, new_value):
         values = {}
@@ -156,7 +157,7 @@ class CronTrigger(BaseTrigger):
                 else:
                     values[field.name] = new_value
 
-        return self.timezone.localize(datetime(**values))
+        return localize(datetime(**values), self.timezone)
 
     def get_next_fire_time(self, previous_fire_time, now):
         if previous_fire_time:

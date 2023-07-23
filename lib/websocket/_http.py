@@ -1,126 +1,135 @@
 """
+_http.py
 websocket - WebSocket client library for Python
 
-Copyright (C) 2010 Hiroki Ohtani(liris)
+Copyright 2022 engn33r
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor,
-    Boston, MA  02110-1335  USA
-
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 import errno
 import os
 import socket
 import sys
 
-import six
-
 from ._exceptions import *
 from ._logging import *
-from ._socket import*
+from ._socket import *
 from ._ssl_compat import *
 from ._url import *
 
-if six.PY3:
-    from base64 import encodebytes as base64encode
-else:
-    from base64 import encodestring as base64encode
+from base64 import encodebytes as base64encode
 
 __all__ = ["proxy_info", "connect", "read_headers"]
 
 try:
-    import socks
-    ProxyConnectionError = socks.ProxyConnectionError
-    HAS_PYSOCKS = True
+    from python_socks.sync import Proxy
+    from python_socks._errors import *
+    from python_socks._types import ProxyType
+    HAVE_PYTHON_SOCKS = True
 except:
-    class ProxyConnectionError(BaseException):
-        pass
-    HAS_PYSOCKS = False
+    HAVE_PYTHON_SOCKS = False
 
-class proxy_info(object):
+    class ProxyError(Exception):
+        pass
+
+    class ProxyTimeoutError(Exception):
+        pass
+
+    class ProxyConnectionError(Exception):
+        pass
+
+
+class proxy_info:
 
     def __init__(self, **options):
-        self.type = options.get("proxy_type") or "http"
-        if not(self.type in ['http', 'socks4', 'socks5', 'socks5h']):
-            raise ValueError("proxy_type must be 'http', 'socks4', 'socks5' or 'socks5h'")
-        self.host = options.get("http_proxy_host", None)
-        if self.host:
-            self.port = options.get("http_proxy_port", 0)
+        self.proxy_host = options.get("http_proxy_host", None)
+        if self.proxy_host:
+            self.proxy_port = options.get("http_proxy_port", 0)
             self.auth = options.get("http_proxy_auth", None)
             self.no_proxy = options.get("http_no_proxy", None)
+            self.proxy_protocol = options.get("proxy_type", "http")
+            # Note: If timeout not specified, default python-socks timeout is 60 seconds
+            self.proxy_timeout = options.get("http_proxy_timeout", None)
+            if self.proxy_protocol not in ['http', 'socks4', 'socks4a', 'socks5', 'socks5h']:
+                raise ProxyError("Only http, socks4, socks5 proxy protocols are supported")
         else:
-            self.port = 0
+            self.proxy_port = 0
             self.auth = None
             self.no_proxy = None
+            self.proxy_protocol = "http"
 
 
-def _open_proxied_socket(url, options, proxy):
+def _start_proxied_socket(url, options, proxy):
+    if not HAVE_PYTHON_SOCKS:
+        raise WebSocketException("Python Socks is needed for SOCKS proxying but is not available")
+
     hostname, port, resource, is_secure = parse_url(url)
 
-    if not HAS_PYSOCKS:
-        raise WebSocketException("PySocks module not found.")
-
-    ptype = socks.SOCKS5
-    rdns = False
-    if proxy.type == "socks4":
-        ptype = socks.SOCKS4
-    if proxy.type == "http":
-        ptype = socks.HTTP
-    if proxy.type[-1] == "h":
+    if proxy.proxy_protocol == "socks5":
+        rdns = False
+        proxy_type = ProxyType.SOCKS5
+    if proxy.proxy_protocol == "socks4":
+        rdns = False
+        proxy_type = ProxyType.SOCKS4
+    # socks5h and socks4a send DNS through proxy
+    if proxy.proxy_protocol == "socks5h":
         rdns = True
+        proxy_type = ProxyType.SOCKS5
+    if proxy.proxy_protocol == "socks4a":
+        rdns = True
+        proxy_type = ProxyType.SOCKS4
 
-    sock = socks.create_connection(
-            (hostname, port),
-            proxy_type = ptype,
-            proxy_addr = proxy.host,
-            proxy_port = proxy.port,
-            proxy_rdns = rdns,
-            proxy_username = proxy.auth[0] if proxy.auth else None,
-            proxy_password = proxy.auth[1] if proxy.auth else None,
-            timeout = options.timeout,
-            socket_options = DEFAULT_SOCKET_OPTION + options.sockopt
-    )
+    ws_proxy = Proxy.create(
+        proxy_type=proxy_type,
+        host=proxy.proxy_host,
+        port=int(proxy.proxy_port),
+        username=proxy.auth[0] if proxy.auth else None,
+        password=proxy.auth[1] if proxy.auth else None,
+        rdns=rdns)
 
-    if is_secure:
-        if HAVE_SSL:
-            sock = _ssl_socket(sock, options.sslopt, hostname)
-        else:
-            raise WebSocketException("SSL not available.")
+    sock = ws_proxy.connect(hostname, port, timeout=proxy.proxy_timeout)
+
+    if is_secure and HAVE_SSL:
+        sock = _ssl_socket(sock, options.sslopt, hostname)
+    elif is_secure:
+        raise WebSocketException("SSL not available.")
 
     return sock, (hostname, port, resource)
 
 
 def connect(url, options, proxy, socket):
-    if proxy.host and not socket and not (proxy.type == 'http'):
-        return _open_proxied_socket(url, options, proxy)
+    # Use _start_proxied_socket() only for socks4 or socks5 proxy
+    # Use _tunnel() for http proxy
+    # TODO: Use python-socks for http protocol also, to standardize flow
+    if proxy.proxy_host and not socket and not (proxy.proxy_protocol == "http"):
+        return _start_proxied_socket(url, options, proxy)
 
-    hostname, port, resource, is_secure = parse_url(url)
+    hostname, port_from_url, resource, is_secure = parse_url(url)
 
     if socket:
-        return socket, (hostname, port, resource)
+        return socket, (hostname, port_from_url, resource)
 
     addrinfo_list, need_tunnel, auth = _get_addrinfo_list(
-        hostname, port, is_secure, proxy)
+        hostname, port_from_url, is_secure, proxy)
     if not addrinfo_list:
         raise WebSocketException(
-            "Host not found.: " + hostname + ":" + str(port))
+            "Host not found.: " + hostname + ":" + str(port_from_url))
 
     sock = None
     try:
         sock = _open_socket(addrinfo_list, options.sockopt, options.timeout)
         if need_tunnel:
-            sock = _tunnel(sock, hostname, port, auth)
+            sock = _tunnel(sock, hostname, port_from_url, auth)
 
         if is_secure:
             if HAVE_SSL:
@@ -128,7 +137,7 @@ def connect(url, options, proxy, socket):
             else:
                 raise WebSocketException("SSL not available.")
 
-        return sock, (hostname, port, resource)
+        return sock, (hostname, port_from_url, resource)
     except:
         if sock:
             sock.close()
@@ -137,7 +146,7 @@ def connect(url, options, proxy, socket):
 
 def _get_addrinfo_list(hostname, port, is_secure, proxy):
     phost, pport, pauth = get_proxy_info(
-        hostname, is_secure, proxy.host, proxy.port, proxy.auth, proxy.no_proxy)
+        hostname, is_secure, proxy.proxy_host, proxy.proxy_port, proxy.auth, proxy.no_proxy)
     try:
         # when running on windows 10, getaddrinfo without socktype returns a socktype 0.
         # This generates an error exception: `_on_error: exception Socket type must be stream or datagram, not 0`
@@ -174,19 +183,14 @@ def _open_socket(addrinfo_list, sockopt, timeout):
         while not err:
             try:
                 sock.connect(address)
-            except ProxyConnectionError as error:
-                err = WebSocketProxyException(str(error))
-                err.remote_ip = str(address[0])
-                continue
             except socket.error as error:
+                sock.close()
                 error.remote_ip = str(address[0])
                 try:
-                    eConnRefused = (errno.ECONNREFUSED, errno.WSAECONNREFUSED)
-                except:
-                    eConnRefused = (errno.ECONNREFUSED, )
-                if error.errno == errno.EINTR:
-                    continue
-                elif error.errno in eConnRefused:
+                    eConnRefused = (errno.ECONNREFUSED, errno.WSAECONNREFUSED, errno.ENETUNREACH)
+                except AttributeError:
+                    eConnRefused = (errno.ECONNREFUSED, errno.ENETUNREACH)
+                if error.errno in eConnRefused:
                     err = error
                     continue
                 else:
@@ -203,38 +207,42 @@ def _open_socket(addrinfo_list, sockopt, timeout):
     return sock
 
 
-def _can_use_sni():
-    return six.PY2 and sys.version_info >= (2, 7, 9) or sys.version_info >= (3, 2)
-
-
 def _wrap_sni_socket(sock, sslopt, hostname, check_hostname):
-    context = ssl.SSLContext(sslopt.get('ssl_version', ssl.PROTOCOL_SSLv23))
+    context = sslopt.get('context', None)
+    if not context:
+        context = ssl.SSLContext(sslopt.get('ssl_version', ssl.PROTOCOL_TLS_CLIENT))
 
-    if sslopt.get('cert_reqs', ssl.CERT_NONE) != ssl.CERT_NONE:
-        cafile = sslopt.get('ca_certs', None)
-        capath = sslopt.get('ca_cert_path', None)
-        if cafile or capath:
-            context.load_verify_locations(cafile=cafile, capath=capath)
-        elif hasattr(context, 'load_default_certs'):
-            context.load_default_certs(ssl.Purpose.SERVER_AUTH)
-    if sslopt.get('certfile', None):
-        context.load_cert_chain(
-            sslopt['certfile'],
-            sslopt.get('keyfile', None),
-            sslopt.get('password', None),
-        )
-    # see
-    # https://github.com/liris/websocket-client/commit/b96a2e8fa765753e82eea531adb19716b52ca3ca#commitcomment-10803153
-    context.verify_mode = sslopt['cert_reqs']
-    if HAVE_CONTEXT_CHECK_HOSTNAME:
-        context.check_hostname = check_hostname
-    if 'ciphers' in sslopt:
-        context.set_ciphers(sslopt['ciphers'])
-    if 'cert_chain' in sslopt:
-        certfile, keyfile, password = sslopt['cert_chain']
-        context.load_cert_chain(certfile, keyfile, password)
-    if 'ecdh_curve' in sslopt:
-        context.set_ecdh_curve(sslopt['ecdh_curve'])
+        if sslopt.get('cert_reqs', ssl.CERT_NONE) != ssl.CERT_NONE:
+            cafile = sslopt.get('ca_certs', None)
+            capath = sslopt.get('ca_cert_path', None)
+            if cafile or capath:
+                context.load_verify_locations(cafile=cafile, capath=capath)
+            elif hasattr(context, 'load_default_certs'):
+                context.load_default_certs(ssl.Purpose.SERVER_AUTH)
+        if sslopt.get('certfile', None):
+            context.load_cert_chain(
+                sslopt['certfile'],
+                sslopt.get('keyfile', None),
+                sslopt.get('password', None),
+            )
+
+        # Python 3.10 switch to PROTOCOL_TLS_CLIENT defaults to "cert_reqs = ssl.CERT_REQUIRED" and "check_hostname = True"
+        # If both disabled, set check_hostname before verify_mode
+        # see https://github.com/liris/websocket-client/commit/b96a2e8fa765753e82eea531adb19716b52ca3ca#commitcomment-10803153
+        if sslopt.get('cert_reqs', ssl.CERT_NONE) == ssl.CERT_NONE and not sslopt.get('check_hostname', False):
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+        else:
+            context.check_hostname = sslopt.get('check_hostname', True)
+            context.verify_mode = sslopt.get('cert_reqs', ssl.CERT_REQUIRED)
+
+        if 'ciphers' in sslopt:
+            context.set_ciphers(sslopt['ciphers'])
+        if 'cert_chain' in sslopt:
+            certfile, keyfile, password = sslopt['cert_chain']
+            context.load_cert_chain(certfile, keyfile, password)
+        if 'ecdh_curve' in sslopt:
+            context.set_ecdh_curve(sslopt['ecdh_curve'])
 
     return context.wrap_socket(
         sock,
@@ -250,31 +258,26 @@ def _ssl_socket(sock, user_sslopt, hostname):
 
     certPath = os.environ.get('WEBSOCKET_CLIENT_CA_BUNDLE')
     if certPath and os.path.isfile(certPath) \
-            and user_sslopt.get('ca_certs', None) is None \
-            and user_sslopt.get('ca_cert', None) is None:
+            and user_sslopt.get('ca_certs', None) is None:
         sslopt['ca_certs'] = certPath
     elif certPath and os.path.isdir(certPath) \
             and user_sslopt.get('ca_cert_path', None) is None:
         sslopt['ca_cert_path'] = certPath
 
-    check_hostname = sslopt["cert_reqs"] != ssl.CERT_NONE and sslopt.pop(
-        'check_hostname', True)
+    if sslopt.get('server_hostname', None):
+        hostname = sslopt['server_hostname']
 
-    if _can_use_sni():
-        sock = _wrap_sni_socket(sock, sslopt, hostname, check_hostname)
-    else:
-        sslopt.pop('check_hostname', True)
-        sock = ssl.wrap_socket(sock, **sslopt)
-
-    if not HAVE_CONTEXT_CHECK_HOSTNAME and check_hostname:
-        match_hostname(sock.getpeercert(), hostname)
+    check_hostname = sslopt.get('check_hostname', True)
+    sock = _wrap_sni_socket(sock, sslopt, hostname, check_hostname)
 
     return sock
 
 
 def _tunnel(sock, host, port, auth):
     debug("Connecting proxy...")
-    connect_header = "CONNECT %s:%d HTTP/1.0\r\n" % (host, port)
+    connect_header = "CONNECT %s:%d HTTP/1.1\r\n" % (host, port)
+    connect_header += "Host: %s:%d\r\n" % (host, port)
+
     # TODO: support digest auth.
     if auth and auth[0]:
         auth_str = auth[0]
@@ -321,7 +324,10 @@ def read_headers(sock):
             kv = line.split(":", 1)
             if len(kv) == 2:
                 key, value = kv
-                headers[key.lower()] = value.strip()
+                if key.lower() == "set-cookie" and headers.get("set-cookie"):
+                    headers["set-cookie"] = headers.get("set-cookie") + "; " + value.strip()
+                else:
+                    headers[key.lower()] = value.strip()
             else:
                 raise WebSocketException("Invalid header")
 

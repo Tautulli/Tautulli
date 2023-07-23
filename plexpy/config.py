@@ -50,6 +50,7 @@ FILENAME = "config.ini"
 _CONFIG_DEFINITIONS = {
     'ALLOW_GUEST_ACCESS': (int, 'General', 0),
     'DATE_FORMAT': (str, 'General', 'YYYY-MM-DD'),
+    'PMS_CLIENT_ID': (str, 'PMS', ''),
     'PMS_IDENTIFIER': (str, 'PMS', ''),
     'PMS_IP': (str, 'PMS', '127.0.0.1'),
     'PMS_IS_CLOUD': (int, 'PMS', 0),
@@ -57,6 +58,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_LOGS_FOLDER': (str, 'PMS', ''),
     'PMS_LOGS_LINE_CAP': (int, 'PMS', 1000),
     'PMS_NAME': (str, 'PMS', ''),
+    'PMS_NAME_OVERRIDE': (str, 'PMS', ''),
     'PMS_PORT': (int, 'PMS', 32400),
     'PMS_TOKEN': (str, 'PMS', ''),
     'PMS_SSL': (int, 'PMS', 0),
@@ -75,7 +77,8 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
-    'ANON_REDIRECT': (str, 'General', 'https://www.nullrefer.com/?'),
+    'ANON_REDIRECT': (str, 'General', ''),
+    'ANON_REDIRECT_DYNAMIC': (int, 'General', 1),
     'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
     'API_SQL': (int, 'General', 0),
@@ -87,8 +90,9 @@ _CONFIG_DEFINITIONS = {
     'CACHE_DIR': (str, 'General', ''),
     'CACHE_IMAGES': (int, 'General', 1),
     'CACHE_SIZEMB': (int, 'Advanced', 32),
+    'CHECK_DOCKER_MOUNT': (int, 'Advanced', 1),
     'CHECK_GITHUB': (int, 'General', 1),
-    'CHECK_GITHUB_INTERVAL': (int, 'General', 360),
+    'CHECK_GITHUB_INTERVAL': (int, 'General', 6),
     'CHECK_GITHUB_ON_STARTUP': (int, 'General', 1),
     'CHECK_GITHUB_CACHE_SECONDS': (int, 'Advanced', 3600),
     'CLEANUP_FILES': (int, 'General', 0),
@@ -113,7 +117,7 @@ _CONFIG_DEFINITIONS = {
     'GROUP_HISTORY_TABLES': (int, 'General', 1),
     'HISTORY_TABLE_ACTIVITY': (int, 'General', 1),
     'HOME_SECTIONS': (list, 'General', ['current_activity', 'watch_stats', 'library_stats', 'recently_added']),
-    'HOME_LIBRARY_CARDS': (list, 'General', ['first_run']),
+    'HOME_LIBRARY_CARDS': (list, 'General', []),
     'HOME_STATS_CARDS': (list, 'General', ['top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music',
         'popular_music', 'last_watched', 'top_libraries', 'top_users', 'top_platforms', 'most_concurrent']),
     'HOME_REFRESH_INTERVAL': (int, 'General', 10),
@@ -123,6 +127,7 @@ _CONFIG_DEFINITIONS = {
     'HTTPS_KEY': (str, 'General', ''),
     'HTTPS_DOMAIN': (str, 'General', 'localhost'),
     'HTTPS_IP': (str, 'General', '127.0.0.1'),
+    'HTTPS_MIN_TLS_VERSION': (str, 'Advanced', 'TLSv1.2'),
     'HTTP_BASIC_AUTH': (int, 'General', 0),
     'HTTP_ENVIRONMENT': (str, 'General', 'production'),
     'HTTP_HASH_PASSWORD': (int, 'General', 1),
@@ -145,6 +150,7 @@ _CONFIG_DEFINITIONS = {
     'LAUNCH_BROWSER': (int, 'General', 1),
     'LAUNCH_STARTUP': (int, 'General', 1),
     'LOG_BLACKLIST': (int, 'General', 1),
+    'LOG_BLACKLIST_USERNAMES': (int, 'General', 1),
     'LOG_DIR': (str, 'General', ''),
     'LOGGING_IGNORE_INTERVAL': (int, 'Monitoring', 120),
     'METADATA_CACHE_SECONDS': (int, 'Advanced', 1800),
@@ -171,6 +177,7 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_RECENTLY_ADDED_UPGRADE': (int, 'Monitoring', 0),
     'NOTIFY_REMOTE_ACCESS_THRESHOLD': (int, 'Monitoring', 60),
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
+    'NOTIFY_CONCURRENT_IPV6_CIDR': (str, 'Monitoring', '/64'),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'NOTIFY_NEW_DEVICE_INITIAL_ONLY': (int, 'Monitoring', 1),
     'NOTIFY_SERVER_CONNECTION_THRESHOLD': (int, 'Monitoring', 60),
@@ -196,6 +203,7 @@ _CONFIG_DEFINITIONS = {
     'UPGRADE_FLAG': (int, 'Advanced', 0),
     'VERBOSE_LOGS': (int, 'Advanced', 1),
     'VERIFY_SSL_CERT': (bool_int, 'Advanced', 1),
+    'WATCHED_MARKER': (int, 'Monitoring', 3),
     'WEBSOCKET_MONITOR_PING_PONG': (int, 'Advanced', 0),
     'WEBSOCKET_CONNECTION_ATTEMPTS': (int, 'Advanced', 5),
     'WEBSOCKET_CONNECTION_TIMEOUT': (int, 'Advanced', 5),
@@ -214,14 +222,129 @@ _DO_NOT_IMPORT_KEYS = [
     'BACKUP_DIR', 'CACHE_DIR', 'EXPORT_DIR', 'LOG_DIR', 'NEWSLETTER_DIR', 'NEWSLETTER_CUSTOM_DIR',
     'HTTP_HOST', 'HTTP_PORT', 'HTTP_ROOT',
     'HTTP_USERNAME', 'HTTP_PASSWORD', 'HTTP_HASH_PASSWORD', 'HTTP_HASHED_PASSWORD',
-    'ENABLE_HTTPS', 'HTTPS_CREATE_CERT', 'HTTPS_CERT', 'HTTPS_CERT_CHAIN', 'HTTPS_KEY'
+    'ENABLE_HTTPS', 'HTTPS_CREATE_CERT', 'HTTPS_CERT', 'HTTPS_CERT_CHAIN', 'HTTPS_KEY',
+    'PMS_TOKEN', 'JWT_SECRET'
 ]
 _DO_NOT_IMPORT_KEYS_DOCKER = [
     'PLEXPY_AUTO_UPDATE', 'GIT_REMOTE', 'GIT_BRANCH'
 ]
+_DO_NOT_DOWNLOAD_KEYS = [
+    'PMS_TOKEN', 'JWT_SECRET'
+]
 
 IS_IMPORTING = False
 IMPORT_THREAD = None
+
+SETTINGS = [
+    'ANON_REDIRECT',
+    'API_KEY',
+    'BACKUP_DAYS',
+    'BACKUP_DIR',
+    'BACKUP_INTERVAL',
+    'BUFFER_THRESHOLD',
+    'BUFFER_WAIT',
+    'CACHE_DIR',
+    'CHECK_GITHUB_INTERVAL',
+    'CLOUDINARY_API_KEY',
+    'CLOUDINARY_API_SECRET',
+    'CLOUDINARY_CLOUD_NAME',
+    'DATE_FORMAT',
+    'EXPORT_DIR',
+    'GIT_BRANCH',
+    'GIT_PATH',
+    'GIT_REMOTE',
+    'GIT_TOKEN',
+    'HOME_LIBRARY_CARDS',
+    'HOME_REFRESH_INTERVAL',
+    'HOME_SECTIONS',
+    'HOME_STATS_CARDS',
+    'HTTPS_CERT',
+    'HTTPS_CERT_CHAIN',
+    'HTTPS_DOMAIN',
+    'HTTPS_IP',
+    'HTTPS_KEY',
+    'HTTP_BASE_URL',
+    'HTTP_PASSWORD',
+    'HTTP_PORT',
+    'HTTP_ROOT',
+    'HTTP_USERNAME',
+    'IMGUR_CLIENT_ID',
+    'LOGGING_IGNORE_INTERVAL',
+    'LOG_DIR',
+    'MOVIE_WATCHED_PERCENT',
+    'MUSIC_WATCHED_PERCENT',
+    'NEWSLETTER_AUTH',
+    'NEWSLETTER_CUSTOM_DIR',
+    'NEWSLETTER_DIR',
+    'NEWSLETTER_PASSWORD',
+    'NOTIFY_CONCURRENT_THRESHOLD',
+    'NOTIFY_CONTINUED_SESSION_THRESHOLD',
+    'NOTIFY_RECENTLY_ADDED_DELAY',
+    'NOTIFY_REMOTE_ACCESS_THRESHOLD',
+    'NOTIFY_SERVER_CONNECTION_THRESHOLD',
+    'NOTIFY_UPLOAD_POSTERS',
+    'PMS_CLIENT_ID',
+    'PMS_IDENTIFIER',
+    'PMS_IP',
+    'PMS_IS_CLOUD',
+    'PMS_IS_REMOTE',
+    'PMS_LOGS_FOLDER',
+    'PMS_NAME',
+    'PMS_PORT',
+    'PMS_SSL',
+    'PMS_UPDATE_CHANNEL',
+    'PMS_UPDATE_CHECK_INTERVAL',
+    'PMS_UPDATE_DISTRO',
+    'PMS_UPDATE_DISTRO_BUILD',
+    'PMS_URL',
+    'PMS_VERSION',
+    'PMS_WEB_URL',
+    'REFRESH_LIBRARIES_INTERVAL',
+    'REFRESH_USERS_INTERVAL',
+    'SHOW_ADVANCED_SETTINGS',
+    'TIME_FORMAT',
+    'TV_WATCHED_PERCENT',
+    'WATCHED_MARKER'
+]
+
+CHECKED_SETTINGS = [
+    'ALLOW_GUEST_ACCESS',
+    'ANON_REDIRECT_DYNAMIC',
+    'API_ENABLED',
+    'CACHE_IMAGES',
+    'CHECK_GITHUB',
+    'ENABLE_HTTPS',
+    'GET_FILE_SIZES',
+    'GROUP_HISTORY_TABLES',
+    'HISTORY_TABLE_ACTIVITY',
+    'HTTPS_CREATE_CERT',
+    'HTTP_PLEX_ADMIN',
+    'HTTP_PROXY',
+    'LAUNCH_BROWSER',
+    'LAUNCH_STARTUP',
+    'LOG_BLACKLIST',
+    'LOG_BLACKLIST_USERNAMES',
+    'MONITOR_PMS_UPDATES',
+    'MUSICBRAINZ_LOOKUP',
+    'NEWSLETTER_INLINE_STYLES',
+    'NEWSLETTER_SELF_HOSTED',
+    'NOTIFY_CONCURRENT_BY_IP',
+    'NOTIFY_CONSECUTIVE',
+    'NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT',
+    'NOTIFY_GROUP_RECENTLY_ADDED_PARENT',
+    'NOTIFY_NEW_DEVICE_INITIAL_ONLY',
+    'NOTIFY_PLEXPY_UPDATE_REPEAT',
+    'NOTIFY_RECENTLY_ADDED_UPGRADE',
+    'NOTIFY_SERVER_UPDATE_REPEAT',
+    'PLEXPY_AUTO_UPDATE',
+    'PMS_URL_MANUAL',
+    'REFRESH_LIBRARIES_ON_STARTUP',
+    'REFRESH_USERS_ON_STARTUP',
+    'SYS_TRAY_ICON',
+    'THEMOVIEDB_LOOKUP',
+    'TVMAZE_LOOKUP',
+    'WEEK_START_MONDAY',
+]
 
 
 def set_is_importing(value):
@@ -416,7 +539,7 @@ class Config(object):
         Returns something from the ini unless it is a real property
         of the configuration object or is not all caps.
         """
-        if not re.match(r'[A-Z_]+$', name):
+        if not re.match(r'[A-Z0-9_]+$', name):
             return super(Config, self).__getattr__(name)
         else:
             return self.check_setting(name)
@@ -485,14 +608,6 @@ class Config(object):
             self.CONFIG_VERSION = 4
 
         if self.CONFIG_VERSION == 4:
-            if not len(self.HOME_STATS_CARDS) and 'watch_stats' in self.HOME_SECTIONS:
-                home_sections = self.HOME_SECTIONS
-                home_sections.remove('watch_stats')
-                self.HOME_SECTIONS = home_sections
-            if not len(self.HOME_LIBRARY_CARDS) and 'library_stats' in self.HOME_SECTIONS:
-                home_sections = self.HOME_SECTIONS
-                home_sections.remove('library_stats')
-                self.HOME_SECTIONS = home_sections
 
             self.CONFIG_VERSION = 5
 
@@ -568,10 +683,11 @@ class Config(object):
             self.CONFIG_VERSION = 18
 
         if self.CONFIG_VERSION == 18:
-            self.CHECK_GITHUB_INTERVAL = (
-                    int(self.CHECK_GITHUB_INTERVAL // 60)
-                    + (self.CHECK_GITHUB_INTERVAL % 60 > 0)
-            )
+            if self.CHECK_GITHUB_INTERVAL > 24:
+                self.CHECK_GITHUB_INTERVAL = (
+                        int(self.CHECK_GITHUB_INTERVAL // 60)
+                        + (self.CHECK_GITHUB_INTERVAL % 60 > 0)
+                )
 
             self.CONFIG_VERSION = 19
 
@@ -584,7 +700,13 @@ class Config(object):
             self.CONFIG_VERSION = 20
 
         if self.CONFIG_VERSION == 20:
-            self.REFRESH_LIBRARY_STATS_DATA_INTERVAL = 12
-            self.REFRESH_LIBRARY_STATS_DATA_ON_STARTUP = 1
+            if self.PMS_UUID:
+                self.FIRST_RUN_COMPLETE = 1
 
             self.CONFIG_VERSION = 21
+
+        if self.CONFIG_VERSION == 21:
+            if not self.ANON_REDIRECT_DYNAMIC and not self.ANON_REDIRECT:
+                self.ANON_REDIRECT_DYNAMIC = 1
+
+            self.CONFIG_VERSION = 22

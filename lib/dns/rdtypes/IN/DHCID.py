@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2006, 2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -16,45 +18,38 @@
 import base64
 
 import dns.exception
+import dns.immutable
+import dns.rdata
 
 
+@dns.immutable.immutable
 class DHCID(dns.rdata.Rdata):
 
-    """DHCID record
+    """DHCID record"""
 
-    @ivar data: the data (the content of the RR is opaque as far as the
-    DNS is concerned)
-    @type data: string
-    @see: RFC 4701"""
+    # see: RFC 4701
 
-    __slots__ = ['data']
+    __slots__ = ["data"]
 
     def __init__(self, rdclass, rdtype, data):
-        super(DHCID, self).__init__(rdclass, rdtype)
-        self.data = data
+        super().__init__(rdclass, rdtype)
+        self.data = self._as_bytes(data)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return dns.rdata._base64ify(self.data)
+        return dns.rdata._base64ify(self.data, **kw)
 
     @classmethod
-    def from_text(cls, rdclass, rdtype, tok, origin=None, relativize=True):
-        chunks = []
-        while 1:
-            t = tok.get().unescape()
-            if t.is_eol_or_eof():
-                break
-            if not t.is_identifier():
-                raise dns.exception.SyntaxError
-            chunks.append(t.value.encode())
-        b64 = b''.join(chunks)
+    def from_text(
+        cls, rdclass, rdtype, tok, origin=None, relativize=True, relativize_to=None
+    ):
+        b64 = tok.concatenate_remaining_identifiers().encode()
         data = base64.b64decode(b64)
         return cls(rdclass, rdtype, data)
 
-    def to_wire(self, file, compress=None, origin=None):
+    def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         file.write(self.data)
 
     @classmethod
-    def from_wire(cls, rdclass, rdtype, wire, current, rdlen, origin=None):
-        data = wire[current: current + rdlen].unwrap()
+    def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
+        data = parser.get_remaining()
         return cls(rdclass, rdtype, data)
-

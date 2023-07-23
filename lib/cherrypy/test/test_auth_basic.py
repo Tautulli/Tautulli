@@ -1,4 +1,4 @@
-# This file is part of CherryPy <http://www.cherrypy.org/>
+# This file is part of CherryPy <http://www.cherrypy.dev/>
 # -*- coding: utf-8 -*-
 # vim:ts=4:sw=4:expandtab:fileencoding=utf-8
 

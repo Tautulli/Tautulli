@@ -216,12 +216,13 @@ def http_to_file(http):
     return data_file
 
 
-def parse_media_file(passed_media):
+def parse_media_file(passed_media, async_upload=False):
     """ Parses a media file and attempts to return a file-like object and
     information about the media file.
 
     Args:
         passed_media: media file which to parse.
+        async_upload: flag, for validation media file attributes.
 
     Returns:
         file-like object, the filename of the media file, the file size, and
@@ -229,9 +230,11 @@ def parse_media_file(passed_media):
     """
     img_formats = ['image/jpeg',
                    'image/png',
-                   'image/gif',
                    'image/bmp',
                    'image/webp']
+    long_img_formats = [
+        'image/gif'
+    ]
     video_formats = ['video/mp4',
                      'video/quicktime']
 
@@ -266,9 +269,13 @@ def parse_media_file(passed_media):
     if media_type is not None:
         if media_type in img_formats and file_size > 5 * 1048576:
             raise TwitterError({'message': 'Images must be less than 5MB.'})
-        elif media_type in video_formats and file_size > 15 * 1048576:
+        elif media_type in long_img_formats and file_size > 15 * 1048576:
+            raise TwitterError({'message': 'GIF Image must be less than 15MB.'})
+        elif media_type in video_formats and not async_upload and file_size > 15 * 1048576:
             raise TwitterError({'message': 'Videos must be less than 15MB.'})
-        elif media_type not in img_formats and media_type not in video_formats:
+        elif media_type in video_formats and async_upload and file_size > 512 * 1048576:
+            raise TwitterError({'message': 'Videos must be less than 512MB.'})
+        elif media_type not in img_formats and media_type not in video_formats and media_type not in long_img_formats:
             raise TwitterError({'message': 'Media type could not be determined.'})
 
     return data_file, filename, file_size, media_type

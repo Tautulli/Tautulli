@@ -1,2 +1,6 @@
-from more_itertools.more import *  # noqa
-from more_itertools.recipes import *  # noqa
+"""More routines for operating on iterables, beyond itertools"""
+
+from .more import *  # noqa
+from .recipes import *  # noqa
+
+__version__ = '9.1.0'

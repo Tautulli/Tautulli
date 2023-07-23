@@ -33,6 +33,7 @@ from functools import reduce, wraps
 import hashlib
 import imghdr
 from future.moves.itertools import islice, zip_longest
+from ipaddress import ip_address, ip_network, IPv4Address
 import ipwhois
 import ipwhois.exceptions
 import ipwhois.utils
@@ -486,7 +487,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     try:
         from OpenSSL import crypto
     except ImportError:
-        logger.error("Unable to generate self-signed certificates: Missing OpenSSL module.")
+        logger.error("Unable to generate self-signed certificates: Missing pyOpenSSL module.")
         return False
     from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
@@ -705,7 +706,11 @@ def sanitize(obj):
 
 def is_public_ip(host):
     ip = is_valid_ip(get_ip(host))
-    if ip and ip.iptype() == 'PUBLIC':
+    ip_version = ip.version()
+    ip_type = ip.iptype()
+    if ip and ip_type != 'LOOPBACK' and (
+            ip_version == 4 and ip_type == 'PUBLIC' or
+            ip_version == 6 and 'LOCAL' not in ip_type):
         return True
     return False
 
@@ -775,7 +780,31 @@ def anon_url(*url):
     """
     Return a URL string consisting of the Anonymous redirect URL and an arbitrary number of values appended.
     """
-    return '' if None in url else '%s%s' % (plexpy.CONFIG.ANON_REDIRECT, ''.join(str(s) for s in url))
+    if plexpy.CONFIG.ANON_REDIRECT_DYNAMIC:
+        cache_time = timestamp()
+        cache_filepath = os.path.join(plexpy.CONFIG.CACHE_DIR, 'anonymizer.json')
+        try:
+            with open(cache_filepath, 'r', encoding='utf-8') as cache_file:
+                cache_data = json.load(cache_file)
+                if cache_time - cache_data['_cache_time'] < 86400:  # 24 hours
+                    anon_redirect = cache_data['anon_redirect']
+                else:
+                    raise
+        except:
+            try:
+                anon_redirect = request.request_content('https://tautulli.com/anonymizer.txt').decode('utf-8')
+                cache_data = {
+                    'anon_redirect': anon_redirect,
+                    '_cache_time': cache_time
+                }
+                with open(cache_filepath, 'w', encoding='utf-8') as cache_file:
+                    json.dump(cache_data, cache_file)
+            except:
+                anon_redirect = plexpy.CONFIG.ANON_REDIRECT
+    else:
+        anon_redirect = plexpy.CONFIG.ANON_REDIRECT
+
+    return '' if None in url else '%s%s' % (anon_redirect, ''.join(str(s) for s in url))
 
 
 def get_img_service(include_self=False):
@@ -1163,9 +1192,10 @@ def get_plexpy_url(hostname=None):
     else:
         scheme = 'http'
 
-    if hostname is None and plexpy.CONFIG.HTTP_HOST == '0.0.0.0':
+    if hostname is None and plexpy.CONFIG.HTTP_HOST in ('0.0.0.0', '::'):
         import socket
         try:
+            # Only returns IPv4 address
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
             s.connect(('<broadcast>', 0))
@@ -1178,7 +1208,7 @@ def get_plexpy_url(hostname=None):
 
         if not hostname:
             hostname = 'localhost'
-    elif hostname == 'localhost' and plexpy.CONFIG.HTTP_HOST != '0.0.0.0':
+    elif hostname == 'localhost' and plexpy.CONFIG.HTTP_HOST not in ('0.0.0.0', '::'):
         hostname = plexpy.CONFIG.HTTP_HOST
     else:
         hostname = hostname or plexpy.CONFIG.HTTP_HOST
@@ -1517,7 +1547,7 @@ def is_hdr(bit_depth, color_space):
 
 
 def version_to_tuple(version):
-    return tuple(cast_to_int(v) for v in version.strip('v').split('.'))
+    return tuple(cast_to_int(v) for v in version.strip('v').replace('-', '.').split('.'))
 
 
 # https://stackoverflow.com/a/1855118
@@ -1704,3 +1734,62 @@ def short_season(title):
     if title.startswith('Season ') and title[7:].isdigit():
         return 'S%s' % title[7:]
     return title
+
+
+def get_first_final_marker(markers):
+    first = None
+    final = None
+    for marker in markers:
+        if marker['first']:
+            first = marker
+        if marker['final']:
+            final = marker
+    return first, final
+
+
+def check_watched(media_type, view_offset, duration, marker_credits_first=None, marker_credits_final=None):
+    if isinstance(marker_credits_first, dict):
+        marker_credits_first = marker_credits_first['start_time_offset']
+    if isinstance(marker_credits_final, dict):
+        marker_credits_final = marker_credits_final['start_time_offset']
+
+    view_offset = cast_to_int(view_offset)
+    duration = cast_to_int(duration)
+
+    watched_percent = {
+        'movie': plexpy.CONFIG.MOVIE_WATCHED_PERCENT,
+        'episode': plexpy.CONFIG.TV_WATCHED_PERCENT,
+        'track': plexpy.CONFIG.MUSIC_WATCHED_PERCENT,
+        'clip': plexpy.CONFIG.TV_WATCHED_PERCENT
+    }
+    threshold = watched_percent.get(media_type, 0) / 100 * duration
+    if not threshold:
+        return False
+
+    if plexpy.CONFIG.WATCHED_MARKER == 1 and marker_credits_final:
+        return view_offset >= marker_credits_final
+    elif plexpy.CONFIG.WATCHED_MARKER == 2 and marker_credits_first:
+        return view_offset >= marker_credits_first
+    elif plexpy.CONFIG.WATCHED_MARKER == 3 and marker_credits_first:
+        return view_offset >= min(threshold, marker_credits_first)
+    else:
+        return view_offset >= threshold
+
+
+def pms_name():
+    return plexpy.CONFIG.PMS_NAME_OVERRIDE or plexpy.CONFIG.PMS_NAME
+
+
+def ip_type(ip: str) -> str:
+    try:
+        return "IPv4" if type(ip_address(ip)) is IPv4Address else "IPv6"
+    except ValueError:
+        return "Invalid"
+
+
+def get_ipv6_network_address(ip: str) -> str:
+    cidr = "/64"
+    cidr_pattern = re.compile(r'^/(1([0-1]\d|2[0-8]))$|^/(\d\d)$|^/[1-9]$')
+    if cidr_pattern.match(plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR):
+        cidr = plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR
+    return str(ip_network(ip+cidr, strict=False).network_address)

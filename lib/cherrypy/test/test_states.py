@@ -1,10 +1,7 @@
 import os
 import signal
 import time
-import unittest
-import warnings
-
-from six.moves.http_client import BadStatusLine
+from http.client import BadStatusLine
 
 import pytest
 import portend
@@ -12,6 +9,7 @@ import portend
 import cherrypy
 import cherrypy.process.servers
 from cherrypy.test import helper
+
 
 engine = cherrypy.engine
 thisdir = os.path.join(os.getcwd(), os.path.dirname(__file__))
@@ -426,48 +424,49 @@ test_case_name: "test_signal_handler_unsubscribe"
         p.join()
 
         # Assert the old handler ran.
-        log_lines = list(open(p.error_log, 'rb'))
-        assert any(
-            line.endswith(b'I am an old SIGTERM handler.\n')
-            for line in log_lines
-        )
+        with open(p.error_log, 'rb') as f:
+            log_lines = list(f)
+            assert any(
+                line.endswith(b'I am an old SIGTERM handler.\n')
+                for line in log_lines
+            )
 
 
-class WaitTests(unittest.TestCase):
+def test_safe_wait_INADDR_ANY():  # pylint: disable=invalid-name
+    """
+    Wait on INADDR_ANY should not raise IOError
 
-    def test_safe_wait_INADDR_ANY(self):
-        """
-        Wait on INADDR_ANY should not raise IOError
+    In cases where the loopback interface does not exist, CherryPy cannot
+    effectively determine if a port binding to INADDR_ANY was effected.
+    In this situation, CherryPy should assume that it failed to detect
+    the binding (not that the binding failed) and only warn that it could
+    not verify it.
+    """
+    # At such a time that CherryPy can reliably determine one or more
+    #  viable IP addresses of the host, this test may be removed.
 
-        In cases where the loopback interface does not exist, CherryPy cannot
-        effectively determine if a port binding to INADDR_ANY was effected.
-        In this situation, CherryPy should assume that it failed to detect
-        the binding (not that the binding failed) and only warn that it could
-        not verify it.
-        """
-        # At such a time that CherryPy can reliably determine one or more
-        #  viable IP addresses of the host, this test may be removed.
+    # Simulate the behavior we observe when no loopback interface is
+    #  present by: finding a port that's not occupied, then wait on it.
 
-        # Simulate the behavior we observe when no loopback interface is
-        #  present by: finding a port that's not occupied, then wait on it.
+    free_port = portend.find_available_local_port()
 
-        free_port = portend.find_available_local_port()
+    servers = cherrypy.process.servers
 
-        servers = cherrypy.process.servers
+    inaddr_any = '0.0.0.0'
 
-        inaddr_any = '0.0.0.0'
+    # Wait on the free port that's unbound
+    with pytest.warns(
+            UserWarning,
+            match='Unable to verify that the server is bound on ',
+    ) as warnings:
+        # pylint: disable=protected-access
+        with servers._safe_wait(inaddr_any, free_port):
+            portend.occupied(inaddr_any, free_port, timeout=1)
+    assert len(warnings) == 1
 
-        # Wait on the free port that's unbound
-        with warnings.catch_warnings(record=True) as w:
-            with servers._safe_wait(inaddr_any, free_port):
-                portend.occupied(inaddr_any, free_port, timeout=1)
-            self.assertEqual(len(w), 1)
-            self.assertTrue(isinstance(w[0], warnings.WarningMessage))
-            self.assertTrue(
-                'Unable to verify that the server is bound on ' in str(w[0]))
-
-        # The wait should still raise an IO error if INADDR_ANY was
-        #  not supplied.
-        with pytest.raises(IOError):
-            with servers._safe_wait('127.0.0.1', free_port):
-                portend.occupied('127.0.0.1', free_port, timeout=1)
+    # The wait should still raise an IO error if INADDR_ANY was
+    #  not supplied.
+    with pytest.raises(IOError):
+        # pylint: disable=protected-access
+        with servers._safe_wait('127.0.0.1', free_port):
+            portend.occupied('127.0.0.1', free_port, timeout=1)

@@ -1,5 +1,6 @@
 # Copyright Cloudinary
 
+import datetime
 import email.utils
 import json
 import socket
@@ -10,6 +11,11 @@ from urllib3.exceptions import HTTPError
 
 import cloudinary
 from cloudinary import utils
+from cloudinary.api_client.call_api import (
+    call_api,
+    call_metadata_api,
+    call_json_api
+)
 from cloudinary.exceptions import (
     BadRequest,
     AuthorizationRequired,
@@ -20,37 +26,32 @@ from cloudinary.exceptions import (
     GeneralError
 )
 
-logger = cloudinary.logger
-
-EXCEPTION_CODES = {
-    400: BadRequest,
-    401: AuthorizationRequired,
-    403: NotAllowed,
-    404: NotFound,
-    409: AlreadyExists,
-    420: RateLimited,
-    500: GeneralError
-}
-
-
-class Response(dict):
-    def __init__(self, result, response, **kwargs):
-        super(Response, self).__init__(**kwargs)
-        self.update(result)
-        self.rate_limit_allowed = int(response.headers["x-featureratelimit-limit"])
-        self.rate_limit_reset_at = email.utils.parsedate(response.headers["x-featureratelimit-reset"])
-        self.rate_limit_remaining = int(response.headers["x-featureratelimit-remaining"])
-
-
-_http = utils.get_http_connector(cloudinary.config(), cloudinary.CERT_KWARGS)
-
 
 def ping(**options):
     return call_api("get", ["ping"], {}, **options)
 
 
 def usage(**options):
-    return call_api("get", ["usage"], {}, **options)
+    """Get account usage details.
+
+    Get a report on the status of your Cloudinary account usage details, including storage, credits, bandwidth,
+    requests, number of resources, and add-on usage. Note that numbers are updated periodically.
+
+    See: `Get account usage details
+    <https://cloudinary.com/documentation/admin_api#get_account_usage_details>`_
+
+    :param options:     Additional options
+    :type options:      dict, optional
+    :return:            Detailed usage information
+    :rtype:             Response
+    """
+    date = options.pop("date", None)
+    uri = ["usage"]
+    if date:
+        if isinstance(date, datetime.date):
+            date = utils.encode_date_to_usage_api_format(date)
+        uri.append(date)
+    return call_api("get", uri, {}, **options)
 
 
 def resource_types(**options):
@@ -64,7 +65,7 @@ def resources(**options):
     if upload_type:
         uri.append(upload_type)
     params = only(options, "next_cursor", "max_results", "prefix", "tags",
-                  "context", "moderations", "direction", "start_at")
+                  "context", "moderations", "direction", "start_at", "metadata")
     return call_api("get", uri, params, **options)
 
 
@@ -72,7 +73,7 @@ def resources_by_tag(tag, **options):
     resource_type = options.pop("resource_type", "image")
     uri = ["resources", resource_type, "tags", tag]
     params = only(options, "next_cursor", "max_results", "tags",
-                  "context", "moderations", "direction")
+                  "context", "moderations", "direction", "metadata")
     return call_api("get", uri, params, **options)
 
 
@@ -80,7 +81,7 @@ def resources_by_moderation(kind, status, **options):
     resource_type = options.pop("resource_type", "image")
     uri = ["resources", resource_type, "moderations", kind, status]
     params = only(options, "next_cursor", "max_results", "tags",
-                  "context", "moderations", "direction")
+                  "context", "moderations", "direction", "metadata")
     return call_api("get", uri, params, **options)
 
 
@@ -92,13 +93,104 @@ def resources_by_ids(public_ids, **options):
     return call_api("get", uri, params, **options)
 
 
+def resources_by_asset_folder(asset_folder, **options):
+    """
+    Returns the details of the resources (assets) under a specified asset_folder.
+
+    :param asset_folder:    The Asset Folder of the asset
+    :type asset_folder:     string
+    :param options:     Additional options
+    :type options:      dict, optional
+    :return:            Resources (assets) of a specific asset_folder
+    :rtype:             Response
+    """
+    uri = ["resources", "by_asset_folder"]
+    params = only(options, "max_results", "tags", "moderations", "context", "next_cursor")
+    params["asset_folder"] = asset_folder
+    return call_api("get", uri, params, **options)
+
+
+def resources_by_asset_ids(asset_ids, **options):
+    """Retrieves the resources (assets) indicated in the asset IDs.
+    This method does not return deleted assets even if they have been backed up.
+
+    See: `Get resources by context API reference
+    <https://cloudinary.com/documentation/admin_api#get_resources>`_
+
+    :param asset_ids:   The requested asset IDs.
+    :type asset_ids:    list[str]
+    :param options:     Additional options
+    :type options:      dict, optional
+    :return:            Resources (assets) as indicated in the asset IDs
+    :rtype:             Response
+    """
+    uri = ["resources", 'by_asset_ids']
+    params = dict(only(options, "tags", "moderations", "context"), asset_ids=asset_ids)
+    return call_api("get", uri, params, **options)
+
+
+def resources_by_context(key, value=None, **options):
+    """Retrieves resources (assets) with a specified context key.
+    This method does not return deleted assets even if they have been backed up.
+
+    See: `Get resources by context API reference
+    <https://cloudinary.com/documentation/admin_api#get_resources_by_context>`_
+
+    :param key:         Only assets with this context key are returned
+    :type key:          str
+    :param value:       Only assets with this value for the context key are returned
+    :type value:        str, optional
+    :param options:     Additional options
+    :type options:      dict, optional
+    :return:            Resources (assets) with a specified context key
+    :rtype:             Response
+    """
+    resource_type = options.pop("resource_type", "image")
+    uri = ["resources", resource_type, "context"]
+    params = only(options, "next_cursor", "max_results", "tags",
+                  "context", "moderations", "direction", "metadata")
+    params["key"] = key
+    if value is not None:
+        params["value"] = value
+    return call_api("get", uri, params, **options)
+
+
 def resource(public_id, **options):
     resource_type = options.pop("resource_type", "image")
     upload_type = options.pop("type", "upload")
     uri = ["resources", resource_type, upload_type, public_id]
-    params = only(options, "exif", "faces", "colors", "image_metadata", "cinemagraph_analysis",
-                  "pages", "phash", "coordinates", "max_results", "quality_analysis", "derived_next_cursor")
+    params = _prepare_asset_details_params(**options)
     return call_api("get", uri, params, **options)
+
+
+def resource_by_asset_id(asset_id, **options):
+    """
+    Returns the details of the specified asset and all its derived assets by asset id.
+
+    :param asset_id:    The Asset ID of the asset
+    :type asset_id:     string
+    :param options:     Additional options
+    :type options:      dict, optional
+    :return:            Resource (asset) of a specific asset_id
+    :rtype:             Response
+    """
+    uri = ["resources", asset_id]
+    params = _prepare_asset_details_params(**options)
+    return call_api("get", uri, params, **options)
+
+
+def _prepare_asset_details_params(**options):
+    """
+    Prepares optional parameters for resource_by_asset_id API calls.
+
+    :param options: Additional options
+    :return: Optional parameters
+
+    :internal
+    """
+    return only(options, "exif", "faces", "colors", "image_metadata", "media_metadata", "cinemagraph_analysis",
+                "pages", "phash", "coordinates", "max_results", "quality_analysis", "derived_next_cursor",
+                "accessibility_analysis", "versions", "related", "related_next_cursor")
 
 
 def update(public_id, **options):
@@ -119,10 +211,20 @@ def update(public_id, **options):
             options.get("custom_coordinates"))
     if "context" in options:
         params["context"] = utils.encode_context(options.get("context"))
+    if "metadata" in options:
+        params["metadata"] = utils.encode_context(options.get("metadata"))
     if "auto_tagging" in options:
         params["auto_tagging"] = str(options.get("auto_tagging"))
     if "access_control" in options:
         params["access_control"] = utils.json_encode(utils.build_list_of_dicts(options.get("access_control")))
+    if "asset_folder" in options:
+        params["asset_folder"] = options.get("asset_folder")
+    if "display_name" in options:
+        params["display_name"] = options.get("display_name")
+    if "unique_display_name" in options:
+        params["unique_display_name"] = options.get("unique_display_name")
+    if "clear_invalid" in options:
+        params["clear_invalid"] = options.get("clear_invalid")
 
     return call_api("post", uri, params, **options)
 
@@ -191,6 +293,50 @@ def delete_derived_by_transformation(public_ids, transformations,
     if invalidate is not None:
         params['invalidate'] = invalidate
     return call_api("delete", uri, params, **options)
+
+
+def add_related_assets(public_id, assets_to_relate, resource_type="image", type="upload", **options):
+    """
+    Relates an asset to other assets by public IDs.
+
+    :param public_id: The public ID of the asset to update.
+    :type public_id: str
+    :param assets_to_relate: The array of up to 10 fully_qualified_public_ids given as resource_type/type/public_id.
+    :type assets_to_relate: list[str]
+    :param type: The upload type. Defaults to "upload".
+    :type type: str
+    :param resource_type: The type of the resource. Defaults to "image".
+    :type resource_type: str
+    :param options: Additional options.
+    :type options: dict, optional
+    :return: The result of the command.
+    :rtype: dict
+    """
+    uri = ["resources", "related_assets", resource_type, type, public_id]
+    params = {"assets_to_relate": utils.build_array(assets_to_relate)}
+    return call_json_api("post", uri, params, **options)
+
+
+def delete_related_assets(public_id, assets_to_unrelate, resource_type="image", type="upload", **options):
+    """
+    Unrelates an asset from other assets by public IDs.
+
+    :param public_id: The public ID of the asset to update.
+    :type public_id: str
+    :param assets_to_unrelate: The array of up to 10 fully_qualified_public_ids given as resource_type/type/public_id.
+    :type assets_to_unrelate: list[str]
+    :param type: The upload type.
+    :type type: str
+    :param resource_type: The type of the resource: defaults to "image".
+    :type resource_type: str
+    :param options: Additional options.
+    :type options: dict, optional
+    :return: The result of the command.
+    :rtype: dict
+    """
+    uri = ["resources", "related_assets", resource_type, type, public_id]
+    params = {"assets_to_unrelate": utils.build_array(assets_to_unrelate)}
+    return call_json_api("delete", uri, params, **options)
 
 
 def tags(**options):
@@ -327,8 +473,8 @@ def restore(public_ids, **options):
     resource_type = options.pop("resource_type", "image")
     upload_type = options.pop("type", "upload")
     uri = ["resources", resource_type, upload_type, "restore"]
-    params = dict(public_ids=public_ids)
-    return call_api("post", uri, params, **options)
+    params = dict(public_ids=public_ids, **only(options, "versions"))
+    return call_json_api("post", uri, params, **options)
 
 
 def upload_mappings(**options):
@@ -388,90 +534,6 @@ def update_streaming_profile(name, **options):
     uri = ["streaming_profiles", name]
     params = __prepare_streaming_profile_params(**options)
     return call_api('PUT', uri, params, **options)
-
-
-def call_json_api(method, uri, jsonBody, **options):
-    logger.debug(jsonBody)
-    data = json.dumps(jsonBody).encode('utf-8')
-    return _call_api(method, uri, body=data,
-                     headers={'Content-Type': 'application/json'}, **options)
-
-
-def call_api(method, uri, params, **options):
-    return _call_api(method, uri, params=params, **options)
-
-
-def call_metadata_api(method, uri, params, **options):
-    """Private function that assists with performing an API call to the
-    metadata_fields part of the Admin API
-
-    :param method: The HTTP method. Valid methods: get, post, put, delete
-    :param uri: REST endpoint of the API (without 'metadata_fields')
-    :param params: Query/body parameters passed to the method
-    :param options: Additional options
-
-    :rtype: Response
-    """
-    uri = ["metadata_fields"] + (uri or [])
-    return call_json_api(method, uri, params, **options)
-
-
-def _call_api(method, uri, params=None, body=None, headers=None, **options):
-    prefix = options.pop("upload_prefix",
-                         cloudinary.config().upload_prefix) or "https://api.cloudinary.com"
-    cloud_name = options.pop("cloud_name", cloudinary.config().cloud_name)
-    if not cloud_name:
-        raise Exception("Must supply cloud_name")
-    api_key = options.pop("api_key", cloudinary.config().api_key)
-    if not api_key:
-        raise Exception("Must supply api_key")
-    api_secret = options.pop("api_secret", cloudinary.config().api_secret)
-    if not cloud_name:
-        raise Exception("Must supply api_secret")
-    api_url = "/".join([prefix, "v1_1", cloud_name] + uri)
-
-    processed_params = None
-    if isinstance(params, dict):
-        processed_params = {}
-        for key, value in params.items():
-            if isinstance(value, list) or isinstance(value, tuple):
-                value_list = {"{}[{}]".format(key, i): i_value for i, i_value in enumerate(value)}
-                processed_params.update(value_list)
-            elif value:
-                processed_params[key] = value
-
-    # Add authentication
-    req_headers = urllib3.make_headers(
-        basic_auth="{0}:{1}".format(api_key, api_secret),
-        user_agent=cloudinary.get_user_agent()
-    )
-    if headers is not None:
-        req_headers.update(headers)
-    kw = {}
-    if 'timeout' in options:
-        kw['timeout'] = options['timeout']
-    if body is not None:
-        kw['body'] = body
-    try:
-        response = _http.request(method.upper(), api_url, processed_params, req_headers, **kw)
-        body = response.data
-    except HTTPError as e:
-        raise GeneralError("Unexpected error {0}", e.message)
-    except socket.error as e:
-        raise GeneralError("Socket Error: %s" % (str(e)))
-
-    try:
-        result = json.loads(body.decode('utf-8'))
-    except Exception as e:
-        # Error is parsing json
-        raise GeneralError("Error parsing server response (%d) - %s. Got - %s" % (response.status, body, e))
-
-    if "error" in result:
-        exception_class = EXCEPTION_CODES.get(response.status) or Exception
-        exception_class = exception_class
-        raise exception_class("Error {0} - {1}".format(response.status, result["error"]["message"]))
-
-    return Response(result, response)
 
 
 def only(source, *keys):
@@ -651,3 +713,32 @@ def restore_metadata_field_datasource(field_external_id, entries_external_ids, *
     uri = [field_external_id, 'datasource_restore']
     params = {"external_ids": entries_external_ids}
     return call_metadata_api("post", uri, params, **options)
+
+
+def reorder_metadata_field_datasource(field_external_id, order_by, direction=None, **options):
+    """Reorders metadata field datasource. Currently, supports only value.
+
+    :param field_external_id: The ID of the metadata field.
+    :param order_by: Criteria for the order. Currently, supports only value.
+    :param direction: Optional (gets either asc or desc).
+    :param options: Additional options.
+
+    :rtype: Response
+    """
+    uri = [field_external_id, 'datasource', 'order']
+    params = {'order_by': order_by, 'direction': direction}
+    return call_metadata_api('post', uri, params, **options)
+
+
+def reorder_metadata_fields(order_by, direction=None, **options):
+    """Reorders metadata fields.
+
+    :param order_by: Criteria for the order (one of the fields 'label', 'external_id', 'created_at').
+    :param direction: Optional (gets either asc or desc).
+    :param options: Additional options.
+
+    :rtype: Response
+    """
+    uri = ['order']
+    params = {'order_by': order_by, 'direction': direction}
+    return call_metadata_api('put', uri, params, **options)

@@ -7,15 +7,22 @@ import time
 import types
 import unittest
 import operator
-
-import six
-from six.moves import range, map
-from six.moves.http_client import IncompleteRead
+from http.client import IncompleteRead
 
 import cherrypy
 from cherrypy import tools
 from cherrypy._cpcompat import ntou
 from cherrypy.test import helper, _test_decorators
+
+
+*PY_VER_MINOR, _ = PY_VER_PATCH = sys.version_info[:3]
+# Refs:
+# bugs.python.org/issue39389
+# docs.python.org/3.7/whatsnew/changelog.html#python-3-7-7-release-candidate-1
+# docs.python.org/3.8/whatsnew/changelog.html#python-3-8-2-release-candidate-1
+HAS_GZIP_COMPRESSION_HEADER_FIXED = PY_VER_PATCH >= (3, 8, 2) or (
+    PY_VER_MINOR == (3, 7) and PY_VER_PATCH >= (3, 7, 7)
+)
 
 
 timeout = 0.2
@@ -52,7 +59,7 @@ class ToolTests(helper.CPWebCase):
             def _setup(self):
                 def makemap():
                     m = self._merged_args().get('map', {})
-                    cherrypy.request.numerify_map = list(six.iteritems(m))
+                    cherrypy.request.numerify_map = list(m.items())
                 cherrypy.request.hooks.attach('on_start_resource', makemap)
 
                 def critical():
@@ -105,10 +112,7 @@ class ToolTests(helper.CPWebCase):
             def __call__(self, scale):
                 r = cherrypy.response
                 r.collapse_body()
-                if six.PY3:
-                    r.body = [bytes([(x + scale) % 256 for x in r.body[0]])]
-                else:
-                    r.body = [chr((ord(x) + scale) % 256) for x in r.body[0]]
+                r.body = [bytes([(x + scale) % 256 for x in r.body[0]])]
         cherrypy.tools.rotator = cherrypy.Tool('before_finalize', Rotator())
 
         def stream_handler(next_handler, *args, **kwargs):
@@ -179,7 +183,7 @@ class ToolTests(helper.CPWebCase):
             """
             def __init__(cls, name, bases, dct):
                 type.__init__(cls, name, bases, dct)
-                for value in six.itervalues(dct):
+                for value in dct.values():
                     if isinstance(value, types.FunctionType):
                         cherrypy.expose(value)
                 setattr(root, name.lower(), cls())
@@ -346,7 +350,7 @@ class ToolTests(helper.CPWebCase):
         self.getPage('/demo/err_in_onstart')
         self.assertErrorPage(502)
         tmpl = "AttributeError: 'str' object has no attribute '{attr}'"
-        expected_msg = tmpl.format(attr='items' if six.PY3 else 'iteritems')
+        expected_msg = tmpl.format(attr='items')
         self.assertInBody(expected_msg)
 
     def testCombinedTools(self):
@@ -363,6 +367,13 @@ class ToolTests(helper.CPWebCase):
                          ('Accept-Charset', 'ISO-8859-1,utf-8;q=0.7,*;q=0.7')])
         self.assertInBody(zbuf.getvalue()[:3])
 
+        if not HAS_GZIP_COMPRESSION_HEADER_FIXED:
+            # NOTE: CherryPy adopts a fix from the CPython bug 39389
+            # NOTE: introducing a variable compression XFL flag that
+            # NOTE: was hardcoded to "best compression" before. And so
+            # NOTE: we can only test it on CPython versions that also
+            # NOTE: implement this fix.
+            return
         zbuf = io.BytesIO()
         zfile = gzip.GzipFile(mode='wb', fileobj=zbuf, compresslevel=6)
         zfile.write(expectedResult)
@@ -377,11 +388,7 @@ class ToolTests(helper.CPWebCase):
         # but it proves the priority was changed.
         self.getPage('/decorated_euro/subpath',
                      headers=[('Accept-Encoding', 'gzip')])
-        if six.PY3:
-            self.assertInBody(bytes([(x + 3) % 256 for x in zbuf.getvalue()]))
-        else:
-            self.assertInBody(''.join([chr((ord(x) + 3) % 256)
-                              for x in zbuf.getvalue()]))
+        self.assertInBody(bytes([(x + 3) % 256 for x in zbuf.getvalue()]))
 
     def testBareHooks(self):
         content = 'bit of a pain in me gulliver'
@@ -429,7 +436,7 @@ class ToolTests(helper.CPWebCase):
         @cherrypy.tools.register(  # noqa: F811
             'before_finalize', name='renamed', priority=60,
         )
-        def example():
+        def example():  # noqa: F811
             pass
         self.assertTrue(isinstance(cherrypy.tools.renamed, cherrypy.Tool))
         self.assertEqual(cherrypy.tools.renamed._point, 'before_finalize')
@@ -446,8 +453,8 @@ class SessionAuthTest(unittest.TestCase):
         username and password were unicode.
         """
         sa = cherrypy.lib.cptools.SessionAuth()
-        res = sa.login_screen(None, username=six.text_type('nobody'),
-                              password=six.text_type('anypass'))
+        res = sa.login_screen(None, username=str('nobody'),
+                              password=str('anypass'))
         self.assertTrue(isinstance(res, bytes))
 
 

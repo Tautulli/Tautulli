@@ -1,23 +1,20 @@
 """
+_ssl_compat.py
 websocket - WebSocket client library for Python
 
-Copyright (C) 2010 Hiroki Ohtani(liris)
+Copyright 2022 engn33r
 
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
+    http://www.apache.org/licenses/LICENSE-2.0
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor,
-    Boston, MA 02110-1335  USA
-
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 __all__ = ["HAVE_SSL", "ssl", "SSLError", "SSLWantReadError", "SSLWantWriteError"]
 
@@ -26,20 +23,9 @@ try:
     from ssl import SSLError
     from ssl import SSLWantReadError
     from ssl import SSLWantWriteError
-    if hasattr(ssl, 'SSLContext') and hasattr(ssl.SSLContext, 'check_hostname'):
-        HAVE_CONTEXT_CHECK_HOSTNAME = True
-    else:
-        HAVE_CONTEXT_CHECK_HOSTNAME = False
-        if hasattr(ssl, "match_hostname"):
-            from ssl import match_hostname
-        else:
-            from backports.ssl_match_hostname import match_hostname
-        __all__.append("match_hostname")
-    __all__.append("HAVE_CONTEXT_CHECK_HOSTNAME")
-
     HAVE_SSL = True
 except ImportError:
-    # dummy class of SSLError for ssl none-support environment.
+    # dummy class of SSLError for environment without ssl support
     class SSLError(Exception):
         pass
 
@@ -49,6 +35,5 @@ except ImportError:
     class SSLWantWriteError(Exception):
         pass
 
-    ssl = lambda: None
-
+    ssl = None
     HAVE_SSL = False

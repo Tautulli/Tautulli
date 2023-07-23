@@ -8,7 +8,6 @@ They should be processed with re.VERBOSE.
 
 Thanks Mark Nottingham for this code - https://gist.github.com/138549
 """
-from __future__ import unicode_literals
 import re
 
 # basics
@@ -66,32 +65,8 @@ dec_octet = r"""(?: %(DIGIT)s |
 IPv4address = r"%(dec_octet)s \. %(dec_octet)s \. %(dec_octet)s \. %(dec_octet)s" % locals(
 )
 
-#  h16           = 1*4HEXDIG
-h16 = r"(?: %(HEXDIG)s ){1,4}" % locals()
-
-#  ls32          = ( h16 ":" h16 ) / IPv4address
-ls32 = r"(?: (?: %(h16)s : %(h16)s ) | %(IPv4address)s )" % locals()
-
-#   IPv6address   =                            6( h16 ":" ) ls32
-#                 /                       "::" 5( h16 ":" ) ls32
-#                 / [               h16 ] "::" 4( h16 ":" ) ls32
-#                 / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
-#                 / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
-#                 / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
-#                 / [ *4( h16 ":" ) h16 ] "::"              ls32
-#                 / [ *5( h16 ":" ) h16 ] "::"              h16
-#                 / [ *6( h16 ":" ) h16 ] "::"
-IPv6address = r"""(?:                                  (?: %(h16)s : ){6} %(ls32)s |
-                                                    :: (?: %(h16)s : ){5} %(ls32)s |
-                                            %(h16)s :: (?: %(h16)s : ){4} %(ls32)s |
-                         (?: %(h16)s : )    %(h16)s :: (?: %(h16)s : ){3} %(ls32)s |
-                         (?: %(h16)s : ){2} %(h16)s :: (?: %(h16)s : ){2} %(ls32)s |
-                         (?: %(h16)s : ){3} %(h16)s ::     %(h16)s :      %(ls32)s |
-                         (?: %(h16)s : ){4} %(h16)s ::                    %(ls32)s |
-                         (?: %(h16)s : ){5} %(h16)s ::                    %(h16)s  |
-                         (?: %(h16)s : ){6} %(h16)s ::
-                  )
-""" % locals()
+#   IPv6address
+IPv6address = r"([A-Fa-f0-9:]+:+)+[A-Fa-f0-9]+"
 
 #   IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
 IPvFuture = r"v %(HEXDIG)s+ \. (?: %(unreserved)s | %(sub_delims)s | : )+" % locals()

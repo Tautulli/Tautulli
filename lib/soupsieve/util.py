@@ -1,47 +1,20 @@
 """Utility."""
-from __future__ import unicode_literals
-from functools import wraps
+from __future__ import annotations
+from functools import wraps, lru_cache
 import warnings
-import sys
-import struct
-import os
 import re
-MODULE = os.path.dirname(__file__)
-
-PY3 = sys.version_info >= (3, 0)
-PY35 = sys.version_info >= (3, 5)
-PY37 = sys.version_info >= (3, 7)
-
-if PY3:
-    from functools import lru_cache  # noqa F401
-    import copyreg  # noqa F401
-    from collections.abc import Hashable, Mapping  # noqa F401
-
-    ustr = str
-    bstr = bytes
-    unichar = chr
-    string = str
-else:
-    from backports.functools_lru_cache import lru_cache  # noqa F401
-    import copy_reg as copyreg  # noqa F401
-    from collections import Hashable, Mapping  # noqa F401
-
-    ustr = unicode  # noqa: F821
-    bstr = str
-    unichar = unichr  # noqa: F821
-    string = basestring  # noqa: F821
+from typing import Callable, Any, Optional
 
 DEBUG = 0x00001
 
 RE_PATTERN_LINE_SPLIT = re.compile(r'(?:\r\n|(?!\r\n)[\n\r])|$')
 
-LC_A = ord('a')
-LC_Z = ord('z')
 UC_A = ord('A')
 UC_Z = ord('Z')
 
 
-def lower(string):
+@lru_cache(maxsize=512)
+def lower(string: str) -> str:
     """Lower."""
 
     new_string = []
@@ -51,41 +24,10 @@ def lower(string):
     return ''.join(new_string)
 
 
-def upper(string):  # pragma: no cover
-    """Lower."""
-
-    new_string = []
-    for c in string:
-        o = ord(c)
-        new_string.append(chr(o - 32) if LC_A <= o <= LC_Z else c)
-    return ''.join(new_string)
-
-
-def uchr(i):
-    """Allow getting Unicode character on narrow python builds."""
-
-    try:
-        return unichar(i)
-    except ValueError:  # pragma: no cover
-        return struct.pack('i', i).decode('utf-32')
-
-
-def uord(c):
-    """Get Unicode ordinal."""
-
-    if len(c) == 2:  # pragma: no cover
-        high, low = [ord(p) for p in c]
-        ordinal = (high - 0xD800) * 0x400 + low - 0xDC00 + 0x10000
-    else:
-        ordinal = ord(c)
-
-    return ordinal
-
-
-class SelectorSyntaxError(SyntaxError):
+class SelectorSyntaxError(Exception):
     """Syntax error in a CSS selector."""
 
-    def __init__(self, msg, pattern=None, index=None):
+    def __init__(self, msg: str, pattern: Optional[str] = None, index: Optional[int] = None) -> None:
         """Initialize."""
 
         self.line = None
@@ -97,30 +39,34 @@ class SelectorSyntaxError(SyntaxError):
             self.context, self.line, self.col = get_pattern_context(pattern, index)
             msg = '{}\n  line {}:\n{}'.format(msg, self.line, self.context)
 
-        super(SelectorSyntaxError, self).__init__(msg)
+        super().__init__(msg)
 
 
-def deprecated(message, stacklevel=2):  # pragma: no cover
+def deprecated(message: str, stacklevel: int = 2) -> Callable[..., Any]:  # pragma: no cover
     """
     Raise a `DeprecationWarning` when wrapped function/method is called.
 
-    Borrowed from https://stackoverflow.com/a/48632082/866026
+    Usage:
+
+        @deprecated("This method will be removed in version X; use Y instead.")
+        def some_method()"
+            pass
     """
 
-    def _decorator(func):
+    def _wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def _func(*args, **kwargs):
+        def _deprecated_func(*args: Any, **kwargs: Any) -> Any:
             warnings.warn(
-                "'{}' is deprecated. {}".format(func.__name__, message),
+                f"'{func.__name__}' is deprecated. {message}",
                 category=DeprecationWarning,
                 stacklevel=stacklevel
             )
             return func(*args, **kwargs)
-        return _func
-    return _decorator
+        return _deprecated_func
+    return _wrapper
 
 
-def warn_deprecated(message, stacklevel=2):  # pragma: no cover
+def warn_deprecated(message: str, stacklevel: int = 2) -> None:  # pragma: no cover
     """Warn deprecated."""
 
     warnings.warn(
@@ -130,14 +76,15 @@ def warn_deprecated(message, stacklevel=2):  # pragma: no cover
     )
 
 
-def get_pattern_context(pattern, index):
+def get_pattern_context(pattern: str, index: int) -> tuple[str, int, int]:
     """Get the pattern context."""
 
     last = 0
     current_line = 1
     col = 1
-    text = []
+    text = []  # type: list[str]
     line = 1
+    offset = None  # type: Optional[int]
 
     # Split pattern by newline and handle the text before the newline
     for m in RE_PATTERN_LINE_SPLIT.finditer(pattern):

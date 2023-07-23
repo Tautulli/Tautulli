@@ -20,7 +20,7 @@ from musicbrainzngs import mbxml
 from musicbrainzngs import util
 from musicbrainzngs import compat
 
-_version = "0.7dev"
+_version = "0.7.1"
 _log = logging.getLogger("musicbrainzngs")
 
 LUCENE_SPECIAL = r'([+\-&|!(){}\[\]\^"~*?:\\\/])'

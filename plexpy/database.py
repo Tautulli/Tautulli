@@ -54,7 +54,7 @@ def validate_database(database=None):
         return 'Uncaught exception'
 
     try:
-        connection.execute('SELECT started from session_history')
+        connection.execute("SELECT started from session_history")
         connection.close()
     except (sqlite3.OperationalError, sqlite3.DatabaseError, ValueError) as e:
         logger.error("Tautulli Database :: Invalid database specified: %s", e)
@@ -92,20 +92,20 @@ def import_tautulli_db(database=None, method=None, backup=False):
     set_is_importing(True)
 
     db = MonitorDatabase()
-    db.connection.execute('BEGIN IMMEDIATE')
-    db.connection.execute('ATTACH ? AS import_db', [database])
+    db.connection.execute("BEGIN IMMEDIATE")
+    db.connection.execute("ATTACH ? AS import_db", [database])
 
     try:
-        version_info = db.select_single('SELECT * FROM import_db.version_info WHERE key = "version"')
+        version_info = db.select_single("SELECT * FROM import_db.version_info WHERE key = 'version'")
         import_db_version = version_info['value']
-    except sqlite3.OperationalError:
+    except (sqlite3.OperationalError, KeyError):
         import_db_version = 'v2.6.10'
 
     logger.info("Tautulli Database :: Import Tautulli database version: %s", import_db_version)
     import_db_version = helpers.version_to_tuple(import_db_version)
 
     # Get the current number of used ids in the session_history table
-    session_history_seq = db.select_single('SELECT seq FROM sqlite_sequence WHERE name = "session_history"')
+    session_history_seq = db.select_single("SELECT seq FROM sqlite_sequence WHERE name = 'session_history'")
     session_history_rows = session_history_seq.get('seq', 0)
 
     session_history_tables = ('session_history', 'session_history_metadata', 'session_history_media_info')
@@ -113,11 +113,11 @@ def import_tautulli_db(database=None, method=None, backup=False):
     if method == 'merge':
         logger.info("Tautulli Database :: Creating temporary database tables to re-index grouped session history.")
         for table_name in session_history_tables:
-            db.action('CREATE TABLE {table}_copy AS SELECT * FROM import_db.{table}'.format(table=table_name))
-            db.action('UPDATE {table}_copy SET id = id + ?'.format(table=table_name),
+            db.action("CREATE TABLE {table}_copy AS SELECT * FROM import_db.{table}".format(table=table_name))
+            db.action("UPDATE {table}_copy SET id = id + ?".format(table=table_name),
                       [session_history_rows])
             if table_name == 'session_history':
-                db.action('UPDATE {table}_copy SET reference_id = reference_id + ?'.format(table=table_name),
+                db.action("UPDATE {table}_copy SET reference_id = reference_id + ?".format(table=table_name),
                           [session_history_rows])
 
     # Migrate section_id from session_history_metadata to session_history
@@ -128,28 +128,28 @@ def import_tautulli_db(database=None, method=None, backup=False):
         else:
             from_db_name = 'import_db'
             copy = ''
-        db.action('ALTER TABLE {from_db}.session_history{copy} '
-                  'ADD COLUMN section_id INTEGER'.format(from_db=from_db_name,
+        db.action("ALTER TABLE {from_db}.session_history{copy} "
+                  "ADD COLUMN section_id INTEGER".format(from_db=from_db_name,
                                                          copy=copy))
-        db.action('UPDATE {from_db}.session_history{copy} SET section_id = ('
-                  'SELECT section_id FROM {from_db}.session_history_metadata{copy} '
-                  'WHERE {from_db}.session_history_metadata{copy}.id = '
-                  '{from_db}.session_history{copy}.id)'.format(from_db=from_db_name,
+        db.action("UPDATE {from_db}.session_history{copy} SET section_id = ("
+                  "SELECT section_id FROM {from_db}.session_history_metadata{copy} "
+                  "WHERE {from_db}.session_history_metadata{copy}.id = "
+                  "{from_db}.session_history{copy}.id)".format(from_db=from_db_name,
                                                                copy=copy))
 
     # Keep track of all table columns so that duplicates can be removed after importing
     table_columns = {}
 
-    tables = db.select('SELECT name FROM import_db.sqlite_master '
-                       'WHERE type = "table" AND name NOT LIKE "sqlite_%"'
-                       'ORDER BY name')
+    tables = db.select("SELECT name FROM import_db.sqlite_master "
+                       "WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+                       "ORDER BY name")
     for table in tables:
         table_name = table['name']
         if table_name == 'sessions' or table_name == 'version_info':
             # Skip temporary sessions table
             continue
 
-        current_table = db.select('PRAGMA main.table_info({table})'.format(table=table_name))
+        current_table = db.select("PRAGMA main.table_info({table})".format(table=table_name))
         if not current_table:
             # Skip table does not exits
             continue
@@ -158,8 +158,8 @@ def import_tautulli_db(database=None, method=None, backup=False):
 
         if method == 'overwrite':
             # Clear the table and reset the autoincrement ids
-            db.action('DELETE FROM {table}'.format(table=table_name))
-            db.action('DELETE FROM sqlite_sequence WHERE name = ?', [table_name])
+            db.action("DELETE FROM {table}".format(table=table_name))
+            db.action("DELETE FROM sqlite_sequence WHERE name = ?", [table_name])
 
         if method == 'merge' and table_name in session_history_tables:
             from_db_name = 'main'
@@ -170,7 +170,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
 
         # Get the list of columns to import
         current_columns = [c['name'] for c in current_table]
-        import_table = db.select('PRAGMA {from_db}.table_info({from_table})'.format(from_db=from_db_name,
+        import_table = db.select("PRAGMA {from_db}.table_info({from_table})".format(from_db=from_db_name,
                                                                                     from_table=from_table_name))
 
         if method == 'merge' and table_name not in session_history_tables:
@@ -182,29 +182,29 @@ def import_tautulli_db(database=None, method=None, backup=False):
         insert_columns = ', '.join(import_columns)
 
         # Insert the data with ignore instead of replace to be safe
-        db.action('INSERT OR IGNORE INTO {table} ({columns}) '
-                  'SELECT {columns} FROM {from_db}.{from_table}'.format(table=table_name,
+        db.action("INSERT OR IGNORE INTO {table} ({columns}) "
+                  "SELECT {columns} FROM {from_db}.{from_table}".format(table=table_name,
                                                                         columns=insert_columns,
                                                                         from_db=from_db_name,
                                                                         from_table=from_table_name))
 
-    db.connection.execute('DETACH import_db')
+    db.connection.execute("DETACH import_db")
 
     if method == 'merge':
         for table_name, columns in sorted(table_columns.items()):
             duplicate_columns = ', '.join([c for c in columns if c not in ('id', 'reference_id')])
             logger.info("Tautulli Database :: Removing duplicate rows from database table '%s'.", table_name)
             if table_name in session_history_tables[1:]:
-                db.action('DELETE FROM {table} WHERE id NOT IN '
-                          '(SELECT id FROM session_history)'.format(table=table_name))
+                db.action("DELETE FROM {table} WHERE id NOT IN "
+                          "(SELECT id FROM session_history)".format(table=table_name))
             else:
-                db.action('DELETE FROM {table} WHERE id NOT IN '
-                          '(SELECT MIN(id) FROM {table} GROUP BY {columns})'.format(table=table_name,
+                db.action("DELETE FROM {table} WHERE id NOT IN "
+                          "(SELECT MIN(id) FROM {table} GROUP BY {columns})".format(table=table_name,
                                                                                     columns=duplicate_columns))
 
         logger.info("Tautulli Database :: Deleting temporary database tables.")
         for table_name in session_history_tables:
-            db.action('DROP TABLE {table}_copy'.format(table=table_name))
+            db.action("DROP TABLE {table}_copy".format(table=table_name))
 
     vacuum()
 
@@ -217,7 +217,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
 
 def integrity_check():
     monitor_db = MonitorDatabase()
-    result = monitor_db.select_single('PRAGMA integrity_check')
+    result = monitor_db.select_single("PRAGMA integrity_check")
     return result
 
 
@@ -227,7 +227,7 @@ def clear_table(table=None):
 
         logger.debug("Tautulli Database :: Clearing database table '%s'." % table)
         try:
-            monitor_db.action('DELETE FROM %s' % table)
+            monitor_db.action("DELETE FROM %s" % table)
             vacuum()
             return True
         except Exception as e:
@@ -286,7 +286,7 @@ def delete_user_history(user_id=None):
         monitor_db = MonitorDatabase()
 
         # Get all history associated with the user_id
-        result = monitor_db.select('SELECT id FROM session_history WHERE user_id = ?',
+        result = monitor_db.select("SELECT id FROM session_history WHERE user_id = ?",
                                    [user_id])
         row_ids = [row['id'] for row in result]
 
@@ -299,7 +299,7 @@ def delete_library_history(section_id=None):
         monitor_db = MonitorDatabase()
 
         # Get all history associated with the section_id
-        result = monitor_db.select('SELECT id FROM session_history WHERE section_id = ?',
+        result = monitor_db.select("SELECT id FROM session_history WHERE section_id = ?",
                                    [section_id])
         row_ids = [row['id'] for row in result]
 
@@ -312,7 +312,7 @@ def vacuum():
 
     logger.info("Tautulli Database :: Vacuuming database.")
     try:
-        monitor_db.action('VACUUM')
+        monitor_db.action("VACUUM")
     except Exception as e:
         logger.error("Tautulli Database :: Failed to vacuum database: %s" % e)
 
@@ -322,7 +322,7 @@ def optimize():
 
     logger.info("Tautulli Database :: Optimizing database.")
     try:
-        monitor_db.action('PRAGMA optimize')
+        monitor_db.action("PRAGMA optimize")
     except Exception as e:
         logger.error("Tautulli Database :: Failed to optimize database: %s" % e)
 
@@ -332,10 +332,11 @@ def optimize_db():
     optimize()
 
 
-def db_filename(filename=FILENAME):
+def db_filename(filename=None):
     """ Returns the filepath to the db """
-
-    return os.path.join(plexpy.DATA_DIR, filename)
+    if filename is None:
+        return os.path.join(plexpy.DATA_DIR, FILENAME)
+    return filename
 
 
 def make_backup(cleanup=False, scheduler=False):
@@ -361,7 +362,7 @@ def make_backup(cleanup=False, scheduler=False):
         os.makedirs(backup_folder)
 
     db = MonitorDatabase()
-    db.connection.execute('BEGIN IMMEDIATE')
+    db.connection.execute("BEGIN IMMEDIATE")
     shutil.copyfile(db_filename(), backup_file_fp)
     db.connection.rollback()
 
@@ -404,9 +405,9 @@ def dict_factory(cursor, row):
 
 class MonitorDatabase(object):
 
-    def __init__(self, filename=FILENAME):
-        self.filename = filename
-        self.connection = sqlite3.connect(db_filename(filename), timeout=20)
+    def __init__(self, filename=None):
+        self.filename = db_filename(filename)
+        self.connection = sqlite3.connect(self.filename, timeout=20)
         # Set database synchronous mode (default NORMAL)
         self.connection.execute("PRAGMA synchronous = %s" % plexpy.CONFIG.SYNCHRONOUS_MODE)
         # Set database journal mode (default WAL)
@@ -495,6 +496,6 @@ class MonitorDatabase(object):
 
     def last_insert_id(self):
         # Get the last insert row id
-        result = self.select_single(query='SELECT last_insert_rowid() AS last_id')
+        result = self.select_single(query="SELECT last_insert_rowid() AS last_id")
         if result:
             return result.get('last_id', None)

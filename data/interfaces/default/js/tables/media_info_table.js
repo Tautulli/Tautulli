@@ -25,6 +25,10 @@ media_info_table_options = {
     },
     "pagingType": "full_numbers",
     "stateSave": true,
+    "stateSaveParams": function (settings, data) {
+        data.search.search = "";
+        data.start = 0;
+    },
     "stateDuration": 0,
     "processing": false,
     "serverSide": true,
@@ -360,7 +364,7 @@ function childTableOptionsMedia(rowData) {
     media_info_table_options.lengthChange = false;
     media_info_table_options.info = false;
     media_info_table_options.pageLength = 10;
-    media_info_table_options.bStateSave = false;
+    media_info_table_options.stateSave = false;
     media_info_table_options.ajax = {
         url: 'get_library_media_info',
         type: 'post',
@@ -374,7 +378,7 @@ function childTableOptionsMedia(rowData) {
             };
         }
     }
-    media_info_table_options.fnDrawCallback = function (settings) {
+    media_info_table_options.drawCallback = function (settings) {
         $('#ajaxMsg').fadeOut();
 
         // Create the tooltips.
@@ -426,7 +430,7 @@ function childTableOptionsMedia(rowData) {
 
         $(this).closest('div.slider').slideDown();
     }
-    media_info_table_options.fnRowCallback = function (row, rowData, rowIndex) {
+    media_info_table_options.rowCallback = function (row, rowData, rowIndex) {
         if (rowData['rating_key'] in media_info_child_table) {
             // if a child table was already created
             $(row).addClass('shown')

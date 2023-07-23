@@ -216,6 +216,7 @@ AUDIO_QUALITY_PROFILES = {
 AUDIO_QUALITY_PROFILES = OrderedDict(sorted(list(AUDIO_QUALITY_PROFILES.items()), key=lambda k: k[0], reverse=True))
 
 HW_DECODERS = [
+    'd3d11va',
     'dxva2',
     'videotoolbox',
     'mediacodecndk',
@@ -228,8 +229,7 @@ HW_ENCODERS = [
     'videotoolbox',
     'mediacodecndk',
     'vaapi',
-    'nvenc',
-    'x264'
+    'nvenc'
 ]
 
 EXTRA_TYPES = {
@@ -401,6 +401,12 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Player', 'type': 'str', 'value': 'player', 'description': 'The name of the player being used for playback.'},
              {'name': 'Initial Stream', 'type': 'int', 'value': 'initial_stream', 'description': 'If the stream is the initial stream of a continuous streaming session.', 'example': '0 or 1'},
              {'name': 'IP Address', 'type': 'str', 'value': 'ip_address', 'description': 'The IP address of the device being used for playback.'},
+             {'name': 'Started Datestamp', 'type': 'str', 'value': 'started_datestamp', 'description': 'The date (in date format) when the stream started.'},
+             {'name': 'Started Timestamp', 'type': 'str', 'value': 'started_timestamp', 'description': 'The time (in time format) when the stream started.'},
+             {'name': 'Started Unix Time', 'type': 'int', 'value': 'started_unixtime', 'description': 'The unix timestamp when the stream started.'},
+             {'name': 'Stopped Datestamp', 'type': 'str', 'value': 'stopped_datestamp', 'description': 'The date (in date format) when the stream stopped.'},
+             {'name': 'Stopped Timestamp', 'type': 'str', 'value': 'stopped_timestamp', 'description': 'The time (in time format) when the stream stopped.'},
+             {'name': 'Stopped Unix Time', 'type': 'int', 'value': 'stopped_unixtime', 'description': 'The unix timestamp when the stream stopped.'},
              {'name': 'Stream Duration', 'type': 'int', 'value': 'stream_duration', 'description': 'The duration (in minutes) for the stream.'},
              {'name': 'Stream Duration (sec)', 'type': 'int', 'value': 'stream_duration_sec', 'description': 'The duration (in seconds) for the stream.'},
              {'name': 'Stream Time', 'type': 'str', 'value': 'stream_time', 'description': 'The duration (in time format) of the stream.'},
@@ -411,6 +417,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Progress Duration (sec)', 'type': 'int', 'value': 'progress_duration_sec', 'description': 'The last reported offset (in seconds) of the stream.'},
              {'name': 'Progress Time', 'type': 'str', 'value': 'progress_time', 'description': 'The last reported offset (in time format) of the stream.'},
              {'name': 'Progress Percent', 'type': 'int', 'value': 'progress_percent', 'description': 'The last reported progress percent of the stream.'},
+             {'name': 'View Offset (ms)', 'type': 'int', 'value': 'view_offset', 'description': 'The current view offset (in milliseconds) for the stream.'},
              {'name': 'Transcode Decision', 'type': 'str', 'value': 'transcode_decision', 'description': 'The transcode decision of the stream.'},
              {'name': 'Container Decision', 'type': 'str', 'value': 'container_decision', 'description': 'The container transcode decision of the stream.'},
              {'name': 'Video Decision', 'type': 'str', 'value': 'video_decision', 'description': 'The video transcode decision of the stream.'},
@@ -421,6 +428,10 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Optimized Version Profile', 'type': 'str', 'value': 'optimized_version_profile', 'description': 'The optimized version profile of the stream.'},
              {'name': 'Synced Version', 'type': 'int', 'value': 'synced_version', 'description': 'If the stream is an synced version.', 'example': '0 or 1'},
              {'name': 'Live', 'type': 'int', 'value': 'live', 'description': 'If the stream is live TV.', 'example': '0 or 1'},
+             {'name': 'Marker Start Time', 'type': 'int', 'value': 'marker_start', 'description': 'The intro or credits marker start time offset in milliseconds.'},
+             {'name': 'Marker End Time', 'type': 'int', 'value': 'marker_end', 'description': 'The intro or credits marker end time offset in milliseconds.'},
+             {'name': 'Credits Marker First', 'type': 'int', 'value': 'credits_marker_first', 'description': 'If the marker is the first credits marker.', 'example': '0 or 1'},
+             {'name': 'Credits Marker Final', 'type': 'int', 'value': 'credits_marker_final', 'description': 'If the marker is the final credits marker.', 'example': '0 or 1'},
              {'name': 'Channel Call Sign', 'type': 'str', 'value': 'channel_call_sign', 'description': 'The Live TV channel call sign.'},
              {'name': 'Channel Identifier', 'type': 'str', 'value': 'channel_identifier', 'description': 'The Live TV channel number.'},
              {'name': 'Channel Thumb', 'type': 'str', 'value': 'channel_thumb', 'description': 'The URL for the Live TV channel logo.'},
@@ -490,9 +501,10 @@ NOTIFICATION_PARAMETERS = [
         'category': 'Source Metadata Details',
         'parameters': [
              {'name': 'Media Type', 'type': 'str', 'value': 'media_type', 'description': 'The type of media.', 'example': 'movie, show, season, episode, artist, album, track, clip'},
-             {'name': 'Title', 'type': 'str', 'value': 'title', 'description': 'The full title of the item.'},
              {'name': 'Library Name', 'type': 'str', 'value': 'library_name', 'description': 'The library name of the item.'},
-             {'name': 'Show Name', 'type': 'str', 'value': 'show_name', 'description': 'The title of the TV series.'},
+             {'name': 'Title', 'type': 'str', 'value': 'title', 'description': 'The full title of the item.'},
+             {'name': 'Edition Title', 'type': 'str', 'value': 'edition_title', 'description': 'The edition title of the movie.'},
+             {'name': 'Show Name', 'type': 'str', 'value': 'show_name', 'description': 'The title of the TV show.'},
              {'name': 'Season Name', 'type': 'str', 'value': 'season_name', 'description': 'The title of the TV season.'},
              {'name': 'Episode Name', 'type': 'str', 'value': 'episode_name', 'description': 'The title of the TV episode.'},
              {'name': 'Artist Name', 'type': 'str', 'value': 'artist_name', 'description': 'The name of the artist.'},
@@ -503,6 +515,8 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Season Number 00', 'type': 'int', 'value': 'season_num00', 'description': 'The two digit season number.', 'example': 'e.g. 01, or 01-03'},
              {'name': 'Episode Number', 'type': 'int', 'value': 'episode_num', 'description': 'The episode number.', 'example': 'e.g. 6, or 6-10'},
              {'name': 'Episode Number 00', 'type': 'int', 'value': 'episode_num00', 'description': 'The two digit episode number.', 'example': 'e.g. 06, or 06-10'},
+             {'name': 'Disc Number', 'type': 'int', 'value': 'disc_num', 'description': 'The disc number.', 'example': 'e.g. 2'},
+             {'name': 'Disc Number 00', 'type': 'int', 'value': 'disc_num00', 'description': 'The two digit disc number.', 'example': 'e.g. 02'},
              {'name': 'Track Number', 'type': 'int', 'value': 'track_num', 'description': 'The track number.', 'example': 'e.g. 4, or 4-10'},
              {'name': 'Track Number 00', 'type': 'int', 'value': 'track_num00', 'description': 'The two digit track number.', 'example': 'e.g. 04, or 04-10'},
              {'name': 'Season Count', 'type': 'int', 'value': 'season_count', 'description': 'The number of seasons in a grouped recently added notification.'},
@@ -510,6 +524,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Album Count', 'type': 'int', 'value': 'album_count', 'description': 'The number of albums in a grouped recently added notification.'},
              {'name': 'Track Count', 'type': 'int', 'value': 'track_count', 'description': 'The number of tracks in a grouped recently added notification.'},
              {'name': 'Year', 'type': 'int', 'value': 'year', 'description': 'The release year for the item.'},
+             {'name': 'Show Year', 'type': 'int', 'value': 'show_year', 'description': 'The release year of the TV show.'},
              {'name': 'Release Date', 'type': 'str', 'value': 'release_date', 'description': 'The release date (in date format) for the item.'},
              {'name': 'Air Date', 'type': 'str', 'value': 'air_date', 'description': 'The air date (in date format) for the item.'},
              {'name': 'Added Date', 'type': 'str', 'value': 'added_date', 'description': 'The date (in date format) the item was added to Plex.'},
@@ -531,6 +546,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'User Rating', 'type': 'float', 'value': 'user_rating', 'description': 'The user (star) rating (out of 10) for the item.'},
              {'name': 'Duration', 'type': 'int', 'value': 'duration', 'description': 'The duration (in minutes) for the item.'},
              {'name': 'Duration (sec)', 'type': 'int', 'value': 'duration_sec', 'description': 'The duration (in seconds) for the item.'},
+             {'name': 'Duration (ms)', 'type': 'int', 'value': 'duration_ms', 'description': 'The duration (in milliseconds) for the item.'},
              {'name': 'Poster URL', 'type': 'str', 'value': 'poster_url', 'description': 'A URL for the movie, TV show, or album poster.'},
              {'name': 'Plex ID', 'type': 'str', 'value': 'plex_id', 'description': 'The Plex ID for the item.', 'example': 'e.g. 5d7769a9594b2b001e6a6b7e'},
              {'name': 'Plex URL', 'type': 'str', 'value': 'plex_url', 'description': 'The Plex URL to your server for the item.'},
@@ -544,6 +560,8 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'TVmaze URL', 'type': 'str', 'value': 'tvmaze_url', 'description': 'The TVmaze URL for the TV show.'},
              {'name': 'MusicBrainz ID', 'type': 'str', 'value': 'musicbrainz_id', 'description': 'The MusicBrainz ID for the artist, album, or track.', 'example': 'e.g. b670dfcf-9824-4309-a57e-03595aaba286'},
              {'name': 'MusicBrainz URL', 'type': 'str', 'value': 'musicbrainz_url', 'description': 'The MusicBrainz URL for the artist, album, or track.'},
+             {'name': 'AniDB ID', 'type': 'str', 'value': 'anidb_id', 'description': 'The AniDB ID for the Anime', 'example': 'e.g. 69', 'help_text': 'TV show library agent must be HAMA'},
+             {'name': 'AniDB URL', 'type': 'str', 'value': 'anidb_url', 'description': 'The AniDB URL for the Anime', 'help_text': 'TV show library agent must be HAMA'},
              {'name': 'Last.fm URL', 'type': 'str', 'value': 'lastfm_url', 'description': 'The Last.fm URL for the album.', 'help_text': 'Music library agent must be Last.fm'},
              {'name': 'Trakt.tv URL', 'type': 'str', 'value': 'trakt_url', 'description': 'The trakt.tv URL for the movie or TV show.'},
              {'name': 'Container', 'type': 'str', 'value': 'container', 'description': 'The media container of the original media.'},
@@ -591,11 +609,11 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Rating Key', 'type': 'int', 'value': 'rating_key', 'description': 'The unique identifier for the movie, episode, or track.'},
              {'name': 'Parent Rating Key', 'type': 'int', 'value': 'parent_rating_key', 'description': 'The unique identifier for the season or album.'},
              {'name': 'Grandparent Rating Key', 'type': 'int', 'value': 'grandparent_rating_key', 'description': 'The unique identifier for the TV show or artist.'},
-             {'name': 'Art', 'type': 'str', 'value': 'art', 'description': 'The Plex background art for the media.'},
-             {'name': 'Thumb', 'type': 'str', 'value': 'thumb', 'description': 'The Plex thumbnail for the movie or episode.'},
-             {'name': 'Parent Thumb', 'type': 'str', 'value': 'parent_thumb', 'description': 'The Plex thumbnail for the season or album.'},
-             {'name': 'Grandparent Thumb', 'type': 'str', 'value': 'grandparent_thumb', 'description': 'The Plex thumbnail for the TV show or artist.'},
-             {'name': 'Poster Thumb', 'type': 'str', 'value': 'poster_thumb', 'description': 'The Plex thumbnail for the poster image.'},
+             {'name': 'Art', 'type': 'str', 'value': 'art', 'description': 'The Plex API path to the background art for the media.'},
+             {'name': 'Thumb', 'type': 'str', 'value': 'thumb', 'description': 'The Plex API path to the thumbnail for the movie or episode.'},
+             {'name': 'Parent Thumb', 'type': 'str', 'value': 'parent_thumb', 'description': 'The Plex API path to the thumbnail for the season or album.'},
+             {'name': 'Grandparent Thumb', 'type': 'str', 'value': 'grandparent_thumb', 'description': 'The Plex API path to the thumbnail for the TV show or artist.'},
+             {'name': 'Poster Thumb', 'type': 'str', 'value': 'poster_thumb', 'description': 'The Plex API path to the thumbnail for the poster image.'},
              {'name': 'Poster Title', 'type': 'str', 'value': 'poster_title', 'description': 'The title for the poster image.'},
              {'name': 'Indexes', 'type': 'int', 'value': 'indexes', 'description': 'If the media has video preview thumbnails.', 'example': '0 or 1'},
          ]
@@ -676,3 +694,8 @@ NEWSLETTER_PARAMETERS = [
         ]
     }
 ]
+
+
+NOTIFICATION_PARAMETERS_TYPES = {
+    parameter['value']: parameter['type'] for category in NOTIFICATION_PARAMETERS for parameter in category['parameters']
+}

@@ -1,4 +1,6 @@
-# Copyright (C) 2001-2007, 2009-2011 Nominum, Inc.
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
+# Copyright (C) 2001-2017 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
 # documentation for any purpose with or without fee is hereby granted,
@@ -15,98 +17,108 @@
 
 """DNS Message Flags."""
 
+from typing import Any
+
+import enum
+
 # Standard DNS flags
 
-QR = 0x8000
-AA = 0x0400
-TC = 0x0200
-RD = 0x0100
-RA = 0x0080
-AD = 0x0020
-CD = 0x0010
+
+class Flag(enum.IntFlag):
+    #: Query Response
+    QR = 0x8000
+    #: Authoritative Answer
+    AA = 0x0400
+    #: Truncated Response
+    TC = 0x0200
+    #: Recursion Desired
+    RD = 0x0100
+    #: Recursion Available
+    RA = 0x0080
+    #: Authentic Data
+    AD = 0x0020
+    #: Checking Disabled
+    CD = 0x0010
+
 
 # EDNS flags
 
-DO = 0x8000
 
-_by_text = {
-    'QR': QR,
-    'AA': AA,
-    'TC': TC,
-    'RD': RD,
-    'RA': RA,
-    'AD': AD,
-    'CD': CD
-}
-
-_edns_by_text = {
-    'DO': DO
-}
+class EDNSFlag(enum.IntFlag):
+    #: DNSSEC answer OK
+    DO = 0x8000
 
 
-# We construct the inverse mappings programmatically to ensure that we
-# cannot make any mistakes (e.g. omissions, cut-and-paste errors) that
-# would cause the mappings not to be true inverses.
-
-_by_value = dict((y, x) for x, y in _by_text.items())
-
-_edns_by_value = dict((y, x) for x, y in _edns_by_text.items())
-
-
-def _order_flags(table):
-    order = list(table.items())
-    order.sort()
-    order.reverse()
-    return order
-
-_flags_order = _order_flags(_by_value)
-
-_edns_flags_order = _order_flags(_edns_by_value)
-
-
-def _from_text(text, table):
+def _from_text(text: str, enum_class: Any) -> int:
     flags = 0
     tokens = text.split()
     for t in tokens:
-        flags = flags | table[t.upper()]
+        flags |= enum_class[t.upper()]
     return flags
 
 
-def _to_text(flags, table, order):
+def _to_text(flags: int, enum_class: Any) -> str:
     text_flags = []
-    for k, v in order:
-        if flags & k != 0:
-            text_flags.append(v)
-    return ' '.join(text_flags)
+    for k, v in enum_class.__members__.items():
+        if flags & v != 0:
+            text_flags.append(k)
+    return " ".join(text_flags)
 
 
-def from_text(text):
+def from_text(text: str) -> int:
     """Convert a space-separated list of flag text values into a flags
     value.
-    @rtype: int"""
 
-    return _from_text(text, _by_text)
+    Returns an ``int``
+    """
+
+    return _from_text(text, Flag)
 
 
-def to_text(flags):
+def to_text(flags: int) -> str:
     """Convert a flags value into a space-separated list of flag text
     values.
-    @rtype: string"""
 
-    return _to_text(flags, _by_value, _flags_order)
+    Returns a ``str``.
+    """
+
+    return _to_text(flags, Flag)
 
 
-def edns_from_text(text):
+def edns_from_text(text: str) -> int:
     """Convert a space-separated list of EDNS flag text values into a EDNS
     flags value.
-    @rtype: int"""
 
-    return _from_text(text, _edns_by_text)
+    Returns an ``int``
+    """
+
+    return _from_text(text, EDNSFlag)
 
 
-def edns_to_text(flags):
+def edns_to_text(flags: int) -> str:
     """Convert an EDNS flags value into a space-separated list of EDNS flag
     text values.
-    @rtype: string"""
 
-    return _to_text(flags, _edns_by_value, _edns_flags_order)
+    Returns a ``str``.
+    """
+
+    return _to_text(flags, EDNSFlag)
+
+
+### BEGIN generated Flag constants
+
+QR = Flag.QR
+AA = Flag.AA
+TC = Flag.TC
+RD = Flag.RD
+RA = Flag.RA
+AD = Flag.AD
+CD = Flag.CD
+
+### END generated Flag constants
+
+### BEGIN generated EDNSFlag constants
+
+DO = EDNSFlag.DO
+
+### END generated EDNSFlag constants

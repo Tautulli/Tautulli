@@ -27,7 +27,7 @@
 
     <!-- ICONS -->
     <!-- Android -->
-    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.6.0" crossorigin="use-credentials">
+    <link rel="manifest" href="${http_root}images/favicon/manifest.json?v=2.9.0" crossorigin="use-credentials">
     <meta name="theme-color" content="#282a2d">
     <!-- Apple -->
     <link rel="apple-touch-icon" sizes="180x180" href="${http_root}images/favicon/apple-touch-icon.png?v=2.6.0">
@@ -40,6 +40,16 @@
 
 <body>
 <div class="container-fluid">
+    % if plexpy.CONFIG.CHECK_DOCKER_MOUNT and plexpy.DOCKER and not plexpy.DOCKER_MOUNT:
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-danger docker-mount" role="alert" style="width: 700px; z-index: 9999">
+                The <span class="inline-pre">/config</span> volume mount was not configured properly for the Docker container.
+                All data may be cleared when the container is recreated or updated.
+            </div>
+        </div>
+    </div>
+    % endif
     <div class="row">
         <div class="wizard" id="setup-wizard" data-title="Tautulli Setup Wizard">
             <form>
@@ -101,8 +111,9 @@
                             Tautulli requires a Plex.tv account. Click the button below to sign in on Plex.tv. You may need to allow popups in your browser.
                         </p>
                     </div>
-                    <input type="hidden" class="form-control" name="pms_token" id="pms_token" value="" data-validate="validatePMStoken">
-                    <a class="btn btn-dark" id="sign-in-plex" href="#" role="button">Sign In with Plex</a>
+                    <input type="hidden" id="pms_token_validated" value="0" data-validate="validatePMStoken">
+                    <input type="hidden" name="pms_client_id" id="pms_client_id" value="">
+                    <button id="sign-in-plex" class="btn btn-form" type="button">Sign In with Plex</button>
                     <span style="margin-left: 10px; display: none;" id="pms-token-status"></span>
                 </div>
 
@@ -218,23 +229,6 @@
                     <!-- Required fields but hidden -->
                     <div style="display: none;">
                         <input type="checkbox" name="first_run" id="first_run" value="1" checked>
-                        <input type="checkbox" name="group_history_tables" id="group_history_tables" value="1" checked>
-                        <input type="checkbox" name="history_table_activity" id="history_table_activity" value="1" checked>
-                        <input type="checkbox" name="sys_tray_icon" id="sys_tray_icon" value="1" checked>
-                        <input type="checkbox" name="launch_startup" id="launch_startup" value="1" checked>
-                        <input type="checkbox" name="launch_browser" id="launch_browser" value="1" checked>
-                        <input type="checkbox" name="api_enabled" id="api_enabled" value="1" checked>
-                        <input type="checkbox" name="refresh_users_on_startup" id="refresh_users_on_startup" value="1" checked>
-                        <input type="checkbox" name="refresh_libraries_on_startup" id="refresh_libraries_on_startup" value="1" checked>
-                        <input type="checkbox" name="check_github" id="check_github" value="1" checked>
-                        <input type="checkbox" name="log_blacklist" id="log_blacklist" value="1" checked>
-                        <input type="checkbox" name="cache_images" id="cache_images" value="1" checked>
-                        <input type="checkbox" name="notify_group_recently_added_grandparent" id="notify_group_recently_added_grandparent" value="1" checked>
-                        <input type="checkbox" name="notify_group_recently_added_parent" id="notify_group_recently_added_parent" value="1" checked>
-                        <input type="checkbox" name="server_changed" id="server_changed" value="1" checked>
-                        <input type="checkbox" name="first_run_complete" id="first_run_complete" value="1" checked>
-                        <input type="text" name="home_stats_cards" id="home_stats_cards" value="first_run_wizard">
-                        <input type="text" name="home_library_cards" id="home_library_cards" value="first_run_wizard">
                     </div>
 
                 </div>
@@ -252,7 +246,7 @@
     </div>
 </div>
 
-<script src="${http_root}js/jquery-3.5.1.min.js"></script>
+<script src="${http_root}js/jquery-3.6.0.min.js"></script>
 <script src="${http_root}js/bootstrap.min.js"></script>
 <script src="${http_root}js/selectize.min.js"></script>
 <script src="${http_root}js/platform.min.js"></script>
@@ -297,7 +291,7 @@
         var valid_pms_token = el.val();
         var retValue = {};
 
-        if (valid_pms_token === "") {
+        if (valid_pms_token !== "1") {
             retValue.status = false;
             retValue.msg = "Please authenticate.";
             $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Please authenticate.');
@@ -466,13 +460,9 @@ $(document).ready(function() {
     });
     var select_pms = $select_pms[0].selectize;
 
-    function getServerOptions(token) {
-        /* Set token and returns server options */
+    function getServerOptions() {
         $.ajax({
             url: 'discover',
-            data: {
-                token: token
-            },
             success: function (result) {
                 if (result) {
                     var existing_ip = $('#pms_ip').val();
@@ -546,21 +536,22 @@ $(document).ready(function() {
     });
 
     function OAuthPreFunction() {
-        $("#pms_token").val('');
         $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
     }
     function OAuthSuccessCallback(authToken) {
-        $("#pms_token").val(authToken);
+        $.post('save_pms_token', { token: authToken, client_id: $('#pms_client_id').val() }, function () {
+            $("#pms_token_validated").val(1);
+            getServerOptions();
+        });
         $("#pms-token-status").html('<i class="fa fa-check"></i>&nbsp; Authentication successful.').fadeIn('fast');
         authenticated = true;
-        getServerOptions(authToken);
     }
     function OAuthErrorCallback() {
         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');
     }
 
     $('#sign-in-plex').click(function() {
-        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction);
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction, $('#pms_client_id').val(uuidv4()).val());
     });
 });
 </script>

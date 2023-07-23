@@ -3,15 +3,14 @@ import json
 import os
 import socket
 
-import certifi
 from six import string_types
-from urllib3 import PoolManager, ProxyManager
 from urllib3.exceptions import HTTPError
 
 import cloudinary
 from cloudinary import utils
-from cloudinary.exceptions import Error
 from cloudinary.cache.responsive_breakpoints_cache import instance as responsive_breakpoints_cache_instance
+from cloudinary.exceptions import Error
+from cloudinary.utils import build_eager
 
 try:
     from urllib3.contrib.appengine import AppEngineManager, is_appengine_sandbox
@@ -23,6 +22,11 @@ try:  # Python 2.7+
     from collections import OrderedDict
 except ImportError:
     from urllib3.packages.ordered_dict import OrderedDict
+
+try:  # Python 3.4+
+    from pathlib import Path as PathLibPathType
+except ImportError:
+    PathLibPathType = None
 
 if is_appengine_sandbox():
     # AppEngineManager uses AppEngine's URLFetch API behind the scenes
@@ -58,7 +62,12 @@ def upload_image(file, **options):
 
 
 def upload_resource(file, **options):
-    result = upload(file, **options)
+    upload_func = upload
+    if hasattr(file, 'size') and file.size > UPLOAD_LARGE_CHUNK_SIZE:
+        upload_func = upload_large
+
+    result = upload_func(file, **options)
+
     return cloudinary.CloudinaryResource(
         result["public_id"], version=str(result["version"]),
         format=result.get("format"), type=result["type"],
@@ -131,7 +140,9 @@ def rename(from_public_id, to_public_id, **options):
         "invalidate": options.get("invalidate"),
         "from_public_id": from_public_id,
         "to_public_id": to_public_id,
-        "to_type": options.get("to_type")
+        "to_type": options.get("to_type"),
+        "context": options.get("context"),
+        "metadata": options.get("metadata")
     }
     return call_api("rename", params, **options)
 
@@ -157,7 +168,8 @@ def update_metadata(metadata, public_ids, **options):
         "timestamp": utils.now(),
         "metadata": utils.encode_context(metadata),
         "public_ids": utils.build_array(public_ids),
-        "type": options.get("type")
+        "type": options.get("type"),
+        "clear_invalid": options.get("clear_invalid")
     }
 
     return call_api("metadata", params, **options)
@@ -180,28 +192,79 @@ def create_zip(**options):
     return create_archive(target_format="zip", **options)
 
 
-def generate_sprite(tag, **options):
-    params = {
-        "timestamp": utils.now(),
-        "tag": tag,
-        "async": options.get("async"),
-        "notification_url": options.get("notification_url"),
-        "transformation": utils.generate_transformation_string(
-            fetch_format=options.get("format"), **options)[0]
-    }
+def generate_sprite(tag=None, urls=None, **options):
+    """
+    Generates sprites by merging multiple images into a single large image.
+
+    See: `Sprite method API reference
+    <https://cloudinary.com/documentation/image_upload_api_reference#sprite_method>`_
+
+    :param tag:     The sprite is created from all images with this tag. If not set - `urls` parameter is required
+    :type tag:      str
+    :param urls:    List of URLs to create a sprite from. Can only be used if `tag` is not set
+    :type urls:     list
+    :param options: Additional options
+    :type options:  dict, optional
+    :return:        Dictionary with meta information URLs of generated sprite resources
+    :rtype:         dict
+    """
+    params = utils.build_multi_and_sprite_params(tag=tag, urls=urls, **options)
     return call_api("sprite", params, **options)
 
 
-def multi(tag, **options):
-    params = {
-        "timestamp": utils.now(),
-        "tag": tag,
-        "format": options.get("format"),
-        "async": options.get("async"),
-        "notification_url": options.get("notification_url"),
-        "transformation": utils.generate_transformation_string(**options)[0]
-    }
+def download_generated_sprite(tag=None, urls=None, **options):
+    """
+    Returns signed URL for the sprite endpoint with `mode=download`
+
+    :param tag:     The sprite is created from all images with this tag. If not set - `urls` parameter is required
+    :type tag:      str
+    :param urls:    List of URLs to create a sprite from. Can only be used if `tag` is not set
+    :type urls:     list
+    :param options: Additional options
+    :type options:  dict, optional
+    :return:        The signed URL to download sprite
+    :rtype:         str
+    """
+    params = utils.build_multi_and_sprite_params(tag=tag, urls=urls, **options)
+    return utils.cloudinary_api_download_url(action="sprite", params=params, **options)
+
+
+def multi(tag=None, urls=None, **options):
+    """
+    Creates either a single animated image, video or a PDF.
+
+    See: `Upload method API reference
+    <https://cloudinary.com/documentation/image_upload_api_reference#multi_method>`_
+
+    :param tag:     The animated image, video or PDF is created from all images with this tag.
+                    If not set - `urls` parameter is required
+    :type tag:      str
+    :param urls:    List of URLs to create an animated image, video or PDF from. Can only be used if `tag` is not set
+    :type urls:     list
+    :param options: Additional options
+    :type options:  dict, optional
+    :return:        Dictionary with meta information URLs of the generated file
+    :rtype:         dict
+    """
+    params = utils.build_multi_and_sprite_params(tag=tag, urls=urls, **options)
     return call_api("multi", params, **options)
+
+
+def download_multi(tag=None, urls=None, **options):
+    """
+    Returns signed URL for the multi endpoint with `mode=download`
+
+    :param tag:     The sprite is created from all images with this tag. If not set - `urls` parameter is required
+    :type tag:      str
+    :param urls:    List of URLs to create a sprite from. Can only be used if `tag` is not set
+    :type urls:     list
+    :param options: Additional options
+    :type options:  dict, optional
+    :return:        The signed URL to download multi
+    :rtype:         str
+    """
+    params = utils.build_multi_and_sprite_params(tag=tag, urls=urls, **options)
+    return utils.cloudinary_api_download_url(action="multi", params=params, **options)
 
 
 def explode(public_id, **options):
@@ -215,18 +278,48 @@ def explode(public_id, **options):
     return call_api("explode", params, **options)
 
 
-# options may include 'exclusive' (boolean) which causes clearing this tag from all other resources
 def add_tag(tag, public_ids=None, **options):
+    """
+    Adds a single tag or a list of tags or a comma-separated tags to the assets.
+
+    :param tag:         The tag or tags to assign. Can specify multiple tags in a single string,
+                        separated by commas - "t1,t2,t3" or list of tags - ["t1","t2","t3"].
+    :param public_ids:  A list of public IDs (up to 1000).
+    :param options:     Configuration options may include 'exclusive' (boolean) which causes
+                        clearing this tag from all other assets.
+
+    :return:            Dictionary with a list of public IDs that were updated.
+    """
     exclusive = options.pop("exclusive", None)
     command = "set_exclusive" if exclusive else "add"
     return call_tags_api(tag, command, public_ids, **options)
 
 
 def remove_tag(tag, public_ids=None, **options):
+    """
+    Removes a single tag or a list of tags or a comma-separated tags from the assets.
+
+    :param tag:         The tag or tags to assign. Can specify multiple tags in a single string,
+                        separated by commas - "t1,t2,t3" or list of tags - ["t1","t2","t3"].
+    :param public_ids:  A list of public IDs (up to 1000).
+    :param options:     Additional options.
+
+    :return:            Dictionary with a list of public IDs that were updated.
+    """
     return call_tags_api(tag, "remove", public_ids, **options)
 
 
 def replace_tag(tag, public_ids=None, **options):
+    """
+    Replaces all existing tags with a single tag or a list of tags or a comma-separated tags of the assets.
+
+    :param tag:         The tag or tags to assign. Can specify multiple tags in a single string,
+                        separated by commas - "t1,t2,t3" or list of tags - ["t1","t2","t3"].
+    :param public_ids:  A list of public IDs (up to 1000).
+    :param options:     Additional options.
+
+    :return:            Dictionary with a list of public IDs that were updated.
+    """
     return call_tags_api(tag, "replace", public_ids, **options)
 
 
@@ -310,6 +403,39 @@ def text(text, **options):
     return call_api("text", params, **options)
 
 
+_SLIDESHOW_PARAMS = [
+    "notification_url",
+    "public_id",
+    "overwrite",
+    "upload_preset",
+]
+
+
+def create_slideshow(**options):
+    """
+    Creates auto-generated video slideshows.
+
+    :param options: The optional parameters.  See the upload API documentation.
+
+    :return: a dictionary with details about created slideshow
+    """
+    options["resource_type"] = options.get("resource_type", "video")
+
+    params = {param_name: options.get(param_name) for param_name in _SLIDESHOW_PARAMS}
+
+    serialized_params = {
+        "timestamp": utils.now(),
+        "transformation": build_eager(options.get("transformation")),
+        "manifest_transformation": build_eager(options.get("manifest_transformation")),
+        "manifest_json": options.get("manifest_json") and utils.json_encode(options.get("manifest_json")),
+        "tags": options.get("tags") and utils.encode_list(utils.build_array(options["tags"])),
+    }
+
+    params.update(serialized_params)
+
+    return call_api("create_slideshow", params, **options)
+
+
 def _save_responsive_breakpoints_to_cache(result):
     """
     Saves responsive breakpoints parsed from upload result to cache
@@ -347,80 +473,83 @@ def call_cacheable_api(action, params, http_headers=None, return_error=False, un
 
 
 def call_api(action, params, http_headers=None, return_error=False, unsigned=False, file=None, timeout=None, **options):
-    if http_headers is None:
-        http_headers = {}
-    file_io = None
-    try:
-        if unsigned:
-            params = utils.cleanup_params(params)
-        else:
-            params = utils.sign_request(params, options)
+    params = utils.cleanup_params(params)
 
-        param_list = OrderedDict()
-        for k, v in params.items():
-            if isinstance(v, list):
-                for i in range(len(v)):
-                    param_list["{0}[{1}]".format(k, i)] = v[i]
-            elif v:
-                param_list[k] = v
+    headers = {"User-Agent": cloudinary.get_user_agent()}
 
-        api_url = utils.cloudinary_api_url(action, **options)
-        if file:
-            filename = options.get("filename")  # Custom filename provided by user (relevant only for streams and files)
-
-            if isinstance(file, string_types):
-                if utils.is_remote_url(file):
-                    # URL
-                    name = None
-                    data = file
-                else:
-                    # file path
-                    name = filename or file
-                    with open(file, "rb") as opened:
-                        data = opened.read()
-            elif hasattr(file, 'read') and callable(file.read):
-                # stream
-                data = file.read()
-                name = filename or (file.name if hasattr(file, 'name') and isinstance(file.name, str) else "stream")
-            elif isinstance(file, tuple):
-                name, data = file
-            else:
-                # Not a string, not a stream
-                name = filename or "file"
-                data = file
-
-            param_list["file"] = (name, data) if name else data
-
-        headers = {"User-Agent": cloudinary.get_user_agent()}
+    if http_headers is not None:
         headers.update(http_headers)
 
-        kw = {}
-        if timeout is not None:
-            kw['timeout'] = timeout
+    oauth_token = options.get("oauth_token", cloudinary.config().oauth_token)
 
-        code = 200
-        try:
-            response = _http.request("POST", api_url, param_list, headers, **kw)
-        except HTTPError as e:
-            raise Error("Unexpected error - {0!r}".format(e))
-        except socket.error as e:
-            raise Error("Socket error: {0!r}".format(e))
+    if oauth_token:
+        headers["authorization"] = "Bearer {}".format(oauth_token)
+    elif not unsigned:
+        params = utils.sign_request(params, options)
 
-        try:
-            result = json.loads(response.data.decode('utf-8'))
-        except Exception as e:
-            # Error is parsing json
-            raise Error("Error parsing server response (%d) - %s. Got - %s" % (response.status, response.data, e))
+    param_list = []
+    for k, v in params.items():
+        if isinstance(v, list):
+            for i in v:
+                param_list.append(("{0}[]".format(k), i))
+        elif v:
+            param_list.append((k, v))
 
-        if "error" in result:
-            if response.status not in [200, 400, 401, 403, 404, 500]:
-                code = response.status
-            if return_error:
-                result["error"]["http_code"] = code
+    api_url = utils.cloudinary_api_url(action, **options)
+
+    if file:
+        filename = options.get("filename")  # Custom filename provided by user (relevant only for streams and files)
+
+        if PathLibPathType and isinstance(file, PathLibPathType):
+            name = filename or file.name
+            data = file.read_bytes()
+        elif isinstance(file, string_types):
+            if utils.is_remote_url(file):
+                # URL
+                name = None
+                data = file
             else:
-                raise Error(result["error"]["message"])
+                # file path
+                name = filename or file
+                with open(file, "rb") as opened:
+                    data = opened.read()
+        elif hasattr(file, 'read') and callable(file.read):
+            # stream
+            data = file.read()
+            name = filename or (file.name if hasattr(file, 'name') and isinstance(file.name, str) else "stream")
+        elif isinstance(file, tuple):
+            name, data = file
+        else:
+            # Not a string, not a stream
+            name = filename or "file"
+            data = file
 
-        return result
-    finally:
-        if file_io:
-            file_io.close()
+        param_list.append(("file", (name, data) if name else data))
+
+    kw = {}
+    if timeout is not None:
+        kw['timeout'] = timeout
+
+    code = 200
+    try:
+        response = _http.request("POST", api_url, param_list, headers, **kw)
+    except HTTPError as e:
+        raise Error("Unexpected error - {0!r}".format(e))
+    except socket.error as e:
+        raise Error("Socket error: {0!r}".format(e))
+
+    try:
+        result = json.loads(response.data.decode('utf-8'))
+    except Exception as e:
+        # Error is parsing json
+        raise Error("Error parsing server response (%d) - %s. Got - %s" % (response.status, response.data, e))
+
+    if "error" in result:
+        if response.status not in [200, 400, 401, 403, 404, 500]:
+            code = response.status
+        if return_error:
+            result["error"]["http_code"] = code
+        else:
+            raise Error(result["error"]["message"])
+
+    return result

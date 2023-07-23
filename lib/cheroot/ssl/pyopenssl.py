@@ -1,46 +1,62 @@
 """
-A library for integrating pyOpenSSL with Cheroot.
+A library for integrating :doc:`pyOpenSSL <pyopenssl:index>` with Cheroot.
 
-The OpenSSL module must be importable for SSL functionality.
-You can obtain it from `here <https://launchpad.net/pyopenssl>`_.
+The :py:mod:`OpenSSL <pyopenssl:OpenSSL>` module must be importable
+for SSL/TLS/HTTPS functionality.
+You can obtain it from `here <https://github.com/pyca/pyopenssl>`_.
 
-To use this module, set HTTPServer.ssl_adapter to an instance of
-ssl.Adapter. There are two ways to use SSL:
+To use this module, set :py:attr:`HTTPServer.ssl_adapter
+<cheroot.server.HTTPServer.ssl_adapter>` to an instance of
+:py:class:`ssl.Adapter <cheroot.ssl.Adapter>`.
+There are two ways to use :abbr:`TLS (Transport-Level Security)`:
 
 Method One
 ----------
 
- * ``ssl_adapter.context``: an instance of SSL.Context.
+ * :py:attr:`ssl_adapter.context
+   <cheroot.ssl.pyopenssl.pyOpenSSLAdapter.context>`: an instance of
+   :py:class:`SSL.Context <pyopenssl:OpenSSL.SSL.Context>`.
 
-If this is not None, it is assumed to be an SSL.Context instance,
-and will be passed to SSL.Connection on bind(). The developer is
-responsible for forming a valid Context object. This approach is
-to be preferred for more flexibility, e.g. if the cert and key are
-streams instead of files, or need decryption, or SSL.SSLv3_METHOD
-is desired instead of the default SSL.SSLv23_METHOD, etc. Consult
-the pyOpenSSL documentation for complete options.
+If this is not None, it is assumed to be an :py:class:`SSL.Context
+<pyopenssl:OpenSSL.SSL.Context>` instance, and will be passed to
+:py:class:`SSL.Connection <pyopenssl:OpenSSL.SSL.Connection>` on bind().
+The developer is responsible for forming a valid :py:class:`Context
+<pyopenssl:OpenSSL.SSL.Context>` object. This
+approach is to be preferred for more flexibility, e.g. if the cert and
+key are streams instead of files, or need decryption, or
+:py:data:`SSL.SSLv3_METHOD <pyopenssl:OpenSSL.SSL.SSLv3_METHOD>`
+is desired instead of the default :py:data:`SSL.SSLv23_METHOD
+<pyopenssl:OpenSSL.SSL.SSLv3_METHOD>`, etc. Consult
+the :doc:`pyOpenSSL <pyopenssl:api/ssl>` documentation for
+complete options.
 
 Method Two (shortcut)
 ---------------------
 
- * ``ssl_adapter.certificate``: the filename of the server SSL certificate.
- * ``ssl_adapter.private_key``: the filename of the server's private key file.
+ * :py:attr:`ssl_adapter.certificate
+   <cheroot.ssl.pyopenssl.pyOpenSSLAdapter.certificate>`: the file name
+   of the server's TLS certificate.
+ * :py:attr:`ssl_adapter.private_key
+   <cheroot.ssl.pyopenssl.pyOpenSSLAdapter.private_key>`: the file name
+   of the server's private key file.
 
-Both are None by default. If ssl_adapter.context is None, but .private_key
-and .certificate are both given and valid, they will be read, and the
-context will be automatically created from them.
+Both are :py:data:`None` by default. If :py:attr:`ssl_adapter.context
+<cheroot.ssl.pyopenssl.pyOpenSSLAdapter.context>` is :py:data:`None`,
+but ``.private_key`` and ``.certificate`` are both given and valid, they
+will be read, and the context will be automatically created from them.
+
+.. spelling::
+
+   pyopenssl
 """
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import socket
+import sys
 import threading
 import time
 
-import six
-
 try:
+    import OpenSSL.version
     from OpenSSL import SSL
     from OpenSSL import crypto
 
@@ -57,13 +73,14 @@ from ..makefile import StreamReader, StreamWriter
 
 
 class SSLFileobjectMixin:
-    """Base mixin for an SSL socket stream."""
+    """Base mixin for a TLS socket stream."""
 
     ssl_timeout = 3
     ssl_retry = .01
 
-    def _safe_call(self, is_reader, call, *args, **kwargs):
-        """Wrap the given call with SSL error-trapping.
+    # FIXME:
+    def _safe_call(self, is_reader, call, *args, **kwargs):  # noqa: C901
+        """Wrap the given call with TLS error-trapping.
 
         is_reader: if False EOF errors will be raised. If True, EOF errors
         will return "" (to emulate normal sockets).
@@ -207,11 +224,12 @@ class SSLConnectionProxyMeta:
         return type(name, bases, nmspc)
 
 
-@six.add_metaclass(SSLConnectionProxyMeta)
-class SSLConnection:
-    """A thread-safe wrapper for an SSL.Connection.
+class SSLConnection(metaclass=SSLConnectionProxyMeta):
+    r"""A thread-safe wrapper for an ``SSL.Connection``.
 
-    ``*args``: the arguments to create the wrapped ``SSL.Connection(*args)``.
+    :param tuple args: the arguments to create the wrapped \
+                        :py:class:`SSL.Connection(*args) \
+                        <pyopenssl:OpenSSL.SSL.Connection>`
     """
 
     def __init__(self, *args):
@@ -224,22 +242,24 @@ class pyOpenSSLAdapter(Adapter):
     """A wrapper for integrating pyOpenSSL with Cheroot."""
 
     certificate = None
-    """The filename of the server SSL certificate."""
+    """The file name of the server's TLS certificate."""
 
     private_key = None
-    """The filename of the server's private key file."""
+    """The file name of the server's private key file."""
 
     certificate_chain = None
-    """Optional. The filename of CA's intermediate certificate bundle.
+    """Optional. The file name of CA's intermediate certificate bundle.
 
-    This is needed for cheaper "chained root" SSL certificates, and should be
-    left as None if not required."""
+    This is needed for cheaper "chained root" TLS certificates,
+    and should be left as :py:data:`None` if not required."""
 
     context = None
-    """An instance of SSL.Context."""
+    """
+    An instance of :py:class:`SSL.Context <pyopenssl:OpenSSL.SSL.Context>`.
+    """
 
     ciphers = None
-    """The ciphers list of SSL."""
+    """The ciphers list of TLS."""
 
     def __init__(
             self, certificate, private_key, certificate_chain=None,
@@ -265,10 +285,16 @@ class pyOpenSSLAdapter(Adapter):
 
     def wrap(self, sock):
         """Wrap and return the given socket, plus WSGI environ entries."""
+        # pyOpenSSL doesn't perform the handshake until the first read/write
+        # forcing the handshake to complete tends to result in the connection
+        # closing so we can't reliably access protocol/client cert for the env
         return sock, self._environ.copy()
 
     def get_context(self):
-        """Return an SSL.Context from self attributes."""
+        """Return an ``SSL.Context`` from self attributes.
+
+        Ref: :py:class:`SSL.Context <pyopenssl:OpenSSL.SSL.Context>`
+        """
         # See https://code.activestate.com/recipes/442473/
         c = SSL.Context(SSL.SSLv23_METHOD)
         c.use_privatekey_file(self.private_key)
@@ -280,18 +306,25 @@ class pyOpenSSLAdapter(Adapter):
     def get_environ(self):
         """Return WSGI environ entries to be merged into each request."""
         ssl_environ = {
+            'wsgi.url_scheme': 'https',
             'HTTPS': 'on',
-            # pyOpenSSL doesn't provide access to any of these AFAICT
-            # 'SSL_PROTOCOL': 'SSLv2',
-            # SSL_CIPHER    string  The cipher specification name
-            # SSL_VERSION_INTERFACE     string  The mod_ssl program version
-            # SSL_VERSION_LIBRARY   string  The OpenSSL program version
+            'SSL_VERSION_INTERFACE': '%s %s/%s Python/%s' % (
+                cheroot_server.HTTPServer.version,
+                OpenSSL.version.__title__, OpenSSL.version.__version__,
+                sys.version,
+            ),
+            'SSL_VERSION_LIBRARY': SSL.SSLeay_version(
+                SSL.SSLEAY_VERSION,
+            ).decode(),
         }
 
         if self.certificate:
             # Server certificate attributes
-            cert = open(self.certificate, 'rb').read()
-            cert = crypto.load_certificate(crypto.FILETYPE_PEM, cert)
+            with open(self.certificate, 'rb') as cert_file:
+                cert = crypto.load_certificate(
+                    crypto.FILETYPE_PEM, cert_file.read(),
+                )
+
             ssl_environ.update({
                 'SSL_SERVER_M_VERSION': cert.get_version(),
                 'SSL_SERVER_M_SERIAL': cert.get_serial_number(),

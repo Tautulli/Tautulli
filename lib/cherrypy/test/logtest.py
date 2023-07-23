@@ -4,9 +4,9 @@ import sys
 import time
 from uuid import UUID
 
-import six
+import pytest
 
-from cherrypy._cpcompat import text_or_bytes, ntob
+from cherrypy._cpcompat import text_or_bytes
 
 
 try:
@@ -45,6 +45,7 @@ class LogCase(object):
         unique enough from normal log output to use for marker identification.
     """
 
+    interactive = False
     logfile = None
     lastmarker = None
     markerPrefix = b'test suite marker: '
@@ -54,7 +55,7 @@ class LogCase(object):
         print('    ERROR: %s' % msg)
 
         if not self.interactive:
-            raise self.failureException(msg)
+            raise pytest.fail(msg)
 
         p = ('    Show: '
              '[L]og [M]arker [P]attern; '
@@ -86,7 +87,7 @@ class LogCase(object):
                 # return without raising the normal exception
                 return
             elif i == 'R':
-                raise self.failureException(msg)
+                raise pytest.fail(msg)
             elif i == 'X':
                 self.exit()
             sys.stdout.write(p + ' ')
@@ -96,7 +97,8 @@ class LogCase(object):
 
     def emptyLog(self):
         """Overwrite self.logfile with 0 bytes."""
-        open(self.logfile, 'wb').write('')
+        with open(self.logfile, 'wb') as f:
+            f.write('')
 
     def markLog(self, key=None):
         """Insert a marker line into the log and set self.lastmarker."""
@@ -104,8 +106,11 @@ class LogCase(object):
             key = str(time.time())
         self.lastmarker = key
 
-        open(self.logfile, 'ab+').write(
-            ntob('%s%s\n' % (self.markerPrefix, key), 'utf-8'))
+        with open(self.logfile, 'ab+') as f:
+            f.write(
+                b'%s%s\n'
+                % (self.markerPrefix, key.encode('utf-8'))
+            )
 
     def _read_marked_region(self, marker=None):
         """Return lines from self.logfile in the marked region.
@@ -119,20 +124,23 @@ class LogCase(object):
         logfile = self.logfile
         marker = marker or self.lastmarker
         if marker is None:
-            return open(logfile, 'rb').readlines()
+            with open(logfile, 'rb') as f:
+                return f.readlines()
 
-        if isinstance(marker, six.text_type):
+        if isinstance(marker, str):
             marker = marker.encode('utf-8')
         data = []
         in_region = False
-        for line in open(logfile, 'rb'):
-            if in_region:
-                if line.startswith(self.markerPrefix) and marker not in line:
-                    break
-                else:
-                    data.append(line)
-            elif marker in line:
-                in_region = True
+        with open(logfile, 'rb') as f:
+            for line in f:
+                if in_region:
+                    if (line.startswith(self.markerPrefix)
+                            and marker not in line):
+                        break
+                    else:
+                        data.append(line)
+                elif marker in line:
+                    in_region = True
         return data
 
     def assertInLog(self, line, marker=None):
@@ -201,7 +209,7 @@ class LogCase(object):
             # Single arg. Use __getitem__ and allow lines to be str or list.
             if isinstance(lines, (tuple, list)):
                 lines = lines[0]
-            if isinstance(lines, six.text_type):
+            if isinstance(lines, str):
                 lines = lines.encode('utf-8')
             if lines not in data[sliceargs]:
                 msg = '%r not found on log line %r' % (lines, sliceargs)
@@ -221,7 +229,7 @@ class LogCase(object):
 
             start, stop = sliceargs
             for line, logline in zip(lines, data[start:stop]):
-                if isinstance(line, six.text_type):
+                if isinstance(line, str):
                     line = line.encode('utf-8')
                 if line not in logline:
                     msg = '%r not found in log' % line

@@ -102,7 +102,7 @@ function showMsg(msg, loader, timeout, ms, error) {
 function confirmAjaxCall(url, msg, data, loader_msg, callback) {
     $("#confirm-message").html(msg);
     $('#confirm-modal').modal();
-    $('#confirm-modal').one('click', '#confirm-button', function () {
+    $('#confirm-modal').off('click', '#confirm-button').one('click', '#confirm-button', function () {
         if (loader_msg) {
             showMsg(loader_msg, true, false);
         }
@@ -555,10 +555,9 @@ $.fn.slideToggleBool = function(bool, options) {
 };
 
 function openPlexXML(endpoint, plextv, params) {
-    var data = $.extend({endpoint: endpoint, plextv: plextv}, params);
-    $.getJSON('return_plex_xml_url', data, function(xml_url) {
-       window.open(xml_url, '_blank');
-    });
+    var data = $.extend({endpoint: endpoint, plextv: plextv || false}, params);
+    var query = new URLSearchParams(data)
+    window.open('open_plex_xml?' + query.toString(), '_blank');
 }
 
 function PopupCenter(url, title, w, h) {
@@ -610,17 +609,17 @@ function uuidv4() {
     });
 }
 
-function getPlexHeaders() {
+function getPlexHeaders(clientID) {
     return {
         'Accept': 'application/json',
         'X-Plex-Product': 'Tautulli',
         'X-Plex-Version': 'Plex OAuth',
-        'X-Plex-Client-Identifier': getLocalStorage('Tautulli_ClientID', uuidv4(), false),
+        'X-Plex-Client-Identifier': clientID ? clientID : getLocalStorage('Tautulli_ClientID', uuidv4(), false),
         'X-Plex-Platform': p.name,
         'X-Plex-Platform-Version': p.version,
         'X-Plex-Model': 'Plex OAuth',
         'X-Plex-Device': p.os,
-        'X-Plex-Device-Name': p.name,
+        'X-Plex-Device-Name': p.name + ' (Tautulli)',
         'X-Plex-Device-Screen-Resolution': window.screen.width + 'x' + window.screen.height,
         'X-Plex-Language': 'en'
     };
@@ -674,8 +673,8 @@ function closePlexOAuthWindow() {
     }
 }
 
-getPlexOAuthPin = function () {
-    var x_plex_headers = getPlexHeaders();
+getPlexOAuthPin = function (clientID) {
+    var x_plex_headers = getPlexHeaders(clientID);
     var deferred = $.Deferred();
 
     $.ajax({
@@ -695,7 +694,7 @@ getPlexOAuthPin = function () {
 
 var polling = null;
 
-function PlexOAuth(success, error, pre) {
+function PlexOAuth(success, error, pre, clientID) {
     if (typeof pre === "function") {
         pre()
     }
@@ -703,8 +702,8 @@ function PlexOAuth(success, error, pre) {
     plex_oauth_window = PopupCenter('', 'Plex-OAuth', 600, 700);
     $(plex_oauth_window.document.body).html(plex_oauth_loader);
 
-    getPlexOAuthPin().then(function (data) {
-        var x_plex_headers = getPlexHeaders();
+    getPlexOAuthPin(clientID).then(function (data) {
+        var x_plex_headers = getPlexHeaders(clientID);
         const pin = data.pin;
         const code = data.code;
 
@@ -926,3 +925,7 @@ $('.modal').on('hide.bs.modal', function (e) {
         return false;
     }
 });
+
+$.fn.hasScrollBar = function() {
+    return this.get(0).scrollHeight > this.get(0).clientHeight;
+}

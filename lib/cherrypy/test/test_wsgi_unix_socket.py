@@ -2,8 +2,7 @@ import os
 import socket
 import atexit
 import tempfile
-
-from six.moves.http_client import HTTPConnection
+from http.client import HTTPConnection
 
 import pytest
 

@@ -6,12 +6,14 @@ Further Information might be available at:
 https://github.com/haypo/python-ipy
 """
 
-__version__ = '0.83'
+__version__ = '1.01'
 
 import bisect
-import collections
-import sys
 import types
+try:
+    import collections.abc as collections_abc
+except ImportError:
+    import collections as collections_abc
 
 # Definition of the Ranges for IPv4 IPs
 # this should include www.iana.org/assignments/ipv4-address-space
@@ -21,7 +23,7 @@ IPv4ranges = {
     '00000000':         'PRIVATE',  # 0/8
     '00001010':         'PRIVATE',  # 10/8
     '0110010001':       'CARRIER_GRADE_NAT', #100.64/10
-    '01111111':         'PRIVATE',  # 127.0/8
+    '01111111':         'LOOPBACK', # 127.0/8
     '1':                'PUBLIC',   # fall back
     '1010100111111110': 'PRIVATE',  # 169.254/16
     '101011000001':     'PRIVATE',  # 172.16/12
@@ -121,13 +123,14 @@ MAX_IPV6_ADDRESS = 0xffffffffffffffffffffffffffffffff
 IPV6_TEST_MAP    = 0xffffffffffffffffffffffff00000000
 IPV6_MAP_MASK    = 0x00000000000000000000ffff00000000
 
-if sys.version_info >= (3,):
+try:
+    INT_TYPES = (int, long)
+    STR_TYPES = (str, unicode)
+    xrange
+except NameError:
     INT_TYPES = (int,)
     STR_TYPES = (str,)
     xrange = range
-else:
-    INT_TYPES = (int, long)
-    STR_TYPES = (str, unicode)
 
 
 class IPint(object):
@@ -243,7 +246,7 @@ class IPint(object):
             else:
                 raise ValueError("can't parse")
 
-            (self.ip, parsedVersion) = parseAddress(ip)
+            (self.ip, parsedVersion) = parseAddress(ip, ipversion)
             if ipversion == 0:
                 ipversion = parsedVersion
             if prefixlen == -1:
@@ -475,7 +478,7 @@ class IPint(object):
         """Return a description of the IP type ('PRIVATE', 'RESERVED', etc).
 
         >>> print(IP('127.0.0.1').iptype())
-        PRIVATE
+        LOOPBACK
         >>> print(IP('192.168.1.1').iptype())
         PRIVATE
         >>> print(IP('195.185.1.2').iptype())
@@ -558,6 +561,8 @@ class IPint(object):
         """
         return True
 
+    def __bool__(self):
+        return self.__nonzero__()
 
     def __len__(self):
         """
@@ -768,6 +773,9 @@ class IPint(object):
 
     def __lt__(self, other):
         return self.__cmp__(other) < 0
+
+    def __le__(self, other):
+        return self.__cmp__(other) <= 0
 
     def __hash__(self):
         """Called for the key object for dictionary operations, and by
@@ -1017,10 +1025,10 @@ class IP(IPint):
         raise ValueError("%s cannot be converted to an IPv4 address."
                          % repr(self))
 
-class IPSet(collections.MutableSet):
+class IPSet(collections_abc.MutableSet):
     def __init__(self, iterable=[]):
         # Make sure it's iterable, otherwise wrap
-        if not isinstance(iterable, collections.Iterable):
+        if not isinstance(iterable, collections_abc.Iterable):
             raise TypeError("'%s' object is not iterable" % type(iterable).__name__)
         
         # Make sure we only accept IP objects
@@ -1094,7 +1102,7 @@ class IPSet(collections.MutableSet):
 
     def add(self, value):
         # Make sure it's iterable, otherwise wrap
-        if not isinstance(value, collections.Iterable):
+        if not isinstance(value, collections_abc.Iterable):
             value = [value]
         
         # Check type
@@ -1108,7 +1116,7 @@ class IPSet(collections.MutableSet):
     
     def discard(self, value):
         # Make sure it's iterable, otherwise wrap
-        if not isinstance(value, collections.Iterable):
+        if not isinstance(value, collections_abc.Iterable):
             value = [value]
             
         # This is much faster than iterating over the addresses
@@ -1336,7 +1344,7 @@ def _parseAddressIPv6(ipstr):
         index += 1
     return value
 
-def parseAddress(ipstr):
+def parseAddress(ipstr, ipversion=0):
     """
     Parse a string and return the corresponding IP address (as integer)
     and a guess of the IP version.
@@ -1405,7 +1413,7 @@ def parseAddress(ipstr):
         # assume IPv6 in pure hexadecimal notation
         return (hexval, 6)
 
-    elif ipstr.find('.') != -1 or (intval is not None and intval < 256):
+    elif ipstr.find('.') != -1 or (intval is not None and intval < 256 and ipversion != 6):
         # assume IPv4  ('127' gets interpreted as '127.0.0.0')
         bytes = ipstr.split('.')
         if len(bytes) > 4:
@@ -1423,7 +1431,7 @@ def parseAddress(ipstr):
         # will be interpreted as IPv4 first byte
         if intval > MAX_IPV6_ADDRESS:
             raise ValueError("IP Address can't be larger than %x: %x" % (MAX_IPV6_ADDRESS, intval))
-        if intval <= MAX_IPV4_ADDRESS:
+        if intval <= MAX_IPV4_ADDRESS and ipversion != 6:
             return (intval, 4)
         else:
             return (intval, 6)

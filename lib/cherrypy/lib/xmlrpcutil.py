@@ -1,7 +1,6 @@
 """XML-RPC tool helpers."""
 import sys
-
-from six.moves.xmlrpc_client import (
+from xmlrpc.client import (
     loads as xmlrpc_loads, dumps as xmlrpc_dumps,
     Fault as XMLRPCFault
 )

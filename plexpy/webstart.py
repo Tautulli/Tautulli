@@ -16,6 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import ssl
 import sys
 
 import cherrypy
@@ -45,6 +46,7 @@ def start():
         'https_cert': plexpy.CONFIG.HTTPS_CERT,
         'https_cert_chain': plexpy.CONFIG.HTTPS_CERT_CHAIN,
         'https_key': plexpy.CONFIG.HTTPS_KEY,
+        'https_min_tls_version': plexpy.CONFIG.HTTPS_MIN_TLS_VERSION,
         'http_username': plexpy.CONFIG.HTTP_USERNAME,
         'http_password': plexpy.CONFIG.HTTP_PASSWORD,
         'http_basic_auth': plexpy.CONFIG.HTTP_BASIC_AUTH
@@ -101,6 +103,18 @@ def initialize(options):
         options_dict['engine.autoreload.on'] = True
 
     if enable_https:
+        context = ssl.create_default_context(
+            purpose=ssl.Purpose.CLIENT_AUTH,
+            cafile=https_cert_chain
+        )
+
+        min_tls_version = options['https_min_tls_version'].replace('.', '_')
+        context.minimum_version = getattr(ssl.TLSVersion, min_tls_version, ssl.TLSVersion.TLSv1_2)
+        logger.debug("Tautulli WebStart :: Minimum TLS version set to %s.", context.minimum_version.name)
+
+        context.load_cert_chain(https_cert, https_key)
+
+        options_dict['server.ssl_context'] = context
         options_dict['server.ssl_certificate'] = https_cert
         options_dict['server.ssl_certificate_chain'] = https_cert_chain
         options_dict['server.ssl_private_key'] = https_key
@@ -127,6 +141,8 @@ def initialize(options):
             basic_auth_enabled = False
             cherrypy.tools.auth = cherrypy.Tool('before_handler', webauth.check_auth, priority=2)
     else:
+        logger.warn("Tautulli WebStart :: Web server authentication is disabled!")
+
         plexpy.AUTH_ENABLED = False
         basic_auth_enabled = False
 
@@ -265,6 +281,7 @@ def initialize(options):
             cherrypy.engine.block()
     except IOError as e:
         logger.error("Tautulli WebStart :: Failed to start Tautulli: %s", e)
+        plexpy.alert_message('Failed to start Tautulli: %s' % e)
         sys.exit(1)
 
     cherrypy.server.wait()

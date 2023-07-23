@@ -67,17 +67,17 @@ def get_mobile_devices(device_id=None, device_token=None):
     args = []
 
     if device_id or device_token:
-        where = 'WHERE '
+        where = "WHERE "
         if device_id:
-            where_id += 'device_id = ?'
+            where_id += "device_id = ?"
             args.append(device_id)
         if device_token:
-            where_token = 'device_token = ?'
+            where_token = "device_token = ?"
             args.append(device_token)
-        where += ' AND '.join([w for w in [where_id, where_token] if w])
+        where += " AND ".join([w for w in [where_id, where_token] if w])
 
     db = database.MonitorDatabase()
-    result = db.select('SELECT * FROM mobile_devices %s' % where, args=args)
+    result = db.select("SELECT * FROM mobile_devices %s" % where, args=args)
 
     return result
 
@@ -128,7 +128,7 @@ def get_mobile_device_config(mobile_device_id=None):
         return None
 
     db = database.MonitorDatabase()
-    result = db.select_single('SELECT * FROM mobile_devices WHERE id = ?',
+    result = db.select_single("SELECT * FROM mobile_devices WHERE id = ?",
                               args=[mobile_device_id])
 
     if result['onesignal_id'] == _ONESIGNAL_DISABLED:
@@ -163,11 +163,11 @@ def delete_mobile_device(mobile_device_id=None, device_id=None):
 
     if mobile_device_id:
         logger.debug("Tautulli MobileApp :: Deleting mobile_device_id %s from the database." % mobile_device_id)
-        result = db.action('DELETE FROM mobile_devices WHERE id = ?', args=[mobile_device_id])
+        result = db.action("DELETE FROM mobile_devices WHERE id = ?", args=[mobile_device_id])
         return True
     elif device_id:
         logger.debug("Tautulli MobileApp :: Deleting device_id %s from the database." % device_id)
-        result = db.action('DELETE FROM mobile_devices WHERE device_id = ?', args=[device_id])
+        result = db.action("DELETE FROM mobile_devices WHERE device_id = ?", args=[device_id])
         return True
     else:
         return False
@@ -179,9 +179,9 @@ def set_official(device_id, onesignal_id):
     platform = 'android' if official > 0 else None
 
     try:
-        result = db.action('UPDATE mobile_devices '
-                           'SET official = ?, platform = coalesce(platform, ?) '
-                           'WHERE device_id = ?',
+        result = db.action("UPDATE mobile_devices "
+                           "SET official = ?, platform = coalesce(platform, ?) "
+                           "WHERE device_id = ?",
                            args=[official, platform, device_id])
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to set official flag for device: %s." % e)
@@ -193,7 +193,7 @@ def set_last_seen(device_token=None):
     last_seen = helpers.timestamp()
 
     try:
-        result = db.action('UPDATE mobile_devices SET last_seen = ? WHERE device_token = ?',
+        result = db.action("UPDATE mobile_devices SET last_seen = ? WHERE device_token = ?",
                            args=[last_seen, device_token])
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to set last_seen time for device: %s." % e)
@@ -207,11 +207,11 @@ def validate_onesignal_id(onesignal_id):
         return 2
 
     headers = {'Content-Type': 'application/json'}
-    payload = {'app_id': _ONESIGNAL_APP_ID}
+    params = {'app_id': _ONESIGNAL_APP_ID}
 
     logger.info("Tautulli MobileApp :: Validating OneSignal ID")
     try:
-        r = requests.get('https://onesignal.com/api/v1/players/{}'.format(onesignal_id), headers=headers, json=payload)
+        r = requests.get('https://onesignal.com/api/v1/players/{}'.format(onesignal_id), headers=headers, params=params)
         status_code = r.status_code
         logger.info("Tautulli MobileApp :: OneSignal ID validation returned status code %s", status_code)
         return int(status_code == 200)

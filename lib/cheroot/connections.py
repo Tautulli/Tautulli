@@ -1,18 +1,16 @@
 """Utilities to manage open connections."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
 import io
 import os
-import select
 import socket
+import threading
 import time
+import selectors
+from contextlib import suppress
 
 from . import errors
+from ._compat import IS_WINDOWS
 from .makefile import MakeFile
-
-import six
 
 try:
     import fcntl
@@ -47,6 +45,69 @@ else:
         fcntl.fcntl(fd, fcntl.F_SETFD, old_flags | fcntl.FD_CLOEXEC)
 
 
+class _ThreadsafeSelector:
+    """Thread-safe wrapper around a DefaultSelector.
+
+    There are 2 thread contexts in which it may be accessed:
+      * the selector thread
+      * one of the worker threads in workers/threadpool.py
+
+    The expected read/write patterns are:
+      * :py:func:`~iter`: selector thread
+      * :py:meth:`register`: selector thread and threadpool,
+        via :py:meth:`~cheroot.workers.threadpool.ThreadPool.put`
+      * :py:meth:`unregister`: selector thread only
+
+    Notably, this means :py:class:`_ThreadsafeSelector` never needs to worry
+    that connections will be removed behind its back.
+
+    The lock is held when iterating or modifying the selector but is not
+    required when :py:meth:`select()ing <selectors.BaseSelector.select>` on it.
+    """
+
+    def __init__(self):
+        self._selector = selectors.DefaultSelector()
+        self._lock = threading.Lock()
+
+    def __len__(self):
+        with self._lock:
+            return len(self._selector.get_map() or {})
+
+    @property
+    def connections(self):
+        """Retrieve connections registered with the selector."""
+        with self._lock:
+            mapping = self._selector.get_map() or {}
+            for _, (_, sock_fd, _, conn) in mapping.items():
+                yield (sock_fd, conn)
+
+    def register(self, fileobj, events, data=None):
+        """Register ``fileobj`` with the selector."""
+        with self._lock:
+            return self._selector.register(fileobj, events, data)
+
+    def unregister(self, fileobj):
+        """Unregister ``fileobj`` from the selector."""
+        with self._lock:
+            return self._selector.unregister(fileobj)
+
+    def select(self, timeout=None):
+        """Return socket fd and data pairs from selectors.select call.
+
+        Returns entries ready to read in the form:
+            (socket_file_descriptor, connection)
+        """
+        return (
+            (key.fd, key.data)
+            for key, _ in self._selector.select(timeout=timeout)
+        )
+
+    def close(self):
+        """Close the selector."""
+        with self._lock:
+            self._selector.close()
+
+
 class ConnectionManager:
     """Class which manages HTTPConnection objects.
 
@@ -60,129 +121,164 @@ class ConnectionManager:
             server (cheroot.server.HTTPServer): web server object
                 that uses this ConnectionManager instance.
         """
+        self._serving = False
+        self._stop_requested = False
+
         self.server = server
-        self.connections = []
+        self._selector = _ThreadsafeSelector()
+
+        self._selector.register(
+            server.socket.fileno(),
+            selectors.EVENT_READ, data=server,
+        )
 
     def put(self, conn):
         """Put idle connection into the ConnectionManager to be managed.
 
-        Args:
-            conn (cheroot.server.HTTPConnection): HTTP connection
-                to be managed.
+        :param conn: HTTP connection to be managed
+        :type conn: cheroot.server.HTTPConnection
         """
         conn.last_used = time.time()
-        conn.ready_with_data = conn.rfile.has_data()
-        self.connections.append(conn)
+        # if this conn doesn't have any more data waiting to be read,
+        # register it with the selector.
+        if conn.rfile.has_data():
+            self.server.process_conn(conn)
+        else:
+            self._selector.register(
+                conn.socket.fileno(), selectors.EVENT_READ, data=conn,
+            )
 
-    def expire(self):
-        """Expire least recently used connections.
+    def _expire(self, threshold):
+        r"""Expire least recently used connections.
 
-        This happens if there are either too many open connections, or if the
-        connections have been timed out.
+        :param threshold: Connections that have not been used within this \
+                          duration (in seconds), are considered expired and \
+                          are closed and removed.
+        :type threshold: float
 
         This should be called periodically.
         """
-        if not self.connections:
-            return
+        # find any connections still registered with the selector
+        # that have not been active recently enough.
+        timed_out_connections = [
+            (sock_fd, conn)
+            for (sock_fd, conn) in self._selector.connections
+            if conn != self.server and conn.last_used < threshold
+        ]
+        for sock_fd, conn in timed_out_connections:
+            self._selector.unregister(sock_fd)
+            conn.close()
 
-        # Look at the first connection - if it can be closed, then do
-        # that, and wait for get_conn to return it.
-        conn = self.connections[0]
-        if conn.closeable:
-            return
+    def stop(self):
+        """Stop the selector loop in run() synchronously.
 
-        # Too many connections?
-        ka_limit = self.server.keep_alive_conn_limit
-        if ka_limit is not None and len(self.connections) > ka_limit:
-            conn.closeable = True
-            return
+        May take up to half a second.
+        """
+        self._stop_requested = True
+        while self._serving:
+            time.sleep(0.01)
 
-        # Connection too old?
-        if (conn.last_used + self.server.timeout) < time.time():
-            conn.closeable = True
-            return
-
-    def get_conn(self, server_socket):
-        """Return a HTTPConnection object which is ready to be handled.
-
-        A connection returned by this method should be ready for a worker
-        to handle it. If there are no connections ready, None will be
-        returned.
-
-        Any connection returned by this method will need to be `put`
-        back if it should be examined again for another request.
+    def run(self, expiration_interval):
+        """Run the connections selector indefinitely.
 
         Args:
-            server_socket (socket.socket): Socket to listen to for new
-            connections.
-        Returns:
-            cheroot.server.HTTPConnection instance, or None.
+            expiration_interval (float): Interval, in seconds, at which
+                connections will be checked for expiration.
 
+        Connections that are ready to process are submitted via
+        self.server.process_conn()
+
+        Connections submitted for processing must be `put()`
+        back if they should be examined again for another request.
+
+        Can be shut down by calling `stop()`.
         """
-        # Grab file descriptors from sockets, but stop if we find a
-        # connection which is already marked as ready.
-        socket_dict = {}
-        for conn in self.connections:
-            if conn.closeable or conn.ready_with_data:
-                break
-            socket_dict[conn.socket.fileno()] = conn
-        else:
-            # No ready connection.
-            conn = None
-
-        # We have a connection ready for use.
-        if conn:
-            self.connections.remove(conn)
-            return conn
-
-        # Will require a select call.
-        ss_fileno = server_socket.fileno()
-        socket_dict[ss_fileno] = server_socket
+        self._serving = True
         try:
-            rlist, _, _ = select.select(list(socket_dict), [], [], 0.1)
-            # No available socket.
-            if not rlist:
-                return None
-        except OSError:
-            # Mark any connection which no longer appears valid.
-            for fno, conn in list(socket_dict.items()):
-                # If the server socket is invalid, we'll just ignore it and
-                # wait to be shutdown.
-                if fno == ss_fileno:
-                    continue
-                try:
-                    os.fstat(fno)
-                except OSError:
-                    # Socket is invalid, close the connection, insert at
-                    # the front.
-                    self.connections.remove(conn)
-                    self.connections.insert(0, conn)
-                    conn.closeable = True
+            self._run(expiration_interval)
+        finally:
+            self._serving = False
 
-            # Wait for the next tick to occur.
-            return None
+    def _run(self, expiration_interval):
+        r"""Run connection handler loop until stop was requested.
 
-        try:
-            # See if we have a new connection coming in.
-            rlist.remove(ss_fileno)
-        except ValueError:
-            # No new connection, but reuse existing socket.
-            conn = socket_dict[rlist.pop()]
+        :param expiration_interval: Interval, in seconds, at which \
+                                    connections will be checked for \
+                                    expiration.
+        :type expiration_interval: float
+
+        Use ``expiration_interval`` as ``select()`` timeout
+        to assure expired connections are closed in time.
+
+        On Windows cap the timeout to 0.05 seconds
+        as ``select()`` does not return when a socket is ready.
+        """
+        last_expiration_check = time.time()
+        if IS_WINDOWS:
+            # 0.05 seconds are used as an empirically obtained balance between
+            # max connection delay and idle system load. Benchmarks show a
+            # mean processing time per connection of ~0.03 seconds on Linux
+            # and with 0.01 seconds timeout on Windows:
+            # https://github.com/cherrypy/cheroot/pull/352
+            # While this highly depends on system and hardware, 0.05 seconds
+            # max delay should hence usually not significantly increase the
+            # mean time/delay per connection, but significantly reduce idle
+            # system load by reducing socket loops to 1/5 with 0.01 seconds.
+            select_timeout = min(expiration_interval, 0.05)
         else:
-            conn = server_socket
+            select_timeout = expiration_interval
 
-        # All remaining connections in rlist should be marked as ready.
-        for fno in rlist:
-            socket_dict[fno].ready_with_data = True
+        while not self._stop_requested:
+            try:
+                active_list = self._selector.select(timeout=select_timeout)
+            except OSError:
+                self._remove_invalid_sockets()
+                continue
 
-        # New connection.
-        if conn is server_socket:
-            return self._from_server_socket(server_socket)
+            for (sock_fd, conn) in active_list:
+                if conn is self.server:
+                    # New connection
+                    new_conn = self._from_server_socket(self.server.socket)
+                    if new_conn is not None:
+                        self.server.process_conn(new_conn)
+                else:
+                    # unregister connection from the selector until the server
+                    # has read from it and returned it via put()
+                    self._selector.unregister(sock_fd)
+                    self.server.process_conn(conn)
 
-        self.connections.remove(conn)
-        return conn
+            now = time.time()
+            if (now - last_expiration_check) > expiration_interval:
+                self._expire(threshold=now - self.server.timeout)
+                last_expiration_check = now
 
-    def _from_server_socket(self, server_socket):
+    def _remove_invalid_sockets(self):
+        """Clean up the resources of any broken connections.
+
+        This method attempts to detect any connections in an invalid state,
+        unregisters them from the selector and closes the file descriptors of
+        the corresponding network sockets where possible.
+        """
+        invalid_conns = []
+        for sock_fd, conn in self._selector.connections:
+            if conn is self.server:
+                continue
+
+            try:
+                os.fstat(sock_fd)
+            except OSError:
+                invalid_conns.append((sock_fd, conn))
+
+        for sock_fd, conn in invalid_conns:
+            self._selector.unregister(sock_fd)
+            # One of the reason on why a socket could cause an error
+            # is that the socket is already closed, ignore the
+            # socket error if we try to close it at this point.
+            # This is equivalent to OSError in Py3
+            with suppress(socket.error):
+                conn.close()
+
+    def _from_server_socket(self, server_socket):  # noqa: C901  # FIXME
         try:
             s, addr = server_socket.accept()
             if self.server.stats['Enabled']:
@@ -209,8 +305,7 @@ class ConnectionManager:
                         msg,
                     ]
 
-                    sock_to_make = s if not six.PY2 else s._sock
-                    wfile = mf(sock_to_make, 'wb', io.DEFAULT_BUFFER_SIZE)
+                    wfile = mf(s, 'wb', io.DEFAULT_BUFFER_SIZE)
                     try:
                         wfile.write(''.join(buf).encode('ISO-8859-1'))
                     except socket.error as ex:
@@ -226,10 +321,7 @@ class ConnectionManager:
 
             conn = self.server.ConnectionClass(self.server, s, mf)
 
-            if not isinstance(
-                    self.server.bind_addr,
-                    (six.text_type, six.binary_type),
-            ):
+            if not isinstance(self.server.bind_addr, (str, bytes)):
                 # optional values
                 # Until we do DNS lookups, omit REMOTE_HOST
                 if addr is None:  # sometimes this can happen
@@ -274,6 +366,23 @@ class ConnectionManager:
 
     def close(self):
         """Close all monitored connections."""
-        for conn in self.connections[:]:
-            conn.close()
-        self.connections = []
+        for (_, conn) in self._selector.connections:
+            if conn is not self.server:  # server closes its own socket
+                conn.close()
+        self._selector.close()
+
+    @property
+    def _num_connections(self):
+        """Return the current number of connections.
+
+        Includes all connections registered with the selector,
+        minus one for the server socket, which is always registered
+        with the selector.
+        """
+        return len(self._selector) - 1
+
+    @property
+    def can_add_keepalive_connection(self):
+        """Flag whether it is allowed to add a new keep-alive connection."""
+        ka_limit = self.server.keep_alive_conn_limit
+        return ka_limit is None or self._num_connections < ka_limit

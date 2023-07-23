@@ -1,34 +1,29 @@
-"""
-websocket - WebSocket client library for Python
-
-Copyright (C) 2010 Hiroki Ohtani(liris)
-
-    This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Lesser General Public
-    License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
-
-    This library is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with this library; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin Street, Fifth Floor,
-    Boston, MA 02110-1335  USA
-
-"""
 import errno
-import select
+import selectors
 import socket
-
-import six
-import sys
 
 from ._exceptions import *
 from ._ssl_compat import *
 from ._utils import *
+
+"""
+_socket.py
+websocket - WebSocket client library for Python
+
+Copyright 2022 engn33r
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 
 DEFAULT_SOCKET_OPTION = [(socket.SOL_TCP, socket.TCP_NODELAY, 1)]
 if hasattr(socket, "SO_KEEPALIVE"):
@@ -46,7 +41,7 @@ __all__ = ["DEFAULT_SOCKET_OPTION", "sock_opt", "setdefaulttimeout", "getdefault
            "recv", "recv_line", "send"]
 
 
-class sock_opt(object):
+class sock_opt:
 
     def __init__(self, sockopt, sslopt):
         if sockopt is None:
@@ -62,7 +57,10 @@ def setdefaulttimeout(timeout):
     """
     Set the global timeout setting to connect.
 
-    timeout: default socket timeout time. This value is second.
+    Parameters
+    ----------
+    timeout: int or float
+        default socket timeout time (in seconds)
     """
     global _default_timeout
     _default_timeout = timeout
@@ -70,7 +68,12 @@ def setdefaulttimeout(timeout):
 
 def getdefaulttimeout():
     """
-    Return the global timeout setting(second) to connect.
+    Get default timeout
+
+    Returns
+    ----------
+    _default_timeout: int or float
+        Return the global timeout setting (in seconds) to connect.
     """
     return _default_timeout
 
@@ -86,12 +89,15 @@ def recv(sock, bufsize):
             pass
         except socket.error as exc:
             error_code = extract_error_code(exc)
-            if error_code is None:
-                raise
-            if error_code != errno.EAGAIN or error_code != errno.EWOULDBLOCK:
+            if error_code != errno.EAGAIN and error_code != errno.EWOULDBLOCK:
                 raise
 
-        r, w, e = select.select((sock, ), (), (), sock.gettimeout())
+        sel = selectors.DefaultSelector()
+        sel.register(sock, selectors.EVENT_READ)
+
+        r = sel.select(sock.gettimeout())
+        sel.close()
+
         if r:
             return sock.recv(bufsize)
 
@@ -100,6 +106,8 @@ def recv(sock, bufsize):
             bytes_ = sock.recv(bufsize)
         else:
             bytes_ = _recv()
+    except TimeoutError:
+        raise WebSocketTimeoutException("Connection timed out")
     except socket.timeout as e:
         message = extract_err_message(e)
         raise WebSocketTimeoutException(message)
@@ -112,7 +120,7 @@ def recv(sock, bufsize):
 
     if not bytes_:
         raise WebSocketConnectionClosedException(
-            "Connection is already closed.")
+            "Connection to remote host was lost.")
 
     return bytes_
 
@@ -122,13 +130,13 @@ def recv_line(sock):
     while True:
         c = recv(sock, 1)
         line.append(c)
-        if c == six.b("\n"):
+        if c == b'\n':
             break
-    return six.b("").join(line)
+    return b''.join(line)
 
 
 def send(sock, data):
-    if isinstance(data, six.text_type):
+    if isinstance(data, str):
         data = data.encode('utf-8')
 
     if not sock:
@@ -143,10 +151,15 @@ def send(sock, data):
             error_code = extract_error_code(exc)
             if error_code is None:
                 raise
-            if error_code != errno.EAGAIN or error_code != errno.EWOULDBLOCK:
+            if error_code != errno.EAGAIN and error_code != errno.EWOULDBLOCK:
                 raise
 
-        r, w, e = select.select((), (sock, ), (), sock.gettimeout())
+        sel = selectors.DefaultSelector()
+        sel.register(sock, selectors.EVENT_WRITE)
+
+        w = sel.select(sock.gettimeout())
+        sel.close()
+
         if w:
             return sock.send(data)
 

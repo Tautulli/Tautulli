@@ -15,7 +15,7 @@ import struct
 class GDM:
     """Base class to discover GDM services.
 
-       Atrributes:
+       Attributes:
            entries (List<dict>): List of server and/or client data discovered.
     """
 

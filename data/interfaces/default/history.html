@@ -1,7 +1,8 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
-<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.css">
+<link rel="stylesheet" href="${http_root}css/bootstrap-select.min.css">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.min.css">
 <link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
 <link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css">
 </%def>
@@ -31,35 +32,33 @@
             % if _session['user_group'] == 'admin':
             <div class="btn-group" id="user-selection">
                 <label>
-                    <select name="history-user" id="history-user" class="btn" style="color: inherit;">
-                        <option value="">All Users</option>
-                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    <select name="history-user" id="history-user" multiple>
                     </select>
                 </label>
             </div>
             % endif
             <div class="btn-group" data-toggle="buttons" id="media_type-selection">
-                <label class="btn btn-dark">
+                <label class="btn btn-dark btn-filter">
                     <input type="checkbox" name="media_type-filter" id="history-media_type-movie" value="movie" autocomplete="off"><i class="fa fa-film"></i> Movies
                 </label>
-                <label class="btn btn-dark">
+                <label class="btn btn-dark btn-filter">
                     <input type="checkbox" name="media_type-filter" id="history-media_type-episode" value="episode" autocomplete="off"><i class="fa fa-television"></i> TV Shows
                 </label>
-                <label class="btn btn-dark">
+                <label class="btn btn-dark btn-filter">
                     <input type="checkbox" name="media_type-filter" id="history-media_type-track" value="track" autocomplete="off"><i class="fa fa-music"></i> Music
                 </label>
-                <label class="btn btn-dark">
+                <label class="btn btn-dark btn-filter">
                     <input type="checkbox" name="media_type-filter" id="history-media_type-live" value="live" autocomplete="off"><i class="fa fa-broadcast-tower"></i> Live TV
                 </label>
             </div>
             <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
-                <label class="btn btn-dark">
+                <label class="btn btn-dark btn-filter">
                     <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_play" value="direct play" autocomplete="off"><i class="fa fa-play-circle"></i> Direct Play
                 </label>
-                <label class="btn btn-dark">
-                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-direct_stream" value="copy" autocomplete="off"><i class="fa fa-stream"></i> Direct Stream
+                <label class="btn btn-dark btn-filter">
+                    <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-copy" value="copy" autocomplete="off"><i class="fa fa-stream"></i> Direct Stream
                 </label>
-                <label class="btn btn-dark">
+                <label class="btn btn-dark btn-filter">
                     <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
                 </label>
             </div>
@@ -84,7 +83,7 @@
                 <th align="left" id="started">Started</th>
                 <th align="left" id="paused_counter">Paused</th>
                 <th align="left" id="stopped">Stopped</th>
-                <th align="left" id="duration">Duration</th>
+                <th align="left" id="play_duration">Duration</th>
                 <th align="left" id="percent_complete"></th>
             </tr>
             </thead>
@@ -121,6 +120,7 @@
 </%def>
 
 <%def name="javascriptIncludes()">
+<script src="${http_root}js/bootstrap-select.min.js"></script>
 <script src="${http_root}js/jquery.dataTables.min.js"></script>
 <script src="${http_root}js/dataTables.colVis.js"></script>
 <script src="${http_root}js/dataTables.bootstrap.min.js"></script>
@@ -134,16 +134,39 @@
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-                var select = $('#history-user');
+                let select = $('#history-user');
+                let by_id = {};
                 data.sort(function (a, b) {
                     return a.friendly_name.localeCompare(b.friendly_name);
                 });
                 data.forEach(function (item) {
                     select.append('<option value="' + item.user_id + '">' +
                         item.friendly_name + '</option>');
+                    by_id[item.user_id] = item.friendly_name;
                 });
+                select.selectpicker({
+                    countSelectedText: function(sel, total) {
+                        if (sel === 0 || sel === total) {
+                            return 'All users';
+                        } else if (sel > 1) {
+                            return sel + ' users';
+                        } else {
+                            return select.val().map(function(id) {
+                                return by_id[id];
+                            }).join(', ');
+                        }
+                    },
+                    style: 'btn-dark',
+                    actionsBox: true,
+                    selectedTextFormat: 'count',
+                    noneSelectedText: 'All users'
+                });
+                select.selectpicker('render');
+                select.selectpicker('selectAll');
             }
         });
+
+        let history_user_last_id = undefined;
 
         function loadHistoryTable(media_type, transcode_decision, selected_user_id) {
             history_table_options.ajax = {
@@ -187,7 +210,16 @@
             });
 
             $('#history-user').on('change', function () {
-                selected_user_id = $(this).val() || null;
+                let val = $(this).val();
+                if (val.length === 0 || val.length === $(this).children().length) {
+                    selected_user_id = null; // if all users are selected, just send an empty list
+                } else {
+                    selected_user_id = val.join(",");
+                }
+                if (selected_user_id === history_user_last_id) {
+                    return;
+                }
+                history_user_last_id = selected_user_id;
                 history_table.draw();
             });
         }

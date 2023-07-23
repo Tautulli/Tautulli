@@ -99,7 +99,7 @@ def plex_user_login(token=None, headers=None):
             try:
                 logger.debug("Tautulli WebAuth :: Registering token for user '%s' in the database."
                              % user_details['username'])
-                result = monitor_db.action('UPDATE users SET server_token = ? WHERE user_id = ?',
+                result = monitor_db.action("UPDATE users SET server_token = ? WHERE user_id = ?",
                                            [server_token, user_details['user_id']])
 
                 if result:
@@ -246,12 +246,12 @@ def all_of(*conditions):
 
 def check_rate_limit(ip_address):
     monitor_db = MonitorDatabase()
-    result = monitor_db.select('SELECT timestamp, success FROM user_login '
-                               'WHERE ip_address = ? '
-                               'AND timestamp >= ( '
-                               'SELECT CASE WHEN MAX(timestamp) IS NULL THEN 0 ELSE MAX(timestamp) END '
-                               'FROM user_login WHERE ip_address = ? AND success = 1) '
-                               'ORDER BY timestamp DESC',
+    result = monitor_db.select("SELECT timestamp, success FROM user_login "
+                               "WHERE ip_address = ? "
+                               "AND timestamp >= ( "
+                               "SELECT CASE WHEN MAX(timestamp) IS NULL THEN 0 ELSE MAX(timestamp) END "
+                               "FROM user_login WHERE ip_address = ? AND success = 1) "
+                               "ORDER BY timestamp DESC",
                                [ip_address, ip_address])
 
     try:
@@ -314,7 +314,7 @@ class AuthController(object):
 
     def get_loginform(self, redirect_uri=''):
         from plexpy.webserve import serve_template
-        return serve_template(templatename="login.html", title="Login", redirect_uri=unquote(redirect_uri))
+        return serve_template(template_name="login.html", title="Login", redirect_uri=unquote(redirect_uri))
 
     @cherrypy.expose
     def index(self, *args, **kwargs):
@@ -387,7 +387,7 @@ class AuthController(object):
                 'exp': expiry
             }
 
-            jwt_token = jwt.encode(payload, plexpy.CONFIG.JWT_SECRET, algorithm=JWT_ALGORITHM).decode('utf-8')
+            jwt_token = jwt.encode(payload, plexpy.CONFIG.JWT_SECRET, algorithm=JWT_ALGORITHM)
 
             self.on_login(username=user_details['username'],
                           user_id=user_details['user_id'],

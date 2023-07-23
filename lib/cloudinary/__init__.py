@@ -1,13 +1,15 @@
 from __future__ import absolute_import
 
-from copy import deepcopy
-import os
-import re
+import abc
 import logging
 import numbers
-import certifi
+import os
+import re
+from copy import deepcopy
 from math import ceil
-from six import python_2_unicode_compatible
+
+import certifi
+from six import python_2_unicode_compatible, add_metaclass
 
 logger = logging.getLogger("Cloudinary")
 ch = logging.StreamHandler()
@@ -21,7 +23,7 @@ from cloudinary.cache import responsive_breakpoints_cache
 from cloudinary.http_client import HttpClient
 from cloudinary.compat import urlparse, parse_qs
 
-from platform import python_version
+from platform import python_version, platform
 
 CERT_KWARGS = {
     'cert_reqs': 'CERT_REQUIRED',
@@ -34,16 +36,19 @@ AKAMAI_SHARED_CDN = "res.cloudinary.com"
 SHARED_CDN = AKAMAI_SHARED_CDN
 CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
 URI_SCHEME = "cloudinary"
+API_VERSION = "v1_1"
 
-VERSION = "1.20.0"
+VERSION = "1.32.0"
 
-USER_AGENT = "CloudinaryPython/{} (Python {})".format(VERSION, python_version())
+_USER_PLATFORM_DETAILS = "; ".join((platform(), "Python {}".format(python_version())))
+
+USER_AGENT = "CloudinaryPython/{} ({})".format(VERSION, _USER_PLATFORM_DETAILS)
 """ :const: USER_AGENT """
 
 USER_PLATFORM = ""
 """
-Additional information to be passed with the USER_AGENT, e.g. "CloudinaryMagento/1.0.1".
-This value is set in platform-specific implementations that use cloudinary_php.
+Additional information to be passed with the USER_AGENT, e.g. "CloudinaryCLI/1.2.3".
+This value is set in platform-specific implementations that use pycloudinary.
 
 The format of the value should be <ProductName>/Version[ (comment)].
 @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.43
@@ -94,54 +99,20 @@ def import_django_settings():
         return None
 
 
-class Config(object):
+@add_metaclass(abc.ABCMeta)
+class BaseConfig(object):
     def __init__(self):
         django_settings = import_django_settings()
         if django_settings:
             self.update(**django_settings)
-        elif os.environ.get("CLOUDINARY_CLOUD_NAME"):
-            self.update(
-                cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-                api_key=os.environ.get("CLOUDINARY_API_KEY"),
-                api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
-                secure_distribution=os.environ.get("CLOUDINARY_SECURE_DISTRIBUTION"),
-                private_cdn=os.environ.get("CLOUDINARY_PRIVATE_CDN") == 'true',
-                api_proxy=os.environ.get("CLOUDINARY_API_PROXY"),
-            )
-        elif os.environ.get("CLOUDINARY_URL"):
-            cloudinary_url = os.environ.get("CLOUDINARY_URL")
-            self._parse_cloudinary_url(cloudinary_url)
 
-    def _parse_cloudinary_url(self, cloudinary_url):
-        uri = urlparse(cloudinary_url)
-        if not self._is_url_scheme_valid(uri):
-            raise ValueError("Invalid CLOUDINARY_URL scheme. Expecting to start with 'cloudinary://'")
-
-        for k, v in parse_qs(uri.query).items():
-            if self._is_nested_key(k):
-                self._put_nested_key(k, v)
-            else:
-                self.__dict__[k] = v[0]
-        self.update(
-            cloud_name=uri.hostname,
-            api_key=uri.username,
-            api_secret=uri.password,
-            private_cdn=uri.path != ''
-        )
-        if uri.path != '':
-            self.update(secure_distribution=uri.path[1:])
+        self._load_config_from_env()
 
     def __getattr__(self, i):
-        if i in self.__dict__:
-            return self.__dict__[i]
-        else:
-            return None
+        return self.__dict__.get(i)
 
-    def update(self, **keywords):
-        for k, v in keywords.items():
-            self.__dict__[k] = v
-
-    def _is_nested_key(self, key):
+    @staticmethod
+    def _is_nested_key(key):
         return re.match(r'\w+\[\w+\]', key)
 
     def _put_nested_key(self, key, value):
@@ -160,8 +131,7 @@ class Config(object):
             value = value[0]
         outer[last_key] = value
 
-    @staticmethod
-    def _is_url_scheme_valid(url):
+    def _is_url_scheme_valid(self, url):
         """
         Helper function. Validates url scheme
 
@@ -169,9 +139,81 @@ class Config(object):
 
         :return: bool True on success or False on failure
         """
-        if not url.scheme or url.scheme.lower() != URI_SCHEME:
-            return False
-        return True
+        return url.scheme.lower() == self._uri_scheme
+
+    @staticmethod
+    def _parse_cloudinary_url(cloudinary_url):
+        return urlparse(cloudinary_url)
+
+    @abc.abstractmethod
+    def _config_from_parsed_url(self, parsed_url):
+        """Extract additional config from the parsed URL."""
+        raise NotImplementedError()
+
+    def _setup_from_parsed_url(self, parsed_url):
+        config_from_parsed_url = self._config_from_parsed_url(parsed_url)
+        self.update(**config_from_parsed_url)
+
+        for k, v in parse_qs(parsed_url.query).items():
+            if self._is_nested_key(k):
+                self._put_nested_key(k, v)
+            else:
+                self.__dict__[k] = v[0]
+
+    def _load_from_url(self, url):
+        parsed_url = self._parse_cloudinary_url(url)
+
+        return self._setup_from_parsed_url(parsed_url)
+
+    @abc.abstractmethod
+    def _load_config_from_env(self):
+        """Load config from environment variables or URL."""
+        raise NotImplementedError()
+
+    def update(self, **keywords):
+        for k, v in keywords.items():
+            self.__dict__[k] = v
+
+
+class Config(BaseConfig):
+    def __init__(self):
+        self._uri_scheme = URI_SCHEME
+
+        super(Config, self).__init__()
+
+        if not self.signature_algorithm:
+            self.signature_algorithm = utils.SIGNATURE_SHA1
+
+    def _config_from_parsed_url(self, parsed_url):
+        if not self._is_url_scheme_valid(parsed_url):
+            raise ValueError("Invalid CLOUDINARY_URL scheme. Expecting to start with 'cloudinary://'")
+
+        is_private_cdn = parsed_url.path != ""
+        result = {
+            "cloud_name": parsed_url.hostname,
+            "api_key": parsed_url.username,
+            "api_secret": parsed_url.password,
+            "private_cdn": is_private_cdn,
+        }
+        if is_private_cdn:
+            result.update({"secure_distribution": parsed_url.path[1:]})
+
+        return result
+
+    def _load_config_from_env(self):
+        if os.environ.get("CLOUDINARY_CLOUD_NAME"):
+            config_keys = [key for key in os.environ.keys()
+                           if key.startswith("CLOUDINARY_") and key != "CLOUDINARY_URL"]
+
+            for full_key in config_keys:
+                conf_key = full_key[len("CLOUDINARY_"):].lower()
+                conf_val = os.environ[full_key]
+                if conf_val in ["true", "false"]:
+                    conf_val = conf_val == "true"
+
+                self.update(**{conf_key: conf_val})
+        elif os.environ.get("CLOUDINARY_URL"):
+            self._load_from_url(os.environ.get("CLOUDINARY_URL"))
 
 
 _config = Config()
@@ -192,6 +234,7 @@ _http_client = HttpClient()
 
 # FIXME: circular import issue
 from cloudinary.search import Search
+from cloudinary.search_folders import SearchFolders
 
 
 @python_2_unicode_compatible
@@ -257,7 +300,8 @@ class CloudinaryResource(object):
         return self.get_prep_value() + '#' + self.get_expected_signature()
 
     def get_expected_signature(self):
-        return utils.api_sign_request({"public_id": self.public_id, "version": self.version}, config().api_secret)
+        return utils.api_sign_request({"public_id": self.public_id, "version": self.version}, config().api_secret,
+                                      config().signature_algorithm)
 
     @property
     def url(self):
@@ -377,7 +421,7 @@ class CloudinaryResource(object):
         max_images = srcset_data.get("max_images", 20)
         transformation = srcset_data.get("transformation")
 
-        kbytes_step = int(ceil(float(bytes_step)/1024))
+        kbytes_step = int(ceil(float(bytes_step) / 1024))
 
         breakpoints_width_param = "auto:breakpoints_{min_width}_{max_width}_{kbytes_step}_{max_images}:json".format(
             min_width=min_width, max_width=max_width, kbytes_step=kbytes_step, max_images=max_images)
@@ -623,7 +667,7 @@ class CloudinaryResource(object):
 
         return utils.cloudinary_url(poster_options['public_id'], **poster_options)[0]
 
-    def _populate_video_source_tags(self, source,  options):
+    def _populate_video_source_tags(self, source, options):
         """
         Helper function for video tag, populates source tags from provided options.
 
@@ -750,7 +794,7 @@ class CloudinaryResource(object):
         srcset_data = srcset_data.copy()
         srcset_data.update(options.pop("srcset", dict()))
 
-        responsive_attrs  = self._generate_image_responsive_attributes(attrs, srcset_data, **options)
+        responsive_attrs = self._generate_image_responsive_attributes(attrs, srcset_data, **options)
 
         attrs.update(responsive_attrs)
 

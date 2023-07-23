@@ -1,16 +1,13 @@
 """Pytest fixtures and other helpers for doing testing by end-users."""
 
-from __future__ import absolute_import, division, print_function
-__metaclass__ = type
-
-from contextlib import closing
+from contextlib import closing, contextmanager
 import errno
 import socket
 import threading
 import time
+import http.client
 
 import pytest
-from six.moves import http_client
 
 import cheroot.server
 from cheroot.test import webtest
@@ -33,6 +30,7 @@ config = {
 }
 
 
+@contextmanager
 def cheroot_server(server_factory):
     """Set up and tear down a Cheroot server instance."""
     conf = config[server_factory].copy()
@@ -61,17 +59,17 @@ def cheroot_server(server_factory):
     httpserver.stop()  # destroy it
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def wsgi_server():
     """Set up and tear down a Cheroot WSGI server instance."""
-    for srv in cheroot_server(cheroot.wsgi.Server):
+    with cheroot_server(cheroot.wsgi.Server) as srv:
         yield srv
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture
 def native_server():
     """Set up and tear down a Cheroot HTTP server instance."""
-    for srv in cheroot_server(cheroot.server.HTTPServer):
+    with cheroot_server(cheroot.server.HTTPServer) as srv:
         yield srv
 
 
@@ -89,9 +87,9 @@ class _TestClient:
             port=self._port,
         )
         conn_cls = (
-            http_client.HTTPConnection
+            http.client.HTTPConnection
             if self.server_instance.ssl_adapter is None else
-            http_client.HTTPSConnection
+            http.client.HTTPSConnection
         )
         return conn_cls(name)
 

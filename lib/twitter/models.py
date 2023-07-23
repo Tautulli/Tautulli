@@ -35,10 +35,10 @@ class TwitterModel(object):
             raise TypeError('unhashable type: {} (no id attribute)'
                             .format(type(self)))
 
-    def AsJsonString(self):
+    def AsJsonString(self, ensure_ascii=True):
         """ Returns the TwitterModel as a JSON string based on key/value
         pairs returned from the AsDict() method. """
-        return json.dumps(self.AsDict(), sort_keys=True)
+        return json.dumps(self.AsDict(), ensure_ascii=ensure_ascii, sort_keys=True)
 
     def AsDict(self):
         """ Create a dictionary representation of the object. Please see inline
@@ -185,21 +185,13 @@ class DirectMessage(TwitterModel):
         self.param_defaults = {
             'created_at': None,
             'id': None,
-            'recipient': None,
             'recipient_id': None,
-            'recipient_screen_name': None,
-            'sender': None,
             'sender_id': None,
-            'sender_screen_name': None,
             'text': None,
         }
 
         for (param, default) in self.param_defaults.items():
             setattr(self, param, kwargs.get(param, default))
-        if 'sender' in kwargs:
-            self.sender = User.NewFromJsonDict(kwargs.get('sender', None))
-        if 'recipient' in kwargs:
-            self.recipient = User.NewFromJsonDict(kwargs.get('recipient', None))
 
     def __repr__(self):
         if self.text and len(self.text) > 140:
@@ -208,7 +200,7 @@ class DirectMessage(TwitterModel):
             text = self.text
         return "DirectMessage(ID={dm_id}, Sender={sender}, Created={time}, Text='{text!r}')".format(
             dm_id=self.id,
-            sender=self.sender_screen_name,
+            sender=self.sender_id,
             time=self.created_at,
             text=text)
 

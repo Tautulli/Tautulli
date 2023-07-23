@@ -10,7 +10,7 @@ DOCUMENTATION :: END
 </%doc>
 
 <ul class="stacked-configs list-unstyled">
-    % for device in sorted(devices_list, key=lambda k: k['device_name']):
+    % for device in sorted(devices_list, key=lambda k: ((k['friendly_name'] or k['device_name']).lower(), k['id'])):
     <li class="mobile-device pointer" data-id="${device['id']}" data-name="${device['device_name']}">
         <span>
             % if device['official'] == -1:
@@ -58,7 +58,7 @@ DOCUMENTATION :: END
 
     getPlexPyURL = function () {
         var deferred = $.Deferred();
-        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+        if (location.hostname !== "localhost" && location.hostname !== "127.0.0.1" && location.hostname !== "[::1]") {
             deferred.resolve(location.href.split('/settings')[0]);
         } else {
             $.get('get_plexpy_url').then(function (url) {
@@ -70,11 +70,11 @@ DOCUMENTATION :: END
 
     function checkQRAddress(url) {
         var parser = document.createElement('a');
-        parser.href = url;
+        parser.setAttribute('href', url);
         var hostname = parser.hostname;
         var protocol = parser.protocol;
 
-        if (hostname === '127.0.0.1' || hostname === 'localhost') {
+        if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]') {
             $('#api_qr_localhost').toggle(true);
             $('#api_qr_private').toggle(false);
         } else {
@@ -88,6 +88,17 @@ DOCUMENTATION :: END
         $('#api_qr_https').toggle((protocol === 'http:'));
     }
 
+    function generateQRCode(url) {
+        $('#api_qr_code').empty().kjua({
+            text: url + '|' + $('#api_qr_token').val(),
+            render: 'canvas',
+            ecLevel: 'H',
+            size: 256,
+            fill: '#000',
+            back: '#eee'
+        });
+    }
+
     var verifiedDevice = false;
     $('#register-mobile-device').click(function () {
         verifiedDevice = false;
@@ -98,9 +109,7 @@ DOCUMENTATION :: END
             $.get('generate_api_key', { device: true }).then(function (token) {
                 $('#api_qr_address').val(url);
                 $('#api_qr_token').val(token);
-                $('#api_qr_code').empty().qrcode({
-                    text: url + '|' + token
-                });
+                generateQRCode(url);
 
                 (function poll() {
                     setTimeout(function () {
@@ -135,10 +144,7 @@ DOCUMENTATION :: END
         this.value = $.trim(this.value);
         var url = $(this).val();
         checkQRAddress(url);
-
-        $('#api_qr_code').empty().qrcode({
-            text: url + '|' + $('#api_qr_token').val()
-        });
+        generateQRCode(url);
     });
 
     $('#api-qr-modal').on('hide.bs.modal', function () {

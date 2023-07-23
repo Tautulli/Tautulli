@@ -1,3 +1,5 @@
+# Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
+
 # Copyright (C) 2003-2007, 2009-2011 Nominum, Inc.
 #
 # Permission to use, copy, modify, and distribute this software and its
@@ -16,15 +18,18 @@
 """Class IN rdata type classes."""
 
 __all__ = [
-    'A',
-    'AAAA',
-    'APL',
-    'DHCID',
-    'KX',
-    'NAPTR',
-    'NSAP',
-    'NSAP_PTR',
-    'PX',
-    'SRV',
-    'WKS',
+    "A",
+    "AAAA",
+    "APL",
+    "DHCID",
+    "HTTPS",
+    "IPSECKEY",
+    "KX",
+    "NAPTR",
+    "NSAP",
+    "NSAP_PTR",
+    "PX",
+    "SRV",
+    "SVCB",
+    "WKS",
 ]

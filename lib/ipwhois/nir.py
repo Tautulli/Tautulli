@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2019 Philip Hane
+# Copyright (c) 2013-2020 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -87,9 +87,9 @@ NIR_WHOIS = {
             'updated': r'(\[Last Update\])[^\S\n]+(?P<val>.*?)\n',
             'nameservers': r'(\[Nameserver\])[^\S\n]+(?P<val>.*?)\n',
             'contact_admin': r'(\[Administrative Contact\])[^\S\n]+.+?\>'
-                             '(?P<val>.+?)\<\/A\>\n',
+                             '(?P<val>.+?)\\<\\/A\\>\n',
             'contact_tech': r'(\[Technical Contact\])[^\S\n]+.+?\>'
-                             '(?P<val>.+?)\<\/A\>\n'
+                             '(?P<val>.+?)\\<\\/A\\>\n'
         },
         'contact_fields': {
             'name': r'(\[Last, First\])[^\S\n]+(?P<val>.*?)\n',
@@ -108,9 +108,14 @@ NIR_WHOIS = {
     },
     'krnic': {
         'country_code': 'KR',
-        'url': 'https://whois.kisa.or.kr/eng/whois.jsc',
+        'url': 'https://xn--c79as89aj0e29b77z.xn--3e0b707e/eng/whois.jsc',
         'request_type': 'POST',
-        'request_headers': {'Accept': 'text/html'},
+        'request_headers': {
+            'Accept': 'text/html',
+            'Referer': (
+                'https://xn--c79as89aj0e29b77z.xn--3e0b707e/eng/whois.jsp'
+            ),
+        },
         'form_data_ip_field': 'query',
         'fields': {
             'name': r'(Organization Name)[\s]+\:[^\S\n]+(?P<val>.+?)\n',
@@ -120,9 +125,9 @@ NIR_WHOIS = {
             'postal_code': r'(Zip Code)[\s]+\:[^\S\n]+(?P<val>.+?)\n',
             'created': r'(Registration Date)[\s]+\:[^\S\n]+(?P<val>.+?)\n',
             'contact_admin': r'(id="eng_isp_contact").+?\>(?P<val>.*?)\<'
-                              '\/div\>\n',
+                              '\\/div\\>\n',
             'contact_tech': r'(id="eng_user_contact").+?\>(?P<val>.*?)\<'
-                             '\/div\>\n'
+                             '\\/div\\>\n'
         },
         'contact_fields': {
             'name': r'(Name)[^\S\n]+?:[^\S\n]+?(?P<val>.*?)\n',
@@ -260,12 +265,20 @@ class NIRWhois:
 
                     if field in ['created', 'updated'] and dt_format:
 
-                        value = (
-                            datetime.strptime(
-                                values[0],
-                                str(dt_format)
-                            ) - timedelta(hours=hourdelta)
-                        ).isoformat('T')
+                        try:
+                            value = (
+                                datetime.strptime(
+                                    values[0],
+                                    str(dt_format)
+                                ) - timedelta(hours=hourdelta)
+                            ).isoformat('T')
+                        except ValueError:
+                            value = (
+                                datetime.strptime(
+                                    values[0],
+                                    '%Y/%m/%d'
+                                )
+                            ).isoformat('T')
 
                     elif field in ['nameservers']:
 
@@ -285,16 +298,6 @@ class NIRWhois:
                 ret[field] = value
 
         return ret
-
-    def _parse_fields(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('NIRWhois._parse_fields() has been deprecated and will be '
-             'removed. You should now use NIRWhois.parse_fields().')
-        return self.parse_fields(*args, **kwargs)
 
     def get_nets_jpnic(self, response):
         """
@@ -359,16 +362,6 @@ class NIRWhois:
 
         return nets
 
-    def _get_nets_jpnic(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('NIRWhois._get_nets_jpnic() has been deprecated and will be '
-             'removed. You should now use NIRWhois.get_nets_jpnic().')
-        return self.get_nets_jpnic(*args, **kwargs)
-
     def get_nets_krnic(self, response):
         """
         The function for parsing network blocks from krnic whois data.
@@ -394,7 +387,7 @@ class NIRWhois:
         # and the start and end positions.
         for match in re.finditer(
                 r'^(IPv4 Address)[\s]+:[^\S\n]+((.+?)[^\S\n]-[^\S\n](.+?)'
-                '[^\S\n]\((.+?)\)|.+)$',
+                '[^\\S\n]\\((.+?)\\)|.+)$',
                 response,
                 re.MULTILINE
         ):
@@ -433,16 +426,6 @@ class NIRWhois:
                 pass
 
         return nets
-
-    def _get_nets_krnic(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('NIRWhois._get_nets_krnic() has been deprecated and will be '
-             'removed. You should now use NIRWhois.get_nets_krnic().')
-        return self.get_nets_krnic(*args, **kwargs)
 
     def get_contact(self, response=None, nir=None, handle=None,
                     retry_count=3, dt_format=None):
@@ -490,16 +473,6 @@ class NIRWhois:
             hourdelta=int(NIR_WHOIS[nir]['dt_hourdelta']),
             is_contact=True
         )
-
-    def _get_contact(self, *args, **kwargs):
-        """
-        Deprecated. This will be removed in a future release.
-        """
-
-        from warnings import warn
-        warn('NIRWhois._get_contact() has been deprecated and will be '
-             'removed. You should now use NIRWhois.get_contact().')
-        return self.get_contact(*args, **kwargs)
 
     def lookup(self, nir=None, inc_raw=False, retry_count=3, response=None,
                field_list=None, is_offline=False):

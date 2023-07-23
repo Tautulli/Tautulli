@@ -3,9 +3,7 @@ from itertools import count
 import os
 import threading
 import time
-
-from six.moves import range
-from six.moves import urllib
+import urllib.parse
 
 import pytest
 
@@ -153,7 +151,7 @@ class CacheTest(helper.CPWebCase):
             self.assertBody('visit #1')
             if trial != 0:
                 age = int(self.assertHeader('Age'))
-                self.assert_(age >= elapsed)
+                assert age >= elapsed
                 elapsed = age
 
         # POST, PUT, DELETE should not be cached.
