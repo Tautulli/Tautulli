@@ -1,3 +1,15 @@
+var formatter_function = function() {
+    if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {
+        var s = '<b>'+ moment(this.x).format('ddd MMM D') +'</b>';
+    } else {
+        var s = '<b>'+ this.x +'</b>';
+    }
+    $.each(this.points, function(i, point) {
+        s += '<br/>'+point.series.name+': '+point.y;
+    });
+    return s;
+};
+
 var hc_concurrent_streams_by_stream_type_options = {
     chart: {
         type: 'line',
@@ -57,7 +69,8 @@ var hc_concurrent_streams_by_stream_type_options = {
     },
     tooltip: {
         shared: true,
-        crosshairs: true
+        crosshairs: true,
+        formatter: formatter_function
     },
     series: [{}]
 };

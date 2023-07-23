@@ -879,8 +879,10 @@ class Graphs(object):
         series_1 = []
         series_2 = []
         series_3 = []
+        series_4 = []
 
-        grouped_result = helpers.group_by_keys(result, ('date_played','transcode_decision'))
+        grouped_result_by_stream_type = helpers.group_by_keys(result, ('date_played','transcode_decision'))
+        grouped_result_by_day = helpers.group_by_keys(result, ['date_played'])
 
         for date_item in sorted(date_list):
             date_string = date_item.strftime('%Y-%m-%d')
@@ -888,18 +890,24 @@ class Graphs(object):
             series_1_value = 0
             series_2_value = 0
             series_3_value = 0
+            series_4_value = 0
 
-            for item in grouped_result:
+            for item in grouped_result_by_stream_type:
                 if item['key'] == (date_string,'direct play'):
                     series_1_value = calc_most_concurrent(item['value'])
                 elif item['key'] == (date_string,'copy'):
                     series_2_value = calc_most_concurrent(item['value'])
                 elif item['key'] == (date_string,'transcode'):
                     series_3_value = calc_most_concurrent(item['value'])
+
+            for item in grouped_result_by_day:
+                if item['key'] == date_string:
+                    series_4_value = calc_most_concurrent(item['value'])
             
             series_1.append(series_1_value)
             series_2.append(series_2_value)
             series_3.append(series_3_value)
+            series_4.append(series_4_value)
 
         series_1_output = {'name': 'Direct Play',
                            'data': series_1}
@@ -907,9 +915,11 @@ class Graphs(object):
                            'data': series_2}
         series_3_output = {'name': 'Transcode',
                            'data': series_3}
+        series_4_output = {'name': 'Max. Concurrent Streams',
+                           'data': series_4}
 
         output = {'categories': categories,
-                  'series': [series_1_output, series_2_output, series_3_output]}
+                  'series': [series_1_output, series_2_output, series_3_output, series_4_output]}
         return output
 
     def get_total_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
