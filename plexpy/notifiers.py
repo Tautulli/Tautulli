@@ -3967,6 +3967,14 @@ class TAUTULLIREMOTEAPP(Notifier):
                     2: 'Large image (Non-expandable text)'
                 }
             })
+        elif platform == 'ios':
+            config_option.append({
+                'label': 'Include Poster Image',
+                'value': self.config['notification_type'],
+                'name': 'remoteapp_notification_type',
+                'description': 'Include a poster with the notifications.',
+                'input_type': 'checkbox'
+            })
 
         return config_option
 
