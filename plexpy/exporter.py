@@ -956,6 +956,14 @@ class Export(object):
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
                 'artBlurHash': None,
+                'chapters': {
+                    'id': None,
+                    'tag': None,
+                    'index': None,
+                    'start': None,
+                    'end': None,
+                    'thumb': None
+                },
                 'chapterSource': None,
                 'collections': {
                     'id': None,
