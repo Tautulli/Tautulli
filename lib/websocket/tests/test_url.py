@@ -8,7 +8,7 @@ from websocket._url import get_proxy_info, parse_url, _is_address_in_network, _i
 test_url.py
 websocket - WebSocket client library for Python
 
-Copyright 2022 engn33r
+Copyright 2023 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -253,6 +253,24 @@ class ProxyInfoTest(unittest.TestCase):
         os.environ["http_proxy"] = "http://localhost:3128/"
         os.environ["https_proxy"] = "http://localhost2:3128/"
         self.assertEqual(get_proxy_info("echo.websocket.events", True), ("localhost2", 3128, None))
+
+        os.environ["http_proxy"] = ""
+        os.environ["https_proxy"] = "http://localhost2/"
+        self.assertEqual(get_proxy_info("echo.websocket.events", True), ("localhost2", None, None))
+        self.assertEqual(get_proxy_info("echo.websocket.events", False), (None, 0, None))
+        os.environ["http_proxy"] = ""
+        os.environ["https_proxy"] = "http://localhost2:3128/"
+        self.assertEqual(get_proxy_info("echo.websocket.events", True), ("localhost2", 3128, None))
+        self.assertEqual(get_proxy_info("echo.websocket.events", False), (None, 0, None))
+
+        os.environ["http_proxy"] = "http://localhost/"
+        os.environ["https_proxy"] = ""
+        self.assertEqual(get_proxy_info("echo.websocket.events", True), (None, 0, None))
+        self.assertEqual(get_proxy_info("echo.websocket.events", False), ("localhost", None, None))
+        os.environ["http_proxy"] = "http://localhost:3128/"
+        os.environ["https_proxy"] = ""
+        self.assertEqual(get_proxy_info("echo.websocket.events", True), (None, 0, None))
+        self.assertEqual(get_proxy_info("echo.websocket.events", False), ("localhost", 3128, None))
 
         os.environ["http_proxy"] = "http://a:b@localhost/"
         self.assertEqual(get_proxy_info("echo.websocket.events", False), ("localhost", None, ("a", "b")))

@@ -4,7 +4,7 @@ import logging
 _logging.py
 websocket - WebSocket client library for Python
 
-Copyright 2022 engn33r
+Copyright 2023 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ try:
     from logging import NullHandler
 except ImportError:
     class NullHandler(logging.Handler):
-        def emit(self, record):
+        def emit(self, record) -> None:
             pass
 
 _logger.addHandler(NullHandler())
@@ -35,7 +35,9 @@ __all__ = ["enableTrace", "dump", "error", "warning", "debug", "trace",
            "isEnabledForError", "isEnabledForDebug", "isEnabledForTrace"]
 
 
-def enableTrace(traceable, handler=logging.StreamHandler(), level="DEBUG"):
+def enableTrace(traceable: bool,
+                handler: logging.StreamHandler = logging.StreamHandler(),
+                level: str = "DEBUG") -> None:
     """
     Turn on/off the traceability.
 
@@ -51,41 +53,41 @@ def enableTrace(traceable, handler=logging.StreamHandler(), level="DEBUG"):
         _logger.setLevel(getattr(logging, level))
 
 
-def dump(title, message):
+def dump(title: str, message: str) -> None:
     if _traceEnabled:
         _logger.debug("--- " + title + " ---")
         _logger.debug(message)
         _logger.debug("-----------------------")
 
 
-def error(msg):
+def error(msg: str) -> None:
     _logger.error(msg)
 
 
-def warning(msg):
+def warning(msg: str) -> None:
     _logger.warning(msg)
 
 
-def debug(msg):
+def debug(msg: str) -> None:
     _logger.debug(msg)
 
 
-def info(msg):
+def info(msg: str) -> None:
     _logger.info(msg)
 
 
-def trace(msg):
+def trace(msg: str) -> None:
     if _traceEnabled:
         _logger.debug(msg)
 
 
-def isEnabledForError():
+def isEnabledForError() -> bool:
     return _logger.isEnabledFor(logging.ERROR)
 
 
-def isEnabledForDebug():
+def isEnabledForDebug() -> bool:
     return _logger.isEnabledFor(logging.DEBUG)
 
 
-def isEnabledForTrace():
+def isEnabledForTrace() -> bool:
     return _traceEnabled

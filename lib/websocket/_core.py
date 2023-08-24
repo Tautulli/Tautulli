@@ -17,7 +17,7 @@ from ._utils import *
 _core.py
 websocket - WebSocket client library for Python
 
-Copyright 2022 engn33r
+Copyright 2023 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -74,8 +74,8 @@ class WebSocket:
     """
 
     def __init__(self, get_mask_key=None, sockopt=None, sslopt=None,
-                 fire_cont_frame=False, enable_multithread=True,
-                 skip_utf8_validation=False, **_):
+                 fire_cont_frame: bool = False, enable_multithread: bool = True,
+                 skip_utf8_validation: bool = False, **_):
         """
         Initialize WebSocket object.
 
@@ -133,7 +133,7 @@ class WebSocket:
         """
         self.get_mask_key = func
 
-    def gettimeout(self):
+    def gettimeout(self) -> float:
         """
         Get the websocket timeout (in seconds) as an int or float
 
@@ -144,7 +144,7 @@ class WebSocket:
         """
         return self.sock_opt.timeout
 
-    def settimeout(self, timeout):
+    def settimeout(self, timeout: float):
         """
         Set the timeout to the websocket.
 
@@ -265,7 +265,7 @@ class WebSocket:
                 self.sock = None
             raise
 
-    def send(self, payload, opcode=ABNF.OPCODE_TEXT):
+    def send(self, payload: bytes or str, opcode: int = ABNF.OPCODE_TEXT) -> int:
         """
         Send the data as string.
 
@@ -282,7 +282,7 @@ class WebSocket:
         frame = ABNF.create_frame(payload, opcode)
         return self.send_frame(frame)
 
-    def send_frame(self, frame):
+    def send_frame(self, frame) -> int:
         """
         Send the data frame.
 
@@ -313,7 +313,7 @@ class WebSocket:
 
         return length
 
-    def send_binary(self, payload):
+    def send_binary(self, payload: bytes) -> int:
         """
         Send a binary message (OPCODE_BINARY).
 
@@ -324,7 +324,7 @@ class WebSocket:
         """
         return self.send(payload, ABNF.OPCODE_BINARY)
 
-    def ping(self, payload=""):
+    def ping(self, payload: str or bytes = ""):
         """
         Send ping data.
 
@@ -337,7 +337,7 @@ class WebSocket:
             payload = payload.encode("utf-8")
         self.send(payload, ABNF.OPCODE_PING)
 
-    def pong(self, payload=""):
+    def pong(self, payload: str or bytes = ""):
         """
         Send pong data.
 
@@ -350,7 +350,7 @@ class WebSocket:
             payload = payload.encode("utf-8")
         self.send(payload, ABNF.OPCODE_PONG)
 
-    def recv(self):
+    def recv(self) -> str or bytes:
         """
         Receive string data(byte array) from the server.
 
@@ -367,7 +367,7 @@ class WebSocket:
         else:
             return ''
 
-    def recv_data(self, control_frame=False):
+    def recv_data(self, control_frame: bool = False) -> tuple:
         """
         Receive data with operation code.
 
@@ -385,7 +385,7 @@ class WebSocket:
         opcode, frame = self.recv_data_frame(control_frame)
         return opcode, frame.data
 
-    def recv_data_frame(self, control_frame=False):
+    def recv_data_frame(self, control_frame: bool = False):
         """
         Receive data with operation code.
 
@@ -411,7 +411,7 @@ class WebSocket:
                 # handle error:
                 # 'NoneType' object has no attribute 'opcode'
                 raise WebSocketProtocolException(
-                    "Not a valid frame %s" % frame)
+                    "Not a valid frame {frame}".format(frame=frame))
             elif frame.opcode in (ABNF.OPCODE_TEXT, ABNF.OPCODE_BINARY, ABNF.OPCODE_CONT):
                 self.cont_frame.validate(frame)
                 self.cont_frame.add(frame)
@@ -444,7 +444,7 @@ class WebSocket:
         """
         return self.frame_buffer.recv_frame()
 
-    def send_close(self, status=STATUS_NORMAL, reason=b""):
+    def send_close(self, status: int = STATUS_NORMAL, reason: bytes = b""):
         """
         Send close data to the server.
 
@@ -460,14 +460,14 @@ class WebSocket:
         self.connected = False
         self.send(struct.pack('!H', status) + reason, ABNF.OPCODE_CLOSE)
 
-    def close(self, status=STATUS_NORMAL, reason=b"", timeout=3):
+    def close(self, status: int = STATUS_NORMAL, reason: bytes = b"", timeout: float = 3):
         """
         Close Websocket object
 
         Parameters
         ----------
         status: int
-            Status code to send. See STATUS_XXX.
+            Status code to send. See VALID_CLOSE_STATUS in ABNF.
         reason: bytes
             The reason to close in UTF-8.
         timeout: int or float
@@ -521,7 +521,7 @@ class WebSocket:
             self.sock = None
             self.connected = False
 
-    def _send(self, data):
+    def _send(self, data: str or bytes):
         return send(self.sock, data)
 
     def _recv(self, bufsize):
@@ -535,7 +535,7 @@ class WebSocket:
             raise
 
 
-def create_connection(url, timeout=None, class_=WebSocket, **options):
+def create_connection(url: str, timeout=None, class_=WebSocket, **options):
     """
     Connect to url and return websocket object.
 

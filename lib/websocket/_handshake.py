@@ -2,7 +2,7 @@
 _handshake.py
 websocket - WebSocket client library for Python
 
-Copyright 2022 engn33r
+Copyright 2023 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -40,14 +40,14 @@ CookieJar = SimpleCookieJar()
 
 class handshake_response:
 
-    def __init__(self, status, headers, subprotocol):
+    def __init__(self, status: int, headers: dict, subprotocol):
         self.status = status
         self.headers = headers
         self.subprotocol = subprotocol
         CookieJar.add(headers.get("set-cookie"))
 
 
-def handshake(sock, url, hostname, port, resource, **options):
+def handshake(sock, url: str, hostname: str, port: int, resource: str, **options):
     headers, key = _get_handshake_headers(resource, url, hostname, port, options)
 
     header_str = "\r\n".join(headers)
@@ -64,7 +64,7 @@ def handshake(sock, url, hostname, port, resource, **options):
     return handshake_response(status, resp, subproto)
 
 
-def _pack_hostname(hostname):
+def _pack_hostname(hostname: str) -> str:
     # IPv6 address
     if ':' in hostname:
         return '[' + hostname + ']'
@@ -72,41 +72,41 @@ def _pack_hostname(hostname):
     return hostname
 
 
-def _get_handshake_headers(resource, url, host, port, options):
+def _get_handshake_headers(resource: str, url: str, host: str, port: int, options: dict):
     headers = [
-        "GET %s HTTP/1.1" % resource,
+        "GET {resource} HTTP/1.1".format(resource=resource),
         "Upgrade: websocket"
     ]
     if port == 80 or port == 443:
         hostport = _pack_hostname(host)
     else:
-        hostport = "%s:%d" % (_pack_hostname(host), port)
+        hostport = "{h}:{p}".format(h=_pack_hostname(host), p=port)
     if options.get("host"):
-        headers.append("Host: %s" % options["host"])
+        headers.append("Host: {h}".format(h=options["host"]))
     else:
-        headers.append("Host: %s" % hostport)
+        headers.append("Host: {hp}".format(hp=hostport))
 
     # scheme indicates whether http or https is used in Origin
     # The same approach is used in parse_url of _url.py to set default port
     scheme, url = url.split(":", 1)
     if not options.get("suppress_origin"):
         if "origin" in options and options["origin"] is not None:
-            headers.append("Origin: %s" % options["origin"])
+            headers.append("Origin: {origin}".format(origin=options["origin"]))
         elif scheme == "wss":
-            headers.append("Origin: https://%s" % hostport)
+            headers.append("Origin: https://{hp}".format(hp=hostport))
         else:
-            headers.append("Origin: http://%s" % hostport)
+            headers.append("Origin: http://{hp}".format(hp=hostport))
 
     key = _create_sec_websocket_key()
 
     # Append Sec-WebSocket-Key & Sec-WebSocket-Version if not manually specified
     if not options.get('header') or 'Sec-WebSocket-Key' not in options['header']:
-        headers.append("Sec-WebSocket-Key: %s" % key)
+        headers.append("Sec-WebSocket-Key: {key}".format(key=key))
     else:
         key = options['header']['Sec-WebSocket-Key']
 
     if not options.get('header') or 'Sec-WebSocket-Version' not in options['header']:
-        headers.append("Sec-WebSocket-Version: %s" % VERSION)
+        headers.append("Sec-WebSocket-Version: {version}".format(version=VERSION))
 
     if not options.get('connection'):
         headers.append('Connection: Upgrade')
@@ -115,7 +115,7 @@ def _get_handshake_headers(resource, url, host, port, options):
 
     subprotocols = options.get("subprotocols")
     if subprotocols:
-        headers.append("Sec-WebSocket-Protocol: %s" % ",".join(subprotocols))
+        headers.append("Sec-WebSocket-Protocol: {protocols}".format(protocols=",".join(subprotocols)))
 
     header = options.get("header")
     if header:
@@ -133,18 +133,21 @@ def _get_handshake_headers(resource, url, host, port, options):
     cookie = "; ".join(filter(None, [server_cookie, client_cookie]))
 
     if cookie:
-        headers.append("Cookie: %s" % cookie)
+        headers.append("Cookie: {cookie}".format(cookie=cookie))
 
-    headers.append("")
-    headers.append("")
-
+    headers.extend(("", ""))
     return headers, key
 
 
-def _get_resp_headers(sock, success_statuses=SUCCESS_STATUSES):
+def _get_resp_headers(sock, success_statuses: tuple = SUCCESS_STATUSES) -> tuple:
     status, resp_headers, status_message = read_headers(sock)
     if status not in success_statuses:
-        raise WebSocketBadStatusException("Handshake status %d %s", status, status_message, resp_headers)
+        content_len = resp_headers.get('content-length')
+        if content_len:
+            response_body = sock.recv(int(content_len))  # read the body of the HTTP error message response and include it in the exception
+        else:
+            response_body = None
+        raise WebSocketBadStatusException("Handshake status {status} {message} -+-+- {headers} -+-+- {body}".format(status=status, message=status_message, headers=resp_headers, body=response_body), status, status_message, resp_headers, response_body)
     return status, resp_headers
 
 
@@ -154,7 +157,7 @@ _HEADERS_TO_CHECK = {
 }
 
 
-def _validate(headers, key, subprotocols):
+def _validate(headers, key: str, subprotocols):
     subproto = None
     for k, v in _HEADERS_TO_CHECK.items():
         r = headers.get(k, None)
@@ -189,6 +192,6 @@ def _validate(headers, key, subprotocols):
         return False, None
 
 
-def _create_sec_websocket_key():
+def _create_sec_websocket_key() -> str:
     randomness = os.urandom(16)
     return base64encode(randomness).decode('utf-8').strip()

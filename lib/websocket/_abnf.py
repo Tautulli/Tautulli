@@ -11,7 +11,7 @@ from threading import Lock
 _abnf.py
 websocket - WebSocket client library for Python
 
-Copyright 2022 engn33r
+Copyright 2023 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,14 +33,14 @@ try:
     # Note that wsaccel is unmaintained.
     from wsaccel.xormask import XorMaskerSimple
 
-    def _mask(_m, _d):
+    def _mask(_m, _d) -> bytes:
         return XorMaskerSimple(_m).process(_d)
 
 except ImportError:
     # wsaccel is not available, use websocket-client _mask()
     native_byteorder = sys.byteorder
 
-    def _mask(mask_value, data_value):
+    def _mask(mask_value: array.array, data_value: array.array) -> bytes:
         datalen = len(data_value)
         data_value = int.from_bytes(data_value, native_byteorder)
         mask_value = int.from_bytes(mask_value * (datalen // 4) + mask_value[: datalen % 4], native_byteorder)
@@ -131,8 +131,8 @@ class ABNF:
     LENGTH_16 = 1 << 16
     LENGTH_63 = 1 << 63
 
-    def __init__(self, fin=0, rsv1=0, rsv2=0, rsv3=0,
-                 opcode=OPCODE_TEXT, mask=1, data=""):
+    def __init__(self, fin: int = 0, rsv1: int = 0, rsv2: int = 0, rsv3: int = 0,
+                 opcode: int = OPCODE_TEXT, mask: int = 1, data: str or bytes = "") -> None:
         """
         Constructor for ABNF. Please check RFC for arguments.
         """
@@ -147,7 +147,7 @@ class ABNF:
         self.data = data
         self.get_mask_key = os.urandom
 
-    def validate(self, skip_utf8_validation=False) -> None:
+    def validate(self, skip_utf8_validation: bool = False) -> None:
         """
         Validate the ABNF frame.
 
@@ -187,19 +187,19 @@ class ABNF:
             + " data=" + str(self.data)
 
     @staticmethod
-    def create_frame(data, opcode, fin=1):
+    def create_frame(data: str, opcode: int, fin: int = 1) -> 'ABNF':
         """
         Create frame to send text, binary and other data.
 
         Parameters
         ----------
-        data: <type>
+        data: str
             data to send. This is string value(byte array).
             If opcode is OPCODE_TEXT and this value is unicode,
             data value is converted into unicode string, automatically.
-        opcode: <type>
-            operation code. please see OPCODE_XXX.
-        fin: <type>
+        opcode: int
+            operation code. please see OPCODE_MAP.
+        fin: int
             fin flag. if set to 0, create continue fragmentation.
         """
         if opcode == ABNF.OPCODE_TEXT and isinstance(data, str):
@@ -237,7 +237,7 @@ class ABNF:
             mask_key = self.get_mask_key(4)
             return frame_header + self._get_masked(mask_key)
 
-    def _get_masked(self, mask_key):
+    def _get_masked(self, mask_key: str or bytes) -> bytes:
         s = ABNF.mask(mask_key, self.data)
 
         if isinstance(mask_key, str):
@@ -246,7 +246,7 @@ class ABNF:
         return mask_key + s
 
     @staticmethod
-    def mask(mask_key, data):
+    def mask(mask_key: str or bytes, data: str or bytes) -> bytes:
         """
         Mask or unmask data. Just do xor for each byte
 
@@ -273,7 +273,7 @@ class frame_buffer:
     _HEADER_MASK_INDEX = 5
     _HEADER_LENGTH_INDEX = 6
 
-    def __init__(self, recv_fn, skip_utf8_validation):
+    def __init__(self, recv_fn: int, skip_utf8_validation: bool) -> None:
         self.recv = recv_fn
         self.skip_utf8_validation = skip_utf8_validation
         # Buffers over the packets from the layer beneath until desired amount
@@ -282,7 +282,7 @@ class frame_buffer:
         self.clear()
         self.lock = Lock()
 
-    def clear(self):
+    def clear(self) -> None:
         self.header = None
         self.length = None
         self.mask = None
@@ -290,7 +290,7 @@ class frame_buffer:
     def has_received_header(self) -> bool:
         return self.header is None
 
-    def recv_header(self):
+    def recv_header(self) -> None:
         header = self.recv_strict(2)
         b1 = header[0]
         fin = b1 >> 7 & 1
@@ -304,7 +304,7 @@ class frame_buffer:
 
         self.header = (fin, rsv1, rsv2, rsv3, opcode, has_mask, length_bits)
 
-    def has_mask(self):
+    def has_mask(self) -> bool or int:
         if not self.header:
             return False
         return self.header[frame_buffer._HEADER_MASK_INDEX]
@@ -312,7 +312,7 @@ class frame_buffer:
     def has_received_length(self) -> bool:
         return self.length is None
 
-    def recv_length(self):
+    def recv_length(self) -> None:
         bits = self.header[frame_buffer._HEADER_LENGTH_INDEX]
         length_bits = bits & 0x7f
         if length_bits == 0x7e:
@@ -327,10 +327,10 @@ class frame_buffer:
     def has_received_mask(self) -> bool:
         return self.mask is None
 
-    def recv_mask(self):
+    def recv_mask(self) -> None:
         self.mask = self.recv_strict(4) if self.has_mask() else ""
 
-    def recv_frame(self):
+    def recv_frame(self) -> ABNF:
 
         with self.lock:
             # Header
@@ -386,20 +386,20 @@ class frame_buffer:
 
 class continuous_frame:
 
-    def __init__(self, fire_cont_frame, skip_utf8_validation):
+    def __init__(self, fire_cont_frame: bool, skip_utf8_validation: bool) -> None:
         self.fire_cont_frame = fire_cont_frame
         self.skip_utf8_validation = skip_utf8_validation
         self.cont_data = None
         self.recving_frames = None
 
-    def validate(self, frame):
+    def validate(self, frame: ABNF) -> None:
         if not self.recving_frames and frame.opcode == ABNF.OPCODE_CONT:
             raise WebSocketProtocolException("Illegal frame")
         if self.recving_frames and \
                 frame.opcode in (ABNF.OPCODE_TEXT, ABNF.OPCODE_BINARY):
             raise WebSocketProtocolException("Illegal frame")
 
-    def add(self, frame):
+    def add(self, frame: ABNF) -> None:
         if self.cont_data:
             self.cont_data[1] += frame.data
         else:
@@ -410,10 +410,10 @@ class continuous_frame:
         if frame.fin:
             self.recving_frames = None
 
-    def is_fire(self, frame):
+    def is_fire(self, frame: ABNF) -> bool or int:
         return frame.fin or self.fire_cont_frame
 
-    def extract(self, frame):
+    def extract(self, frame: ABNF) -> list:
         data = self.cont_data
         self.cont_data = None
         frame.data = data[1]
