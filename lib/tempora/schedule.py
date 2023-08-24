@@ -28,7 +28,7 @@ def now():
     A client may override this function to change the default behavior,
     such as to use local time or timezone-naïve times.
     """
-    return datetime.datetime.utcnow().replace(tzinfo=pytz.utc)
+    return datetime.datetime.now(pytz.utc)
 
 
 def from_timestamp(ts):
@@ -38,7 +38,7 @@ def from_timestamp(ts):
     A client may override this function to change the default behavior,
     such as to use local time or timezone-naïve times.
     """
-    return datetime.datetime.utcfromtimestamp(ts).replace(tzinfo=pytz.utc)
+    return datetime.datetime.fromtimestamp(ts, pytz.utc)
 
 
 class DelayedCommand(datetime.datetime):

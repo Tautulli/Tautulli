@@ -383,9 +383,9 @@ def parse_timedelta(str):
     Note that months and years strict intervals, not aligned
     to a calendar:
 
-    >>> now = datetime.datetime.now()
-    >>> later = now + parse_timedelta('1 year')
-    >>> diff = later.replace(year=now.year) - now
+    >>> date = datetime.datetime.fromisoformat('2000-01-01')
+    >>> later = date + parse_timedelta('1 year')
+    >>> diff = later.replace(year=date.year) - date
     >>> diff.seconds
     20940
 

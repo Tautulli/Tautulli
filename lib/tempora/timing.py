@@ -48,20 +48,21 @@ class Stopwatch:
     def reset(self):
         self.elapsed = datetime.timedelta(0)
         with contextlib.suppress(AttributeError):
-            del self.start_time
+            del self._start
+
+    def _diff(self):
+        return datetime.timedelta(seconds=time.monotonic() - self._start)
 
     def start(self):
-        self.start_time = datetime.datetime.utcnow()
+        self._start = time.monotonic()
 
     def stop(self):
-        stop_time = datetime.datetime.utcnow()
-        self.elapsed += stop_time - self.start_time
-        del self.start_time
+        self.elapsed += self._diff()
+        del self._start
         return self.elapsed
 
     def split(self):
-        local_duration = datetime.datetime.utcnow() - self.start_time
-        return self.elapsed + local_duration
+        return self.elapsed + self._diff()
 
     # context manager support
     def __enter__(self):
