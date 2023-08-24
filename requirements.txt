@@ -7,7 +7,7 @@ backports.zoneinfo==0.2.1;python_version<"3.9"
 beautifulsoup4==4.12.2
 bleach==6.0.0
 certifi==2023.7.22
-cheroot==9.0.0
+cheroot==10.0.0
 cherrypy==18.8.0
 cloudinary==1.34.0
 distro==1.8.0

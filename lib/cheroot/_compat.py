@@ -24,6 +24,7 @@ SYS_PLATFORM = platform.system()
 IS_WINDOWS = SYS_PLATFORM == 'Windows'
 IS_LINUX = SYS_PLATFORM == 'Linux'
 IS_MACOS = SYS_PLATFORM == 'Darwin'
+IS_SOLARIS = SYS_PLATFORM == 'SunOS'
 
 PLATFORM_ARCH = platform.machine()
 IS_PPC = PLATFORM_ARCH.startswith('ppc')

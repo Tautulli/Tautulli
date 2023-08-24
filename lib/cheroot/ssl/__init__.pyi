@@ -1,7 +1,7 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABCMeta
 from typing import Any
 
-class Adapter():
+class Adapter(metaclass=ABCMeta):
     certificate: Any
     private_key: Any
     certificate_chain: Any
