@@ -297,37 +297,11 @@ class TreeBuilderSmokeTest(object):
             markup, multi_valued_attributes=multi_valued_attributes
         )
         assert soup.a['class'] == ['a', 'b', 'c']
-        
-    def test_fuzzed_input(self):
-        # This test centralizes in one place the various fuzz tests
-        # for Beautiful Soup created by the oss-fuzz project.
-        
-        # These strings superficially resemble markup, but they
-        # generally can't be parsed into anything. The best we can
-        # hope for is that parsing these strings won't crash the
-        # parser.
-        #
-        # n.b. This markup is commented out because these fuzz tests
-        # _do_ crash the parser. However the crashes are due to bugs
-        # in html.parser, not Beautiful Soup -- otherwise I'd fix the
-        # bugs!
-        
-        bad_markup = [
-            # https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=28873
-            # https://github.com/guidovranken/python-library-fuzzers/blob/master/corp-html/519e5b4269a01185a0d5e76295251921da2f0700
-            # https://bugs.python.org/issue37747
-            #
-            #b'\n<![\xff\xfe\xfe\xcd\x00',
 
-            #https://github.com/guidovranken/python-library-fuzzers/blob/master/corp-html/de32aa55785be29bbc72a1a8e06b00611fb3d9f8
-            # https://bugs.python.org/issue34480
-            #
-            #b'<![n\x00'
-        ]
-        for markup in bad_markup:
-            with warnings.catch_warnings(record=False):
-                soup = self.soup(markup)
-        
+    def test_invalid_doctype(self):
+        markup = '<![if word]>content<![endif]>'
+        markup = '<!DOCTYPE html]ff>'
+        soup = self.soup(markup)
 
 class HTMLTreeBuilderSmokeTest(TreeBuilderSmokeTest):
 
@@ -577,8 +551,8 @@ Hello, world!
         """Whitespace must be preserved in <pre> and <textarea> tags,
         even if that would mean not prettifying the markup.
         """
-        pre_markup = "<pre>   </pre>"
-        textarea_markup = "<textarea> woo\nwoo  </textarea>"
+        pre_markup = "<pre>a   z</pre>\n"
+        textarea_markup = "<textarea> woo\nwoo  </textarea>\n"
         self.assert_soup(pre_markup)
         self.assert_soup(textarea_markup)
 
@@ -589,7 +563,7 @@ Hello, world!
         assert soup.textarea.prettify() == textarea_markup
 
         soup = self.soup("<textarea></textarea>")
-        assert soup.textarea.prettify() == "<textarea></textarea>"
+        assert soup.textarea.prettify() == "<textarea></textarea>\n"
 
     def test_nested_inline_elements(self):
         """Inline elements can be nested indefinitely."""

@@ -24,6 +24,7 @@ from bs4.builder import (
 from bs4.element import (
     Comment,
     SoupStrainer,
+    PYTHON_SPECIFIC_ENCODINGS,
     Tag,
     NavigableString,
 )
@@ -210,6 +211,47 @@ class TestConstructor(SoupTest):
         assert [] == soup.string_container_stack
 
 
+class TestOutput(SoupTest):
+
+    @pytest.mark.parametrize(
+        "eventual_encoding,actual_encoding", [
+            ("utf-8", "utf-8"),
+            ("utf-16", "utf-16"),
+        ]
+    )
+    def test_decode_xml_declaration(self, eventual_encoding, actual_encoding):
+        # Most of the time, calling decode() on an XML document will
+        # give you a document declaration that mentions the encoding
+        # you intend to use when encoding the document as a
+        # bytestring.
+        soup = self.soup("<tag></tag>")
+        soup.is_xml = True
+        assert (f'<?xml version="1.0" encoding="{actual_encoding}"?>\n<tag></tag>'
+                == soup.decode(eventual_encoding=eventual_encoding))
+
+    @pytest.mark.parametrize(
+        "eventual_encoding", [x for x in PYTHON_SPECIFIC_ENCODINGS] + [None]
+    )
+    def test_decode_xml_declaration_with_missing_or_python_internal_eventual_encoding(self, eventual_encoding):
+        # But if you pass a Python internal encoding into decode(), or
+        # omit the eventual_encoding altogether, the document
+        # declaration won't mention any particular encoding.
+        soup = BeautifulSoup("<tag></tag>", "html.parser")
+        soup.is_xml = True
+        assert (f'<?xml version="1.0"?>\n<tag></tag>'
+                == soup.decode(eventual_encoding=eventual_encoding))
+
+    def test(self):
+        # BeautifulSoup subclasses Tag and extends the decode() method.
+        # Make sure the other Tag methods which call decode() call
+        # it correctly.
+        soup = self.soup("<tag></tag>")
+        assert b"<tag></tag>" == soup.encode(encoding="utf-8")
+        assert b"<tag></tag>" == soup.encode_contents(encoding="utf-8")
+        assert "<tag></tag>" == soup.decode_contents()
+        assert "<tag>\n</tag>\n" == soup.prettify()
+
+        
 class TestWarnings(SoupTest):
     # Note that some of the tests in this class create BeautifulSoup
     # objects directly rather than using self.soup(). That's
