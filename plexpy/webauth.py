@@ -314,7 +314,7 @@ class AuthController(object):
 
     def get_loginform(self, redirect_uri=''):
         from plexpy.webserve import serve_template
-        return serve_template(templatename="login.html", title="Login", redirect_uri=unquote(redirect_uri))
+        return serve_template(template_name="login.html", title="Login", redirect_uri=unquote(redirect_uri))
 
     @cherrypy.expose
     def index(self, *args, **kwargs):

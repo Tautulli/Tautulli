@@ -1,5 +1,33 @@
 # Changelog
 
+## v2.12.5 (2023-07-13)
+
+* Activity:
+  * New: Added d3d11va to list of hardware decoders.
+* History:
+  * Fix: Incorrect grouping of play history.
+  * New: Added button in settings to regroup play history.
+* Notifications:
+  * Fix: Incorrect concurrent streams notifications by IP addresss for IPv6 addresses (#2096) (Thanks @pooley182)
+* UI:
+  * Fix: Occasional UI crashing on Python 3.11.
+  * New: Added multiselect user filters to History and Graphs pages. (#2090) (Thanks @zdimension)
+* API:
+  * New: Added regroup_history API command.
+  * Change: Updated graph API commands to accept a comma separated list of user IDs.
+
+
+## v2.12.4 (2023-05-23)
+
+* History:
+  * Fix: Set view offset equal to duration if a stream is stopped within the last 10 sec.
+* Other:
+  * Fix: Database import may fail for some older databases.
+  * Fix: Double-quoted strings for newer versions of SQLite. (#2015, #2057)
+* API:
+  * Change: Return the ID for async API calls (export_metadata, notify, notify_newsletter).
+
+
 ## v2.12.3 (2023-04-14)
 
 * Activity:
