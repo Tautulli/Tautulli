@@ -1,7 +1,10 @@
+import base64
 import json
 
+import cloudinary
 from cloudinary.api_client.call_api import call_json_api
-from cloudinary.utils import unique
+from cloudinary.utils import unique, unsigned_download_url_prefix, build_distribution_domain, base64url_encode, \
+    json_encode, compute_hex_hash, SIGNATURE_SHA256
 
 
 class Search(object):
@@ -15,7 +18,10 @@ class Search(object):
         'with_field': None,
     }
 
+    _ttl = 300  # Used for search URLs
+
     """Build and execute a search query."""
+
     def __init__(self):
         self.query = {}
 
@@ -51,6 +57,16 @@ class Search(object):
         self._add("with_field", value)
         return self
 
+    def ttl(self, ttl):
+        """
+        Sets the time to live of the search URL.
+
+        :param ttl: The time to live in seconds.
+        :return: self
+        """
+        self._ttl = ttl
+        return self
+
     def to_json(self):
         return json.dumps(self.as_dict())
 
@@ -59,12 +75,6 @@ class Search(object):
         options["content_type"] = 'application/json'
         uri = [self._endpoint, 'search']
         return call_json_api('post', uri, self.as_dict(), **options)
-
-    def _add(self, name, value):
-        if name not in self.query:
-            self.query[name] = []
-        self.query[name].append(value)
-        return self
 
     def as_dict(self):
         to_return = {}
@@ -77,6 +87,51 @@ class Search(object):
 
         return to_return
 
+    def to_url(self, ttl=None, next_cursor=None, **options):
+        """
+        Creates a signed Search URL that can be used on the client side.
+
+        :param ttl: The time to live in seconds.
+        :param next_cursor: Starting position.
+        :param options: Additional url delivery options.
+        :return: The resulting search URL.
+        """
+        api_secret = options.get("api_secret", cloudinary.config().api_secret or None)
+        if not api_secret:
+            raise ValueError("Must supply api_secret")
+
+        if ttl is None:
+            ttl = self._ttl
+
+        query = self.as_dict()
+
+        _next_cursor = query.pop("next_cursor", None)
+        if next_cursor is None:
+            next_cursor = _next_cursor
+
+        b64query = base64url_encode(json_encode(query, sort_keys=True))
+
+        prefix = build_distribution_domain(options)
+
+        signature = compute_hex_hash("{ttl}{b64query}{api_secret}".format(
+            ttl=ttl,
+            b64query=b64query,
+            api_secret=api_secret
+        ), algorithm=SIGNATURE_SHA256)
+
+        return "{prefix}/search/{signature}/{ttl}/{b64query}{next_cursor}".format(
+            prefix=prefix,
+            signature=signature,
+            ttl=ttl,
+            b64query=b64query,
+            next_cursor="/{}".format(next_cursor) if next_cursor else "")
+
     def endpoint(self, endpoint):
         self._endpoint = endpoint
+        return self
+
+    def _add(self, name, value):
+        if name not in self.query:
+            self.query[name] = []
+        self.query[name].append(value)
         return self

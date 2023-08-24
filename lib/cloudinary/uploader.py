@@ -472,13 +472,17 @@ def call_cacheable_api(action, params, http_headers=None, return_error=False, un
     return result
 
 
-def call_api(action, params, http_headers=None, return_error=False, unsigned=False, file=None, timeout=None, **options):
+def call_api(action, params, http_headers=None, return_error=False, unsigned=False, file=None, timeout=None,
+             extra_headers=None, **options):
     params = utils.cleanup_params(params)
 
     headers = {"User-Agent": cloudinary.get_user_agent()}
 
     if http_headers is not None:
         headers.update(http_headers)
+
+    if extra_headers is not None:
+        headers.update(extra_headers)
 
     oauth_token = options.get("oauth_token", cloudinary.config().oauth_token)
 
