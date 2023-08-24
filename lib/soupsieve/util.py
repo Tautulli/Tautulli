@@ -3,7 +3,7 @@ from __future__ import annotations
 from functools import wraps, lru_cache
 import warnings
 import re
-from typing import Callable, Any, Optional
+from typing import Callable, Any
 
 DEBUG = 0x00001
 
@@ -27,7 +27,7 @@ def lower(string: str) -> str:
 class SelectorSyntaxError(Exception):
     """Syntax error in a CSS selector."""
 
-    def __init__(self, msg: str, pattern: Optional[str] = None, index: Optional[int] = None) -> None:
+    def __init__(self, msg: str, pattern: str | None = None, index: int | None = None) -> None:
         """Initialize."""
 
         self.line = None
@@ -84,7 +84,7 @@ def get_pattern_context(pattern: str, index: int) -> tuple[str, int, int]:
     col = 1
     text = []  # type: list[str]
     line = 1
-    offset = None  # type: Optional[int]
+    offset = None  # type: int | None
 
     # Split pattern by newline and handle the text before the newline
     for m in RE_PATTERN_LINE_SPLIT.finditer(pattern):

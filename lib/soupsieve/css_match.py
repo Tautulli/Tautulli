@@ -6,7 +6,7 @@ import re
 from . import css_types as ct
 import unicodedata
 import bs4  # type: ignore[import]
-from typing import Iterator, Iterable, Any, Optional, Callable, Sequence, cast  # noqa: F401
+from typing import Iterator, Iterable, Any, Callable, Sequence, cast  # noqa: F401
 
 # Empty tag pattern (whitespace okay)
 RE_NOT_EMPTY = re.compile('[^ \t\r\n\f]')
@@ -171,7 +171,7 @@ class _DocumentNav:
     def get_children(
         self,
         el: bs4.Tag,
-        start: Optional[int] = None,
+        start: int | None = None,
         reverse: bool = False,
         tags: bool = True,
         no_iframe: bool = False
@@ -239,22 +239,22 @@ class _DocumentNav:
         return parent
 
     @staticmethod
-    def get_tag_name(el: bs4.Tag) -> Optional[str]:
+    def get_tag_name(el: bs4.Tag) -> str | None:
         """Get tag."""
 
-        return cast(Optional[str], el.name)
+        return cast('str | None', el.name)
 
     @staticmethod
-    def get_prefix_name(el: bs4.Tag) -> Optional[str]:
+    def get_prefix_name(el: bs4.Tag) -> str | None:
         """Get prefix."""
 
-        return cast(Optional[str], el.prefix)
+        return cast('str | None', el.prefix)
 
     @staticmethod
-    def get_uri(el: bs4.Tag) -> Optional[str]:
+    def get_uri(el: bs4.Tag) -> str | None:
         """Get namespace `URI`."""
 
-        return cast(Optional[str], el.namespace)
+        return cast('str | None', el.namespace)
 
     @classmethod
     def get_next(cls, el: bs4.Tag, tags: bool = True) -> bs4.PageElement:
@@ -287,7 +287,7 @@ class _DocumentNav:
         return bool(ns and ns == NS_XHTML)
 
     @staticmethod
-    def split_namespace(el: bs4.Tag, attr_name: str) -> tuple[Optional[str], Optional[str]]:
+    def split_namespace(el: bs4.Tag, attr_name: str) -> tuple[str | None, str | None]:
         """Return namespace and attribute name without the prefix."""
 
         return getattr(attr_name, 'namespace', None), getattr(attr_name, 'name', None)
@@ -330,8 +330,8 @@ class _DocumentNav:
         cls,
         el: bs4.Tag,
         name: str,
-        default: Optional[str | Sequence[str]] = None
-    ) -> Optional[str | Sequence[str]]:
+        default: str | Sequence[str] | None = None
+    ) -> str | Sequence[str] | None:
         """Get attribute by name."""
 
         value = default
@@ -348,7 +348,7 @@ class _DocumentNav:
         return value
 
     @classmethod
-    def iter_attributes(cls, el: bs4.Tag) -> Iterator[tuple[str, Optional[str | Sequence[str]]]]:
+    def iter_attributes(cls, el: bs4.Tag) -> Iterator[tuple[str, str | Sequence[str] | None]]:
         """Iterate attributes."""
 
         for k, v in el.attrs.items():
@@ -424,10 +424,10 @@ class Inputs:
         return 0 <= minutes <= 59
 
     @classmethod
-    def parse_value(cls, itype: str, value: Optional[str]) -> Optional[tuple[float, ...]]:
+    def parse_value(cls, itype: str, value: str | None) -> tuple[float, ...] | None:
         """Parse the input value."""
 
-        parsed = None  # type: Optional[tuple[float, ...]]
+        parsed = None  # type: tuple[float, ...] | None
         if value is None:
             return value
         if itype == "date":
@@ -486,7 +486,7 @@ class CSSMatch(_DocumentNav):
         self,
         selectors: ct.SelectorList,
         scope: bs4.Tag,
-        namespaces: Optional[ct.Namespaces],
+        namespaces: ct.Namespaces | None,
         flags: int
     ) -> None:
         """Initialize."""
@@ -545,19 +545,19 @@ class CSSMatch(_DocumentNav):
 
         return self.get_tag_ns(el) == NS_XHTML
 
-    def get_tag(self, el: bs4.Tag) -> Optional[str]:
+    def get_tag(self, el: bs4.Tag) -> str | None:
         """Get tag."""
 
         name = self.get_tag_name(el)
         return util.lower(name) if name is not None and not self.is_xml else name
 
-    def get_prefix(self, el: bs4.Tag) -> Optional[str]:
+    def get_prefix(self, el: bs4.Tag) -> str | None:
         """Get prefix."""
 
         prefix = self.get_prefix_name(el)
         return util.lower(prefix) if prefix is not None and not self.is_xml else prefix
 
-    def find_bidi(self, el: bs4.Tag) -> Optional[int]:
+    def find_bidi(self, el: bs4.Tag) -> int | None:
         """Get directionality from element text."""
 
         for node in self.get_children(el, tags=False):
@@ -653,8 +653,8 @@ class CSSMatch(_DocumentNav):
         self,
         el: bs4.Tag,
         attr: str,
-        prefix: Optional[str]
-    ) -> Optional[str | Sequence[str]]:
+        prefix: str | None
+    ) -> str | Sequence[str] | None:
         """Match attribute name and return value if it exists."""
 
         value = None
@@ -751,7 +751,7 @@ class CSSMatch(_DocumentNav):
             name not in (self.get_tag(el), '*')
         )
 
-    def match_tag(self, el: bs4.Tag, tag: Optional[ct.SelectorTag]) -> bool:
+    def match_tag(self, el: bs4.Tag, tag: ct.SelectorTag | None) -> bool:
         """Match the tag."""
 
         match = True
@@ -1030,7 +1030,7 @@ class CSSMatch(_DocumentNav):
         """Match element if it contains text."""
 
         match = True
-        content = None  # type: Optional[str | Sequence[str]]
+        content = None  # type: str | Sequence[str] | None
         for contain_list in contains:
             if content is None:
                 if contain_list.own:
@@ -1099,7 +1099,7 @@ class CSSMatch(_DocumentNav):
         match = False
         name = cast(str, self.get_attribute_by_name(el, 'name'))
 
-        def get_parent_form(el: bs4.Tag) -> Optional[bs4.Tag]:
+        def get_parent_form(el: bs4.Tag) -> bs4.Tag | None:
             """Find this input's form."""
             form = None
             parent = self.get_parent(el, no_iframe=True)
@@ -1478,7 +1478,7 @@ class CSSMatch(_DocumentNav):
                     if lim < 1:
                         break
 
-    def closest(self) -> Optional[bs4.Tag]:
+    def closest(self) -> bs4.Tag | None:
         """Match closest ancestor."""
 
         current = self.tag
@@ -1506,7 +1506,7 @@ class SoupSieve(ct.Immutable):
 
     pattern: str
     selectors: ct.SelectorList
-    namespaces: Optional[ct.Namespaces]
+    namespaces: ct.Namespaces | None
     custom: dict[str, str]
     flags: int
 
@@ -1516,8 +1516,8 @@ class SoupSieve(ct.Immutable):
         self,
         pattern: str,
         selectors: ct.SelectorList,
-        namespaces: Optional[ct.Namespaces],
-        custom: Optional[ct.CustomSelectors],
+        namespaces: ct.Namespaces | None,
+        custom: ct.CustomSelectors | None,
         flags: int
     ):
         """Initialize."""
