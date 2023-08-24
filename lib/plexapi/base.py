@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 import re
 import weakref
+from functools import cached_property
 from urllib.parse import urlencode
 from xml.etree import ElementTree
 
-from plexapi import log, utils
+from plexapi import CONFIG, X_PLEX_CONTAINER_SIZE, log, utils
 from plexapi.exceptions import BadRequest, NotFound, UnknownType, Unsupported
-from plexapi.utils import cached_property
 
 USER_DONT_RELOAD_FOR_KEYS = set()
 _DONT_RELOAD_FOR_KEYS = {'key'}
@@ -50,9 +50,14 @@ class PlexObject:
         self._initpath = initpath or self.key
         self._parent = weakref.ref(parent) if parent is not None else None
         self._details_key = None
-        self._overwriteNone = True  # Allow overwriting previous attribute values with `None` when manually reloading
-        self._autoReload = True  # Automatically reload the object when accessing a missing attribute
-        self._edits = None  # Save batch edits for a single API call
+
+        # Allow overwriting previous attribute values with `None` when manually reloading
+        self._overwriteNone = True
+        # Automatically reload the object when accessing a missing attribute
+        self._autoReload = CONFIG.get('plexapi.autoreload', True, bool)
+        # Attribute to save batch edits for a single API call
+        self._edits = None
+
         if data is not None:
             self._loadData(data)
         self._details_key = self._buildDetailsKey()
@@ -87,7 +92,9 @@ class PlexObject:
         etype = elem.attrib.get('streamType', elem.attrib.get('tagType', elem.attrib.get('type')))
         ehash = f'{elem.tag}.{etype}' if etype else elem.tag
         if initpath == '/status/sessions':
-            ehash = f"{ehash}.{'session'}"
+            ehash = f"{ehash}.session"
+        elif initpath.startswith('/status/sessions/history'):
+            ehash = f"{ehash}.history"
         ecls = utils.PLEXOBJECTS.get(ehash, utils.PLEXOBJECTS.get(elem.tag))
         # log.debug('Building %s as %s', elem.tag, ecls.__name__)
         if ecls is not None:
@@ -147,47 +154,14 @@ class PlexObject:
         elem = ElementTree.fromstring(xml)
         return self._buildItemOrNone(elem, cls)
 
-    def fetchItem(self, ekey, cls=None, **kwargs):
-        """ Load the specified key to find and build the first item with the
-            specified tag and attrs. If no tag or attrs are specified then
-            the first item in the result set is returned.
-
-            Parameters:
-                ekey (str or int): Path in Plex to fetch items from. If an int is passed
-                    in, the key will be translated to /library/metadata/<key>. This allows
-                    fetching an item only knowing its key-id.
-                cls (:class:`~plexapi.base.PlexObject`): If you know the class of the
-                    items to be fetched, passing this in will help the parser ensure
-                    it only returns those items. By default we convert the xml elements
-                    with the best guess PlexObjects based on tag and type attrs.
-                etag (str): Only fetch items with the specified tag.
-                **kwargs (dict): Optionally add XML attribute to filter the items.
-                    See :func:`~plexapi.base.PlexObject.fetchItems` for more details
-                    on how this is used.
-        """
-        if ekey is None:
-            raise BadRequest('ekey was not provided')
-        if isinstance(ekey, int):
-            ekey = f'/library/metadata/{ekey}'
-
-        data = self._server.query(ekey)
-        item = self.findItem(data, cls, ekey, **kwargs)
-
-        if item:
-            librarySectionID = utils.cast(int, data.attrib.get('librarySectionID'))
-            if librarySectionID:
-                item.librarySectionID = librarySectionID
-            return item
-
-        clsname = cls.__name__ if cls else 'None'
-        raise NotFound(f'Unable to find elem: cls={clsname}, attrs={kwargs}')
-
-    def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, **kwargs):
+    def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, maxresults=None, **kwargs):
         """ Load the specified key to find and build all items with the specified tag
             and attrs.
 
             Parameters:
-                ekey (str): API URL path in Plex to fetch items from.
+                ekey (str or List<int>): API URL path in Plex to fetch items from. If a list of ints is passed
+                    in, the key will be translated to /library/metadata/<key1,key2,key3>. This allows
+                    fetching multiple items only knowing their key-ids.
                 cls (:class:`~plexapi.base.PlexObject`): If you know the class of the
                     items to be fetched, passing this in will help the parser ensure
                     it only returns those items. By default we convert the xml elements
@@ -195,6 +169,7 @@ class PlexObject:
                 etag (str): Only fetch items with the specified tag.
                 container_start (None, int): offset to get a subset of the data
                 container_size (None, int): How many items in data
+                maxresults (int, optional): Only return the specified number of results.
                 **kwargs (dict): Optionally add XML attribute to filter the items.
                     See the details below for more info.
 
@@ -259,39 +234,80 @@ class PlexObject:
         if ekey is None:
             raise BadRequest('ekey was not provided')
 
-        params = {}
-        if container_start is not None:
-            params["X-Plex-Container-Start"] = container_start
-        if container_size is not None:
-            params["X-Plex-Container-Size"] = container_size
+        if isinstance(ekey, list) and all(isinstance(key, int) for key in ekey):
+            ekey = f'/library/metadata/{",".join(str(key) for key in ekey)}'
 
-        data = self._server.query(ekey, params=params)
-        items = self.findItems(data, cls, ekey, **kwargs)
+        container_start = container_start or 0
+        container_size = container_size or X_PLEX_CONTAINER_SIZE
+        offset = container_start
 
-        librarySectionID = utils.cast(int, data.attrib.get('librarySectionID'))
-        if librarySectionID:
-            for item in items:
-                item.librarySectionID = librarySectionID
-        return items
+        if maxresults is not None:
+            container_size = min(container_size, maxresults)
 
-    def findItem(self, data, cls=None, initpath=None, rtag=None, **kwargs):
-        """ Load the specified data to find and build the first items with the specified tag
-            and attrs. See :func:`~plexapi.base.PlexObject.fetchItem` for more details
-            on how this is used.
+        results = []
+        subresults = []
+        headers = {}
+
+        while True:
+            headers['X-Plex-Container-Start'] = str(container_start)
+            headers['X-Plex-Container-Size'] = str(container_size)
+
+            data = self._server.query(ekey, headers=headers)
+            subresults = self.findItems(data, cls, ekey, **kwargs)
+            total_size = utils.cast(int, data.attrib.get('totalSize') or data.attrib.get('size')) or len(subresults)
+
+            if not subresults:
+                if offset > total_size:
+                    log.info('container_start is greater than the number of items')
+
+            librarySectionID = utils.cast(int, data.attrib.get('librarySectionID'))
+            if librarySectionID:
+                for item in subresults:
+                    item.librarySectionID = librarySectionID
+
+            results.extend(subresults)
+
+            wanted_number_of_items = total_size - offset
+            if maxresults is not None:
+                wanted_number_of_items = min(maxresults, wanted_number_of_items)
+                container_size = min(container_size, wanted_number_of_items - len(results))
+
+            if wanted_number_of_items <= len(results):
+                break
+
+            container_start += container_size
+
+            if container_start > total_size:
+                break
+
+        return results
+
+    def fetchItem(self, ekey, cls=None, **kwargs):
+        """ Load the specified key to find and build the first item with the
+            specified tag and attrs. If no tag or attrs are specified then
+            the first item in the result set is returned.
+
+            Parameters:
+                ekey (str or int): Path in Plex to fetch items from. If an int is passed
+                    in, the key will be translated to /library/metadata/<key>. This allows
+                    fetching an item only knowing its key-id.
+                cls (:class:`~plexapi.base.PlexObject`): If you know the class of the
+                    items to be fetched, passing this in will help the parser ensure
+                    it only returns those items. By default we convert the xml elements
+                    with the best guess PlexObjects based on tag and type attrs.
+                etag (str): Only fetch items with the specified tag.
+                **kwargs (dict): Optionally add XML attribute to filter the items.
+                    See :func:`~plexapi.base.PlexObject.fetchItems` for more details
+                    on how this is used.
         """
-        # filter on cls attrs if specified
-        if cls and cls.TAG and 'tag' not in kwargs:
-            kwargs['etag'] = cls.TAG
-        if cls and cls.TYPE and 'type' not in kwargs:
-            kwargs['type'] = cls.TYPE
-        # rtag to iter on a specific root tag
-        if rtag:
-            data = next(data.iter(rtag), [])
-        # loop through all data elements to find matches
-        for elem in data:
-            if self._checkAttrs(elem, **kwargs):
-                item = self._buildItemOrNone(elem, cls, initpath)
-                return item
+        if isinstance(ekey, int):
+            ekey = f'/library/metadata/{ekey}'
+
+        try:
+            return self.fetchItems(ekey, cls, **kwargs)[0]
+        except IndexError:
+            clsname = cls.__name__ if cls else 'None'
+            raise NotFound(f'Unable to find elem: cls={clsname}, attrs={kwargs}') from None
 
     def findItems(self, data, cls=None, initpath=None, rtag=None, **kwargs):
         """ Load the specified data to find and build all items with the specified tag
@@ -314,6 +330,16 @@ class PlexObject:
                 if item is not None:
                     items.append(item)
         return items
+
+    def findItem(self, data, cls=None, initpath=None, rtag=None, **kwargs):
+        """ Load the specified data to find and build the first items with the specified tag
+            and attrs. See :func:`~plexapi.base.PlexObject.fetchItem` for more details
+            on how this is used.
+        """
+        try:
+            return self.findItems(data, cls, initpath, rtag, **kwargs)[0]
+        except IndexError:
+            return None
 
     def firstAttr(self, *attrs):
         """ Return the first attribute in attrs that is not None. """
@@ -475,7 +501,9 @@ class PlexPartialObject(PlexObject):
     }
 
     def __eq__(self, other):
-        return other not in [None, []] and self.key == other.key
+        if isinstance(other, PlexPartialObject):
+            return other not in [None, []] and self.key == other.key
+        return NotImplemented
 
     def __hash__(self):
         return hash(repr(self))
@@ -492,7 +520,7 @@ class PlexPartialObject(PlexObject):
         if attr.startswith('_'): return value
         if value not in (None, []): return value
         if self.isFullObject(): return value
-        if isinstance(self, PlexSession): return value
+        if isinstance(self, (PlexSession, PlexHistory)): return value
         if self._autoReload is False: return value
         # Log the reload.
         clsname = self.__class__.__name__
@@ -543,13 +571,10 @@ class PlexPartialObject(PlexObject):
             self._edits.update(kwargs)
             return self
 
-        if 'id' not in kwargs:
-            kwargs['id'] = self.ratingKey
         if 'type' not in kwargs:
             kwargs['type'] = utils.searchType(self._searchType)
 
-        part = f'/library/sections/{self.librarySectionID}/all{utils.joinArgs(kwargs)}'
-        self._server.query(part, method=self._server._session.put)
+        self.section()._edit(items=self, **kwargs)
         return self
 
     def edit(self, **kwargs):
@@ -643,7 +668,7 @@ class PlexPartialObject(PlexObject):
                 'have not allowed items to be deleted', self.key)
             raise
 
-    def history(self, maxresults=9999999, mindate=None):
+    def history(self, maxresults=None, mindate=None):
         """ Get Play History for a media item.
 
             Parameters:
@@ -681,17 +706,11 @@ class Playable:
         Albums which are all not playable.
 
         Attributes:
-            viewedAt (datetime): Datetime item was last viewed (history).
-            accountID (int): The associated :class:`~plexapi.server.SystemAccount` ID.
-            deviceID (int): The associated :class:`~plexapi.server.SystemDevice` ID.
             playlistItemID (int): Playlist item ID (only populated for :class:`~plexapi.playlist.Playlist` items).
             playQueueItemID (int): PlayQueue item ID (only populated for :class:`~plexapi.playlist.PlayQueue` items).
     """
 
     def _loadData(self, data):
-        self.viewedAt = utils.toDatetime(data.attrib.get('viewedAt'))               # history
-        self.accountID = utils.cast(int, data.attrib.get('accountID'))              # history
-        self.deviceID = utils.cast(int, data.attrib.get('deviceID'))                # history
         self.playlistItemID = utils.cast(int, data.attrib.get('playlistItemID'))    # playlist
         self.playQueueItemID = utils.cast(int, data.attrib.get('playQueueItemID'))  # playqueue
 
@@ -812,7 +831,7 @@ class Playable:
         """
         key = f'/:/progress?key={self.ratingKey}&identifier=com.plexapp.plugins.library&time={time}&state={state}'
         self._server.query(key)
-        self._reload(_overwriteNone=False)
+        return self
 
     def updateTimeline(self, time, state='stopped', duration=None):
         """ Set the timeline progress for this video.
@@ -830,7 +849,7 @@ class Playable:
         key = (f'/:/timeline?ratingKey={self.ratingKey}&key={self.key}&'
                f'identifier=com.plexapp.plugins.library&time={int(time)}&state={state}{durationStr}')
         self._server.query(key)
-        self._reload(_overwriteNone=False)
+        return self
 
 
 class PlexSession(object):
@@ -910,6 +929,35 @@ class PlexSession(object):
         }
         key = '/status/sessions/terminate'
         return self._server.query(key, params=params)
+
+
+class PlexHistory(object):
+    """ This is a general place to store functions specific to media that is a Plex history item.
+
+        Attributes:
+            accountID (int): The associated :class:`~plexapi.server.SystemAccount` ID.
+            deviceID (int): The associated :class:`~plexapi.server.SystemDevice` ID.
+            historyKey (str): API URL (/status/sessions/history/<historyID>).
+            viewedAt (datetime): Datetime item was last watched.
+    """
+
+    def _loadData(self, data):
+        self.accountID = utils.cast(int, data.attrib.get('accountID'))
+        self.deviceID = utils.cast(int, data.attrib.get('deviceID'))
+        self.historyKey = data.attrib.get('historyKey')
+        self.viewedAt = utils.toDatetime(data.attrib.get('viewedAt'))
+
+    def _reload(self, **kwargs):
+        """ Reload the data for the history entry. """
+        raise NotImplementedError('History objects cannot be reloaded. Use source() to get the source media item.')
+
+    def source(self):
+        """ Return the source media object for the history entry. """
+        return self.fetchItem(self._details_key)
+
+    def delete(self):
+        """ Delete the history entry. """
+        return self._server.query(self.historyKey, method=self._server._session.delete)
 
 
 class MediaContainer(PlexObject):

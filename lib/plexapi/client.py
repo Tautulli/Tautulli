@@ -3,6 +3,7 @@ import time
 from xml.etree import ElementTree
 
 import requests
+
 from plexapi import BASE_HEADERS, CONFIG, TIMEOUT, log, logfilter, utils
 from plexapi.base import PlexObject
 from plexapi.exceptions import BadRequest, NotFound, Unauthorized, Unsupported
