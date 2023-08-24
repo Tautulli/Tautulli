@@ -19,6 +19,7 @@ from .exceptions import (
     InvalidSignatureError,
     InvalidTokenError,
     MissingRequiredClaimError,
+    PyJWKClientConnectionError,
     PyJWKClientError,
     PyJWKError,
     PyJWKSetError,
@@ -26,7 +27,7 @@ from .exceptions import (
 )
 from .jwks_client import PyJWKClient
 
-__version__ = "2.6.0"
+__version__ = "2.8.0"
 
 __title__ = "PyJWT"
 __description__ = "JSON Web Token implementation in Python"
@@ -65,6 +66,7 @@ __all__ = [
     "InvalidSignatureError",
     "InvalidTokenError",
     "MissingRequiredClaimError",
+    "PyJWKClientConnectionError",
     "PyJWKClientError",
     "PyJWKError",
     "PyJWKSetError",

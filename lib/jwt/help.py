@@ -7,8 +7,10 @@ from . import __version__ as pyjwt_version
 
 try:
     import cryptography
+
+    cryptography_version = cryptography.__version__
 except ModuleNotFoundError:
-    cryptography = None
+    cryptography_version = ""
 
 
 def info() -> Dict[str, Dict[str, str]]:
@@ -29,7 +31,7 @@ def info() -> Dict[str, Dict[str, str]]:
     if implementation == "CPython":
         implementation_version = platform.python_version()
     elif implementation == "PyPy":
-        pypy_version_info = getattr(sys, "pypy_version_info")
+        pypy_version_info = sys.pypy_version_info  # type: ignore[attr-defined]
         implementation_version = (
             f"{pypy_version_info.major}."
             f"{pypy_version_info.minor}."
@@ -48,7 +50,7 @@ def info() -> Dict[str, Dict[str, str]]:
             "name": implementation,
             "version": implementation_version,
         },
-        "cryptography": {"version": getattr(cryptography, "__version__", "")},
+        "cryptography": {"version": cryptography_version},
         "pyjwt": {"version": pyjwt_version},
     }
 
