@@ -318,7 +318,7 @@ def blacklist_logger():
         logger.blacklist_config(email_config)
 
 
-def serve_template(templatename, **kwargs):
+def serve_template(template_name, **kwargs):
     if plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR:
         logger.info("Tautulli Newsletters :: Using custom newsletter template directory.")
         template_dir = plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
@@ -327,12 +327,12 @@ def serve_template(templatename, **kwargs):
         template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.NEWSLETTER_TEMPLATES)
 
         if not plexpy.CONFIG.NEWSLETTER_INLINE_STYLES:
-            templatename = templatename.replace('.html', '.internal.html')
+            template_name = template_name.replace('.html', '.internal.html')
 
     _hplookup = TemplateLookup(directories=[template_dir], default_filters=['unicode', 'h'])
 
     try:
-        template = _hplookup.get_template(templatename)
+        template = _hplookup.get_template(template_name)
         return template.render(**kwargs), False
     except:
         return exceptions.html_error_template().render(), True
@@ -477,7 +477,7 @@ class Newsletter(object):
         logger.info("Tautulli Newsletters :: Generating newsletter%s." % (' preview' if self.is_preview else ''))
 
         newsletter_rendered, self.template_error = serve_template(
-            templatename=self._TEMPLATE,
+            template_name=self._TEMPLATE,
             uuid=self.uuid,
             subject=self.subject_formatted,
             body=self.body_formatted,

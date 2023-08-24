@@ -134,12 +134,6 @@
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
-                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Play History
-                            </label>
-                            <p class="help-block">Group play history for the same item and user as a single entry when progress is less than the watched percent.</p>
-                        </div>
-                        <div class="checkbox advanced-setting">
-                            <label>
                                 <input type="checkbox" id="history_table_activity" name="history_table_activity" value="1" ${config['history_table_activity']}> Current Activity in History Tables
                             </label>
                             <p class="help-block">Include current activity in the history tables. Statistics will not be counted until the stream has ended.</p>
@@ -226,6 +220,25 @@
                                 </div>
                             </div>
                             <p class="help-block">Decide whether to use end credits markers to determine the 'watched' state of video items. When markers are not available the selected threshold percentage will be used.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="group_history_tables" name="group_history_tables" value="1" ${config['group_history_tables']}> Group Play History
+                            </label>
+                            <p class="help-block">Group play history for the same item and user as a single entry when progress is less than the watched percent.</p>
+                        </div>
+                        <div class="form-group advanced-setting">
+                            <label>Regroup Play History</label>
+                            <p class="help-block">
+                                Fix grouping of play history in the database.<br />
+                            </p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="btn-group">
+                                        <button class="btn btn-form" type="button" id="regroup_history">Regroup</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group advanced-setting">
                             <label>Flush Temporary Sessions</label>
@@ -2481,6 +2494,12 @@ $(document).ready(function() {
     $("#clear_exports").click(function () {
         var msg = 'Are you sure you want to clear the Tautulli metadata exports?';
         var url = 'delete_export?delete_all=true';
+        confirmAjaxCall(url, msg);
+    });
+
+    $("#regroup_history").click(function () {
+        var msg = 'Are you sure you want to regroup play history in the database?<br /><br /><strong>This make take a long time for large databases.<br />Regrouping will continue in the background.</strong>';
+        var url = 'regroup_history';
         confirmAjaxCall(url, msg);
     });
 
