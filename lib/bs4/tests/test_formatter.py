@@ -80,20 +80,20 @@ class TestFormatter(SoupTest):
     @pytest.mark.parametrize(
         "indent,expect",
         [
-            (None, '<a>\n<b>\ntext\n</b>\n</a>'),
-            (-1, '<a>\n<b>\ntext\n</b>\n</a>'),
-            (0, '<a>\n<b>\ntext\n</b>\n</a>'),
-            ("", '<a>\n<b>\ntext\n</b>\n</a>'),
+            (None, '<a>\n<b>\ntext\n</b>\n</a>\n'),
+            (-1, '<a>\n<b>\ntext\n</b>\n</a>\n'),
+            (0, '<a>\n<b>\ntext\n</b>\n</a>\n'),
+            ("", '<a>\n<b>\ntext\n</b>\n</a>\n'),
 
-            (1, '<a>\n <b>\n  text\n </b>\n</a>'),
-            (2, '<a>\n  <b>\n    text\n  </b>\n</a>'),
+            (1, '<a>\n <b>\n  text\n </b>\n</a>\n'),
+            (2, '<a>\n  <b>\n    text\n  </b>\n</a>\n'),
 
-            ("\t", '<a>\n\t<b>\n\t\ttext\n\t</b>\n</a>'),
-            ('abc', '<a>\nabc<b>\nabcabctext\nabc</b>\n</a>'),
+            ("\t", '<a>\n\t<b>\n\t\ttext\n\t</b>\n</a>\n'),
+            ('abc', '<a>\nabc<b>\nabcabctext\nabc</b>\n</a>\n'),
 
             # Some invalid inputs -- the default behavior is used.
-            (object(), '<a>\n <b>\n  text\n </b>\n</a>'),
-            (b'bytes', '<a>\n <b>\n  text\n </b>\n</a>'),
+            (object(), '<a>\n <b>\n  text\n </b>\n</a>\n'),
+            (b'bytes', '<a>\n <b>\n  text\n </b>\n</a>\n'),
         ]
     )
     def test_indent(self, indent, expect):

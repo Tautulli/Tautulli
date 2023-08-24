@@ -1,6 +1,7 @@
 <%inherit file="base.html"/>
 
 <%def name="headIncludes()">
+<link rel="stylesheet" href="${http_root}css/bootstrap-select.min.css">
 <link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.min.css">
 <link rel="stylesheet" href="${http_root}css/dataTables.colVis.css">
 <link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css">
@@ -31,9 +32,7 @@
             % if _session['user_group'] == 'admin':
             <div class="btn-group" id="user-selection">
                 <label>
-                    <select name="history-user" id="history-user" class="btn" style="color: inherit;">
-                        <option value="">All Users</option>
-                        <option disabled>&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;</option>
+                    <select name="history-user" id="history-user" multiple>
                     </select>
                 </label>
             </div>
@@ -121,6 +120,7 @@
 </%def>
 
 <%def name="javascriptIncludes()">
+<script src="${http_root}js/bootstrap-select.min.js"></script>
 <script src="${http_root}js/jquery.dataTables.min.js"></script>
 <script src="${http_root}js/dataTables.colVis.js"></script>
 <script src="${http_root}js/dataTables.bootstrap.min.js"></script>
@@ -134,16 +134,39 @@
             type: 'GET',
             dataType: 'json',
             success: function (data) {
-                var select = $('#history-user');
+                let select = $('#history-user');
+                let by_id = {};
                 data.sort(function (a, b) {
                     return a.friendly_name.localeCompare(b.friendly_name);
                 });
                 data.forEach(function (item) {
                     select.append('<option value="' + item.user_id + '">' +
                         item.friendly_name + '</option>');
+                    by_id[item.user_id] = item.friendly_name;
                 });
+                select.selectpicker({
+                    countSelectedText: function(sel, total) {
+                        if (sel === 0 || sel === total) {
+                            return 'All users';
+                        } else if (sel > 1) {
+                            return sel + ' users';
+                        } else {
+                            return select.val().map(function(id) {
+                                return by_id[id];
+                            }).join(', ');
+                        }
+                    },
+                    style: 'btn-dark',
+                    actionsBox: true,
+                    selectedTextFormat: 'count',
+                    noneSelectedText: 'All users'
+                });
+                select.selectpicker('render');
+                select.selectpicker('selectAll');
             }
         });
+
+        let history_user_last_id = undefined;
 
         function loadHistoryTable(media_type, transcode_decision, selected_user_id) {
             history_table_options.ajax = {
@@ -187,7 +210,16 @@
             });
 
             $('#history-user').on('change', function () {
-                selected_user_id = $(this).val() || null;
+                let val = $(this).val();
+                if (val.length === 0 || val.length === $(this).children().length) {
+                    selected_user_id = null; // if all users are selected, just send an empty list
+                } else {
+                    selected_user_id = val.join(",");
+                }
+                if (selected_user_id === history_user_last_id) {
+                    return;
+                }
+                history_user_last_id = selected_user_id;
                 history_table.draw();
             });
         }

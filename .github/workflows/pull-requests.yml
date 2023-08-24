@@ -18,7 +18,6 @@ jobs:
         with:
           message: Pull requests must be made to the `nightly` branch. Thanks.
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          repo-token-user-login: 'github-actions[bot]'
 
       - name: Fail Workflow
         if: github.base_ref != 'nightly'

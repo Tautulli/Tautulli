@@ -97,7 +97,7 @@ class Formatter(EntitySubstitution):
         else:
             indent = ' '
         self.indent = indent
-        
+
     def substitute(self, ns):
         """Process a string that needs to undergo entity substitution.
         This may be a string encountered in an attribute value or as

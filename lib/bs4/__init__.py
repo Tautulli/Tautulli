@@ -15,7 +15,7 @@ documentation: http://www.crummy.com/software/BeautifulSoup/bs4/doc/
 """
 
 __author__ = "Leonard Richardson (leonardr@segfault.org)"
-__version__ = "4.11.2"
+__version__ = "4.12.2"
 __copyright__ = "Copyright (c) 2004-2023 Leonard Richardson"
 # Use of this source code is governed by the MIT license.
 __license__ = "MIT"
@@ -38,11 +38,13 @@ from .builder import (
     builder_registry,
     ParserRejectedMarkup,
     XMLParsedAsHTMLWarning,
+    HTMLParserTreeBuilder
 )
 from .dammit import UnicodeDammit
 from .element import (
     CData,
     Comment,
+    CSS,
     DEFAULT_OUTPUT_ENCODING,
     Declaration,
     Doctype,
@@ -116,7 +118,7 @@ class BeautifulSoup(Tag):
     ASCII_SPACES = '\x20\x0a\x09\x0c\x0d'
 
     NO_PARSER_SPECIFIED_WARNING = "No parser was explicitly specified, so I'm using the best available %(markup_type)s parser for this system (\"%(parser)s\"). This usually isn't a problem, but if you run this code on another system, or in a different virtual environment, it may use a different parser and behave differently.\n\nThe code that caused this warning is on line %(line_number)s of the file %(filename)s. To get rid of this warning, pass the additional argument 'features=\"%(parser)s\"' to the BeautifulSoup constructor.\n"
-    
+   
     def __init__(self, markup="", features=None, builder=None,
                  parse_only=None, from_encoding=None, exclude_encodings=None,
                  element_classes=None, **kwargs):
@@ -348,25 +350,49 @@ class BeautifulSoup(Tag):
         self.markup = None
         self.builder.soup = None
 
-    def __copy__(self):
-        """Copy a BeautifulSoup object by converting the document to a string and parsing it again."""
-        copy = type(self)(
-            self.encode('utf-8'), builder=self.builder, from_encoding='utf-8'
-        )
+    def _clone(self):
+        """Create a new BeautifulSoup object with the same TreeBuilder,
+        but not associated with any markup.
 
-        # Although we encoded the tree to UTF-8, that may not have
-        # been the encoding of the original markup. Set the copy's
-        # .original_encoding to reflect the original object's
-        # .original_encoding.
-        copy.original_encoding = self.original_encoding
-        return copy
+        This is the first step of the deepcopy process.
+        """
+        clone = type(self)("", None, self.builder)
 
+        # Keep track of the encoding of the original document,
+        # since we won't be parsing it again.
+        clone.original_encoding = self.original_encoding
+        return clone
+        
     def __getstate__(self):
         # Frequently a tree builder can't be pickled.
         d = dict(self.__dict__)
         if 'builder' in d and d['builder'] is not None and not self.builder.picklable:
-            d['builder'] = None
+            d['builder'] = type(self.builder)
+        # Store the contents as a Unicode string.
+        d['contents'] = []
+        d['markup'] = self.decode()
+
+        # If _most_recent_element is present, it's a Tag object left
+        # over from initial parse. It might not be picklable and we
+        # don't need it.
+        if '_most_recent_element' in d:
+            del d['_most_recent_element']
         return d
+
+    def __setstate__(self, state):
+        # If necessary, restore the TreeBuilder by looking it up.
+        self.__dict__ = state
+        if isinstance(self.builder, type):
+            self.builder = self.builder()
+        elif not self.builder:
+            # We don't know which builder was used to build this
+            # parse tree, so use a default we know is always available.
+            self.builder = HTMLParserTreeBuilder()
+        self.builder.soup = self
+        self.reset()
+        self._feed()
+        return state
+
     
     @classmethod
     def _decode_markup(cls, markup):
@@ -468,6 +494,7 @@ class BeautifulSoup(Tag):
         self.open_tag_counter = Counter()
         self.preserve_whitespace_tag_stack = []
         self.string_container_stack = []
+        self._most_recent_element = None
         self.pushTag(self)
 
     def new_tag(self, name, namespace=None, nsprefix=None, attrs={},
@@ -749,7 +776,7 @@ class BeautifulSoup(Tag):
        
     def decode(self, pretty_print=False,
                eventual_encoding=DEFAULT_OUTPUT_ENCODING,
-               formatter="minimal"):
+               formatter="minimal", iterator=None):
         """Returns a string or Unicode representation of the parse tree
             as an HTML or XML document.
 
@@ -776,7 +803,7 @@ class BeautifulSoup(Tag):
         else:
             indent_level = 0
         return prefix + super(BeautifulSoup, self).decode(
-            indent_level, eventual_encoding, formatter)
+            indent_level, eventual_encoding, formatter, iterator)
 
 # Aliases to make it easier to get started quickly, e.g. 'from bs4 import _soup'
 _s = BeautifulSoup

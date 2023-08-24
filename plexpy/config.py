@@ -177,6 +177,7 @@ _CONFIG_DEFINITIONS = {
     'NOTIFY_RECENTLY_ADDED_UPGRADE': (int, 'Monitoring', 0),
     'NOTIFY_REMOTE_ACCESS_THRESHOLD': (int, 'Monitoring', 60),
     'NOTIFY_CONCURRENT_BY_IP': (int, 'Monitoring', 0),
+    'NOTIFY_CONCURRENT_IPV6_CIDR': (str, 'Monitoring', '/64'),
     'NOTIFY_CONCURRENT_THRESHOLD': (int, 'Monitoring', 2),
     'NOTIFY_NEW_DEVICE_INITIAL_ONLY': (int, 'Monitoring', 1),
     'NOTIFY_SERVER_CONNECTION_THRESHOLD': (int, 'Monitoring', 60),
@@ -536,7 +537,7 @@ class Config(object):
         Returns something from the ini unless it is a real property
         of the configuration object or is not all caps.
         """
-        if not re.match(r'[A-Z_]+$', name):
+        if not re.match(r'[A-Z0-9_]+$', name):
             return super(Config, self).__getattr__(name)
         else:
             return self.check_setting(name)
