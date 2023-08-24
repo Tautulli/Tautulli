@@ -1,9 +1,10 @@
-import functools
-import time
-import inspect
 import collections
-import types
+import functools
+import inspect
 import itertools
+import operator
+import time
+import types
 import warnings
 
 import more_itertools
@@ -183,8 +184,9 @@ def method_cache(
     # Support cache clear even before cache has been created.
     wrapper.cache_clear = lambda: None  # type: ignore[attr-defined]
 
-    return (  # type: ignore[return-value]
-        _special_method_cache(method, cache_wrapper) or wrapper
+    return (
+        _special_method_cache(method, cache_wrapper)  # type: ignore[return-value]
+        or wrapper
     )
 
 
@@ -554,3 +556,51 @@ def except_(*exceptions, replace=None, use=None):
         return wrapper
 
     return decorate
+
+
+def identity(x):
+    return x
+
+
+def bypass_when(check, *, _op=identity):
+    """
+    Decorate a function to return its parameter when ``check``.
+
+    >>> bypassed = []  # False
+
+    >>> @bypass_when(bypassed)
+    ... def double(x):
+    ...     return x * 2
+    >>> double(2)
+    4
+    >>> bypassed[:] = [object()]  # True
+    >>> double(2)
+    2
+    """
+
+    def decorate(func):
+        @functools.wraps(func)
+        def wrapper(param):
+            return param if _op(check) else func(param)
+
+        return wrapper
+
+    return decorate
+
+
+def bypass_unless(check):
+    """
+    Decorate a function to return its parameter unless ``check``.
+
+    >>> enabled = [object()]  # True
+
+    >>> @bypass_unless(enabled)
+    ... def double(x):
+    ...     return x * 2
+    >>> double(2)
+    4
+    >>> del enabled[:]  # False
+    >>> double(2)
+    2
+    """
+    return bypass_when(check, _op=operator.not_)
