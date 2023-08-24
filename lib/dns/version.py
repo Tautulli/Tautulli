@@ -20,13 +20,13 @@
 #: MAJOR
 MAJOR = 2
 #: MINOR
-MINOR = 3
+MINOR = 4
 #: MICRO
-MICRO = 0
+MICRO = 2
 #: RELEASELEVEL
 RELEASELEVEL = 0x0F
 #: SERIAL
-SERIAL = 1
+SERIAL = 0
 
 if RELEASELEVEL == 0x0F:  # pragma: no cover  lgtm[py/unreachable-statement]
     #: version

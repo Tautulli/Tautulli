@@ -1,8 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Any
-
 import collections.abc
+from typing import Any
 
 from dns._immutable_ctx import immutable
 

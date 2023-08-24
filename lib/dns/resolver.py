@@ -17,29 +17,31 @@
 
 """DNS stub resolver."""
 
-from typing import Any, Dict, List, Optional, Tuple, Union
-
-from urllib.parse import urlparse
 import contextlib
+import random
 import socket
 import sys
 import threading
 import time
-import random
 import warnings
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union
+from urllib.parse import urlparse
 
-import dns.exception
+import dns._ddr
 import dns.edns
+import dns.exception
 import dns.flags
 import dns.inet
 import dns.ipv4
 import dns.ipv6
 import dns.message
 import dns.name
+import dns.nameserver
 import dns.query
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
+import dns.rdtypes.svcbbase
 import dns.reversename
 import dns.tsig
 
@@ -72,7 +74,7 @@ class NXDOMAIN(dns.exception.DNSException):
         kwargs = dict(qnames=qnames, responses=responses)
         return kwargs
 
-    def __str__(self):
+    def __str__(self) -> str:
         if "qnames" not in self.kwargs:
             return super().__str__()
         qnames = self.kwargs["qnames"]
@@ -140,7 +142,11 @@ class YXDOMAIN(dns.exception.DNSException):
 
 
 ErrorTuple = Tuple[
-    Optional[str], bool, int, Union[Exception, str], Optional[dns.message.Message]
+    Optional[str],
+    bool,
+    int,
+    Union[Exception, str],
+    Optional[dns.message.Message],
 ]
 
 
@@ -148,11 +154,7 @@ def _errors_to_text(errors: List[ErrorTuple]) -> List[str]:
     """Turn a resolution errors trace into a list of text."""
     texts = []
     for err in errors:
-        texts.append(
-            "Server {} {} port {} answered {}".format(
-                err[0], "TCP" if err[1] else "UDP", err[2], err[3]
-            )
-        )
+        texts.append("Server {} answered {}".format(err[0], err[3]))
     return texts
 
 
@@ -184,7 +186,7 @@ Timeout = LifetimeTimeout
 class NoAnswer(dns.exception.DNSException):
     """The DNS response does not contain an answer to the question."""
 
-    fmt = "The DNS response does not contain an answer " + "to the question: {query}"
+    fmt = "The DNS response does not contain an answer to the question: {query}"
     supp_kwargs = {"response"}
 
     # We do this as otherwise mypy complains about unexpected keyword argument
@@ -264,7 +266,7 @@ class Answer:
         response: dns.message.QueryMessage,
         nameserver: Optional[str] = None,
         port: Optional[int] = None,
-    ):
+    ) -> None:
         self.qname = qname
         self.rdtype = rdtype
         self.rdclass = rdclass
@@ -292,7 +294,7 @@ class Answer:
         else:
             raise AttributeError(attr)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.rrset and len(self.rrset) or 0
 
     def __iter__(self):
@@ -309,14 +311,67 @@ class Answer:
         del self.rrset[i]
 
 
+class Answers(dict):
+    """A dict of DNS stub resolver answers, indexed by type."""
+
+
+class HostAnswers(Answers):
+    """A dict of DNS stub resolver answers to a host name lookup, indexed by
+    type.
+    """
+
+    @classmethod
+    def make(
+        cls,
+        v6: Optional[Answer] = None,
+        v4: Optional[Answer] = None,
+        add_empty: bool = True,
+    ) -> "HostAnswers":
+        answers = HostAnswers()
+        if v6 is not None and (add_empty or v6.rrset):
+            answers[dns.rdatatype.AAAA] = v6
+        if v4 is not None and (add_empty or v4.rrset):
+            answers[dns.rdatatype.A] = v4
+        return answers
+
+    # Returns pairs of (address, family) from this result, potentiallys
+    # filtering by address family.
+    def addresses_and_families(
+        self, family: int = socket.AF_UNSPEC
+    ) -> Iterator[Tuple[str, int]]:
+        if family == socket.AF_UNSPEC:
+            yield from self.addresses_and_families(socket.AF_INET6)
+            yield from self.addresses_and_families(socket.AF_INET)
+            return
+        elif family == socket.AF_INET6:
+            answer = self.get(dns.rdatatype.AAAA)
+        elif family == socket.AF_INET:
+            answer = self.get(dns.rdatatype.A)
+        else:
+            raise NotImplementedError(f"unknown address family {family}")
+        if answer:
+            for rdata in answer:
+                yield (rdata.address, family)
+
+    # Returns addresses from this result, potentially filtering by
+    # address family.
+    def addresses(self, family: int = socket.AF_UNSPEC) -> Iterator[str]:
+        return (pair[0] for pair in self.addresses_and_families(family))
+
+    # Returns the canonical name from this result.
+    def canonical_name(self) -> dns.name.Name:
+        answer = self.get(dns.rdatatype.AAAA, self.get(dns.rdatatype.A))
+        return answer.canonical_name
+
+
 class CacheStatistics:
     """Cache Statistics"""
 
-    def __init__(self, hits=0, misses=0):
+    def __init__(self, hits: int = 0, misses: int = 0) -> None:
         self.hits = hits
         self.misses = misses
 
-    def reset(self):
+    def reset(self) -> None:
         self.hits = 0
         self.misses = 0
 
@@ -325,7 +380,7 @@ class CacheStatistics:
 
 
 class CacheBase:
-    def __init__(self):
+    def __init__(self) -> None:
         self.lock = threading.Lock()
         self.statistics = CacheStatistics()
 
@@ -361,7 +416,7 @@ CacheKey = Tuple[dns.name.Name, dns.rdatatype.RdataType, dns.rdataclass.RdataCla
 class Cache(CacheBase):
     """Simple thread-safe DNS answer cache."""
 
-    def __init__(self, cleaning_interval: float = 300.0):
+    def __init__(self, cleaning_interval: float = 300.0) -> None:
         """*cleaning_interval*, a ``float`` is the number of seconds between
         periodic cleanings.
         """
@@ -377,7 +432,7 @@ class Cache(CacheBase):
         now = time.time()
         if self.next_cleaning <= now:
             keys_to_delete = []
-            for (k, v) in self.data.items():
+            for k, v in self.data.items():
                 if v.expiration <= now:
                     keys_to_delete.append(k)
             for k in keys_to_delete:
@@ -447,13 +502,13 @@ class LRUCacheNode:
         self.prev = self
         self.next = self
 
-    def link_after(self, node):
+    def link_after(self, node: "LRUCacheNode") -> None:
         self.prev = node
         self.next = node.next
         node.next.prev = self
         node.next = self
 
-    def unlink(self):
+    def unlink(self) -> None:
         self.next.prev = self.prev
         self.prev.next = self.next
 
@@ -468,7 +523,7 @@ class LRUCache(CacheBase):
     for a new one.
     """
 
-    def __init__(self, max_size: int = 100000):
+    def __init__(self, max_size: int = 100000) -> None:
         """*max_size*, an ``int``, is the maximum number of nodes to cache;
         it must be greater than 0.
         """
@@ -590,30 +645,29 @@ class _Resolution:
         tcp: bool,
         raise_on_no_answer: bool,
         search: Optional[bool],
-    ):
+    ) -> None:
         if isinstance(qname, str):
             qname = dns.name.from_text(qname, None)
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-        if dns.rdatatype.is_metatype(the_rdtype):
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        if dns.rdatatype.is_metatype(rdtype):
             raise NoMetaqueries
-        the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
-        if dns.rdataclass.is_metaclass(the_rdclass):
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
+        if dns.rdataclass.is_metaclass(rdclass):
             raise NoMetaqueries
         self.resolver = resolver
         self.qnames_to_try = resolver._get_qnames_to_try(qname, search)
         self.qnames = self.qnames_to_try[:]
-        self.rdtype = the_rdtype
-        self.rdclass = the_rdclass
+        self.rdtype = rdtype
+        self.rdclass = rdclass
         self.tcp = tcp
         self.raise_on_no_answer = raise_on_no_answer
         self.nxdomain_responses: Dict[dns.name.Name, dns.message.QueryMessage] = {}
         # Initialize other things to help analysis tools
         self.qname = dns.name.empty
-        self.nameservers: List[str] = []
-        self.current_nameservers: List[str] = []
+        self.nameservers: List[dns.nameserver.Nameserver] = []
+        self.current_nameservers: List[dns.nameserver.Nameserver] = []
         self.errors: List[ErrorTuple] = []
-        self.nameserver: Optional[str] = None
-        self.port = 0
+        self.nameserver: Optional[dns.nameserver.Nameserver] = None
         self.tcp_attempt = False
         self.retry_with_tcp = False
         self.request: Optional[dns.message.QueryMessage] = None
@@ -670,7 +724,11 @@ class _Resolution:
             if self.resolver.flags is not None:
                 request.flags = self.resolver.flags
 
-            self.nameservers = self.resolver.nameservers[:]
+            self.nameservers = self.resolver._enrich_nameservers(
+                self.resolver._nameservers,
+                self.resolver.nameserver_ports,
+                self.resolver.port,
+            )
             if self.resolver.rotate:
                 random.shuffle(self.nameservers)
             self.current_nameservers = self.nameservers[:]
@@ -690,12 +748,13 @@ class _Resolution:
         #
         raise NXDOMAIN(qnames=self.qnames_to_try, responses=self.nxdomain_responses)
 
-    def next_nameserver(self) -> Tuple[str, int, bool, float]:
+    def next_nameserver(self) -> Tuple[dns.nameserver.Nameserver, bool, float]:
         if self.retry_with_tcp:
             assert self.nameserver is not None
+            assert not self.nameserver.is_always_max_size()
             self.tcp_attempt = True
             self.retry_with_tcp = False
-            return (self.nameserver, self.port, True, 0)
+            return (self.nameserver, True, 0)
 
         backoff = 0.0
         if not self.current_nameservers:
@@ -707,11 +766,8 @@ class _Resolution:
             self.backoff = min(self.backoff * 2, 2)
 
         self.nameserver = self.current_nameservers.pop(0)
-        self.port = self.resolver.nameserver_ports.get(
-            self.nameserver, self.resolver.port
-        )
-        self.tcp_attempt = self.tcp
-        return (self.nameserver, self.port, self.tcp_attempt, backoff)
+        self.tcp_attempt = self.tcp or self.nameserver.is_always_max_size()
+        return (self.nameserver, self.tcp_attempt, backoff)
 
     def query_result(
         self, response: Optional[dns.message.Message], ex: Optional[Exception]
@@ -724,7 +780,13 @@ class _Resolution:
             # Exception during I/O or from_wire()
             assert response is None
             self.errors.append(
-                (self.nameserver, self.tcp_attempt, self.port, ex, response)
+                (
+                    str(self.nameserver),
+                    self.tcp_attempt,
+                    self.nameserver.answer_port(),
+                    ex,
+                    response,
+                )
             )
             if (
                 isinstance(ex, dns.exception.FormError)
@@ -752,12 +814,18 @@ class _Resolution:
                     self.rdtype,
                     self.rdclass,
                     response,
-                    self.nameserver,
-                    self.port,
+                    self.nameserver.answer_nameserver(),
+                    self.nameserver.answer_port(),
                 )
             except Exception as e:
                 self.errors.append(
-                    (self.nameserver, self.tcp_attempt, self.port, e, response)
+                    (
+                        str(self.nameserver),
+                        self.tcp_attempt,
+                        self.nameserver.answer_port(),
+                        e,
+                        response,
+                    )
                 )
                 # The nameserver is no good, take it out of the mix.
                 self.nameservers.remove(self.nameserver)
@@ -776,7 +844,13 @@ class _Resolution:
                 )
             except Exception as e:
                 self.errors.append(
-                    (self.nameserver, self.tcp_attempt, self.port, e, response)
+                    (
+                        str(self.nameserver),
+                        self.tcp_attempt,
+                        self.nameserver.answer_port(),
+                        e,
+                        response,
+                    )
                 )
                 # The nameserver is no good, take it out of the mix.
                 self.nameservers.remove(self.nameserver)
@@ -792,7 +866,13 @@ class _Resolution:
         elif rcode == dns.rcode.YXDOMAIN:
             yex = YXDOMAIN()
             self.errors.append(
-                (self.nameserver, self.tcp_attempt, self.port, yex, response)
+                (
+                    str(self.nameserver),
+                    self.tcp_attempt,
+                    self.nameserver.answer_port(),
+                    yex,
+                    response,
+                )
             )
             raise yex
         else:
@@ -804,9 +884,9 @@ class _Resolution:
                 self.nameservers.remove(self.nameserver)
             self.errors.append(
                 (
-                    self.nameserver,
+                    str(self.nameserver),
                     self.tcp_attempt,
-                    self.port,
+                    self.nameserver.answer_port(),
                     dns.rcode.to_text(rcode),
                     response,
                 )
@@ -840,8 +920,11 @@ class BaseResolver:
     retry_servfail: bool
     rotate: bool
     ndots: Optional[int]
+    _nameservers: Sequence[Union[str, dns.nameserver.Nameserver]]
 
-    def __init__(self, filename: str = "/etc/resolv.conf", configure: bool = True):
+    def __init__(
+        self, filename: str = "/etc/resolv.conf", configure: bool = True
+    ) -> None:
         """*filename*, a ``str`` or file object, specifying a file
         in standard /etc/resolv.conf format.  This parameter is meaningful
         only when *configure* is true and the platform is POSIX.
@@ -860,13 +943,13 @@ class BaseResolver:
             elif filename:
                 self.read_resolv_conf(filename)
 
-    def reset(self):
+    def reset(self) -> None:
         """Reset all resolver configuration to the defaults."""
 
         self.domain = dns.name.Name(dns.name.from_text(socket.gethostname())[1:])
         if len(self.domain) == 0:
             self.domain = dns.name.root
-        self.nameservers = []
+        self._nameservers = []
         self.nameserver_ports = {}
         self.port = 53
         self.search = []
@@ -903,6 +986,7 @@ class BaseResolver:
 
         """
 
+        nameservers = []
         if isinstance(f, str):
             try:
                 cm: contextlib.AbstractContextManager = open(f)
@@ -922,7 +1006,7 @@ class BaseResolver:
                     continue
 
                 if tokens[0] == "nameserver":
-                    self.nameservers.append(tokens[1])
+                    nameservers.append(tokens[1])
                 elif tokens[0] == "domain":
                     self.domain = dns.name.from_text(tokens[1])
                     # domain and search are exclusive
@@ -950,8 +1034,11 @@ class BaseResolver:
                                 self.ndots = int(opt.split(":")[1])
                             except (ValueError, IndexError):
                                 pass
-        if len(self.nameservers) == 0:
+        if len(nameservers) == 0:
             raise NoResolverConfiguration("no nameservers")
+        # Assigning directly instead of appending means we invoke the
+        # setter logic, with additonal checking and enrichment.
+        self.nameservers = nameservers
 
     def read_registry(self) -> None:
         """Extract resolver configuration from the Windows registry."""
@@ -1086,34 +1173,64 @@ class BaseResolver:
 
         self.flags = flags
 
-    @property
-    def nameservers(self) -> List[str]:
-        return self._nameservers
-
-    @nameservers.setter
-    def nameservers(self, nameservers: List[str]) -> None:
-        """
-        *nameservers*, a ``list`` of nameservers.
-
-        Raises ``ValueError`` if *nameservers* is anything other than a
-        ``list``.
-        """
+    @classmethod
+    def _enrich_nameservers(
+        cls,
+        nameservers: Sequence[Union[str, dns.nameserver.Nameserver]],
+        nameserver_ports: Dict[str, int],
+        default_port: int,
+    ) -> List[dns.nameserver.Nameserver]:
+        enriched_nameservers = []
         if isinstance(nameservers, list):
             for nameserver in nameservers:
-                if not dns.inet.is_address(nameserver):
+                enriched_nameserver: dns.nameserver.Nameserver
+                if isinstance(nameserver, dns.nameserver.Nameserver):
+                    enriched_nameserver = nameserver
+                elif dns.inet.is_address(nameserver):
+                    port = nameserver_ports.get(nameserver, default_port)
+                    enriched_nameserver = dns.nameserver.Do53Nameserver(
+                        nameserver, port
+                    )
+                else:
                     try:
                         if urlparse(nameserver).scheme != "https":
                             raise NotImplementedError
                     except Exception:
                         raise ValueError(
-                            f"nameserver {nameserver} is not an "
-                            "IP address or valid https URL"
+                            f"nameserver {nameserver} is not a "
+                            "dns.nameserver.Nameserver instance or text form, "
+                            "IP address, nor a valid https URL"
                         )
-            self._nameservers = nameservers
+                    enriched_nameserver = dns.nameserver.DoHNameserver(nameserver)
+                enriched_nameservers.append(enriched_nameserver)
         else:
             raise ValueError(
-                "nameservers must be a list (not a {})".format(type(nameservers))
+                "nameservers must be a list or tuple (not a {})".format(
+                    type(nameservers)
+                )
             )
+        return enriched_nameservers
+
+    @property
+    def nameservers(
+        self,
+    ) -> Sequence[Union[str, dns.nameserver.Nameserver]]:
+        return self._nameservers
+
+    @nameservers.setter
+    def nameservers(
+        self, nameservers: Sequence[Union[str, dns.nameserver.Nameserver]]
+    ) -> None:
+        """
+        *nameservers*, a ``list`` of nameservers, where a nameserver is either
+        a string interpretable as a nameserver, or a ``dns.nameserver.Nameserver``
+        instance.
+
+        Raises ``ValueError`` if *nameservers* is not a list of nameservers.
+        """
+        # We just call _enrich_nameservers() for checking
+        self._enrich_nameservers(nameservers, self.nameserver_ports, self.port)
+        self._nameservers = nameservers
 
 
 class Resolver(BaseResolver):
@@ -1198,33 +1315,18 @@ class Resolver(BaseResolver):
             assert request is not None  # needed for type checking
             done = False
             while not done:
-                (nameserver, port, tcp, backoff) = resolution.next_nameserver()
+                (nameserver, tcp, backoff) = resolution.next_nameserver()
                 if backoff:
                     time.sleep(backoff)
                 timeout = self._compute_timeout(start, lifetime, resolution.errors)
                 try:
-                    if dns.inet.is_address(nameserver):
-                        if tcp:
-                            response = dns.query.tcp(
-                                request,
-                                nameserver,
-                                timeout=timeout,
-                                port=port,
-                                source=source,
-                                source_port=source_port,
-                            )
-                        else:
-                            response = dns.query.udp(
-                                request,
-                                nameserver,
-                                timeout=timeout,
-                                port=port,
-                                source=source,
-                                source_port=source_port,
-                                raise_on_truncation=True,
-                            )
-                    else:
-                        response = dns.query.https(request, nameserver, timeout=timeout)
+                    response = nameserver.query(
+                        request,
+                        timeout=timeout,
+                        source=source,
+                        source_port=source_port,
+                        max_size=tcp,
+                    )
                 except Exception as ex:
                     (_, done) = resolution.query_result(None, ex)
                     continue
@@ -1293,7 +1395,72 @@ class Resolver(BaseResolver):
         modified_kwargs["rdclass"] = dns.rdataclass.IN
         return self.resolve(
             dns.reversename.from_address(ipaddr), *args, **modified_kwargs
-        )  # type: ignore[arg-type]
+        )
+
+    def resolve_name(
+        self,
+        name: Union[dns.name.Name, str],
+        family: int = socket.AF_UNSPEC,
+        **kwargs: Any,
+    ) -> HostAnswers:
+        """Use a resolver to query for address records.
+
+        This utilizes the resolve() method to perform A and/or AAAA lookups on
+        the specified name.
+
+        *qname*, a ``dns.name.Name`` or ``str``, the name to resolve.
+
+        *family*, an ``int``, the address family.  If socket.AF_UNSPEC
+        (the default), both A and AAAA records will be retrieved.
+
+        All other arguments that can be passed to the resolve() function
+        except for rdtype and rdclass are also supported by this
+        function.
+        """
+        # We make a modified kwargs for type checking happiness, as otherwise
+        # we get a legit warning about possibly having rdtype and rdclass
+        # in the kwargs more than once.
+        modified_kwargs: Dict[str, Any] = {}
+        modified_kwargs.update(kwargs)
+        modified_kwargs.pop("rdtype", None)
+        modified_kwargs["rdclass"] = dns.rdataclass.IN
+
+        if family == socket.AF_INET:
+            v4 = self.resolve(name, dns.rdatatype.A, **modified_kwargs)
+            return HostAnswers.make(v4=v4)
+        elif family == socket.AF_INET6:
+            v6 = self.resolve(name, dns.rdatatype.AAAA, **modified_kwargs)
+            return HostAnswers.make(v6=v6)
+        elif family != socket.AF_UNSPEC:
+            raise NotImplementedError(f"unknown address family {family}")
+
+        raise_on_no_answer = modified_kwargs.pop("raise_on_no_answer", True)
+        lifetime = modified_kwargs.pop("lifetime", None)
+        start = time.time()
+        v6 = self.resolve(
+            name,
+            dns.rdatatype.AAAA,
+            raise_on_no_answer=False,
+            lifetime=self._compute_timeout(start, lifetime),
+            **modified_kwargs,
+        )
+        # Note that setting name ensures we query the same name
+        # for A as we did for AAAA.  (This is just in case search lists
+        # are active by default in the resolver configuration and
+        # we might be talking to a server that says NXDOMAIN when it
+        # wants to say NOERROR no data.
+        name = v6.qname
+        v4 = self.resolve(
+            name,
+            dns.rdatatype.A,
+            raise_on_no_answer=False,
+            lifetime=self._compute_timeout(start, lifetime),
+            **modified_kwargs,
+        )
+        answers = HostAnswers.make(v6=v6, v4=v4, add_empty=not raise_on_no_answer)
+        if not answers:
+            raise NoAnswer(response=v6.response)
+        return answers
 
     # pylint: disable=redefined-outer-name
 
@@ -1320,6 +1487,37 @@ class Resolver(BaseResolver):
 
     # pylint: enable=redefined-outer-name
 
+    def try_ddr(self, lifetime: float = 5.0) -> None:
+        """Try to update the resolver's nameservers using Discovery of Designated
+        Resolvers (DDR).  If successful, the resolver will subsequently use
+        DNS-over-HTTPS or DNS-over-TLS for future queries.
+
+        *lifetime*, a float, is the maximum time to spend attempting DDR.  The default
+        is 5 seconds.
+
+        If the SVCB query is successful and results in a non-empty list of nameservers,
+        then the resolver's nameservers are set to the returned servers in priority
+        order.
+
+        The current implementation does not use any address hints from the SVCB record,
+        nor does it resolve addresses for the SCVB target name, rather it assumes that
+        the bootstrap nameserver will always be one of the addresses and uses it.
+        A future revision to the code may offer fuller support.  The code verifies that
+        the bootstrap nameserver is in the Subject Alternative Name field of the
+        TLS certficate.
+        """
+        try:
+            expiration = time.time() + lifetime
+            answer = self.resolve(
+                dns._ddr._local_resolver_name, "SVCB", lifetime=lifetime
+            )
+            timeout = dns.query._remaining(expiration)
+            nameservers = dns._ddr._get_nameservers_sync(answer, timeout)
+            if len(nameservers) > 0:
+                self.nameservers = nameservers
+        except Exception:
+            pass
+
 
 #: The default resolver.
 default_resolver: Optional[Resolver] = None
@@ -1333,7 +1531,7 @@ def get_default_resolver() -> Resolver:
     return default_resolver
 
 
-def reset_default_resolver():
+def reset_default_resolver() -> None:
     """Re-initialize default resolver.
 
     Note that the resolver configuration (i.e. /etc/resolv.conf on UNIX
@@ -1355,7 +1553,6 @@ def resolve(
     lifetime: Optional[float] = None,
     search: Optional[bool] = None,
 ) -> Answer:  # pragma: no cover
-
     """Query nameservers to find the answer to the question.
 
     This is a convenience function that uses the default resolver
@@ -1421,6 +1618,18 @@ def resolve_address(ipaddr: str, *args: Any, **kwargs: Any) -> Answer:
     return get_default_resolver().resolve_address(ipaddr, *args, **kwargs)
 
 
+def resolve_name(
+    name: Union[dns.name.Name, str], family: int = socket.AF_UNSPEC, **kwargs: Any
+) -> HostAnswers:
+    """Use a resolver to query for address records.
+
+    See ``dns.resolver.Resolver.resolve_name`` for more information on the
+    parameters.
+    """
+
+    return get_default_resolver().resolve_name(name, family, **kwargs)
+
+
 def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
     """Determine the canonical name of *name*.
 
@@ -1429,6 +1638,16 @@ def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
     """
 
     return get_default_resolver().canonical_name(name)
+
+
+def try_ddr(lifetime: float = 5.0) -> None:
+    """Try to update the default resolver's nameservers using Discovery of Designated
+    Resolvers (DDR).  If successful, the resolver will subsequently use
+    DNS-over-HTTPS or DNS-over-TLS for future queries.
+
+    See :py:func:`dns.resolver.Resolver.try_ddr` for more information.
+    """
+    return get_default_resolver().try_ddr(lifetime)
 
 
 def zone_for_name(
@@ -1478,7 +1697,7 @@ def zone_for_name(
     while 1:
         try:
             rlifetime: Optional[float]
-            if expiration:
+            if expiration is not None:
                 rlifetime = expiration - time.time()
                 if rlifetime <= 0:
                     rlifetime = 0
@@ -1514,6 +1733,83 @@ def zone_for_name(
             name = name.parent()
         except dns.name.NoParent:
             raise NoRootSOA
+
+
+def make_resolver_at(
+    where: Union[dns.name.Name, str],
+    port: int = 53,
+    family: int = socket.AF_UNSPEC,
+    resolver: Optional[Resolver] = None,
+) -> Resolver:
+    """Make a stub resolver using the specified destination as the full resolver.
+
+    *where*, a ``dns.name.Name`` or ``str`` the domain name or IP address of the
+    full resolver.
+
+    *port*, an ``int``, the port to use.  If not specified, the default is 53.
+
+    *family*, an ``int``, the address family to use.  This parameter is used if
+    *where* is not an address.  The default is ``socket.AF_UNSPEC`` in which case
+    the first address returned by ``resolve_name()`` will be used, otherwise the
+    first address of the specified family will be used.
+
+    *resolver*, a ``dns.resolver.Resolver`` or ``None``, the resolver to use for
+    resolution of hostnames.  If not specified, the default resolver will be used.
+
+    Returns a ``dns.resolver.Resolver`` or raises an exception.
+    """
+    if resolver is None:
+        resolver = get_default_resolver()
+    nameservers: List[Union[str, dns.nameserver.Nameserver]] = []
+    if isinstance(where, str) and dns.inet.is_address(where):
+        nameservers.append(dns.nameserver.Do53Nameserver(where, port))
+    else:
+        for address in resolver.resolve_name(where, family).addresses():
+            nameservers.append(dns.nameserver.Do53Nameserver(address, port))
+    res = dns.resolver.Resolver(configure=False)
+    res.nameservers = nameservers
+    return res
+
+
+def resolve_at(
+    where: Union[dns.name.Name, str],
+    qname: Union[dns.name.Name, str],
+    rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
+    rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+    tcp: bool = False,
+    source: Optional[str] = None,
+    raise_on_no_answer: bool = True,
+    source_port: int = 0,
+    lifetime: Optional[float] = None,
+    search: Optional[bool] = None,
+    port: int = 53,
+    family: int = socket.AF_UNSPEC,
+    resolver: Optional[Resolver] = None,
+) -> Answer:
+    """Query nameservers to find the answer to the question.
+
+    This is a convenience function that calls ``dns.resolver.make_resolver_at()`` to
+    make a resolver, and then uses it to resolve the query.
+
+    See ``dns.resolver.Resolver.resolve`` for more information on the resolution
+    parameters, and ``dns.resolver.make_resolver_at`` for information about the resolver
+    parameters *where*, *port*, *family*, and *resolver*.
+
+    If making more than one query, it is more efficient to call
+    ``dns.resolver.make_resolver_at()`` and then use that resolver for the queries
+    instead of calling ``resolve_at()`` multiple times.
+    """
+    return make_resolver_at(where, port, family, resolver).resolve(
+        qname,
+        rdtype,
+        rdclass,
+        tcp,
+        source,
+        raise_on_no_answer,
+        source_port,
+        lifetime,
+        search,
+    )
 
 
 #
@@ -1559,8 +1855,7 @@ def _getaddrinfo(
         )
     if host is None and service is None:
         raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
-    v6addrs = []
-    v4addrs = []
+    addrs = []
     canonical_name = None  # pylint: disable=redefined-outer-name
     # Is host None or an address literal?  If so, use the system's
     # getaddrinfo().
@@ -1576,24 +1871,9 @@ def _getaddrinfo(
         pass
     # Something needs resolution!
     try:
-        if family == socket.AF_INET6 or family == socket.AF_UNSPEC:
-            v6 = _resolver.resolve(host, dns.rdatatype.AAAA, raise_on_no_answer=False)
-            # Note that setting host ensures we query the same name
-            # for A as we did for AAAA.  (This is just in case search lists
-            # are active by default in the resolver configuration and
-            # we might be talking to a server that says NXDOMAIN when it
-            # wants to say NOERROR no data.
-            host = v6.qname
-            canonical_name = v6.canonical_name.to_text(True)
-            if v6.rrset is not None:
-                for rdata in v6.rrset:
-                    v6addrs.append(rdata.address)
-        if family == socket.AF_INET or family == socket.AF_UNSPEC:
-            v4 = _resolver.resolve(host, dns.rdatatype.A, raise_on_no_answer=False)
-            canonical_name = v4.canonical_name.to_text(True)
-            if v4.rrset is not None:
-                for rdata in v4.rrset:
-                    v4addrs.append(rdata.address)
+        answers = _resolver.resolve_name(host, family)
+        addrs = answers.addresses_and_families()
+        canonical_name = answers.canonical_name().to_text(True)
     except dns.resolver.NXDOMAIN:
         raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
     except Exception:
@@ -1625,20 +1905,11 @@ def _getaddrinfo(
         cname = canonical_name
     else:
         cname = ""
-    if family == socket.AF_INET6 or family == socket.AF_UNSPEC:
-        for addr in v6addrs:
-            for socktype in socktypes:
-                for proto in _protocols_for_socktype[socktype]:
-                    tuples.append(
-                        (socket.AF_INET6, socktype, proto, cname, (addr, port, 0, 0))
-                    )
-    if family == socket.AF_INET or family == socket.AF_UNSPEC:
-        for addr in v4addrs:
-            for socktype in socktypes:
-                for proto in _protocols_for_socktype[socktype]:
-                    tuples.append(
-                        (socket.AF_INET, socktype, proto, cname, (addr, port))
-                    )
+    for addr, af in addrs:
+        for socktype in socktypes:
+            for proto in _protocols_for_socktype[socktype]:
+                addr_tuple = dns.inet.low_level_address_tuple((addr, port), af)
+                tuples.append((af, socktype, proto, cname, addr_tuple))
     if len(tuples) == 0:
         raise socket.gaierror(socket.EAI_NONAME, "Name or service not known")
     return tuples

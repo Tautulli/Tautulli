@@ -2,13 +2,12 @@
 
 """asyncio library query support"""
 
-import socket
 import asyncio
+import socket
 import sys
 
 import dns._asyncbackend
 import dns.exception
-
 
 _is_win32 = sys.platform == "win32"
 
@@ -38,14 +37,21 @@ class _DatagramProtocol:
 
     def connection_lost(self, exc):
         if self.recvfrom and not self.recvfrom.done():
-            self.recvfrom.set_exception(exc)
+            if exc is None:
+                # EOF we triggered.  Is there a better way to do this?
+                try:
+                    raise EOFError
+                except EOFError as e:
+                    self.recvfrom.set_exception(e)
+            else:
+                self.recvfrom.set_exception(exc)
 
     def close(self):
         self.transport.close()
 
 
 async def _maybe_wait_for(awaitable, timeout):
-    if timeout:
+    if timeout is not None:
         try:
             return await asyncio.wait_for(awaitable, timeout)
         except asyncio.TimeoutError:
@@ -85,6 +91,9 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
     async def getsockname(self):
         return self.transport.get_extra_info("sockname")
 
+    async def getpeercert(self, timeout):
+        raise NotImplementedError
+
 
 class StreamSocket(dns._asyncbackend.StreamSocket):
     def __init__(self, af, reader, writer):
@@ -101,16 +110,103 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
 
     async def close(self):
         self.writer.close()
-        try:
-            await self.writer.wait_closed()
-        except AttributeError:  # pragma: no cover
-            pass
 
     async def getpeername(self):
         return self.writer.get_extra_info("peername")
 
     async def getsockname(self):
         return self.writer.get_extra_info("sockname")
+
+    async def getpeercert(self, timeout):
+        return self.writer.get_extra_info("peercert")
+
+
+try:
+    import anyio
+    import httpcore
+    import httpcore._backends.anyio
+    import httpx
+
+    _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
+    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream
+
+    from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
+
+    class _NetworkBackend(_CoreAsyncNetworkBackend):
+        def __init__(self, resolver, local_port, bootstrap_address, family):
+            super().__init__()
+            self._local_port = local_port
+            self._resolver = resolver
+            self._bootstrap_address = bootstrap_address
+            self._family = family
+            if local_port != 0:
+                raise NotImplementedError(
+                    "the asyncio transport for HTTPX cannot set the local port"
+                )
+
+        async def connect_tcp(
+            self, host, port, timeout, local_address, socket_options=None
+        ):  # pylint: disable=signature-differs
+            addresses = []
+            _, expiration = _compute_times(timeout)
+            if dns.inet.is_address(host):
+                addresses.append(host)
+            elif self._bootstrap_address is not None:
+                addresses.append(self._bootstrap_address)
+            else:
+                timeout = _remaining(expiration)
+                family = self._family
+                if local_address:
+                    family = dns.inet.af_for_address(local_address)
+                answers = await self._resolver.resolve_name(
+                    host, family=family, lifetime=timeout
+                )
+                addresses = answers.addresses()
+            for address in addresses:
+                try:
+                    attempt_expiration = _expiration_for_this_attempt(2.0, expiration)
+                    timeout = _remaining(attempt_expiration)
+                    with anyio.fail_after(timeout):
+                        stream = await anyio.connect_tcp(
+                            remote_host=address,
+                            remote_port=port,
+                            local_host=local_address,
+                        )
+                    return _CoreAnyIOStream(stream)
+                except Exception:
+                    pass
+            raise httpcore.ConnectError
+
+        async def connect_unix_socket(
+            self, path, timeout, socket_options=None
+        ):  # pylint: disable=signature-differs
+            raise NotImplementedError
+
+        async def sleep(self, seconds):  # pylint: disable=signature-differs
+            await anyio.sleep(seconds)
+
+    class _HTTPTransport(httpx.AsyncHTTPTransport):
+        def __init__(
+            self,
+            *args,
+            local_port=0,
+            bootstrap_address=None,
+            resolver=None,
+            family=socket.AF_UNSPEC,
+            **kwargs,
+        ):
+            if resolver is None:
+                # pylint: disable=import-outside-toplevel,redefined-outer-name
+                import dns.asyncresolver
+
+                resolver = dns.asyncresolver.Resolver()
+            super().__init__(*args, **kwargs)
+            self._pool._network_backend = _NetworkBackend(
+                resolver, local_port, bootstrap_address, family
+            )
+
+except ImportError:
+    _HTTPTransport = dns._asyncbackend.NullTransport  # type: ignore
 
 
 class Backend(dns._asyncbackend.Backend):
@@ -171,3 +267,9 @@ class Backend(dns._asyncbackend.Backend):
 
     def datagram_connection_required(self):
         return _is_win32
+
+    def get_transport_class(self):
+        return _HTTPTransport
+
+    async def wait_for(self, awaitable, timeout):
+        return await _maybe_wait_for(awaitable, timeout)

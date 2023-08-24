@@ -17,17 +17,15 @@
 
 """DNS rdata."""
 
-from typing import Any, Dict, Optional, Tuple, Union
-
-from importlib import import_module
 import base64
 import binascii
-import io
 import inspect
+import io
 import itertools
 import random
+from importlib import import_module
+from typing import Any, Dict, Optional, Tuple, Union
 
-import dns.wire
 import dns.exception
 import dns.immutable
 import dns.ipv4
@@ -37,6 +35,7 @@ import dns.rdataclass
 import dns.rdatatype
 import dns.tokenizer
 import dns.ttl
+import dns.wire
 
 _chunksize = 32
 
@@ -358,7 +357,6 @@ class Rdata:
             or self.rdclass != other.rdclass
             or self.rdtype != other.rdtype
         ):
-
             return NotImplemented
         return self._cmp(other) < 0
 
@@ -881,16 +879,11 @@ def register_type(
     it applies to all classes.
     """
 
-    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-    existing_cls = get_rdata_class(rdclass, the_rdtype)
-    if existing_cls != GenericRdata or dns.rdatatype.is_metatype(the_rdtype):
-        raise RdatatypeExists(rdclass=rdclass, rdtype=the_rdtype)
-    try:
-        if dns.rdatatype.RdataType(the_rdtype).name != rdtype_text:
-            raise RdatatypeExists(rdclass=rdclass, rdtype=the_rdtype)
-    except ValueError:
-        pass
-    _rdata_classes[(rdclass, the_rdtype)] = getattr(
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    existing_cls = get_rdata_class(rdclass, rdtype)
+    if existing_cls != GenericRdata or dns.rdatatype.is_metatype(rdtype):
+        raise RdatatypeExists(rdclass=rdclass, rdtype=rdtype)
+    _rdata_classes[(rdclass, rdtype)] = getattr(
         implementation, rdtype_text.replace("-", "_")
     )
-    dns.rdatatype.register_type(the_rdtype, rdtype_text, is_singleton)
+    dns.rdatatype.register_type(rdtype, rdtype_text, is_singleton)

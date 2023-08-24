@@ -17,10 +17,9 @@
 
 """IPv6 helper functions."""
 
-from typing import List, Union
-
-import re
 import binascii
+import re
+from typing import List, Union
 
 import dns.exception
 import dns.ipv4

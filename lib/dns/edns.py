@@ -17,11 +17,10 @@
 
 """EDNS Options"""
 
-from typing import Any, Dict, Optional, Union
-
 import math
 import socket
 import struct
+from typing import Any, Dict, Optional, Union
 
 import dns.enum
 import dns.inet
@@ -380,7 +379,7 @@ class EDEOption(Option):  # lgtm[py/missing-equals]
     def from_wire_parser(
         cls, otype: Union[OptionType, str], parser: "dns.wire.Parser"
     ) -> Option:
-        the_code = EDECode.make(parser.get_uint16())
+        code = EDECode.make(parser.get_uint16())
         text = parser.get_remaining()
 
         if text:
@@ -390,7 +389,7 @@ class EDEOption(Option):  # lgtm[py/missing-equals]
         else:
             btext = None
 
-        return cls(the_code, btext)
+        return cls(code, btext)
 
 
 _type_to_class: Dict[OptionType, Any] = {
@@ -424,8 +423,8 @@ def option_from_wire_parser(
 
     Returns an instance of a subclass of ``dns.edns.Option``.
     """
-    the_otype = OptionType.make(otype)
-    cls = get_option_class(the_otype)
+    otype = OptionType.make(otype)
+    cls = get_option_class(otype)
     return cls.from_wire_parser(otype, parser)
 
 

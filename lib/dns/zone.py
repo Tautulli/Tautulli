@@ -17,30 +17,29 @@
 
 """DNS Zones."""
 
-from typing import Any, Dict, Iterator, Iterable, List, Optional, Set, Tuple, Union
-
 import contextlib
 import io
 import os
 import struct
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
 
 import dns.exception
+import dns.grange
 import dns.immutable
 import dns.name
 import dns.node
-import dns.rdataclass
-import dns.rdatatype
 import dns.rdata
+import dns.rdataclass
 import dns.rdataset
+import dns.rdatatype
 import dns.rdtypes.ANY.SOA
 import dns.rdtypes.ANY.ZONEMD
 import dns.rrset
 import dns.tokenizer
 import dns.transaction
 import dns.ttl
-import dns.grange
 import dns.zonefile
-from dns.zonetypes import DigestScheme, DigestHashAlgorithm, _digest_hashers
+from dns.zonetypes import DigestHashAlgorithm, DigestScheme, _digest_hashers
 
 
 class BadZone(dns.exception.DNSException):
@@ -321,11 +320,11 @@ class Zone(dns.transaction.TransactionManager):
         Returns a ``dns.rdataset.Rdataset``.
         """
 
-        the_name = self._validate_name(name)
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-        the_covers = dns.rdatatype.RdataType.make(covers)
-        node = self.find_node(the_name, create)
-        return node.find_rdataset(self.rdclass, the_rdtype, the_covers, create)
+        name = self._validate_name(name)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        covers = dns.rdatatype.RdataType.make(covers)
+        node = self.find_node(name, create)
+        return node.find_rdataset(self.rdclass, rdtype, covers, create)
 
     def get_rdataset(
         self,
@@ -404,14 +403,14 @@ class Zone(dns.transaction.TransactionManager):
         types were aggregated into a single RRSIG rdataset.
         """
 
-        the_name = self._validate_name(name)
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-        the_covers = dns.rdatatype.RdataType.make(covers)
-        node = self.get_node(the_name)
+        name = self._validate_name(name)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        covers = dns.rdatatype.RdataType.make(covers)
+        node = self.get_node(name)
         if node is not None:
-            node.delete_rdataset(self.rdclass, the_rdtype, the_covers)
+            node.delete_rdataset(self.rdclass, rdtype, covers)
             if len(node) == 0:
-                self.delete_node(the_name)
+                self.delete_node(name)
 
     def replace_rdataset(
         self, name: Union[dns.name.Name, str], replacement: dns.rdataset.Rdataset
@@ -484,10 +483,10 @@ class Zone(dns.transaction.TransactionManager):
         """
 
         vname = self._validate_name(name)
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-        the_covers = dns.rdatatype.RdataType.make(covers)
-        rdataset = self.nodes[vname].find_rdataset(self.rdclass, the_rdtype, the_covers)
-        rrset = dns.rrset.RRset(vname, self.rdclass, the_rdtype, the_covers)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        covers = dns.rdatatype.RdataType.make(covers)
+        rdataset = self.nodes[vname].find_rdataset(self.rdclass, rdtype, covers)
+        rrset = dns.rrset.RRset(vname, self.rdclass, rdtype, covers)
         rrset.update(rdataset)
         return rrset
 
@@ -565,7 +564,7 @@ class Zone(dns.transaction.TransactionManager):
 
         rdtype = dns.rdatatype.RdataType.make(rdtype)
         covers = dns.rdatatype.RdataType.make(covers)
-        for (name, node) in self.items():
+        for name, node in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or (
                     rds.rdtype == rdtype and rds.covers == covers
@@ -597,7 +596,7 @@ class Zone(dns.transaction.TransactionManager):
 
         rdtype = dns.rdatatype.RdataType.make(rdtype)
         covers = dns.rdatatype.RdataType.make(covers)
-        for (name, node) in self.items():
+        for name, node in self.items():
             for rds in node:
                 if rdtype == dns.rdatatype.ANY or (
                     rds.rdtype == rdtype and rds.covers == covers
@@ -795,7 +794,7 @@ class Zone(dns.transaction.TransactionManager):
             assert self.origin is not None
             origin_name = self.origin
         hasher = hashinfo()
-        for (name, node) in sorted(self.items()):
+        for name, node in sorted(self.items()):
             rrnamebuf = name.to_digestable(self.origin)
             for rdataset in sorted(node, key=lambda rds: (rds.rdtype, rds.covers)):
                 if name == origin_name and dns.rdatatype.ZONEMD in (
@@ -997,6 +996,9 @@ class Version:
             return None
         return node.get_rdataset(self.zone.rdclass, rdtype, covers)
 
+    def keys(self):
+        return self.nodes.keys()
+
     def items(self):
         return self.nodes.items()
 
@@ -1143,9 +1145,12 @@ class Transaction(dns.transaction.Transaction):
             self.version.origin = origin
 
     def _iterate_rdatasets(self):
-        for (name, node) in self.version.items():
+        for name, node in self.version.items():
             for rdataset in node:
                 yield (name, rdataset)
+
+    def _iterate_names(self):
+        return self.version.keys()
 
     def _get_node(self, name):
         return self.version.get_node(name)

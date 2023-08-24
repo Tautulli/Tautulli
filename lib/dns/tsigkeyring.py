@@ -17,9 +17,8 @@
 
 """A place to store TSIG keys."""
 
-from typing import Any, Dict
-
 import base64
+from typing import Any, Dict
 
 import dns.name
 import dns.tsig
@@ -33,7 +32,7 @@ def from_text(textring: Dict[str, Any]) -> Dict[dns.name.Name, dns.tsig.Key]:
     @rtype: dict"""
 
     keyring = {}
-    for (name, value) in textring.items():
+    for name, value in textring.items():
         kname = dns.name.from_text(name)
         if isinstance(value, str):
             keyring[kname] = dns.tsig.Key(kname, value).secret
@@ -55,7 +54,7 @@ def to_text(keyring: Dict[dns.name.Name, Any]) -> Dict[str, Any]:
     def b64encode(secret):
         return base64.encodebytes(secret).decode().rstrip()
 
-    for (name, key) in keyring.items():
+    for name, key in keyring.items():
         tname = name.to_text()
         if isinstance(key, bytes):
             textring[tname] = b64encode(key)

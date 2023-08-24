@@ -17,8 +17,8 @@
 
 import struct
 
-import dns.rdtypes.mxbase
 import dns.immutable
+import dns.rdtypes.mxbase
 
 
 @dns.immutable.immutable

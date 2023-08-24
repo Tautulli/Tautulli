@@ -274,8 +274,7 @@ class ConnectionManager:
             # One of the reason on why a socket could cause an error
             # is that the socket is already closed, ignore the
             # socket error if we try to close it at this point.
-            # This is equivalent to OSError in Py3
-            with suppress(socket.error):
+            with suppress(OSError):
                 conn.close()
 
     def _from_server_socket(self, server_socket):  # noqa: C901  # FIXME
@@ -308,7 +307,7 @@ class ConnectionManager:
                     wfile = mf(s, 'wb', io.DEFAULT_BUFFER_SIZE)
                     try:
                         wfile.write(''.join(buf).encode('ISO-8859-1'))
-                    except socket.error as ex:
+                    except OSError as ex:
                         if ex.args[0] not in errors.socket_errors_to_ignore:
                             raise
                     return
@@ -343,7 +342,7 @@ class ConnectionManager:
             # notice keyboard interrupts on Win32, which don't interrupt
             # accept() by default
             return
-        except socket.error as ex:
+        except OSError as ex:
             if self.server.stats['Enabled']:
                 self.server.stats['Socket Errors'] += 1
             if ex.args[0] in errors.socket_error_eintr:

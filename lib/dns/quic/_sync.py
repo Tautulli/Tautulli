@@ -1,8 +1,8 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
+import selectors
 import socket
 import ssl
-import selectors
 import struct
 import threading
 import time
@@ -10,13 +10,15 @@ import time
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
-import dns.inet
 
+import dns.exception
+import dns.inet
 from dns.quic._common import (
-    BaseQuicStream,
+    QUIC_MAX_DATAGRAM,
     BaseQuicConnection,
     BaseQuicManager,
-    QUIC_MAX_DATAGRAM,
+    BaseQuicStream,
+    UnexpectedEOF,
 )
 
 # Avoid circularity with dns.query
@@ -33,14 +35,15 @@ class SyncQuicStream(BaseQuicStream):
         self._lock = threading.Lock()
 
     def wait_for(self, amount, expiration):
-        timeout = self._timeout_from_expiration(expiration)
         while True:
+            timeout = self._timeout_from_expiration(expiration)
             with self._lock:
                 if self._buffer.have(amount):
                     return
                 self._expecting = amount
             with self._wake_up:
-                self._wake_up.wait(timeout)
+                if not self._wake_up.wait(timeout):
+                    raise dns.exception.Timeout
             self._expecting = 0
 
     def receive(self, timeout=None):
@@ -114,24 +117,30 @@ class SyncQuicConnection(BaseQuicConnection):
                 return
 
     def _worker(self):
-        sel = _selector_class()
-        sel.register(self._socket, selectors.EVENT_READ, self._read)
-        sel.register(self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup)
-        while not self._done:
-            (expiration, interval) = self._get_timer_values(False)
-            items = sel.select(interval)
-            for (key, _) in items:
-                key.data()
+        try:
+            sel = _selector_class()
+            sel.register(self._socket, selectors.EVENT_READ, self._read)
+            sel.register(self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup)
+            while not self._done:
+                (expiration, interval) = self._get_timer_values(False)
+                items = sel.select(interval)
+                for key, _ in items:
+                    key.data()
+                with self._lock:
+                    self._handle_timer(expiration)
+                    datagrams = self._connection.datagrams_to_send(time.time())
+                for datagram, _ in datagrams:
+                    try:
+                        self._socket.send(datagram)
+                    except BlockingIOError:
+                        # we let QUIC handle any lossage
+                        pass
+                self._handle_events()
+        finally:
             with self._lock:
-                self._handle_timer(expiration)
-                datagrams = self._connection.datagrams_to_send(time.time())
-            for (datagram, _) in datagrams:
-                try:
-                    self._socket.send(datagram)
-                except BlockingIOError:
-                    # we let QUIC handle any lossage
-                    pass
-            self._handle_events()
+                self._done = True
+            # Ensure anyone waiting for this gets woken up.
+            self._handshake_complete.set()
 
     def _handle_events(self):
         while True:
@@ -163,9 +172,12 @@ class SyncQuicConnection(BaseQuicConnection):
         self._worker_thread = threading.Thread(target=self._worker)
         self._worker_thread.start()
 
-    def make_stream(self):
-        self._handshake_complete.wait()
+    def make_stream(self, timeout=None):
+        if not self._handshake_complete.wait(timeout):
+            raise dns.exception.Timeout
         with self._lock:
+            if self._done:
+                raise UnexpectedEOF
             stream_id = self._connection.get_next_available_stream_id(False)
             stream = SyncQuicStream(self, stream_id)
             self._streams[stream_id] = stream
@@ -187,8 +199,8 @@ class SyncQuicConnection(BaseQuicConnection):
 
 
 class SyncQuicManager(BaseQuicManager):
-    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED):
-        super().__init__(conf, verify_mode, SyncQuicConnection)
+    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None):
+        super().__init__(conf, verify_mode, SyncQuicConnection, server_name)
         self._lock = threading.Lock()
 
     def connect(self, address, port=853, source=None, source_port=0):
@@ -206,7 +218,7 @@ class SyncQuicManager(BaseQuicManager):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Copy the itertor into a list as exiting things will mutate the connections
+        # Copy the iterator into a list as exiting things will mutate the connections
         # table.
         connections = list(self._connections.values())
         for connection in connections:

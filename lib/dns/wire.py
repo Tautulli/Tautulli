@@ -1,9 +1,8 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Iterator, Optional, Tuple
-
 import contextlib
 import struct
+from typing import Iterator, Optional, Tuple
 
 import dns.exception
 import dns.name

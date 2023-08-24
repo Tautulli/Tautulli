@@ -55,17 +55,6 @@ _stdlib_to_openssl_verify = {
 }
 
 
-fails_under_py3 = pytest.mark.xfail(
-    reason='Fails under Python 3+',
-)
-
-
-fails_under_py3_in_pypy = pytest.mark.xfail(
-    IS_PYPY,
-    reason='Fails under PyPy3',
-)
-
-
 missing_ipv6 = pytest.mark.skipif(
     not _probe_ipv6_sock('::1'),
     reason=''
@@ -556,7 +545,6 @@ def test_ssl_env(  # noqa: C901  # FIXME
 
     # builtin ssl environment generation may use a loopback socket
     # ensure no ResourceWarning was raised during the test
-    # NOTE: python 2.7 does not emit ResourceWarning for ssl sockets
     if IS_PYPY:
         # NOTE: PyPy doesn't have ResourceWarning
         # Ref: https://doc.pypy.org/en/latest/cpython_differences.html

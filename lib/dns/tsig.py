@@ -23,9 +23,9 @@ import hmac
 import struct
 
 import dns.exception
-import dns.rdataclass
 import dns.name
 import dns.rcode
+import dns.rdataclass
 
 
 class BadTime(dns.exception.DNSException):
@@ -187,9 +187,7 @@ class HMACTSig:
         try:
             hashinfo = self._hashes[algorithm]
         except KeyError:
-            raise NotImplementedError(
-                f"TSIG algorithm {algorithm} " + "is not supported"
-            )
+            raise NotImplementedError(f"TSIG algorithm {algorithm} is not supported")
 
         # create the HMAC context
         if isinstance(hashinfo, tuple):

@@ -17,9 +17,8 @@
 
 """TXT-like base class."""
 
-from typing import Any, Dict, Iterable, Optional, Tuple, Union
-
 import struct
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 import dns.exception
 import dns.immutable
