@@ -363,7 +363,11 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
-                            'transient': None
+                            'providerTitle': None,
+                            'score': None,
+                            'sourceKey': None,
+                            'transient': None,
+                            'userID': None
                         }
                     }
                 },
@@ -759,7 +763,11 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
-                            'transient': None
+                            'providerTitle': None,
+                            'score': None,
+                            'sourceKey': None,
+                            'transient': None,
+                            'userID': None
                         }
                     }
                 },
