@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import warnings
 from calendar import timegm
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import TYPE_CHECKING, Any
 
 from . import api_jws
 from .exceptions import (
@@ -19,15 +19,18 @@ from .exceptions import (
 )
 from .warnings import RemovedInPyjwt3Warning
 
+if TYPE_CHECKING:
+    from .algorithms import AllowedPrivateKeys, AllowedPublicKeys
+
 
 class PyJWT:
-    def __init__(self, options=None):
+    def __init__(self, options: dict[str, Any] | None = None) -> None:
         if options is None:
             options = {}
-        self.options = {**self._get_default_options(), **options}
+        self.options: dict[str, Any] = {**self._get_default_options(), **options}
 
     @staticmethod
-    def _get_default_options() -> Dict[str, Union[bool, List[str]]]:
+    def _get_default_options() -> dict[str, bool | list[str]]:
         return {
             "verify_signature": True,
             "verify_exp": True,
@@ -40,16 +43,17 @@ class PyJWT:
 
     def encode(
         self,
-        payload: Dict[str, Any],
-        key: str,
-        algorithm: Optional[str] = "HS256",
-        headers: Optional[Dict[str, Any]] = None,
-        json_encoder: Optional[Type[json.JSONEncoder]] = None,
+        payload: dict[str, Any],
+        key: AllowedPrivateKeys | str | bytes,
+        algorithm: str | None = "HS256",
+        headers: dict[str, Any] | None = None,
+        json_encoder: type[json.JSONEncoder] | None = None,
+        sort_headers: bool = True,
     ) -> str:
-        # Check that we get a mapping
-        if not isinstance(payload, Mapping):
+        # Check that we get a dict
+        if not isinstance(payload, dict):
             raise TypeError(
-                "Expecting a mapping object, as JWT only supports "
+                "Expecting a dict object, as JWT only supports "
                 "JSON objects as payloads."
             )
 
@@ -60,30 +64,57 @@ class PyJWT:
             if isinstance(payload.get(time_claim), datetime):
                 payload[time_claim] = timegm(payload[time_claim].utctimetuple())
 
-        json_payload = json.dumps(
-            payload, separators=(",", ":"), cls=json_encoder
-        ).encode("utf-8")
+        json_payload = self._encode_payload(
+            payload,
+            headers=headers,
+            json_encoder=json_encoder,
+        )
 
-        return api_jws.encode(json_payload, key, algorithm, headers, json_encoder)
+        return api_jws.encode(
+            json_payload,
+            key,
+            algorithm,
+            headers,
+            json_encoder,
+            sort_headers=sort_headers,
+        )
+
+    def _encode_payload(
+        self,
+        payload: dict[str, Any],
+        headers: dict[str, Any] | None = None,
+        json_encoder: type[json.JSONEncoder] | None = None,
+    ) -> bytes:
+        """
+        Encode a given payload to the bytes to be signed.
+
+        This method is intended to be overridden by subclasses that need to
+        encode the payload in a different way, e.g. compress the payload.
+        """
+        return json.dumps(
+            payload,
+            separators=(",", ":"),
+            cls=json_encoder,
+        ).encode("utf-8")
 
     def decode_complete(
         self,
-        jwt: str,
-        key: str = "",
-        algorithms: Optional[List[str]] = None,
-        options: Optional[Dict[str, Any]] = None,
+        jwt: str | bytes,
+        key: AllowedPublicKeys | str | bytes = "",
+        algorithms: list[str] | None = None,
+        options: dict[str, Any] | None = None,
         # deprecated arg, remove in pyjwt3
-        verify: Optional[bool] = None,
+        verify: bool | None = None,
         # could be used as passthrough to api_jws, consider removal in pyjwt3
-        detached_payload: Optional[bytes] = None,
+        detached_payload: bytes | None = None,
         # passthrough arguments to _validate_claims
         # consider putting in options
-        audience: Optional[Union[str, Iterable[str]]] = None,
-        issuer: Optional[str] = None,
-        leeway: Union[int, float, timedelta] = 0,
+        audience: str | Iterable[str] | None = None,
+        issuer: str | None = None,
+        leeway: float | timedelta = 0,
         # kwargs
-        **kwargs,
-    ) -> Dict[str, Any]:
+        **kwargs: Any,
+    ) -> dict[str, Any]:
         if kwargs:
             warnings.warn(
                 "passing additional kwargs to decode_complete() is deprecated "
@@ -125,12 +156,7 @@ class PyJWT:
             detached_payload=detached_payload,
         )
 
-        try:
-            payload = json.loads(decoded["payload"])
-        except ValueError as e:
-            raise DecodeError(f"Invalid payload string: {e}")
-        if not isinstance(payload, dict):
-            raise DecodeError("Invalid payload string: must be a json object")
+        payload = self._decode_payload(decoded)
 
         merged_options = {**self.options, **options}
         self._validate_claims(
@@ -140,24 +166,40 @@ class PyJWT:
         decoded["payload"] = payload
         return decoded
 
+    def _decode_payload(self, decoded: dict[str, Any]) -> Any:
+        """
+        Decode the payload from a JWS dictionary (payload, signature, header).
+
+        This method is intended to be overridden by subclasses that need to
+        decode the payload in a different way, e.g. decompress compressed
+        payloads.
+        """
+        try:
+            payload = json.loads(decoded["payload"])
+        except ValueError as e:
+            raise DecodeError(f"Invalid payload string: {e}")
+        if not isinstance(payload, dict):
+            raise DecodeError("Invalid payload string: must be a json object")
+        return payload
+
     def decode(
         self,
-        jwt: str,
-        key: str = "",
-        algorithms: Optional[List[str]] = None,
-        options: Optional[Dict[str, Any]] = None,
+        jwt: str | bytes,
+        key: AllowedPublicKeys | str | bytes = "",
+        algorithms: list[str] | None = None,
+        options: dict[str, Any] | None = None,
         # deprecated arg, remove in pyjwt3
-        verify: Optional[bool] = None,
+        verify: bool | None = None,
         # could be used as passthrough to api_jws, consider removal in pyjwt3
-        detached_payload: Optional[bytes] = None,
+        detached_payload: bytes | None = None,
         # passthrough arguments to _validate_claims
         # consider putting in options
-        audience: Optional[Union[str, Iterable[str]]] = None,
-        issuer: Optional[str] = None,
-        leeway: Union[int, float, timedelta] = 0,
+        audience: str | Iterable[str] | None = None,
+        issuer: str | None = None,
+        leeway: float | timedelta = 0,
         # kwargs
-        **kwargs,
-    ) -> Dict[str, Any]:
+        **kwargs: Any,
+    ) -> Any:
         if kwargs:
             warnings.warn(
                 "passing additional kwargs to decode() is deprecated "
@@ -178,7 +220,14 @@ class PyJWT:
         )
         return decoded["payload"]
 
-    def _validate_claims(self, payload, options, audience=None, issuer=None, leeway=0):
+    def _validate_claims(
+        self,
+        payload: dict[str, Any],
+        options: dict[str, Any],
+        audience=None,
+        issuer=None,
+        leeway: float | timedelta = 0,
+    ) -> None:
         if isinstance(leeway, timedelta):
             leeway = leeway.total_seconds()
 
@@ -187,7 +236,7 @@ class PyJWT:
 
         self._validate_required_claims(payload, options)
 
-        now = timegm(datetime.now(tz=timezone.utc).utctimetuple())
+        now = datetime.now(tz=timezone.utc).timestamp()
 
         if "iat" in payload and options["verify_iat"]:
             self._validate_iat(payload, now, leeway)
@@ -202,23 +251,38 @@ class PyJWT:
             self._validate_iss(payload, issuer)
 
         if options["verify_aud"]:
-            self._validate_aud(payload, audience)
+            self._validate_aud(
+                payload, audience, strict=options.get("strict_aud", False)
+            )
 
-    def _validate_required_claims(self, payload, options):
+    def _validate_required_claims(
+        self,
+        payload: dict[str, Any],
+        options: dict[str, Any],
+    ) -> None:
         for claim in options["require"]:
             if payload.get(claim) is None:
                 raise MissingRequiredClaimError(claim)
 
-    def _validate_iat(self, payload, now, leeway):
-        iat = payload["iat"]
+    def _validate_iat(
+        self,
+        payload: dict[str, Any],
+        now: float,
+        leeway: float,
+    ) -> None:
         try:
-            int(iat)
+            iat = int(payload["iat"])
         except ValueError:
             raise InvalidIssuedAtError("Issued At claim (iat) must be an integer.")
         if iat > (now + leeway):
             raise ImmatureSignatureError("The token is not yet valid (iat)")
 
-    def _validate_nbf(self, payload, now, leeway):
+    def _validate_nbf(
+        self,
+        payload: dict[str, Any],
+        now: float,
+        leeway: float,
+    ) -> None:
         try:
             nbf = int(payload["nbf"])
         except ValueError:
@@ -227,7 +291,12 @@ class PyJWT:
         if nbf > (now + leeway):
             raise ImmatureSignatureError("The token is not yet valid (nbf)")
 
-    def _validate_exp(self, payload, now, leeway):
+    def _validate_exp(
+        self,
+        payload: dict[str, Any],
+        now: float,
+        leeway: float,
+    ) -> None:
         try:
             exp = int(payload["exp"])
         except ValueError:
@@ -236,7 +305,13 @@ class PyJWT:
         if exp <= (now - leeway):
             raise ExpiredSignatureError("Signature has expired")
 
-    def _validate_aud(self, payload, audience):
+    def _validate_aud(
+        self,
+        payload: dict[str, Any],
+        audience: str | Iterable[str] | None,
+        *,
+        strict: bool = False,
+    ) -> None:
         if audience is None:
             if "aud" not in payload or not payload["aud"]:
                 return
@@ -251,6 +326,22 @@ class PyJWT:
 
         audience_claims = payload["aud"]
 
+        # In strict mode, we forbid list matching: the supplied audience
+        # must be a string, and it must exactly match the audience claim.
+        if strict:
+            # Only a single audience is allowed in strict mode.
+            if not isinstance(audience, str):
+                raise InvalidAudienceError("Invalid audience (strict)")
+
+            # Only a single audience claim is allowed in strict mode.
+            if not isinstance(audience_claims, str):
+                raise InvalidAudienceError("Invalid claim format in token (strict)")
+
+            if audience != audience_claims:
+                raise InvalidAudienceError("Audience doesn't match (strict)")
+
+            return
+
         if isinstance(audience_claims, str):
             audience_claims = [audience_claims]
         if not isinstance(audience_claims, list):
@@ -262,9 +353,9 @@ class PyJWT:
             audience = [audience]
 
         if all(aud not in audience_claims for aud in audience):
-            raise InvalidAudienceError("Invalid audience")
+            raise InvalidAudienceError("Audience doesn't match")
 
-    def _validate_iss(self, payload, issuer):
+    def _validate_iss(self, payload: dict[str, Any], issuer: Any) -> None:
         if issuer is None:
             return
 

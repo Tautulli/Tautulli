@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import json
 import time
+from typing import Any
 
-from .algorithms import get_default_algorithms
-from .exceptions import InvalidKeyError, PyJWKError, PyJWKSetError
+from .algorithms import get_default_algorithms, has_crypto, requires_cryptography
+from .exceptions import InvalidKeyError, PyJWKError, PyJWKSetError, PyJWTError
+from .types import JWKDict
 
 
 class PyJWK:
-    def __init__(self, jwk_data, algorithm=None):
+    def __init__(self, jwk_data: JWKDict, algorithm: str | None = None) -> None:
         self._algorithms = get_default_algorithms()
         self._jwk_data = jwk_data
 
@@ -47,37 +49,40 @@ class PyJWK:
             else:
                 raise InvalidKeyError(f"Unsupported kty: {kty}")
 
+        if not has_crypto and algorithm in requires_cryptography:
+            raise PyJWKError(f"{algorithm} requires 'cryptography' to be installed.")
+
         self.Algorithm = self._algorithms.get(algorithm)
 
         if not self.Algorithm:
-            raise PyJWKError(f"Unable to find a algorithm for key: {self._jwk_data}")
+            raise PyJWKError(f"Unable to find an algorithm for key: {self._jwk_data}")
 
         self.key = self.Algorithm.from_jwk(self._jwk_data)
 
     @staticmethod
-    def from_dict(obj, algorithm=None):
+    def from_dict(obj: JWKDict, algorithm: str | None = None) -> "PyJWK":
         return PyJWK(obj, algorithm)
 
     @staticmethod
-    def from_json(data, algorithm=None):
+    def from_json(data: str, algorithm: None = None) -> "PyJWK":
         obj = json.loads(data)
         return PyJWK.from_dict(obj, algorithm)
 
     @property
-    def key_type(self):
+    def key_type(self) -> str | None:
         return self._jwk_data.get("kty", None)
 
     @property
-    def key_id(self):
+    def key_id(self) -> str | None:
         return self._jwk_data.get("kid", None)
 
     @property
-    def public_key_use(self):
+    def public_key_use(self) -> str | None:
         return self._jwk_data.get("use", None)
 
 
 class PyJWKSet:
-    def __init__(self, keys: list[dict]) -> None:
+    def __init__(self, keys: list[JWKDict]) -> None:
         self.keys = []
 
         if not keys:
@@ -89,24 +94,26 @@ class PyJWKSet:
         for key in keys:
             try:
                 self.keys.append(PyJWK(key))
-            except PyJWKError:
+            except PyJWTError:
                 # skip unusable keys
                 continue
 
         if len(self.keys) == 0:
-            raise PyJWKSetError("The JWK Set did not contain any usable keys")
+            raise PyJWKSetError(
+                "The JWK Set did not contain any usable keys. Perhaps 'cryptography' is not installed?"
+            )
 
     @staticmethod
-    def from_dict(obj):
+    def from_dict(obj: dict[str, Any]) -> "PyJWKSet":
         keys = obj.get("keys", [])
         return PyJWKSet(keys)
 
     @staticmethod
-    def from_json(data):
+    def from_json(data: str) -> "PyJWKSet":
         obj = json.loads(data)
         return PyJWKSet.from_dict(obj)
 
-    def __getitem__(self, kid):
+    def __getitem__(self, kid: str) -> "PyJWK":
         for key in self.keys:
             if key.key_id == kid:
                 return key
@@ -118,8 +125,8 @@ class PyJWTSetWithTimestamp:
         self.jwk_set = jwk_set
         self.timestamp = time.monotonic()
 
-    def get_jwk_set(self):
+    def get_jwk_set(self) -> PyJWKSet:
         return self.jwk_set
 
-    def get_timestamp(self):
+    def get_timestamp(self) -> float:
         return self.timestamp
