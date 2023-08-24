@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
+import logging
 import os
 import time
 import datetime
 import calendar
-import pytz_deprecation_shim as pds
+import warnings
 
 try:
     import zoneinfo  # pragma: no cover
@@ -12,35 +12,7 @@ except ImportError:
 
 from tzlocal import windows_tz
 
-
-class ZoneInfoNotFoundError(pds.UnknownTimeZoneError, zoneinfo.ZoneInfoNotFoundError):
-    """An exception derived from both pytz and zoneinfo
-
-    This exception will be trappable both by pytz expecting clients and
-    zoneinfo expecting clients.
-    """
-
-
-def get_system_offset():
-    """Get system's timezone offset using built-in library time.
-
-    For the Timezone constants (altzone, daylight, timezone, and tzname), the
-    value is determined by the timezone rules in effect at module load time or
-    the last time tzset() is called and may be incorrect for times in the past.
-
-    To keep compatibility with Windows, we're always importing time module here.
-    """
-
-    localtime = calendar.timegm(time.localtime())
-    gmtime = calendar.timegm(time.gmtime())
-    offset = gmtime - localtime
-    # We could get the localtime and gmtime on either side of a second switch
-    # so we check that the difference is less than one minute, because nobody
-    # has that small DST differences.
-    if abs(offset - time.altzone) < 60:
-        return -time.altzone  # pragma: no cover
-    else:
-        return -time.timezone  # pragma: no cover
+log = logging.getLogger("tzlocal")
 
 
 def get_tz_offset(tz):
@@ -48,19 +20,27 @@ def get_tz_offset(tz):
     return int(datetime.datetime.now(tz).utcoffset().total_seconds())
 
 
-def assert_tz_offset(tz):
+def assert_tz_offset(tz, error=True):
     """Assert that system's timezone offset equals to the timezone offset found.
 
     If they don't match, we probably have a misconfiguration, for example, an
-    incorrect timezone set in /etc/timezone file in systemd distributions."""
+    incorrect timezone set in /etc/timezone file in systemd distributions.
+
+    If error is True, this method will raise a ValueError, otherwise it will
+    emit a warning.
+    """
+
     tz_offset = get_tz_offset(tz)
-    system_offset = get_system_offset()
-    if tz_offset != system_offset:
+    system_offset = calendar.timegm(time.localtime()) - calendar.timegm(time.gmtime())
+    # No one has timezone offsets less than a minute, so this should be close enough:
+    if abs(tz_offset - system_offset) > 60:
         msg = (
             "Timezone offset does not match system offset: {} != {}. "
             "Please, check your config files."
         ).format(tz_offset, system_offset)
-        raise ValueError(msg)
+        if error:
+            raise ValueError(msg)
+        warnings.warn(msg)
 
 
 def _tz_name_from_env(tzenv=None):
@@ -69,6 +49,8 @@ def _tz_name_from_env(tzenv=None):
 
     if not tzenv:
         return None
+
+    log.debug(f"Found a TZ environment: {tzenv}")
 
     if tzenv[0] == ":":
         tzenv = tzenv[1:]
@@ -92,6 +74,9 @@ def _tz_name_from_env(tzenv=None):
             # Indeed
             return parts[-1]
 
+    log.debug("TZ does not contain a time zone name")
+    return None
+
 
 def _tz_from_env(tzenv=None):
     if tzenv is None:
@@ -112,17 +97,16 @@ def _tz_from_env(tzenv=None):
             # Nope, not a standard timezone name, just take the filename
             tzname = tzenv.split(os.sep)[-1]
         with open(tzenv, "rb") as tzfile:
-            zone = zoneinfo.ZoneInfo.from_file(tzfile, key=tzname)
-            return pds.wrap_zone(zone)
+            return zoneinfo.ZoneInfo.from_file(tzfile, key=tzname)
 
     # TZ must specify a zoneinfo zone.
     try:
-        tz = pds.timezone(tzenv)
+        tz = zoneinfo.ZoneInfo(tzenv)
         # That worked, so we return this:
         return tz
-    except pds.UnknownTimeZoneError:
+    except zoneinfo.ZoneInfoNotFoundError:
         # Nope, it's something like "PST4DST" etc, we can't handle that.
-        raise ZoneInfoNotFoundError(
+        raise zoneinfo.ZoneInfoNotFoundError(
             "tzlocal() does not support non-zoneinfo timezones like %s. \n"
-            "Please use a timezone in the form of Continent/City"
+            "Please use a timezone in the form of Continent/City" % tzenv
         ) from None
