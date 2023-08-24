@@ -1,22 +1,24 @@
 from __future__ import absolute_import
 
-from importlib import import_module
-from itertools import product
-
 from apscheduler.schedulers.base import BaseScheduler
 
-for version, pkgname in product(range(6, 1, -1), ("PySide", "PyQt")):
+try:
+    from PyQt5.QtCore import QObject, QTimer
+except (ImportError, RuntimeError):  # pragma: nocover
     try:
-        qtcore = import_module(pkgname + str(version) + ".QtCore")
+        from PyQt4.QtCore import QObject, QTimer
     except ImportError:
-        pass
-    else:
-        QTimer = qtcore.QTimer
-        break
-else:
-    raise ImportError(
-        "QtScheduler requires either PySide/PyQt (v6 to v2) installed"
-    )
+        try:
+            from PySide6.QtCore import QObject, QTimer  # noqa
+        except ImportError:
+            try:
+                from PySide2.QtCore import QObject, QTimer  # noqa
+            except ImportError:
+                try:
+                    from PySide.QtCore import QObject, QTimer  # noqa
+                except ImportError:
+                    raise ImportError('QtScheduler requires either PyQt5, PyQt4, PySide6, PySide2 '
+                                      'or PySide installed')
 
 
 class QtScheduler(BaseScheduler):

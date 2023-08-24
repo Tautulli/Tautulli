@@ -1,23 +1,16 @@
-import logging
 from datetime import datetime
+import pytz_deprecation_shim as pds
 
 try:
     import _winreg as winreg
 except ImportError:
     import winreg
 
-try:
-    import zoneinfo  # pragma: no cover
-except ImportError:
-    from backports import zoneinfo  # pragma: no cover
-
 from tzlocal.windows_tz import win_tz
 from tzlocal import utils
 
 _cache_tz = None
 _cache_tz_name = None
-
-log = logging.getLogger("tzlocal")
 
 
 def valuestodict(key):
@@ -55,7 +48,6 @@ def _get_localzone_name():
     if tzenv:
         return tzenv
 
-    log.debug("Looking up time zone info from registry")
     handle = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
 
     TZLOCALKEYNAME = r"SYSTEM\CurrentControlSet\Control\TimeZoneInformation"
@@ -82,13 +74,13 @@ def _get_localzone_name():
 
     # Return what we have.
     if timezone is None:
-        raise zoneinfo.ZoneInfoNotFoundError(tzkeyname)
+        raise utils.ZoneInfoNotFoundError(tzkeyname)
 
     if keyvalues.get("DynamicDaylightTimeDisabled", 0) == 1:
         # DST is disabled, so don't return the timezone name,
         # instead return Etc/GMT+offset
 
-        tz = zoneinfo.ZoneInfo(timezone)
+        tz = pds.timezone(timezone)
         has_dst, std_offset, dst_offset = _get_dst_info(tz)
         if not has_dst:
             # The DST is turned off in the windows configuration,
@@ -96,15 +88,13 @@ def _get_localzone_name():
             return timezone
 
         if std_offset is None:
-            raise zoneinfo.ZoneInfoNotFoundError(
-                f"{tzkeyname} claims to not have a non-DST time!?"
-            )
+            raise utils.ZoneInfoNotFoundError(
+                f"{tzkeyname} claims to not have a non-DST time!?")
 
         if std_offset % 3600:
             # I can't convert this to an hourly offset
-            raise zoneinfo.ZoneInfoNotFoundError(
-                f"tzlocal can't support disabling DST in the {timezone} zone."
-            )
+            raise utils.ZoneInfoNotFoundError(
+                f"tzlocal can't support disabling DST in the {timezone} zone.")
 
         # This has whole hours as offset, return it as Etc/GMT
         return f"Etc/GMT{-std_offset//3600:+.0f}"
@@ -126,13 +116,13 @@ def get_localzone():
 
     global _cache_tz
     if _cache_tz is None:
-        _cache_tz = zoneinfo.ZoneInfo(get_localzone_name())
+        _cache_tz = pds.timezone(get_localzone_name())
 
     if not utils._tz_name_from_env():
         # If the timezone does NOT come from a TZ environment variable,
         # verify that it's correct. If it's from the environment,
         # we accept it, this is so you can run tests with different timezones.
-        utils.assert_tz_offset(_cache_tz, error=False)
+        utils.assert_tz_offset(_cache_tz)
 
     return _cache_tz
 
@@ -142,6 +132,6 @@ def reload_localzone():
     global _cache_tz
     global _cache_tz_name
     _cache_tz_name = _get_localzone_name()
-    _cache_tz = zoneinfo.ZoneInfo(_cache_tz_name)
-    utils.assert_tz_offset(_cache_tz, error=False)
+    _cache_tz = pds.timezone(_cache_tz_name)
+    utils.assert_tz_offset(_cache_tz)
     return _cache_tz

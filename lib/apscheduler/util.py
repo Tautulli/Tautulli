@@ -6,7 +6,7 @@ from asyncio import iscoroutinefunction
 from datetime import date, datetime, time, timedelta, tzinfo
 from calendar import timegm
 from functools import partial
-from inspect import isbuiltin, isclass, isfunction, ismethod
+from inspect import isclass, ismethod
 import re
 import sys
 
@@ -214,15 +214,28 @@ def get_callable_name(func):
     :rtype: str
 
     """
-    if ismethod(func):
-        self = func.__self__
-        cls = self if isclass(self) else type(self)
-        return f"{cls.__qualname__}.{func.__name__}"
-    elif isclass(func) or isfunction(func) or isbuiltin(func):
+    # the easy case (on Python 3.3+)
+    if hasattr(func, '__qualname__'):
         return func.__qualname__
-    elif hasattr(func, '__call__') and callable(func.__call__):
+
+    # class methods, bound and unbound methods
+    f_self = getattr(func, '__self__', None) or getattr(func, 'im_self', None)
+    if f_self and hasattr(func, '__name__'):
+        f_class = f_self if isclass(f_self) else f_self.__class__
+    else:
+        f_class = getattr(func, 'im_class', None)
+
+    if f_class and hasattr(func, '__name__'):
+        return '%s.%s' % (f_class.__name__, func.__name__)
+
+    # class or class instance
+    if hasattr(func, '__call__'):
+        # class
+        if hasattr(func, '__name__'):
+            return func.__name__
+
         # instance of a class with a __call__ method
-        return type(func).__qualname__
+        return func.__class__.__name__
 
     raise TypeError('Unable to determine a name for %r -- maybe it is not a callable?' % func)
 
@@ -247,10 +260,16 @@ def obj_to_ref(obj):
         raise ValueError('Cannot create a reference to a nested function')
 
     if ismethod(obj):
-        module = obj.__self__.__module__
+        if hasattr(obj, 'im_self') and obj.im_self:
+            # bound method
+            module = obj.im_self.__module__
+        elif hasattr(obj, 'im_class') and obj.im_class:
+            # unbound method
+            module = obj.im_class.__module__
+        else:
+            module = obj.__module__
     else:
         module = obj.__module__
-
     return '%s:%s' % (module, name)
 
 
