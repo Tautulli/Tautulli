@@ -170,7 +170,7 @@ class PlayQueue(PlexObject):
         }
 
         if isinstance(items, list):
-            item_keys = ",".join([str(x.ratingKey) for x in items])
+            item_keys = ",".join(str(x.ratingKey) for x in items)
             uri_args = quote_plus(f"/library/metadata/{item_keys}")
             args["uri"] = f"library:///directory/{uri_args}"
             args["type"] = items[0].listType

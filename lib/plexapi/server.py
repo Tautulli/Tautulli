@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+import os
+from functools import cached_property
 from urllib.parse import urlencode
 from xml.etree import ElementTree
 
 import requests
-import os
-from plexapi import (BASE_HEADERS, CONFIG, TIMEOUT, X_PLEX_CONTAINER_SIZE, log,
-                     logfilter)
+
+from plexapi import BASE_HEADERS, CONFIG, TIMEOUT, log, logfilter
 from plexapi import utils
 from plexapi.alert import AlertListener
 from plexapi.base import PlexObject
@@ -17,7 +18,7 @@ from plexapi.media import Conversion, Optimized
 from plexapi.playlist import Playlist
 from plexapi.playqueue import PlayQueue
 from plexapi.settings import Settings
-from plexapi.utils import cached_property, deprecated
+from plexapi.utils import deprecated
 from requests.status_codes import _codes as codes
 
 # Need these imports to populate utils.PLEXOBJECTS
@@ -236,12 +237,13 @@ class PlexServer(PlexObject):
         q = self.query(f'/security/token?type={type}&scope={scope}')
         return q.attrib.get('token')
 
-    def switchUser(self, username, session=None, timeout=None):
+    def switchUser(self, user, session=None, timeout=None):
         """ Returns a new :class:`~plexapi.server.PlexServer` object logged in as the given username.
             Note: Only the admin account can switch to other users.
         
             Parameters:
-                username (str): Username, email or user id of the user to log in to the server.
+                user (:class:`~plexapi.myplex.MyPlexUser` or str): `MyPlexUser` object, username,
+                    email, or user id of the user to log in to the server.
                 session (requests.Session, optional): Use your own session object if you want to
                     cache the http responses from the server. This will default to the same
                     session as the admin account if no new session is provided.
@@ -260,7 +262,8 @@ class PlexServer(PlexObject):
                     userPlex = plex.switchUser("Username")
 
         """
-        user = self.myPlexAccount().user(username)
+        from plexapi.myplex import MyPlexUser
+        user = user if isinstance(user, MyPlexUser) else self.myPlexAccount().user(user)
         userToken = user.get_token(self.machineIdentifier)
         if session is None:
             session = self._session
@@ -470,6 +473,7 @@ class PlexServer(PlexObject):
                         sort="episode.originallyAvailableAt:desc",
                         filters={"episode.originallyAvailableAt>>": "4w", "genre": "comedy"}
                     )
+
         """
         return Collection.create(
             self, title, section, items=items, smart=smart, limit=limit,
@@ -535,6 +539,7 @@ class PlexServer(PlexObject):
                         section="Music",
                         m3ufilepath="/path/to/playlist.m3u"
                     )
+
         """
         return Playlist.create(
             self, title, section=section, items=items, smart=smart, limit=limit,
@@ -549,26 +554,28 @@ class PlexServer(PlexObject):
         """
         return PlayQueue.create(self, item, **kwargs)
 
-    def downloadDatabases(self, savepath=None, unpack=False):
+    def downloadDatabases(self, savepath=None, unpack=False, showstatus=False):
         """ Download databases.
 
             Parameters:
                 savepath (str): Defaults to current working dir.
                 unpack (bool): Unpack the zip file.
+                showstatus(bool): Display a progressbar.
         """
         url = self.url('/diagnostics/databases')
-        filepath = utils.download(url, self._token, None, savepath, self._session, unpack=unpack)
+        filepath = utils.download(url, self._token, None, savepath, self._session, unpack=unpack, showstatus=showstatus)
         return filepath
 
-    def downloadLogs(self, savepath=None, unpack=False):
+    def downloadLogs(self, savepath=None, unpack=False, showstatus=False):
         """ Download server logs.
 
             Parameters:
                 savepath (str): Defaults to current working dir.
                 unpack (bool): Unpack the zip file.
+                showstatus(bool): Display a progressbar.
         """
         url = self.url('/diagnostics/logs')
-        filepath = utils.download(url, self._token, None, savepath, self._session, unpack=unpack)
+        filepath = utils.download(url, self._token, None, savepath, self._session, unpack=unpack, showstatus=showstatus)
         return filepath
 
     def butlerTasks(self):
@@ -588,6 +595,7 @@ class PlexServer(PlexObject):
 
                     availableTasks = [task.name for task in plex.butlerTasks()]
                     print("Available butler tasks:", availableTasks)
+
         """
         validTasks = [task.name for task in self.butlerTasks()]
         if task not in validTasks:
@@ -630,7 +638,7 @@ class PlexServer(PlexObject):
             # figure out what method this is..
             return self.query(part, method=self._session.put)
 
-    def history(self, maxresults=9999999, mindate=None, ratingKey=None, accountID=None, librarySectionID=None):
+    def history(self, maxresults=None, mindate=None, ratingKey=None, accountID=None, librarySectionID=None):
         """ Returns a list of media items from watched history. If there are many results, they will
             be fetched from the server in batches of X_PLEX_CONTAINER_SIZE amounts. If you're only
             looking for the first <num> results, it would be wise to set the maxresults option to that
@@ -644,7 +652,6 @@ class PlexServer(PlexObject):
                 accountID (int/str) Request history for a specific account ID.
                 librarySectionID (int/str) Request history for a specific library section ID.
         """
-        results, subresults = [], '_init'
         args = {'sort': 'viewedAt:desc'}
         if ratingKey:
             args['metadataItemID'] = ratingKey
@@ -654,14 +661,9 @@ class PlexServer(PlexObject):
             args['librarySectionID'] = librarySectionID
         if mindate:
             args['viewedAt>'] = int(mindate.timestamp())
-        args['X-Plex-Container-Start'] = 0
-        args['X-Plex-Container-Size'] = min(X_PLEX_CONTAINER_SIZE, maxresults)
-        while subresults and maxresults > len(results):
-            key = f'/status/sessions/history/all{utils.joinArgs(args)}'
-            subresults = self.fetchItems(key)
-            results += subresults[:maxresults - len(results)]
-            args['X-Plex-Container-Start'] += args['X-Plex-Container-Size']
-        return results
+        
+        key = f'/status/sessions/history/all{utils.joinArgs(args)}'
+        return self.fetchItems(key, maxresults=maxresults)
 
     def playlists(self, playlistType=None, sectionId=None, title=None, sort=None, **kwargs):
         """ Returns a list of all :class:`~plexapi.playlist.Playlist` objects on the server.
@@ -793,6 +795,10 @@ class PlexServer(PlexObject):
             else:
                 results += hub.items
         return results
+
+    def continueWatching(self):
+        """ Return a list of all items in the Continue Watching hub. """
+        return self.fetchItems('/hubs/continueWatching/items')
 
     def sessions(self):
         """ Returns a list of all active session (currently playing) media objects. """

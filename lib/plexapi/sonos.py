@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
+
 from plexapi import CONFIG, X_PLEX_IDENTIFIER
 from plexapi.client import PlexClient
 from plexapi.exceptions import BadRequest

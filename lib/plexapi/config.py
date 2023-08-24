@@ -3,6 +3,8 @@ import os
 from collections import defaultdict
 from configparser import ConfigParser
 
+from plexapi import utils
+
 
 class PlexConfig(ConfigParser):
     """ PlexAPI configuration object. Settings are stored in an INI file within the
@@ -35,7 +37,7 @@ class PlexConfig(ConfigParser):
                 # Second: check the config file has attr
                 section, name = key.lower().split('.')
                 value = self.data.get(section, {}).get(name, default)
-            return cast(value) if cast else value
+            return utils.cast(cast, value) if cast else value
         except:  # noqa: E722
             return default
 

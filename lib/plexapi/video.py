@@ -3,19 +3,17 @@ import os
 from urllib.parse import quote_plus
 
 from plexapi import media, utils
-from plexapi.base import Playable, PlexPartialObject, PlexSession
+from plexapi.base import Playable, PlexPartialObject, PlexHistory, PlexSession
 from plexapi.exceptions import BadRequest
 from plexapi.mixins import (
     AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, PlayedUnplayedMixin, RatingMixin,
-    ArtUrlMixin, ArtMixin, BannerMixin, PosterUrlMixin, PosterMixin, ThemeUrlMixin, ThemeMixin,
-    AddedAtMixin, ContentRatingMixin, EditionTitleMixin, OriginallyAvailableMixin, OriginalTitleMixin, SortTitleMixin,
-    StudioMixin, SummaryMixin, TaglineMixin, TitleMixin,
-    CollectionMixin, CountryMixin, DirectorMixin, GenreMixin, LabelMixin, ProducerMixin, WriterMixin,
+    ArtUrlMixin, ArtMixin, PosterUrlMixin, PosterMixin, ThemeUrlMixin, ThemeMixin,
+    MovieEditMixins, ShowEditMixins, SeasonEditMixins, EpisodeEditMixins,
     WatchlistMixin
 )
 
 
-class Video(PlexPartialObject, PlayedUnplayedMixin, AddedAtMixin):
+class Video(PlexPartialObject, PlayedUnplayedMixin):
     """ Base class for all video objects including :class:`~plexapi.video.Movie`,
         :class:`~plexapi.video.Show`, :class:`~plexapi.video.Season`,
         :class:`~plexapi.video.Episode`, and :class:`~plexapi.video.Clip`.
@@ -186,20 +184,20 @@ class Video(PlexPartialObject, PlayedUnplayedMixin, AddedAtMixin):
 
                 .. code-block:: python
 
-                # Optimize for mobile using defaults
-                video.optimize(target="mobile")
+                    # Optimize for mobile using defaults
+                    video.optimize(target="mobile")
 
-                # Optimize for Android at 10 Mbps 1080p
-                from plexapi.sync import VIDEO_QUALITY_10_MBPS_1080p
-                video.optimize(deviceProfile="Android", videoQuality=sync.VIDEO_QUALITY_10_MBPS_1080p)
+                    # Optimize for Android at 10 Mbps 1080p
+                    from plexapi.sync import VIDEO_QUALITY_10_MBPS_1080p
+                    video.optimize(deviceProfile="Android", videoQuality=sync.VIDEO_QUALITY_10_MBPS_1080p)
 
-                # Optimize for iOS at original quality in library location
-                from plexapi.sync import VIDEO_QUALITY_ORIGINAL
-                locations = plex.library.section("Movies")._locations()
-                video.optimize(deviceProfile="iOS", videoQuality=VIDEO_QUALITY_ORIGINAL, locationID=locations[0])
+                    # Optimize for iOS at original quality in library location
+                    from plexapi.sync import VIDEO_QUALITY_ORIGINAL
+                    locations = plex.library.section("Movies")._locations()
+                    video.optimize(deviceProfile="iOS", videoQuality=VIDEO_QUALITY_ORIGINAL, locationID=locations[0])
 
-                # Optimize for tv the next 5 unwatched episodes
-                show.optimize(target="tv", limit=5, unwatched=True)
+                    # Optimize for tv the next 5 unwatched episodes
+                    show.optimize(target="tv", limit=5, unwatched=True)
 
         """
         from plexapi.library import Location
@@ -309,9 +307,7 @@ class Movie(
     Video, Playable,
     AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, RatingMixin,
     ArtMixin, PosterMixin, ThemeMixin,
-    ContentRatingMixin, EditionTitleMixin, OriginallyAvailableMixin, OriginalTitleMixin, SortTitleMixin, StudioMixin,
-    SummaryMixin, TaglineMixin, TitleMixin,
-    CollectionMixin, CountryMixin, DirectorMixin, GenreMixin, LabelMixin, ProducerMixin, WriterMixin,
+    MovieEditMixins,
     WatchlistMixin
 ):
     """ Represents a single Movie.
@@ -330,6 +326,7 @@ class Movie(
             duration (int): Duration of the movie in milliseconds.
             editionTitle (str): The edition title of the movie (e.g. Director's Cut, Extended Edition, etc.).
             enableCreditsMarkerGeneration (int): Setting that indicates if credits markers detection is enabled.
+                (-1 = Library default, 0 = Disabled)
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
@@ -441,15 +438,20 @@ class Movie(
         }
         return self.section().search(filters=filters)
 
+    def removeFromContinueWatching(self):
+        """ Remove the movie from continue watching. """
+        key = '/actions/removeFromContinueWatching'
+        params = {'ratingKey': self.ratingKey}
+        self._server.query(key, params=params, method=self._server._session.put)
+        return self
+
 
 @utils.registerPlexObject
 class Show(
     Video,
     AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, RatingMixin,
-    ArtMixin, BannerMixin, PosterMixin, ThemeMixin,
-    ContentRatingMixin, OriginallyAvailableMixin, OriginalTitleMixin, SortTitleMixin, StudioMixin,
-    SummaryMixin, TaglineMixin, TitleMixin,
-    CollectionMixin, GenreMixin, LabelMixin,
+    ArtMixin, PosterMixin, ThemeMixin,
+    ShowEditMixins,
     WatchlistMixin
 ):
     """ Represents a single Show (including all seasons and episodes).
@@ -467,12 +469,12 @@ class Show(
             autoDeletionItemPolicyWatchedLibrary (int): Setting that indicates if episodes are deleted
                 after being watched for the show (0 = Never, 1 = After a day, 7 = After a week,
                 100 = On next refresh).
-            banner (str): Key to banner artwork (/library/metadata/<ratingkey>/banner/<bannerid>).
             childCount (int): Number of seasons (including Specials) in the show.
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
             contentRating (str) Content rating (PG-13; NR; TV-G).
             duration (int): Typical duration of the show episodes in milliseconds.
             enableCreditsMarkerGeneration (int): Setting that indicates if credits markers detection is enabled.
+                (-1 = Library default, 0 = Disabled).
             episodeSort (int): Setting that indicates how episodes are sorted for the show
                 (-1 = Library default, 0 = Oldest first, 1 = Newest first).
             flattenSeasons (int): Setting that indicates if seasons are set to hidden for the show
@@ -494,7 +496,8 @@ class Show(
             roles (List<:class:`~plexapi.media.Role`>): List of role objects.
             seasonCount (int): Number of seasons (excluding Specials) in the show.
             showOrdering (str): Setting that indicates the episode ordering for the show
-                (None = Library default).
+                (None = Library default, tmdbAiring = The Movie Database (Aired),
+                aired = TheTVDB (Aired), dvd = TheTVDB (DVD), absolute = TheTVDB (Absolute)).
             similar (List<:class:`~plexapi.media.Similar`>): List of Similar objects.
             studio (str): Studio that created show (Di Bonaventura Pictures; 21 Laps Entertainment).
             subtitleLanguage (str): Setting that indicates the preferred subtitle language.
@@ -521,7 +524,6 @@ class Show(
             int, data.attrib.get('autoDeletionItemPolicyUnwatchedLibrary', '0'))
         self.autoDeletionItemPolicyWatchedLibrary = utils.cast(
             int, data.attrib.get('autoDeletionItemPolicyWatchedLibrary', '0'))
-        self.banner = data.attrib.get('banner')
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
         self.collections = self.findItems(data, media.Collection)
         self.contentRating = data.attrib.get('contentRating')
@@ -659,8 +661,7 @@ class Season(
     Video,
     AdvancedSettingsMixin, ExtrasMixin, RatingMixin,
     ArtMixin, PosterMixin, ThemeUrlMixin,
-    SummaryMixin, TitleMixin,
-    CollectionMixin, LabelMixin
+    SeasonEditMixins
 ):
     """ Represents a single Show Season (including all episodes).
 
@@ -740,10 +741,12 @@ class Season(
         """ Returns the season number. """
         return self.index
 
-    def episodes(self, **kwargs):
-        """ Returns a list of :class:`~plexapi.video.Episode` objects in the season. """
-        key = f'{self.key}/children'
-        return self.fetchItems(key, Episode, **kwargs)
+    def onDeck(self):
+        """ Returns season's On Deck :class:`~plexapi.video.Video` object or `None`.
+            Will only return a match if the show's On Deck episode is in this season.
+        """
+        data = self._server.query(self._details_key)
+        return next(iter(self.findItems(data, rtag='OnDeck')), None)
 
     def episode(self, title=None, episode=None):
         """ Returns the episode with the given title or number.
@@ -766,16 +769,14 @@ class Season(
             return self.fetchItem(key, Episode, parentIndex=self.index, index=index)
         raise BadRequest('Missing argument: title or episode is required')
 
+    def episodes(self, **kwargs):
+        """ Returns a list of :class:`~plexapi.video.Episode` objects in the season. """
+        key = f'{self.key}/children'
+        return self.fetchItems(key, Episode, **kwargs)
+
     def get(self, title=None, episode=None):
         """ Alias to :func:`~plexapi.video.Season.episode`. """
         return self.episode(title, episode)
-
-    def onDeck(self):
-        """ Returns season's On Deck :class:`~plexapi.video.Video` object or `None`.
-            Will only return a match if the show's On Deck episode is in this season.
-        """
-        data = self._server.query(self._details_key)
-        return next(iter(self.findItems(data, rtag='OnDeck')), None)
 
     def show(self):
         """ Return the season's :class:`~plexapi.video.Show`. """
@@ -813,8 +814,7 @@ class Episode(
     Video, Playable,
     ExtrasMixin, RatingMixin,
     ArtMixin, PosterMixin, ThemeUrlMixin,
-    ContentRatingMixin, OriginallyAvailableMixin, SortTitleMixin, SummaryMixin, TitleMixin,
-    CollectionMixin, DirectorMixin, LabelMixin, WriterMixin
+    EpisodeEditMixins
 ):
     """ Represents a single Shows Episode.
 
@@ -906,7 +906,7 @@ class Episode(
 
         # If seasons are hidden, parentKey and parentRatingKey are missing from the XML response.
         # https://forums.plex.tv/t/parentratingkey-not-in-episode-xml-when-seasons-are-hidden/300553
-        if self.skipParent and not self.parentRatingKey:
+        if self.skipParent and data.attrib.get('parentRatingKey') is None:
             # Parse the parentRatingKey from the parentThumb
             if self.parentThumb and self.parentThumb.startswith('/library/metadata/'):
                 self.parentRatingKey = utils.cast(int, self.parentThumb.split('/')[3])
@@ -992,6 +992,13 @@ class Episode(
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """
         return f'{self.grandparentTitle} - {self.parentTitle} - ({self.seasonEpisode}) {self.title}'
+
+    def removeFromContinueWatching(self):
+        """ Remove the movie from continue watching. """
+        key = '/actions/removeFromContinueWatching'
+        params = {'ratingKey': self.ratingKey}
+        self._server.query(key, params=params, method=self._server._session.put)
+        return self
 
 
 @utils.registerPlexObject
@@ -1105,3 +1112,42 @@ class ClipSession(PlexSession, Clip):
         """ Load attribute values from Plex XML response. """
         Clip._loadData(self, data)
         PlexSession._loadData(self, data)
+
+
+@utils.registerPlexObject
+class MovieHistory(PlexHistory, Movie):
+    """ Represents a single Movie history entry
+        loaded from :func:`~plexapi.server.PlexServer.history`.
+    """
+    _HISTORYTYPE = True
+
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        Movie._loadData(self, data)
+        PlexHistory._loadData(self, data)
+
+
+@utils.registerPlexObject
+class EpisodeHistory(PlexHistory, Episode):
+    """ Represents a single Episode history entry
+        loaded from :func:`~plexapi.server.PlexServer.history`.
+    """
+    _HISTORYTYPE = True
+
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        Episode._loadData(self, data)
+        PlexHistory._loadData(self, data)
+
+
+@utils.registerPlexObject
+class ClipHistory(PlexHistory, Clip):
+    """ Represents a single Clip history entry
+        loaded from :func:`~plexapi.server.PlexServer.history`.
+    """
+    _HISTORYTYPE = True
+
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        Clip._loadData(self, data)
+        PlexHistory._loadData(self, data)

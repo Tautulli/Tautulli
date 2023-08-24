@@ -433,7 +433,8 @@ class Playlist(
         """ Copy playlist to another user account.
         
             Parameters:
-                user (str): Username, email or user id of the user to copy the playlist to.
+                user (:class:`~plexapi.myplex.MyPlexUser` or str): `MyPlexUser` object, username,
+                    email, or user id of the user to copy the playlist to.
         """
         userServer = self._server.switchUser(user)
         return self.create(server=userServer, title=self.title, items=self.items())

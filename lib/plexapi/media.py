@@ -415,7 +415,11 @@ class SubtitleStream(MediaPartStream):
             forced (bool): True if this is a forced subtitle.
             format (str): The format of the subtitle stream (ex: srt).
             headerCompression (str): The header compression of the subtitle stream.
+            providerTitle (str): The provider title where the on-demand subtitle is downloaded from.
+            score (int): The match score of the on-demand subtitle.
+            sourceKey (str): The source key of the on-demand subtitle.
             transient (str): Unknown.
+            userID (int): The user id of the user that downloaded the on-demand subtitle.
     """
     TAG = 'Stream'
     STREAMTYPE = 3
@@ -427,7 +431,11 @@ class SubtitleStream(MediaPartStream):
         self.forced = utils.cast(bool, data.attrib.get('forced', '0'))
         self.format = data.attrib.get('format')
         self.headerCompression = data.attrib.get('headerCompression')
+        self.providerTitle = data.attrib.get('providerTitle')
+        self.score = utils.cast(int, data.attrib.get('score'))
+        self.sourceKey = data.attrib.get('sourceKey')
         self.transient = data.attrib.get('transient')
+        self.userID = utils.cast(int, data.attrib.get('userID'))
 
     def setDefault(self):
         """ Sets this subtitle stream as the default subtitle stream. """
@@ -955,7 +963,7 @@ class Review(PlexObject):
 
 
 class BaseResource(PlexObject):
-    """ Base class for all Art, Banner, Poster, and Theme objects.
+    """ Base class for all Art, Poster, and Theme objects.
 
         Attributes:
             TAG (str): 'Photo' or 'Track'
@@ -984,11 +992,6 @@ class BaseResource(PlexObject):
 
 class Art(BaseResource):
     """ Represents a single Art object. """
-    TAG = 'Photo'
-
-
-class Banner(BaseResource):
-    """ Represents a single Banner object. """
     TAG = 'Photo'
 
 

@@ -1,13 +1,18 @@
 # -*- coding: utf-8 -*-
 import re
 from datetime import datetime
-from urllib.parse import quote_plus, urlencode
+from functools import cached_property
+from urllib.parse import parse_qs, quote_plus, urlencode, urlparse
 
-from plexapi import X_PLEX_CONTAINER_SIZE, log, media, utils
+from plexapi import log, media, utils
 from plexapi.base import OPERATORS, PlexObject
 from plexapi.exceptions import BadRequest, NotFound
+from plexapi.mixins import (
+    MovieEditMixins, ShowEditMixins, SeasonEditMixins, EpisodeEditMixins,
+    ArtistEditMixins, AlbumEditMixins, TrackEditMixins, PhotoalbumEditMixins, PhotoEditMixins
+)
 from plexapi.settings import Setting
-from plexapi.utils import cached_property, deprecated
+from plexapi.utils import deprecated
 
 
 class Library(PlexObject):
@@ -352,7 +357,7 @@ class Library(PlexObject):
             part += urlencode(kwargs)
         return self._server.query(part, method=self._server._session.post)
 
-    def history(self, maxresults=9999999, mindate=None):
+    def history(self, maxresults=None, mindate=None):
         """ Get Play History for all library Sections for the owner.
             Parameters:
                 maxresults (int): Only return the specified number of results (optional).
@@ -421,40 +426,6 @@ class LibrarySection(PlexObject):
         self._totalDuration = None
         self._totalStorage = None
 
-    def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, **kwargs):
-        """ Load the specified key to find and build all items with the specified tag
-            and attrs. See :func:`~plexapi.base.PlexObject.fetchItem` for more details
-            on how this is used.
-
-            Parameters:
-                container_start (None, int): offset to get a subset of the data
-                container_size (None, int): How many items in data
-
-        """
-        url_kw = {}
-        if container_start is not None:
-            url_kw["X-Plex-Container-Start"] = container_start
-        if container_size is not None:
-            url_kw["X-Plex-Container-Size"] = container_size
-
-        if ekey is None:
-            raise BadRequest('ekey was not provided')
-        data = self._server.query(ekey, params=url_kw)
-
-        if '/all' in ekey:
-            # totalSize is only included in the xml response
-            # if container size is used.
-            total_size = data.attrib.get("totalSize") or data.attrib.get("size")
-            self._totalViewSize = utils.cast(int, total_size)
-
-        items = self.findItems(data, cls, ekey, **kwargs)
-
-        librarySectionID = utils.cast(int, data.attrib.get('librarySectionID'))
-        if librarySectionID:
-            for item in items:
-                item.librarySectionID = librarySectionID
-        return items
-
     @cached_property
     def totalSize(self):
         """ Returns the total number of items in the library for the default library type. """
@@ -473,6 +444,20 @@ class LibrarySection(PlexObject):
         if self._totalStorage is None:
             self._getTotalDurationStorage()
         return self._totalStorage
+
+    def __getattribute__(self, attr):
+        # Intercept to call EditFieldMixin and EditTagMixin methods
+        # based on the item type being batch multi-edited
+        value = super().__getattribute__(attr)
+        if attr.startswith('_'): return value
+        if callable(value) and 'Mixin' in value.__qualname__:
+            if not isinstance(self._edits, dict):
+                raise AttributeError("Must enable batchMultiEdit() to use this method")
+            elif not hasattr(self._edits['items'][0], attr):
+                raise AttributeError(
+                    f"Batch multi-editing '{self._edits['items'][0].__class__.__name__}' object has no attribute '{attr}'"
+                )
+        return value
 
     def _getTotalDurationStorage(self):
         """ Queries the Plex server for the total library duration and storage and caches the values. """
@@ -565,8 +550,9 @@ class LibrarySection(PlexObject):
 
                 .. code-block:: python
 
-                LibrarySection.addLocations('/path/1')
-                LibrarySection.addLocations(['/path/1', 'path/2', '/path/3'])
+                    LibrarySection.addLocations('/path/1')
+                    LibrarySection.addLocations(['/path/1', 'path/2', '/path/3'])
+
         """
         locations = self.locations
         if isinstance(location, str):
@@ -587,8 +573,9 @@ class LibrarySection(PlexObject):
 
                 .. code-block:: python
 
-                LibrarySection.removeLocations('/path/1')
-                LibrarySection.removeLocations(['/path/1', 'path/2', '/path/3'])
+                    LibrarySection.removeLocations('/path/1')
+                    LibrarySection.removeLocations(['/path/1', 'path/2', '/path/3'])
+
         """
         locations = self.locations
         if isinstance(location, str):
@@ -602,19 +589,24 @@ class LibrarySection(PlexObject):
             raise BadRequest('You are unable to remove all locations from a library.')
         return self.edit(location=locations)
 
-    def get(self, title):
-        """ Returns the media item with the specified title.
+    def get(self, title, **kwargs):
+        """ Returns the media item with the specified title and kwargs.
 
             Parameters:
                 title (str): Title of the item to return.
+                kwargs (dict): Additional search parameters.
+                    See :func:`~plexapi.library.LibrarySection.search` for more info.
 
             Raises:
                 :exc:`~plexapi.exceptions.NotFound`: The title is not found in the library.
         """
         try:
-            return self.search(title)[0]
+            return self.search(title, limit=1, **kwargs)[0]
         except IndexError:
-            raise NotFound(f"Unable to find item '{title}'") from None
+            msg = f"Unable to find item with title '{title}'"
+            if kwargs:
+                msg += f" and kwargs {kwargs}"
+            raise NotFound(msg) from None
 
     def getGuid(self, guid):
         """ Returns the media item with the specified external Plex, IMDB, TMDB, or TVDB ID.
@@ -779,6 +771,11 @@ class LibrarySection(PlexObject):
     def onDeck(self):
         """ Returns a list of media items on deck from this library section. """
         key = f'/library/sections/{self.key}/onDeck'
+        return self.fetchItems(key)
+
+    def continueWatching(self):
+        """ Return a list of media items in the library's Continue Watching hub. """
+        key = f'/hubs/sections/{self.key}/continueWatching/items'
         return self.fetchItems(key)
 
     def recentlyAdded(self, maxresults=50, libtype=None):
@@ -1261,7 +1258,7 @@ class LibrarySection(PlexObject):
         return self._server.search(query, mediatype, limit, sectionId=self.key)
 
     def search(self, title=None, sort=None, maxresults=None, libtype=None,
-               container_start=0, container_size=X_PLEX_CONTAINER_SIZE, limit=None, filters=None, **kwargs):
+               container_start=None, container_size=None, limit=None, filters=None, **kwargs):
         """ Search the library. The http requests will be batched in container_size. If you are only looking for the
             first <num> results, it would be wise to set the maxresults option to that amount so the search doesn't iterate
             over all results on the server.
@@ -1517,43 +1514,8 @@ class LibrarySection(PlexObject):
         """
         key, kwargs = self._buildSearchKey(
             title=title, sort=sort, libtype=libtype, limit=limit, filters=filters, returnKwargs=True, **kwargs)
-        return self._search(key, maxresults, container_start, container_size, **kwargs)
-
-    def _search(self, key, maxresults, container_start, container_size, **kwargs):
-        """ Perform the actual library search and return the results. """
-        results = []
-        subresults = []
-        offset = container_start
-
-        if maxresults is not None:
-            container_size = min(container_size, maxresults)
-
-        while True:
-            subresults = self.fetchItems(key, container_start=container_start,
-                                         container_size=container_size, **kwargs)
-            if not len(subresults):
-                if offset > self._totalViewSize:
-                    log.info("container_start is higher than the number of items in the library")
-
-            results.extend(subresults)
-
-            # self._totalViewSize is not used as a condition in the while loop as
-            # this require a additional http request.
-            # self._totalViewSize is updated from self.fetchItems
-            wanted_number_of_items = self._totalViewSize - offset
-            if maxresults is not None:
-                wanted_number_of_items = min(maxresults, wanted_number_of_items)
-                container_size = min(container_size, maxresults - len(results))
-
-            if wanted_number_of_items <= len(results):
-                break
-
-            container_start += container_size
-
-            if container_start > self._totalViewSize:
-                break
-
-        return results
+        return self.fetchItems(
+            key, container_start=container_start, container_size=container_size, maxresults=maxresults, **kwargs)
 
     def _locations(self):
         """ Returns a list of :class:`~plexapi.library.Location` objects
@@ -1630,7 +1592,7 @@ class LibrarySection(PlexObject):
 
         return myplex.sync(client=client, clientId=clientId, sync_item=sync_item)
 
-    def history(self, maxresults=9999999, mindate=None):
+    def history(self, maxresults=None, mindate=None):
         """ Get Play History for this library Section for the owner.
             Parameters:
                 maxresults (int): Only return the specified number of results (optional).
@@ -1720,8 +1682,101 @@ class LibrarySection(PlexObject):
             params['pageType'] = 'list'
         return self._server._buildWebURL(base=base, **params)
 
+    def _validateItems(self, items):
+        """ Validates the specified items are from this library and of the same type. """
+        if not items:
+            raise BadRequest('No items specified.')
+        
+        if not isinstance(items, list):
+            items = [items]
+        
+        itemType = items[0].type
+        for item in items:
+            if item.librarySectionID != self.key:
+                raise BadRequest(f'{item.title} is not from this library.')
+            elif item.type != itemType:
+                raise BadRequest(f'Cannot mix items of different type: {itemType} and {item.type}')
 
-class MovieSection(LibrarySection):
+        return items
+
+    def common(self, items):
+        """ Returns a :class:`~plexapi.library.Common` object for the specified items. """
+        params = {
+            'id': ','.join(str(item.ratingKey) for item in self._validateItems(items)),
+            'type': utils.searchType(items[0].type)
+        }
+        part = f'/library/sections/{self.key}/common{utils.joinArgs(params)}'
+        return self.fetchItem(part, cls=Common)
+
+    def _edit(self, items=None, **kwargs):
+        """ Actually edit multiple objects. """
+        if isinstance(self._edits, dict):
+            self._edits.update(kwargs)
+            return self
+
+        kwargs['id'] = ','.join(str(item.ratingKey) for item in self._validateItems(items))
+        if 'type' not in kwargs:
+            kwargs['type'] = utils.searchType(items[0].type)
+
+        part = f'/library/sections/{self.key}/all{utils.joinArgs(kwargs)}'
+        self._server.query(part, method=self._server._session.put)
+        return self
+
+    def multiEdit(self, items, **kwargs):
+        """ Edit multiple objects at once.
+            Note: This is a low level method and you need to know all the field/tag keys.
+            See :class:`~plexapi.LibrarySection.batchMultiEdits` instead.
+
+            Parameters:
+                items (List): List of :class:`~plexapi.audio.Audio`, :class:`~plexapi.video.Video`,
+                    :class:`~plexapi.photo.Photo`, or :class:`~plexapi.collection.Collection`
+                    objects to be edited.
+                kwargs (dict): Dict of settings to edit.
+        """
+        return self._edit(items, **kwargs)
+
+    def batchMultiEdits(self, items):
+        """ Enable batch multi-editing mode to save API calls.
+            Must call :func:`~plexapi.library.LibrarySection.saveMultiEdits` at the end to save all the edits.
+            See :class:`~plexapi.mixins.EditFieldMixin` and :class:`~plexapi.mixins.EditTagsMixin`
+            for individual field and tag editing methods.
+
+            Parameters:
+                items (List): List of :class:`~plexapi.audio.Audio`, :class:`~plexapi.video.Video`,
+                    :class:`~plexapi.photo.Photo`, or :class:`~plexapi.collection.Collection`
+                    objects to be edited.
+
+            Example:
+
+                .. code-block:: python
+
+                    movies = MovieSection.all()
+                    items = [movies[0], movies[3], movies[5]]
+
+                    # Batch multi-editing multiple fields and tags in a single API call
+                    MovieSection.batchMultiEdits(items)
+                    MovieSection.editTitle('A New Title').editSummary('A new summary').editTagline('A new tagline') \\
+                        .addCollection('New Collection').removeGenre('Action').addLabel('Favorite')
+                    MovieSection.saveMultiEdits()
+
+        """
+        self._edits = {'items': self._validateItems(items)}
+        return self
+
+    def saveMultiEdits(self):
+        """ Save all the batch multi-edits.
+            See :func:`~plexapi.library.LibrarySection.batchMultiEdits` for details.
+        """
+        if not isinstance(self._edits, dict):
+            raise BadRequest('Batch multi-editing mode not enabled. Must call `batchMultiEdits()` first.')
+
+        edits = self._edits
+        self._edits = None
+        self._edit(items=edits.pop('items'), **edits)
+        return self
+
+
+class MovieSection(LibrarySection, MovieEditMixins):
     """ Represents a :class:`~plexapi.library.LibrarySection` section containing movies.
 
         Attributes:
@@ -1781,7 +1836,7 @@ class MovieSection(LibrarySection):
         return super(MovieSection, self).sync(**kwargs)
 
 
-class ShowSection(LibrarySection):
+class ShowSection(LibrarySection, ShowEditMixins, SeasonEditMixins, EpisodeEditMixins):
     """ Represents a :class:`~plexapi.library.LibrarySection` section containing tv shows.
 
         Attributes:
@@ -1865,7 +1920,7 @@ class ShowSection(LibrarySection):
         return super(ShowSection, self).sync(**kwargs)
 
 
-class MusicSection(LibrarySection):
+class MusicSection(LibrarySection, ArtistEditMixins, AlbumEditMixins, TrackEditMixins):
     """ Represents a :class:`~plexapi.library.LibrarySection` section containing music artists.
 
         Attributes:
@@ -1957,7 +2012,7 @@ class MusicSection(LibrarySection):
         return super(MusicSection, self).sync(**kwargs)
 
 
-class PhotoSection(LibrarySection):
+class PhotoSection(LibrarySection, PhotoalbumEditMixins, PhotoEditMixins):
     """ Represents a :class:`~plexapi.library.LibrarySection` section containing photos.
 
         Attributes:
@@ -1979,13 +2034,13 @@ class PhotoSection(LibrarySection):
     def collections(self, **kwargs):
         raise NotImplementedError('Collections are not available for a Photo library.')
 
-    def searchAlbums(self, title, **kwargs):
+    def searchAlbums(self, **kwargs):
         """ Search for a photo album. See :func:`~plexapi.library.LibrarySection.search` for usage. """
-        return self.search(libtype='photoalbum', title=title, **kwargs)
+        return self.search(libtype='photoalbum', **kwargs)
 
-    def searchPhotos(self, title, **kwargs):
+    def searchPhotos(self, **kwargs):
         """ Search for a photo. See :func:`~plexapi.library.LibrarySection.search` for usage. """
-        return self.search(libtype='photo', title=title, **kwargs)
+        return self.search(libtype='photo', **kwargs)
 
     def recentlyAddedAlbums(self, maxresults=50):
         """ Returns a list of recently added photo albums from this library section.
@@ -2157,8 +2212,10 @@ class LibraryMediaTag(PlexObject):
             reason (str): The reason for the search result.
             reasonID (int): The reason ID for the search result.
             reasonTitle (str): The reason title for the search result.
+            score (float): The score for the search result.
             type (str): The type of search result (tag).
             tag (str): The title of the tag.
+            tagKey (str): The Plex Discover ratingKey (guid) for people.
             tagType (int): The type ID of the tag.
             tagValue (int): The value of the tag.
             thumb (str): The URL for the thumbnail of the tag (if available).
@@ -2179,8 +2236,10 @@ class LibraryMediaTag(PlexObject):
         self.reason = data.attrib.get('reason')
         self.reasonID = utils.cast(int, data.attrib.get('reasonID'))
         self.reasonTitle = data.attrib.get('reasonTitle')
+        self.score = utils.cast(float, data.attrib.get('score'))
         self.type = data.attrib.get('type')
         self.tag = data.attrib.get('tag')
+        self.tagKey = data.attrib.get('tagKey')
         self.tagType = utils.cast(int, data.attrib.get('tagType'))
         self.tagValue = utils.cast(int, data.attrib.get('tagValue'))
         self.thumb = data.attrib.get('thumb')
@@ -2220,16 +2279,6 @@ class Autotag(LibraryMediaTag):
             TAGTYPE (int): 207
     """
     TAGTYPE = 207
-
-
-@utils.registerPlexObject
-class Banner(LibraryMediaTag):
-    """ Represents a single Banner library media tag.
-
-        Attributes:
-            TAGTYPE (int): 311
-    """
-    TAGTYPE = 311
 
 
 @utils.registerPlexObject
@@ -2958,6 +3007,7 @@ class ManagedHub(PlexObject):
                     managedHub.updateVisibility(recommended=True, home=True, shared=False).reload()
                     # or using chained methods
                     managedHub.promoteRecommended().promoteHome().demoteShared().reload()
+
         """
         params = {
             'promotedToRecommended': int(self.promotedToRecommended),
@@ -3066,7 +3116,6 @@ class Path(PlexObject):
 
         Attributes:
             TAG (str): 'Path'
-
             home (bool): True if the path is the home directory
             key (str): API URL (/services/browse/<base64path>)
             network (bool): True if path is a network location
@@ -3098,7 +3147,6 @@ class File(PlexObject):
 
         Attributes:
             TAG (str): 'File'
-
             key (str): API URL (/services/browse/<base64path>)
             path (str): Full path to file
             title (str): File name
@@ -3109,3 +3157,105 @@ class File(PlexObject):
         self.key = data.attrib.get('key')
         self.path = data.attrib.get('path')
         self.title = data.attrib.get('title')
+
+
+@utils.registerPlexObject
+class Common(PlexObject):
+    """ Represents a Common element from a library. This object lists common fields between multiple objects.
+
+        Attributes:
+            TAG (str): 'Common'
+            collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
+            contentRating (str): Content rating of the items.
+            countries (List<:class:`~plexapi.media.Country`>): List of countries objects.
+            directors (List<:class:`~plexapi.media.Director`>): List of director objects.
+            editionTitle (str): Edition title of the items.
+            fields (List<:class:`~plexapi.media.Field`>): List of field objects.
+            genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
+            grandparentRatingKey (int): Grandparent rating key of the items.
+            grandparentTitle (str): Grandparent title of the items.
+            guid (str): Plex GUID of the items.
+            guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
+            index (int): Index of the items.
+            key (str): API URL (/library/metadata/<ratingkey>).
+            labels (List<:class:`~plexapi.media.Label`>): List of label objects.
+            mixedFields (List<str>): List of mixed fields.
+            moods (List<:class:`~plexapi.media.Mood`>): List of mood objects.
+            originallyAvailableAt (datetime): Datetime of the release date of the items.
+            parentRatingKey (int): Parent rating key of the items.
+            parentTitle (str): Parent title of the items.
+            producers (List<:class:`~plexapi.media.Producer`>): List of producer objects.
+            ratingKey (int): Rating key of the items.
+            ratings (List<:class:`~plexapi.media.Rating`>): List of rating objects.
+            roles (List<:class:`~plexapi.media.Role`>): List of role objects.
+            studio (str): Studio name of the items.
+            styles (List<:class:`~plexapi.media.Style`>): List of style objects.
+            summary (str): Summary of the items.
+            tagline (str): Tagline of the items.
+            tags (List<:class:`~plexapi.media.Tag`>): List of tag objects.
+            title (str): Title of the items.
+            titleSort (str): Title to use when sorting of the items.
+            type (str): Type of the media (common).
+            writers (List<:class:`~plexapi.media.Writer`>): List of writer objects.
+            year (int): Year of the items.
+    """
+    TAG = 'Common'
+
+    def _loadData(self, data):
+        self._data = data
+        self.collections = self.findItems(data, media.Collection)
+        self.contentRating = data.attrib.get('contentRating')
+        self.countries = self.findItems(data, media.Country)
+        self.directors = self.findItems(data, media.Director)
+        self.editionTitle = data.attrib.get('editionTitle')
+        self.fields = self.findItems(data, media.Field)
+        self.genres = self.findItems(data, media.Genre)
+        self.grandparentRatingKey = utils.cast(int, data.attrib.get('grandparentRatingKey'))
+        self.grandparentTitle = data.attrib.get('grandparentTitle')
+        self.guid = data.attrib.get('guid')
+        self.guids = self.findItems(data, media.Guid)
+        self.index = utils.cast(int, data.attrib.get('index'))
+        self.key = data.attrib.get('key')
+        self.labels = self.findItems(data, media.Label)
+        self.mixedFields = data.attrib.get('mixedFields').split(',')
+        self.moods = self.findItems(data, media.Mood)
+        self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'))
+        self.parentRatingKey = utils.cast(int, data.attrib.get('parentRatingKey'))
+        self.parentTitle = data.attrib.get('parentTitle')
+        self.producers = self.findItems(data, media.Producer)
+        self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
+        self.ratings = self.findItems(data, media.Rating)
+        self.roles = self.findItems(data, media.Role)
+        self.studio = data.attrib.get('studio')
+        self.styles = self.findItems(data, media.Style)
+        self.summary = data.attrib.get('summary')
+        self.tagline = data.attrib.get('tagline')
+        self.tags = self.findItems(data, media.Tag)
+        self.title = data.attrib.get('title')
+        self.titleSort = data.attrib.get('titleSort')
+        self.type = data.attrib.get('type')
+        self.writers = self.findItems(data, media.Writer)
+        self.year = utils.cast(int, data.attrib.get('year'))
+
+    def __repr__(self):
+        return '<%s:%s:%s>' % (
+            self.__class__.__name__,
+            self.commonType,
+            ','.join(str(key) for key in self.ratingKeys)
+        )
+
+    @property
+    def commonType(self):
+        """ Returns the media type of the common items. """
+        parsed_query = parse_qs(urlparse(self._initpath).query)
+        return utils.reverseSearchType(parsed_query['type'][0])
+
+    @property
+    def ratingKeys(self):
+        """ Returns a list of rating keys for the common items. """
+        parsed_query = parse_qs(urlparse(self._initpath).query)
+        return [int(value.strip()) for value in parsed_query['id'][0].split(',')]
+
+    def items(self):
+        """ Returns a list of the common items. """
+        return self._server.fetchItems(self.ratingKeys)

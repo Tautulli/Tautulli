@@ -8,8 +8,7 @@ from plexapi.exceptions import BadRequest
 from plexapi.mixins import (
     RatingMixin,
     ArtUrlMixin, ArtMixin, PosterUrlMixin, PosterMixin,
-    AddedAtMixin, SortTitleMixin, SummaryMixin, TitleMixin, PhotoCapturedTimeMixin,
-    TagMixin
+    PhotoalbumEditMixins, PhotoEditMixins
 )
 
 
@@ -18,7 +17,7 @@ class Photoalbum(
     PlexPartialObject,
     RatingMixin,
     ArtMixin, PosterMixin,
-    AddedAtMixin, SortTitleMixin, SummaryMixin, TitleMixin
+    PhotoalbumEditMixins
 ):
     """ Represents a single Photoalbum (collection of photos).
 
@@ -146,8 +145,7 @@ class Photo(
     PlexPartialObject, Playable,
     RatingMixin,
     ArtUrlMixin, PosterUrlMixin,
-    AddedAtMixin, PhotoCapturedTimeMixin, SortTitleMixin, SummaryMixin, TitleMixin,
-    TagMixin
+    PhotoEditMixins
 ):
     """ Represents a single Photo.
 
