@@ -17,11 +17,11 @@
 
 """DNS RRsets (an RRset is a named rdataset)"""
 
-from typing import Any, cast, Collection, Dict, Optional, Union
+from typing import Any, Collection, Dict, Optional, Union, cast
 
 import dns.name
-import dns.rdataset
 import dns.rdataclass
+import dns.rdataset
 import dns.renderer
 
 
@@ -214,9 +214,9 @@ def from_text_list(
 
     if isinstance(name, str):
         name = dns.name.from_text(name, None, idna_codec=idna_codec)
-    the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
-    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-    r = RRset(name, the_rdclass, the_rdtype)
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    r = RRset(name, rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:
         rd = dns.rdata.from_text(

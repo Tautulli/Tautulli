@@ -17,19 +17,17 @@
 
 """DNS nodes.  A node is a set of rdatasets."""
 
-from typing import Any, Dict, Optional
-
 import enum
 import io
+from typing import Any, Dict, Optional
 
 import dns.immutable
 import dns.name
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
-import dns.rrset
 import dns.renderer
-
+import dns.rrset
 
 _cname_types = {
     dns.rdatatype.CNAME,

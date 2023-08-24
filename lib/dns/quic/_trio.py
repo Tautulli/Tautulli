@@ -10,13 +10,15 @@ import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
 import trio
 
+import dns.exception
 import dns.inet
 from dns._asyncbackend import NullContext
 from dns.quic._common import (
-    BaseQuicStream,
+    QUIC_MAX_DATAGRAM,
     AsyncQuicConnection,
     AsyncQuicManager,
-    QUIC_MAX_DATAGRAM,
+    BaseQuicStream,
+    UnexpectedEOF,
 )
 
 
@@ -44,6 +46,7 @@ class TrioQuicStream(BaseQuicStream):
             (size,) = struct.unpack("!H", self._buffer.get(2))
             await self.wait_for(size)
             return self._buffer.get(size)
+        raise dns.exception.Timeout
 
     async def send(self, datagram, is_end=False):
         data = self._encapsulate(datagram)
@@ -80,20 +83,26 @@ class TrioQuicConnection(AsyncQuicConnection):
         self._worker_scope = None
 
     async def _worker(self):
-        await self._socket.connect(self._peer)
-        while not self._done:
-            (expiration, interval) = self._get_timer_values(False)
-            with trio.CancelScope(
-                deadline=trio.current_time() + interval
-            ) as self._worker_scope:
-                datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
-                self._connection.receive_datagram(datagram, self._peer[0], time.time())
-            self._worker_scope = None
-            self._handle_timer(expiration)
-            datagrams = self._connection.datagrams_to_send(time.time())
-            for (datagram, _) in datagrams:
-                await self._socket.send(datagram)
-            await self._handle_events()
+        try:
+            await self._socket.connect(self._peer)
+            while not self._done:
+                (expiration, interval) = self._get_timer_values(False)
+                with trio.CancelScope(
+                    deadline=trio.current_time() + interval
+                ) as self._worker_scope:
+                    datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
+                    self._connection.receive_datagram(
+                        datagram, self._peer[0], time.time()
+                    )
+                self._worker_scope = None
+                self._handle_timer(expiration)
+                datagrams = self._connection.datagrams_to_send(time.time())
+                for datagram, _ in datagrams:
+                    await self._socket.send(datagram)
+                await self._handle_events()
+        finally:
+            self._done = True
+            self._handshake_complete.set()
 
     async def _handle_events(self):
         count = 0
@@ -130,12 +139,20 @@ class TrioQuicConnection(AsyncQuicConnection):
             nursery.start_soon(self._worker)
         self._run_done.set()
 
-    async def make_stream(self):
-        await self._handshake_complete.wait()
-        stream_id = self._connection.get_next_available_stream_id(False)
-        stream = TrioQuicStream(self, stream_id)
-        self._streams[stream_id] = stream
-        return stream
+    async def make_stream(self, timeout=None):
+        if timeout is None:
+            context = NullContext(None)
+        else:
+            context = trio.move_on_after(timeout)
+        with context:
+            await self._handshake_complete.wait()
+            if self._done:
+                raise UnexpectedEOF
+            stream_id = self._connection.get_next_available_stream_id(False)
+            stream = TrioQuicStream(self, stream_id)
+            self._streams[stream_id] = stream
+            return stream
+        raise dns.exception.Timeout
 
     async def close(self):
         if not self._closed:
@@ -148,8 +165,10 @@ class TrioQuicConnection(AsyncQuicConnection):
 
 
 class TrioQuicManager(AsyncQuicManager):
-    def __init__(self, nursery, conf=None, verify_mode=ssl.CERT_REQUIRED):
-        super().__init__(conf, verify_mode, TrioQuicConnection)
+    def __init__(
+        self, nursery, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None
+    ):
+        super().__init__(conf, verify_mode, TrioQuicConnection, server_name)
         self._nursery = nursery
 
     def connect(self, address, port=853, source=None, source_port=0):
@@ -162,7 +181,7 @@ class TrioQuicManager(AsyncQuicManager):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        # Copy the itertor into a list as exiting things will mutate the connections
+        # Copy the iterator into a list as exiting things will mutate the connections
         # table.
         connections = list(self._connections.values())
         for connection in connections:

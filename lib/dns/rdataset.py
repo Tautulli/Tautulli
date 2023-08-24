@@ -17,18 +17,17 @@
 
 """DNS rdatasets (an rdataset is a set of rdatas of a given type and class)"""
 
-from typing import Any, cast, Collection, Dict, List, Optional, Union
-
 import io
 import random
 import struct
+from typing import Any, Collection, Dict, List, Optional, Union, cast
 
 import dns.exception
 import dns.immutable
 import dns.name
-import dns.rdatatype
-import dns.rdataclass
 import dns.rdata
+import dns.rdataclass
+import dns.rdatatype
 import dns.set
 import dns.ttl
 
@@ -471,9 +470,9 @@ def from_text_list(
     Returns a ``dns.rdataset.Rdataset`` object.
     """
 
-    the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
-    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-    r = Rdataset(the_rdclass, the_rdtype)
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    r = Rdataset(rdclass, rdtype)
     r.update_ttl(ttl)
     for t in text_rdatas:
         rd = dns.rdata.from_text(

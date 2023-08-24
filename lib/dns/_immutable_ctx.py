@@ -7,7 +7,6 @@
 import contextvars
 import inspect
 
-
 _in__init__ = contextvars.ContextVar("_immutable_in__init__", default=False)
 
 

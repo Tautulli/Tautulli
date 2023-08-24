@@ -124,7 +124,6 @@ class APL(dns.rdata.Rdata):
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):
-
         items = []
         while parser.remaining() > 0:
             header = parser.get_struct("!HBB")

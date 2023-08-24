@@ -3,13 +3,12 @@
 import socket
 import struct
 import time
-
-from typing import Any
+from typing import Any, Optional
 
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
-import dns.inet
 
+import dns.inet
 
 QUIC_MAX_DATAGRAM = 2048
 
@@ -135,12 +134,12 @@ class BaseQuicConnection:
 
 
 class AsyncQuicConnection(BaseQuicConnection):
-    async def make_stream(self) -> Any:
+    async def make_stream(self, timeout: Optional[float] = None) -> Any:
         pass
 
 
 class BaseQuicManager:
-    def __init__(self, conf, verify_mode, connection_factory):
+    def __init__(self, conf, verify_mode, connection_factory, server_name=None):
         self._connections = {}
         self._connection_factory = connection_factory
         if conf is None:
@@ -151,6 +150,7 @@ class BaseQuicManager:
             conf = aioquic.quic.configuration.QuicConfiguration(
                 alpn_protocols=["doq", "doq-i03"],
                 verify_mode=verify_mode,
+                server_name=server_name,
             )
             if verify_path is not None:
                 conf.load_verify_locations(verify_path)

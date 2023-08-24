@@ -17,30 +17,29 @@
 
 """DNS Messages"""
 
-from typing import Any, Dict, List, Optional, Tuple, Union
-
 import contextlib
 import io
 import time
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-import dns.wire
 import dns.edns
+import dns.entropy
 import dns.enum
 import dns.exception
 import dns.flags
 import dns.name
 import dns.opcode
-import dns.entropy
 import dns.rcode
 import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
-import dns.rrset
-import dns.renderer
-import dns.ttl
-import dns.tsig
 import dns.rdtypes.ANY.OPT
 import dns.rdtypes.ANY.TSIG
+import dns.renderer
+import dns.rrset
+import dns.tsig
+import dns.ttl
+import dns.wire
 
 
 class ShortHeader(dns.exception.FormError):
@@ -135,7 +134,7 @@ IndexKeyType = Tuple[
     Optional[dns.rdataclass.RdataClass],
 ]
 IndexType = Dict[IndexKeyType, dns.rrset.RRset]
-SectionType = Union[int, List[dns.rrset.RRset]]
+SectionType = Union[int, str, List[dns.rrset.RRset]]
 
 
 class Message:
@@ -231,7 +230,7 @@ class Message:
             s.write("payload %d\n" % self.payload)
         for opt in self.options:
             s.write("option %s\n" % opt.to_text())
-        for (name, which) in self._section_enum.__members__.items():
+        for name, which in self._section_enum.__members__.items():
             s.write(f";{name}\n")
             for rrset in self.section_from_number(which):
                 s.write(rrset.to_text(origin, relativize, **kw))
@@ -348,27 +347,29 @@ class Message:
         deleting: Optional[dns.rdataclass.RdataClass] = None,
         create: bool = False,
         force_unique: bool = False,
+        idna_codec: Optional[dns.name.IDNACodec] = None,
     ) -> dns.rrset.RRset:
         """Find the RRset with the given attributes in the specified section.
 
-        *section*, an ``int`` section number, or one of the section
-        attributes of this message.  This specifies the
+        *section*, an ``int`` section number, a ``str`` section name, or one of
+        the section attributes of this message.  This specifies the
         the section of the message to search.  For example::
 
             my_message.find_rrset(my_message.answer, name, rdclass, rdtype)
             my_message.find_rrset(dns.message.ANSWER, name, rdclass, rdtype)
+            my_message.find_rrset("ANSWER", name, rdclass, rdtype)
 
-        *name*, a ``dns.name.Name``, the name of the RRset.
+        *name*, a ``dns.name.Name`` or ``str``, the name of the RRset.
 
-        *rdclass*, an ``int``, the class of the RRset.
+        *rdclass*, an ``int`` or ``str``, the class of the RRset.
 
-        *rdtype*, an ``int``, the type of the RRset.
+        *rdtype*, an ``int`` or ``str``, the type of the RRset.
 
-        *covers*, an ``int`` or ``None``, the covers value of the RRset.
-        The default is ``None``.
+        *covers*, an ``int`` or ``str``, the covers value of the RRset.
+        The default is ``dns.rdatatype.NONE``.
 
-        *deleting*, an ``int`` or ``None``, the deleting value of the RRset.
-        The default is ``None``.
+        *deleting*, an ``int``, ``str``, or ``None``, the deleting value of the
+        RRset.  The default is ``None``.
 
         *create*, a ``bool``.  If ``True``, create the RRset if it is not found.
         The created RRset is appended to *section*.
@@ -378,6 +379,10 @@ class Message:
         already.  The default is ``False``.  This is useful when creating
         DDNS Update messages, as order matters for them.
 
+        *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+        encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+        is used.
+
         Raises ``KeyError`` if the RRset was not found and create was
         ``False``.
 
@@ -386,10 +391,19 @@ class Message:
 
         if isinstance(section, int):
             section_number = section
-            the_section = self.section_from_number(section_number)
+            section = self.section_from_number(section_number)
+        elif isinstance(section, str):
+            section_number = MessageSection.from_text(section)
+            section = self.section_from_number(section_number)
         else:
             section_number = self.section_number(section)
-            the_section = section
+        if isinstance(name, str):
+            name = dns.name.from_text(name, idna_codec=idna_codec)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
+        covers = dns.rdatatype.RdataType.make(covers)
+        if deleting is not None:
+            deleting = dns.rdataclass.RdataClass.make(deleting)
         key = (section_number, name, rdclass, rdtype, covers, deleting)
         if not force_unique:
             if self.index is not None:
@@ -397,13 +411,13 @@ class Message:
                 if rrset is not None:
                     return rrset
             else:
-                for rrset in the_section:
+                for rrset in section:
                     if rrset.full_match(name, rdclass, rdtype, covers, deleting):
                         return rrset
         if not create:
             raise KeyError
         rrset = dns.rrset.RRset(name, rdclass, rdtype, covers, deleting)
-        the_section.append(rrset)
+        section.append(rrset)
         if self.index is not None:
             self.index[key] = rrset
         return rrset
@@ -418,29 +432,31 @@ class Message:
         deleting: Optional[dns.rdataclass.RdataClass] = None,
         create: bool = False,
         force_unique: bool = False,
+        idna_codec: Optional[dns.name.IDNACodec] = None,
     ) -> Optional[dns.rrset.RRset]:
         """Get the RRset with the given attributes in the specified section.
 
         If the RRset is not found, None is returned.
 
-        *section*, an ``int`` section number, or one of the section
-        attributes of this message.  This specifies the
+        *section*, an ``int`` section number, a ``str`` section name, or one of
+        the section attributes of this message.  This specifies the
         the section of the message to search.  For example::
 
             my_message.get_rrset(my_message.answer, name, rdclass, rdtype)
             my_message.get_rrset(dns.message.ANSWER, name, rdclass, rdtype)
+            my_message.get_rrset("ANSWER", name, rdclass, rdtype)
 
-        *name*, a ``dns.name.Name``, the name of the RRset.
+        *name*, a ``dns.name.Name`` or ``str``, the name of the RRset.
 
-        *rdclass*, an ``int``, the class of the RRset.
+        *rdclass*, an ``int`` or ``str``, the class of the RRset.
 
-        *rdtype*, an ``int``, the type of the RRset.
+        *rdtype*, an ``int`` or ``str``, the type of the RRset.
 
-        *covers*, an ``int`` or ``None``, the covers value of the RRset.
-        The default is ``None``.
+        *covers*, an ``int`` or ``str``, the covers value of the RRset.
+        The default is ``dns.rdatatype.NONE``.
 
-        *deleting*, an ``int`` or ``None``, the deleting value of the RRset.
-        The default is ``None``.
+        *deleting*, an ``int``, ``str``, or ``None``, the deleting value of the
+        RRset.  The default is ``None``.
 
         *create*, a ``bool``.  If ``True``, create the RRset if it is not found.
         The created RRset is appended to *section*.
@@ -450,12 +466,24 @@ class Message:
         already.  The default is ``False``.  This is useful when creating
         DDNS Update messages, as order matters for them.
 
+        *idna_codec*, a ``dns.name.IDNACodec``, specifies the IDNA
+        encoder/decoder.  If ``None``, the default IDNA 2003 encoder/decoder
+        is used.
+
         Returns a ``dns.rrset.RRset object`` or ``None``.
         """
 
         try:
             rrset = self.find_rrset(
-                section, name, rdclass, rdtype, covers, deleting, create, force_unique
+                section,
+                name,
+                rdclass,
+                rdtype,
+                covers,
+                deleting,
+                create,
+                force_unique,
+                idna_codec,
             )
         except KeyError:
             rrset = None
@@ -1708,13 +1736,11 @@ def make_query(
 
     if isinstance(qname, str):
         qname = dns.name.from_text(qname, idna_codec=idna_codec)
-    the_rdtype = dns.rdatatype.RdataType.make(rdtype)
-    the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
+    rdtype = dns.rdatatype.RdataType.make(rdtype)
+    rdclass = dns.rdataclass.RdataClass.make(rdclass)
     m = QueryMessage(id=id)
     m.flags = dns.flags.Flag(flags)
-    m.find_rrset(
-        m.question, qname, the_rdclass, the_rdtype, create=True, force_unique=True
-    )
+    m.find_rrset(m.question, qname, rdclass, rdtype, create=True, force_unique=True)
     # only pass keywords on to use_edns if they have been set to a
     # non-None value.  Setting a field will turn EDNS on if it hasn't
     # been configured.

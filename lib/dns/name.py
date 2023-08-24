@@ -18,12 +18,10 @@
 """DNS Names.
 """
 
-from typing import Any, Dict, Iterable, Optional, Tuple, Union
-
 import copy
-import struct
-
 import encodings.idna  # type: ignore
+import struct
+from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 try:
     import idna  # type: ignore
@@ -33,10 +31,9 @@ except ImportError:  # pragma: no cover
     have_idna_2008 = False
 
 import dns.enum
-import dns.wire
 import dns.exception
 import dns.immutable
-
+import dns.wire
 
 CompressType = Dict["Name", int]
 

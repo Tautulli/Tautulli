@@ -34,6 +34,7 @@ class ParamKey(dns.enum.IntEnum):
     IPV4HINT = 4
     ECH = 5
     IPV6HINT = 6
+    DOHPATH = 7
 
     @classmethod
     def _maximum(cls):
