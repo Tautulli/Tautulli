@@ -69,11 +69,7 @@ class HelloController(helper.Controller):
 
 
 def _get_http_response(connection, method='GET'):
-    c = connection
-    kwargs = {'strict': c.strict} if hasattr(c, 'strict') else {}
-    # Python 3.2 removed the 'strict' feature, saying:
-    # "http.client now always assumes HTTP/1.x compliant servers."
-    return c.response_class(c.sock, method=method, **kwargs)
+    return connection.response_class(connection.sock, method=method)
 
 
 @pytest.fixture

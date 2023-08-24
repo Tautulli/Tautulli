@@ -10,6 +10,7 @@ SYS_PLATFORM: str
 IS_WINDOWS: bool
 IS_LINUX: bool
 IS_MACOS: bool
+IS_SOLARIS: bool
 PLATFORM_ARCH: str
 IS_PPC: bool
 

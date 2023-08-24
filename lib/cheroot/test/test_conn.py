@@ -1218,8 +1218,7 @@ def test_No_CRLF(test_client, invalid_terminator):
     # Initialize a persistent HTTP connection
     conn = test_client.get_connection()
 
-    # (b'%s' % b'') is not supported in Python 3.4, so just use bytes.join()
-    conn.send(b''.join((b'GET /hello HTTP/1.1', invalid_terminator)))
+    conn.send(b'GET /hello HTTP/1.1%s' % invalid_terminator)
     response = conn.response_class(conn.sock, method='GET')
     response.begin()
     actual_resp_body = response.read()

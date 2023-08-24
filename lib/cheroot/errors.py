@@ -77,9 +77,4 @@ Refs:
 * https://docs.microsoft.com/windows/win32/api/winsock/nf-winsock-shutdown
 """
 
-try:  # py3
-    acceptable_sock_shutdown_exceptions = (
-        BrokenPipeError, ConnectionResetError,
-    )
-except NameError:  # py2
-    acceptable_sock_shutdown_exceptions = ()
+acceptable_sock_shutdown_exceptions = (BrokenPipeError, ConnectionResetError)

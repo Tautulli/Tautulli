@@ -1572,6 +1572,9 @@ class HTTPServer:
     ``PEERCREDS``-provided IDs.
     """
 
+    reuse_port = False
+    """If True, set SO_REUSEPORT on the socket."""
+
     keep_alive_conn_limit = 10
     """Maximum number of waiting keep-alive connections that will be kept open.
 
@@ -1581,6 +1584,7 @@ class HTTPServer:
         self, bind_addr, gateway,
         minthreads=10, maxthreads=-1, server_name=None,
         peercreds_enabled=False, peercreds_resolve_enabled=False,
+        reuse_port=False,
     ):
         """Initialize HTTPServer instance.
 
@@ -1591,6 +1595,8 @@ class HTTPServer:
             maxthreads (int): maximum number of threads for HTTP thread pool
             server_name (str): web server name to be advertised via Server
                 HTTP header
+            reuse_port (bool): if True SO_REUSEPORT option would be set to
+                socket
         """
         self.bind_addr = bind_addr
         self.gateway = gateway
@@ -1606,6 +1612,7 @@ class HTTPServer:
         self.peercreds_resolve_enabled = (
             peercreds_resolve_enabled and peercreds_enabled
         )
+        self.reuse_port = reuse_port
         self.clear_stats()
 
     def clear_stats(self):
@@ -1880,6 +1887,7 @@ class HTTPServer:
             self.bind_addr,
             family, type, proto,
             self.nodelay, self.ssl_adapter,
+            self.reuse_port,
         )
         sock = self.socket = self.bind_socket(sock, self.bind_addr)
         self.bind_addr = self.resolve_real_bind_addr(sock)
@@ -1911,9 +1919,6 @@ class HTTPServer:
                     'remove() argument 1 must be encoded '
                     'string without null bytes, not unicode'
                     not in err_msg
-                    and 'embedded NUL character' not in err_msg  # py34
-                    and 'argument must be a '
-                    'string without NUL characters' not in err_msg  # pypy2
             ):
                 raise
         except ValueError as val_err:
@@ -1931,6 +1936,7 @@ class HTTPServer:
             bind_addr=bind_addr,
             family=socket.AF_UNIX, type=socket.SOCK_STREAM, proto=0,
             nodelay=self.nodelay, ssl_adapter=self.ssl_adapter,
+            reuse_port=self.reuse_port,
         )
 
         try:
@@ -1971,13 +1977,45 @@ class HTTPServer:
         return sock
 
     @staticmethod
-    def prepare_socket(bind_addr, family, type, proto, nodelay, ssl_adapter):
+    def _make_socket_reusable(socket_, bind_addr):
+        host, port = bind_addr[:2]
+        IS_EPHEMERAL_PORT = port == 0
+
+        if socket_.family not in (socket.AF_INET, socket.AF_INET6):
+            raise ValueError('Cannot reuse a non-IP socket')
+
+        if IS_EPHEMERAL_PORT:
+            raise ValueError('Cannot reuse an ephemeral port (0)')
+
+        # Most BSD kernels implement SO_REUSEPORT the way that only the
+        # latest listener can read from socket. Some of BSD kernels also
+        # have SO_REUSEPORT_LB that works similarly to SO_REUSEPORT
+        # in Linux.
+        if hasattr(socket, 'SO_REUSEPORT_LB'):
+            socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT_LB, 1)
+        elif hasattr(socket, 'SO_REUSEPORT'):
+            socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        elif IS_WINDOWS:
+            socket_.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        else:
+            raise NotImplementedError(
+                'Current platform does not support port reuse',
+            )
+
+    @classmethod
+    def prepare_socket(
+            cls, bind_addr, family, type, proto, nodelay, ssl_adapter,
+            reuse_port=False,
+    ):
         """Create and prepare the socket object."""
         sock = socket.socket(family, type, proto)
         connections.prevent_socket_inheritance(sock)
 
         host, port = bind_addr[:2]
         IS_EPHEMERAL_PORT = port == 0
+
+        if reuse_port:
+            cls._make_socket_reusable(socket_=sock, bind_addr=bind_addr)
 
         if not (IS_WINDOWS or IS_EPHEMERAL_PORT):
             """Enable SO_REUSEADDR for the current socket.

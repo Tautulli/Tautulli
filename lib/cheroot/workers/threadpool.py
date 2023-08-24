@@ -151,12 +151,33 @@ class ThreadPool:
             server (cheroot.server.HTTPServer): web server object
                 receiving this request
             min (int): minimum number of worker threads
-            max (int): maximum number of worker threads
+            max (int): maximum number of worker threads (-1/inf for no max)
             accepted_queue_size (int): maximum number of active
                 requests in queue
             accepted_queue_timeout (int): timeout for putting request
                 into queue
+
+        :raises ValueError: if the min/max values are invalid
+        :raises TypeError: if the max is not an integer or inf
         """
+        if min < 1:
+            raise ValueError(f'min={min!s} must be > 0')
+
+        if max == float('inf'):
+            pass
+        elif not isinstance(max, int) or max == 0:
+            raise TypeError(
+                'Expected an integer or the infinity value for the `max` '
+                f'argument but got {max!r}.',
+            )
+        elif max < 0:
+            max = float('inf')
+
+        if max < min:
+            raise ValueError(
+                f'max={max!s} must be > min={min!s} (or infinity for no max)',
+            )
+
         self.server = server
         self.min = min
         self.max = max
@@ -167,18 +188,13 @@ class ThreadPool:
         self._pending_shutdowns = collections.deque()
 
     def start(self):
-        """Start the pool of threads."""
-        for _ in range(self.min):
-            self._threads.append(WorkerThread(self.server))
-        for worker in self._threads:
-            worker.name = (
-                'CP Server {worker_name!s}'.
-                format(worker_name=worker.name)
-            )
-            worker.start()
-        for worker in self._threads:
-            while not worker.ready:
-                time.sleep(.1)
+        """Start the pool of threads.
+
+        :raises RuntimeError: if the pool is already started
+        """
+        if self._threads:
+            raise RuntimeError('Threadpools can only be started once.')
+        self.grow(self.min)
 
     @property
     def idle(self):  # noqa: D401; irrelevant for properties
@@ -206,17 +222,13 @@ class ThreadPool:
 
     def grow(self, amount):
         """Spawn new worker threads (not above self.max)."""
-        if self.max > 0:
-            budget = max(self.max - len(self._threads), 0)
-        else:
-            # self.max <= 0 indicates no maximum
-            budget = float('inf')
-
+        budget = max(self.max - len(self._threads), 0)
         n_new = min(amount, budget)
 
         workers = [self._spawn_worker() for i in range(n_new)]
-        while not all(worker.ready for worker in workers):
-            time.sleep(.1)
+        for worker in workers:
+            while not worker.ready:
+                time.sleep(.1)
         self._threads.extend(workers)
 
     def _spawn_worker(self):

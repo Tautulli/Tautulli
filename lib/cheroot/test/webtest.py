@@ -463,16 +463,13 @@ def shb(response):
     return resp_status_line, response.getheaders(), response.read()
 
 
-# def openURL(*args, raise_subcls=(), **kwargs):
-# py27 compatible signature:
-def openURL(*args, **kwargs):
+def openURL(*args, raise_subcls=(), **kwargs):
     """
     Open a URL, retrying when it fails.
 
     Specify ``raise_subcls`` (class or tuple of classes) to exclude
     those socket.error subclasses from being suppressed and retried.
     """
-    raise_subcls = kwargs.pop('raise_subcls', ())
     opener = functools.partial(_open_url_once, *args, **kwargs)
 
     def on_exception():
