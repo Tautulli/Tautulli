@@ -15,12 +15,12 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-import struct
 import base64
+import struct
 
+import dns.dnssectypes
 import dns.exception
 import dns.immutable
-import dns.dnssectypes
 import dns.rdata
 import dns.tokenizer
 

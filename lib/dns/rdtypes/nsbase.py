@@ -19,8 +19,8 @@
 
 import dns.exception
 import dns.immutable
-import dns.rdata
 import dns.name
+import dns.rdata
 
 
 @dns.immutable.immutable

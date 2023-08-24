@@ -5,13 +5,13 @@ try:
 
     import dns.asyncbackend
     from dns._asyncbackend import NullContext
-    from dns.quic._sync import SyncQuicManager, SyncQuicConnection, SyncQuicStream
     from dns.quic._asyncio import (
-        AsyncioQuicManager,
         AsyncioQuicConnection,
+        AsyncioQuicManager,
         AsyncioQuicStream,
     )
     from dns.quic._common import AsyncQuicConnection, AsyncQuicManager
+    from dns.quic._sync import SyncQuicConnection, SyncQuicManager, SyncQuicStream
 
     have_quic = True
 
@@ -33,9 +33,10 @@ try:
 
     try:
         import trio
+
         from dns.quic._trio import (  # pylint: disable=ungrouped-imports
-            TrioQuicManager,
             TrioQuicConnection,
+            TrioQuicManager,
             TrioQuicStream,
         )
 

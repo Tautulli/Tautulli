@@ -17,10 +17,9 @@
 
 """Tokenize DNS zone file format"""
 
-from typing import Any, Optional, List, Tuple
-
 import io
 import sys
+from typing import Any, List, Optional, Tuple
 
 import dns.exception
 import dns.name

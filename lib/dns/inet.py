@@ -17,13 +17,11 @@
 
 """Generic Internet address helper functions."""
 
-from typing import Any, Optional, Tuple
-
 import socket
+from typing import Any, Optional, Tuple
 
 import dns.ipv4
 import dns.ipv6
-
 
 # We assume that AF_INET and AF_INET6 are always defined.  We keep
 # these here for the benefit of any old code (unlikely though that
@@ -171,3 +169,12 @@ def low_level_address_tuple(
             return tup
     else:
         raise NotImplementedError(f"unknown address family {af}")
+
+
+def any_for_af(af):
+    """Return the 'any' address for the specified address family."""
+    if af == socket.AF_INET:
+        return "0.0.0.0"
+    elif af == socket.AF_INET6:
+        return "::"
+    raise NotImplementedError(f"unknown address family {af}")

@@ -17,23 +17,22 @@
 
 """DNS Zones."""
 
-from typing import Any, Iterable, List, Optional, Set, Tuple, Union
-
 import re
 import sys
+from typing import Any, Iterable, List, Optional, Set, Tuple, Union
 
 import dns.exception
+import dns.grange
 import dns.name
 import dns.node
+import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
-import dns.rdata
 import dns.rdtypes.ANY.SOA
 import dns.rrset
 import dns.tokenizer
 import dns.transaction
 import dns.ttl
-import dns.grange
 
 
 class UnknownOrigin(dns.exception.DNSException):
@@ -191,10 +190,6 @@ class Reader:
                 self.last_ttl_known = True
                 token = None
             except dns.ttl.BadTTL:
-                if self.default_ttl_known:
-                    ttl = self.default_ttl
-                elif self.last_ttl_known:
-                    ttl = self.last_ttl
                 self.tok.unget(token)
 
         # Class
@@ -211,6 +206,22 @@ class Reader:
                 self.tok.unget(token)
             if rdclass != self.zone_rdclass:
                 raise dns.exception.SyntaxError("RR class is not zone's class")
+
+        if ttl is None:
+            # support for <class> <ttl> <type> syntax
+            token = self._get_identifier()
+            ttl = None
+            try:
+                ttl = dns.ttl.from_text(token.value)
+                self.last_ttl = ttl
+                self.last_ttl_known = True
+                token = None
+            except dns.ttl.BadTTL:
+                if self.default_ttl_known:
+                    ttl = self.default_ttl
+                elif self.last_ttl_known:
+                    ttl = self.last_ttl
+                self.tok.unget(token)
 
         # Type
         if self.force_rdtype is not None:
@@ -581,7 +592,7 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
             pass
 
     def _name_exists(self, name):
-        for (n, _, _) in self.rdatasets:
+        for n, _, _ in self.rdatasets:
             if n == name:
                 return True
         return False
@@ -604,6 +615,9 @@ class RRsetsReaderTransaction(dns.transaction.Transaction):
         pass
 
     def _iterate_rdatasets(self):
+        raise NotImplementedError  # pragma: no cover
+
+    def _iterate_names(self):
         raise NotImplementedError  # pragma: no cover
 
 
@@ -707,26 +721,26 @@ def read_rrsets(
     if isinstance(default_ttl, str):
         default_ttl = dns.ttl.from_text(default_ttl)
     if rdclass is not None:
-        the_rdclass = dns.rdataclass.RdataClass.make(rdclass)
+        rdclass = dns.rdataclass.RdataClass.make(rdclass)
     else:
-        the_rdclass = None
-    the_default_rdclass = dns.rdataclass.RdataClass.make(default_rdclass)
+        rdclass = None
+    default_rdclass = dns.rdataclass.RdataClass.make(default_rdclass)
     if rdtype is not None:
-        the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+        rdtype = dns.rdatatype.RdataType.make(rdtype)
     else:
-        the_rdtype = None
+        rdtype = None
     manager = RRSetsReaderManager(origin, relativize, default_rdclass)
     with manager.writer(True) as txn:
         tok = dns.tokenizer.Tokenizer(text, "<input>", idna_codec=idna_codec)
         reader = Reader(
             tok,
-            the_default_rdclass,
+            default_rdclass,
             txn,
             allow_directives=False,
             force_name=name,
             force_ttl=ttl,
-            force_rdclass=the_rdclass,
-            force_rdtype=the_rdtype,
+            force_rdclass=rdclass,
+            force_rdtype=rdtype,
             default_ttl=default_ttl,
         )
         reader.read()

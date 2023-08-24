@@ -5,13 +5,12 @@ from typing import Dict
 import dns.exception
 
 # pylint: disable=unused-import
-
-from dns._asyncbackend import (
-    Socket,
-    DatagramSocket,
-    StreamSocket,
+from dns._asyncbackend import (  # noqa: F401  lgtm[py/unused-import]
     Backend,
-)  # noqa: F401  lgtm[py/unused-import]
+    DatagramSocket,
+    Socket,
+    StreamSocket,
+)
 
 # pylint: enable=unused-import
 
@@ -30,8 +29,8 @@ class AsyncLibraryNotFoundError(dns.exception.DNSException):
 def get_backend(name: str) -> Backend:
     """Get the specified asynchronous backend.
 
-    *name*, a ``str``, the name of the backend.  Currently the "trio",
-    "curio", and "asyncio" backends are available.
+    *name*, a ``str``, the name of the backend.  Currently the "trio"
+    and "asyncio" backends are available.
 
     Raises NotImplementError if an unknown backend name is specified.
     """
@@ -43,10 +42,6 @@ def get_backend(name: str) -> Backend:
         import dns._trio_backend
 
         backend = dns._trio_backend.Backend()
-    elif name == "curio":
-        import dns._curio_backend
-
-        backend = dns._curio_backend.Backend()
     elif name == "asyncio":
         import dns._asyncio_backend
 
@@ -73,9 +68,7 @@ def sniff() -> str:
         try:
             return sniffio.current_async_library()
         except sniffio.AsyncLibraryNotFoundError:
-            raise AsyncLibraryNotFoundError(
-                "sniffio cannot determine " + "async library"
-            )
+            raise AsyncLibraryNotFoundError("sniffio cannot determine async library")
     except ImportError:
         import asyncio
 

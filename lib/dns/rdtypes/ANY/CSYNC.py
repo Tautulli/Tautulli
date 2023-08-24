@@ -19,9 +19,9 @@ import struct
 
 import dns.exception
 import dns.immutable
+import dns.name
 import dns.rdata
 import dns.rdatatype
-import dns.name
 import dns.rdtypes.util
 
 

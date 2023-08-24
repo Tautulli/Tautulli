@@ -140,6 +140,22 @@ class Timeout(DNSException):
         super().__init__(*args, **kwargs)
 
 
+class UnsupportedAlgorithm(DNSException):
+    """The DNSSEC algorithm is not supported."""
+
+
+class AlgorithmKeyMismatch(UnsupportedAlgorithm):
+    """The DNSSEC algorithm is not supported for the given key type."""
+
+
+class ValidationFailure(DNSException):
+    """The DNSSEC signature is invalid."""
+
+
+class DeniedByPolicy(DNSException):
+    """Denied by DNSSEC policy."""
+
+
 class ExceptionWrapper:
     def __init__(self, exception_class):
         self.exception_class = exception_class

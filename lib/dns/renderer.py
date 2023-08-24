@@ -19,13 +19,12 @@
 
 import contextlib
 import io
-import struct
 import random
+import struct
 import time
 
 import dns.exception
 import dns.tsig
-
 
 QUESTION = 0
 ANSWER = 1

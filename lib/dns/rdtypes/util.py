@@ -18,6 +18,7 @@
 import collections
 import random
 import struct
+from typing import Any, List
 
 import dns.exception
 import dns.ipv4
@@ -119,7 +120,7 @@ class Bitmap:
     def __init__(self, windows=None):
         last_window = -1
         self.windows = windows
-        for (window, bitmap) in self.windows:
+        for window, bitmap in self.windows:
             if not isinstance(window, int):
                 raise ValueError(f"bad {self.type_name} window type")
             if window <= last_window:
@@ -132,11 +133,11 @@ class Bitmap:
             if len(bitmap) == 0 or len(bitmap) > 32:
                 raise ValueError(f"bad {self.type_name} octets")
 
-    def to_text(self):
+    def to_text(self) -> str:
         text = ""
-        for (window, bitmap) in self.windows:
+        for window, bitmap in self.windows:
             bits = []
-            for (i, byte) in enumerate(bitmap):
+            for i, byte in enumerate(bitmap):
                 for j in range(0, 8):
                     if byte & (0x80 >> j):
                         rdtype = window * 256 + i * 8 + j
@@ -145,14 +146,18 @@ class Bitmap:
         return text
 
     @classmethod
-    def from_text(cls, tok):
+    def from_text(cls, tok: "dns.tokenizer.Tokenizer") -> "Bitmap":
         rdtypes = []
         for token in tok.get_remaining():
             rdtype = dns.rdatatype.from_text(token.unescape().value)
             if rdtype == 0:
                 raise dns.exception.SyntaxError(f"{cls.type_name} with bit 0")
             rdtypes.append(rdtype)
-        rdtypes.sort()
+        return cls.from_rdtypes(rdtypes)
+
+    @classmethod
+    def from_rdtypes(cls, rdtypes: List[dns.rdatatype.RdataType]) -> "Bitmap":
+        rdtypes = sorted(rdtypes)
         window = 0
         octets = 0
         prior_rdtype = 0
@@ -177,13 +182,13 @@ class Bitmap:
             windows.append((window, bytes(bitmap[0:octets])))
         return cls(windows)
 
-    def to_wire(self, file):
-        for (window, bitmap) in self.windows:
+    def to_wire(self, file: Any) -> None:
+        for window, bitmap in self.windows:
             file.write(struct.pack("!BB", window, len(bitmap)))
             file.write(bitmap)
 
     @classmethod
-    def from_wire_parser(cls, parser):
+    def from_wire_parser(cls, parser: "dns.wire.Parser") -> "Bitmap":
         windows = []
         while parser.remaining() > 0:
             window = parser.get_uint8()
@@ -226,7 +231,7 @@ def weighted_processing_order(iterable):
         total = sum(rdata._processing_weight() or _no_weight for rdata in rdatas)
         while len(rdatas) > 1:
             r = random.uniform(0, total)
-            for (n, rdata) in enumerate(rdatas):
+            for n, rdata in enumerate(rdatas):
                 weight = rdata._processing_weight() or _no_weight
                 if weight > r:
                     break

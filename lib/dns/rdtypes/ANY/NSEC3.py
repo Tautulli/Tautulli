@@ -25,7 +25,6 @@ import dns.rdata
 import dns.rdatatype
 import dns.rdtypes.util
 
-
 b32_hex_to_normal = bytes.maketrans(
     b"0123456789ABCDEFGHIJKLMNOPQRSTUV", b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
 )
@@ -67,6 +66,7 @@ class NSEC3(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         next = base64.b32encode(self.next).translate(b32_normal_to_hex).lower().decode()
+        next = next.rstrip("=")
         if self.salt == b"":
             salt = "-"
         else:
@@ -94,6 +94,10 @@ class NSEC3(dns.rdata.Rdata):
         else:
             salt = binascii.unhexlify(salt.encode("ascii"))
         next = tok.get_string().encode("ascii").upper().translate(b32_hex_to_normal)
+        if next.endswith(b"="):
+            raise binascii.Error("Incorrect padding")
+        if len(next) % 8 != 0:
+            next += b"=" * (8 - len(next) % 8)
         next = base64.b32decode(next)
         bitmap = Bitmap.from_text(tok)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next, bitmap)

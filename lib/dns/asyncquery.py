@@ -17,39 +17,38 @@
 
 """Talk to a DNS server."""
 
-from typing import Any, Dict, Optional, Tuple, Union
-
 import base64
 import contextlib
 import socket
 import struct
 import time
+from typing import Any, Dict, Optional, Tuple, Union
 
 import dns.asyncbackend
 import dns.exception
 import dns.inet
-import dns.name
 import dns.message
+import dns.name
 import dns.quic
 import dns.rcode
 import dns.rdataclass
 import dns.rdatatype
 import dns.transaction
-
 from dns._asyncbackend import NullContext
 from dns.query import (
-    _compute_times,
-    _matches_destination,
     BadResponse,
-    ssl,
-    UDPMode,
-    _have_httpx,
-    _have_http2,
     NoDOH,
     NoDOQ,
+    UDPMode,
+    _compute_times,
+    _have_http2,
+    _matches_destination,
+    _remaining,
+    have_doh,
+    ssl,
 )
 
-if _have_httpx:
+if have_doh:
     import httpx
 
 # for brevity
@@ -73,7 +72,7 @@ def _source_tuple(af, address, port):
 
 
 def _timeout(expiration, now=None):
-    if expiration:
+    if expiration is not None:
         if not now:
             now = time.time()
         return max(expiration - now, 0)
@@ -445,9 +444,6 @@ async def tls(
             ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
             if server_hostname is None:
                 ssl_context.check_hostname = False
-        else:
-            ssl_context = None
-            server_hostname = None
         af = dns.inet.af_for_address(where)
         stuple = _source_tuple(af, source, source_port)
         dtuple = (where, port)
@@ -495,6 +491,9 @@ async def https(
     path: str = "/dns-query",
     post: bool = True,
     verify: Union[bool, str] = True,
+    bootstrap_address: Optional[str] = None,
+    resolver: Optional["dns.asyncresolver.Resolver"] = None,
+    family: Optional[int] = socket.AF_UNSPEC,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -508,8 +507,10 @@ async def https(
     parameters, exceptions, and return type of this method.
     """
 
-    if not _have_httpx:
-        raise NoDOH("httpx is not available.")  # pragma: no cover
+    if not have_doh:
+        raise NoDOH  # pragma: no cover
+    if client and not isinstance(client, httpx.AsyncClient):
+        raise ValueError("session parameter must be an httpx.AsyncClient")
 
     wire = q.to_wire()
     try:
@@ -518,15 +519,32 @@ async def https(
         af = None
     transport = None
     headers = {"accept": "application/dns-message"}
-    if af is not None:
+    if af is not None and dns.inet.is_address(where):
         if af == socket.AF_INET:
             url = "https://{}:{}{}".format(where, port, path)
         elif af == socket.AF_INET6:
             url = "https://[{}]:{}{}".format(where, port, path)
     else:
         url = where
-    if source is not None:
-        transport = httpx.AsyncHTTPTransport(local_address=source[0])
+
+    backend = dns.asyncbackend.get_default_backend()
+
+    if source is None:
+        local_address = None
+        local_port = 0
+    else:
+        local_address = source
+        local_port = source_port
+    transport = backend.get_transport_class()(
+        local_address=local_address,
+        http1=True,
+        http2=_have_http2,
+        verify=verify,
+        local_port=local_port,
+        bootstrap_address=bootstrap_address,
+        resolver=resolver,
+        family=family,
+    )
 
     if client:
         cm: contextlib.AbstractAsyncContextManager = NullContext(client)
@@ -545,14 +563,14 @@ async def https(
                     "content-length": str(len(wire)),
                 }
             )
-            response = await the_client.post(
-                url, headers=headers, content=wire, timeout=timeout
+            response = await backend.wait_for(
+                the_client.post(url, headers=headers, content=wire), timeout
             )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             twire = wire.decode()  # httpx does a repr() if we give it bytes
-            response = await the_client.get(
-                url, headers=headers, timeout=timeout, params={"dns": twire}
+            response = await backend.wait_for(
+                the_client.get(url, headers=headers, params={"dns": twire}), timeout
             )
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
@@ -690,6 +708,7 @@ async def quic(
     connection: Optional[dns.quic.AsyncQuicConnection] = None,
     verify: Union[bool, str] = True,
     backend: Optional[dns.asyncbackend.Backend] = None,
+    server_hostname: Optional[str] = None,
 ) -> dns.message.Message:
     """Return the response obtained after sending an asynchronous query via
     DNS-over-QUIC.
@@ -715,14 +734,16 @@ async def quic(
         (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
 
     async with cfactory() as context:
-        async with mfactory(context, verify_mode=verify) as the_manager:
+        async with mfactory(
+            context, verify_mode=verify, server_name=server_hostname
+        ) as the_manager:
             if not connection:
                 the_connection = the_manager.connect(where, port, source, source_port)
-            start = time.time()
-            stream = await the_connection.make_stream()
+            (start, expiration) = _compute_times(timeout)
+            stream = await the_connection.make_stream(timeout)
             async with stream:
                 await stream.send(wire, True)
-                wire = await stream.receive(timeout)
+                wire = await stream.receive(_remaining(expiration))
             finish = time.time()
         r = dns.message.from_wire(
             wire,
