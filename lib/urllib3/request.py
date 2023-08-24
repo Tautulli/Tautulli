@@ -1,23 +1,12 @@
-from __future__ import annotations
+from __future__ import absolute_import
 
-import json as _json
-import typing
-from urllib.parse import urlencode
-
-from ._base_connection import _TYPE_BODY
-from ._collections import HTTPHeaderDict
-from .filepost import _TYPE_FIELDS, encode_multipart_formdata
-from .response import BaseHTTPResponse
+from .filepost import encode_multipart_formdata
+from .packages.six.moves.urllib.parse import urlencode
 
 __all__ = ["RequestMethods"]
 
-_TYPE_ENCODE_URL_FIELDS = typing.Union[
-    typing.Sequence[typing.Tuple[str, typing.Union[str, bytes]]],
-    typing.Mapping[str, typing.Union[str, bytes]],
-]
 
-
-class RequestMethods:
+class RequestMethods(object):
     """
     Convenience mixin for classes who implement a :meth:`urlopen` method, such
     as :class:`urllib3.HTTPConnectionPool` and
@@ -48,34 +37,25 @@ class RequestMethods:
 
     _encode_url_methods = {"DELETE", "GET", "HEAD", "OPTIONS"}
 
-    def __init__(self, headers: typing.Mapping[str, str] | None = None) -> None:
+    def __init__(self, headers=None):
         self.headers = headers or {}
 
     def urlopen(
         self,
-        method: str,
-        url: str,
-        body: _TYPE_BODY | None = None,
-        headers: typing.Mapping[str, str] | None = None,
-        encode_multipart: bool = True,
-        multipart_boundary: str | None = None,
-        **kw: typing.Any,
-    ) -> BaseHTTPResponse:  # Abstract
+        method,
+        url,
+        body=None,
+        headers=None,
+        encode_multipart=True,
+        multipart_boundary=None,
+        **kw
+    ):  # Abstract
         raise NotImplementedError(
             "Classes extending RequestMethods must implement "
             "their own ``urlopen`` method."
         )
 
-    def request(
-        self,
-        method: str,
-        url: str,
-        body: _TYPE_BODY | None = None,
-        fields: _TYPE_FIELDS | None = None,
-        headers: typing.Mapping[str, str] | None = None,
-        json: typing.Any | None = None,
-        **urlopen_kw: typing.Any,
-    ) -> BaseHTTPResponse:
+    def request(self, method, url, fields=None, headers=None, **urlopen_kw):
         """
         Make a request using :meth:`urlopen` with the appropriate encoding of
         ``fields`` based on the ``method`` used.
@@ -88,45 +68,18 @@ class RequestMethods:
         """
         method = method.upper()
 
-        if json is not None and body is not None:
-            raise TypeError(
-                "request got values for both 'body' and 'json' parameters which are mutually exclusive"
-            )
-
-        if json is not None:
-            if headers is None:
-                headers = self.headers.copy()  # type: ignore
-            if not ("content-type" in map(str.lower, headers.keys())):
-                headers["Content-Type"] = "application/json"  # type: ignore
-
-            body = _json.dumps(json, separators=(",", ":"), ensure_ascii=False).encode(
-                "utf-8"
-            )
-
-        if body is not None:
-            urlopen_kw["body"] = body
+        urlopen_kw["request_url"] = url
 
         if method in self._encode_url_methods:
             return self.request_encode_url(
-                method,
-                url,
-                fields=fields,  # type: ignore[arg-type]
-                headers=headers,
-                **urlopen_kw,
+                method, url, fields=fields, headers=headers, **urlopen_kw
             )
         else:
             return self.request_encode_body(
                 method, url, fields=fields, headers=headers, **urlopen_kw
             )
 
-    def request_encode_url(
-        self,
-        method: str,
-        url: str,
-        fields: _TYPE_ENCODE_URL_FIELDS | None = None,
-        headers: typing.Mapping[str, str] | None = None,
-        **urlopen_kw: str,
-    ) -> BaseHTTPResponse:
+    def request_encode_url(self, method, url, fields=None, headers=None, **urlopen_kw):
         """
         Make a request using :meth:`urlopen` with the ``fields`` encoded in
         the url. This is useful for request methods like GET, HEAD, DELETE, etc.
@@ -134,7 +87,7 @@ class RequestMethods:
         if headers is None:
             headers = self.headers
 
-        extra_kw: dict[str, typing.Any] = {"headers": headers}
+        extra_kw = {"headers": headers}
         extra_kw.update(urlopen_kw)
 
         if fields:
@@ -144,14 +97,14 @@ class RequestMethods:
 
     def request_encode_body(
         self,
-        method: str,
-        url: str,
-        fields: _TYPE_FIELDS | None = None,
-        headers: typing.Mapping[str, str] | None = None,
-        encode_multipart: bool = True,
-        multipart_boundary: str | None = None,
-        **urlopen_kw: str,
-    ) -> BaseHTTPResponse:
+        method,
+        url,
+        fields=None,
+        headers=None,
+        encode_multipart=True,
+        multipart_boundary=None,
+        **urlopen_kw
+    ):
         """
         Make a request using :meth:`urlopen` with the ``fields`` encoded in
         the body. This is useful for request methods like POST, PUT, PATCH, etc.
@@ -190,8 +143,7 @@ class RequestMethods:
         if headers is None:
             headers = self.headers
 
-        extra_kw: dict[str, typing.Any] = {"headers": HTTPHeaderDict(headers)}
-        body: bytes | str
+        extra_kw = {"headers": {}}
 
         if fields:
             if "body" in urlopen_kw:
@@ -205,13 +157,14 @@ class RequestMethods:
                 )
             else:
                 body, content_type = (
-                    urlencode(fields),  # type: ignore[arg-type]
+                    urlencode(fields),
                     "application/x-www-form-urlencoded",
                 )
 
             extra_kw["body"] = body
-            extra_kw["headers"].setdefault("Content-Type", content_type)
+            extra_kw["headers"] = {"Content-Type": content_type}
 
+        extra_kw["headers"].update(headers)
         extra_kw.update(urlopen_kw)
 
         return self.urlopen(method, url, **extra_kw)
