@@ -189,13 +189,15 @@ class TestLXMLXMLTreeBuilder(SoupTest, XMLTreeBuilderSmokeTest):
         assert soup.find('prefix:tag3').name == 'tag3'
         assert soup.subtag.find('prefix:tag3').name == 'tag3'
 
-    def test_pickle_removes_builder(self):
-        # The lxml TreeBuilder is not picklable, so it won't be
-        # preserved in a pickle/unpickle operation.
-
+    def test_pickle_restores_builder(self):
+        # The lxml TreeBuilder is not picklable, so when unpickling
+        # a document created with it, a new TreeBuilder of the
+        # appropriate class is created.
         soup = self.soup("<a>some markup</a>")
         assert isinstance(soup.builder, self.default_builder)
         pickled = pickle.dumps(soup)
         unpickled = pickle.loads(pickled)
+
         assert "some markup" == unpickled.a.string
-        assert unpickled.builder is None
+        assert unpickled.builder != soup.builder
+        assert isinstance(unpickled.builder, self.default_builder)

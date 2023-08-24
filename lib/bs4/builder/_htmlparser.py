@@ -24,6 +24,7 @@ from bs4.dammit import EntitySubstitution, UnicodeDammit
 
 from bs4.builder import (
     DetectsXMLParsedAsHTML,
+    ParserRejectedMarkup,
     HTML,
     HTMLTreeBuilder,
     STRICT,
@@ -69,6 +70,22 @@ class BeautifulSoupHTMLParser(HTMLParser, DetectsXMLParsedAsHTML):
         self.already_closed_empty_element = []
 
         self._initialize_xml_detector()
+
+    def error(self, message):
+        # NOTE: This method is required so long as Python 3.9 is
+        # supported. The corresponding code is removed from HTMLParser
+        # in 3.5, but not removed from ParserBase until 3.10.
+        # https://github.com/python/cpython/issues/76025
+        #
+        # The original implementation turned the error into a warning,
+        # but in every case I discovered, this made HTMLParser
+        # immediately crash with an error message that was less
+        # helpful than the warning. The new implementation makes it
+        # more clear that html.parser just can't parse this
+        # markup. The 3.10 implementation does the same, though it
+        # raises AssertionError rather than calling a method. (We
+        # catch this error and wrap it in a ParserRejectedMarkup.)
+        raise ParserRejectedMarkup(message)
 
     def handle_startendtag(self, name, attrs):
         """Handle an incoming empty-element tag.
@@ -359,6 +376,12 @@ class HTMLParserTreeBuilder(HTMLTreeBuilder):
         args, kwargs = self.parser_args
         parser = BeautifulSoupHTMLParser(*args, **kwargs)
         parser.soup = self.soup
-        parser.feed(markup)
+        try:
+            parser.feed(markup)
+        except AssertionError as e:
+            # html.parser raises AssertionError in rare cases to
+            # indicate a fatal problem with the markup, especially
+            # when there's an error in the doctype declaration.
+            raise ParserRejectedMarkup(e)
         parser.close()
         parser.already_closed_empty_element = []

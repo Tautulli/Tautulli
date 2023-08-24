@@ -243,7 +243,6 @@ America/Iqaluit
 America/Resolute
 America/Rankin_Inlet
 America/Cambridge_Bay
-America/Yellowknife
 America/Inuvik
 America/Whitehorse
 America/Dawson
@@ -561,6 +560,7 @@ America/Rosario
 America/Santa_Isabel
 America/Shiprock
 America/Thunder_Bay
+America/Yellowknife
 Antarctica/South_Pole
 Asia/Chongqing
 Asia/Harbin
