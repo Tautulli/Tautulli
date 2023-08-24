@@ -366,7 +366,7 @@ def available_notification_actions(agent_id=None):
                 },
                {'label': 'Watched',
                 'name': 'on_watched',
-                'description': 'Trigger a notification when a video stream reaches the specified watch percentage.',
+                'description': 'Trigger a notification when a stream reaches the specified watched or listened threshold.',
                 'subject': 'Tautulli ({server_name})',
                 'body': '{user} ({player}) has watched {title}.',
                 'icon': 'fa-eye',
