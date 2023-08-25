@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.13.0 (2023-08-25)
+
+* Notes:
+  * Support for Python 3.7 has been dropped. The minimum Python version is now 3.8.
+* Notifications:
+  * Fix: Improved watched notification trigger description. (#2104)
+  * New: Added notification image option for iOS Tautulli Remote app.
+* Exporter:
+  * New: Added track chapter export fields.
+  * New: Added on-demand subtitle export fields.
+
+
 ## v2.12.5 (2023-07-13)
 
 * Activity:
