@@ -44,7 +44,7 @@ six==1.16.0
 tempora==5.5.0
 tokenize-rt==5.2.0
 tzdata==2023.3
-tzlocal==4.2
+tzlocal==5.0.1
 urllib3<2
 webencodings==0.5.1
 websocket-client==1.6.2
