@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.13.1 (2023-08-25)
+* Notes:
+  * Support for Python 3.7 has been dropped. The minimum Python version is now 3.8.
+* Other:
+  * Fix: Tautulli failing to start on some systems.
+
+
 ## v2.13.0 (2023-08-25)
 
 * Notes:
