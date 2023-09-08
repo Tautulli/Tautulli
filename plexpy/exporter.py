@@ -420,8 +420,6 @@ class Export(object):
                 'audioLanguage': None,
                 'autoDeletionItemPolicyUnwatchedLibrary': None,
                 'autoDeletionItemPolicyWatchedLibrary': None,
-                'banner': None,
-                'bannerFile': lambda o: self.get_image(o, 'banner'),
                 'childCount': None,
                 'collections': {
                     'id': None,
@@ -1382,7 +1380,7 @@ class Export(object):
                     'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
-                    'art', 'thumb', 'banner', 'theme', 'key',
+                    'art', 'thumb', 'theme', 'key',
                     'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt'
                 ],
                 9: self._get_all_metadata_attrs(_media_type)
@@ -2258,8 +2256,6 @@ class Export(object):
             image_url = item.thumbUrl
         elif image == 'art':
             image_url = item.artUrl
-        elif image == 'banner':
-            image_url = item.bannerUrl
 
         if not image_url:
             return
