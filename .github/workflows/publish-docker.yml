@@ -38,7 +38,7 @@ jobs:
           echo "docker_image=${{ secrets.DOCKER_REPO }}/tautulli" >> $GITHUB_OUTPUT
 
       - name: Set Up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2

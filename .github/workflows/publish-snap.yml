@@ -35,7 +35,7 @@ jobs:
           fi
 
       - name: Set Up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Build Snap Package
         uses: diddlesnaps/snapcraft-multiarch-action@v1
