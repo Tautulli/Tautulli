@@ -270,7 +270,7 @@ class DataFactory(object):
 
                 item['user_thumb'] = users_lookup.get(item['user_id'])
 
-            filter_duration += int(item['play_duration'])
+            filter_duration += helpers.cast_to_int(item['play_duration'])
 
             if item['media_type'] == 'episode' and item['parent_thumb']:
                 thumb = item['parent_thumb']
