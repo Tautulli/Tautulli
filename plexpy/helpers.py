@@ -1793,3 +1793,24 @@ def get_ipv6_network_address(ip: str) -> str:
     if cidr_pattern.match(plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR):
         cidr = plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR
     return str(ip_network(ip+cidr, strict=False).network_address)
+
+
+def clean_plexapi_sessions(session: dict) -> dict:
+    "Cleans Plex session data, removing the 10Gbps bandwidth/0.064Mbps quality bug that appears when video transcoding sometimes."
+
+    if isinstance(session, dict):
+        # Reliable way to identify if a session is bugged.
+        if session['bandwidth'] == "10000000" and session['quality_profile'] == '0.064 Mbps':
+            
+            # Bitrate is unaffected by the bug, use bitrate to estimate the bandwidth reserve.
+            session['bandwidth'] = str(int(int(session['bitrate']) * 1.5))
+
+            # Convert bitrate to a human readable quality profile.
+            if int(session['bitrate']) > 1000000:
+                session['quality_profile'] = f"{int(session['bitrate']) / 1000000:.1f} Gbps"
+            elif int(session['bitrate']) > 1000:
+                session['quality_profile'] = f"{int(session['bitrate']) / 1000:.1f} Mbps"
+            else:
+                session['quality_profile'] = f"{int(session['bitrate'])} kbps"
+
+    return session

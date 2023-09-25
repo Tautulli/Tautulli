@@ -352,7 +352,7 @@ class WebInterface(object):
 
         if result:
             session = next((s for s in result['sessions'] if s['session_key'] == session_key), None)
-            return serve_template(template_name="current_activity_instance.html", session=session)
+            return serve_template(template_name="current_activity_instance.html", session=helpers.clean_plexapi_sessions(session))
         else:
             return serve_template(template_name="current_activity_instance.html", session=None)
 
@@ -6049,19 +6049,26 @@ class WebInterface(object):
                           'lan_bandwidth': 0,
                           'wan_bandwidth': 0}
 
+                cleaned_sessions = []
+
                 for s in result['sessions']:
-                    if s['transcode_decision'] == 'transcode':
+                    s_cleaned = helpers.clean_plexapi_sessions(s)
+                    cleaned_sessions.append(s_cleaned)
+
+                    if s_cleaned['transcode_decision'] == 'transcode':
                         counts['stream_count_transcode'] += 1
-                    elif s['transcode_decision'] == 'copy':
+                    elif s_cleaned['transcode_decision'] == 'copy':
                         counts['stream_count_direct_stream'] += 1
                     else:
                         counts['stream_count_direct_play'] += 1
 
-                    counts['total_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
-                    if s['location'] == 'lan':
-                        counts['lan_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
+                    counts['total_bandwidth'] += helpers.cast_to_int(s_cleaned['bandwidth'])
+                    if s_cleaned['location'] == 'lan':
+                        counts['lan_bandwidth'] += helpers.cast_to_int(s_cleaned['bandwidth'])
                     else:
-                        counts['wan_bandwidth'] += helpers.cast_to_int(s['bandwidth'])
+                        counts['wan_bandwidth'] += helpers.cast_to_int(s_cleaned['bandwidth'])
+                
+                result['sessions'] = cleaned_sessions
 
                 result.update(counts)
 
