@@ -2571,7 +2571,8 @@ class WebInterface(object):
                      "series":
                         [{"name": "Direct Play", "data": [...]}
                          {"name": "Direct Stream", "data": [...]},
-                         {"name": "Transcode", "data": [...]}
+                         {"name": "Transcode", "data": [...]},
+                         {"name": "Max. Concurrent Streams", "data":  [...]}
                          ]
                      }
             ```

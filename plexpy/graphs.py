@@ -22,7 +22,6 @@ from future.builtins import object
 
 import arrow
 import datetime
-import itertools
 import plexpy
 if plexpy.PYTHON2:
     import common
@@ -1265,12 +1264,11 @@ class Graphs(object):
 
         return output
 
-    def _make_user_cond(self, user_id, cond_prefix=None):
+    def _make_user_cond(self, user_id, cond_prefix='AND'):
         """
         Expects user_id to be a comma-separated list of ints.
         """
         user_cond = ''
-        cond_prefix = 'AND' if cond_prefix is None else cond_prefix
 
         if session.get_session_user_id() and user_id and user_id != str(session.get_session_user_id()):
             user_cond = cond_prefix + ' session_history.user_id = %s ' % session.get_session_user_id()
