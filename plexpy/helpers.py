@@ -32,6 +32,7 @@ import datetime
 from functools import reduce, wraps
 import hashlib
 import imghdr
+from itertools import groupby
 from future.moves.itertools import islice, zip_longest
 from ipaddress import ip_address, ip_network, IPv4Address
 import ipwhois
@@ -1241,6 +1242,11 @@ def grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
 
+def group_by_keys(iterable, keys):
+    key_function = operator.itemgetter(*keys)
+
+    sorted_iterable = sorted(iterable, key=key_function)
+    return[{'key': key, 'value': list(group)} for key, group in groupby(sorted_iterable, key_function)]
 
 def chunk(it, size):
     it = iter(it)

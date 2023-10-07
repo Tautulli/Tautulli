@@ -2553,6 +2553,44 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
+    def get_concurrent_streams_by_stream_type(self, time_range='30', user_id=None, **kwargs):
+        """ Get graph data for concurrent streams by stream type by date.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       The number of days of data to return
+                user_id (str):          Comma separated list of user id to filter the data
+
+            Returns:
+                json:
+                    {"categories":
+                        ["YYYY-MM-DD", "YYYY-MM-DD", ...]
+                     "series":
+                        [{"name": "Direct Play", "data": [...]}
+                         {"name": "Direct Stream", "data": [...]},
+                         {"name": "Transcode", "data": [...]},
+                         {"name": "Max. Concurrent Streams", "data":  [...]}
+                         ]
+                     }
+            ```
+        """
+
+        graph = graphs.Graphs()
+        result = graph.get_total_concurrent_streams_per_stream_type(time_range=time_range, user_id=user_id)
+
+        if result:
+            return result
+        else:
+            logger.warn("Unable to retrieve data for get_concurrent_streams_by_stream_type.")
+            return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi()
     def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
         """ Get graph data by source resolution.
 
