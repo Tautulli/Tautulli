@@ -31,7 +31,7 @@ def call_api(method, uri, params, **options):
     return _call_api(method, uri, params=params, **options)
 
 
-def _call_api(method, uri, params=None, body=None, headers=None, **options):
+def _call_api(method, uri, params=None, body=None, headers=None, extra_headers=None, **options):
     prefix = options.pop("upload_prefix",
                          cloudinary.config().upload_prefix) or "https://api.cloudinary.com"
     cloud_name = options.pop("cloud_name", cloudinary.config().cloud_name)
@@ -49,6 +49,9 @@ def _call_api(method, uri, params=None, body=None, headers=None, **options):
 
     if body is not None:
         options["body"] = body
+
+    if extra_headers is not None:
+        headers.update(extra_headers)
 
     return execute_request(http_connector=_http,
                            method=method,

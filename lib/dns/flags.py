@@ -17,9 +17,8 @@
 
 """DNS Message Flags."""
 
-from typing import Any
-
 import enum
+from typing import Any
 
 # Standard DNS flags
 

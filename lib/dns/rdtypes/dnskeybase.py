@@ -19,9 +19,9 @@ import base64
 import enum
 import struct
 
+import dns.dnssectypes
 import dns.exception
 import dns.immutable
-import dns.dnssectypes
 import dns.rdata
 
 # wildcard import
@@ -43,7 +43,7 @@ class DNSKEYBase(dns.rdata.Rdata):
 
     def __init__(self, rdclass, rdtype, flags, protocol, algorithm, key):
         super().__init__(rdclass, rdtype)
-        self.flags = self._as_uint16(flags)
+        self.flags = Flag(self._as_uint16(flags))
         self.protocol = self._as_uint8(protocol)
         self.algorithm = dns.dnssectypes.Algorithm.make(algorithm)
         self.key = self._as_bytes(key)

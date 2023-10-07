@@ -20,7 +20,7 @@ jobs:
           - armhf
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Prepare
         id: prepare
@@ -35,7 +35,7 @@ jobs:
           fi
 
       - name: Set Up QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
 
       - name: Build Snap Package
         uses: diddlesnaps/snapcraft-multiarch-action@v1
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get Build Job Status
-        uses: technote-space/workflow-conclusion-action@v3.0
+        uses: technote-space/workflow-conclusion-action@v3
 
       - name: Combine Job Status
         id: status

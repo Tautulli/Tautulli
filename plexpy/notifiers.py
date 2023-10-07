@@ -366,7 +366,7 @@ def available_notification_actions(agent_id=None):
                 },
                {'label': 'Watched',
                 'name': 'on_watched',
-                'description': 'Trigger a notification when a video stream reaches the specified watch percentage.',
+                'description': 'Trigger a notification when a stream reaches the specified watched or listened threshold.',
                 'subject': 'Tautulli ({server_name})',
                 'body': '{user} ({player}) has watched {title}.',
                 'icon': 'fa-eye',
@@ -3966,6 +3966,14 @@ class TAUTULLIREMOTEAPP(Notifier):
                     1: 'Small image (Expandable text)',
                     2: 'Large image (Non-expandable text)'
                 }
+            })
+        elif platform == 'ios':
+            config_option.append({
+                'label': 'Include Poster Image',
+                'value': self.config['notification_type'],
+                'name': 'remoteapp_notification_type',
+                'description': 'Include a poster with the notifications.',
+                'input_type': 'checkbox'
             })
 
         return config_option

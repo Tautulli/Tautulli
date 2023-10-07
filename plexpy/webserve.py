@@ -4339,8 +4339,6 @@ class WebInterface(object):
 
         return update
 
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def do_state_change(self, signal, title, timer, **kwargs):
         message = title
         quote = self.random_arnold_quotes()

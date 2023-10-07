@@ -1,8 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import Any, Callable, List, Optional, Tuple, Union
-
 import collections
+from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
 
 import dns.exception
 import dns.name
@@ -357,6 +356,27 @@ class Transaction:
         """
         self._check_delete_name.append(check)
 
+    def iterate_rdatasets(
+        self,
+    ) -> Iterator[Tuple[dns.name.Name, dns.rdataset.Rdataset]]:
+        """Iterate all the rdatasets in the transaction, returning
+        (`dns.name.Name`, `dns.rdataset.Rdataset`) tuples.
+
+        Note that as is usual with python iterators, adding or removing items
+        while iterating will invalidate the iterator and may raise `RuntimeError`
+        or fail to iterate over all entries."""
+        self._check_ended()
+        return self._iterate_rdatasets()
+
+    def iterate_names(self) -> Iterator[dns.name.Name]:
+        """Iterate all the names in the transaction.
+
+        Note that as is usual with python iterators, adding or removing names
+        while iterating will invalidate the iterator and may raise `RuntimeError`
+        or fail to iterate over all entries."""
+        self._check_ended()
+        return self._iterate_names()
+
     #
     # Helper methods
     #
@@ -416,7 +436,7 @@ class Transaction:
                 rdataset = rrset.to_rdataset()
             else:
                 raise TypeError(
-                    f"{method} requires a name or RRset " + "as the first argument"
+                    f"{method} requires a name or RRset as the first argument"
                 )
             if rdataset.rdclass != self.manager.get_class():
                 raise ValueError(f"{method} has objects of wrong RdataClass")
@@ -475,7 +495,7 @@ class Transaction:
                 name = rdataset.name
             else:
                 raise TypeError(
-                    f"{method} requires a name or RRset " + "as the first argument"
+                    f"{method} requires a name or RRset as the first argument"
                 )
             self._raise_if_not_empty(method, args)
             if rdataset:
@@ -608,6 +628,10 @@ class Transaction:
 
     def _iterate_rdatasets(self):
         """Return an iterator that yields (name, rdataset) tuples."""
+        raise NotImplementedError  # pragma: no cover
+
+    def _iterate_names(self):
+        """Return an iterator that yields a name."""
         raise NotImplementedError  # pragma: no cover
 
     def _get_node(self, name):

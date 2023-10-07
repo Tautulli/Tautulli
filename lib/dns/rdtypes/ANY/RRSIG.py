@@ -21,8 +21,8 @@ import struct
 import time
 
 import dns.dnssectypes
-import dns.immutable
 import dns.exception
+import dns.immutable
 import dns.rdata
 import dns.rdatatype
 

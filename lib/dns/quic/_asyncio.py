@@ -9,14 +9,16 @@ import time
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
-import dns.inet
-import dns.asyncbackend
 
+import dns.asyncbackend
+import dns.exception
+import dns.inet
 from dns.quic._common import (
-    BaseQuicStream,
+    QUIC_MAX_DATAGRAM,
     AsyncQuicConnection,
     AsyncQuicManager,
-    QUIC_MAX_DATAGRAM,
+    BaseQuicStream,
+    UnexpectedEOF,
 )
 
 
@@ -30,15 +32,15 @@ class AsyncioQuicStream(BaseQuicStream):
             await self._wake_up.wait()
 
     async def wait_for(self, amount, expiration):
-        timeout = self._timeout_from_expiration(expiration)
         while True:
+            timeout = self._timeout_from_expiration(expiration)
             if self._buffer.have(amount):
                 return
             self._expecting = amount
             try:
                 await asyncio.wait_for(self._wait_for_wake_up(), timeout)
-            except Exception:
-                pass
+            except TimeoutError:
+                raise dns.exception.Timeout
             self._expecting = 0
 
     async def receive(self, timeout=None):
@@ -86,8 +88,10 @@ class AsyncioQuicConnection(AsyncQuicConnection):
         try:
             af = dns.inet.af_for_address(self._address)
             backend = dns.asyncbackend.get_backend("asyncio")
+            # Note that peer is a low-level address tuple, but make_socket() wants
+            # a high-level address tuple, so we convert.
             self._socket = await backend.make_socket(
-                af, socket.SOCK_DGRAM, 0, self._source, self._peer
+                af, socket.SOCK_DGRAM, 0, self._source, (self._peer[0], self._peer[1])
             )
             self._socket_created.set()
             async with self._socket:
@@ -106,6 +110,11 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                         self._wake_timer.notify_all()
         except Exception:
             pass
+        finally:
+            self._done = True
+            async with self._wake_timer:
+                self._wake_timer.notify_all()
+            self._handshake_complete.set()
 
     async def _wait_for_wake_timer(self):
         async with self._wake_timer:
@@ -115,7 +124,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
         await self._socket_created.wait()
         while not self._done:
             datagrams = self._connection.datagrams_to_send(time.time())
-            for (datagram, address) in datagrams:
+            for datagram, address in datagrams:
                 assert address == self._peer[0]
                 await self._socket.sendto(datagram, self._peer, None)
             (expiration, interval) = self._get_timer_values()
@@ -160,8 +169,13 @@ class AsyncioQuicConnection(AsyncQuicConnection):
         self._receiver_task = asyncio.Task(self._receiver())
         self._sender_task = asyncio.Task(self._sender())
 
-    async def make_stream(self):
-        await self._handshake_complete.wait()
+    async def make_stream(self, timeout=None):
+        try:
+            await asyncio.wait_for(self._handshake_complete.wait(), timeout)
+        except TimeoutError:
+            raise dns.exception.Timeout
+        if self._done:
+            raise UnexpectedEOF
         stream_id = self._connection.get_next_available_stream_id(False)
         stream = AsyncioQuicStream(self, stream_id)
         self._streams[stream_id] = stream
@@ -172,6 +186,9 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             self._manager.closed(self._peer[0], self._peer[1])
             self._closed = True
             self._connection.close()
+            # sender might be blocked on this, so set it
+            self._socket_created.set()
+            await self._socket.close()
             async with self._wake_timer:
                 self._wake_timer.notify_all()
             try:
@@ -185,8 +202,8 @@ class AsyncioQuicConnection(AsyncQuicConnection):
 
 
 class AsyncioQuicManager(AsyncQuicManager):
-    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED):
-        super().__init__(conf, verify_mode, AsyncioQuicConnection)
+    def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None):
+        super().__init__(conf, verify_mode, AsyncioQuicConnection, server_name)
 
     def connect(self, address, port=853, source=None, source_port=0):
         (connection, start) = self._connect(address, port, source, source_port)
@@ -198,7 +215,7 @@ class AsyncioQuicManager(AsyncQuicManager):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        # Copy the itertor into a list as exiting things will mutate the connections
+        # Copy the iterator into a list as exiting things will mutate the connections
         # table.
         connections = list(self._connections.values())
         for connection in connections:

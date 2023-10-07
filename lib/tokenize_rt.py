@@ -18,7 +18,7 @@ if (  # pragma: no branch
         callable(getattr(tokenize, '_compile', None))
 ):  # pragma: <3.10 cover
     from functools import lru_cache
-    tokenize._compile = lru_cache()(tokenize._compile)
+    tokenize._compile = lru_cache(tokenize._compile)
 
 ESCAPED_NL = 'ESCAPED_NL'
 UNIMPORTANT_WS = 'UNIMPORTANT_WS'
@@ -39,6 +39,9 @@ class Token(NamedTuple):
     @property
     def offset(self) -> Offset:
         return Offset(self.line, self.utf8_byte_offset)
+
+    def matches(self, *, name: str, src: str) -> bool:
+        return self.name == name and self.src == src
 
 
 _string_re = re.compile('^([^\'"]*)(.*)$', re.DOTALL)

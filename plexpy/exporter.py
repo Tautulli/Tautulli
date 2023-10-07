@@ -363,7 +363,11 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
-                            'transient': None
+                            'providerTitle': None,
+                            'score': None,
+                            'sourceKey': None,
+                            'transient': None,
+                            'userID': None
                         }
                     }
                 },
@@ -759,7 +763,11 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
-                            'transient': None
+                            'providerTitle': None,
+                            'score': None,
+                            'sourceKey': None,
+                            'transient': None,
+                            'userID': None
                         }
                     }
                 },
@@ -956,6 +964,14 @@ class Export(object):
                 'addedAt': helpers.datetime_to_iso,
                 'art': None,
                 'artBlurHash': None,
+                'chapters': {
+                    'id': None,
+                    'tag': None,
+                    'index': None,
+                    'start': None,
+                    'end': None,
+                    'thumb': None
+                },
                 'chapterSource': None,
                 'collections': {
                     'id': None,

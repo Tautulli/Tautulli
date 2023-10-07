@@ -22,6 +22,7 @@ __all__ = [
     "asyncquery",
     "asyncresolver",
     "dnssec",
+    "dnssecalgs",
     "dnssectypes",
     "e164",
     "edns",

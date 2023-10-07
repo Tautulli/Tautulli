@@ -1,7 +1,7 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-import struct
 import binascii
+import struct
 
 import dns.immutable
 import dns.rdata

@@ -10,7 +10,7 @@ from ._utils import *
 _socket.py
 websocket - WebSocket client library for Python
 
-Copyright 2022 engn33r
+Copyright 2023 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ __all__ = ["DEFAULT_SOCKET_OPTION", "sock_opt", "setdefaulttimeout", "getdefault
 
 class sock_opt:
 
-    def __init__(self, sockopt, sslopt):
+    def __init__(self, sockopt: list, sslopt: dict) -> None:
         if sockopt is None:
             sockopt = []
         if sslopt is None:
@@ -53,7 +53,7 @@ class sock_opt:
         self.timeout = None
 
 
-def setdefaulttimeout(timeout):
+def setdefaulttimeout(timeout: int or float) -> None:
     """
     Set the global timeout setting to connect.
 
@@ -66,7 +66,7 @@ def setdefaulttimeout(timeout):
     _default_timeout = timeout
 
 
-def getdefaulttimeout():
+def getdefaulttimeout() -> int or float:
     """
     Get default timeout
 
@@ -78,7 +78,7 @@ def getdefaulttimeout():
     return _default_timeout
 
 
-def recv(sock, bufsize):
+def recv(sock: socket.socket, bufsize: int) -> bytes:
     if not sock:
         raise WebSocketConnectionClosedException("socket is already closed.")
 
@@ -125,7 +125,7 @@ def recv(sock, bufsize):
     return bytes_
 
 
-def recv_line(sock):
+def recv_line(sock: socket.socket) -> bytes:
     line = []
     while True:
         c = recv(sock, 1)
@@ -135,7 +135,7 @@ def recv_line(sock):
     return b''.join(line)
 
 
-def send(sock, data):
+def send(sock: socket.socket, data: bytes) -> int:
     if isinstance(data, str):
         data = data.encode('utf-8')
 

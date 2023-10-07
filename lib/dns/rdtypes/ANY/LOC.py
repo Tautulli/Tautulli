@@ -21,7 +21,6 @@ import dns.exception
 import dns.immutable
 import dns.rdata
 
-
 _pows = tuple(10**i for i in range(0, 11))
 
 # default values are in centimeters
@@ -40,7 +39,7 @@ def _exponent_of(what, desc):
     if what == 0:
         return 0
     exp = None
-    for (i, pow) in enumerate(_pows):
+    for i, pow in enumerate(_pows):
         if what < pow:
             exp = i - 1
             break

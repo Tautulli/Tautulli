@@ -17,9 +17,8 @@
 
 """IPv4 helper functions."""
 
-from typing import Union
-
 import struct
+from typing import Union
 
 import dns.exception
 

@@ -155,6 +155,26 @@ def resources_by_context(key, value=None, **options):
     return call_api("get", uri, params, **options)
 
 
+def visual_search(image_url=None, image_asset_id=None, text=None, **options):
+    """
+    Find images based on their visual content.
+
+    :param image_url:       The URL of an image.
+    :type image_url:        str
+    :param image_asset_id:  The asset_id of an image in your account.
+    :type image_asset_id:   str
+    :param text:            A textual description, e.g., "cat"
+    :type text:             str
+    :param options:         Additional options
+    :type options:          dict, optional
+    :return:                Resources (assets) that were found
+    :rtype:                 Response
+    """
+    uri = ["resources", "visual_search"]
+    params = {"image_url": image_url, "image_asset_id": image_asset_id, "text": text}
+    return call_api("get", uri, params, **options)
+
+
 def resource(public_id, **options):
     resource_type = options.pop("resource_type", "image")
     upload_type = options.pop("type", "upload")
@@ -317,6 +337,24 @@ def add_related_assets(public_id, assets_to_relate, resource_type="image", type=
     return call_json_api("post", uri, params, **options)
 
 
+def add_related_assets_by_asset_ids(asset_id, assets_to_relate, **options):
+    """
+    Relates an asset to other assets by asset IDs.
+
+    :param asset_id: The asset ID of the asset to update.
+    :type asset_id: str
+    :param assets_to_relate: The array of up to 10 asset IDs.
+    :type assets_to_relate: list[str]
+    :param options: Additional options.
+    :type options: dict, optional
+    :return: The result of the command.
+    :rtype: dict
+    """
+    uri = ["resources", "related_assets", asset_id]
+    params = {"assets_to_relate": utils.build_array(assets_to_relate)}
+    return call_json_api("post", uri, params, **options)
+
+
 def delete_related_assets(public_id, assets_to_unrelate, resource_type="image", type="upload", **options):
     """
     Unrelates an asset from other assets by public IDs.
@@ -335,6 +373,24 @@ def delete_related_assets(public_id, assets_to_unrelate, resource_type="image", 
     :rtype: dict
     """
     uri = ["resources", "related_assets", resource_type, type, public_id]
+    params = {"assets_to_unrelate": utils.build_array(assets_to_unrelate)}
+    return call_json_api("delete", uri, params, **options)
+
+
+def delete_related_assets_by_asset_ids(asset_id, assets_to_unrelate, **options):
+    """
+    Unrelates an asset from other assets by asset IDs.
+
+    :param asset_id: The asset ID of the asset to update.
+    :type asset_id: str
+    :param assets_to_unrelate: The array of up to 10 asset IDs.
+    :type assets_to_unrelate: list[str]
+    :param options: Additional options.
+    :type options: dict, optional
+    :return: The result of the command.
+    :rtype: dict
+    """
+    uri = ["resources", "related_assets", asset_id]
     params = {"assets_to_unrelate": utils.build_array(assets_to_unrelate)}
     return call_json_api("delete", uri, params, **options)
 

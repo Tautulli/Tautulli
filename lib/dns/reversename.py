@@ -19,9 +19,9 @@
 
 import binascii
 
-import dns.name
-import dns.ipv6
 import dns.ipv4
+import dns.ipv6
+import dns.name
 
 ipv4_reverse_domain = dns.name.from_text("in-addr.arpa.")
 ipv6_reverse_domain = dns.name.from_text("ip6.arpa.")

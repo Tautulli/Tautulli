@@ -2,7 +2,7 @@
 _http.py
 websocket - WebSocket client library for Python
 
-Copyright 2022 engn33r
+Copyright 2023 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ limitations under the License.
 import errno
 import os
 import socket
-import sys
 
 from ._exceptions import *
 from ._logging import *
@@ -69,7 +68,7 @@ class proxy_info:
             self.proxy_protocol = "http"
 
 
-def _start_proxied_socket(url, options, proxy):
+def _start_proxied_socket(url: str, options, proxy):
     if not HAVE_PYTHON_SOCKS:
         raise WebSocketException("Python Socks is needed for SOCKS proxying but is not available")
 
@@ -107,7 +106,7 @@ def _start_proxied_socket(url, options, proxy):
     return sock, (hostname, port, resource)
 
 
-def connect(url, options, proxy, socket):
+def connect(url: str, options, proxy, socket):
     # Use _start_proxied_socket() only for socks4 or socks5 proxy
     # Use _tunnel() for http proxy
     # TODO: Use python-socks for http protocol also, to standardize flow
@@ -211,6 +210,11 @@ def _wrap_sni_socket(sock, sslopt, hostname, check_hostname):
     context = sslopt.get('context', None)
     if not context:
         context = ssl.SSLContext(sslopt.get('ssl_version', ssl.PROTOCOL_TLS_CLIENT))
+        # Non default context need to manually enable SSLKEYLOGFILE support by setting the keylog_filename attribute.
+        # For more details see also:
+        # * https://docs.python.org/3.8/library/ssl.html?highlight=sslkeylogfile#context-creation
+        # * https://docs.python.org/3.8/library/ssl.html?highlight=sslkeylogfile#ssl.SSLContext.keylog_filename
+        context.keylog_filename = os.environ.get("SSLKEYLOGFILE", None)
 
         if sslopt.get('cert_reqs', ssl.CERT_NONE) != ssl.CERT_NONE:
             cafile = sslopt.get('ca_certs', None)
@@ -275,8 +279,8 @@ def _ssl_socket(sock, user_sslopt, hostname):
 
 def _tunnel(sock, host, port, auth):
     debug("Connecting proxy...")
-    connect_header = "CONNECT %s:%d HTTP/1.1\r\n" % (host, port)
-    connect_header += "Host: %s:%d\r\n" % (host, port)
+    connect_header = "CONNECT {h}:{p} HTTP/1.1\r\n".format(h=host, p=port)
+    connect_header += "Host: {h}:{p}\r\n".format(h=host, p=port)
 
     # TODO: support digest auth.
     if auth and auth[0]:
@@ -284,7 +288,7 @@ def _tunnel(sock, host, port, auth):
         if auth[1]:
             auth_str += ":" + auth[1]
         encoded_str = base64encode(auth_str.encode()).strip().decode().replace('\n', '')
-        connect_header += "Proxy-Authorization: Basic %s\r\n" % encoded_str
+        connect_header += "Proxy-Authorization: Basic {str}\r\n".format(str=encoded_str)
     connect_header += "\r\n"
     dump("request header", connect_header)
 
@@ -297,7 +301,7 @@ def _tunnel(sock, host, port, auth):
 
     if status != 200:
         raise WebSocketProxyException(
-            "failed CONNECT via proxy status: %r" % status)
+            "failed CONNECT via proxy status: {status}".format(status=status))
 
     return sock
 

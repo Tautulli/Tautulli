@@ -15,19 +15,16 @@ from datetime import datetime
 from getpass import getpass
 from threading import Event, Thread
 from urllib.parse import quote
+from requests.status_codes import _codes as codes
 
 import requests
-from plexapi.exceptions import BadRequest, NotFound
+
+from plexapi.exceptions import BadRequest, NotFound, Unauthorized
 
 try:
     from tqdm import tqdm
 except ImportError:
     tqdm = None
-
-try:
-    from functools import cached_property
-except ImportError:
-    from backports.cached_property import cached_property  # noqa: F401
 
 log = logging.getLogger('plexapi')
 
@@ -106,7 +103,7 @@ class SecretsFilter(logging.Filter):
         self.secrets = secrets or set()
 
     def add_secret(self, secret):
-        if secret is not None:
+        if secret is not None and secret != '':
             self.secrets.add(secret)
         return secret
 
@@ -128,7 +125,9 @@ def registerPlexObject(cls):
     etype = getattr(cls, 'STREAMTYPE', getattr(cls, 'TAGTYPE', cls.TYPE))
     ehash = f'{cls.TAG}.{etype}' if etype else cls.TAG
     if getattr(cls, '_SESSIONTYPE', None):
-        ehash = f"{ehash}.{'session'}"
+        ehash = f"{ehash}.session"
+    elif getattr(cls, '_HISTORYTYPE', None):
+        ehash = f"{ehash}.history"
     if ehash in PLEXOBJECTS:
         raise Exception(f'Ambiguous PlexObject definition {cls.__name__}(tag={cls.TAG}, type={etype}) '
                         f'with {PLEXOBJECTS[ehash].__name__}')
@@ -391,12 +390,12 @@ def downloadSessionImages(server, filename=None, height=150, width=150,
                 prettyname = media._prettyfilename()
                 filename = f'session_transcode_{media.usernames[0]}_{prettyname}_{int(time.time())}'
             url = server.transcodeImage(url, height, width, opacity, saturation)
-            filepath = download(url, filename=filename)
+            filepath = download(url, server._token, filename=filename)
             info['username'] = {'filepath': filepath, 'url': url}
     return info
 
 
-def download(url, token, filename=None, savepath=None, session=None, chunksize=4024,
+def download(url, token, filename=None, savepath=None, session=None, chunksize=4024,   # noqa: C901
              unpack=False, mocked=False, showstatus=False):
     """ Helper to download a thumb, videofile or other media item. Returns the local
         path to the downloaded file.
@@ -419,6 +418,17 @@ def download(url, token, filename=None, savepath=None, session=None, chunksize=4
     session = session or requests.Session()
     headers = {'X-Plex-Token': token}
     response = session.get(url, headers=headers, stream=True)
+    if response.status_code not in (200, 201, 204):
+        codename = codes.get(response.status_code)[0]
+        errtext = response.text.replace('\n', ' ')
+        message = f'({response.status_code}) {codename}; {response.url} {errtext}'
+        if response.status_code == 401:
+            raise Unauthorized(message)
+        elif response.status_code == 404:
+            raise NotFound(message)
+        else:
+            raise BadRequest(message)
+
     # make sure the savepath directory exists
     savepath = savepath or os.getcwd()
     os.makedirs(savepath, exist_ok=True)

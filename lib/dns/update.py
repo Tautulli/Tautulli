@@ -24,8 +24,8 @@ import dns.name
 import dns.opcode
 import dns.rdata
 import dns.rdataclass
-import dns.rdatatype
 import dns.rdataset
+import dns.rdatatype
 import dns.tsig
 
 
@@ -43,7 +43,6 @@ class UpdateSection(dns.enum.IntEnum):
 
 
 class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
-
     # ignore the mypy error here as we mean to use a different enum
     _section_enum = UpdateSection  # type: ignore
 
@@ -336,12 +335,12 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                 True,
             )
         else:
-            the_rdtype = dns.rdatatype.RdataType.make(rdtype)
+            rdtype = dns.rdatatype.RdataType.make(rdtype)
             self.find_rrset(
                 self.prerequisite,
                 name,
                 dns.rdataclass.NONE,
-                the_rdtype,
+                rdtype,
                 dns.rdatatype.NONE,
                 None,
                 True,

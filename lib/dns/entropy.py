@@ -15,17 +15,15 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from typing import Any, Optional
-
-import os
 import hashlib
+import os
 import random
 import threading
 import time
+from typing import Any, Optional
 
 
 class EntropyPool:
-
     # This is an entropy pool for Python implementations that do not
     # have a working SystemRandom.  I'm not sure there are any, but
     # leaving this code doesn't hurt anything as the library code

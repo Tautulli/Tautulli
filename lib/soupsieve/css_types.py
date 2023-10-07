@@ -2,7 +2,7 @@
 from __future__ import annotations
 import copyreg
 from .pretty import pretty
-from typing import Any, Iterator, Hashable, Optional, Pattern, Iterable, Mapping
+from typing import Any, Iterator, Hashable, Pattern, Iterable, Mapping
 
 __all__ = (
     'Selector',
@@ -189,28 +189,28 @@ class Selector(Immutable):
         'relation', 'rel_type', 'contains', 'lang', 'flags', '_hash'
     )
 
-    tag: Optional[SelectorTag]
+    tag: SelectorTag | None
     ids: tuple[str, ...]
     classes: tuple[str, ...]
     attributes: tuple[SelectorAttribute, ...]
     nth: tuple[SelectorNth, ...]
     selectors: tuple[SelectorList, ...]
     relation: SelectorList
-    rel_type: Optional[str]
+    rel_type: str | None
     contains: tuple[SelectorContains, ...]
     lang: tuple[SelectorLang, ...]
     flags: int
 
     def __init__(
         self,
-        tag: Optional[SelectorTag],
+        tag: SelectorTag | None,
         ids: tuple[str, ...],
         classes: tuple[str, ...],
         attributes: tuple[SelectorAttribute, ...],
         nth: tuple[SelectorNth, ...],
         selectors: tuple[SelectorList, ...],
         relation: SelectorList,
-        rel_type: Optional[str],
+        rel_type: str | None,
         contains: tuple[SelectorContains, ...],
         lang: tuple[SelectorLang, ...],
         flags: int
@@ -247,9 +247,9 @@ class SelectorTag(Immutable):
     __slots__ = ("name", "prefix", "_hash")
 
     name: str
-    prefix: Optional[str]
+    prefix: str | None
 
-    def __init__(self, name: str, prefix: Optional[str]) -> None:
+    def __init__(self, name: str, prefix: str | None) -> None:
         """Initialize."""
 
         super().__init__(name=name, prefix=prefix)
@@ -262,15 +262,15 @@ class SelectorAttribute(Immutable):
 
     attribute: str
     prefix: str
-    pattern: Optional[Pattern[str]]
-    xml_type_pattern: Optional[Pattern[str]]
+    pattern: Pattern[str] | None
+    xml_type_pattern: Pattern[str] | None
 
     def __init__(
         self,
         attribute: str,
         prefix: str,
-        pattern: Optional[Pattern[str]],
-        xml_type_pattern: Optional[Pattern[str]]
+        pattern: Pattern[str] | None,
+        xml_type_pattern: Pattern[str] | None
     ) -> None:
         """Initialize."""
 
@@ -360,7 +360,7 @@ class SelectorList(Immutable):
 
     def __init__(
         self,
-        selectors: Optional[Iterable[Selector | SelectorNull]] = None,
+        selectors: Iterable[Selector | SelectorNull] | None = None,
         is_not: bool = False,
         is_html: bool = False
     ) -> None:

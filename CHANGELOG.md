@@ -1,5 +1,41 @@
 # Changelog
 
+## v2.13.1 (2023-08-25)
+* Notes:
+  * Support for Python 3.7 has been dropped. The minimum Python version is now 3.8.
+* Other:
+  * Fix: Tautulli failing to start on some systems.
+
+
+## v2.13.0 (2023-08-25)
+
+* Notes:
+  * Support for Python 3.7 has been dropped. The minimum Python version is now 3.8.
+* Notifications:
+  * Fix: Improved watched notification trigger description. (#2104)
+  * New: Added notification image option for iOS Tautulli Remote app.
+* Exporter:
+  * New: Added track chapter export fields.
+  * New: Added on-demand subtitle export fields.
+
+
+## v2.12.5 (2023-07-13)
+
+* Activity:
+  * New: Added d3d11va to list of hardware decoders.
+* History:
+  * Fix: Incorrect grouping of play history.
+  * New: Added button in settings to regroup play history.
+* Notifications:
+  * Fix: Incorrect concurrent streams notifications by IP addresss for IPv6 addresses (#2096) (Thanks @pooley182)
+* UI:
+  * Fix: Occasional UI crashing on Python 3.11.
+  * New: Added multiselect user filters to History and Graphs pages. (#2090) (Thanks @zdimension)
+* API:
+  * New: Added regroup_history API command.
+  * Change: Updated graph API commands to accept a comma separated list of user IDs.
+
+
 ## v2.12.4 (2023-05-23)
 
 * History:
