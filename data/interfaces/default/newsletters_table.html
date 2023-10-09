@@ -20,13 +20,28 @@ DOCUMENTATION :: END
             % else:
             ${newsletter['agent_label']} &nbsp;<span class="friendly_name">(${newsletter['id']})</span>
             % endif
-            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-cog"></i></span>
-            <span class="toggle-right friendly_name" id="newsletter-next_run-${newsletter['id']}">
+            <span class="toggle-right friendly_name">
                 % if newsletter_handler.NEWSLETTER_SCHED.get_job('newsletter-{}'.format(newsletter['id'])):
                 <% job = newsletter_handler.NEWSLETTER_SCHED.get_job('newsletter-{}'.format(newsletter['id'])) %>
-                <script>
-                    $("#newsletter-next_run-${newsletter['id']}").text(moment("${job.next_run_time}", "YYYY-MM-DD HH:mm:ssZ").fromNow())
-                </script>
+                <span id="newsletter-next_run-${newsletter['id']}">
+                    <script>
+                        $("#newsletter-next_run-${newsletter['id']}").text(
+                            "Next: " + moment("${job.next_run_time}", "YYYY-MM-DD HH:mm:ssZ").fromNow() + " | ")
+                    </script>
+                </span>
+                % endif
+                % if newsletter['last_triggered']:
+                <% icon, icon_tooltip = ('fa-check', 'Success') if newsletter['last_success'] else ('fa-times', 'Failed') %>
+                <span id="newsletter-last_triggered-${newsletter['id']}">
+                    <script>
+                        $("#newsletter-last_triggered-${newsletter['id']}").html(
+                            "Last: " + moment("${newsletter['last_triggered']}", "X").fromNow() + ' <i class="fa fa-lg fa-fw ${icon}" data-toggle="tooltip" data-placement="top" title="${icon_tooltip}"></i>'
+                        )
+                    </script>
+                </span>
+                % else:
+                Last: never
+                <i class="fa fa-lg fa-fw fa-minus"></i>
                 % endif
             </span>
         </span>

@@ -119,13 +119,22 @@ def get_newsletters(newsletter_id=None):
     if newsletter_id:
         where = "WHERE "
         if newsletter_id:
-            where_id += "id = ?"
+            where_id += "newsletters.id = ?"
             args.append(newsletter_id)
         where += " AND ".join([w for w in [where_id] if w])
 
     db = database.MonitorDatabase()
-    result = db.select("SELECT id, agent_id, agent_name, agent_label, "
-                       "friendly_name, cron, active FROM newsletters %s" % where, args=args)
+    result = db.select(
+        (
+            "SELECT newsletters.id, newsletters.agent_id, newsletters.agent_name, newsletters.agent_label, "
+            "newsletters.friendly_name, newsletters.cron, newsletters.active, "
+            "MAX(newsletter_log.timestamp) AS last_triggered, newsletter_log.success AS last_success "
+            "FROM newsletters "
+            "LEFT OUTER JOIN newsletter_log ON newsletters.id = newsletter_log.newsletter_id "
+            "%s "
+            "GROUP BY newsletters.id"
+        ) % where, args=args
+    )
 
     return result
 
