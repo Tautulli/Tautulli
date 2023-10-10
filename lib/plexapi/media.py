@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
 import xml
+from pathlib import Path
 from urllib.parse import quote_plus
 
 from plexapi import log, settings, utils
@@ -121,6 +121,7 @@ class MediaPart(PlexObject):
             optimizedForStreaming (bool): True if the file is optimized for streaming.
             packetLength (int): The packet length of the file.
             requiredBandwidths (str): The required bandwidths to stream the file.
+            selected (bool): True if this media part is selected.
             size (int): The size of the file in bytes (ex: 733884416).
             streams (List<:class:`~plexapi.media.MediaPartStream`>): List of stream objects.
             syncItemId (int): The unique ID for this media part if it is synced.
@@ -184,37 +185,59 @@ class MediaPart(PlexObject):
         """ Returns a list of :class:`~plexapi.media.LyricStream` objects in this MediaPart. """
         return [stream for stream in self.streams if isinstance(stream, LyricStream)]
 
-    def setDefaultAudioStream(self, stream):
-        """ Set the default :class:`~plexapi.media.AudioStream` for this MediaPart.
+    def setSelectedAudioStream(self, stream):
+        """ Set the selected :class:`~plexapi.media.AudioStream` for this MediaPart.
 
             Parameters:
-                stream (:class:`~plexapi.media.AudioStream`): AudioStream to set as default
+                stream (:class:`~plexapi.media.AudioStream`): Audio stream to set as selected
         """
+        key = f'/library/parts/{self.id}'
+        params = {'allParts': 1}
+
         if isinstance(stream, AudioStream):
-            key = f"/library/parts/{self.id}?audioStreamID={stream.id}&allParts=1"
+            params['audioStreamID'] = stream.id
         else:
-            key = f"/library/parts/{self.id}?audioStreamID={stream}&allParts=1"
-        self._server.query(key, method=self._server._session.put)
+            params['audioStreamID'] = stream
+
+        self._server.query(key, method=self._server._session.put, params=params)
         return self
 
-    def setDefaultSubtitleStream(self, stream):
-        """ Set the default :class:`~plexapi.media.SubtitleStream` for this MediaPart.
+    def setSelectedSubtitleStream(self, stream):
+        """ Set the selected :class:`~plexapi.media.SubtitleStream` for this MediaPart.
 
             Parameters:
-                stream (:class:`~plexapi.media.SubtitleStream`): SubtitleStream to set as default.
+                stream (:class:`~plexapi.media.SubtitleStream`): Subtitle stream to set as selected.
         """
+        key = f'/library/parts/{self.id}'
+        params = {'allParts': 1}
+
         if isinstance(stream, SubtitleStream):
-            key = f"/library/parts/{self.id}?subtitleStreamID={stream.id}&allParts=1"
+            params['subtitleStreamID'] = stream.id
         else:
-            key = f"/library/parts/{self.id}?subtitleStreamID={stream}&allParts=1"
+            params['subtitleStreamID'] = stream
+
         self._server.query(key, method=self._server._session.put)
         return self
 
-    def resetDefaultSubtitleStream(self):
-        """ Set default subtitle of this MediaPart to 'none'. """
-        key = f"/library/parts/{self.id}?subtitleStreamID=0&allParts=1"
-        self._server.query(key, method=self._server._session.put)
+    def resetSelectedSubtitleStream(self):
+        """ Set the selected subtitle of this MediaPart to 'None'. """
+        key = f'/library/parts/{self.id}'
+        params = {'subtitleStreamID': 0, 'allParts': 1}
+
+        self._server.query(key, method=self._server._session.put, params=params)
         return self
+
+    @deprecated('Use "setSelectedAudioStream" instead.')
+    def setDefaultAudioStream(self, stream):
+        return self.setSelectedAudioStream(stream)
+
+    @deprecated('Use "setSelectedSubtitleStream" instead.')
+    def setDefaultSubtitleStream(self, stream):
+        return self.setSelectedSubtitleStream(stream)
+
+    @deprecated('Use "resetSelectedSubtitleStream" instead.')
+    def resetDefaultSubtitleStream(self):
+        return self.resetSelectedSubtitleStream()
 
 
 class MediaPartStream(PlexObject):
@@ -399,9 +422,15 @@ class AudioStream(MediaPartStream):
             self.peak = utils.cast(float, data.attrib.get('peak'))
             self.startRamp = data.attrib.get('startRamp')
 
+    def setSelected(self):
+        """ Sets this audio stream as the selected audio stream.
+            Alias for :func:`~plexapi.media.MediaPart.setSelectedAudioStream`.
+        """
+        return self._parent().setSelectedAudioStream(self)
+
+    @deprecated('Use "setSelected" instead.')
     def setDefault(self):
-        """ Sets this audio stream as the default audio stream. """
-        return self._parent().setDefaultAudioStream(self)
+        return self.setSelected()
 
 
 @utils.registerPlexObject
@@ -437,9 +466,15 @@ class SubtitleStream(MediaPartStream):
         self.transient = data.attrib.get('transient')
         self.userID = utils.cast(int, data.attrib.get('userID'))
 
+    def setSelected(self):
+        """ Sets this subtitle stream as the selected subtitle stream.
+            Alias for :func:`~plexapi.media.MediaPart.setSelectedSubtitleStream`.
+        """
+        return self._parent().setSelectedSubtitleStream(self)
+
+    @deprecated('Use "setSelected" instead.')
     def setDefault(self):
-        """ Sets this subtitle stream as the default subtitle stream. """
-        return self._parent().setDefaultSubtitleStream(self)
+        return self.setSelected()
 
 
 class LyricStream(MediaPartStream):
@@ -973,6 +1008,7 @@ class BaseResource(PlexObject):
             selected (bool): True if the resource is currently selected.
             thumb (str): The URL to retrieve the resource thumbnail.
     """
+
     def _loadData(self, data):
         self._data = data
         self.key = data.attrib.get('key')
@@ -988,6 +1024,20 @@ class BaseResource(PlexObject):
             self._server.query(data, method=self._server._session.put)
         except xml.etree.ElementTree.ParseError:
             pass
+
+    @property
+    def resourceFilepath(self):
+        """ Returns the file path to the resource in the Plex Media Server data directory.
+            Note: Returns the URL if the resource is not stored locally.
+        """
+        if self.ratingKey.startswith('media://'):
+            return str(Path('Media') / 'localhost' / self.ratingKey.split('://')[-1])
+        elif self.ratingKey.startswith('metadata://'):
+            return str(Path(self._parent().metadataDirectory) / 'Contents' / '_combined' / self.ratingKey.split('://')[-1])
+        elif self.ratingKey.startswith('upload://'):
+            return str(Path(self._parent().metadataDirectory) / 'Uploads' / self.ratingKey.split('://')[-1])
+        else:
+            return self.ratingKey
 
 
 class Art(BaseResource):

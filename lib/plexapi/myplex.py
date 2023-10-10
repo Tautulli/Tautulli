@@ -111,12 +111,14 @@ class MyPlexAccount(PlexObject):
     # Hub sections
     VOD = 'https://vod.provider.plex.tv'                                                        # get
     MUSIC = 'https://music.provider.plex.tv'                                                    # get
+    DISCOVER = 'https://discover.provider.plex.tv'
     METADATA = 'https://metadata.provider.plex.tv'
     key = 'https://plex.tv/api/v2/user'
 
     def __init__(self, username=None, password=None, token=None, session=None, timeout=None, code=None, remember=True):
         self._token = logfilter.add_secret(token or CONFIG.get('auth.server_token'))
         self._session = session or requests.Session()
+        self._timeout = timeout or TIMEOUT
         self._sonos_cache = []
         self._sonos_cache_timestamp = 0
         data, initpath = self._signin(username, password, code, remember, timeout)
@@ -186,7 +188,9 @@ class MyPlexAccount(PlexObject):
         self.subscriptionPaymentService = subscription.attrib.get('paymentService')
         self.subscriptionPlan = subscription.attrib.get('plan')
         self.subscriptionStatus = subscription.attrib.get('status')
-        self.subscriptionSubscribedAt = utils.toDatetime(subscription.attrib.get('subscribedAt'), '%Y-%m-%d %H:%M:%S %Z')
+        self.subscriptionSubscribedAt = utils.toDatetime(
+            subscription.attrib.get('subscribedAt') or None, '%Y-%m-%d %H:%M:%S %Z'
+        )
 
         profile = data.find('profile')
         self.profileAutoSelectAudio = utils.cast(bool, profile.attrib.get('autoSelectAudio'))
@@ -223,7 +227,7 @@ class MyPlexAccount(PlexObject):
 
     def query(self, url, method=None, headers=None, timeout=None, **kwargs):
         method = method or self._session.get
-        timeout = timeout or TIMEOUT
+        timeout = timeout or self._timeout
         log.debug('%s %s %s', method.__name__.upper(), url, kwargs.get('json', ''))
         headers = self._headers(**headers or {})
         response = method(url, headers=headers, timeout=timeout, **kwargs)
@@ -239,8 +243,10 @@ class MyPlexAccount(PlexObject):
                 raise Unauthorized(message)
             else:
                 raise BadRequest(message)
-        if headers.get('Accept') == 'application/json':
+        if 'application/json' in response.headers.get('Content-Type', ''):
             return response.json()
+        elif 'text/plain' in response.headers.get('Content-Type', ''):
+            return response.text.strip()
         data = response.text.encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
 
@@ -672,7 +678,7 @@ class MyPlexAccount(PlexObject):
             if (invite.username and invite.email and invite.id and username.lower() in
                     (invite.username.lower(), invite.email.lower(), str(invite.id))):
                 return invite
-        
+
         raise NotFound(f'Unable to find invite {username}')
 
     def pendingInvites(self, includeSent=True, includeReceived=True):
@@ -950,7 +956,7 @@ class MyPlexAccount(PlexObject):
         """
         if not isinstance(items, list):
             items = [items]
-        
+
         for item in items:
             if self.onWatchlist(item):
                 raise BadRequest(f'"{item.title}" is already on the watchlist')
@@ -971,7 +977,7 @@ class MyPlexAccount(PlexObject):
         """
         if not isinstance(items, list):
             items = [items]
-        
+
         for item in items:
             if not self.onWatchlist(item):
                 raise BadRequest(f'"{item.title}" is not on the watchlist')
@@ -1053,7 +1059,7 @@ class MyPlexAccount(PlexObject):
             'includeMetadata': 1
         }
 
-        data = self.query(f'{self.METADATA}/library/search', headers=headers, params=params)
+        data = self.query(f'{self.DISCOVER}/library/search', headers=headers, params=params)
         searchResults = data['MediaContainer'].get('SearchResults', [])
         searchResult = next((s.get('SearchResult', []) for s in searchResults if s.get('id') == 'external'), [])
 
@@ -1134,6 +1140,21 @@ class MyPlexAccount(PlexObject):
             obj._details_key = urlunsplit((url.scheme, url.netloc, url.path, urlencode(query), url.fragment))
 
         return objs
+
+    def publicIP(self):
+        """ Returns your public IP address. """
+        return self.query('https://plex.tv/:/ip')
+
+    def geoip(self, ip_address):
+        """ Returns a :class:`~plexapi.myplex.GeoLocation` object with geolocation information
+            for an IP address using Plex's GeoIP database.
+
+            Parameters:
+                ip_address (str): IP address to lookup.
+        """
+        params = {'ip_address': ip_address}
+        data = self.query('https://plex.tv/api/v2/geoip', params=params)
+        return GeoLocation(self, data)
 
 
 class MyPlexUser(PlexObject):
@@ -1773,7 +1794,7 @@ class MyPlexPinLogin:
             params = None
 
         response = self._query(url, self._session.post, params=params)
-        if not response:
+        if response is None:
             return None
 
         self._id = response.attrib.get('id')
@@ -1790,7 +1811,7 @@ class MyPlexPinLogin:
 
         url = self.CHECKPINS.format(pinid=self._id)
         response = self._query(url)
-        if not response:
+        if response is None:
             return False
 
         token = response.attrib.get('authToken')
@@ -1927,7 +1948,7 @@ class AccountOptOut(PlexObject):
 
     def optOutManaged(self):
         """ Sets the Online Media Source to "Disabled for Managed Users".
-        
+
             Raises:
                 :exc:`~plexapi.exceptions.BadRequest`: When trying to opt out music.
         """
@@ -1964,3 +1985,42 @@ class UserState(PlexObject):
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.viewState = data.attrib.get('viewState') == 'complete'
         self.watchlistedAt = utils.toDatetime(data.attrib.get('watchlistedAt'))
+
+
+class GeoLocation(PlexObject):
+    """ Represents a signle IP address geolocation
+
+        Attributes:
+            TAG (str): location
+            city (str): City name
+            code (str): Country code
+            continentCode (str): Continent code
+            coordinates (Tuple<float>): Latitude and longitude
+            country (str): Country name
+            europeanUnionMember (bool): True if the country is a member of the European Union
+            inPrivacyRestrictedCountry (bool): True if the country is privacy restricted
+            postalCode (str): Postal code
+            subdivisions (str): Subdivision name
+            timezone (str): Timezone
+    """
+    TAG = 'location'
+
+    def _loadData(self, data):
+        self._data = data
+        self.city = data.attrib.get('city')
+        self.code = data.attrib.get('code')
+        self.continentCode = data.attrib.get('continent_code')
+        self.coordinates = tuple(
+            utils.cast(float, coord) for coord in (data.attrib.get('coordinates') or ',').split(','))
+        self.country = data.attrib.get('country')
+        self.postalCode = data.attrib.get('postal_code')
+        self.subdivisions = data.attrib.get('subdivisions')
+        self.timezone = data.attrib.get('time_zone')
+
+        europeanUnionMember = data.attrib.get('european_union_member')
+        self.europeanUnionMember = (
+            False if europeanUnionMember == 'Unknown' else utils.cast(bool, europeanUnionMember))
+
+        inPrivacyRestrictedCountry = data.attrib.get('in_privacy_restricted_country')
+        self.inPrivacyRestrictedCountry = (
+            False if inPrivacyRestrictedCountry == 'Unknown' else utils.cast(bool, inPrivacyRestrictedCountry))

@@ -109,7 +109,7 @@ class PlexServer(PlexObject):
         self._token = logfilter.add_secret(token or CONFIG.get('auth.server_token'))
         self._showSecrets = CONFIG.get('log.show_secrets', '').lower() == 'true'
         self._session = session or requests.Session()
-        self._timeout = timeout
+        self._timeout = timeout or TIMEOUT
         self._myPlexAccount = None   # cached myPlexAccount
         self._systemAccounts = None   # cached list of SystemAccount
         self._systemDevices = None   # cached list of SystemDevice
@@ -189,6 +189,11 @@ class PlexServer(PlexObject):
         data = self.query(Settings.key)
         return Settings(self, data)
 
+    def identity(self):
+        """ Returns the Plex server identity. """
+        data = self.query('/identity')
+        return Identity(self, data)
+
     def account(self):
         """ Returns the :class:`~plexapi.server.Account` object this server belongs to. """
         data = self.query(Account.key)
@@ -197,7 +202,7 @@ class PlexServer(PlexObject):
     def claim(self, account):
         """ Claim the Plex server using a :class:`~plexapi.myplex.MyPlexAccount`.
             This will only work with an unclaimed server on localhost or the same subnet.
-        
+
             Parameters:
                 account (:class:`~plexapi.myplex.MyPlexAccount`): The account used to
                     claim the server.
@@ -240,7 +245,7 @@ class PlexServer(PlexObject):
     def switchUser(self, user, session=None, timeout=None):
         """ Returns a new :class:`~plexapi.server.PlexServer` object logged in as the given username.
             Note: Only the admin account can switch to other users.
-        
+
             Parameters:
                 user (:class:`~plexapi.myplex.MyPlexUser` or str): `MyPlexUser` object, username,
                     email, or user id of the user to log in to the server.
@@ -585,7 +590,7 @@ class PlexServer(PlexObject):
     def runButlerTask(self, task):
         """ Manually run a butler task immediately instead of waiting for the scheduled task to run.
             Note: The butler task is run asynchronously. Check Plex Web to monitor activity.
-        
+
             Parameters:
                 task (str): The name of the task to run. (e.g. 'BackupDatabase')
 
@@ -597,7 +602,7 @@ class PlexServer(PlexObject):
                     print("Available butler tasks:", availableTasks)
 
         """
-        validTasks = [task.name for task in self.butlerTasks()]
+        validTasks = [_task.name for _task in self.butlerTasks()]
         if task not in validTasks:
             raise BadRequest(
                 f'Invalid butler task: {task}. Available tasks are: {validTasks}'
@@ -610,7 +615,8 @@ class PlexServer(PlexObject):
         return self.checkForUpdate(force=force, download=download)
 
     def checkForUpdate(self, force=True, download=False):
-        """ Returns a :class:`~plexapi.base.Release` object containing release info.
+        """ Returns a :class:`~plexapi.server.Release` object containing release info
+            if an update is available or None if no update is available.
 
             Parameters:
                 force (bool): Force server to check for new releases
@@ -624,12 +630,19 @@ class PlexServer(PlexObject):
             return releases[0]
 
     def isLatest(self):
-        """ Check if the installed version of PMS is the latest. """
+        """ Returns True if the installed version of Plex Media Server is the latest. """
         release = self.checkForUpdate(force=True)
         return release is None
 
+    def canInstallUpdate(self):
+        """ Returns True if the newest version of Plex Media Server can be installed automatically.
+            (e.g. Windows and Mac can install updates automatically, but Docker and NAS devices cannot.)
+        """
+        release = self.query('/updater/status')
+        return utils.cast(bool, release.get('canInstall'))
+
     def installUpdate(self):
-        """ Install the newest version of Plex Media Server. """
+        """ Automatically install the newest version of Plex Media Server. """
         # We can add this but dunno how useful this is since it sometimes
         # requires user action using a gui.
         part = '/updater/apply'
@@ -661,7 +674,7 @@ class PlexServer(PlexObject):
             args['librarySectionID'] = librarySectionID
         if mindate:
             args['viewedAt>'] = int(mindate.timestamp())
-        
+
         key = f'/status/sessions/history/all{utils.joinArgs(args)}'
         return self.fetchItems(key, maxresults=maxresults)
 
@@ -741,7 +754,7 @@ class PlexServer(PlexObject):
         """
         url = self.url(key)
         method = method or self._session.get
-        timeout = timeout or TIMEOUT
+        timeout = timeout or self._timeout
         log.debug('%s %s', method.__name__.upper(), url)
         headers = self._headers(**headers or {})
         response = method(url, headers=headers, timeout=timeout, **kwargs)
@@ -1253,7 +1266,7 @@ class StatisticsResources(PlexObject):
 @utils.registerPlexObject
 class ButlerTask(PlexObject):
     """ Represents a single scheduled butler task.
-    
+
         Attributes:
             TAG (str): 'ButlerTask'
             description (str): The description of the task.
@@ -1273,3 +1286,22 @@ class ButlerTask(PlexObject):
         self.name = data.attrib.get('name')
         self.scheduleRandomized = utils.cast(bool, data.attrib.get('scheduleRandomized'))
         self.title = data.attrib.get('title')
+
+
+class Identity(PlexObject):
+    """ Represents a server identity.
+
+        Attributes:
+            claimed (bool): True or False if the server is claimed.
+            machineIdentifier (str): The Plex server machine identifier.
+            version (str): The Plex server version.
+    """
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}:{self.machineIdentifier}>"
+
+    def _loadData(self, data):
+        self._data = data
+        self.claimed = utils.cast(bool, data.attrib.get('claimed'))
+        self.machineIdentifier = data.attrib.get('machineIdentifier')
+        self.version = data.attrib.get('version')

@@ -11,13 +11,14 @@ import unicodedata
 import warnings
 import zipfile
 from collections import deque
-from datetime import datetime
+from datetime import datetime, timedelta
 from getpass import getpass
+from hashlib import sha1
 from threading import Event, Thread
 from urllib.parse import quote
-from requests.status_codes import _codes as codes
 
 import requests
+from requests.status_codes import _codes as codes
 
 from plexapi.exceptions import BadRequest, NotFound, Unauthorized
 
@@ -313,33 +314,44 @@ def toDatetime(value, format=None):
             value (str): value to return as a datetime
             format (str): Format to pass strftime (optional; if value is a str).
     """
-    if value and value is not None:
+    if value is not None:
         if format:
             try:
-                value = datetime.strptime(value, format)
+                return datetime.strptime(value, format)
             except ValueError:
-                log.info('Failed to parse %s to datetime, defaulting to None', value)
+                log.info('Failed to parse "%s" to datetime as format "%s", defaulting to None', value, format)
                 return None
         else:
-            # https://bugs.python.org/issue30684
-            # And platform support for before epoch seems to be flaky.
-            # Also limit to max 32-bit integer
-            value = min(max(int(value), 86400), 2**31 - 1)
-            value = datetime.fromtimestamp(int(value))
+            try:
+                value = int(value)
+            except ValueError:
+                log.info('Failed to parse "%s" to datetime as timestamp, defaulting to None', value)
+                return None
+            try:
+                return datetime.fromtimestamp(value)
+            except (OSError, OverflowError):
+                try:
+                    return datetime.fromtimestamp(0) + timedelta(seconds=value)
+                except OverflowError:
+                    log.info('Failed to parse "%s" to datetime as timestamp (out-of-bounds), defaulting to None', value)
+                    return None
     return value
 
 
 def millisecondToHumanstr(milliseconds):
-    """ Returns human readable time duration from milliseconds.
-        HH:MM:SS:MMMM
+    """ Returns human readable time duration [D day[s], ]HH:MM:SS.UUU from milliseconds.
 
         Parameters:
-            milliseconds (str,int): time duration in milliseconds.
+            milliseconds (str, int): time duration in milliseconds.
     """
     milliseconds = int(milliseconds)
-    r = datetime.utcfromtimestamp(milliseconds / 1000)
-    f = r.strftime("%H:%M:%S.%f")
-    return f[:-2]
+    if milliseconds < 0:
+        return '-' + millisecondToHumanstr(abs(milliseconds))
+    secs, ms = divmod(milliseconds, 1000)
+    mins, secs = divmod(secs, 60)
+    hours, mins = divmod(mins, 60)
+    days, hours = divmod(hours, 24)
+    return ('' if days == 0 else f'{days} day{"s" if days > 1 else ""}, ') + f'{hours:02d}:{mins:02d}:{secs:02d}.{ms:03d}'
 
 
 def toList(value, itemcast=None, delim=','):
@@ -644,3 +656,8 @@ def openOrRead(file):
         return file.read()
     with open(file, 'rb') as f:
         return f.read()
+
+
+def sha1hash(guid):
+    """ Return the SHA1 hash of a guid. """
+    return sha1(guid.encode('utf-8')).hexdigest()
