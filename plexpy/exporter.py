@@ -371,6 +371,7 @@ class Export(object):
                         }
                     }
                 },
+                'metadataDirectory': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
                 'originalTitle': None,
                 'producers': {
@@ -457,6 +458,7 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'metadataDirectory': None,
                 'network': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
                 'originalTitle': None,
@@ -523,6 +525,7 @@ class Export(object):
                 'librarySectionID': None,
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
+                'metadataDirectory': None,
                 'parentGuid': None,
                 'parentIndex': None,
                 'parentKey': None,
@@ -769,6 +772,7 @@ class Export(object):
                         }
                     }
                 },
+                'metadataDirectory': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
                 'parentGuid': None,
                 'parentIndex': None,
@@ -849,6 +853,7 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'metadataDirectory': None,
                 'moods': {
                     'id': None,
                     'tag': None
@@ -918,6 +923,7 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'loudnessAnalysisVersion': None,
+                'metadataDirectory': None,
                 'moods': {
                     'id': None,
                     'tag': None
@@ -1087,6 +1093,7 @@ class Export(object):
                         }
                     }
                 },
+                'metadataDirectory': None,
                 'moods': {
                     'id': None,
                     'tag': None
@@ -1133,6 +1140,7 @@ class Export(object):
                 'librarySectionID': None,
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
+                'metadataDirectory': None,
                 'ratingKey': None,
                 'summary': None,
                 'thumb': None,
@@ -1164,6 +1172,7 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'metadataDirectory': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
                 'parentGuid': None,
                 'parentIndex': None,
@@ -1238,6 +1247,7 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'maxYear': None,
+                'metadataDirectory': None,
                 'minYear': None,
                 'ratingKey': None,
                 'subtype': None,
@@ -1266,6 +1276,7 @@ class Export(object):
                 'icon': None,
                 'key': None,
                 'leafCount': None,
+                'metadataDirectory': None,
                 'playlistType': None,
                 'ratingKey': None,
                 'smart': None,
