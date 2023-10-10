@@ -227,7 +227,7 @@ class PlexObject:
 
                     fetchItem(ekey, viewCount__gte=0)
                     fetchItem(ekey, Media__container__in=["mp4", "mkv"])
-                    fetchItem(ekey, guid__iregex=r"(imdb:\/\/|themoviedb:\/\/)")
+                    fetchItem(ekey, guid__iregex=r"(imdb://|themoviedb://)")
                     fetchItem(ekey, Media__Part__file__startswith="D:\\Movies")
 
         """
@@ -502,7 +502,7 @@ class PlexPartialObject(PlexObject):
 
     def __eq__(self, other):
         if isinstance(other, PlexPartialObject):
-            return other not in [None, []] and self.key == other.key
+            return self.key == other.key
         return NotImplemented
 
     def __hash__(self):
@@ -626,7 +626,8 @@ class PlexPartialObject(PlexObject):
         return self
 
     def saveEdits(self):
-        """ Save all the batch edits and automatically reload the object.
+        """ Save all the batch edits. The object needs to be reloaded manually,
+            if required.
             See :func:`~plexapi.base.PlexPartialObject.batchEdits` for details.
         """
         if not isinstance(self._edits, dict):
@@ -635,7 +636,7 @@ class PlexPartialObject(PlexObject):
         edits = self._edits
         self._edits = None
         self._edit(**edits)
-        return self.reload()
+        return self
 
     def refresh(self):
         """ Refreshing a Library or individual item causes the metadata for the item to be
@@ -919,7 +920,7 @@ class PlexSession(object):
 
     def stop(self, reason=''):
         """ Stop playback for the session.
-        
+
             Parameters:
                 reason (str): Message displayed to the user for stopping playback.
         """

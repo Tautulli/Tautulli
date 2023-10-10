@@ -70,6 +70,7 @@ class PlexClient(PlexObject):
         self._showSecrets = CONFIG.get('log.show_secrets', '').lower() == 'true'
         server_session = server._session if server else None
         self._session = session or server_session or requests.Session()
+        self._timeout = timeout or TIMEOUT
         self._proxyThroughServer = False
         self._commandId = 0
         self._last_call = 0
@@ -94,7 +95,7 @@ class PlexClient(PlexObject):
             raise Unsupported('Cannot reload an object not built from a URL.')
         self._initpath = self.key
         data = self.query(self.key, timeout=timeout)
-        if not data:
+        if data is None:
             raise NotFound(f"Client not found at {self._baseurl}")
         if self._clientIdentifier:
             client = next(
@@ -179,7 +180,7 @@ class PlexClient(PlexObject):
         """
         url = self.url(path)
         method = method or self._session.get
-        timeout = timeout or TIMEOUT
+        timeout = timeout or self._timeout
         log.debug('%s %s', method.__name__.upper(), url)
         headers = self._headers(**headers or {})
         response = method(url, headers=headers, timeout=timeout, **kwargs)

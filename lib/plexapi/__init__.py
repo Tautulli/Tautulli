@@ -30,6 +30,7 @@ X_PLEX_VERSION = CONFIG.get('header.version', VERSION)
 X_PLEX_DEVICE = CONFIG.get('header.device', X_PLEX_PLATFORM)
 X_PLEX_DEVICE_NAME = CONFIG.get('header.device_name', uname()[1])
 X_PLEX_IDENTIFIER = CONFIG.get('header.identifier', str(hex(getnode())))
+X_PLEX_LANGUAGE = CONFIG.get('header.language', 'en')
 BASE_HEADERS = reset_base_headers()
 
 # Logging Configuration

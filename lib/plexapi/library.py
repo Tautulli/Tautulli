@@ -542,7 +542,7 @@ class LibrarySection(PlexObject):
 
     def addLocations(self, location):
         """ Add a location to a library.
-        
+
             Parameters:
                 location (str or list): A single folder path, list of paths.
 
@@ -565,7 +565,7 @@ class LibrarySection(PlexObject):
 
     def removeLocations(self, location):
         """ Remove a location from a library.
-        
+
             Parameters:
                 location (str or list): A single folder path, list of paths.
 
@@ -744,7 +744,7 @@ class LibrarySection(PlexObject):
 
     def lockAllField(self, field, libtype=None):
         """ Lock a field for all items in the library.
-        
+
             Parameters:
                 field (str): The field to lock (e.g. thumb, rating, collection).
                 libtype (str, optional): The library type to lock (movie, show, season, episode,
@@ -754,7 +754,7 @@ class LibrarySection(PlexObject):
 
     def unlockAllField(self, field, libtype=None):
         """ Unlock a field for all items in the library.
-        
+
             Parameters:
                 field (str): The field to unlock (e.g. thumb, rating, collection).
                 libtype (str, optional): The library type to lock (movie, show, season, episode,
@@ -847,7 +847,7 @@ class LibrarySection(PlexObject):
         """
         _key = ('/library/sections/{key}/{filter}?includeMeta=1&includeAdvanced=1'
                 '&X-Plex-Container-Start=0&X-Plex-Container-Size=0')
-               
+
         key = _key.format(key=self.key, filter='all')
         data = self._server.query(key)
         self._filterTypes = self.findItems(data, FilteringType, rtag='Meta')
@@ -894,7 +894,7 @@ class LibrarySection(PlexObject):
 
     def getFieldType(self, fieldType):
         """ Returns a :class:`~plexapi.library.FilteringFieldType` for a specified fieldType.
-        
+
             Parameters:
                 fieldType (str): The data type for the field (tag, integer, string, boolean, date,
                     subtitleLanguage, audioLanguage, resolution).
@@ -927,7 +927,7 @@ class LibrarySection(PlexObject):
 
         """
         return self.getFilterType(libtype).filters
-        
+
     def listSorts(self, libtype=None):
         """ Returns a list of available :class:`~plexapi.library.FilteringSort` for a specified libtype.
             This is the list of options in the sorting dropdown menu
@@ -970,7 +970,7 @@ class LibrarySection(PlexObject):
         """ Returns a list of available :class:`~plexapi.library.FilteringOperator` for a specified fieldType.
             This is the list of options in the custom filter operator dropdown menu
             (`screenshot <../_static/images/LibrarySection.search.png>`__).
-        
+
             Parameters:
                 fieldType (str): The data type for the field (tag, integer, string, boolean, date,
                     subtitleLanguage, audioLanguage, resolution).
@@ -992,7 +992,7 @@ class LibrarySection(PlexObject):
             :class:`~plexapi.library.FilteringFilter` or filter field.
             This is the list of available values for a custom filter
             (`screenshot <../_static/images/LibrarySection.search.png>`__).
-            
+
             Parameters:
                 field (str): :class:`~plexapi.library.FilteringFilter` object,
                     or the name of the field (genre, year, contentRating, etc.).
@@ -1024,7 +1024,7 @@ class LibrarySection(PlexObject):
                 availableFilters = [f.filter for f in self.listFilters(libtype)]
                 raise NotFound(f'Unknown filter field "{field}" for libtype "{libtype}". '
                                f'Available filters: {availableFilters}') from None
-                
+
         data = self._server.query(field.key)
         return self.findItems(data, FilterChoice)
 
@@ -1111,7 +1111,7 @@ class LibrarySection(PlexObject):
         except (ValueError, AttributeError):
             raise BadRequest(f'Invalid value "{value}" for filter field "{filterField.key}", '
                              f'value should be type {fieldType.type}') from None
-    
+
         return results
 
     def _validateFieldValueDate(self, value):
@@ -1345,7 +1345,7 @@ class LibrarySection(PlexObject):
             Tag type filter values can be a :class:`~plexapi.library.FilterChoice` object,
             :class:`~plexapi.media.MediaTag` object, the exact name :attr:`MediaTag.tag` (*str*),
             or the exact id :attr:`MediaTag.id` (*int*).
-            
+
             Date type filter values can be a ``datetime`` object, a relative date using a one of the
             available date suffixes (e.g. ``30d``) (*str*), or a date in ``YYYY-MM-DD`` (*str*) format.
 
@@ -1358,7 +1358,7 @@ class LibrarySection(PlexObject):
             * ``w``: ``weeks``
             * ``mon``: ``months``
             * ``y``: ``years``
-            
+
             Multiple values can be ``OR`` together by providing a list of values.
 
             Examples:
@@ -1684,12 +1684,12 @@ class LibrarySection(PlexObject):
 
     def _validateItems(self, items):
         """ Validates the specified items are from this library and of the same type. """
-        if not items:
+        if items is None or items == []:
             raise BadRequest('No items specified.')
-        
+
         if not isinstance(items, list):
             items = [items]
-        
+
         itemType = items[0].type
         for item in items:
             if item.librarySectionID != self.key:
@@ -3102,6 +3102,7 @@ class FirstCharacter(PlexObject):
             size (str): Total amount of library items starting with this character.
             title (str): Character (#, !, A, B, C, ...).
     """
+
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         self._data = data
