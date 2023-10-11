@@ -101,6 +101,8 @@ class Graphs(object):
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_day: %s." % e)
             return None
 
+        result_by_date_played = {item['date_played']: item for item in result}
+
         # create our date range as some days may not have any data
         # but we still want to display them
         base = datetime.date.today()
@@ -115,22 +117,13 @@ class Graphs(object):
         for date_item in sorted(date_list):
             date_string = date_item.strftime('%Y-%m-%d')
             categories.append(date_string)
-            series_1_value = 0
-            series_2_value = 0
-            series_3_value = 0
-            series_4_value = 0
-            for item in result:
-                if date_string == item['date_played']:
-                    series_1_value = item['tv_count']
-                    series_2_value = item['movie_count']
-                    series_3_value = item['music_count']
-                    series_4_value = item['live_count']
-                    break
-                else:
-                    series_1_value = 0
-                    series_2_value = 0
-                    series_3_value = 0
-                    series_4_value = 0
+
+            result_date = result_by_date_played.get(date_string, {})
+
+            series_1_value = result_date.get('tv_count', 0)
+            series_2_value = result_date.get('movie_count', 0)
+            series_3_value = result_date.get('music_count', 0)
+            series_4_value = result_date.get('live_count', 0)
 
             series_1.append(series_1_value)
             series_2.append(series_2_value)
@@ -233,6 +226,8 @@ class Graphs(object):
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_dayofweek: %s." % e)
             return None
 
+        result_by_dayofweek = {item['dayofweek']: item for item in result}
+
         if plexpy.CONFIG.WEEK_START_MONDAY:
             days_list = ['Monday', 'Tuesday', 'Wednesday',
                          'Thursday', 'Friday', 'Saturday', 'Sunday']
@@ -248,22 +243,13 @@ class Graphs(object):
 
         for day_item in days_list:
             categories.append(day_item)
-            series_1_value = 0
-            series_2_value = 0
-            series_3_value = 0
-            series_4_value = 0
-            for item in result:
-                if day_item == item['dayofweek']:
-                    series_1_value = item['tv_count']
-                    series_2_value = item['movie_count']
-                    series_3_value = item['music_count']
-                    series_4_value = item['live_count']
-                    break
-                else:
-                    series_1_value = 0
-                    series_2_value = 0
-                    series_3_value = 0
-                    series_4_value = 0
+
+            result_day = result_by_dayofweek.get(day_item, {})
+
+            series_1_value = result_day.get('tv_count', 0)
+            series_2_value = result_day.get('movie_count', 0)
+            series_3_value = result_day.get('music_count', 0)
+            series_4_value = result_day.get('live_count', 0)
 
             series_1.append(series_1_value)
             series_2.append(series_2_value)
@@ -350,6 +336,8 @@ class Graphs(object):
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_hourofday: %s." % e)
             return None
 
+        result_by_hourofday = {item['hourofday']: item for item in result}
+
         hours_list = ['00', '01', '02', '03', '04', '05',
                       '06', '07', '08', '09', '10', '11',
                       '12', '13', '14', '15', '16', '17',
@@ -363,22 +351,13 @@ class Graphs(object):
 
         for hour_item in hours_list:
             categories.append(hour_item)
-            series_1_value = 0
-            series_2_value = 0
-            series_3_value = 0
-            series_4_value = 0
-            for item in result:
-                if hour_item == item['hourofday']:
-                    series_1_value = item['tv_count']
-                    series_2_value = item['movie_count']
-                    series_3_value = item['music_count']
-                    series_4_value = item['live_count']
-                    break
-                else:
-                    series_1_value = 0
-                    series_2_value = 0
-                    series_3_value = 0
-                    series_4_value = 0
+
+            result_hour = result_by_hourofday.get(hour_item, {})
+
+            series_1_value = result_hour.get('tv_count', 0)
+            series_2_value = result_hour.get('movie_count', 0)
+            series_3_value = result_hour.get('music_count', 0)
+            series_4_value = result_hour.get('live_count', 0)
 
             series_1.append(series_1_value)
             series_2.append(series_2_value)
@@ -465,6 +444,8 @@ class Graphs(object):
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_month: %s." % e)
             return None
 
+        result_by_datestring = {item['datestring']: item for item in result}
+
         # create our date range as some months may not have any data
         # but we still want to display them
         dt_today = datetime.date.today()
@@ -486,22 +467,13 @@ class Graphs(object):
         for dt in sorted(month_range):
             date_string = dt.strftime('%Y-%m')
             categories.append(dt.strftime('%b %Y'))
-            series_1_value = 0
-            series_2_value = 0
-            series_3_value = 0
-            series_4_value = 0
-            for item in result:
-                if date_string == item['datestring']:
-                    series_1_value = item['tv_count']
-                    series_2_value = item['movie_count']
-                    series_3_value = item['music_count']
-                    series_4_value = item['live_count']
-                    break
-                else:
-                    series_1_value = 0
-                    series_2_value = 0
-                    series_3_value = 0
-                    series_4_value = 0
+
+            result_date = result_by_datestring.get(date_string, {})
+
+            series_1_value = result_date.get('tv_count', 0)
+            series_2_value = result_date.get('movie_count', 0)
+            series_3_value = result_date.get('music_count', 0)
+            series_4_value = result_date.get('live_count', 0)
 
             series_1.append(series_1_value)
             series_2.append(series_2_value)
@@ -598,6 +570,7 @@ class Graphs(object):
 
         for item in result:
             categories.append(common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform']))
+
             series_1.append(item['tv_count'])
             series_2.append(item['movie_count'])
             series_3.append(item['music_count'])
@@ -704,6 +677,7 @@ class Graphs(object):
                 categories.append(item['username'] if str(item['user_id']) == session_user_id else 'Plex User')
             else:
                 categories.append(item['friendly_name'])
+
             series_1.append(item['tv_count'])
             series_2.append(item['movie_count'])
             series_3.append(item['music_count'])
@@ -783,6 +757,8 @@ class Graphs(object):
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_stream_type: %s." % e)
             return None
 
+        result_by_date_played = {item['date_played']: item for item in result}
+
         # create our date range as some days may not have any data
         # but we still want to display them
         base = datetime.date.today()
@@ -796,19 +772,12 @@ class Graphs(object):
         for date_item in sorted(date_list):
             date_string = date_item.strftime('%Y-%m-%d')
             categories.append(date_string)
-            series_1_value = 0
-            series_2_value = 0
-            series_3_value = 0
-            for item in result:
-                if date_string == item['date_played']:
-                    series_1_value = item['dp_count']
-                    series_2_value = item['ds_count']
-                    series_3_value = item['tc_count']
-                    break
-                else:
-                    series_1_value = 0
-                    series_2_value = 0
-                    series_3_value = 0
+
+            result_date = result_by_date_played.get(date_string, {})
+
+            series_1_value = result_date.get('dp_count', 0)
+            series_2_value = result_date.get('ds_count', 0)
+            series_3_value = result_date.get('tc_count', 0)
 
             series_1.append(series_1_value)
             series_2.append(series_2_value)
@@ -869,6 +838,9 @@ class Graphs(object):
             logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_stream_type: %s." % e)
             return None
 
+        result_by_date_and_decision = helpers.group_by_keys(result, ('date_played', 'transcode_decision'))
+        result_by_date = helpers.group_by_keys(result, 'date_played')
+
         # create our date range as some days may not have any data
         # but we still want to display them
         base = datetime.date.today()
@@ -880,29 +852,23 @@ class Graphs(object):
         series_3 = []
         series_4 = []
 
-        grouped_result_by_stream_type = helpers.group_by_keys(result, ('date_played','transcode_decision'))
-        grouped_result_by_day = helpers.group_by_keys(result, ['date_played'])
-
         for date_item in sorted(date_list):
             date_string = date_item.strftime('%Y-%m-%d')
             categories.append(date_string)
-            series_1_value = 0
-            series_2_value = 0
-            series_3_value = 0
-            series_4_value = 0
 
-            for item in grouped_result_by_stream_type:
-                if item['key'] == (date_string,'direct play'):
-                    series_1_value = calc_most_concurrent(item['value'])
-                elif item['key'] == (date_string,'copy'):
-                    series_2_value = calc_most_concurrent(item['value'])
-                elif item['key'] == (date_string,'transcode'):
-                    series_3_value = calc_most_concurrent(item['value'])
+            series_1_value = calc_most_concurrent(
+                result_by_date_and_decision.get((date_string, 'direct play'), [])
+            )
+            series_2_value = calc_most_concurrent(
+                result_by_date_and_decision.get((date_string, 'copy'), [])
+            )
+            series_3_value = calc_most_concurrent(
+                result_by_date_and_decision.get((date_string, 'transcode'), [])
+            )
+            series_4_value = calc_most_concurrent(
+                result_by_date.get(date_string, [])
+            )
 
-            for item in grouped_result_by_day:
-                if item['key'] == date_string:
-                    series_4_value = calc_most_concurrent(item['value'])
-            
             series_1.append(series_1_value)
             series_2.append(series_2_value)
             series_3.append(series_3_value)
@@ -983,6 +949,7 @@ class Graphs(object):
 
         for item in result:
             categories.append(item['resolution'])
+
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
             series_3.append(item['tc_count'])
@@ -1086,6 +1053,7 @@ class Graphs(object):
 
         for item in result:
             categories.append(item['resolution'])
+
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
             series_3.append(item['tc_count'])
@@ -1161,6 +1129,7 @@ class Graphs(object):
 
         for item in result:
             categories.append(common.PLATFORM_NAME_OVERRIDES.get(item['platform'], item['platform']))
+
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
             series_3.append(item['tc_count'])
@@ -1248,6 +1217,7 @@ class Graphs(object):
                 categories.append(item['username'] if str(item['user_id']) == session_user_id else 'Plex User')
             else:
                 categories.append(item['friendly_name'])
+
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
             series_3.append(item['tc_count'])
@@ -1275,5 +1245,5 @@ class Graphs(object):
         elif user_id:
             user_ids = helpers.split_strip(user_id)
             if all(id.isdigit() for id in user_ids):
-                user_cond =cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
+                user_cond = cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
         return user_cond

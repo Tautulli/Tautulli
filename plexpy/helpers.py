@@ -1242,11 +1242,13 @@ def grouper(iterable, n, fillvalue=None):
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
 
+
 def group_by_keys(iterable, keys):
     key_function = operator.itemgetter(*keys)
 
     sorted_iterable = sorted(iterable, key=key_function)
-    return[{'key': key, 'value': list(group)} for key, group in groupby(sorted_iterable, key_function)]
+    return {key: list(group) for key, group in groupby(sorted_iterable, key_function)}
+
 
 def chunk(it, size):
     it = iter(it)
