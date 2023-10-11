@@ -1244,8 +1244,10 @@ def grouper(iterable, n, fillvalue=None):
 
 
 def group_by_keys(iterable, keys):
-    key_function = operator.itemgetter(*keys)
+    if not isinstance(keys, (list, tuple)):
+        keys = [keys]
 
+    key_function = operator.itemgetter(*keys)
     sorted_iterable = sorted(iterable, key=key_function)
     return {key: list(group) for key, group in groupby(sorted_iterable, key_function)}
 
