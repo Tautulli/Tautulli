@@ -825,13 +825,14 @@ class Graphs(object):
             return final_count
 
         try:
-            query = 'SELECT sh.date_played, sh.started, sh.stopped, shmi.transcode_decision ' \
-                    'FROM (SELECT *, ' \
-                        'date(started, "unixepoch", "localtime") AS date_played ' \
-                        'FROM session_history %s) AS sh ' \
-                    'JOIN session_history_media_info AS shmi ON sh.id = shmi.id ' \
-                    'WHERE sh.stopped >= %s ' \
-                    'ORDER BY sh.date_played' % (user_cond, timestamp)
+            query = "SELECT sh.date_played, sh.started, sh.stopped, shmi.transcode_decision " \
+                    "FROM (SELECT *, " \
+                        "date(started, 'unixepoch', 'localtime') AS date_played " \
+                        "FROM session_history %s " \
+                        "GROUP BY id) AS sh " \
+                    "JOIN session_history_media_info AS shmi ON sh.id = shmi.id " \
+                    "WHERE sh.stopped >= %s " \
+                    "ORDER BY sh.started" % (user_cond, timestamp)
 
             result = monitor_db.select(query)
         except Exception as e:
