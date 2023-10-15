@@ -2865,7 +2865,7 @@ a .home-platforms-list-cover-face:hover
 .circle-quarter {
     background-image:
     linear-gradient(00deg, #0e253f 50%, transparent 50%),
-    linear-gradient(90deg, #d1d1d1 50%, transparent 50%);
+    linear-gradient(270deg, #d1d1d1 50%, transparent 50%);
 }
 .circle-half {
     background-image:
@@ -2875,7 +2875,7 @@ a .home-platforms-list-cover-face:hover
 .circle-three-quarter {
     background-image:
     linear-gradient(180deg, transparent 50%, #d1d1d1 50%),
-    linear-gradient(90deg, #d1d1d1 50%, transparent 50%);
+    linear-gradient(-90deg, #d1d1d1 50%, transparent 50%);
 }
 .circle-full {
     background: #d1d1d1;
