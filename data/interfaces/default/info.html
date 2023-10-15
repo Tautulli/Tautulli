@@ -93,7 +93,7 @@ DOCUMENTATION :: END
     <div class="row">
         % if data['media_type'] not in ('photo_album', 'photo', 'playlist'):
         <% fallback = 'art-live-full' if data['live'] else None %>
-        <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080, fallback=fallback)})"></div>
+        <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080, fallback=fallback, server_id=data['server_id'])})"></div>
         % endif
         % if _session['user_group'] == 'admin':
         <span class="overlay-refresh-image info-art" title="Refresh background image"><i class="fa fa-refresh refresh_pms_image"></i></span>
@@ -104,7 +104,7 @@ DOCUMENTATION :: END
                     <div class="summary-navbar-list">
                         <ul class="list-unstyled breadcrumb">
                         % if data['live']:
-                        <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % if data['media_type'] == 'movie':
                             <li class="active metadata-xml">${data['title']}</li>
@@ -120,57 +120,57 @@ DOCUMENTATION :: END
                             % endif
                             % endif
                         % elif data['media_type'] in ('movie', 'collection'):
-                        <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'show':
-                        <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'season':
-                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'episode':
-                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li class="hidden-xs hidden-sm"><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('info', data['grandparent_rating_key'], server_id=data['server_id'])}">${data['grandparent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Episode ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'artist':
-                        <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'album':
-                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'track':
-                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li class="hidden-xs hidden-sm"><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('info', data['grandparent_rating_key'], server_id=data['server_id'])}">${data['grandparent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">Track ${data['media_index']} - ${data['title']}</li>
                         % elif data['media_type'] == 'photo_album':
-                        <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % if data['parent_title']:
-                            <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                            <li><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % endif
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] in ('photo', 'clip'):
-                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                        <li class="hidden-xs hidden-sm"><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
-                        <li><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></li>
+                        <li><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></li>
                         <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                         <li class="active metadata-xml">${data['title']}</li>
                         % elif data['media_type'] == 'playlist':
@@ -178,7 +178,7 @@ DOCUMENTATION :: END
                             <li><a href="${page('user', user_info.get('user_id'))}">${user_info.get('friendly_name')}</a></li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % elif data['section_id']:
-                            <li><a href="${page('library', data['section_id'])}">${data['library_name']}</a></li>
+                            <li><a href="${page('library', data['section_id'], server_id=data['server_id'])}">${data['library_name']}</a></li>
                             <span class="breadcrumb-arrow"><i class="fa fa-chevron-right"></i></span>
                             % endif
                         <li class="active metadata-xml">${data['title']}</li>
@@ -192,21 +192,21 @@ DOCUMENTATION :: END
                     <div class="summary-content-poster hidden-xs hidden-sm">
                         <% legacy = '&legacy=1' if data['media_type'] in ('photo_album', 'photo', 'clip') else '' %>
                         % if data['media_type'] in ('track', 'photo'):
-                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}${legacy}" target="_blank" rel="noreferrer" title="View on Plex Web">
+                        <a href="${config['pms_web_url']}#!/server/${data['server_id']}/details?key=%2Flibrary%2Fmetadata%2F${data['parent_rating_key']}${legacy}" target="_blank" rel="noreferrer" title="View on Plex Web">
                         % elif data['media_type'] == 'playlist':
-                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/playlist?key=%2Fplaylists%2F${data['rating_key']}" target="_blank" rel="noreferrer" title="View on Plex Web">
+                        <a href="${config['pms_web_url']}#!/server/${data['server_id']}/playlist?key=%2Fplaylists%2F${data['rating_key']}" target="_blank" rel="noreferrer" title="View on Plex Web">
                         % elif not data['live']:
-                        <a href="${config['pms_web_url']}#!/server/${config['pms_identifier']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}${legacy}" target="_blank" rel="noreferrer" title="View on Plex Web">
+                        <a href="${config['pms_web_url']}#!/server/${data['server_id']}/details?key=%2Flibrary%2Fmetadata%2F${data['rating_key']}${legacy}" target="_blank" rel="noreferrer" title="View on Plex Web">
                         % endif
                         % if data['live']:
-                            <div class="summary-poster-face" style="background-image: url(${page('pms_image_proxy', data['grandparent_thumb'] or data['thumb'], data['rating_key'], 300, 450, fallback='poster-live')});">
+                            <div class="summary-poster-face" style="background-image: url(${page('pms_image_proxy', data['grandparent_thumb'] or data['thumb'], data['rating_key'], 300, 450, fallback='poster-live', server_id=data['server_id'])});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
                             </div>
                         % else:
                             % if data['media_type'] == 'episode':
-                            <div class="summary-poster-face-episode" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 500, 280, fallback='art')});">
+                            <div class="summary-poster-face-episode" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 500, 280, fallback='art', server_id=data['server_id'])});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -215,7 +215,7 @@ DOCUMENTATION :: END
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
                             % elif data['media_type'] in ('artist', 'album', 'track', 'playlist', 'photo_album', 'photo', 'clip') or data['sub_media_type'] in ('artist', 'album', 'track'):
-                            <div class="summary-poster-face-track" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 300, fallback='cover')});">
+                            <div class="summary-poster-face-track" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 300, fallback='cover', server_id=data['server_id'])});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -227,7 +227,7 @@ DOCUMENTATION :: END
                             <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                             % endif
                             % else:
-                            <div class="summary-poster-face" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 450, fallback='poster')});">
+                            <div class="summary-poster-face" style="background-image: url(${page('pms_image_proxy', data['thumb'], data['rating_key'], 300, 450, fallback='poster', server_id=data['server_id'])});">
                                 <div class="summary-poster-face-overlay">
                                     <span></span>
                                 </div>
@@ -258,21 +258,21 @@ DOCUMENTATION :: END
                         % elif data['media_type'] in ('movie', 'show', 'artist', 'collection', 'playlist', 'photo_album'):
                         <h1>&nbsp;</h1><h1>${data['title']}</h1>
                         % elif data['media_type'] == 'season':
-                        <h1>&nbsp;</h1><h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
+                        <h1>&nbsp;</h1><h1><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></h1>
                         <h3 class="hidden-xs">${season}</h3>
                         % elif data['media_type'] == 'episode':
-                        <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
+                        <h1><a href="${page('info', data['grandparent_rating_key'], server_id=data['server_id'])}">${data['grandparent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         <h3 class="hidden-xs">${season} &middot; E${data['media_index']}</h3>
                         % elif data['media_type'] == 'album':
-                        <h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
+                        <h1><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         % elif data['media_type'] == 'track':
-                        <h1><a href="${page('info', data['grandparent_rating_key'])}">${data['grandparent_title']}</a></h1>
-                        <h2><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a> - ${data['title']}</h2>
+                        <h1><a href="${page('info', data['grandparent_rating_key'], server_id=data['server_id'])}">${data['grandparent_title']}</a></h1>
+                        <h2><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a> - ${data['title']}</h2>
                         <h3 class="hidden-xs">T${data['media_index']}</h3>
                         % elif data['media_type'] in ('photo', 'clip'):
-                        <h1><a href="${page('info', data['parent_rating_key'])}">${data['parent_title']}</a></h1>
+                        <h1><a href="${page('info', data['parent_rating_key'], server_id=data['server_id'])}">${data['parent_title']}</a></h1>
                         <h2>${data['title']}</h2>
                         % endif
                     </div>
@@ -878,17 +878,18 @@ DOCUMENTATION :: END
                     transcode_decision: transcode_decision,
                     user_id: "${history_user_id}",
                     % if data['live']:
-                    guid: "${data['guid']}
+                    guid: "${data['guid']}",
                     % elif data['media_type'] in ('show', 'artist'):
-                    grandparent_rating_key: "${data['rating_key']}"
+                    grandparent_rating_key: "${data['rating_key']}",
                     % elif data['media_type'] in ('season', 'album'):
-                    parent_rating_key: "${data['rating_key']}"
+                    parent_rating_key: "${data['rating_key']}",
                     % elif data['media_type'] in ('movie', 'episode', 'track'):
-                    rating_key: "${data['rating_key']}"
+                    rating_key: "${data['rating_key']}",
                     % elif data['media_type'] in ('collection', 'playlist'):
                     media_type: "${data['media_type']}",
-                    rating_key: "${data['rating_key']}"
+                    rating_key: "${data['rating_key']}",
                     % endif
+                    server_id: "${data['server_id']}"
                 };
             }
         }
@@ -932,7 +933,8 @@ DOCUMENTATION :: END
         async: true,
         data: {
             rating_key: "${data['rating_key']}",
-            media_type: "${data['media_type']}"
+            media_type: "${data['media_type']}",
+            server_id: "${data['server_id']}"
         },
         complete: function(xhr, status) {
             $("#children-list").html(xhr.responseText);
@@ -948,7 +950,8 @@ DOCUMENTATION :: END
         async: true,
         data: { 
             rating_key: "${data['rating_key']}",
-            media_type: "${data['media_type']}"    
+            media_type: "${data['media_type']}",
+            server_id: "${data['server_id']}"
         },
         complete: function(xhr, status) {
             $("#watch-time-stats").html(xhr.responseText);
@@ -960,7 +963,8 @@ DOCUMENTATION :: END
         async: true,
         data: { 
             rating_key: "${data['rating_key']}",
-            media_type: "${data['media_type']}"    
+            media_type: "${data['media_type']}",
+            server_id: "${data['server_id']}"
         },
         complete: function(xhr, status) {
             $("#user-stats").html(xhr.responseText);
@@ -976,7 +980,8 @@ DOCUMENTATION :: END
         async: true,
         data: {
             rating_key: "${data['rating_key']}",
-            title: "${data['title']}"
+            title: "${data['title']}",
+            server_id: "${data['server_id']}"
         },
         complete: function(xhr, status) {
             $("#collection-related-list-container").html(xhr.responseText).show();
@@ -1064,7 +1069,7 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    rating_key: "${data['rating_key']}"
+                    rating_key: "${data['rating_key']}",
                 };
             }
         };

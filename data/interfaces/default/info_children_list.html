@@ -48,61 +48,61 @@ DOCUMENTATION :: END
                     <span class="item-children-list-item-title">
                         % if child['media_type'] == 'movie':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Movie"><i class="fa fa-film fa-fw"></i></span>
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')}" data-height="120" data-width="80">
+                        <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster', server_id=child['server_id'])}" data-height="120" data-width="80">
                                 ${child['title']}
                             </span>
                         </a>
                         <span class="text-muted"> (${child['year']})</span>
                         % elif child['media_type'] == 'episode':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Episode"><i class="fa fa-television fa-fw"></i></span>
-                        <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 450, fallback='poster')}" data-height="120" data-width="80">
+                        <a href="${page('info', child['grandparent_rating_key'], server_id=child['server_id'])}" title="${child['grandparent_title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 450, fallback='poster', server_id=child['server_id'])}" data-height="120" data-width="80">
                                 ${child['grandparent_title']}
                             </span>
                         </a> -
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 450, fallback='poster')}" data-height="120" data-width="80">
+                        <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 450, fallback='poster', server_id=child['server_id'])}" data-height="120" data-width="80">
                                 ${child['title']}
                             </span>
                         </a>
-                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${short_season(child['parent_title'])}</a> &middot; <a class="no-highlight" href="${page('info', child['rating_key'])}" title="${child['title']}">E${child['media_index']}</a>)</span>
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'], server_id=child['server_id'])}" title="${child['parent_title']}">${short_season(child['parent_title'])}</a> &middot; <a class="no-highlight" href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">E${child['media_index']}</a>)</span>
                         % elif child['media_type'] == 'track':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                        <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])}" data-height="80" data-width="80">
                                 ${child['title']}
                             </span>
                         </a> -
                         <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])}" data-height="80" data-width="80">
                                 ${child['grandparent_title']}
                             </span>
                         </a>
-                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'], server_id=child['server_id'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % elif child['media_type'] == 'photo':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-picture-o fa-fw"></i></span>
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                        <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])}" data-height="80" data-width="80">
                                 ${child['title']}
                             </span>
                         </a>
                             % if child['grandparent_title']:
-                            - <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
-                                <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                            - <a href="${page('info', child['grandparent_rating_key'], server_id=child['server_id'])}" title="${child['grandparent_title']}">
+                                <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])}" data-height="80" data-width="80">
                                     ${child['grandparent_title']}
                                 </span>
                             </a>
                             % endif
-                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'], server_id=child['server_id'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % elif child['media_type'] == 'clip':
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Video"><i class="fa fa-video-camera fa-fw"></i></span>
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                        <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])}" data-height="80" data-width="80">
                                 ${child['title']}
                             </span>
                         </a>
-                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'], server_id=child['server_id'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % endif
                     </span>
                     % if child['duration']:
@@ -113,9 +113,9 @@ DOCUMENTATION :: END
                     % endif
                 </div>
             % elif child['media_type'] == 'movie':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+            <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster', server_id=child['server_id'])});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -123,14 +123,14 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper poster-item">
                 <h3>
-                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                     <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
                 <h3 class="text-muted">${child['year']}</h3>
             </div>
             % elif child['media_type'] == 'show':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+            <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});"></div>
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster', server_id=child['server_id'])});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -138,16 +138,16 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper poster-item">
                 <h3>
-                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                     <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
             </div>
             % elif child['media_type'] == 'season':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+            <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
                 <div class="item-children-poster">
                     % if child['thumb']:
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster')});">
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 450, fallback='poster', server_id=child['server_id'])});">
                     % else:
-                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 450, fallback='poster')});">
+                    <div class="item-children-poster-face poster-item" style="background-image: url(${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 450, fallback='poster', server_id=child['server_id'])});">
                     % endif
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
@@ -162,18 +162,18 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper poster-item">
                 <h3>
-                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                     <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
                 % if media_type == 'collection':
                 <h3 class="text-muted">
-                    <a class="text-muted" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>
+                    <a class="text-muted" href="${page('info', child['parent_rating_key'], server_id=child['server_id'])}" title="${child['parent_title']}">${child['parent_title']}</a>
                 </h3>
                 % endif
             </div>
             % elif child['media_type'] == 'episode':
-            <a href="${page('info', child['rating_key'])}" title="Episode ${child['media_index']}">
+            <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="Episode ${child['media_index']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face episode-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 500, 280, fallback='art')});">
+                    <div class="item-children-poster-face episode-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 500, 280, fallback='art', server_id=child['server_id'])});">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
                                 Episode ${child['media_index'] or child['originally_available_at']}
@@ -187,22 +187,22 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper episode-item">
                 <h3>
-                     <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                     <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
                 % if media_type == 'collection':
                 <h3 class="text-muted">
-                    <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">${child['grandparent_title']}</a>
+                    <a href="${page('info', child['grandparent_rating_key'], server_id=child['server_id'])}" title="${child['grandparent_title']}">${child['grandparent_title']}</a>
                 </h3>
                 <h3 class="text-muted">
-                    <a href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${short_season(child['parent_title'])}</a>
-                        &middot; <a href="${page('info', child['rating_key'])}" title="Episode ${child['media_index']}">E${child['media_index']}</a>
+                    <a href="${page('info', child['parent_rating_key'], server_id=child['server_id'])}" title="${child['parent_title']}">${short_season(child['parent_title'])}</a>
+                        &middot; <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="Episode ${child['media_index']}">E${child['media_index']}</a>
                 </h3>
                 % endif
             </div>
             % elif child['media_type'] == 'artist':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+            <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -210,13 +210,13 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper cover-item">
                 <h3>
-                    <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                    <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
             </div>
             % elif child['media_type'] == 'album':
-            <a href="${page('info', child['rating_key'])}" title="${child['title']}">
+            <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
                 <div class="item-children-poster">
-                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')});"></div>
+                    <div class="item-children-poster-face cover-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])});"></div>
                     % if _session['user_group'] == 'admin':
                     <span class="overlay-refresh-image" title="Refresh image"><i class="fa fa-refresh refresh_pms_image"></i></span>
                     % endif
@@ -224,11 +224,11 @@ DOCUMENTATION :: END
             </a>
             <div class="item-children-instance-text-wrapper cover-item">
                 <h3>
-                    <a href="${page('info', child['rating_key'])}" title="${child['title']}">${child['title']}</a>
+                    <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">${child['title']}</a>
                 </h3>
                 % if media_type == 'collection':
                 <h3 class="text-muted">
-                    <a class="text-muted" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>
+                    <a class="text-muted" href="${page('info', child['parent_rating_key'], server_id=child['server_id'])}" title="${child['parent_title'], server_id=child['server_id']}">${child['parent_title']}</a>
                 </h3>
                 % endif
             </div>
@@ -238,19 +238,19 @@ DOCUMENTATION :: END
                     <span class="item-children-list-item-index">${child['media_index']}</span>
                     <span class="item-children-list-item-title">
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                        <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['parent_thumb'], child['parent_rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])}" data-height="80" data-width="80">
                                 ${child['title']}
                             </span>
                         </a>
                         % if media_type == 'collection':
                         -
-                        <a href="${page('info', child['grandparent_rating_key'])}" title="${child['grandparent_title']}">
+                        <a href="${page('info', child['grandparent_rating_key'], server_id=child['server_id'])}" title="${child['grandparent_title'], server_id=child['server_id']}">
                             <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['grandparent_thumb'], child['grandparent_rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
                                 ${child['grandparent_title']}
                             </span>
                         </a>
-                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
+                        <span class="text-muted"> (<a class="no-highlight" href="${page('info', child['parent_rating_key'], server_id=child['server_id'])}" title="${child['parent_title']}">${child['parent_title']}</a>)</span>
                         % elif child['original_title']:
                         <span class="text-muted"> - ${child['original_title']}</span>
                         % endif
@@ -272,8 +272,8 @@ DOCUMENTATION :: END
                         % else:
                         <span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-picture-o fa-fw"></i></span>
                         % endif
-                        <a href="${page('info', child['rating_key'])}" title="${child['title']}">
-                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover')}" data-height="80" data-width="80">
+                        <a href="${page('info', child['rating_key'], server_id=child['server_id'])}" title="${child['title']}">
+                            <span class="thumb-tooltip" data-toggle="popover" data-img="${page('pms_image_proxy', child['thumb'], child['rating_key'], 300, 300, fallback='cover', server_id=child['server_id'])}" data-height="80" data-width="80">
                                 ${child['title']}
                             </span>
                         </a>

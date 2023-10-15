@@ -35,12 +35,14 @@ if plexpy.PYTHON2:
     import activity_processor
     import database
     import logger
+    import server_manager
 else:
     from plexpy import activity_handler
     from plexpy import activity_pinger
     from plexpy import activity_processor
     from plexpy import database
     from plexpy import logger
+    from plexpy import server_manager
 
 
 name = 'websocket'

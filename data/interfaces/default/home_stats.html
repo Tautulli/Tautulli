@@ -70,17 +70,18 @@ DOCUMENTATION :: END
 <%
     stat_id = top_stat['stat_id']
     row0 = top_stat['rows'][0]
+    row0['server_id']="test"
 %>
 <div class="dashboard-stats-instance" id="stats-instance-${stat_id}" data-stat_id="${stat_id}">
     <div class="dashboard-stats-container">
         % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
         <% fallback = 'art-live' if row0['live'] else 'art' %>
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], row0['rating_key'], 500, 280, 40, '282828', 3, fallback=fallback)});">
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'], row0['rating_key'], 500, 280, 40, '282828', 3, fallback=fallback, server_id=row0['server_id'])});">
         % elif stat_id == 'top_libraries':
         <% fallback = 'art-live' if row0['live'] else row0['library_art'] %>
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'] or row0['library_art'], None, 500, 280, 40, '282828', 3, fallback=fallback)});" data-library_art="${row0['library_art']}">
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'] or row0['library_art'], None, 500, 280, 40, '282828', 3, fallback=fallback, server_id=row0['server_id'])});" data-library_art="${row0['library_art']}">
         % elif stat_id == 'top_users':
-        <div id="stats-background-${stat_id}" class="dashboard-stats-background" data-blurhash="${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 100, 100, 40, '282828', 0, fallback='user')}">
+        <div id="stats-background-${stat_id}" class="dashboard-stats-background" data-blurhash="${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 100, 100, 40, '282828', 0, fallback='user', server_id=row0['server_id'])}">
         % elif stat_id == 'top_platforms':
         <div id="stats-background-${stat_id}" class="dashboard-stats-background platform-${row0['platform_name']}-rgba no-image">
         % else:
@@ -89,7 +90,7 @@ DOCUMENTATION :: END
             % if stat_id in ('top_movies', 'popular_movies', 'top_tv', 'popular_tv', 'top_music', 'popular_music', 'last_watched'):
             <div class="dashboard-stats-poster-container hidden-xs">
                 % if stat_id in ('top_music', 'popular_music'):
-                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['rating_key'], 300, 300, 60, '282828', 3, fallback='cover')});"></div>
+                <div id="stats-thumb-${stat_id}-bg" class="dashboard-stats-poster" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['rating_key'], 300, 300, 60, '282828', 3, fallback='cover', server_id=row0['server_id'])});"></div>
                 % endif
                 <%
                     height, fallback = ('450', 'poster')
@@ -101,24 +102,24 @@ DOCUMENTATION :: END
                     href = '#'
                     if row0['rating_key']:
                         if row0['live']:
-                            href = page('info', row0['rating_key'], row0['guid'], history=True, live=row0['live'])
+                            href = page('info', row0['rating_key'], row0['guid'], history=True, live=row0['live'], server_id=row0['server_id'])
                         else:
-                            href = page('info', row0['rating_key'], history=True)
+                            href = page('info', row0['rating_key'], history=True, server_id=row0['server_id'])
                 %>
                 <a id="stats-thumb-url-${stat_id}" href="${href}" title="${row0['title']}">
-                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback.split('-')[0]}" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['grandparent_rating_key'] or row0['rating_key'], 300, height, fallback=fallback)});"></div>
+                    <div id="stats-thumb-${stat_id}" class="dashboard-stats-${fallback.split('-')[0]}" style="background-image: url(${page('pms_image_proxy', row0['thumb'], row0['grandparent_rating_key'] or row0['rating_key'], 300, height, fallback=fallback, server_id=row0['server_id'])});"></div>
                 </a>
             </div>
             % elif stat_id == 'top_libraries':
                 % if row0['library_thumb'].startswith('http'):
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['library_thumb'], None, 100, 100, fallback='cover')});"></div>
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['library_thumb'], None, 100, 100, fallback='cover', server_id=row0['server_id'])});"></div>
                 % else:
                 <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon library-${row0['section_type']} hidden-xs"></div>
                 % endif
             % elif stat_id == 'top_users':
             <% user_href = page('user', row0['user_id']) if row0['user_id'] else '#' %>
             <a id="stats-thumb-url-${stat_id}" href="${user_href}" title="${row0['user']}" class="hidden-xs">
-                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 100, 100, fallback='user')})"></div>
+                <div id="stats-thumb-${stat_id}" class="dashboard-stats-circle" style="background-image: url(${page('pms_image_proxy', row0['user_thumb'] or 'interfaces/default/images/gravatar-default.png', None, 100, 100, fallback='user', server_id=row0['server_id'])})"></div>
             </a>
             % elif stat_id == 'top_platforms':
             <div id="stats-thumb-${stat_id}" class="dashboard-stats-flat svg-icon platform-${row0['platform_name']} transparent hidden-xs"></div>
@@ -157,15 +158,15 @@ DOCUMENTATION :: END
                                         href = '#'
                                         if row['rating_key']:
                                             if row['live']:
-                                                href = page('info', row['rating_key'], row['guid'], history=True, live=row['live'])
+                                                href = page('info', row['rating_key'], row['guid'], history=True, live=row['live'], server_id=row['server_id'])
                                             else:
-                                                href = page('info', row['rating_key'], history=True)
+                                                href = page('info', row['rating_key'], history=True, server_id=row['server_id'])
                                     %>
                                     <a href="${href}" title="${row['title']}">
                                         ${row['title']}
                                     </a>
                                     % elif stat_id == 'top_libraries':
-                                    <% library_href = page('library', row['section_id']) %>
+                                    <% library_href = page('library', row['section_id'], server_id=row['server_id']) %>
                                     <a href="${library_href}" title="${row['section_name']}">
                                         ${row['section_name']}
                                     </a>

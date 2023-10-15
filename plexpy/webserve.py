@@ -76,6 +76,7 @@ if plexpy.PYTHON2:
     import versioncheck
     import web_socket
     import webstart
+    import server_manager
     from api2 import API2
     from helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
     from session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
@@ -111,6 +112,7 @@ else:
     from plexpy import versioncheck
     from plexpy import web_socket
     from plexpy import webstart
+    from plexpy import server_manager
     from plexpy.api2 import API2
     from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
     from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
@@ -141,7 +143,7 @@ def serve_template(template_name, **kwargs):
     try:
         template = TEMPLATE_LOOKUP.get_template(template_name)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
-                               _session=_session, **kwargs)
+                               _session=_session, server_id="test2", **kwargs)
     except Exception as e:
         logger.exception("WebUI :: Mako template render error: %s" % e)
         return mako.exceptions.html_error_template().render()
@@ -333,10 +335,17 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def get_current_activity(self, **kwargs):
+        result = {
+            'stream_count':0,
+            'sessions': []
+        }
+        
+        for server in server_manager.ServerManger().get_server_list():
+            res = server.get_current_activity()
+            if len(res['sessions']) > 0:
+                result['sessions'] += res['sessions']
 
-        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-        result = pms_connect.get_current_activity()
-
+        result['stream_count'] = len(result['sessions'])
         if result:
             return serve_template(template_name="current_activity.html", data=result)
         else:
@@ -347,9 +356,17 @@ class WebInterface(object):
     @requireAuth()
     def get_current_activity_instance(self, session_key=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-        result = pms_connect.get_current_activity()
+        result = {
+            'stream_count':0,
+            'sessions': []
+        }
+        
+        for server in server_manager.ServerManger().get_server_list():
+            res = server.get_current_activity()
+            if len(res['sessions']) > 0:
+                result['sessions'] += res['sessions']
 
+        result['stream_count'] = len(result['sessions'])
         if result:
             session = next((s for s in result['sessions'] if s['session_key'] == session_key), None)
             return serve_template(template_name="current_activity_instance.html", session=session)
@@ -360,7 +377,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def terminate_session(self, session_key='', session_id='', message='', **kwargs):
+    def terminate_session(self, session_key='', session_id='', message='', server_id=None, **kwargs):
         """ Stop a streaming session.
 
             ```
@@ -375,7 +392,7 @@ class WebInterface(object):
                 None
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
         result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message)
 
         if isinstance(result, str):
@@ -422,13 +439,17 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_recently_added(self, count='0', media_type='', **kwargs):
+    def get_recently_added(self, count='0', media_type='', server_id=None, **kwargs):
+
+        results =[]
 
         try:
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_recently_added_details(count=count, media_type=media_type)
+            for pms_connect in server_manager.ServerManger().get_server_list():
+                results += pms_connect.get_recently_added_details(count=count, media_type=media_type)['recently_added']
         except IOError as e:
             return serve_template(template_name="recently_added.html", data=None)
+
+        result = {'recently_added': results}
 
         if result and 'recently_added' in result:
             return serve_template(template_name="recently_added.html", data=result['recently_added'])
@@ -619,7 +640,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library(self, section_id=None, **kwargs):
+    def library(self, section_id=None, server_id=None, **kwargs):
         if not allow_session_library(section_id):
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -631,7 +652,7 @@ class WebInterface(object):
         if section_id:
             try:
                 library_data = libraries.Libraries()
-                library_details = library_data.get_details(section_id=section_id)
+                library_details = library_data.get_details(section_id=section_id, server_id=server_id)
             except:
                 logger.warn("Unable to retrieve library details for section_id %s " % section_id)
                 return serve_template(template_name="library.html", title="Library", data=None, config=config)
@@ -733,13 +754,13 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library_recently_watched(self, section_id=None, limit='10', **kwargs):
+    def library_recently_watched(self, section_id=None, limit='10', server_id=None, **kwargs):
         if not allow_session_library(section_id):
             return serve_template(template_name="user_recently_watched.html", data=None, title="Recently Watched")
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_recently_watched(section_id=section_id, limit=limit)
+            result = library_data.get_recently_watched(section_id=section_id, limit=limit, server_id=server_id)
         else:
             result = None
 
@@ -751,12 +772,13 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library_recently_added(self, section_id=None, limit='10', **kwargs):
+    def library_recently_added(self, section_id=None, limit='10', server_id=None, **kwargs):
         if not allow_session_library(section_id):
             return serve_template(template_name="library_recently_added.html", data=None, title="Recently Added")
 
+        result = []
         if section_id:
-            pms_connect = pmsconnect.PmsConnect()
+            pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
             result = pms_connect.get_recently_added_details(section_id=section_id, count=limit)
         else:
             result = None
@@ -1900,7 +1922,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi()
-    def get_history(self, user=None, user_id=None, grouping=None, include_activity=None, **kwargs):
+    def get_history(self, user=None, user_id=None, grouping=None, include_activity=None, server_id=None, **kwargs):
         """ Get the Tautulli history.
 
             ```
@@ -2017,7 +2039,7 @@ class WebInterface(object):
                 custom_where.append(['session_history.user', user])
         if 'rating_key' in kwargs:
             if kwargs.get('media_type') in ('collection', 'playlist') and kwargs.get('rating_key'):
-                pms_connect = pmsconnect.PmsConnect()
+                pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
                 result = pms_connect.get_item_children(rating_key=kwargs.pop('rating_key'), media_type=kwargs.pop('media_type'))
                 rating_keys = [child['rating_key'] for child in result['children_list']]
                 custom_where.append(['session_history_metadata.rating_key OR', rating_keys])
@@ -4385,7 +4407,7 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def info(self, rating_key=None, guid=None, source=None, section_id=None, user_id=None, **kwargs):
+    def info(self, rating_key=None, guid=None, source=None, section_id=None, user_id=None, server_id=None, **kwargs):
         if rating_key and not str(rating_key).isdigit():
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
@@ -4404,8 +4426,9 @@ class WebInterface(object):
 
         # Try to get metadata from the Plex server first
         if rating_key:
-            pms_connect = pmsconnect.PmsConnect()
+            pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
             metadata = pms_connect.get_metadata_details(rating_key=rating_key, section_id=section_id)
+            metadata['server_id'] = pms_connect.get_server_info()['machine_identifier']
 
         # If the item is not found on the Plex server, get the metadata from history
         if not metadata and source == 'history':
@@ -4433,10 +4456,12 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_item_children(self, rating_key='', media_type=None, **kwargs):
+    def get_item_children(self, rating_key='', media_type=None, server_id=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
+        result = None
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
+        if pms_connect is not None:
+            result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
 
         if result:
             return serve_template(template_name="info_children_list.html", data=result,
@@ -4447,9 +4472,9 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_item_children_related(self, rating_key='', title='', **kwargs):
+    def get_item_children_related(self, rating_key='', title='', server_id=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
         result = pms_connect.get_item_children_related(rating_key=rating_key)
 
         if result:
@@ -4601,7 +4626,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_children_metadata")
-    def get_children_metadata_details(self, rating_key='', media_type=None, **kwargs):
+    def get_children_metadata_details(self, rating_key='', media_type=None, server_id=None, **kwargs):
         """ Get the metadata for the children of a media item.
 
             ```
@@ -4667,7 +4692,7 @@ class WebInterface(object):
                      }
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
         metadata = pms_connect.get_item_children(rating_key=rating_key,
                                                  media_type=media_type)
 
@@ -4681,7 +4706,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi('notify_recently_added')
-    def send_manual_on_created(self, notifier_id='', rating_key='', **kwargs):
+    def send_manual_on_created(self, notifier_id='', rating_key='', server_id=None, **kwargs):
         """ Send a recently added notification using Tautulli.
 
             ```
@@ -4700,7 +4725,7 @@ class WebInterface(object):
             ```
         """
         if rating_key:
-            pms_connect = pmsconnect.PmsConnect()
+            pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
             metadata = pms_connect.get_metadata_details(rating_key=rating_key)
             data = {'timeline_data': metadata, 'notify_action': 'on_created', 'manual_trigger': True}
 
@@ -4733,7 +4758,7 @@ class WebInterface(object):
     @addtoapi('pms_image_proxy')
     def real_pms_image_proxy(self, img=None, rating_key=None, width=750, height=1000,
                              opacity=100, background='000000', blur=0, img_format='png',
-                             fallback=None, refresh=False, clip=False, **kwargs):
+                             fallback=None, refresh=False, clip=False, server_id=None, **kwargs):
         """ Gets an image from the PMS and saves it to the image cache directory.
 
             ```
@@ -4817,27 +4842,30 @@ class WebInterface(object):
         except NotFound:
             # the image does not exist, download it from pms
             try:
-                pms_connect = pmsconnect.PmsConnect()
-                pms_connect.request_handler._silent = True
-                result = pms_connect.get_image(img=img,
-                                               width=width,
-                                               height=height,
-                                               opacity=opacity,
-                                               background=background,
-                                               blur=blur,
-                                               img_format=img_format,
-                                               clip=clip,
-                                               refresh=refresh)
+                pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
+                if pms_connect is not None:
+                    pms_connect.request_handler._silent = True
+                    result = pms_connect.get_image(img=img,
+                                                width=width,
+                                                height=height,
+                                                opacity=opacity,
+                                                background=background,
+                                                blur=blur,
+                                                img_format=img_format,
+                                                clip=clip,
+                                                refresh=refresh)
 
-                if result and result[0]:
-                    cherrypy.response.headers['Content-type'] = result[1]
-                    if plexpy.CONFIG.CACHE_IMAGES and 'indexes' not in img:
-                        with open(ffp, 'wb') as f:
-                            f.write(result[0])
+                    if result and result[0]:
+                        cherrypy.response.headers['Content-type'] = result[1]
+                        if plexpy.CONFIG.CACHE_IMAGES and 'indexes' not in img:
+                            with open(ffp, 'wb') as f:
+                                f.write(result[0])
 
-                    return result[0]
+                        return result[0]
+                    else:
+                        raise Exception('PMS image request failed')
                 else:
-                    raise Exception('PMS image request failed')
+                    raise Exception('PMS server not found')
 
             except Exception as e:
                 logger.warn("Failed to get image %s, falling back to %s." % (img, fallback))
@@ -5141,8 +5169,9 @@ class WebInterface(object):
                      }
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_search_results(query=query, limit=limit)
+        result = []
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            result += pms_connect.get_search_results(query=query, limit=limit)
 
         if result:
             return result
@@ -5154,8 +5183,9 @@ class WebInterface(object):
     @requireAuth()
     def get_search_results_children(self, query='', limit='', media_type=None, season_index=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_search_results(query=query, limit=limit)
+        result = []
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            result += pms_connect.get_search_results(query=query, limit=limit)
 
         if media_type:
             result['results_list'] = {media_type: result['results_list'][media_type]}
@@ -5193,7 +5223,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def update_metadata_details(self, old_rating_key, new_rating_key, media_type, single_update=False, **kwargs):
+    def update_metadata_details(self, old_rating_key, new_rating_key, media_type, single_update=False, server_id=None, **kwargs):
         """ Update the metadata in the Tautulli database by matching rating keys.
             Also updates all parents or children of the media item if it is a show/season/episode
             or artist/album/track.
@@ -5215,7 +5245,7 @@ class WebInterface(object):
 
         if new_rating_key:
             data_factory = datafactory.DataFactory()
-            pms_connect = pmsconnect.PmsConnect()
+            pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
 
             old_key_list = data_factory.get_rating_keys_list(rating_key=old_rating_key, media_type=media_type)
             new_key_list = pms_connect.get_rating_keys_list(rating_key=new_rating_key, media_type=media_type)
@@ -5235,7 +5265,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_new_rating_keys(self, rating_key='', media_type='', **kwargs):
+    def get_new_rating_keys(self, rating_key='', media_type='', server_id=None, **kwargs):
         """ Get a list of new rating keys for the PMS of all of the item's parent/children.
 
             ```
@@ -5252,7 +5282,7 @@ class WebInterface(object):
             ```
         """
 
-        pms_connect = pmsconnect.PmsConnect()
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
         result = pms_connect.get_rating_keys_list(rating_key=rating_key, media_type=media_type)
 
         if result:
@@ -5296,8 +5326,9 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_pms_sessions_json(self, **kwargs):
         """ Get all the current sessions. """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_sessions('json')
+        result = []
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            result += pms_connect.get_sessions('json')
 
         if result:
             return result
@@ -5309,7 +5340,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_metadata")
-    def get_metadata_details(self, rating_key='', sync_id='', **kwargs):
+    def get_metadata_details(self, rating_key='', sync_id='', server_id=None, **kwargs):
         """ Get the metadata for a media item.
 
             ```
@@ -5505,7 +5536,7 @@ class WebInterface(object):
                      }
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
         metadata = pms_connect.get_metadata_details(rating_key=rating_key,
                                                     sync_id=sync_id)
 
@@ -5600,8 +5631,11 @@ class WebInterface(object):
         if 'type' in kwargs:
             media_type = kwargs['type']
 
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_recently_added_details(start=start, count=count, media_type=media_type, section_id=section_id)
+        result =[]
+
+
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            result = pms_connect.get_recently_added_details(start=start, count=count, media_type=media_type, section_id=section_id)
 
         if result:
             return result
@@ -5668,7 +5702,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def get_servers(self, **kwargs):
-        pms_connect = pmsconnect.PmsConnect()
+        # just grab first one
+        pms_connect = server_manager.ServerManger().get_server_list()[0]
         result = pms_connect.get_server_list(output_format='json')
 
         if result:
@@ -5701,7 +5736,7 @@ class WebInterface(object):
                      ]
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
+        pms_connect = server_manager.ServerManger().get_server_list()[0]
         result = pms_connect.get_servers_info()
 
         if result:
@@ -5890,6 +5925,7 @@ class WebInterface(object):
                              "relay": 0,
                              "section_id": "2",
                              "secure": 1,
+                             "server_id": XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
                              "session_id": "helf15l3rxgw01xxe0jf3l3d",
                              "session_key": "27",
                              "shared_libraries": [
@@ -6033,8 +6069,18 @@ class WebInterface(object):
             ```
         """
         try:
-            pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-            result = pms_connect.get_current_activity()
+            
+            result = {
+                'stream_count':0,
+                'sessions': []
+            }
+            
+            for server in server_manager.ServerManger().get_server_list():
+                res = server.get_current_activity()
+                if len(res['sessions']) > 0:
+                    result['sessions'] += res['sessions']
+
+            result['stream_count'] = len(result['sessions'])
 
             if result:
                 if session_key:
@@ -6103,8 +6149,9 @@ class WebInterface(object):
                      ]
             ```
         """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_library_details()
+        result=[]
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            result += pms_connect.get_library_details()
 
         if result:
             return result
@@ -6224,8 +6271,9 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def get_sync_transcode_queue(self, **kwargs):
         """ Return details for currently syncing items. """
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_sync_transcode_queue(output_format='json')
+        result =[]
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            result += pms_connect.get_sync_transcode_queue(output_format='json')
 
         if result:
             return result

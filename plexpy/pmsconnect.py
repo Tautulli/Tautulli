@@ -603,6 +603,7 @@ class PmsConnect(object):
                     for guid in m.getElementsByTagName('Guid'):
                         guids.append(helpers.get_xml_attr(guid, 'id'))
 
+                server_info = self.get_server_info()
                 recent_item = {'media_type': helpers.get_xml_attr(m, 'type'),
                                'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
                                'library_name': helpers.get_xml_attr(m, 'librarySectionTitle'),
@@ -645,7 +646,8 @@ class PmsConnect(object):
                                'collections': collections,
                                'guids': guids,
                                'full_title': helpers.get_xml_attr(m, 'title'),
-                               'child_count': helpers.get_xml_attr(m, 'childCount')
+                               'child_count': helpers.get_xml_attr(m, 'childCount'),
+                               'server_id': server_info['machine_identifier']
                                }
 
                 recents_list.append(recent_item)
@@ -2294,6 +2296,7 @@ class PmsConnect(object):
             synced_version_profile = ''
             optimized_version_profile = ''
 
+        server_info = self.get_server_info()
         # Entire session output (single dict for backwards compatibility)
         session_output = {'session_key': session_key,
                           'media_type': media_type,
@@ -2303,7 +2306,11 @@ class PmsConnect(object):
                           'synced_version_profile': synced_version_profile,
                           'optimized_version_profile': optimized_version_profile,
                           'user': user_details['username'],  # Keep for backwards compatibility
-                          'channel_stream': channel_stream
+                          'channel_stream': channel_stream,
+                          'server_id': server_info['machine_identifier'],
+                          'server_name': server_info['name'],
+                          'server_ip': server_info['host'],
+                          'server_port': server_info['port'],
                           }
 
         session_output.update(metadata_details)
@@ -2492,7 +2499,8 @@ class PmsConnect(object):
                                        'genres': genres,
                                        'labels': labels,
                                        'collections': collections,
-                                       'full_title': helpers.get_xml_attr(m, 'title')
+                                       'full_title': helpers.get_xml_attr(m, 'title'),
+                                       'server_id': self.get_server_info()['machine_identifier']
                                        }
                     children_list.append(children_output)
 
@@ -2597,6 +2605,20 @@ class PmsConnect(object):
 
         return server_info
 
+    def get_server_info(self):
+        """
+        Return the base info of the current pms connection.
+
+        Output: dict
+        """
+        server_info = {}
+        servers = self.get_servers_info()
+        current = self.get_server_identity()
+        for server in servers:
+            if server['machine_identifier'] == current['machine_identifier']:
+                server_info = server
+        return server_info
+
     def get_server_identity(self):
         """
         Return the local machine identity.
@@ -2614,7 +2636,7 @@ class PmsConnect(object):
         server_identity = {}
         for a in xml_head:
             server_identity = {"machine_identifier": helpers.get_xml_attr(a, 'machineIdentifier'),
-                               "version": helpers.get_xml_attr(a, 'version')
+                               "version": helpers.get_xml_attr(a, 'version'),
                                }
 
         return server_identity

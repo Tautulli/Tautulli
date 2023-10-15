@@ -47,8 +47,8 @@ if plexpy.PYTHON2:
     import logger
     import helpers
     import notifiers
-    import pmsconnect
     import request
+    import server_manager
     from newsletter_handler import notify as notify_newsletter
 else:
     from plexpy import activity_processor
@@ -58,8 +58,8 @@ else:
     from plexpy import logger
     from plexpy import helpers
     from plexpy import notifiers
-    from plexpy import pmsconnect
     from plexpy import request
+    from plexpy import server_manager
     from plexpy.newsletter_handler import notify as notify_newsletter
 
 
@@ -180,23 +180,23 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
         #     return False
 
         if notify_action == 'on_concurrent':
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_current_activity()
+            for pms_connect in server_manager.ServerManger().get_server_list():
+                result = pms_connect.get_current_activity()
 
-            user_sessions = []
-            if result:
-                user_sessions = [s for s in result['sessions'] if s['user_id'] == stream_data['user_id']]
+                user_sessions = []
+                if result:
+                    user_sessions = [s for s in result['sessions'] if s['user_id'] == stream_data['user_id']]
 
-            if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
-                ip_addresses = set()
-                for s in user_sessions:
-                    if helpers.ip_type(s['ip_address']) == 'IPv6':
-                        ip_addresses.add(helpers.get_ipv6_network_address(s['ip_address']))
-                    elif helpers.ip_type(s['ip_address']) == 'IPv4':
-                        ip_addresses.add(s['ip_address'])
-                evaluated = len(ip_addresses) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
-            else:
-                evaluated = len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+                if plexpy.CONFIG.NOTIFY_CONCURRENT_BY_IP:
+                    ip_addresses = set()
+                    for s in user_sessions:
+                        if helpers.ip_type(s['ip_address']) == 'IPv6':
+                            ip_addresses.add(helpers.get_ipv6_network_address(s['ip_address']))
+                        elif helpers.ip_type(s['ip_address']) == 'IPv4':
+                            ip_addresses.add(s['ip_address'])
+                    evaluated = len(ip_addresses) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
+                else:
+                    evaluated = len(user_sessions) >= plexpy.CONFIG.NOTIFY_CONCURRENT_THRESHOLD
 
         elif notify_action == 'on_newdevice':
             data_factory = datafactory.DataFactory()
@@ -595,18 +595,18 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     notify_params.update(media_info)
     notify_params.update(media_part_info)
+    for pmsconnect in server_manager.ServerManger().get_server_list():
+        metadata = pmsconnect.get_metadata_details(rating_key=rating_key)
 
-    metadata = pmsconnect.PmsConnect().get_metadata_details(rating_key=rating_key)
-
-    child_metadata = grandchild_metadata = []
-    for key in kwargs.pop('child_keys', []):
-        child = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
-        if child:
-            child_metadata.append(child)
-    for key in kwargs.pop('grandchild_keys', []):
-        grandchild = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
-        if grandchild:
-            grandchild_metadata.append(grandchild)
+        child_metadata = grandchild_metadata = []
+        for key in kwargs.pop('child_keys', []):
+            child = pmsconnect.get_metadata_details(rating_key=key)
+            if child:
+                child_metadata.append(child)
+        for key in kwargs.pop('grandchild_keys', []):
+            grandchild = pmsconnect.get_metadata_details(rating_key=key)
+            if grandchild:
+                grandchild_metadata.append(grandchild)
 
     # Session values
     session = session or {}
@@ -1235,83 +1235,84 @@ def build_server_notify_params(notify_action=None, **kwargs):
     date_format = plexpy.CONFIG.DATE_FORMAT.replace('Do','')
     time_format = plexpy.CONFIG.TIME_FORMAT.replace('Do','')
 
-    update_channel = pmsconnect.PmsConnect().get_server_update_channel()
+    for pmsconnect in server_manager.ServerManger().get_server_list():
+        update_channel = pmsconnect.get_server_update_channel()
 
-    pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
-    plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
-    remote_access_info = defaultdict(str, kwargs.pop('remote_access_info', {}))
+        pms_download_info = defaultdict(str, kwargs.pop('pms_download_info', {}))
+        plexpy_download_info = defaultdict(str, kwargs.pop('plexpy_download_info', {}))
+        remote_access_info = defaultdict(str, kwargs.pop('remote_access_info', {}))
 
-    windows_exe = macos_pkg = ''
-    if plexpy_download_info:
-        release_assets = plexpy_download_info.get('assets', [])
-        for asset in release_assets:
-            if asset['content_type'] == 'application/vnd.microsoft.portable-executable':
-                windows_exe = asset['browser_download_url']
-            elif asset['content_type'] == 'application/vnd.apple.installer+xml':
-                macos_pkg = asset['browser_download_url']
+        windows_exe = macos_pkg = ''
+        if plexpy_download_info:
+            release_assets = plexpy_download_info.get('assets', [])
+            for asset in release_assets:
+                if asset['content_type'] == 'application/vnd.microsoft.portable-executable':
+                    windows_exe = asset['browser_download_url']
+                elif asset['content_type'] == 'application/vnd.apple.installer+xml':
+                    macos_pkg = asset['browser_download_url']
 
-    now = arrow.now()
-    now_iso = now.isocalendar()
+        now = arrow.now()
+        now_iso = now.isocalendar()
 
-    available_params = {
-        # Global paramaters
-        'tautulli_version': common.RELEASE,
-        'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
-        'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
-        'tautulli_commit': plexpy.CURRENT_VERSION,
-        'server_name': helpers.pms_name(),
-        'server_ip': plexpy.CONFIG.PMS_IP,
-        'server_port': plexpy.CONFIG.PMS_PORT,
-        'server_url': plexpy.CONFIG.PMS_URL,
-        'server_platform': plexpy.CONFIG.PMS_PLATFORM,
-        'server_version': plexpy.CONFIG.PMS_VERSION,
-        'server_machine_id': plexpy.CONFIG.PMS_IDENTIFIER,
-        'action': notify_action.split('on_')[-1],
-        'current_year': now.year,
-        'current_month': now.month,
-        'current_day': now.day,
-        'current_hour': now.hour,
-        'current_minute': now.minute,
-        'current_second': now.second,
-        'current_weekday': now_iso[2],
-        'current_week': now_iso[1],
-        'week_number': now_iso[1],  # Keep for backwards compatibility
-        'datestamp': now.format(date_format),
-        'timestamp': now.format(time_format),
-        'unixtime': helpers.timestamp(),
-        'utctime': helpers.utc_now_iso(),
-        # Plex remote access parameters
-        'remote_access_mapping_state': remote_access_info['mapping_state'],
-        'remote_access_mapping_error': remote_access_info['mapping_error'],
-        'remote_access_public_address': remote_access_info['public_address'],
-        'remote_access_public_port': remote_access_info['public_port'],
-        'remote_access_private_address': remote_access_info['private_address'],
-        'remote_access_private_port': remote_access_info['private_port'],
-        'remote_access_reason': remote_access_info['reason'],
-        # Plex Media Server update parameters
-        'update_version': pms_download_info['version'],
-        'update_url': pms_download_info['download_url'],
-        'update_release_date': arrow.get(pms_download_info['release_date']).format(date_format)
-            if pms_download_info['release_date'] else '',
-        'update_channel': 'Beta' if update_channel == 'beta' else 'Public',
-        'update_platform': pms_download_info['platform'],
-        'update_distro': pms_download_info['distro'],
-        'update_distro_build': pms_download_info['build'],
-        'update_requirements': pms_download_info['requirements'],
-        'update_extra_info': pms_download_info['extra_info'],
-        'update_changelog_added': pms_download_info['changelog_added'],
-        'update_changelog_fixed': pms_download_info['changelog_fixed'],
-        # Tautulli update parameters
-        'tautulli_update_version': plexpy_download_info['tag_name'],
-        'tautulli_update_release_url': plexpy_download_info['html_url'],
-        'tautulli_update_exe': windows_exe,
-        'tautulli_update_pkg': macos_pkg,
-        'tautulli_update_tar': plexpy_download_info['tarball_url'],
-        'tautulli_update_zip': plexpy_download_info['zipball_url'],
-        'tautulli_update_commit': kwargs.pop('plexpy_update_commit', ''),
-        'tautulli_update_behind': kwargs.pop('plexpy_update_behind', ''),
-        'tautulli_update_changelog': plexpy_download_info['body']
-        }
+        available_params = {
+            # Global paramaters
+            'tautulli_version': common.RELEASE,
+            'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
+            'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
+            'tautulli_commit': plexpy.CURRENT_VERSION,
+            'server_name': helpers.pms_name(),
+            'server_ip': plexpy.CONFIG.PMS_IP,
+            'server_port': plexpy.CONFIG.PMS_PORT,
+            'server_url': plexpy.CONFIG.PMS_URL,
+            'server_platform': plexpy.CONFIG.PMS_PLATFORM,
+            'server_version': plexpy.CONFIG.PMS_VERSION,
+            'server_machine_id': plexpy.CONFIG.PMS_IDENTIFIER,
+            'action': notify_action.split('on_')[-1],
+            'current_year': now.year,
+            'current_month': now.month,
+            'current_day': now.day,
+            'current_hour': now.hour,
+            'current_minute': now.minute,
+            'current_second': now.second,
+            'current_weekday': now_iso[2],
+            'current_week': now_iso[1],
+            'week_number': now_iso[1],  # Keep for backwards compatibility
+            'datestamp': now.format(date_format),
+            'timestamp': now.format(time_format),
+            'unixtime': helpers.timestamp(),
+            'utctime': helpers.utc_now_iso(),
+            # Plex remote access parameters
+            'remote_access_mapping_state': remote_access_info['mapping_state'],
+            'remote_access_mapping_error': remote_access_info['mapping_error'],
+            'remote_access_public_address': remote_access_info['public_address'],
+            'remote_access_public_port': remote_access_info['public_port'],
+            'remote_access_private_address': remote_access_info['private_address'],
+            'remote_access_private_port': remote_access_info['private_port'],
+            'remote_access_reason': remote_access_info['reason'],
+            # Plex Media Server update parameters
+            'update_version': pms_download_info['version'],
+            'update_url': pms_download_info['download_url'],
+            'update_release_date': arrow.get(pms_download_info['release_date']).format(date_format)
+                if pms_download_info['release_date'] else '',
+            'update_channel': 'Beta' if update_channel == 'beta' else 'Public',
+            'update_platform': pms_download_info['platform'],
+            'update_distro': pms_download_info['distro'],
+            'update_distro_build': pms_download_info['build'],
+            'update_requirements': pms_download_info['requirements'],
+            'update_extra_info': pms_download_info['extra_info'],
+            'update_changelog_added': pms_download_info['changelog_added'],
+            'update_changelog_fixed': pms_download_info['changelog_fixed'],
+            # Tautulli update parameters
+            'tautulli_update_version': plexpy_download_info['tag_name'],
+            'tautulli_update_release_url': plexpy_download_info['html_url'],
+            'tautulli_update_exe': windows_exe,
+            'tautulli_update_pkg': macos_pkg,
+            'tautulli_update_tar': plexpy_download_info['tarball_url'],
+            'tautulli_update_zip': plexpy_download_info['zipball_url'],
+            'tautulli_update_commit': kwargs.pop('plexpy_update_commit', ''),
+            'tautulli_update_behind': kwargs.pop('plexpy_update_behind', ''),
+            'tautulli_update_changelog': plexpy_download_info['body']
+            }
 
     return available_params
 
@@ -1551,47 +1552,47 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
         img_info = database_img_info[0]
 
     elif not database_img_info and img:
-        pms_connect = pmsconnect.PmsConnect()
-        result = pms_connect.get_image(refresh=True, **image_info)
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            result = pms_connect.get_image(refresh=True, **image_info)
 
-        if result and result[0]:
-            img_url = delete_hash = ''
+            if result and result[0]:
+                img_url = delete_hash = ''
 
-            if service == 'imgur':
-                img_url, delete_hash = helpers.upload_to_imgur(img_data=result[0],
-                                                               img_title=title,
-                                                               rating_key=rating_key,
-                                                               fallback=fallback)
-            elif service == 'cloudinary':
-                img_url = helpers.upload_to_cloudinary(img_data=result[0],
-                                                       img_title=title,
-                                                       rating_key=rating_key,
-                                                       fallback=fallback)
+                if service == 'imgur':
+                    img_url, delete_hash = helpers.upload_to_imgur(img_data=result[0],
+                                                                img_title=title,
+                                                                rating_key=rating_key,
+                                                                fallback=fallback)
+                elif service == 'cloudinary':
+                    img_url = helpers.upload_to_cloudinary(img_data=result[0],
+                                                        img_title=title,
+                                                        rating_key=rating_key,
+                                                        fallback=fallback)
 
-            if img_url:
-                img_hash = set_hash_image_info(**image_info)
-                data_factory.set_img_info(img_hash=img_hash,
-                                          img_title=title,
-                                          img_url=img_url,
-                                          delete_hash=delete_hash,
-                                          service=service)
+                if img_url:
+                    img_hash = set_hash_image_info(**image_info)
+                    data_factory.set_img_info(img_hash=img_hash,
+                                            img_title=title,
+                                            img_url=img_url,
+                                            delete_hash=delete_hash,
+                                            service=service)
 
-                img_info = {'img_title': title, 'img_url': img_url}
+                    img_info = {'img_title': title, 'img_url': img_url}
 
-    if img_info['img_url'] and service == 'cloudinary':
-        # Transform image using Cloudinary
-        image_info = {'rating_key': rating_key,
-                      'width': width,
-                      'height': height,
-                      'opacity': opacity,
-                      'background': background,
-                      'blur': blur,
-                      'fallback': fallback,
-                      'img_title': title}
+        if img_info['img_url'] and service == 'cloudinary':
+            # Transform image using Cloudinary
+            image_info = {'rating_key': rating_key,
+                        'width': width,
+                        'height': height,
+                        'opacity': opacity,
+                        'background': background,
+                        'blur': blur,
+                        'fallback': fallback,
+                        'img_title': title}
 
-        transformed_url = helpers.cloudinary_transform(**image_info)
-        if transformed_url:
-            img_info['img_url'] = transformed_url
+            transformed_url = helpers.cloudinary_transform(**image_info)
+            if transformed_url:
+                img_info['img_url'] = transformed_url
 
     return img_info
 

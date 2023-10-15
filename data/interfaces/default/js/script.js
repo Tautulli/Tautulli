@@ -784,7 +784,7 @@ function page(endpoint, ...args) {
     return endpoint + '?' + $.param(params).replace(/'/g, '%27');
 }
 
-function pms_image_proxy(img, rating_key, width, height, opacity, background, blur, fallback, refresh, clip, img_format) {
+function pms_image_proxy(img, rating_key, width, height, opacity, background, blur, fallback, refresh, clip, img_format, server_id) {
     var params = {};
 
     if (img != null) { params.img = img; }
@@ -798,11 +798,12 @@ function pms_image_proxy(img, rating_key, width, height, opacity, background, bl
     if (refresh != null) { params.refresh = true; }
     if (clip != null) { params.clip = true; }
     if (img_format != null) { params.img_format = img_format; }
+    if (server_id != null) { params.server_id = server_id; }
 
     return params;
 }
 
-function info_page(rating_key, guid, history, live) {
+function info_page(rating_key, guid, history, live, server_id) {
     var params = {};
 
     if (live && history) {
@@ -813,13 +814,16 @@ function info_page(rating_key, guid, history, live) {
 
     if (history) { params.source = 'history'; }
 
+    if (server_id != null) { params.server_id = server_id; }
+
     return params;
 }
 
-function library_page(section_id) {
+function library_page(section_id, server_id) {
     var params = {};
 
     if (section_id != null) { params.section_id = section_id; }
+    if (server_id != null) { params.server_id = server_id; }
 
     return params;
 }

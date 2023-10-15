@@ -37,7 +37,7 @@ if plexpy.PYTHON2:
     import libraries
     import logger
     import newsletter_handler
-    import pmsconnect
+    import server_manager
     from notifiers import send_notification, EMAIL
 else:
     from plexpy import common
@@ -46,7 +46,7 @@ else:
     from plexpy import libraries
     from plexpy import logger
     from plexpy import newsletter_handler
-    from plexpy import pmsconnect
+    from plexpy import server_manager
     from plexpy.notifiers import send_notification, EMAIL
 
 
@@ -706,125 +706,125 @@ class RecentlyAdded(Newsletter):
     def _get_recently_added(self, media_type=None):
         from plexpy.notification_handler import format_group_index
 
-        pms_connect = pmsconnect.PmsConnect()
+        for pms_connect in server_manager.ServerManger().get_server_list():
 
-        recently_added = []
-        done = False
-        start = 0
+            recently_added = []
+            done = False
+            start = 0
 
-        while not done:
-            recent_items = pms_connect.get_recently_added_details(start=str(start), count='10', media_type=media_type)
-            filtered_items = [i for i in recent_items['recently_added']
-                              if self.start_time < helpers.cast_to_int(i['added_at'])]
-            if len(filtered_items) < 10:
-                done = True
-            else:
-                start += 10
+            while not done:
+                recent_items = pms_connect.get_recently_added_details(start=str(start), count='10', media_type=media_type)
+                filtered_items = [i for i in recent_items['recently_added']
+                                if self.start_time < helpers.cast_to_int(i['added_at'])]
+                if len(filtered_items) < 10:
+                    done = True
+                else:
+                    start += 10
 
-            recently_added.extend(filtered_items)
+                recently_added.extend(filtered_items)
 
-        if media_type in ('movie', 'other_video'):
-            movie_list = []
-            for item in recently_added:
-                # Filter included libraries
-                if item['section_id'] not in self.config['incl_libraries']:
-                    continue
+            if media_type in ('movie', 'other_video'):
+                movie_list = []
+                for item in recently_added:
+                    # Filter included libraries
+                    if item['section_id'] not in self.config['incl_libraries']:
+                        continue
 
-                if self.start_time < helpers.cast_to_int(item['added_at']) < self.end_time:
-                    movie_list.append(item)
+                    if self.start_time < helpers.cast_to_int(item['added_at']) < self.end_time:
+                        movie_list.append(item)
 
-            recently_added = movie_list
+                recently_added += movie_list
 
-        if media_type == 'show':
-            shows_list = []
-            show_rating_keys = []
-            for item in recently_added:
-                # Filter included libraries
-                if item['section_id'] not in self.config['incl_libraries']:
-                    continue
+            if media_type == 'show':
+                shows_list = []
+                show_rating_keys = []
+                for item in recently_added:
+                    # Filter included libraries
+                    if item['section_id'] not in self.config['incl_libraries']:
+                        continue
 
-                if item['media_type'] == 'show':
-                    show_rating_key = item['rating_key']
-                elif item['media_type'] == 'season':
-                    show_rating_key = item['parent_rating_key']
-                elif item['media_type'] == 'episode':
-                    show_rating_key = item['grandparent_rating_key']
+                    if item['media_type'] == 'show':
+                        show_rating_key = item['rating_key']
+                    elif item['media_type'] == 'season':
+                        show_rating_key = item['parent_rating_key']
+                    elif item['media_type'] == 'episode':
+                        show_rating_key = item['grandparent_rating_key']
 
-                if show_rating_key in show_rating_keys:
-                    continue
+                    if show_rating_key in show_rating_keys:
+                        continue
 
-                show_metadata = pms_connect.get_metadata_details(show_rating_key, media_info=False)
-                children = pms_connect.get_item_children(show_rating_key, media_type=media_type, get_grandchildren=True)
-                filtered_children = [i for i in children['children_list']
-                                     if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
-                filtered_children.sort(key=lambda x: helpers.cast_to_int(x['parent_media_index']))
+                    show_metadata = pms_connect.get_metadata_details(show_rating_key, media_info=False)
+                    children = pms_connect.get_item_children(show_rating_key, media_type=media_type, get_grandchildren=True)
+                    filtered_children = [i for i in children['children_list']
+                                        if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
+                    filtered_children.sort(key=lambda x: helpers.cast_to_int(x['parent_media_index']))
 
-                if not filtered_children:
-                    continue
+                    if not filtered_children:
+                        continue
 
-                seasons = []
-                for (index, title), children in groupby(filtered_children,
-                                                        key=lambda x: (x['parent_media_index'], x['parent_title'])):
-                    episodes = list(children)
-                    num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in episodes])
+                    seasons = []
+                    for (index, title), children in groupby(filtered_children,
+                                                            key=lambda x: (x['parent_media_index'], x['parent_title'])):
+                        episodes = list(children)
+                        num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in episodes])
 
-                    seasons.append({'media_index': index,
-                                    'title': title,
-                                    'episode_range': num00,
-                                    'episode_count': len(episodes),
-                                    'episode': episodes})
+                        seasons.append({'media_index': index,
+                                        'title': title,
+                                        'episode_range': num00,
+                                        'episode_count': len(episodes),
+                                        'episode': episodes})
 
-                num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in seasons])
+                    num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in seasons])
 
-                show_metadata['season_range'] = num00
-                show_metadata['season_count'] = len(seasons)
-                show_metadata['season'] = seasons
+                    show_metadata['season_range'] = num00
+                    show_metadata['season_count'] = len(seasons)
+                    show_metadata['season'] = seasons
 
-                shows_list.append(show_metadata)
-                show_rating_keys.append(show_rating_key)
+                    shows_list.append(show_metadata)
+                    show_rating_keys.append(show_rating_key)
 
-            recently_added = shows_list
+                recently_added += shows_list
 
-        if media_type == 'artist':
-            artists_list = []
-            artist_rating_keys = []
-            for item in recently_added:
-                # Filter included libraries
-                if item['section_id'] not in self.config['incl_libraries']:
-                    continue
+            if media_type == 'artist':
+                artists_list = []
+                artist_rating_keys = []
+                for item in recently_added:
+                    # Filter included libraries
+                    if item['section_id'] not in self.config['incl_libraries']:
+                        continue
 
-                if item['media_type'] == 'artist':
-                    artist_rating_key = item['rating_key']
-                elif item['media_type'] == 'album':
-                    artist_rating_key = item['parent_rating_key']
-                elif item['media_type'] == 'track':
-                    artist_rating_key = item['grandparent_rating_key']
+                    if item['media_type'] == 'artist':
+                        artist_rating_key = item['rating_key']
+                    elif item['media_type'] == 'album':
+                        artist_rating_key = item['parent_rating_key']
+                    elif item['media_type'] == 'track':
+                        artist_rating_key = item['grandparent_rating_key']
 
-                if artist_rating_key in artist_rating_keys:
-                    continue
+                    if artist_rating_key in artist_rating_keys:
+                        continue
 
-                artist_metadata = pms_connect.get_metadata_details(artist_rating_key, media_info=False)
-                children = pms_connect.get_item_children(artist_rating_key, media_type=media_type)
-                filtered_children = [i for i in children['children_list']
-                                     if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
-                filtered_children.sort(key=lambda x: x['added_at'])
+                    artist_metadata = pms_connect.get_metadata_details(artist_rating_key, media_info=False)
+                    children = pms_connect.get_item_children(artist_rating_key, media_type=media_type)
+                    filtered_children = [i for i in children['children_list']
+                                        if self.start_time < helpers.cast_to_int(i['added_at']) < self.end_time]
+                    filtered_children.sort(key=lambda x: x['added_at'])
 
-                if not filtered_children:
-                    continue
+                    if not filtered_children:
+                        continue
 
-                albums = []
-                for a in filtered_children:
-                    album_metadata = pms_connect.get_metadata_details(a['rating_key'], media_info=False)
-                    album_metadata['track_count'] = helpers.cast_to_int(album_metadata['children_count'])
-                    albums.append(album_metadata)
+                    albums = []
+                    for a in filtered_children:
+                        album_metadata = pms_connect.get_metadata_details(a['rating_key'], media_info=False)
+                        album_metadata['track_count'] = helpers.cast_to_int(album_metadata['children_count'])
+                        albums.append(album_metadata)
 
-                artist_metadata['album_count'] = len(albums)
-                artist_metadata['album'] = albums
+                    artist_metadata['album_count'] = len(albums)
+                    artist_metadata['album'] = albums
 
-                artists_list.append(artist_metadata)
-                artist_rating_keys.append(artist_rating_key)
+                    artists_list.append(artist_metadata)
+                    artist_rating_keys.append(artist_rating_key)
 
-            recently_added = artists_list
+                recently_added += artists_list
 
         return recently_added
 

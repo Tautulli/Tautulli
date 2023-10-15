@@ -32,9 +32,9 @@ if plexpy.PYTHON2:
     import helpers
     import logger
     import plextv
-    import pmsconnect
     import session
     import users
+    import server_manager
     from plex import Plex
 else:
     from plexpy import common
@@ -43,71 +43,75 @@ else:
     from plexpy import helpers
     from plexpy import logger
     from plexpy import plextv
-    from plexpy import pmsconnect
     from plexpy import session
     from plexpy import users
+    from plexpy import server_manager
     from plexpy.plex import Plex
 
 
 def refresh_libraries():
     logger.info("Tautulli Libraries :: Requesting libraries list refresh...")
 
-    server_id = plexpy.CONFIG.PMS_IDENTIFIER
-    if not server_id:
-        logger.error("Tautulli Libraries :: No PMS identifier, cannot refresh libraries. Verify server in settings.")
-        return
+    passed = True
 
-    library_sections = pmsconnect.PmsConnect().get_library_details()
+    for server in server_manager.ServerManger().get_server_list():
+        library_sections = server.get_library_details()
 
-    if library_sections:
-        monitor_db = database.MonitorDatabase()
+        server_id = server.get_server_identity()["machine_identifier"]
+        if not server_id:
+            logger.error("Tautulli Libraries :: No PMS identifier, cannot refresh libraries. Verify server in settings.")
+            continue
 
-        library_keys = []
-        new_keys = []
+        if library_sections:
+            monitor_db = database.MonitorDatabase()
 
-        # Keep track of section_id to update is_active status
-        section_ids = [common.LIVE_TV_SECTION_ID]  # Live TV library always considered active
+            library_keys = []
+            new_keys = []
 
-        for section in library_sections:
-            section_ids.append(helpers.cast_to_int(section['section_id']))
+            # Keep track of section_id to update is_active status
+            section_ids = [common.LIVE_TV_SECTION_ID]  # Live TV library always considered active
 
-            section_keys = {'server_id': server_id,
-                            'section_id': section['section_id']}
-            section_values = {'server_id': server_id,
-                              'section_id': section['section_id'],
-                              'section_name': section['section_name'],
-                              'section_type': section['section_type'],
-                              'agent': section['agent'],
-                              'thumb': section['thumb'],
-                              'art': section['art'],
-                              'count': section['count'],
-                              'parent_count': section.get('parent_count', None),
-                              'child_count': section.get('child_count', None),
-                              'is_active': section['is_active']
-                              }
+            for section in library_sections:
+                section_ids.append(helpers.cast_to_int(section['section_id']))
 
-            result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
+                section_keys = {'server_id': server_id,
+                                'section_id': section['section_id']}
+                section_values = {'server_id': server_id,
+                                'section_id': section['section_id'],
+                                'section_name': section['section_name'],
+                                'section_type': section['section_type'],
+                                'agent': section['agent'],
+                                'thumb': section['thumb'],
+                                'art': section['art'],
+                                'count': section['count'],
+                                'parent_count': section.get('parent_count', None),
+                                'child_count': section.get('child_count', None),
+                                'is_active': section['is_active']
+                                }
 
-            library_keys.append(section['section_id'])
+                result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
 
-            if result == 'insert':
-                new_keys.append(section['section_id'])
+                library_keys.append(section['section_id'])
 
-        add_live_tv_library(refresh=True)
+                if result == 'insert':
+                    new_keys.append(section['section_id'])
 
-        query = "UPDATE library_sections SET is_active = 0 WHERE server_id != ? OR " \
-                "section_id NOT IN ({})".format(", ".join(["?"] * len(section_ids)))
-        monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
+            add_live_tv_library(refresh=True)
 
-        new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
-        plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
-        plexpy.CONFIG.write()
+            # query = "UPDATE library_sections SET is_active = 0 WHERE server_id != ? OR " \
+            #         "section_id NOT IN ({})".format(", ".join(["?"] * len(section_ids)))
+            # monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
 
-        logger.info("Tautulli Libraries :: Libraries list refreshed.")
-        return True
-    else:
-        logger.warn("Tautulli Libraries :: Unable to refresh libraries list.")
-        return False
+            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+            plexpy.CONFIG.write()
+
+            logger.info("Tautulli Libraries :: Libraries list refreshed.")
+        else:
+            logger.warn("Tautulli Libraries :: Unable to refresh libraries list.")
+            passed = False
+
+    return passed
 
 
 def add_live_tv_library(refresh=False):
@@ -439,7 +443,8 @@ class Libraries(object):
                    'do_notify': item['do_notify'],
                    'do_notify_created': item['do_notify_created'],
                    'keep_history': item['keep_history'],
-                   'is_active': item['is_active']
+                   'is_active': item['is_active'],
+                   'server_id': item['server_id']
                    }
 
             rows.append(row)
@@ -519,63 +524,62 @@ class Libraries(object):
 
         # If no cache was imported, get all library children items
         cached_items = {d['rating_key']: d['file_size'] for d in rows} if not refresh else {}
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            if refresh or not rows:
 
-        if refresh or not rows:
-            pms_connect = pmsconnect.PmsConnect()
+                if rating_key:
+                    library_children = pms_connect.get_library_children_details(rating_key=rating_key,
+                                                                                section_id=section_id,
+                                                                                section_type=section_type,
+                                                                                get_media_info=True)
+                elif section_id:
+                    library_children = pms_connect.get_library_children_details(section_id=section_id,
+                                                                                section_type=section_type,
+                                                                                get_media_info=True)
+                if library_children:
+                    library_count = library_children['library_count']
+                    children_list = library_children['children_list']
+                else:
+                    logger.warn("Tautulli Libraries :: Unable to get a list of library items.")
+                    return default_return
 
-            if rating_key:
-                library_children = pms_connect.get_library_children_details(rating_key=rating_key,
-                                                                            section_id=section_id,
-                                                                            section_type=section_type,
-                                                                            get_media_info=True)
-            elif section_id:
-                library_children = pms_connect.get_library_children_details(section_id=section_id,
-                                                                            section_type=section_type,
-                                                                            get_media_info=True)
-            if library_children:
-                library_count = library_children['library_count']
-                children_list = library_children['children_list']
-            else:
-                logger.warn("Tautulli Libraries :: Unable to get a list of library items.")
-                return default_return
+                new_rows = []
+                for item in children_list:
+                    ## TODO: Check list of media info items, currently only grabs first item
 
-            new_rows = []
-            for item in children_list:
-                ## TODO: Check list of media info items, currently only grabs first item
+                    cached_file_size = cached_items.get(item['rating_key'], None)
+                    file_size = cached_file_size if cached_file_size else item.get('file_size', '')
 
-                cached_file_size = cached_items.get(item['rating_key'], None)
-                file_size = cached_file_size if cached_file_size else item.get('file_size', '')
+                    row = {'section_id': library_details['section_id'],
+                        'section_type': library_details['section_type'],
+                        'added_at': item['added_at'],
+                        'media_type': item['media_type'],
+                        'rating_key': item['rating_key'],
+                        'parent_rating_key': item['parent_rating_key'],
+                        'grandparent_rating_key': item['grandparent_rating_key'],
+                        'title': item['title'],
+                        'sort_title': item['sort_title'] or item['title'],
+                        'year': item['year'],
+                        'media_index': item['media_index'],
+                        'parent_media_index': item['parent_media_index'],
+                        'thumb': item['thumb'],
+                        'container': item.get('container', ''),
+                        'bitrate': item.get('bitrate', ''),
+                        'video_codec': item.get('video_codec', ''),
+                        'video_resolution': item.get('video_resolution', ''),
+                        'video_framerate': item.get('video_framerate', ''),
+                        'audio_codec': item.get('audio_codec', ''),
+                        'audio_channels': item.get('audio_channels', ''),
+                        'file_size': file_size
+                        }
+                    new_rows.append(row)
 
-                row = {'section_id': library_details['section_id'],
-                       'section_type': library_details['section_type'],
-                       'added_at': item['added_at'],
-                       'media_type': item['media_type'],
-                       'rating_key': item['rating_key'],
-                       'parent_rating_key': item['parent_rating_key'],
-                       'grandparent_rating_key': item['grandparent_rating_key'],
-                       'title': item['title'],
-                       'sort_title': item['sort_title'] or item['title'],
-                       'year': item['year'],
-                       'media_index': item['media_index'],
-                       'parent_media_index': item['parent_media_index'],
-                       'thumb': item['thumb'],
-                       'container': item.get('container', ''),
-                       'bitrate': item.get('bitrate', ''),
-                       'video_codec': item.get('video_codec', ''),
-                       'video_resolution': item.get('video_resolution', ''),
-                       'video_framerate': item.get('video_framerate', ''),
-                       'audio_codec': item.get('audio_codec', ''),
-                       'audio_channels': item.get('audio_channels', ''),
-                       'file_size': file_size
-                       }
-                new_rows.append(row)
+                rows = new_rows
+                if not rows:
+                    return default_return
 
-            rows = new_rows
-            if not rows:
-                return default_return
-
-            # Cache the media info to a json file
-            self._save_media_info_cache(section_id=section_id, rating_key=rating_key, rows=rows)
+                # Cache the media info to a json file
+                self._save_media_info_cache(section_id=section_id, rating_key=rating_key, rows=rows)
 
         # Update the last_played and play_count
         for item in rows:
@@ -670,29 +674,28 @@ class Libraries(object):
         elif section_id:
             logger.debug("Tautulli Libraries :: Fetting file sizes for section_id %s." % section_id)
 
-        pms_connect = pmsconnect.PmsConnect()
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            for item in rows:
+                if item['rating_key'] and not item['file_size']:
+                    file_size = 0
 
-        for item in rows:
-            if item['rating_key'] and not item['file_size']:
-                file_size = 0
+                    metadata = pms_connect.get_metadata_children_details(rating_key=item['rating_key'],
+                                                                        get_children=True,
+                                                                        media_type=item['media_type'],
+                                                                        section_id=section_id)
 
-                metadata = pms_connect.get_metadata_children_details(rating_key=item['rating_key'],
-                                                                     get_children=True,
-                                                                     media_type=item['media_type'],
-                                                                     section_id=section_id)
+                    for child_metadata in metadata:
+                        ## TODO: Check list of media info items, currently only grabs first item
+                        media_info = media_part_info = {}
+                        if 'media_info' in child_metadata and len(child_metadata['media_info']) > 0:
+                            media_info = child_metadata['media_info'][0]
+                            if 'parts' in media_info and len (media_info['parts']) > 0:
+                                media_part_info = next((p for p in media_info['parts'] if p['selected']),
+                                                    media_info['parts'][0])
 
-                for child_metadata in metadata:
-                    ## TODO: Check list of media info items, currently only grabs first item
-                    media_info = media_part_info = {}
-                    if 'media_info' in child_metadata and len(child_metadata['media_info']) > 0:
-                        media_info = child_metadata['media_info'][0]
-                        if 'parts' in media_info and len (media_info['parts']) > 0:
-                            media_part_info = next((p for p in media_info['parts'] if p['selected']),
-                                                   media_info['parts'][0])
+                        file_size += helpers.cast_to_int(media_part_info.get('file_size', 0))
 
-                    file_size += helpers.cast_to_int(media_part_info.get('file_size', 0))
-
-                item['file_size'] = file_size
+                    item['file_size'] = file_size
 
         # Cache the media info to a json file
         self._save_media_info_cache(section_id=section_id, rating_key=rating_key, rows=rows)
@@ -1018,7 +1021,7 @@ class Libraries(object):
 
         return session.mask_session_info(user_stats, mask_metadata=False)
 
-    def get_recently_watched(self, section_id=None, limit='10'):
+    def get_recently_watched(self, section_id=None, limit='10', server_id=None):
         if not session.allow_session_library(section_id):
             return []
 
@@ -1037,7 +1040,7 @@ class Libraries(object):
                         "year, originally_available_at, added_at, live, started, user, content_rating, labels, section_id " \
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
-                        "WHERE section_id = ? " \
+                        "WHERE section_id = ? and server_id = '" + server_id + "' " \
                         "GROUP BY session_history.rating_key " \
                         "ORDER BY MAX(started) DESC LIMIT ?"
                 result = monitor_db.select(query, args=[section_id, limit])
@@ -1075,6 +1078,7 @@ class Libraries(object):
                                  'user': row['user'],
                                  'section_id': row['section_id'],
                                  'content_rating': row['content_rating'],
+                                 'server_id': row['server_id'],
                                  'labels': row['labels'].split(';') if row['labels'] else (),
                                  }
                 recently_watched.append(recent_output)

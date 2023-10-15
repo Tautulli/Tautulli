@@ -26,15 +26,15 @@ if plexpy.PYTHON2:
     import helpers
     import libraries
     import logger
-    import pmsconnect
     import users
+    import server_manager
 else:
     from plexpy import database
     from plexpy import helpers
     from plexpy import libraries
     from plexpy import logger
-    from plexpy import pmsconnect
     from plexpy import users
+    from plexpy import server_manager
 
 
 class ActivityProcessor(object):
@@ -273,19 +273,20 @@ class ActivityProcessor(object):
                 # Fetch metadata first so we can return false if it fails
                 if not is_import:
                     logger.debug("Tautulli ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
-                    pms_connect = pmsconnect.PmsConnect()
-                    if session['live']:
-                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
-                                                                    cache_key=session['session_key'],
-                                                                    return_cache=True)
-                    else:
-                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
-                    if not metadata:
-                        return False
-                    else:
-                        media_info = {}
-                        if 'media_info' in metadata and len(metadata['media_info']) > 0:
-                            media_info = metadata['media_info'][0]
+                    
+                    for pms_connect in server_manager.ServerManger().get_server_list():
+                        if session['live']:
+                            metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
+                                                                        cache_key=session['session_key'],
+                                                                        return_cache=True)
+                        else:
+                            metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                        if not metadata:
+                            return False
+                        else:
+                            media_info = {}
+                            if 'media_info' in metadata and len(metadata['media_info']) > 0:
+                                media_info = metadata['media_info'][0]
                 else:
                     metadata = import_metadata
                     ## TODO: Fix media info from imports. Temporary media info from import session.

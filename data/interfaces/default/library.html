@@ -548,6 +548,7 @@ DOCUMENTATION :: END
     % endif
     var section_name = '${data['section_name'].replace("'", "\\'")}';
     var refresh_table = false;
+    var server_id = "${data['server_id']}";
 
     % if config['get_file_sizes']:
     var get_file_sizes = false;
@@ -577,7 +578,8 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     section_id: section_id,
                     user_id: "${history_user_id}",
-                    transcode_decision: transcode_decision
+                    transcode_decision: transcode_decision,
+                    server_id: server_id
                 };
             }
         };
@@ -625,7 +627,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    section_id: section_id
+                    section_id: section_id,
+                    server_id: server_id
                 };
             }
         };
@@ -657,7 +660,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    section_id: section_id
+                    section_id: section_id,
+                    server_id: server_id
                 };
             }
         };
@@ -686,7 +690,8 @@ DOCUMENTATION :: END
             async: true,
             data: {
                 section_id: section_id,
-                limit: 50
+                limit: 50,
+                server_id: server_id
             },
             complete: function(xhr, status) {
                 $("#library-recently-watched").html(xhr.responseText);
@@ -702,7 +707,8 @@ DOCUMENTATION :: END
             async: true,
             data: {
                 section_id: section_id,
-                limit: 50
+                limit: 50,
+                server_id: server_id
             },
             complete: function(xhr, status) {
                 $("#library-recently-added").html(xhr.responseText);
@@ -811,7 +817,10 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'library_watch_time_stats',
             async: true,
-            data: { section_id: section_id },
+            data: {
+                    section_id: section_id,
+                    server_id: server_id
+                 },
             complete: function(xhr, status) {
                 $("#library-time-stats").html(xhr.responseText);
             }
@@ -821,7 +830,10 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'library_user_stats',
             async: true,
-            data: { section_id: section_id },
+            data: {
+                    section_id: section_id,
+                    server_id: server_id
+                 },
             complete: function(xhr, status) {
                 $("#library-user-stats").html(xhr.responseText);
             }
@@ -840,7 +852,8 @@ DOCUMENTATION :: END
                 return {
                     json_data: JSON.stringify( d ),
                     section_id: section_id,
-                    refresh: refresh_table
+                    refresh: refresh_table,
+                    server_id: server_id
                 };
             }
         };
@@ -874,7 +887,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    section_id: section_id
+                    section_id: section_id,
+                    server_id: server_id
                 };
             }
         };
@@ -904,7 +918,10 @@ DOCUMENTATION :: END
         $("#edit-library-tooltip").tooltip('hide');
         $.ajax({
             url: 'edit_library_dialog',
-            data: { section_id: section_id },
+            data: { 
+                    section_id: section_id,
+                    server_id: server_id 
+                },
             cache: false,
             async: true,
             complete: function(xhr, status) {
@@ -920,7 +937,8 @@ DOCUMENTATION :: END
                 section_id: $(this).data('section_id'),
                 media_type: $(this).data('media_type'),
                 sub_media_type: $(this).data('sub_media_type'),
-                export_type: $(this).data('export_type')
+                export_type: $(this).data('export_type'),
+                server_id: server_id
             },
             cache: false,
             async: true,
@@ -941,7 +959,10 @@ DOCUMENTATION :: END
                     $.ajax({
                         url: 'delete_history_rows',
                         type: 'POST',
-                        data: { row_ids: history_to_delete.join(',') },
+                        data: { 
+                                row_ids: history_to_delete.join(','),
+                                server_id: server_id
+                             },
                         async: true,
                         success: function (data) {
                             var msg = "History deleted";

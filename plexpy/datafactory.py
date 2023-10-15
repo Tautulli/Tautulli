@@ -32,7 +32,7 @@ if plexpy.PYTHON2:
     import libraries
     import helpers
     import logger
-    import pmsconnect
+    import server_manager
     import session
     import users
 else:
@@ -42,7 +42,7 @@ else:
     from plexpy import datatables
     from plexpy import helpers
     from plexpy import logger
-    from plexpy import pmsconnect
+    from plexpy import server_manager
     from plexpy import session
     from plexpy import users
 
@@ -1214,9 +1214,9 @@ class DataFactory(object):
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         if media_type in ('collection', 'playlist'):
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
-            rating_keys = [child['rating_key'] for child in result['children_list']]
+            for pms_connect in server_manager.ServerManger().get_server_list():
+                result += pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
+                rating_keys += [child['rating_key'] for child in result['children_list']]
         else:
             rating_keys = [rating_key]
 
@@ -1298,9 +1298,9 @@ class DataFactory(object):
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
         if media_type in ('collection', 'playlist'):
-            pms_connect = pmsconnect.PmsConnect()
-            result = pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
-            rating_keys = [child['rating_key'] for child in result['children_list']]
+            for pms_connect in server_manager.ServerManger().get_server_list():
+                result += pms_connect.get_item_children(rating_key=rating_key, media_type=media_type)
+                rating_keys += [child['rating_key'] for child in result['children_list']]
         else:
             rating_keys = [rating_key]
 
@@ -2029,8 +2029,8 @@ class DataFactory(object):
 
         return key_list
 
-    def update_metadata(self, old_key_list='', new_key_list='', media_type='', single_update=False):
-        pms_connect = pmsconnect.PmsConnect()
+    def update_metadata(self, old_key_list='', new_key_list='', media_type='', single_update=False, server_id=None):
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
         monitor_db = database.MonitorDatabase()
 
         # function to map rating keys pairs
@@ -2400,10 +2400,10 @@ class DataFactory(object):
 
         return result
 
-    def set_recently_added_item(self, rating_key=''):
+    def set_recently_added_item(self, rating_key='', server_id=None):
         monitor_db = database.MonitorDatabase()
 
-        pms_connect = pmsconnect.PmsConnect()
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
         metadata = pms_connect.get_metadata_details(rating_key)
 
         keys = {'rating_key': metadata['rating_key']}

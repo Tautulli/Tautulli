@@ -67,7 +67,7 @@ if plexpy.PYTHON2:
     import helpers
     import logger
     import mobile_app
-    import pmsconnect
+    import server_manager
     import request
     import users
 else:
@@ -76,7 +76,7 @@ else:
     from plexpy import helpers
     from plexpy import logger
     from plexpy import mobile_app
-    from plexpy import pmsconnect
+    from plexpy import server_manager
     from plexpy import request
     from plexpy import users
 

@@ -71,9 +71,6 @@
         <div class="col-md-12">
             <div class="home-padded-header padded-header" id="library-statistics-header">
                 <h3 class="pull-left">Library Statistics</h3>
-                <div class="button-bar">
-                    <span class="btn btn-dark active" style="cursor: default">${config['pms_name']}</span>
-                </div>
             </div>
         </div>
     </div>
@@ -757,7 +754,8 @@
                 data: {
                     session_key: key,
                     session_id: session_id,
-                    message: message
+                    message: message,
+                    server_id: "test1"
                 },
                 async: true,
                 success: function (data) {

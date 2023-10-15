@@ -32,7 +32,7 @@ if plexpy.PYTHON2:
     import helpers
     import logger
     import notification_handler
-    import pmsconnect
+    import server_manager
 else:
     from plexpy import activity_processor
     from plexpy import common
@@ -40,7 +40,7 @@ else:
     from plexpy import helpers
     from plexpy import logger
     from plexpy import notification_handler
-    from plexpy import pmsconnect
+    from plexpy import server_manager
 
 
 ACTIVITY_SCHED = None
@@ -78,26 +78,26 @@ class ActivityHandler(object):
     def get_metadata(self, skip_cache=False):
         if self.metadata is None:
             cache_key = None if skip_cache else self.session_key
-            pms_connect = pmsconnect.PmsConnect()
-            metadata = pms_connect.get_metadata_details(rating_key=self.rating_key, cache_key=cache_key)
+            for pms_connect in server_manager.ServerManger().get_server_list():
+                metadata = pms_connect.get_metadata_details(rating_key=self.rating_key, cache_key=cache_key)
 
-            if metadata:
-                self.metadata = metadata
+                if metadata:
+                    self.metadata = metadata
 
     def get_live_session(self, skip_cache=False):
-        pms_connect = pmsconnect.PmsConnect()
-        session_list = pms_connect.get_current_activity(skip_cache=skip_cache)
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            session_list = pms_connect.get_current_activity(skip_cache=skip_cache)
 
-        if session_list:
-            for session in session_list['sessions']:
-                if int(session['session_key']) == self.session_key:
-                    # Live sessions don't have rating keys in sessions
-                    # Get it from the websocket data
-                    if not session['rating_key']:
-                        session['rating_key'] = self.rating_key
-                    session['rating_key_websocket'] = self.rating_key
-                    self.session = session
-                    return session
+            if session_list:
+                for session in session_list['sessions']:
+                    if int(session['session_key']) == self.session_key:
+                        # Live sessions don't have rating keys in sessions
+                        # Get it from the websocket data
+                        if not session['rating_key']:
+                            session['rating_key'] = self.rating_key
+                        session['rating_key_websocket'] = self.rating_key
+                        self.session = session
+                        return session
 
     def update_db_session(self, notify=False):
         if self.session is None:
@@ -552,9 +552,9 @@ class ReachabilityHandler(object):
         self.is_reachable = self.data.get('reachable', False)
 
     def remote_access_enabled(self):
-        pms_connect = pmsconnect.PmsConnect()
-        pref = pms_connect.get_server_pref(pref='PublishServerOnPlexOnlineKey')
-        return helpers.bool_true(pref)
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            pref = pms_connect.get_server_pref(pref='PublishServerOnPlexOnlineKey')
+            return helpers.bool_true(pref)
 
     def on_extdown(self, server_response):
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_extdown', 'remote_access_info': server_response})
@@ -571,8 +571,8 @@ class ReachabilityHandler(object):
         if self.is_reachable and plexpy.PLEX_REMOTE_ACCESS_UP:
             return
 
-        pms_connect = pmsconnect.PmsConnect()
-        server_response = pms_connect.get_server_response()
+        for pms_connect in server_manager.ServerManger().get_server_list():
+            server_response = pms_connect.get_server_response()
 
         if not server_response:
             return
@@ -702,8 +702,8 @@ def clear_recently_added_queue(rating_key, title):
 
 
 def on_created(rating_key, **kwargs):
-    pms_connect = pmsconnect.PmsConnect()
-    metadata = pms_connect.get_metadata_details(rating_key)
+    for pms_connect in server_manager.ServerManger().get_server_list():
+        metadata = pms_connect.get_metadata_details(rating_key)
 
     logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) added to Plex.",
                  metadata['full_title'], str(rating_key))

@@ -662,13 +662,14 @@ def dbcheck():
         "buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, "
         "intro INTEGER DEFAULT 0, credits INTEGER DEFAULT 0, commercial INTEGER DEFAULT 0, marker INTEGER DEFAULT 0, "
         "initial_stream INTEGER DEFAULT 1, write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT, "
-        "rating_key_websocket TEXT)"
+        "rating_key_websocket TEXT, "
+        "server_id TEXT)"
     )
 
     # sessions_continued table :: This is a temp table that keeps track of continued streaming sessions
     c_db.execute(
         "CREATE TABLE IF NOT EXISTS sessions_continued (id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "user_id INTEGER, machine_id TEXT, media_type TEXT, stopped INTEGER)"
+        "user_id INTEGER, machine_id TEXT, media_type TEXT, stopped INTEGER, server_id TEXT)"
     )
 
     # session_history table :: This is a history table which logs essential stream details
@@ -679,7 +680,7 @@ def dbcheck():
         "platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, "
         "bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER, "
         "parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, section_id INTEGER, "
-        "view_offset INTEGER DEFAULT 0)"
+        "view_offset INTEGER DEFAULT 0, server_id TEXT)"
     )
 
     # session_history_media_info table :: This is a table which logs each session"s media info
@@ -705,7 +706,7 @@ def dbcheck():
         "stream_subtitle_decision TEXT, stream_subtitle_codec TEXT, "
         "stream_subtitle_container TEXT, stream_subtitle_forced INTEGER, stream_subtitle_language TEXT, "
         "synced_version INTEGER, synced_version_profile TEXT, "
-        "optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT)"
+        "optimized_version INTEGER, optimized_version_profile TEXT, optimized_version_title TEXT, server_id TEXT)"
     )
 
     # session_history_metadata table :: This is a table which logs each session"s media metadata
@@ -719,7 +720,7 @@ def dbcheck():
         "last_viewed_at INTEGER, content_rating TEXT, summary TEXT, tagline TEXT, rating TEXT, "
         "duration INTEGER DEFAULT 0, guid TEXT, directors TEXT, writers TEXT, actors TEXT, genres TEXT, studio TEXT, "
         "labels TEXT, live INTEGER DEFAULT 0, channel_call_sign TEXT, channel_identifier TEXT, channel_thumb TEXT, "
-        "marker_credits_first INTEGER DEFAULT NULL, marker_credits_final INTEGER DEFAULT NULL)"
+        "marker_credits_first INTEGER DEFAULT NULL, marker_credits_final INTEGER DEFAULT NULL, server_id TEXT)"
     )
 
     # users table :: This table keeps record of the friends list
@@ -731,7 +732,8 @@ def dbcheck():
         "is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, "
         "do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, "
         "allow_guest INTEGER DEFAULT 0, user_token TEXT, server_token TEXT, shared_libraries TEXT, "
-        "filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT)"
+        "filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT, "
+        "server_id TEXT )"
     )
 
     # library_sections table :: This table keeps record of the servers library sections
@@ -813,7 +815,7 @@ def dbcheck():
         "CREATE TABLE IF NOT EXISTS recently_added (id INTEGER PRIMARY KEY AUTOINCREMENT, "
         "added_at INTEGER, pms_identifier TEXT, section_id INTEGER, "
         "rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, "
-        "media_info TEXT)"
+        "media_info TEXT, server_id TEXT)"
     )
 
     # mobile_devices table :: This table keeps record of devices linked with the mobile app

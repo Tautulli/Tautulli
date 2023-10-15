@@ -1578,7 +1578,7 @@ def page(endpoint, *args, **kwargs):
 
 def pms_image_proxy(img=None, rating_key=None, width=None, height=None,
                     opacity=None, background=None, blur=None, img_format=None,
-                    fallback=None, refresh=None, clip=None):
+                    fallback=None, refresh=None, clip=None, server_id=None):
     params = {}
 
     if img is not None:
@@ -1603,11 +1603,13 @@ def pms_image_proxy(img=None, rating_key=None, width=None, height=None,
         params['refresh'] = 'true'
     if clip is not None:
         params['clip'] = 'true'
+    if server_id is not None:
+        params['server_id'] = server_id
 
     return params
 
 
-def info_page(rating_key=None, guid=None, history=None, live=None):
+def info_page(rating_key=None, guid=None, history=None, live=None, server_id=None):
     params = {}
 
     if live and history:
@@ -1618,14 +1620,20 @@ def info_page(rating_key=None, guid=None, history=None, live=None):
     if history:
         params['source'] = 'history'
 
+    if server_id is not None:
+        params['server_id'] = server_id
+
     return params
 
 
-def library_page(section_id=None):
+def library_page(section_id=None, server_id=None):
     params = {}
 
     if section_id is not None:
         params['section_id'] = section_id
+    
+    if server_id is not None:
+        params['server_id'] = server_id
 
     return params
 
