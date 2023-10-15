@@ -2869,8 +2869,8 @@ a .home-platforms-list-cover-face:hover
 }
 .circle-half {
     background-image:
-    linear-gradient(-90deg, #0e253f 50%, transparent 50%),
-    linear-gradient(90deg, #d1d1d1 50%, transparent 50%);
+    linear-gradient(90deg, #0e253f 50%, transparent 50%),
+    linear-gradient(-90deg, #d1d1d1 50%, transparent 50%);
     }
 .circle-three-quarter {
     background-image:
