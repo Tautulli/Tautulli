@@ -1281,7 +1281,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     z-index: 1;
-   -webkit-border-radius: 50%;
+    -webkit-border-radius: 50%;
     -moz-border-radius: 50%;
     border-radius: 350%;
     overflow: hidden;
@@ -2853,6 +2853,32 @@ a .home-platforms-list-cover-face:hover
     text-overflow: ellipsis;
     overflow: hidden;
     max-width: 350px;
+}
+.circle {
+    margin: 0.05rem;
+    display: inline-block;
+    width: 1.55rem;
+    height: 1.55rem;
+    border-radius: 50%;
+    border: 0.2rem solid white;
+}
+.circle-quarter {
+    background-image:
+    linear-gradient(00deg, #0e253f 50%, transparent 50%),
+    linear-gradient(90deg, #d1d1d1 50%, transparent 50%);
+}
+.circle-half {
+    background-image:
+    linear-gradient(-90deg, #0e253f 50%, transparent 50%),
+    linear-gradient(90deg, #d1d1d1 50%, transparent 50%);
+    }
+.circle-three-quarter {
+    background-image:
+    linear-gradient(180deg, transparent 50%, #d1d1d1 50%),
+    linear-gradient(90deg, #d1d1d1 50%, transparent 50%);
+}
+.circle-full {
+    background: #d1d1d1;
 }
 #graph-tabs {
     padding-bottom: 10px;
