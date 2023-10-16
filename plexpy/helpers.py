@@ -1194,18 +1194,20 @@ def get_plexpy_url(hostname=None):
         scheme = 'http'
 
     if hostname is None and plexpy.CONFIG.HTTP_HOST in ('0.0.0.0', '::'):
-        import socket
+        # Only returns IPv4 address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        s.settimeout(0)
         try:
-            # Only returns IPv4 address
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            s.connect(('<broadcast>', 0))
+            s.connect(('<broadcast>', 1))
             hostname = s.getsockname()[0]
         except socket.error:
             try:
                 hostname = socket.gethostbyname(socket.gethostname())
             except socket.gaierror:
                 pass
+        finally:
+            s.close()
 
         if not hostname:
             hostname = 'localhost'
