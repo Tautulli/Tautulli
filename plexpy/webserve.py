@@ -143,7 +143,7 @@ def serve_template(template_name, **kwargs):
     try:
         template = TEMPLATE_LOOKUP.get_template(template_name)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
-                               _session=_session, server_id="test2", **kwargs)
+                               _session=_session, server_id=NotImplemented, **kwargs)
     except Exception as e:
         logger.exception("WebUI :: Mako template render error: %s" % e)
         return mako.exceptions.html_error_template().render()
@@ -575,6 +575,7 @@ class WebInterface(object):
             # TODO: Find some one way to automatically get the columns
             dt_columns = [("library_thumb", False, False),
                           ("section_name", True, True),
+                          ("server_name", True, True),
                           ("section_type", True, True),
                           ("count", True, True),
                           ("parent_count", True, True),
@@ -4484,10 +4485,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
+    def item_watch_time_stats(self, rating_key=None, media_type=None, server_id=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type, server_id=server_id)
         else:
             result = None
 

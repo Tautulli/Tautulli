@@ -738,6 +738,7 @@
         var session_id = $(this).data('id');
         var key = $(this).data('key');
         var instance = $('#activity-instance-' + key);
+        var server_id = $(this).data('server_id');
 
         $('#terminate-user').text(instance.find('.dashboard-activity-metadata-user').text());
         $('#terminate-title').text(instance.find('.dashboard-activity-metadata-title').text());
@@ -755,7 +756,7 @@
                     session_key: key,
                     session_id: session_id,
                     message: message,
-                    server_id: "test1"
+                    server_id: server_id
                 },
                 async: true,
                 success: function (data) {

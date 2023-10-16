@@ -19,6 +19,7 @@ thumb                   Returns the thumb of the library.
 count                   Returns the number of top level items in the library.
 parent_count            Returns the number of parent items in the library.
 child_count             Returns the number of child items in the library.
+server_id               Returns the hardware_id of the server the library is in.
 
 DOCUMENTATION :: END
 </%doc>
@@ -40,9 +41,9 @@ DOCUMENTATION :: END
 %>
 <div class="dashboard-stats-instance" id="library-stats-instance-${section_type}" data-section_type="${section_type}">
     <div class="dashboard-stats-container">
-        <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'] or row0['library_art'], None, 500, 280, 40, '282828', 3, fallback=row0['library_art'])});" data-library_art="${row0['library_art']}">
+        <div id="library-stats-background-${section_type}" class="dashboard-stats-background" style="background-image: url(${page('pms_image_proxy', row0['art'] or row0['library_art'], None, 500, 280, 40, '282828', 3, fallback=row0['library_art'], server_id=row0['server_id'])});" data-library_art="${row0['library_art']}">
             % if row0['thumb'].startswith('http'):
-            <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['thumb'], None, 80, 80)});"></div>
+            <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat hidden-xs" style="background-image: url(${page('pms_image_proxy', row0['thumb'], None, 80, 80, server_id=row0['server_id'])});"></div>
             % else:
             <div id="library-stats-thumb-${section_type}" class="dashboard-stats-flat svg-icon library-${section_type} hidden-xs"></div>
             % endif
@@ -59,7 +60,7 @@ DOCUMENTATION :: END
                                 data-art="${section.get('art')}" data-thumb="${section.get('thumb')}" data-library_art="${section.get('library_art')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
-                                    <a href="${page('library', section['section_id'])}" title="${section['section_name']}">
+                                    <a href="${page('library', section['section_id'], server_id=section['server_id'])}" title="${section['section_name']}">
                                         ${section['section_name']}
                                     </a>
                                 </div>

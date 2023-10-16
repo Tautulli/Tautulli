@@ -413,6 +413,9 @@ class Libraries(object):
             else:
                 library_art = item['library_art']
 
+            pmsconnect = server_manager.ServerManger().get_server(server_id=item['server_id'])
+            serverinfo = pmsconnect.get_server_info()
+
             row = {'row_id': item['row_id'],
                    'server_id': item['server_id'],
                    'section_id': item['section_id'],
@@ -444,7 +447,8 @@ class Libraries(object):
                    'do_notify_created': item['do_notify_created'],
                    'keep_history': item['keep_history'],
                    'is_active': item['is_active'],
-                   'server_id': item['server_id']
+                   'server_id': item['server_id'],
+                   'server_name': serverinfo['name']
                    }
 
             rows.append(row)
@@ -1040,7 +1044,7 @@ class Libraries(object):
                         "year, originally_available_at, added_at, live, started, user, content_rating, labels, section_id " \
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
-                        "WHERE section_id = ? and server_id = '" + server_id + "' " \
+                        "WHERE section_id = ? and session_history.server_id = '" + server_id + "' " \
                         "GROUP BY session_history.rating_key " \
                         "ORDER BY MAX(started) DESC LIMIT ?"
                 result = monitor_db.select(query, args=[section_id, limit])
@@ -1089,7 +1093,7 @@ class Libraries(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = "SELECT section_id, section_name, section_type, agent " \
+            query = "SELECT section_id, section_name, section_type, agent, server_id " \
                     "FROM library_sections WHERE deleted_section = 0"
             result = monitor_db.select(query=query)
         except Exception as e:
@@ -1101,7 +1105,8 @@ class Libraries(object):
             library = {'section_id': item['section_id'],
                        'section_name': item['section_name'],
                        'section_type': item['section_type'],
-                       'agent': item['agent']
+                       'agent': item['agent'],
+                       'server_id': item['server_id']
                        }
             libraries.append(library)
 

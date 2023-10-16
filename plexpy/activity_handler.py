@@ -701,9 +701,9 @@ def clear_recently_added_queue(rating_key, title):
     del_keys(rating_key)
 
 
-def on_created(rating_key, **kwargs):
-    for pms_connect in server_manager.ServerManger().get_server_list():
-        metadata = pms_connect.get_metadata_details(rating_key)
+def on_created(rating_key, server_id, **kwargs):
+    pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
+    metadata = pms_connect.get_metadata_details(rating_key)
 
     logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) added to Plex.",
                  metadata['full_title'], str(rating_key))

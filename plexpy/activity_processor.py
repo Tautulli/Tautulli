@@ -152,11 +152,15 @@ class ActivityProcessor(object):
                       'channel_call_sign': session.get('channel_call_sign', ''),
                       'channel_identifier': session.get('channel_identifier', ''),
                       'channel_thumb': session.get('channel_thumb', ''),
-                      'stopped': helpers.timestamp()
+                      'stopped': helpers.timestamp(),
+                      'server_id': session.get('server_id')
                       }
 
-            keys = {'session_key': session.get('session_key', ''),
-                    'rating_key': session.get('rating_key', '')}
+            keys = {
+                    'session_key': session.get('session_key', ''),
+                    'rating_key': session.get('rating_key', ''),
+                    'server_id': session.get('server_id')
+                    }
 
             result = self.db.upsert('sessions', values, keys)
 
@@ -412,7 +416,8 @@ class ActivityProcessor(object):
                           'synced_version_profile': session['synced_version_profile'],
                           'optimized_version': session['optimized_version'],
                           'optimized_version_profile': session['optimized_version_profile'],
-                          'optimized_version_title': session['optimized_version_title']
+                          'optimized_version_title': session['optimized_version_title'],
+                          'server_id': "test3"
                           }
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_media_info transaction..."

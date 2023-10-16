@@ -79,6 +79,19 @@ libraries_list_table_options = {
         },
         {
             "targets": [3],
+            "data": "server_name",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(cellData);
+                }
+            },
+            "width": "10%",
+            "className": "no-wrap",
+            "orderable": false,
+            "searchable": false
+        },
+        {
+            "targets": [4],
             "data": "section_type",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -89,7 +102,7 @@ libraries_list_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [4],
+            "targets": [5],
             "data": "count",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -101,7 +114,7 @@ libraries_list_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [5],
+            "targets": [6],
             "data": "parent_count",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -113,7 +126,7 @@ libraries_list_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [6],
+            "targets": [7],
             "data": "child_count",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -125,7 +138,7 @@ libraries_list_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [7],
+            "targets": [8],
             "data": "last_accessed",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -139,7 +152,7 @@ libraries_list_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [8],
+            "targets": [9],
             "data":"last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -180,7 +193,7 @@ libraries_list_table_options = {
             "className": "datatable-wrap"
         },
         {
-            "targets": [9],
+            "targets": [10],
             "data": "plays",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -192,7 +205,7 @@ libraries_list_table_options = {
             "className": "no-wrap"
         },
         {
-            "targets": [10],
+            "targets": [11],
             "data": "duration",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {

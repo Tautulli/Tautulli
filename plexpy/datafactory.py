@@ -1119,6 +1119,15 @@ class DataFactory(object):
 
         library_stats = []
 
+        libraries = {}
+
+        for library in library_cards:
+            parts = library.split('_')
+            if len(parts) > 1:
+                if (parts[0] not in libraries):
+                    libraries[parts[0]] = []
+                libraries[parts[0]].append(parts[1])
+
         try:
             query = "SELECT ls.id, ls.section_id, ls.section_name, ls.section_type, ls.thumb AS library_thumb, " \
                     "ls.custom_thumb_url AS custom_thumb, ls.art AS library_art, ls.custom_art_url AS custom_art, " \
@@ -1128,13 +1137,19 @@ class DataFactory(object):
                     "sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, " \
                     "sh.user, sh.user_id, sh.player, " \
                     "shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, " \
-                    "MAX(sh.started) AS last_watch " \
+                    "MAX(sh.started) AS last_watch, ls.server_id as server_id " \
                     "FROM library_sections AS ls " \
-                    "LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id " \
-                    "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id " \
-                    "WHERE ls.section_id IN (%s) AND ls.deleted_section = 0 " \
-                    "GROUP BY ls.id " \
-                    "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC " % ",".join(library_cards)
+                    "LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id AND ls.server_id = sh.server_id " \
+                    "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id AND sh.server_id = shm.server_id " \
+                    "WHERE " 
+            query_parts = []
+            for library in libraries:
+                query_parts.append("(ls.section_id IN (" + ",".join(libraries[library]) + ") AND ls.deleted_section = 0 AND ls.server_id = '" + library +"' )")
+            
+            query +=(" or ").join(query_parts)
+
+            query += "GROUP BY ls.id " \
+                    "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC "
             result = monitor_db.select(query)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
@@ -1182,7 +1197,8 @@ class DataFactory(object):
                        'labels': item['labels'].split(';') if item['labels'] else (),
                        'live': item['live'],
                        'guid': item['guid'],
-                       'row_id': item['id']
+                       'row_id': item['id'],
+                       'server_id': item['server_id']
                        }
             library_stats.append(library)
 
@@ -1191,7 +1207,7 @@ class DataFactory(object):
 
         return library_stats
 
-    def get_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None):
+    def get_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None, server_id=None):
         if rating_key is None:
             return []
 
@@ -1233,11 +1249,12 @@ class DataFactory(object):
                                 "COUNT(DISTINCT %s) AS total_plays, section_id " \
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE stopped >= ? " \
+                                "WHERE session_history.server_id is '%s'" \
+                                "AND (stopped >= ? " \
                                 "AND (session_history.grandparent_rating_key IN (%s) " \
                                 "OR session_history.parent_rating_key IN (%s) " \
-                                "OR session_history.rating_key IN (%s))" % (
-                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                                "OR session_history.rating_key IN (%s)))" % (
+                                    group_by, server_id, rating_keys_arg, rating_keys_arg, rating_keys_arg
                                 )
                         
                         result = monitor_db.select(query, args=[timestamp_query] + rating_keys * 3)
@@ -1250,10 +1267,11 @@ class DataFactory(object):
                                 "COUNT(DISTINCT %s) AS total_plays, section_id " \
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE (session_history.grandparent_rating_key IN (%s) " \
+                                "WHERE session_history.server_id is '%s'" \
+                                "AND ((session_history.grandparent_rating_key IN (%s) " \
                                 "OR session_history.parent_rating_key IN (%s) " \
-                                "OR session_history.rating_key IN (%s))" % (
-                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                                "OR session_history.rating_key IN (%s)))" % (
+                                    group_by, server_id, rating_keys_arg, rating_keys_arg, rating_keys_arg
                                 )
                         
                         result = monitor_db.select(query, args=rating_keys * 3)

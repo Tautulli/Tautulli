@@ -662,8 +662,7 @@ def dbcheck():
         "buffer_count INTEGER DEFAULT 0, buffer_last_triggered INTEGER, last_paused INTEGER, watched INTEGER DEFAULT 0, "
         "intro INTEGER DEFAULT 0, credits INTEGER DEFAULT 0, commercial INTEGER DEFAULT 0, marker INTEGER DEFAULT 0, "
         "initial_stream INTEGER DEFAULT 1, write_attempts INTEGER DEFAULT 0, raw_stream_info TEXT, "
-        "rating_key_websocket TEXT, "
-        "server_id TEXT)"
+        "rating_key_websocket TEXT, server_id TEXT)"
     )
 
     # sessions_continued table :: This is a temp table that keeps track of continued streaming sessions
@@ -733,7 +732,7 @@ def dbcheck():
         "do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, "
         "allow_guest INTEGER DEFAULT 0, user_token TEXT, server_token TEXT, shared_libraries TEXT, "
         "filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT, "
-        "server_id TEXT )"
+        "server_id TEXT)"
     )
 
     # library_sections table :: This table keeps record of the servers library sections
