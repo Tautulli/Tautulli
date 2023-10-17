@@ -759,7 +759,7 @@ class WebInterface(object):
         if not allow_session_library(section_id):
             return serve_template(template_name="user_recently_watched.html", data=None, title="Recently Watched")
 
-        if section_id:
+        if section_id and server_id:
             library_data = libraries.Libraries()
             result = library_data.get_recently_watched(section_id=section_id, limit=limit, server_id=server_id)
         else:
@@ -4426,7 +4426,7 @@ class WebInterface(object):
             user_info = {}
 
         # Try to get metadata from the Plex server first
-        if rating_key:
+        if rating_key and server_id:
             pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
             metadata = pms_connect.get_metadata_details(rating_key=rating_key, section_id=section_id)
             metadata['server_id'] = pms_connect.get_server_info()['machine_identifier']
@@ -4500,10 +4500,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
+    def item_user_stats(self, rating_key=None, media_type=None, server_id=None, **kwargs):
         if rating_key:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type, server_id=server_id)
         else:
             result = None
 
@@ -5182,17 +5182,18 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_search_results_children(self, query='', limit='', media_type=None, season_index=None, **kwargs):
+    def get_search_results_children(self, query='', limit='', media_type=None, season_index=None, server_id=None, **kwargs):
 
-        result = []
-        for pms_connect in server_manager.ServerManger().get_server_list():
-            result += pms_connect.get_search_results(query=query, limit=limit)
+        result ={}
+        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
+        if pms_connect:
+            result = pms_connect.get_search_results(query=query, limit=limit)
 
-        if media_type:
-            result['results_list'] = {media_type: result['results_list'][media_type]}
-        if media_type == 'season' and season_index:
-            result['results_list']['season'] = [season for season in result['results_list']['season']
-                                                if season['media_index'] == season_index]
+            if media_type:
+                result['results_list'] = {media_type: result['results_list'][media_type]}
+            if media_type == 'season' and season_index:
+                result['results_list']['season'] = [season for season in result['results_list']['season']
+                                                    if season['media_index'] == season_index]
 
         if result:
             return serve_template(template_name="info_search_results_list.html", data=result, title="Search Result List")

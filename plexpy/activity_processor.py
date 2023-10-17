@@ -417,7 +417,7 @@ class ActivityProcessor(object):
                           'optimized_version': session['optimized_version'],
                           'optimized_version_profile': session['optimized_version_profile'],
                           'optimized_version_title': session['optimized_version_title'],
-                          'server_id': "test3"
+                          'server_id': session['server_id']
                           }
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_media_info transaction..."

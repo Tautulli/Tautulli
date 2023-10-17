@@ -392,7 +392,7 @@ class DataFactory(object):
             if stat == 'top_movies':
                 top_movies = []
                 try:
-                    query = "SELECT sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, sh.section_id, " \
+                    query = "SELECT sh.id, sh.server_id, shm.full_title, shm.year, sh.rating_key, shm.thumb, sh.section_id, " \
                             "shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, " \
                             "MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration " \
                             "FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
@@ -432,7 +432,8 @@ class DataFactory(object):
                            'platform': '',
                            'live': item['live'],
                            'guid': item['guid'],
-                           'row_id': item['id']
+                           'row_id': item['id'],
+                           'server_id': item['server_id']
                            }
                     top_movies.append(row)
 
@@ -444,7 +445,7 @@ class DataFactory(object):
             elif stat == 'popular_movies':
                 popular_movies = []
                 try:
-                    query = "SELECT sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, sh.section_id, " \
+                    query = "SELECT sh.id, sh.server_id, shm.full_title, shm.year, sh.rating_key, shm.thumb, sh.section_id, " \
                             "shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, " \
                             "COUNT(DISTINCT sh.user_id) AS users_watched, " \
                             "MAX(sh.started) AS last_watch, COUNT(sh.id) as total_plays, SUM(sh.d) AS total_duration " \
@@ -484,7 +485,8 @@ class DataFactory(object):
                            'platform': '',
                            'live': item['live'],
                            'guid': item['guid'],
-                           'row_id': item['id']
+                           'row_id': item['id'], 
+                           'server_id': item['server_id']
                            }
                     popular_movies.append(row)
 
@@ -495,7 +497,7 @@ class DataFactory(object):
             elif stat == 'top_tv':
                 top_tv = []
                 try:
-                    query = "SELECT sh.id, shm.grandparent_title, sh.grandparent_rating_key, " \
+                    query = "SELECT sh.id, sh.server_id, shm.grandparent_title, sh.grandparent_rating_key, " \
                             "shm.grandparent_thumb, sh.section_id, " \
                             "shm.year, sh.rating_key, shm.art, sh.media_type, " \
                             "shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, " \
@@ -537,7 +539,8 @@ class DataFactory(object):
                            'platform': '',
                            'live': item['live'],
                            'guid': item['guid'],
-                           'row_id': item['id']
+                           'row_id': item['id'],
+                           'server_id': item['server_id']
                            }
                     top_tv.append(row)
 
@@ -549,7 +552,7 @@ class DataFactory(object):
             elif stat == 'popular_tv':
                 popular_tv = []
                 try:
-                    query = "SELECT sh.id, shm.grandparent_title, sh.grandparent_rating_key, " \
+                    query = "SELECT sh.id, sh.server_id, shm.grandparent_title, sh.grandparent_rating_key, " \
                             "shm.grandparent_thumb, sh.section_id, " \
                             "shm.year, sh.rating_key, shm.art, sh.media_type, " \
                             "shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, " \
@@ -591,7 +594,8 @@ class DataFactory(object):
                            'platform': '',
                            'live': item['live'],
                            'guid': item['guid'],
-                           'row_id': item['id']
+                           'row_id': item['id'],
+                           'server_id': item['server_id']
                            }
                     popular_tv.append(row)
 
@@ -602,7 +606,7 @@ class DataFactory(object):
             elif stat == 'top_music':
                 top_music = []
                 try:
-                    query = "SELECT sh.id, shm.grandparent_title, shm.original_title, shm.year, " \
+                    query = "SELECT sh.id, sh.server_id, shm.grandparent_title, shm.original_title, shm.year, " \
                             "sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, " \
                             "shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, " \
                             "MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration " \
@@ -643,7 +647,8 @@ class DataFactory(object):
                            'platform': '',
                            'live': item['live'],
                            'guid': item['guid'],
-                           'row_id': item['id']
+                           'row_id': item['id'],
+                           'server_id': item['server_id']
                            }
                     top_music.append(row)
 
@@ -655,7 +660,7 @@ class DataFactory(object):
             elif stat == 'popular_music':
                 popular_music = []
                 try:
-                    query = "SELECT sh.id, shm.grandparent_title, shm.original_title, shm.year, " \
+                    query = "SELECT sh.id, sh.server_id, shm.grandparent_title, shm.original_title, shm.year, " \
                             "sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, " \
                             "shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, " \
                             "COUNT(DISTINCT sh.user_id) AS users_watched, " \
@@ -696,7 +701,8 @@ class DataFactory(object):
                            'platform': '',
                            'live': item['live'],
                            'guid': item['guid'],
-                           'row_id': item['id']
+                           'row_id': item['id'],
+                           'server_id': item['server_id']
                            }
                     popular_music.append(row)
 
@@ -707,7 +713,7 @@ class DataFactory(object):
             elif stat == 'top_libraries':
                 top_libraries = []
                 try:
-                    query = "SELECT sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, " \
+                    query = "SELECT sh.id, sh.server_id, shm.title, shm.grandparent_title, shm.full_title, shm.year, " \
                             "shm.media_index, shm.parent_media_index, " \
                             "sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, " \
                             "sh.user, sh.user_id, sh.player, sh.section_id, " \
@@ -783,7 +789,8 @@ class DataFactory(object):
                         'labels': item['labels'].split(';') if item['labels'] else (),
                         'live': item['live'],
                         'guid': item['guid'],
-                        'row_id': item['id']
+                        'row_id': item['id'],
+                        'server_id': item['server_id']
                     }
                     top_libraries.append(row)
 
@@ -957,7 +964,7 @@ class DataFactory(object):
 
                 last_watched = []
                 try:
-                    query = "SELECT sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, " \
+                    query = "SELECT sh.id, sh.server_id, shm.title, shm.grandparent_title, shm.full_title, shm.year, " \
                             "shm.media_index, shm.parent_media_index, " \
                             "sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, " \
                             "sh.user, sh.user_id, u.custom_avatar_url as user_thumb, sh.player, sh.section_id, " \
@@ -1019,7 +1026,8 @@ class DataFactory(object):
                            'last_watch': item['last_watch'],
                            'live': item['live'],
                            'guid': item['guid'],
-                           'player': item['player']
+                           'player': item['player'],
+                           'server_id': item['server_id']
                            }
                     last_watched.append(row)
 
@@ -1173,6 +1181,9 @@ class DataFactory(object):
             else:
                 thumb = item['grandparent_thumb']
 
+            pmsconnect = server_manager.ServerManger().get_server(item['server_id'])
+            server_info = pmsconnect.get_server_info()
+
             library = {'section_id': item['section_id'],
                        'section_name': item['section_name'],
                        'section_type': item['section_type'],
@@ -1198,7 +1209,8 @@ class DataFactory(object):
                        'live': item['live'],
                        'guid': item['guid'],
                        'row_id': item['id'],
-                       'server_id': item['server_id']
+                       'server_id': item['server_id'],
+                       'server_name': server_info['name']
                        }
             library_stats.append(library)
 
@@ -1303,7 +1315,7 @@ class DataFactory(object):
 
         return item_watch_time_stats
 
-    def get_user_stats(self, rating_key=None, media_type=None, grouping=None):
+    def get_user_stats(self, rating_key=None, media_type=None, grouping=None, server_id=None):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
@@ -1335,12 +1347,12 @@ class DataFactory(object):
                         "FROM session_history " \
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
-                        "WHERE (session_history.grandparent_rating_key IN (%s) " \
+                        "WHERE session_history.server_id = '%s' AND (session_history.grandparent_rating_key IN (%s) " \
                         "OR session_history.parent_rating_key IN (%s) " \
                         "OR session_history.rating_key IN (%s)) " \
                         "GROUP BY users.user_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % (
-                            group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                            group_by, server_id, rating_keys_arg, rating_keys_arg, rating_keys_arg
                         )
 
                 result = monitor_db.select(query, args=rating_keys * 3)

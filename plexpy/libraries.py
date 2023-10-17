@@ -1082,7 +1082,7 @@ class Libraries(object):
                                  'user': row['user'],
                                  'section_id': row['section_id'],
                                  'content_rating': row['content_rating'],
-                                 'server_id': row['server_id'],
+                                 'server_id': server_id,
                                  'labels': row['labels'].split(';') if row['labels'] else (),
                                  }
                 recently_watched.append(recent_output)

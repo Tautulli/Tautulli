@@ -630,7 +630,7 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = "SELECT session_history.id, session_history.media_type, guid, " \
+                query = "SELECT session_history.id, session_history.server_id, session_history.media_type, guid, " \
                         "session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, " \
                         "title, parent_title, grandparent_title, original_title, " \
                         "thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, " \
@@ -673,7 +673,8 @@ class Users(object):
                              'live': row['live'],
                              'guid': row['guid'],
                              'time': row['started'],
-                             'user': row['user']
+                             'user': row['user'],
+                             'server_id': row['server_id']
                              }
             recently_watched.append(recent_output)
 

@@ -60,8 +60,8 @@ DOCUMENTATION :: END
                                 data-art="${section.get('art')}" data-thumb="${section.get('thumb')}" data-library_art="${section.get('library_art')}">
                                 <div class="sub-list">${loop.index + 1}</div>
                                 <div class="sub-value">
-                                    <a href="${page('library', section['section_id'], server_id=section['server_id'])}" title="${section['section_name']}">
-                                        ${section['section_name']}
+                                    <a href="${page('library', section['section_id'], server_id=section['server_id'])}" title="${section['section_name']} (${section['server_name']})">
+                                        ${section['section_name']} (${section['server_name']})
                                     </a>
                                 </div>
                                 % if headers[section_type][1][0]:
