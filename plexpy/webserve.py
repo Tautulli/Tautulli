@@ -4429,7 +4429,8 @@ class WebInterface(object):
         if rating_key and server_id:
             pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
             metadata = pms_connect.get_metadata_details(rating_key=rating_key, section_id=section_id)
-            metadata['server_id'] = pms_connect.get_server_info()['machine_identifier']
+            if metadata:
+                metadata['server_id'] = pms_connect.get_server_info()['machine_identifier']
 
         # If the item is not found on the Plex server, get the metadata from history
         if not metadata and source == 'history':
