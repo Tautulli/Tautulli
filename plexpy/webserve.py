@@ -393,7 +393,7 @@ class WebInterface(object):
             ```
         """
         pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
-        result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message)
+        result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message, server_id=server_id)
 
         if isinstance(result, str):
             return {'result': 'error', 'message': 'Failed to terminate session: {}.'.format(result)}
@@ -6962,7 +6962,7 @@ class WebInterface(object):
             ```
         """
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
-        status = {'result': 'success', 'connected': plexpy.PLEX_SERVER_UP}
+        status = {'result': 'success', 'connected': web_socket.isServerUp()}
 
         return status
 

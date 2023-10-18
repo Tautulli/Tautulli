@@ -5,7 +5,7 @@
 </%def>
 
 <%def name="body()">
-<% from plexpy import PLEX_SERVER_UP %>
+<% from plexpy import web_socket %>
 <div class="container-fluid">
     % for section in config['home_sections']:
     % if section == 'current_activity':
@@ -23,7 +23,7 @@
                 </h3>
             </div>
             <div id="currentActivity">
-                % if PLEX_SERVER_UP:
+                % if web_socket.isServerUp():
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i>&nbsp; Checking for activity...</div>
                 % elif config['pms_is_cloud']:
                 <div id="dashboard-no-activity" class="text-muted">Plex Cloud server is sleeping.</div>
@@ -124,7 +124,7 @@
     <div class="row">
         <div class="col-md-12">
             <div id="recentlyAdded" style="margin-right: -15px;">
-                % if PLEX_SERVER_UP:
+                % if web_socket.isServerUp():
                 <div id="dashboard-checking-recently-added" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Looking for new items...</div>
                 % elif config['pms_is_cloud']:
                 <div class="text-muted">Plex Cloud server is sleeping.</div>

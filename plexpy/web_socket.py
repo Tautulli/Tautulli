@@ -27,6 +27,7 @@ import time
 
 import certifi
 import websocket
+from websocket import create_connection
 
 import plexpy
 if plexpy.PYTHON2:
@@ -35,6 +36,7 @@ if plexpy.PYTHON2:
     import activity_processor
     import database
     import logger
+    import plextv
     import server_manager
 else:
     from plexpy import activity_handler
@@ -42,6 +44,7 @@ else:
     from plexpy import activity_processor
     from plexpy import database
     from plexpy import logger
+    from plexpy import plextv
     from plexpy import server_manager
 
 
@@ -52,7 +55,10 @@ pong_timer = None
 pong_count = 0
 
 
-def start_thread():
+def isServerUp():
+    return True
+
+def start_threads():
     try:
         # Check for any existing sessions on start up
         activity_pinger.check_active_sessions(ws_request=True)
@@ -61,270 +67,302 @@ def start_thread():
         logger.warn("Tautulli WebSocket :: Attempt to fix by flushing temporary sessions...")
         database.delete_sessions()
 
-    # Start the websocket listener on it's own thread
-    thread = threading.Thread(target=run)
-    thread.daemon = True
-    thread.start()
+    plex_servers = plextv.get_server_resources(return_servers=True)
+
+    owned_servers = server_manager.ServerManger().get_server_list()
 
 
-def on_connect():
-    if plexpy.PLEX_SERVER_UP is None:
-        plexpy.PLEX_SERVER_UP = True
-
-    if not plexpy.PLEX_SERVER_UP:
-        logger.info("Tautulli WebSocket :: The Plex Media Server is back up.")
-        plexpy.PLEX_SERVER_UP = True
-
-        if activity_handler.ACTIVITY_SCHED.get_job('on_intdown'):
-            logger.debug("Tautulli WebSocket :: Cancelling scheduled Plex server down callback.")
-            activity_handler.schedule_callback('on_intdown', remove_job=True)
-        else:
-            on_intup()
-
-    plexpy.initialize_scheduler()
-    if plexpy.CONFIG.WEBSOCKET_MONITOR_PING_PONG:
-        send_ping()
-
-
-def on_disconnect():
-    if plexpy.PLEX_SERVER_UP is None:
-        plexpy.PLEX_SERVER_UP = False
-
-    if plexpy.PLEX_SERVER_UP:
-        logger.info("Tautulli WebSocket :: Unable to get a response from the server, Plex server is down.")
-        plexpy.PLEX_SERVER_UP = False
-
-        logger.debug("Tautulli WebSocket :: Scheduling Plex server down callback in %d seconds.",
-                     plexpy.CONFIG.NOTIFY_SERVER_CONNECTION_THRESHOLD)
-        activity_handler.schedule_callback('on_intdown', func=on_intdown,
-                                           seconds=plexpy.CONFIG.NOTIFY_SERVER_CONNECTION_THRESHOLD)
-
-    activity_processor.ActivityProcessor().set_temp_stopped()
-    plexpy.initialize_scheduler()
-
-
-def on_intdown():
-    plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
-
-
-def on_intup():
-    plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
-
-
-def reconnect():
-    close()
-    logger.info("Tautulli WebSocket :: Reconnecting websocket...")
-    start_thread()
-
-
-def shutdown():
-    global ws_shutdown
-    ws_shutdown = True
-    close()
-
-
-def close():
-    logger.info("Tautulli WebSocket :: Disconnecting websocket...")
-    plexpy.WEBSOCKET.close()
-    plexpy.WS_CONNECTED = False
-
-
-def send_ping():
-    if plexpy.WS_CONNECTED:
-        # logger.debug("Tautulli WebSocket :: Sending ping.")
-        plexpy.WEBSOCKET.ping("Hi?")
-
-        global pong_timer
-        pong_timer = threading.Timer(5.0, wait_pong)
-        pong_timer.daemon = True
-        pong_timer.start()
-
-
-def wait_pong():
-    global pong_count
-    pong_count += 1
-
-    logger.warn("Tautulli WebSocket :: Failed to receive pong from websocket, ping attempt %s." % str(pong_count))
-
-    if pong_count >= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
-        pong_count = 0
-        close()
-
-
-def receive_pong():
-    # logger.debug("Tautulli WebSocket :: Received pong.")
-    global pong_timer
-    global pong_count
-    if pong_timer:
-        pong_timer = pong_timer.cancel()
-        pong_count = 0
-
-
-def run():
-    from websocket import create_connection
-
-    if plexpy.CONFIG.PMS_SSL and plexpy.CONFIG.PMS_URL[:5] == 'https':
-        uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
-        secure = 'secure '
-        if plexpy.CONFIG.VERIFY_SSL_CERT:
-            sslopt = {'ca_certs': certifi.where()}
-        else:
-            sslopt = {'cert_reqs': ssl.CERT_NONE}
-    else:
-        uri = 'ws://%s:%s/:/websockets/notifications' % (
-            plexpy.CONFIG.PMS_IP,
-            plexpy.CONFIG.PMS_PORT
-        )
-        secure = ''
-        sslopt = None
-
-    # Set authentication token (if one is available)
-    if plexpy.CONFIG.PMS_TOKEN:
-        header = {"X-Plex-Token": plexpy.CONFIG.PMS_TOKEN}
-    else:
-        header = None
-
-    timeout = plexpy.CONFIG.PMS_TIMEOUT
-
-    global ws_shutdown
-    ws_shutdown = False
-    reconnects = 0
-
-    # Try an open the websocket connection
-    logger.info("Tautulli WebSocket :: Opening %swebsocket." % secure)
-    try:
-        plexpy.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
-        logger.info("Tautulli WebSocket :: Ready")
-        plexpy.WS_CONNECTED = True
-    except (websocket.WebSocketException, IOError, Exception) as e:
-        logger.error("Tautulli WebSocket :: %s.", e)
-
-    if plexpy.WS_CONNECTED:
-        on_connect()
-
-    while plexpy.WS_CONNECTED:
-        try:
-            process(*receive(plexpy.WEBSOCKET))
-
-            # successfully received data, reset reconnects counter
-            reconnects = 0
-
-        except websocket.WebSocketConnectionClosedException:
-            if ws_shutdown:
+    # Start each websocket listener on it's own thread per server
+    for owned_server in owned_servers:
+        for server in plex_servers:
+            if owned_server.server_id == server['pms_identifier']:
+                for connection in server['connections']:
+                    if connection['local']:
+                        wss=WebSocketServer(connection, owned_server.server_id)
+                        thread = threading.Thread(target=wss.run)
+                        thread.daemon = True
+                        thread.start()
+                        break
                 break
 
-            if reconnects == 0:
-                logger.warn("Tautulli WebSocket :: Connection has closed.")
 
-            if not plexpy.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
-                reconnects += 1
+class WebSocketServer(object):
+    def __init__(self, server, server_id):
+        self.server=server
+        self.WEBSOCKET = None
+        self.WS_CONNECTED = False
+        self.PLEX_SERVER_UP = None
+        self.PLEX_REMOTE_ACCESS_UP = None
+        self.server_id = server_id
 
-                # Sleep 5 between connection attempts
-                if reconnects > 1:
-                    time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
+    def on_connect(self):
+        if self.PLEX_SERVER_UP is None:
+            self.PLEX_SERVER_UP = True
 
-                logger.warn("Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
+        if not self.PLEX_SERVER_UP:
+            logger.info("Tautulli WebSocket :: The Plex Media Server is back up.")
+            self.PLEX_SERVER_UP = True
 
-                try:
-                    plexpy.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
-                    logger.info("Tautulli WebSocket :: Ready")
-                    plexpy.WS_CONNECTED = True
-                except (websocket.WebSocketException, IOError, Exception) as e:
-                    logger.error("Tautulli WebSocket :: %s.", e)
-
+            if activity_handler.ACTIVITY_SCHED.get_job('on_intdown'):
+                logger.debug("Tautulli WebSocket :: Cancelling scheduled Plex server down callback.")
+                activity_handler.schedule_callback('on_intdown', remove_job=True)
             else:
-                close()
-                break
+                self.on_intup()
 
-        except (websocket.WebSocketException, Exception) as e:
-            if ws_shutdown:
-                break
+        plexpy.initialize_scheduler()
+        if plexpy.CONFIG.WEBSOCKET_MONITOR_PING_PONG:
+            self.send_ping()
 
+
+    def on_disconnect(self):
+        if self.PLEX_SERVER_UP is None:
+            self.PLEX_SERVER_UP = False
+
+        if self.PLEX_SERVER_UP:
+            logger.info("Tautulli WebSocket :: Unable to get a response from the server, Plex server is down.")
+            self.PLEX_SERVER_UP = False
+
+            logger.debug("Tautulli WebSocket :: Scheduling Plex server down callback in %d seconds.",
+                        plexpy.CONFIG.NOTIFY_SERVER_CONNECTION_THRESHOLD)
+            activity_handler.schedule_callback('on_intdown', func=self.on_intdown,
+                                            seconds=plexpy.CONFIG.NOTIFY_SERVER_CONNECTION_THRESHOLD)
+
+        activity_processor.ActivityProcessor().set_temp_stopped()
+        plexpy.initialize_scheduler()
+
+
+    def on_intdown(self):
+        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
+
+
+    def on_intup(self):
+        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intup'})
+
+
+    def reconnect(self):
+        self.close()
+        logger.info("Tautulli WebSocket :: Reconnecting websocket...")
+        self.run()
+
+
+    def shutdown(self):
+        global ws_shutdown
+        ws_shutdown = True
+        self.close()
+
+
+    def close(self):
+        logger.info("Tautulli WebSocket :: Disconnecting websocket...")
+        self.WEBSOCKET.close()
+        self.WS_CONNECTED = False
+
+
+    def send_ping(self):
+        if self.WS_CONNECTED:
+            # logger.debug("Tautulli WebSocket :: Sending ping.")
+            self.WEBSOCKET.ping("Hi?")
+
+            global pong_timer
+            pong_timer = threading.Timer(5.0, self.wait_pong)
+            pong_timer.daemon = True
+            pong_timer.start()
+
+
+    def wait_pong(self):
+        global pong_count
+        pong_count += 1
+
+        logger.warn("Tautulli WebSocket :: Failed to receive pong from websocket, ping attempt %s." % str(pong_count))
+
+        if pong_count >= plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+            pong_count = 0
+            self.close()
+
+
+    def receive_pong(self):
+        # logger.debug("Tautulli WebSocket :: Received pong.")
+        global pong_timer
+        global pong_count
+        if pong_timer:
+            pong_timer = pong_timer.cancel()
+            pong_count = 0
+
+
+    def run(self):
+
+        if plexpy.CONFIG.PMS_SSL:
+            uri = ""
+            if self.server:
+                uri = self.server['uri'].replace('https://', 'wss://') + '/:/websockets/notifications'
+            else:
+                uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
+            secure = 'secure '
+            if plexpy.CONFIG.VERIFY_SSL_CERT:
+                sslopt = {'ca_certs': certifi.where()}
+            else:
+                sslopt = {'cert_reqs': ssl.CERT_NONE}
+        else:
+            uri = ""
+            if self.server:
+                uri = 'ws://%s:%s/:/websockets/notifications' % (
+                    self.server['address'],
+                    self.server['port']
+                )
+            else:
+                uri = 'ws://%s:%s/:/websockets/notifications' % (
+                    plexpy.CONFIG.PMS_IP,
+                    plexpy.CONFIG.PMS_PORT
+                )
+            secure = ''
+            sslopt = None
+
+        # Set authentication token (if one is available)
+        if plexpy.CONFIG.PMS_TOKEN:
+            header = {"X-Plex-Token": plexpy.CONFIG.PMS_TOKEN}
+        else:
+            header = None
+
+        timeout = plexpy.CONFIG.PMS_TIMEOUT
+
+        global ws_shutdown
+        ws_shutdown = False
+        reconnects = 0
+
+        # Try an open the websocket connection
+        logger.info("Tautulli WebSocket :: Opening %swebsocket." % secure)
+        try:
+            self.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
+            logger.info("Tautulli WebSocket :: Ready")
+            self.WS_CONNECTED = True
+        except (websocket.WebSocketException, IOError, Exception) as e:
             logger.error("Tautulli WebSocket :: %s.", e)
-            close()
-            break
 
-    if not plexpy.WS_CONNECTED and not ws_shutdown:
-        on_disconnect()
+        if self.WS_CONNECTED:
+            self.on_connect()
 
-    logger.debug("Tautulli WebSocket :: Leaving thread.")
+        while self.WS_CONNECTED:
+            try:
+                self.process(*self.receive(self.WEBSOCKET))
+
+                # successfully received data, reset reconnects counter
+                reconnects = 0
+
+            except websocket.WebSocketConnectionClosedException:
+                if ws_shutdown:
+                    break
+
+                if reconnects == 0:
+                    logger.warn("Tautulli WebSocket :: Connection has closed.")
+
+                if not plexpy.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+                    reconnects += 1
+
+                    # Sleep 5 between connection attempts
+                    if reconnects > 1:
+                        time.sleep(plexpy.CONFIG.WEBSOCKET_CONNECTION_TIMEOUT)
+
+                    logger.warn("Tautulli WebSocket :: Reconnection attempt %s." % str(reconnects))
+
+                    try:
+                        self.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
+                        logger.info("Tautulli WebSocket :: Ready")
+                        self.WS_CONNECTED = True
+                    except (websocket.WebSocketException, IOError, Exception) as e:
+                        logger.error("Tautulli WebSocket :: %s.", e)
+
+                else:
+                    self.close()
+                    break
+
+            except (websocket.WebSocketException, Exception) as e:
+                if ws_shutdown:
+                    break
+
+                logger.error("Tautulli WebSocket :: %s.", e)
+                self.close()
+                break
+
+        if not self.WS_CONNECTED and not ws_shutdown:
+            self.on_disconnect()
+
+        logger.debug("Tautulli WebSocket :: Leaving thread.")
 
 
-def receive(ws):
-    frame = ws.recv_frame()
+    def receive(self, ws):
+        frame = ws.recv_frame()
 
-    if not frame:
-        raise websocket.WebSocketException("Not a valid frame %s" % frame)
-    elif frame.opcode in opcode_data:
-        return frame.opcode, frame.data
-    elif frame.opcode == websocket.ABNF.OPCODE_CLOSE:
-        ws.send_close()
-        return frame.opcode, None
-    elif frame.opcode == websocket.ABNF.OPCODE_PING:
-        # logger.debug("Tautulli WebSocket :: Received ping, sending pong.")
-        ws.pong("Hi!")
-    elif frame.opcode == websocket.ABNF.OPCODE_PONG:
-        receive_pong()
+        if not frame:
+            raise websocket.WebSocketException("Not a valid frame %s" % frame)
+        elif frame.opcode in opcode_data:
+            return frame.opcode, frame.data
+        elif frame.opcode == websocket.ABNF.OPCODE_CLOSE:
+            ws.send_close()
+            return frame.opcode, None
+        elif frame.opcode == websocket.ABNF.OPCODE_PING:
+            # logger.debug("Tautulli WebSocket :: Received ping, sending pong.")
+            ws.pong("Hi!")
+        elif frame.opcode == websocket.ABNF.OPCODE_PONG:
+            self.receive_pong()
 
-    return None, None
+        return None, None
 
 
-def process(opcode, data):
-    if opcode not in opcode_data:
-        return False
-
-    try:
-        data = data.decode('utf-8')
-        logger.websocket_debug(data)
-        event = json.loads(data)
-    except Exception as e:
-        logger.warn("Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
-        logger.websocket_error(data)
-        return False
-
-    event = event.get('NotificationContainer', event)
-    event_type = event.get('type')
-
-    if not event_type:
-        return False
-
-    if event_type == 'playing':
-        event_data = event.get('PlaySessionStateNotification', event.get('_children', {}))
-
-        if not event_data:
-            logger.debug("Tautulli WebSocket :: Session event found but unable to get websocket data.")
+    def process(self, opcode, data):
+        if opcode not in opcode_data:
             return False
 
         try:
-            activity = activity_handler.ActivityHandler(timeline=event_data[0])
-            activity.process()
+            data = data.decode('utf-8')
+            logger.websocket_debug(data)
+            event = json.loads(data)
         except Exception as e:
-            logger.exception("Tautulli WebSocket :: Failed to process session data: %s." % e)
-
-    if event_type == 'timeline':
-        event_data = event.get('TimelineEntry', event.get('_children', {}))
-
-        if not event_data:
-            logger.debug("Tautulli WebSocket :: Timeline event found but unable to get websocket data.")
+            logger.warn("Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
+            logger.websocket_error(data)
             return False
 
-        try:
-            activity = activity_handler.TimelineHandler(timeline=event_data[0])
-            activity.process()
-        except Exception as e:
-            logger.exception("Tautulli WebSocket :: Failed to process timeline data: %s." % e)
+        event = event.get('NotificationContainer', event)
+        event_type = event.get('type')
 
-    if event_type == 'reachability':
-        event_data = event.get('ReachabilityNotification', event.get('_children', {}))
-
-        if not event_data:
-            logger.debug("Tautulli WebSocket :: Reachability event found but unable to get websocket data.")
+        if not event_type:
             return False
 
-        try:
-            activity = activity_handler.ReachabilityHandler(data=event_data[0])
-            activity.process()
-        except Exception as e:
-            logger.exception("Tautulli WebSocket :: Failed to process reachability data: %s." % e)
+        if event_type == 'playing':
+            event_data = event.get('PlaySessionStateNotification', event.get('_children', {}))
 
-    return True
+            if not event_data:
+                logger.debug("Tautulli WebSocket :: Session event found but unable to get websocket data.")
+                return False
+
+            try:
+                activity = activity_handler.ActivityHandler(timeline=event_data[0], server_id=self.server_id)
+                activity.process()
+            except Exception as e:
+                logger.exception("Tautulli WebSocket :: Failed to process session data: %s." % e)
+
+        if event_type == 'timeline':
+            event_data = event.get('TimelineEntry', event.get('_children', {}))
+
+            if not event_data:
+                logger.debug("Tautulli WebSocket :: Timeline event found but unable to get websocket data.")
+                return False
+
+            try:
+                activity = activity_handler.TimelineHandler(timeline=event_data[0], server_id=self.server_id)
+                activity.process()
+            except Exception as e:
+                logger.exception("Tautulli WebSocket :: Failed to process timeline data: %s." % e)
+
+        if event_type == 'reachability':
+            event_data = event.get('ReachabilityNotification', event.get('_children', {}))
+
+            if not event_data:
+                logger.debug("Tautulli WebSocket :: Reachability event found but unable to get websocket data.")
+                return False
+
+            try:
+                activity = activity_handler.ReachabilityHandler(data=event_data[0], server_id=self.server_id)
+                activity.process()
+            except Exception as e:
+                logger.exception("Tautulli WebSocket :: Failed to process reachability data: %s." % e)
+
+        return True

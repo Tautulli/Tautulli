@@ -44,7 +44,7 @@ else:
     from plexpy.plex import Plex
 
 
-def get_server_resources(return_presence=False, return_server=False, return_info=False, **kwargs):
+def get_server_resources(return_presence=False, return_server=False, return_info=False, return_servers=False, **kwargs):
     if not return_presence and not return_info:
         logger.info("Tautulli PlexTV :: Requesting resources for server...")
 
@@ -75,11 +75,18 @@ def get_server_resources(return_presence=False, return_server=False, return_info
     else:
         scheme = 'http'
 
+    plex_tv = PlexTV()
+
+    if return_servers:
+        return plex_tv.get_servers_connections(pms_identifier=server['pms_identifier'],
+                                            pms_ip=server['pms_ip'],
+                                            pms_port=server['pms_port'],
+                                            include_https=server['pms_ssl'])
+
     fallback_url = '{scheme}://{hostname}:{port}'.format(scheme=scheme,
                                                          hostname=server['pms_ip'],
                                                          port=server['pms_port'])
 
-    plex_tv = PlexTV()
     result = plex_tv.get_server_connections(pms_identifier=server['pms_identifier'],
                                             pms_ip=server['pms_ip'],
                                             pms_port=server['pms_port'],
@@ -591,6 +598,14 @@ class PlexTV(object):
         return response.ok
 
     def get_server_connections(self, pms_identifier='', pms_ip='', pms_port=32400, include_https=True):
+        servers = self.get_servers_connections(pms_identifier, pms_ip, pms_port, include_https)
+        for server in servers:
+            if server['pms_identifier'] == pms_identifier:
+                return server
+        return None
+
+
+    def get_servers_connections(self, pms_identifier='', pms_ip='', pms_port=32400, include_https=True):
 
         if not pms_identifier:
             logger.error("Tautulli PlexTV :: Unable to retrieve server connections: no pms_identifier provided.")
@@ -629,16 +644,14 @@ class PlexTV(object):
             server['connections'] = conn
             return server
 
-        server = {}
+        servers = []
 
         # Try to match the device
         for a in xml_head:
-            if helpers.get_xml_attr(a, 'clientIdentifier') == pms_identifier:
-                server = get_connections(a)
-                break
+            servers.append(get_connections(a))
 
         # Else no device match found
-        if not server:
+        if not len(servers):
             # Try to match the PMS_IP and PMS_PORT
             for a in xml_head:
                 if helpers.get_xml_attr(a, 'provides') == 'server':
@@ -647,13 +660,10 @@ class PlexTV(object):
                     for connection in connections:
                         if helpers.get_xml_attr(connection, 'address') == pms_ip and \
                                 helpers.get_xml_attr(connection, 'port') == str(pms_port):
-                            server = get_connections(a)
+                            servers.append(get_connections(a))
                             break
 
-                    if server.get('connections'):
-                        break
-
-        return server
+        return servers
 
     def get_server_times(self):
         servers = self.get_plextv_server_list(output_format='xml')

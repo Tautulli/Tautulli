@@ -32,7 +32,7 @@ class ServerManger(object):
         pmsServers = []
         for server in pmsconnect.PmsConnect().get_servers_info():
             url = 'http://{hostname}:{port}'.format(hostname=server["host"], port=server["port"])
-            pmsServers.append(pmsconnect.PmsConnect(url=url))
+            pmsServers.append(pmsconnect.PmsConnect(server['machine_identifier'], url=url))
         return pmsServers
     
     def get_server(self, server_id):
@@ -40,5 +40,5 @@ class ServerManger(object):
             for server in pmsconnect.PmsConnect().get_servers_info():
                 if server['machine_identifier'] == server_id:
                     url = 'http://{hostname}:{port}'.format(hostname=server["host"], port=server["port"])
-                    return pmsconnect.PmsConnect(url=url)
+                    return pmsconnect.PmsConnect(server_id, url=url)
         return None

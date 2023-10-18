@@ -142,11 +142,6 @@ AUTH_ENABLED = None
 
 DEV = False
 
-WEBSOCKET = None
-WS_CONNECTED = False
-PLEX_SERVER_UP = None
-PLEX_REMOTE_ACCESS_UP = None
-
 TRACKER = None
 
 WIN_SYS_TRAY_ICON = None
@@ -472,7 +467,7 @@ def initialize_scheduler():
         schedule_job(config.make_backup, 'Backup Tautulli config',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
 
-        if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
+        if web_socket.isServerUp() and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_server_resources, 'Refresh Plex server URLs',
                          hours=12 * (not bool(CONFIG.PMS_URL_MANUAL)), minutes=0, seconds=0)
 
@@ -490,8 +485,8 @@ def initialize_scheduler():
 
             schedule_job(activity_pinger.connect_server, 'Check for server response',
                          hours=0, minutes=0, seconds=0)
-            schedule_job(web_socket.send_ping, 'Websocket ping',
-                         hours=0, minutes=0, seconds=10 * bool(CONFIG.WEBSOCKET_MONITOR_PING_PONG))
+            # schedule_job(web_socket.send_ping, 'Websocket ping',
+            #              hours=0, minutes=0, seconds=10 * bool(CONFIG.WEBSOCKET_MONITOR_PING_PONG))
 
         else:
             # Cancel all jobs

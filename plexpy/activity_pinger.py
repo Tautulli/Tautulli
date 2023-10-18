@@ -252,8 +252,8 @@ def connect_server(log=True, startup=False):
             logger.info("Tautulli Monitor :: Attempting to reconnect Plex server...")
 
         try:
-            web_socket.start_thread()
-        except Exception as e:
+            web_socket.start_threads()
+        except Exception as e:  
             logger.error("Websocket :: Unable to open connection: %s." % e)
 
 

@@ -193,7 +193,7 @@ class ActivityProcessor(object):
             user_details = user_data.get_details(user_id=session['user_id'])
 
             library_data = libraries.Libraries()
-            library_details = library_data.get_details(section_id=section_id)
+            library_details = library_data.get_details(section_id=section_id, server_id=session['server_id'])
 
             # Return false if failed to retrieve user or library details
             if not user_details or not library_details:
@@ -322,7 +322,8 @@ class ActivityProcessor(object):
                           'view_offset': session['view_offset'],
                           'section_id': metadata['section_id'],
                           'secure': session['secure'],
-                          'relayed': session['relayed']
+                          'relayed': session['relayed'],
+                          'server_id': session['server_id']
                           }
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."
@@ -575,21 +576,21 @@ class ActivityProcessor(object):
         sessions = self.db.select(query, args)
         return sessions
 
-    def get_session_by_key(self, session_key=None):
+    def get_session_by_key(self, session_key=None, server_id=None):
         if str(session_key).isdigit():
             session = self.db.select_single("SELECT * FROM sessions "
-                                            "WHERE session_key = ? ",
-                                            args=[session_key])
+                                            "WHERE session_key = ? AND server_id = ? ",
+                                            args=[session_key, server_id])
             if session:
                 return session
 
         return None
 
-    def get_session_by_id(self, session_id=None):
-        if session_id:
+    def get_session_by_id(self, session_id=None, server_id=None):
+        if session_id and server_id:
             session = self.db.select_single("SELECT * FROM sessions "
-                                            "WHERE session_id = ? ",
-                                            args=[session_id])
+                                            "WHERE session_id = ? AND server_id = ? ",
+                                            args=[session_id, server_id])
             if session:
                 return session
 

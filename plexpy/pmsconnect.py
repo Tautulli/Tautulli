@@ -74,7 +74,7 @@ class PmsConnect(object):
     Retrieve data from Plex Server
     """
 
-    def __init__(self, url=None, token=None):
+    def __init__(self, server_id=None, url=None, token=None):
         self.url = url
         self.token = token
 
@@ -84,6 +84,8 @@ class PmsConnect(object):
             self.url = 'http://{hostname}:{port}'.format(hostname=plexpy.CONFIG.PMS_IP,
                                                          port=plexpy.CONFIG.PMS_PORT)
         self.timeout = plexpy.CONFIG.PMS_TIMEOUT
+
+        self.server_id = server_id
 
         if not self.token:
             # Check if we should use the admin token, or the guest server token
@@ -116,7 +118,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_sessions_terminate(self, session_id='', reason=''):
+    def get_sessions_terminate(self, session_id='', reason='', server_id=None):
         """
         Return current sessions.
 
@@ -2330,7 +2332,7 @@ class PmsConnect(object):
 
         return session_output
 
-    def terminate_session(self, session_key='', session_id='', message=''):
+    def terminate_session(self, session_key='', session_id='', message='', server_id=None):
         """
         Terminates a streaming session.
         """
@@ -2345,26 +2347,19 @@ class PmsConnect(object):
         ap = activity_processor.ActivityProcessor()
 
         if session_key:
-            session = ap.get_session_by_key(session_key=session_key)
+            session = ap.get_session_by_key(session_key=session_key, server_id=server_id)
             if session and not session_id:
                 session_id = session['session_id']
 
-        elif session_id:
-            session = ap.get_session_by_id(session_id=session_id)
-            if session and not session_key:
-                session_key = session['session_key']
-
-        else:
-            session = session_key = session_id = None
-
-        if not session:
-            msg = 'Invalid session_key (%s) or session_id (%s)' % (session_key, session_id)
+        # you only need session_id to terminate
+        if session_key and not session_id:
+            msg = 'Invalid session_key (%s)' % (session_key)
             logger.warn("Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
             return msg
 
         if session_id:
             logger.info("Tautulli Pmsconnect :: Terminating session %s (session_id %s)." % (session_key, session_id))
-            response = self.get_sessions_terminate(session_id=session_id, reason=message)
+            response = self.get_sessions_terminate(session_id=session_id, reason=message, server_id=server_id)
             return response.ok
         else:
             msg = 'Missing session_id'

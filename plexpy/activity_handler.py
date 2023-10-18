@@ -50,7 +50,7 @@ RECENTLY_ADDED_QUEUE = {}
 
 class ActivityHandler(object):
 
-    def __init__(self, timeline):
+    def __init__(self, timeline, server_id):
         self.ap = activity_processor.ActivityProcessor()
         self.timeline = timeline
 
@@ -70,19 +70,20 @@ class ActivityHandler(object):
         self.db_session = None
         self.session = None
         self.metadata = None
+        self.server_id = server_id
 
     def get_db_session(self):
         # Retrieve the session data from our temp table
-        self.db_session = self.ap.get_session_by_key(session_key=self.session_key)
+        self.db_session = self.ap.get_session_by_key(session_key=self.session_key, server_id=self.server_id)
 
     def get_metadata(self, skip_cache=False):
         if self.metadata is None:
             cache_key = None if skip_cache else self.session_key
-            for pms_connect in server_manager.ServerManger().get_server_list():
-                metadata = pms_connect.get_metadata_details(rating_key=self.rating_key, cache_key=cache_key)
+            pms_connect = server_manager.ServerManger().get_server(server_id=self.server_id)
+            metadata = pms_connect.get_metadata_details(rating_key=self.rating_key, cache_key=cache_key)
 
-                if metadata:
-                    self.metadata = metadata
+            if metadata:
+                self.metadata = metadata
 
     def get_live_session(self, skip_cache=False):
         for pms_connect in server_manager.ServerManger().get_server_list():
@@ -439,7 +440,7 @@ class ActivityHandler(object):
 
 class TimelineHandler(object):
 
-    def __init__(self, timeline):
+    def __init__(self, timeline, server_id=None):
         self.timeline = timeline
 
         self.rating_key = None
@@ -458,6 +459,7 @@ class TimelineHandler(object):
         self.metadata_state = self.timeline.get('metadataState')
         self.media_state = self.timeline.get('mediaState')
         self.queue_size = self.timeline.get('queueSize')
+        self.server_id = server_id
 
     # This function receives events from our websocket connection
     def process(self):
@@ -546,10 +548,11 @@ class TimelineHandler(object):
 
 class ReachabilityHandler(object):
 
-    def __init__(self, data):
+    def __init__(self, data, server_id=None):
         self.data = data
 
         self.is_reachable = self.data.get('reachable', False)
+        self.server_id = server_id
 
     def remote_access_enabled(self):
         for pms_connect in server_manager.ServerManger().get_server_list():
