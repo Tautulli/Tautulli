@@ -427,16 +427,18 @@
                         if (s.media_type === 'track') {
                             // Update if artist changed
                             if (s.grandparent_rating_key !== instance.data('grandparent_rating_key').toString()) {
-                                $('#background-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.art, s.rating_key, 500, 280, 40, '282828', 3, 'art', true) + ')');
+                                debugger;
+                                $('#background-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.art, s.rating_key, 500, 280, 40, '282828', 3, 'art', true, server_id=s.server_id) + ')');
                                 $('#metadata-grandparent_title-' + key)
-                                    .attr('href', page('info', s.grandparent_rating_key))
+                                    .attr('href', page('info', s.grandparent_rating_key, server_id=s.server_id))
                                     .attr('title', s.original_title || s.grandparent_title)
                                     .text(s.original_title || s.grandparent_title);
                             }
                             // Update cover if album changed
                             if (s.parent_rating_key !== instance.data('parent_rating_key').toString()) {
-                                $('#poster-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, null, null, null, 'poster', true) + ')');
-                                $('#poster-' + key + '-bg').css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, 60, '282828', 3, 'poster', true) + ')');
+                                debugger;
+                                $('#poster-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, null, null, null, 'poster', true, server_id=s.server_id) + ')');
+                                $('#poster-' + key + '-bg').css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, 60, '282828', 3, 'poster', true, server_id=s.server_id) + ')');
                                 $('#poster-url-' + key)
                                     .attr('href', page('info', s.parent_rating_key))
                                     .attr('title', s.parent_title);
@@ -447,6 +449,7 @@
                             }
                             // Update cover if track changed
                             if (s.rating_key !== instance.data('rating_key').toString()) {
+                                debugger;
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', page('info', s.grandparent_rating_key))
                                     .attr('title', s.original_title || s.grandparent_title)
@@ -799,21 +802,22 @@
             var library_art = $(elem).data('library_art');
             var library_thumb = $(elem).data('library_thumb');
             var [height, fallback_poster, fallback_art] = [450, 'poster', 'art'];
+            var server_id = $(elem).data('server_id');
             if ($.inArray(stat_id, ['top_music', 'popular_music']) > -1) {
                 [height, fallback_poster, fallback_art] = [300, 'cover', 'art'];
             } else if (live) {
                 [height, fallback_poster, fallback_art] = [450, 'poster-live', 'art-live'];
             }
             var href = '#';
-
+            debugger;
             if (stat_id === 'most_concurrent') {
                 return
             } else if (stat_id === 'top_libraries') {
-                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art || library_art, null, 500, 280, 40, '282828', 3, fallback_art) + ')');
+                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art || library_art, null, 500, 280, 40, '282828', 3, fallback_art, null, null, null,server_id) + ')');
                 $('#stats-thumb-' + stat_id).removeClass(function (index, className) {
                     return (className.match (/(^|\s)svg-icon library-\S+/g) || []).join(' ')});
                 if (library_thumb.startsWith('http')) {
-                    $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', library_thumb, null, 100, 100, null, null, null, 'cover') + ')');
+                    $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', library_thumb, null, 100, 100, null, null, null, 'cover', null, null, null,server_id) + ')');
                 } else {
                     $('#stats-thumb-' + stat_id).css('background-image', '')
                         .addClass('svg-icon library-' + library_type);
@@ -835,19 +839,19 @@
             } else {
                 if (rating_key) {
                     if (live) {
-                        href = page('info', rating_key, guid, true, live);
+                        href = page('info', rating_key, guid, true, live, server_id);
                     } else {
-                        href = page('info', rating_key);
+                        href = page('info', rating_key, null, null, null, server_id);
                     }
                 }
                 var img_rating_key = grandparent_rating_key || rating_key;
                 $('#stats-thumb-url-' + stat_id).attr('href', href).prop('title', $(elem).data('title'));
-                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, img_rating_key, 500, 280, 40, '282828', 3, fallback_art) + ')');
-                $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, height, null, null, null, fallback_poster) + ')');
-                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, height, 60, '282828', 3, fallback_poster) + ')');
+                $('#stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art, img_rating_key, 500, 280, 40, '282828', 3, fallback_art, null, null, null,server_id) + ')');
+                $('#stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, height, null, null, null, fallback_poster, null, null, null, server_id) + ')');
+                $('#stats-thumb-' + stat_id + '-bg').css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, height, 60, '282828', 3, fallback_poster, null, null, null, server_id) + ')');
                 $('#library-stats-background-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', art || library_art, img_rating_key, 500, 280, 40, '282828', 3, library_art || fallback_art) + ')');
                 if (thumb.startsWith('http')) {
-                    $('#library-stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, 300, null, null, null, 'cover') + ')')
+                    $('#library-stats-thumb-' + stat_id).css('background-image', 'url(' + page('pms_image_proxy', thumb, img_rating_key, 300, 300, null, null, null, 'cover', null, null, null, server_id) + ')')
                         .removeClass('svg-icon library-' + stat_id);
                 } else {
                     $('#library-stats-thumb-' + stat_id).css('background-image', '')
