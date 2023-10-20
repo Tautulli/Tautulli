@@ -231,7 +231,7 @@ class ActivityProcessor(object):
                 self.write_continued_session(user_id=session['user_id'],
                                              machine_id=session['machine_id'],
                                              media_type=session['media_type'],
-                                             stopped=stopped)
+                                             stopped=stopped, server_id=session['server_id'])
 
             if str(session['rating_key']).isdigit() and session['media_type'] in ('movie', 'episode', 'track'):
                 logging_enabled = True
@@ -278,19 +278,19 @@ class ActivityProcessor(object):
                 if not is_import:
                     logger.debug("Tautulli ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
                     
-                    for pms_connect in server_manager.ServerManger().get_server_list():
-                        if session['live']:
-                            metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
-                                                                        cache_key=session['session_key'],
-                                                                        return_cache=True)
-                        else:
-                            metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
-                        if not metadata:
-                            return False
-                        else:
-                            media_info = {}
-                            if 'media_info' in metadata and len(metadata['media_info']) > 0:
-                                media_info = metadata['media_info'][0]
+                    pms_connect = server_manager.ServerManger().get_server(server_id=session['server_id'])
+                    if session['live']:
+                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
+                                                                    cache_key=session['session_key'],
+                                                                    return_cache=True)
+                    else:
+                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+                    if not metadata:
+                        return False
+                    else:
+                        media_info = {}
+                        if 'media_info' in metadata and len(metadata['media_info']) > 0:
+                            media_info = metadata['media_info'][0]
                 else:
                     metadata = import_metadata
                     ## TODO: Fix media info from imports. Temporary media info from import session.
@@ -701,8 +701,8 @@ class ActivityProcessor(object):
                        "WHERE session_key = ?",
                        [1, session_key])
 
-    def write_continued_session(self, user_id=None, machine_id=None, media_type=None, stopped=None):
-        keys = {'user_id': user_id, 'machine_id': machine_id, 'media_type': media_type}
+    def write_continued_session(self, user_id=None, machine_id=None, media_type=None, stopped=None, server_id=None):
+        keys = {'user_id': user_id, 'machine_id': machine_id, 'media_type': media_type, 'server_id': server_id}
         values = {'stopped': stopped}
         self.db.upsert(table_name='sessions_continued', key_dict=keys, value_dict=values)
 

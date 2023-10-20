@@ -144,6 +144,8 @@ DEV = False
 
 TRACKER = None
 
+PLEX_REMOTE_ACCESS_UP = False
+
 WIN_SYS_TRAY_ICON = None
 MAC_SYS_TRAY_ICON = None
 

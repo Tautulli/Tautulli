@@ -731,8 +731,8 @@ class DataFactory(object):
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN (SELECT * FROM library_sections WHERE deleted_section = 0) " \
-                            "   AS ls ON sh.section_id = ls.section_id " \
-                            "GROUP BY sh.section_id " \
+                            "   AS ls ON sh.section_id = ls.section_id AND sh.server_id = ls.server_id " \
+                            "GROUP BY sh.server_id " \
                             "ORDER BY %s DESC, sh.started DESC " \
                             "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)

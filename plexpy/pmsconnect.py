@@ -86,6 +86,8 @@ class PmsConnect(object):
         self.timeout = plexpy.CONFIG.PMS_TIMEOUT
 
         self.server_id = server_id
+        
+        self.server_info = None
 
         if not self.token:
             # Check if we should use the admin token, or the guest server token
@@ -118,7 +120,7 @@ class PmsConnect(object):
 
         return request
 
-    def get_sessions_terminate(self, session_id='', reason='', server_id=None):
+    def get_sessions_terminate(self, session_id='', reason=''):
         """
         Return current sessions.
 
@@ -649,7 +651,7 @@ class PmsConnect(object):
                                'guids': guids,
                                'full_title': helpers.get_xml_attr(m, 'title'),
                                'child_count': helpers.get_xml_attr(m, 'childCount'),
-                               'server_id': server_info['machine_identifier']
+                               'server_id': self.server_id
                                }
 
                 recents_list.append(recent_item)
@@ -2309,7 +2311,7 @@ class PmsConnect(object):
                           'optimized_version_profile': optimized_version_profile,
                           'user': user_details['username'],  # Keep for backwards compatibility
                           'channel_stream': channel_stream,
-                          'server_id': server_info['machine_identifier'],
+                          'server_id': self.server_id,
                           'server_name': server_info['name'],
                           'server_ip': server_info['host'],
                           'server_port': server_info['port'],
@@ -2332,7 +2334,7 @@ class PmsConnect(object):
 
         return session_output
 
-    def terminate_session(self, session_key='', session_id='', message='', server_id=None):
+    def terminate_session(self, session_key='', session_id='', message=''):
         """
         Terminates a streaming session.
         """
@@ -2347,7 +2349,7 @@ class PmsConnect(object):
         ap = activity_processor.ActivityProcessor()
 
         if session_key:
-            session = ap.get_session_by_key(session_key=session_key, server_id=server_id)
+            session = ap.get_session_by_key(session_key=session_key, server_id=self.server_id)
             if session and not session_id:
                 session_id = session['session_id']
 
@@ -2359,7 +2361,7 @@ class PmsConnect(object):
 
         if session_id:
             logger.info("Tautulli Pmsconnect :: Terminating session %s (session_id %s)." % (session_key, session_id))
-            response = self.get_sessions_terminate(session_id=session_id, reason=message, server_id=server_id)
+            response = self.get_sessions_terminate(session_id=session_id, reason=message, server_id=self.server_id)
             return response.ok
         else:
             msg = 'Missing session_id'
@@ -2495,7 +2497,7 @@ class PmsConnect(object):
                                        'labels': labels,
                                        'collections': collections,
                                        'full_title': helpers.get_xml_attr(m, 'title'),
-                                       'server_id': self.get_server_info()['machine_identifier']
+                                       'server_id': self.server_id
                                        }
                     children_list.append(children_output)
 
@@ -2602,17 +2604,21 @@ class PmsConnect(object):
 
     def get_server_info(self):
         """
-        Return the base info of the current pms connection.
+        Return the base info of the current pms connection (cache it).
 
         Output: dict
         """
-        server_info = {}
-        servers = self.get_servers_info()
-        current = self.get_server_identity()
-        for server in servers:
-            if server['machine_identifier'] == current['machine_identifier']:
-                server_info = server
-        return server_info
+        if self.server_info is None:
+            servers = self.get_servers_info()
+            current = ""
+            if self.server_id is not None:
+                current = self.server_id
+            else:
+                current = self.get_server_identity()['machine_identifier']
+            for server in servers:
+                if server['machine_identifier'] == current:
+                    self.server_info = server
+        return self.server_info
 
     def get_server_identity(self):
         """
@@ -2633,7 +2639,8 @@ class PmsConnect(object):
             server_identity = {"machine_identifier": helpers.get_xml_attr(a, 'machineIdentifier'),
                                "version": helpers.get_xml_attr(a, 'version'),
                                }
-
+        if self.server_id is None:
+            self.server_id = server_identity['machine_identifier']
         return server_identity
 
     def get_server_pref(self, pref=None):

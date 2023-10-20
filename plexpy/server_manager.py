@@ -21,24 +21,43 @@ if plexpy.PYTHON2:
 else:
     from plexpy import pmsconnect
 
+pmsServers = []
+totalServers = 0
+
 class ServerManger(object):
     """
-    Return processed and validated library statistics.
+    Return list of cached servers
 
-    Output: array
+    Output: array of servers
 
     """
     def get_server_list(self):
-        pmsServers = []
+        global totalServers
+        global pmsServers
+        if totalServers != 0 :
+            return pmsServers
         for server in pmsconnect.PmsConnect().get_servers_info():
             url = 'http://{hostname}:{port}'.format(hostname=server["host"], port=server["port"])
             pmsServers.append(pmsconnect.PmsConnect(server['machine_identifier'], url=url))
+        totalServers = len(pmsServers)
         return pmsServers
     
+    """
+    Return server by id or None
+
+    Output: PmsConnect
+
+    """
     def get_server(self, server_id):
         if server_id is not None:
+            global pmsServers
+            for server in pmsServers:
+                if server_id == server.server_id:
+                    return server
             for server in pmsconnect.PmsConnect().get_servers_info():
                 if server['machine_identifier'] == server_id:
                     url = 'http://{hostname}:{port}'.format(hostname=server["host"], port=server["port"])
-                    return pmsconnect.PmsConnect(server_id, url=url)
+                    new = pmsconnect.PmsConnect(server_id, url=url)
+                    pmsServers.append(new)
+                    return new
         return None

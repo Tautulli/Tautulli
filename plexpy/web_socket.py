@@ -92,7 +92,6 @@ class WebSocketServer(object):
         self.WEBSOCKET = None
         self.WS_CONNECTED = False
         self.PLEX_SERVER_UP = None
-        self.PLEX_REMOTE_ACCESS_UP = None
         self.server_id = server_id
 
     def on_connect(self):

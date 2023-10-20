@@ -639,39 +639,39 @@ def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
 def force_stop_stream(session_key, title, user):
     ap = activity_processor.ActivityProcessor()
     session = ap.get_session_by_key(session_key=session_key)
+    if session:
+        row_id = ap.write_session_history(session=session)
 
-    row_id = ap.write_session_history(session=session)
+        if row_id:
+            plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_stop'})
 
-    if row_id:
-        plexpy.NOTIFY_QUEUE.put({'stream_data': session.copy(), 'notify_action': 'on_stop'})
-
-        # If session is written to the database successfully, remove the session from the session table
-        logger.info("Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
-                    % (session['session_key'], session['rating_key']))
-        ap.delete_session(row_id=row_id)
-        delete_metadata_cache(session_key)
-
-    else:
-        session['write_attempts'] += 1
-
-        if session['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
-            logger.warn("Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
-                        "Will try again in 30 seconds. Write attempt %s."
-                        % (session['session_key'], session['rating_key'], str(session['write_attempts'])))
-            ap.increment_write_attempts(session_key=session_key)
-
-            # Reschedule for 30 seconds later
-            schedule_callback('session_key-{}'.format(session_key), func=force_stop_stream,
-                              args=[session_key, session['full_title'], session['user']], seconds=30)
-
-        else:
-            logger.warn("Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
-                        "Removing session from the database. Write attempt %s."
-                        % (session['session_key'], session['rating_key'], str(session['write_attempts'])))
+            # If session is written to the database successfully, remove the session from the session table
             logger.info("Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
                         % (session['session_key'], session['rating_key']))
-            ap.delete_session(session_key=session_key)
+            ap.delete_session(row_id=row_id)
             delete_metadata_cache(session_key)
+
+        else:
+            session['write_attempts'] += 1
+
+            if session['write_attempts'] < plexpy.CONFIG.SESSION_DB_WRITE_ATTEMPTS:
+                logger.warn("Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+                            "Will try again in 30 seconds. Write attempt %s."
+                            % (session['session_key'], session['rating_key'], str(session['write_attempts'])))
+                ap.increment_write_attempts(session_key=session_key)
+
+                # Reschedule for 30 seconds later
+                schedule_callback('session_key-{}'.format(session_key), func=force_stop_stream,
+                                args=[session_key, session['full_title'], session['user']], seconds=30)
+
+            else:
+                logger.warn("Tautulli ActivityHandler :: Failed to write stream with sessionKey %s ratingKey %s to the database. " \
+                            "Removing session from the database. Write attempt %s."
+                            % (session['session_key'], session['rating_key'], str(session['write_attempts'])))
+                logger.info("Tautulli ActivityHandler :: Removing stale stream with sessionKey %s ratingKey %s from session queue"
+                            % (session['session_key'], session['rating_key']))
+                ap.delete_session(session_key=session_key)
+                delete_metadata_cache(session_key)
 
 
 def clear_recently_added_queue(rating_key, title):

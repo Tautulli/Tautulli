@@ -427,7 +427,6 @@
                         if (s.media_type === 'track') {
                             // Update if artist changed
                             if (s.grandparent_rating_key !== instance.data('grandparent_rating_key').toString()) {
-                                debugger;
                                 $('#background-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.art, s.rating_key, 500, 280, 40, '282828', 3, 'art', true, server_id=s.server_id) + ')');
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', page('info', s.grandparent_rating_key, server_id=s.server_id))
@@ -436,7 +435,6 @@
                             }
                             // Update cover if album changed
                             if (s.parent_rating_key !== instance.data('parent_rating_key').toString()) {
-                                debugger;
                                 $('#poster-' + key).css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, null, null, null, 'poster', true, server_id=s.server_id) + ')');
                                 $('#poster-' + key + '-bg').css('background-image', 'url(' + page('pms_image_proxy', s.parent_thumb, s.parent_rating_key, 300, 300, 60, '282828', 3, 'poster', true, server_id=s.server_id) + ')');
                                 $('#poster-url-' + key)
@@ -809,7 +807,6 @@
                 [height, fallback_poster, fallback_art] = [450, 'poster-live', 'art-live'];
             }
             var href = '#';
-            debugger;
             if (stat_id === 'most_concurrent') {
                 return
             } else if (stat_id === 'top_libraries') {

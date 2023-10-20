@@ -393,7 +393,7 @@ class WebInterface(object):
             ```
         """
         pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
-        result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message, server_id=server_id)
+        result = pms_connect.terminate_session(session_key=session_key, session_id=session_id, message=message)
 
         if isinstance(result, str):
             return {'result': 'error', 'message': 'Failed to terminate session: {}.'.format(result)}
@@ -4845,29 +4845,28 @@ class WebInterface(object):
             # the image does not exist, download it from pms
             try:
                 pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
-                if pms_connect is not None:
-                    pms_connect.request_handler._silent = True
-                    result = pms_connect.get_image(img=img,
-                                                width=width,
-                                                height=height,
-                                                opacity=opacity,
-                                                background=background,
-                                                blur=blur,
-                                                img_format=img_format,
-                                                clip=clip,
-                                                refresh=refresh)
+                if pms_connect is None:
+                    pms_connect = server_manager.ServerManger().get_server_list()[0]
+                pms_connect.request_handler._silent = True
+                result = pms_connect.get_image(img=img,
+                                            width=width,
+                                            height=height,
+                                            opacity=opacity,
+                                            background=background,
+                                            blur=blur,
+                                            img_format=img_format,
+                                            clip=clip,
+                                            refresh=refresh)
 
-                    if result and result[0]:
-                        cherrypy.response.headers['Content-type'] = result[1]
-                        if plexpy.CONFIG.CACHE_IMAGES and 'indexes' not in img:
-                            with open(ffp, 'wb') as f:
-                                f.write(result[0])
+                if result and result[0]:
+                    cherrypy.response.headers['Content-type'] = result[1]
+                    if plexpy.CONFIG.CACHE_IMAGES and 'indexes' not in img:
+                        with open(ffp, 'wb') as f:
+                            f.write(result[0])
 
-                        return result[0]
-                    else:
-                        raise Exception('PMS image request failed')
+                    return result[0]
                 else:
-                    raise Exception('PMS server not found')
+                    raise Exception('PMS image request failed')
 
             except Exception as e:
                 logger.warn("Failed to get image %s, falling back to %s." % (img, fallback))
