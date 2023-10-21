@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from pathlib import Path
 from urllib.parse import quote_plus, unquote
 
 from plexapi import media, utils
@@ -154,7 +155,7 @@ class Playlist(
                 sectionKey = int(match.group(1))
                 self._section = self._server.library.sectionByID(sectionKey)
                 return self._section
-        
+
             # Try to get the library section from the first item in the playlist
             if self.items():
                 self._section = self.items()[0].section()
@@ -313,7 +314,7 @@ class Playlist(
 
     def edit(self, title=None, summary=None):
         """ Edit the playlist.
-        
+
             Parameters:
                 title (str, optional): The title of the playlist.
                 summary (str, optional): The summary of the playlist.
@@ -431,7 +432,7 @@ class Playlist(
 
     def copyToUser(self, user):
         """ Copy playlist to another user account.
-        
+
             Parameters:
                 user (:class:`~plexapi.myplex.MyPlexUser` or str): `MyPlexUser` object, username,
                     email, or user id of the user to copy the playlist to.
@@ -496,3 +497,9 @@ class Playlist(
     def _getWebURL(self, base=None):
         """ Get the Plex Web URL with the correct parameters. """
         return self._server._buildWebURL(base=base, endpoint='playlist', key=self.key)
+
+    @property
+    def metadataDirectory(self):
+        """ Returns the Plex Media Server data directory where the metadata is stored. """
+        guid_hash = utils.sha1hash(self.guid)
+        return str(Path('Metadata') / 'Playlists' / guid_hash[0] / f'{guid_hash[1:]}.bundle')

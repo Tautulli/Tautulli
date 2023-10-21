@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from pathlib import Path
 from urllib.parse import quote_plus
 
 from plexapi import media, utils
@@ -240,6 +241,12 @@ class Artist(
         key = f'{self.key}?includeStations=1'
         return next(iter(self.fetchItems(key, cls=Playlist, rtag="Stations")), None)
 
+    @property
+    def metadataDirectory(self):
+        """ Returns the Plex Media Server data directory where the metadata is stored. """
+        guid_hash = utils.sha1hash(self.guid)
+        return str(Path('Metadata') / 'Artists' / guid_hash[0] / f'{guid_hash[1:]}.bundle')
+
 
 @utils.registerPlexObject
 class Album(
@@ -359,6 +366,12 @@ class Album(
         """ Returns str, default title for a new syncItem. """
         return f'{self.parentTitle} - {self.title}'
 
+    @property
+    def metadataDirectory(self):
+        """ Returns the Plex Media Server data directory where the metadata is stored. """
+        guid_hash = utils.sha1hash(self.guid)
+        return str(Path('Metadata') / 'Albums' / guid_hash[0] / f'{guid_hash[1:]}.bundle')
+
 
 @utils.registerPlexObject
 class Track(
@@ -469,6 +482,12 @@ class Track(
     def _getWebURL(self, base=None):
         """ Get the Plex Web URL with the correct parameters. """
         return self._server._buildWebURL(base=base, endpoint='details', key=self.parentKey)
+
+    @property
+    def metadataDirectory(self):
+        """ Returns the Plex Media Server data directory where the metadata is stored. """
+        guid_hash = utils.sha1hash(self.parentGuid)
+        return str(Path('Metadata') / 'Albums' / guid_hash[0] / f'{guid_hash[1:]}.bundle')
 
 
 @utils.registerPlexObject

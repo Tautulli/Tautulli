@@ -39,7 +39,7 @@ class AdvancedSettingsMixin:
                 pref = preferences[settingID]
             except KeyError:
                 raise NotFound(f'{value} not found in {list(preferences.keys())}')
-            
+
             enumValues = pref.enumValues
             if enumValues.get(value, enumValues.get(str(value))):
                 data[settingID] = value
@@ -69,7 +69,7 @@ class SmartFilterMixin:
         filters = {}
         filterOp = 'and'
         filterGroups = [[]]
-        
+
         for key, value in parse_qsl(content.query):
             # Move = sign to key when operator is ==
             if value.startswith('='):
@@ -96,11 +96,11 @@ class SmartFilterMixin:
                 filterGroups.pop()
             else:
                 filterGroups[-1].append({key: value})
-        
+
         if filterGroups:
             filters['filters'] = self._formatFilterGroups(filterGroups.pop())
         return filters
-    
+
     def _formatFilterGroups(self, groups):
         """ Formats the filter groups into the advanced search rules. """
         if len(groups) == 1 and isinstance(groups[0], list):
@@ -131,7 +131,7 @@ class SplitMergeMixin:
 
     def merge(self, ratingKeys):
         """ Merge other Plex objects into the current object.
-        
+
             Parameters:
                 ratingKeys (list): A list of rating keys to merge.
         """
@@ -320,7 +320,7 @@ class RatingMixin:
 
 class ArtUrlMixin:
     """ Mixin for Plex objects that can have a background artwork url. """
-    
+
     @property
     def artUrl(self):
         """ Return the art url for the Plex object. """
@@ -349,7 +349,7 @@ class ArtMixin(ArtUrlMixin, ArtLockMixin):
 
     def uploadArt(self, url=None, filepath=None):
         """ Upload a background artwork from a url or filepath.
-        
+
             Parameters:
                 url (str): The full URL to the image to upload.
                 filepath (str): The full file path the the image to upload or file-like object.
@@ -365,7 +365,7 @@ class ArtMixin(ArtUrlMixin, ArtLockMixin):
 
     def setArt(self, art):
         """ Set the background artwork for a Plex object.
-        
+
             Parameters:
                 art (:class:`~plexapi.media.Art`): The art object to select.
         """
@@ -425,7 +425,7 @@ class PosterMixin(PosterUrlMixin, PosterLockMixin):
 
     def setPoster(self, poster):
         """ Set the poster for a Plex object.
-        
+
             Parameters:
                 poster (:class:`~plexapi.media.Poster`): The poster object to select.
         """
@@ -491,11 +491,11 @@ class ThemeMixin(ThemeUrlMixin, ThemeLockMixin):
 
 class EditFieldMixin:
     """ Mixin for editing Plex object fields. """
-    
+
     def editField(self, field, value, locked=True, **kwargs):
         """ Edit the field of a Plex object. All field editing methods can be chained together.
             Also see :func:`~plexapi.base.PlexPartialObject.batchEdits` for batch editing fields.
-        
+
             Parameters:
                 field (str): The name of the field to edit.
                 value (str): The value to edit the field to.

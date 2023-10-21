@@ -28,15 +28,17 @@ DOCUMENTATION :: END
                 <span class="toggle-left official-tooltip" data-toggle="tooltip" data-placement="top" title="Unofficial or Unknown App"><i class="fa fa-lg fa-fw fa-exclamation-triangle"></i></span>
             % endif
             ${device['friendly_name'] or device['device_name']} &nbsp;<span class="friendly_name">(${device['id']})</span>
-            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-cog"></i></span>
-            <span class="toggle-right friendly_name" id="device-last_seen-${device['id']}">
+            <span class="toggle-right friendly_name">
                 % if device['last_seen']:
-                <script>
-                    $("#device-last_seen-${device['id']}").text(moment("${device['last_seen']}", "X").fromNow())
-                </script>
+                <span id="device-last_seen-${device['id']}">
+                    <script>
+                        $("#device-last_seen-${device['id']}").text(moment("${device['last_seen']}", "X").fromNow())
+                    </script>
+                </span>
                 % else:
                 never
                 % endif
+                <i class="fa fa-lg fa-fw fa-cog"></i></span>
             </span>
         </span>
     </li>

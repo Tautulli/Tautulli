@@ -19,7 +19,20 @@ DOCUMENTATION :: END
             % else:
             ${notifier['agent_label']} &nbsp;<span class="friendly_name">(${notifier['id']})</span>
             % endif
-            <span class="toggle-right"><i class="fa fa-lg fa-fw fa-cog"></i></span>
+            <span class="toggle-right friendly_name">
+                % if notifier['last_triggered']:
+                <% icon, icon_tooltip = ('fa-check', 'Success') if notifier['last_success'] else ('fa-times', 'Failed') %>
+                <span id="notifier-last_triggered-${notifier['id']}">
+                    <script>
+                        $("#notifier-last_triggered-${notifier['id']}").html(
+                            moment("${notifier['last_triggered']}", "X").fromNow() + ' <i class="fa fa-lg fa-fw ${icon}" data-toggle="tooltip" data-placement="top" title="${icon_tooltip}"></i>'
+                        )
+                    </script>
+                </span>
+            % else:
+            never
+            <i class="fa fa-lg fa-fw fa-minus"></i>
+            % endif
         </span>
     </li>
     % endfor

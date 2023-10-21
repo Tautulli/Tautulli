@@ -499,7 +499,7 @@ def get_notifiers(notifier_id=None, notify_action=None):
     if notifier_id or notify_action:
         where = 'WHERE '
         if notifier_id:
-            where_id += 'id = ?'
+            where_id += 'notifiers.id = ?'
             args.append(notifier_id)
         if notify_action and notify_action in notify_actions:
             where_action = '%s = ?' % notify_action
@@ -507,8 +507,16 @@ def get_notifiers(notifier_id=None, notify_action=None):
         where += ' AND '.join([w for w in [where_id, where_action] if w])
 
     db = database.MonitorDatabase()
-    result = db.select("SELECT id, agent_id, agent_name, agent_label, friendly_name, %s FROM notifiers %s"
-                       % (', '.join(notify_actions), where), args=args)
+    result = db.select(
+        (
+            "SELECT notifiers.id, notifiers.agent_id, notifiers.agent_name, notifiers.agent_label, notifiers.friendly_name, %s, "
+            "MAX(notify_log.timestamp) AS last_triggered, notify_log.success AS last_success "
+            "FROM notifiers "
+            "LEFT OUTER JOIN notify_log ON notifiers.id = notify_log.notifier_id "
+            "%s "
+            "GROUP BY notifiers.id"
+        ) % (', '.join(notify_actions), where), args=args
+    )
 
     for item in result:
         item['active'] = int(any([item.pop(k) for k in list(item.keys()) if k in notify_actions]))

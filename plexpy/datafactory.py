@@ -22,7 +22,6 @@ from future.builtins import str
 from future.builtins import object
 
 import json
-from itertools import groupby
 
 import plexpy
 if plexpy.PYTHON2:
@@ -272,7 +271,7 @@ class DataFactory(object):
 
                 item['user_thumb'] = users_lookup.get(item['user_id'])
 
-            filter_duration += int(item['play_duration'])
+            filter_duration += helpers.cast_to_int(item['play_duration'])
 
             if item['media_type'] == 'episode' and item['parent_thumb']:
                 thumb = item['parent_thumb']
@@ -1218,7 +1217,7 @@ class DataFactory(object):
             library_stats.append(library)
 
         library_stats = session.mask_session_info(library_stats)
-        library_stats = {k: list(v) for k, v in groupby(library_stats, key=lambda x: x['section_type'])}
+        library_stats = helpers.group_by_keys(library_stats, 'section_type')
 
         return library_stats
 

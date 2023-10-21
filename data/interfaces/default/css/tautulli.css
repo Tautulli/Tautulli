@@ -2984,7 +2984,8 @@ a .home-platforms-list-cover-face:hover
     max-width: 900px;
 }
 .stacked-configs > li > span {
-    display: block;
+    display: inline-block;
+    width: inherit;
     padding: 8px 20px 8px 15px;
     color: #eee;
     border-left: 2px solid #444;

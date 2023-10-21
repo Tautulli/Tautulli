@@ -32,6 +32,7 @@ import datetime
 from functools import reduce, wraps
 import hashlib
 import imghdr
+from itertools import groupby
 from future.moves.itertools import islice, zip_longest
 from ipaddress import ip_address, ip_network, IPv4Address
 import ipwhois
@@ -1193,18 +1194,20 @@ def get_plexpy_url(hostname=None):
         scheme = 'http'
 
     if hostname is None and plexpy.CONFIG.HTTP_HOST in ('0.0.0.0', '::'):
-        import socket
+        # Only returns IPv4 address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        s.settimeout(0)
         try:
-            # Only returns IPv4 address
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-            s.connect(('<broadcast>', 0))
+            s.connect(('<broadcast>', 1))
             hostname = s.getsockname()[0]
         except socket.error:
             try:
                 hostname = socket.gethostbyname(socket.gethostname())
             except socket.gaierror:
                 pass
+        finally:
+            s.close()
 
         if not hostname:
             hostname = 'localhost'
@@ -1240,6 +1243,15 @@ def grouper(iterable, n, fillvalue=None):
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
     args = [iter(iterable)] * n
     return zip_longest(fillvalue=fillvalue, *args)
+
+
+def group_by_keys(iterable, keys):
+    if not isinstance(keys, (list, tuple)):
+        keys = [keys]
+
+    key_function = operator.itemgetter(*keys)
+    sorted_iterable = sorted(iterable, key=key_function)
+    return {key: list(group) for key, group in groupby(sorted_iterable, key_function)}
 
 
 def chunk(it, size):
