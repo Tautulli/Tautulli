@@ -147,7 +147,8 @@ class DataFactory(object):
             "COUNT(*) AS group_count",
             "GROUP_CONCAT(session_history.id) AS group_ids",
             "NULL AS state",
-            "NULL AS session_key"
+            "NULL AS session_key",
+            "session_history.server_id"
             ]
 
         if include_activity:
@@ -210,7 +211,8 @@ class DataFactory(object):
                 "NULL AS group_count",
                 "NULL AS group_ids",
                 "state",
-                "session_key"
+                "session_key",
+                "server_id"
                 ]
 
         else:
@@ -345,7 +347,8 @@ class DataFactory(object):
                    'group_count': item['group_count'],
                    'group_ids': item['group_ids'],
                    'state': item['state'],
-                   'session_key': item['session_key']
+                   'session_key': item['session_key'],
+                   'server_id': item['server_id']
                    }
 
             rows.append(row)

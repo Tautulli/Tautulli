@@ -137,6 +137,8 @@ def build_join(join_types=[], join_tables=[], join_evals=[]):
     for i, join_type in enumerate(join_types):
         if join_type.upper() == 'LEFT OUTER JOIN':
             join += 'LEFT OUTER JOIN %s ON %s = %s ' % (join_tables[i], join_evals[i][0], join_evals[i][1])
+        if join_type.upper() == 'LEFT OUTER JOIN MULTIPLE':
+            join += ('LEFT OUTER JOIN %s ON ' %  join_tables[i]) + " AND ".join(join_evals[i]) + ' '
         elif join_type.upper() == 'JOIN' or join_type.upper() == 'INNER JOIN':
             join += 'JOIN %s ON %s = %s ' % (join_tables[i], join_evals[i][0], join_evals[i][1])
 
