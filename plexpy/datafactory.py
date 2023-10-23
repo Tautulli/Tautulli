@@ -281,13 +281,19 @@ class DataFactory(object):
             if item['live']:
                 item['percent_complete'] = 100
 
+            base_watched_value = watched_percent[item['media_type']] / 4.0
+
             if helpers.check_watched(
                 item['media_type'], item['view_offset'], item['duration'],
                 item['marker_credits_first'], item['marker_credits_final']
             ):
                 watched_status = 1
-            elif item['percent_complete'] >= watched_percent[item['media_type']] / 2.0:
-                watched_status = 0.5
+            elif item['percent_complete'] >= base_watched_value * 3.0:
+                watched_status = 0.75
+            elif item['percent_complete'] >= base_watched_value * 2.0:
+                watched_status = 0.50
+            elif item['percent_complete'] >= base_watched_value:
+                watched_status = 0.25
             else:
                 watched_status = 0
 
