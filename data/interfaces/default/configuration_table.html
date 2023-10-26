@@ -11,6 +11,7 @@ DOCUMENTATION :: END
 
 <%!
     import os
+    import sqlite3
     import sys
     import plexpy
     from plexpy import common, logger
@@ -72,8 +73,16 @@ DOCUMENTATION :: END
             <td>${str(plexpy.SYS_TIMEZONE)} (${'UTC{}'.format(plexpy.SYS_UTC_OFFSET)})
         </tr>
         <tr>
+            <td>System Language:</td>
+            <td>${plexpy.SYS_LANGUAGE + (' (override {})'.format(plexpy.CONFIG.PMS_LANGUAGE) if plexpy.CONFIG.PMS_LANGUAGE else '')}</td>
+        </tr>
+        <tr>
             <td>Python Version:</td>
             <td>${sys.version}</td>
+        </tr>
+        <tr>
+            <td>SQLite Version:</td>
+            <td>${sqlite3.sqlite_version}</td>
         </tr>
         <tr>
             <td class="top-line">Resources:</td>
