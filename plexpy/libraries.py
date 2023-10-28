@@ -459,6 +459,7 @@ class Libraries(object):
                           'data': [],
                           'filtered_file_size': 0,
                           'total_file_size': 0,
+                          'total_media_duration': 0,
                           'last_refreshed': None}
 
         if not session.allow_session_library(section_id):
@@ -676,13 +677,14 @@ class Libraries(object):
         if rating_key:
             logger.debug("Tautulli Libraries :: Getting file sizes for rating_key %s." % rating_key)
         elif section_id:
-            logger.debug("Tautulli Libraries :: Fetting file sizes for section_id %s." % section_id)
+            logger.debug("Tautulli Libraries :: Fetching file sizes for section_id %s." % section_id)
 
         pms_connect = pmsconnect.PmsConnect()
 
         for item in rows:
-            if item['rating_key'] and not item['file_size']:
+            if item['rating_key'] and (not item['file_size'] or not item['duration']):
                 file_size = 0
+                duration = 0
 
                 metadata = pms_connect.get_metadata_children_details(rating_key=item['rating_key'],
                                                                      get_children=True,
@@ -699,8 +701,10 @@ class Libraries(object):
                                                    media_info['parts'][0])
 
                     file_size += helpers.cast_to_int(media_part_info.get('file_size', 0))
+                    duration += helpers.cast_to_int(child_metadata.get('duration', 0))
 
                 item['file_size'] = file_size
+                item['duration'] = duration
 
         # Cache the media info to a json file
         self._save_media_info_cache(section_id=section_id, rating_key=rating_key, rows=rows)
