@@ -631,7 +631,7 @@ class Libraries(object):
                 results = sorted(results, key=lambda k: k[sort_key].lower(), reverse=reverse)
 
         total_file_size = sum([helpers.cast_to_int(d['file_size']) for d in results])
-        total_duration = sum([helpers.cast_to_int(d['duration']) for d in results])
+        total_media_duration = sum([helpers.cast_to_int(d['duration']) for d in results])
 
         # Paginate results
         results = results[json_data['start']:(json_data['start'] + json_data['length'])]
@@ -645,7 +645,7 @@ class Libraries(object):
             'draw': int(json_data['draw']),
             'filtered_file_size': filtered_file_size,
             'total_file_size': total_file_size,
-            'total_duration': total_duration,
+            'total_media_duration': total_media_duration,
             'last_refreshed': cache_time
         }
 

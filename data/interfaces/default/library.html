@@ -854,7 +854,7 @@ DOCUMENTATION :: END
                 };
             },
             complete: function(xhr, status) {
-                $("#info-element-total-media-runtime").html(humanDuration(xhr.responseJSON.total_duration));
+                $("#info-element-total-media-runtime").html(humanDuration(xhr.responseJSON.total_media_duration));
                 $("#info-element-total-file-size").html(humanFileSize(xhr.responseJSON.total_file_size));
             }
         };
