@@ -2940,6 +2940,12 @@ a .home-platforms-list-cover-face:hover
     max-width: 1750px;
     display: flow-root;
 }
+.table-card-header.spaced {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-content: center;
+}
 .table-card-back td {
     font-size: 12px;
 }
@@ -2950,6 +2956,18 @@ a .home-platforms-list-cover-face:hover
     font-size: 22px;
     font-weight: bold;
     line-height: 34px;
+}
+.info-bar {
+    display: inline;
+}
+.info-element {
+    display: inline-block;
+    border-radius: 1rem;
+    border: 0.2rem solid #242424;
+    padding: 0.7rem;
+    background-color: #3B3B3B;
+    font-style: italic;
+    color: #676767;
 }
 .button-bar {
     float: right;

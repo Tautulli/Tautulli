@@ -2805,7 +2805,8 @@ class PmsConnect(object):
                              'thumb': helpers.get_xml_attr(item, 'thumb'),
                              'parent_thumb': helpers.get_xml_attr(item, 'thumb'),
                              'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
-                             'added_at': helpers.get_xml_attr(item, 'addedAt')
+                             'added_at': helpers.get_xml_attr(item, 'addedAt'),
+                             'duration': helpers.get_xml_attr(item, 'duration')
                              }
 
                 if get_media_info:

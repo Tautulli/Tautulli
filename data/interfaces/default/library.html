@@ -271,7 +271,7 @@ DOCUMENTATION :: END
                                         You may leave this page and check back later.
                                     </div>
                                     % endif
-                                    <div class='table-card-header'>
+                                    <div class='table-card-header spaced'>
                                         <div class="header-bar">
                                             <span>
                                                 <i class="fa fa-info-circle"></i> Media Info for <strong>
@@ -279,6 +279,16 @@ DOCUMENTATION :: END
                                                 </strong>
                                             </span>
                                         </div>
+                                        % if config['get_file_sizes'] and not data['section_id'] in config['get_file_sizes_hold']['section_ids']:
+                                        <div class="info-bar">
+                                            <div class="info-element">
+                                                <span>Total File Size: <strong><span id="info-element-total-file-size" /></strong></span>
+                                            </div>
+                                            <div class="info-element">
+                                                <span>Total Media Runtime: <strong><span id="info-element-total-media-runtime" /></strong></span>
+                                            </div>
+                                        </div>
+                                        % endif
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
                                             <div class="btn-group">
@@ -842,6 +852,10 @@ DOCUMENTATION :: END
                     section_id: section_id,
                     refresh: refresh_table
                 };
+            },
+            complete: function(xhr, status) {
+                $("#info-element-total-media-runtime").html(humanDuration(xhr.responseJSON.total_duration));
+                $("#info-element-total-file-size").html(humanFileSize(xhr.responseJSON.total_file_size));
             }
         };
         media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);

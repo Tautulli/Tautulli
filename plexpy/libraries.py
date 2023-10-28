@@ -517,8 +517,11 @@ class Libraries(object):
         # Import media info cache from json file
         cache_time, rows, library_count = self._load_media_info_cache(section_id=section_id, rating_key=rating_key)
 
+        # Check if duration is also included in cache else refresh cache to prevent update issues
+        refresh = refresh if None not in {d.get('duration') for d in rows} else True
+
         # If no cache was imported, get all library children items
-        cached_items = {d['rating_key']: d['file_size'] for d in rows} if not refresh else {}
+        cached_items = {d['rating_key']: [d['file_size'], d['duration']] for d in rows} if not refresh else {}
 
         if refresh or not rows:
             pms_connect = pmsconnect.PmsConnect()
@@ -543,8 +546,10 @@ class Libraries(object):
             for item in children_list:
                 ## TODO: Check list of media info items, currently only grabs first item
 
-                cached_file_size = cached_items.get(item['rating_key'], None)
-                file_size = cached_file_size if cached_file_size else item.get('file_size', '')
+                cached_item_data = cached_items.get(item['rating_key'], None)
+
+                file_size = cached_item_data['file_size'] if cached_item_data else item.get('file_size', '')
+                duration = cached_item_data['duration'] if cached_item_data else item['duration']
 
                 row = {'section_id': library_details['section_id'],
                        'section_type': library_details['section_type'],
@@ -566,7 +571,8 @@ class Libraries(object):
                        'video_framerate': item.get('video_framerate', ''),
                        'audio_codec': item.get('audio_codec', ''),
                        'audio_channels': item.get('audio_channels', ''),
-                       'file_size': file_size
+                       'file_size': file_size,
+                       'duration': duration
                        }
                 new_rows.append(row)
 
@@ -624,6 +630,7 @@ class Libraries(object):
                 results = sorted(results, key=lambda k: k[sort_key].lower(), reverse=reverse)
 
         total_file_size = sum([helpers.cast_to_int(d['file_size']) for d in results])
+        total_duration = sum([helpers.cast_to_int(d['duration']) for d in results])
 
         # Paginate results
         results = results[json_data['start']:(json_data['start'] + json_data['length'])]
@@ -637,6 +644,7 @@ class Libraries(object):
             'draw': int(json_data['draw']),
             'filtered_file_size': filtered_file_size,
             'total_file_size': total_file_size,
+            'total_duration': total_duration,
             'last_refreshed': cache_time
         }
 
