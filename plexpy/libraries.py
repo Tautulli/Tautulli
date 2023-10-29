@@ -93,6 +93,8 @@ def refresh_libraries():
             if result == 'insert':
                 new_keys.append(section['section_id'])
 
+            get_library_media_stats(section_id=section['section_id'], refresh=True)
+
         add_live_tv_library(refresh=True)
 
         query = "UPDATE library_sections SET is_active = 0 WHERE server_id != ? OR " \
