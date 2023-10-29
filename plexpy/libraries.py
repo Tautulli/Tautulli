@@ -145,6 +145,7 @@ def has_library_type(section_type):
 
 def get_library_media_stats(section_id=None):
     plex = Plex(token=session.get_session_user_token())
+    libraries = Libraries()
 
     default_return = {
         'total_size': 0,
@@ -160,17 +161,23 @@ def get_library_media_stats(section_id=None):
         logger.warn("Tautulli Libraries :: Library media stats requested but library is not allowed for this session.")
         return default_return
 
-    library = plex.get_library(section_id)
+    # Import media info cache from json file
+    _, cached_library_media_stats, _ = libraries._load_data_from_cache(section_id=section_id, path='media_stats')
 
-    if library is None:
-        logger.warn("Tautulli Libraries :: Library media stats requested but no library was found section_id %s.", section_id)
-        return default_return
+    if not cached_library_media_stats:
+        library = plex.get_library(section_id)
+
+        if library is None:
+            logger.warn("Tautulli Libraries :: Library media stats requested but no library was found section_id %s.", section_id)
+            return default_return
 
     library_media_stats = {
-        'total_size': library.totalSize,
-        'total_storage': library.totalStorage,
-        'total_duration': library.totalDuration
+        'total_size': cached_library_media_stats.get('total_size', 0) if cached_library_media_stats else library.totalSize,
+        'total_storage': cached_library_media_stats.get('total_storage', 0) if cached_library_media_stats else library.totalStorage,
+        'total_duration': cached_library_media_stats.get('total_duration', 0) if cached_library_media_stats else library.totalDuration
     }
+
+    libraries._save_data_to_cache(section_id=section_id, rows=library_media_stats, path='media_stats')
 
     return library_media_stats
 
@@ -551,7 +558,7 @@ class Libraries(object):
                                                  'play_count': item['play_count']}
 
         # Import media info cache from json file
-        cache_time, rows, library_count = self._load_media_info_cache(section_id=section_id, rating_key=rating_key)
+        cache_time, rows, library_count = self._load_data_from_cache(section_id=section_id, rating_key=rating_key, path='media_info')
 
         # Check if duration is also included in cache else refresh cache to prevent update issues
         refresh = refresh if None not in {d.get('duration') for d in rows} else True
@@ -617,7 +624,7 @@ class Libraries(object):
                 return default_return
 
             # Cache the media info to a json file
-            self._save_media_info_cache(section_id=section_id, rating_key=rating_key, rows=rows)
+            self._save_data_to_cache(section_id=section_id, rating_key=rating_key, rows=rows, path='media_info')
 
         # Update the last_played and play_count
         for item in rows:
@@ -706,7 +713,7 @@ class Libraries(object):
             return False
 
         # Import media info cache from json file
-        _, rows, _ = self._load_media_info_cache(section_id=section_id, rating_key=rating_key)
+        _, rows, _ = self._load_data_from_cache(section_id=section_id, rating_key=rating_key, path='media_info')
 
         # Get the total file size for each item
         if rating_key:
@@ -742,7 +749,7 @@ class Libraries(object):
                 item['duration'] = duration
 
         # Cache the media info to a json file
-        self._save_media_info_cache(section_id=section_id, rating_key=rating_key, rows=rows)
+        self._save_data_to_cache(section_id=section_id, rating_key=rating_key, rows=rows, path='media_info')
 
         if rating_key:
             logger.debug("Tautulli Libraries :: File sizes updated for rating_key %s." % rating_key)
@@ -751,67 +758,45 @@ class Libraries(object):
 
         return True
     
-    def _load_media_info_cache(self, section_id=None, rating_key=None):
+    def _load_data_from_cache(self, section_id=None, rating_key=None, path=None):
         cache_time = None
         rows = []
         library_count = 0
 
-        # Import media info cache from json file
-        if rating_key:
-            try:
-                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (section_id, rating_key))
-                with open(inFilePath, 'r') as inFile:
-                    data = json.load(inFile)
-                    if isinstance(data, dict):
-                        cache_time = data['last_refreshed']
-                        rows = data['rows']
-                    else:
-                        rows = data
-                    library_count = len(rows)
-                logger.debug("Tautulli Libraries :: Loaded media info from cache for rating_key %s (%s items)." % (rating_key, library_count))
-            except IOError as e:
-                logger.debug("Tautulli Libraries :: No media info cache for rating_key %s." % rating_key)
-
-        elif section_id:
-            try:
-                inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s.json' % section_id)
-                with open(inFilePath, 'r') as inFile:
-                    data = json.load(inFile)
-                    if isinstance(data, dict):
-                        cache_time = data['last_refreshed']
-                        rows = data['rows']
-                    else:
-                        rows = data
-                    library_count = len(rows)
-                logger.debug("Tautulli Libraries :: Loaded media info from cache for section_id %s (%s items)." % (section_id, library_count))
-            except IOError as e:
-                logger.debug("Tautulli Libraries :: No media info cache for section_id %s." % section_id)
+        # Import data cache from json file
+        try:
+            inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR, (path + '_%s%s' % (section_id, ('-' + rating_key) if rating_key else '')))
+            with open(inFilePath, 'r') as inFile:
+                data = json.load(inFile)
+                if isinstance(data, dict):
+                    cache_time = data['last_refreshed']
+                    rows = data['rows']
+                else:
+                    rows = data
+                library_count = len(rows)
+            logger.debug("Tautulli Libraries :: Loaded %s from cache for section_id %s%s (%s items)." %
+                        (path, section_id, (' and rating key ' + rating_key) if rating_key else '', library_count))
+        except IOError as e:
+            logger.debug("Tautulli Libraries :: No media info cache for section_id %s%s." % 
+                        (section_id, (' and rating key ' + rating_key) if rating_key else ''))
 
         return cache_time, rows, library_count
     
-    def _save_media_info_cache(self, section_id=None, rating_key=None, rows=None):
+    def _save_data_to_cache(self, section_id, rating_key=None, rows=None, path=None):
         cache_time = helpers.timestamp()
 
         if rows is None:
             rows = []
-        
-        if rating_key:
-            try:
-                outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s-%s.json' % (section_id, rating_key))
-                with open(outFilePath, 'w') as outFile:
-                    json.dump({'last_refreshed': cache_time, 'rows': rows}, outFile)
-                logger.debug("Tautulli Libraries :: Saved media info cache for rating_key %s." % rating_key)
-            except IOError as e:
-                logger.debug("Tautulli Libraries :: Unable to create cache file for rating_key %s." % rating_key)
 
-        elif section_id:
-            try:
-                outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR,'media_info_%s.json' % section_id)
-                with open(outFilePath, 'w') as outFile:
-                    json.dump({'last_refreshed': cache_time, 'rows': rows}, outFile)
-                logger.debug("Tautulli Libraries :: Saved media info cache for section_id %s." % section_id)
-            except IOError as e:
-                logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
+        try:
+            outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR, (path + '_%s%s' % (section_id, ('-' + rating_key) if rating_key else '')))
+            with open(outFilePath, 'w') as outFile:
+                json.dump({'last_refreshed': cache_time, 'rows': rows}, outFile)
+            logger.debug("Tautulli Libraries :: Saved %s cache for section_id %s%s." % 
+                        (path, section_id, (' and rating key ' + rating_key) if rating_key else ''))
+        except IOError as e:
+            logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s%s with error %s." %
+                        (section_id, (' and rating key ' + rating_key) if rating_key else '', e))
 
     def set_config(self, section_id=None, custom_thumb='', custom_art='',
                    do_notify=1, keep_history=1, do_notify_created=1):
