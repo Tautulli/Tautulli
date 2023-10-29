@@ -2806,7 +2806,7 @@ class PmsConnect(object):
                              'parent_thumb': helpers.get_xml_attr(item, 'thumb'),
                              'grandparent_thumb': helpers.get_xml_attr(item, 'grandparentThumb'),
                              'added_at': helpers.get_xml_attr(item, 'addedAt'),
-                             'duration': helpers.get_xml_attr(item, 'duration') if section_type == 'movie' else 0  
+                             'duration': helpers.get_xml_attr(item, 'duration') if section_type in ('movie', 'episode', 'track') else 0  
                              }
 
                 if get_media_info:

@@ -881,6 +881,7 @@ class WebInterface(object):
                           ("video_framerate", True, True),
                           ("audio_codec", True, True),
                           ("audio_channels", True, True),
+                          ("duration", True, False),
                           ("file_size", True, False),
                           ("last_played", True, False),
                           ("play_count", True, False)]
