@@ -763,6 +763,9 @@ class Libraries(object):
         rows = []
         library_count = 0
 
+        section_id = str(section_id) if section_id else section_id
+        rating_key = str(rating_key) if rating_key else rating_key
+
         # Import data cache from json file
         try:
             inFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR, (path + '_%s%s' % (section_id, ('-' + rating_key) if rating_key else '')))
@@ -787,6 +790,9 @@ class Libraries(object):
 
         if rows is None:
             rows = []
+
+        section_id = str(section_id) if section_id else section_id
+        rating_key = str(rating_key) if rating_key else rating_key
 
         try:
             outFilePath = os.path.join(plexpy.CONFIG.CACHE_DIR, (path + '_%s%s' % (section_id, ('-' + rating_key) if rating_key else '')))

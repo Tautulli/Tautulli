@@ -226,7 +226,7 @@ media_info_table_options = {
             "targets": [10],
             "data": "duration",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== null && cellData !== '') {
+                if (cellData !== null && cellData !== '' && cellData !== 0) {
                     $(td).html(humanDuration(cellData));
                 } else {
                     if (rowData['section_type'] != 'photo' && get_file_sizes != null) {
