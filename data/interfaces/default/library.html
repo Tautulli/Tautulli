@@ -862,16 +862,20 @@ DOCUMENTATION :: END
     }
 
     $(document).ready(function () {
+        loadLibraryMediaStats();
+    });
+
+    function loadLibraryMediaStats(refresh) {
         // Populate media stats
         $.ajax({
             url: 'get_library_media_stats',
-            data: { section_id: section_id },
+            data: { section_id: section_id, refresh: refresh },
             complete: function(xhr, status) {
                 $("#info-element-total-runtime").html(humanDuration(xhr.responseJSON.total_duration));
                 $("#info-element-total-storage").html(humanFileSize(xhr.responseJSON.total_storage));
             }
         });
-    });
+    }
 
     $('#nav-tabs-mediainfo').on('shown.bs.tab', function() {
         if (typeof(media_info_table) === 'undefined') {
@@ -884,6 +888,7 @@ DOCUMENTATION :: END
         refresh_table = true;
         refresh_child_tables = true;
         media_info_table.draw();
+        loadLibraryMediaStats(true);
         refresh_table = false;
     });
 

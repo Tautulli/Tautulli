@@ -704,12 +704,13 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_media_stats(self, section_id=None):
+    def get_library_media_stats(self, section_id=None, refresh=''):
         """ Get the media stats of a library section on Tautulli.
 
             ```
             Required parameters:
                 section_id (str):           The id of the Plex library section
+                refresh (str):              "true" to force a refresh of the stats
 
             Optional parameters:
                 None
@@ -722,9 +723,14 @@ class WebInterface(object):
                 }
             ```
         """
+
+        if helpers.bool_true(refresh):
+            refresh = True
+        else:
+            refresh = False
         
         logger.info("Getting library media stats for section %s.", section_id)
-        result = libraries.get_library_media_stats(section_id)
+        result = libraries.get_library_media_stats(section_id=section_id, refresh=refresh)
 
         return result
 

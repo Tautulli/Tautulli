@@ -143,7 +143,7 @@ def has_library_type(section_type):
     result = monitor_db.select_single(query=query, args=args)
     return bool(result)
 
-def get_library_media_stats(section_id=None):
+def get_library_media_stats(section_id=None, refresh=False):
     plex = Plex(token=session.get_session_user_token())
     libraries = Libraries()
 
@@ -164,7 +164,8 @@ def get_library_media_stats(section_id=None):
     # Import media info cache from json file
     _, cached_library_media_stats, _ = libraries._load_data_from_cache(section_id=section_id, path='media_stats')
 
-    if not cached_library_media_stats:
+    _live_data = not cached_library_media_stats or refresh 
+    if _live_data:
         library = plex.get_library(section_id)
 
         if library is None:
@@ -172,9 +173,9 @@ def get_library_media_stats(section_id=None):
             return default_return
 
     library_media_stats = {
-        'total_size': cached_library_media_stats.get('total_size', 0) if cached_library_media_stats else library.totalSize,
-        'total_storage': cached_library_media_stats.get('total_storage', 0) if cached_library_media_stats else library.totalStorage,
-        'total_duration': cached_library_media_stats.get('total_duration', 0) if cached_library_media_stats else library.totalDuration
+        'total_size': library.totalSize if _live_data else cached_library_media_stats.get('total_size', 0),
+        'total_storage': library.totalStorage if _live_data else cached_library_media_stats.get('total_storage', 0),
+        'total_duration': library.totalDuration if _live_data else cached_library_media_stats.get('total_duration', 0)
     }
 
     libraries._save_data_to_cache(section_id=section_id, rows=library_media_stats, path='media_stats')
