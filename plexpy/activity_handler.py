@@ -311,7 +311,9 @@ class ActivityHandler(object):
         last_state = self.db_session['state']
         last_rating_key = str(self.db_session['rating_key'])
         last_live_uuid = self.db_session['live_uuid']
-        last_transcode_key = self.db_session['transcode_key'].split('/')[-1]
+        last_transcode_key = self.db_session['transcode_key']
+        if isinstance(last_transcode_key, str):
+            last_transcode_key = last_transcode_key.split('/')[-1]
         last_paused = self.db_session['last_paused']
         last_rating_key_websocket = self.db_session['rating_key_websocket']
         last_guid = self.db_session['guid']

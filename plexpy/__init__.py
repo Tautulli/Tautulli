@@ -236,6 +236,9 @@ def initialize(config_file):
         logger.info("{} (UTC{})".format(
             str(SYS_TIMEZONE), SYS_UTC_OFFSET
         ))
+        logger.info("Language {}{} / Encoding {}".format(
+            SYS_LANGUAGE, f' (override {CONFIG.PMS_LANGUAGE})' if CONFIG.PMS_LANGUAGE else '', SYS_ENCODING
+        ))
         logger.info("Python {}".format(
             sys.version.replace('\n', '')
         ))

@@ -177,7 +177,9 @@ DOCUMENTATION :: END
                                     % elif stat_id == 'top_platforms':
                                     ${row['platform']}
                                     % elif stat_id == 'most_concurrent':
-                                    ${row['title']}
+                                    <a href="graphs#concurrent-graph" title="${row['title']}">
+                                        ${row['title']}
+                                    </a>
                                     % endif
                                 </div>
                                 <div class="sub-count">

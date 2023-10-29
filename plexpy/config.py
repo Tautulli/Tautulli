@@ -55,6 +55,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_IP': (str, 'PMS', '127.0.0.1'),
     'PMS_IS_CLOUD': (int, 'PMS', 0),
     'PMS_IS_REMOTE': (int, 'PMS', 0),
+    'PMS_LANGUAGE': (str, 'PMS', ''),
     'PMS_LOGS_FOLDER': (str, 'PMS', ''),
     'PMS_LOGS_LINE_CAP': (int, 'PMS', 1000),
     'PMS_NAME': (str, 'PMS', ''),

@@ -137,7 +137,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row" id="concurrent-graph">
                     <div class="col-md-12">
                         <h4><i class="fa fa-video-camera"></i> Daily concurrent stream count</span> by stream type <small>Last <span class="days">30</span> days</small></h4>
                         <p class="help-block">
@@ -370,6 +370,10 @@
                 break
             default:
                 break
+        }
+
+        if (window.location.hash === '#concurrent-graph') {
+            current_tab = '#tabs-stream';
         }
 
         $('#yaxis-' + yaxis).prop('checked', true);
@@ -639,7 +643,7 @@
                 }
             });
 
-            $('#nav-tabs-2').tab('show');
+            $('#nav-tabs-stream').tab('show');
         }
 
         function loadGraphsTab3(time_range, yaxis) {

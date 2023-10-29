@@ -1,5 +1,19 @@
 # Changelog
 
+## v2.13.2 (2023-10-26)
+* History:
+  * New: Added quarter values icons for history watch status. (#2179, #2156) (Thanks @herby2212)
+* Graphs:
+  * New: Added concurrent streams per day graph. (#2046) (Thanks @herby2212)
+* Exporter:
+  * New: Added metadata directory to exporter fields.
+  * Removed: Banner exporter fields for tv shows.
+* UI:
+  * New: Added last triggered time to notification agents and newsletter agent lists.
+* Other:
+  * New: Added X-Plex-Language header override to config file.
+
+
 ## v2.13.1 (2023-08-25)
 * Notes:
   * Support for Python 3.7 has been dropped. The minimum Python version is now 3.8.
