@@ -725,8 +725,7 @@ class WebInterface(object):
         
         logger.info("Getting library media stats for section %s.", section_id)
         result = libraries.get_library_media_stats(section_id)
-        logger.debug("test")
-        logger.debug(result)
+
         return result
 
     @cherrypy.expose
