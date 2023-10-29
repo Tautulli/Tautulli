@@ -143,6 +143,36 @@ def has_library_type(section_type):
     result = monitor_db.select_single(query=query, args=args)
     return bool(result)
 
+def get_library_media_stats(section_id=None):
+    plex = Plex(token=session.get_session_user_token())
+
+    default_return = {
+        'total_size': 0,
+        'total_storage': 0,
+        'total_duration': 0
+    }
+
+    if section_id and not str(section_id).isdigit():
+        logger.warn("Tautulli Libraries :: Library media stats requested but invalid section_id provided.")
+        return default_return
+
+    if not session.allow_session_library(section_id):
+        logger.warn("Tautulli Libraries :: Library media stats requested but library is not allowed for this session.")
+        return default_return
+
+    library = plex.get_library(section_id)
+
+    if library is None:
+        logger.warn("Tautulli Libraries :: Library media stats requested but no library was found section_id %s.", section_id)
+        return default_return
+
+    library_media_stats = {
+        'total_size': library.totalSize,
+        'total_storage': library.totalStorage,
+        'total_duration': library.totalDuration
+    }
+
+    return library_media_stats
 
 def get_collections(section_id=None):
     plex = Plex(token=session.get_session_user_token())
@@ -409,18 +439,23 @@ class Libraries(object):
             else:
                 library_art = item['library_art']
 
+            library_media_stats = get_library_media_stats(item['section_id'])
+
             row = {'row_id': item['row_id'],
                    'server_id': item['server_id'],
                    'section_id': item['section_id'],
                    'section_name': item['section_name'],
                    'section_type': item['section_type'],
                    'count': item['count'],
+                   'total_size': library_media_stats['total_size'],
                    'parent_count': item['parent_count'],
                    'child_count': item['child_count'],
                    'library_thumb': library_thumb,
                    'library_art': library_art,
                    'plays': item['plays'],
+                   'total_storage': library_media_stats['total_storage'],
                    'duration': item['duration'],
+                   'total_duration': library_media_stats['total_duration'],
                    'last_accessed': item['last_accessed'],
                    'history_row_id': item['history_row_id'],
                    'last_played': item['last_played'],

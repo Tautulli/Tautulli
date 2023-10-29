@@ -540,6 +540,9 @@ class WebInterface(object):
                           "section_type": "Show",
                           "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
                           "thumb": "/library/metadata/153036/thumb/1462175062",
+                          "total_duration": 3048551210,
+                          "total_size": 62,
+                          "total_storage": 1866078986762,
                           "year": 2016
                           },
                          {...},
@@ -561,7 +564,9 @@ class WebInterface(object):
                           ("last_accessed", True, False),
                           ("last_played", True, True),
                           ("plays", True, False),
-                          ("duration", True, False)]
+                          ("duration", True, False),
+                          ("total_storage", True, False),
+                          ("total_duration", True, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "section_name")
 
         grouping = helpers.bool_true(grouping, return_none=True)
@@ -694,6 +699,32 @@ class WebInterface(object):
                 return "Successfully updated library."
             except:
                 return "Failed to update library."
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_library_media_stats(self, section_id=None):
+        """ Get the media stats of a library section on Tautulli.
+
+            ```
+            Required parameters:
+                section_id (str):           The id of the Plex library section
+
+            Optional parameters:
+                None
+
+            Returns:
+                {
+                    "total_duration": 3048551210,
+                    "total_size": 62,
+                    "total_storage": 1866078986762
+                }
+            ```
+        """
+        
+        logger.info("Getting library media stats for section %s.", section_id)
+        
+        return libraries.get_library_media_stats(section_id)
 
     @cherrypy.expose
     @requireAuth()
