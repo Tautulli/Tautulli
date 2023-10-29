@@ -279,16 +279,14 @@ DOCUMENTATION :: END
                                                 </strong>
                                             </span>
                                         </div>
-                                        % if config['get_file_sizes'] and not data['section_id'] in config['get_file_sizes_hold']['section_ids']:
                                         <div class="info-bar">
                                             <div class="info-element">
-                                                <span>Total File Size: <strong><span id="info-element-total-file-size" /></strong></span>
+                                                <span>Total File Size: <strong><span id="info-element-total-storage" /></strong></span>
                                             </div>
                                             <div class="info-element">
-                                                <span>Total Media Runtime: <strong><span id="info-element-total-media-runtime" /></strong></span>
+                                                <span>Total Media Runtime: <strong><span id="info-element-total-runtime" /></strong></span>
                                             </div>
                                         </div>
-                                        % endif
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
                                             <div class="btn-group">
@@ -852,10 +850,6 @@ DOCUMENTATION :: END
                     section_id: section_id,
                     refresh: refresh_table
                 };
-            },
-            complete: function(xhr, status) {
-                $("#info-element-total-media-runtime").html(humanDuration(xhr.responseJSON.total_media_duration));
-                $("#info-element-total-file-size").html(humanFileSize(xhr.responseJSON.total_file_size));
             }
         };
         media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
@@ -865,6 +859,18 @@ DOCUMENTATION :: END
 
         clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
     }
+
+    $(document).ready(function () {
+        // Populate media stats
+        $.ajax({
+            url: 'get_library_media_stats',
+            data: { section_id: section_id },
+            complete: function(xhr, status) {
+                $("#info-element-total-runtime").html(humanDuration(xhr.responseJSON.total_duration));
+                $("#info-element-total-storage").html(humanFileSize(xhr.responseJSON.total_storage));
+            }
+        });
+    });
 
     $('#nav-tabs-mediainfo').on('shown.bs.tab', function() {
         if (typeof(media_info_table) === 'undefined') {

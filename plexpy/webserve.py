@@ -701,6 +701,7 @@ class WebInterface(object):
                 return "Failed to update library."
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_library_media_stats(self, section_id=None):
@@ -723,8 +724,10 @@ class WebInterface(object):
         """
         
         logger.info("Getting library media stats for section %s.", section_id)
-        
-        return libraries.get_library_media_stats(section_id)
+        result = libraries.get_library_media_stats(section_id)
+        logger.debug("test")
+        logger.debug(result)
+        return result
 
     @cherrypy.expose
     @requireAuth()
