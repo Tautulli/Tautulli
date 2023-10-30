@@ -53,10 +53,14 @@ opcode_data = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
 ws_shutdown = False
 pong_timer = None
 pong_count = 0
+ws_list = []
 
 
 def isServerUp():
-    return True
+    for ws in ws_list:
+        if ws.WS_CONNECTED:
+            return True
+    return False
 
 def start_threads():
     try:
@@ -71,7 +75,7 @@ def start_threads():
 
     owned_servers = server_manager.ServerManger().get_server_list()
 
-
+    global ws_list
     # Start each websocket listener on it's own thread per server
     for owned_server in owned_servers:
         for server in plex_servers:
@@ -79,6 +83,7 @@ def start_threads():
                 for connection in server['connections']:
                     if connection['local']:
                         wss=WebSocketServer(connection, owned_server.server_id)
+                        ws_list.append(wss)
                         thread = threading.Thread(target=wss.run)
                         thread.daemon = True
                         thread.start()

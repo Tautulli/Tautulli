@@ -12,7 +12,7 @@ DOCUMENTATION :: END
 <%!
     import datetime
     import plexpy
-    from plexpy import common, helpers
+    from plexpy import common, helpers, web_socket
 
     scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
 %>
@@ -41,7 +41,7 @@ DOCUMENTATION :: END
             <td>${helpers.format_timedelta_Hms(sched_job.next_run_time - now)}</td>
             <td>${sched_job.next_run_time.astimezone(plexpy.SYS_TIMEZONE).strftime('%Y-%m-%d %H:%M:%S')}</td>
         </tr>
-        % elif job_type == 'websocket' and plexpy.WS_CONNECTED:
+        % elif job_type == 'websocket' and web_socket.isServerUp():
         <tr>
             % if job == 'Check for active sessions':
             <td><a class="queue-modal-link no-highlight" href="#" data-queue="active sessions">${job}</a></td>
