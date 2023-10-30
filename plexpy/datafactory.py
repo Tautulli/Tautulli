@@ -740,7 +740,7 @@ class DataFactory(object):
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN (SELECT * FROM library_sections WHERE deleted_section = 0) " \
                             "   AS ls ON sh.section_id = ls.section_id AND sh.server_id = ls.server_id " \
-                            "GROUP BY sh.server_id " \
+                            "GROUP BY sh.section_id, sh.server_id " \
                             "ORDER BY %s DESC, sh.started DESC " \
                             "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
@@ -1156,16 +1156,14 @@ class DataFactory(object):
                     "MAX(sh.started) AS last_watch, ls.server_id as server_id " \
                     "FROM library_sections AS ls " \
                     "LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id AND ls.server_id = sh.server_id " \
-                    "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id AND sh.server_id = shm.server_id " \
-                    "WHERE " 
+                    "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id AND sh.server_id = shm.server_id " 
             query_parts = []
             for library in libraries:
                 query_parts.append("(ls.section_id IN (" + ",".join(libraries[library]) + ") AND ls.deleted_section = 0 AND ls.server_id = '" + library +"' )")
             
             query +=(" or ").join(query_parts)
 
-            query += "GROUP BY ls.id " \
-                    "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC "
+            query += "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC "
             result = monitor_db.select(query)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
