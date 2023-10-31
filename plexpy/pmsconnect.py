@@ -849,7 +849,8 @@ class PmsConnect(object):
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'show':
@@ -909,7 +910,8 @@ class PmsConnect(object):
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'season':
@@ -973,7 +975,8 @@ class PmsConnect(object):
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                        helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'episode':
@@ -1053,7 +1056,8 @@ class PmsConnect(object):
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'grandparentTitle'),
                                                        helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'artist':
@@ -1108,7 +1112,8 @@ class PmsConnect(object):
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'album':
@@ -1166,7 +1171,8 @@ class PmsConnect(object):
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle'),
                                                        helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'track':
@@ -1226,7 +1232,8 @@ class PmsConnect(object):
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'title'),
                                                        track_artist),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'photo_album':
@@ -1281,7 +1288,8 @@ class PmsConnect(object):
                         'grandparent_guids': [],
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'photo':
@@ -1339,7 +1347,8 @@ class PmsConnect(object):
                         'full_title': '{} - {}'.format(helpers.get_xml_attr(metadata_main, 'parentTitle') or library_name,
                                                        helpers.get_xml_attr(metadata_main, 'title')),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'collection':
@@ -1399,7 +1408,8 @@ class PmsConnect(object):
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'childCount')),
                         'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
-                        'smart': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'smart'))
+                        'smart': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'smart')),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'playlist':
@@ -1419,7 +1429,8 @@ class PmsConnect(object):
                         'children_count': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'leafCount')),
                         'smart': helpers.cast_to_int(helpers.get_xml_attr(metadata_main, 'smart')),
                         'playlist_type': helpers.get_xml_attr(metadata_main, 'playlistType'),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         elif metadata_type == 'clip':
@@ -1474,7 +1485,8 @@ class PmsConnect(object):
                         'full_title': helpers.get_xml_attr(metadata_main, 'title'),
                         'extra_type': helpers.get_xml_attr(metadata_main, 'extraType'),
                         'sub_type': helpers.get_xml_attr(metadata_main, 'subtype'),
-                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1')
+                        'live': int(helpers.get_xml_attr(metadata_main, 'live') == '1'),
+                        'server_id': self.server_id
                         }
 
         else:

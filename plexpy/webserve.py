@@ -5223,15 +5223,26 @@ class WebInterface(object):
     def get_search_results_children(self, query='', limit='', media_type=None, season_index=None, server_id=None, **kwargs):
 
         result ={}
-        pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
-        if pms_connect:
-            result = pms_connect.get_search_results(query=query, limit=limit)
+        if server_id is not None:
+            pms_connect = server_manager.ServerManger().get_server(server_id=server_id)
+            if pms_connect:
+                result = pms_connect.get_search_results(query=query, limit=limit)
+        else:
+            result['results_list']={}
+            result['results_count'] = 0
+            for pms_connect in server_manager.ServerManger().get_server_list():
+                tempResult = pms_connect.get_search_results(query=query, limit=limit)
+                for key in set(tempResult['results_list']):
+                    if key not in result['results_list']:
+                        result['results_list'][key]=[]
+                    result['results_list'][key]+=tempResult['results_list'][key]
+                result['results_count']+=tempResult['results_count']
 
-            if media_type:
-                result['results_list'] = {media_type: result['results_list'][media_type]}
-            if media_type == 'season' and season_index:
-                result['results_list']['season'] = [season for season in result['results_list']['season']
-                                                    if season['media_index'] == season_index]
+        if media_type:
+            result['results_list'] = {media_type: result['results_list'][media_type]}
+        if media_type == 'season' and season_index:
+            result['results_list']['seasson'] = [season for season in result['results_list']['season']
+                                                if season['media_index'] == season_index]
 
         if result:
             return serve_template(template_name="info_search_results_list.html", data=result, title="Search Result List")
