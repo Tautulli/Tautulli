@@ -125,41 +125,21 @@ jobs:
           echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
         with:
           tag_name: ${{ steps.get_version.outputs.RELEASE_VERSION }}
-          release_name: Tautulli ${{ steps.get_version.outputs.RELEASE_VERSION }}
+          name: Tautulli ${{ steps.get_version.outputs.RELEASE_VERSION }}
           body: |
             ## Changelog
             
             ##${{ steps.get_changelog.outputs.CHANGELOG }}
-          draft: false
           prerelease: ${{ endsWith(steps.get_version.outputs.RELEASE_VERSION, '-beta') }}
-
-      - name: Upload Windows Installer
-        uses: actions/upload-release-asset@v1
-        if: env.WORKFLOW_CONCLUSION == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Tautulli-windows-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
-          asset_name: Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
-          asset_content_type: application/vnd.microsoft.portable-executable
-
-      - name: Upload MacOS Installer
-        uses: actions/upload-release-asset@v1
-        if: env.WORKFLOW_CONCLUSION == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
-          asset_name: Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
-          asset_content_type: application/vnd.apple.installer+xml
+          files: |
+            Tautulli-windows-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
+            Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
 
   discord:
     name: Discord Notification
