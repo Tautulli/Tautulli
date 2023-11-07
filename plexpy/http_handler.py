@@ -75,14 +75,6 @@ class HTTPHandler(object):
         if not self.ssl_verify:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-        self.uri = None
-        self.data = None
-        self.request_type = 'GET'
-        self.output_format = 'raw'
-        self.return_response = False
-        self.return_type = False
-        self.callback = None
-        self.request_kwargs = {}
 
     def make_request(self,
                      uri=None,
@@ -101,23 +93,29 @@ class HTTPHandler(object):
 
         Output: list
         """
-
-        self.uri = str(uri)
-        self.data = data
-        self.request_type = request_type.upper()
-        self.output_format = output_format.lower()
-        self.return_response = return_response
-        self.return_type = return_type
-        self.callback = callback
-        self.timeout = timeout or self.timeout
-        self.request_kwargs = request_kwargs
-
-        if self.request_type not in self._valid_request_types:
+        if request_type not in self._valid_request_types:
             logger.debug("HTTP request made but unsupported request type given.")
             return None
 
+        requests = []
+
         if uri:
-            request_urls = [urljoin(str(url), self.uri) for url in self.urls]
+            request_urls = [urljoin(str(url), uri) for url in self.urls]
+
+            for url in request_urls:
+                request = { 
+                            'uri': uri,
+                            'url': url,
+                            'output_format':output_format.lower(),
+                            'request_type': request_type.upper(),
+                            'return_type': return_type,
+                            'data': data,
+                            'return_response': return_response,
+                            'callback': callback,
+                            'timeout': timeout or self.timeout,
+                            'request_kwargs': request_kwargs
+                }
+                requests.append(request)
 
             if no_token:
                 self.headers.pop('X-Plex-Token', None)
@@ -125,7 +123,7 @@ class HTTPHandler(object):
                 self.headers.update(headers)
 
             responses = []
-            for r in self._http_requests_pool(request_urls):
+            for r in self._http_requests_pool(requests):
                 responses.append(r)
 
             return responses[0]
@@ -134,23 +132,23 @@ class HTTPHandler(object):
             logger.debug("HTTP request made but no uri endpoint provided.")
             return None
 
-    def _http_requests_pool(self, urls, workers=10, chunk=None):
+    def _http_requests_pool(self, requests, workers=10, chunk=None):
         """Generator function to request urls in chunks"""
         # From cpython
         if chunk is None:
-            chunk, extra = divmod(len(urls), workers * 4)
+            chunk, extra = divmod(len(requests), workers * 4)
             if extra:
                 chunk += 1
-            if len(urls) == 0:
+            if len(requests) == 0:
                 chunk = 0
 
-        if len(urls) == 1:
-            yield self._http_requests_single(urls[0])
+        if len(requests) == 1:
+            yield self._http_requests_single(requests[0])
         else:
             pool = ThreadPool(workers)
 
             try:
-                for work in pool.imap_unordered(self._http_requests_single, urls, chunk):
+                for work in pool.imap_unordered(self._http_requests_single, requests, chunk):
                     yield work
             except Exception as e:
                 if not self._silent:
@@ -159,13 +157,13 @@ class HTTPHandler(object):
                 pool.close()
                 pool.join()
 
-    def _http_requests_single(self, url):
+    def _http_requests_single(self, urlproperties):
         """Request the data from the url"""
         err = False
-        error_msg = "Failed to access uri endpoint %s. " % self.uri
+        error_msg = "Failed to access uri endpoint %s. " % urlproperties['uri']
         try:
-            r = self._session.request(self.request_type, url, headers=self.headers, data=self.data,
-                                      timeout=self.timeout, verify=self.ssl_verify, **self.request_kwargs)
+            r = self._session.request(urlproperties['request_type'], urlproperties['url'], headers=self.headers, data=urlproperties['data'],
+                                      timeout=urlproperties['timeout'], verify=self.ssl_verify, **urlproperties['request_kwargs'])
             r.raise_for_status()
         except requests.exceptions.Timeout as e:
             err = True
@@ -188,7 +186,7 @@ class HTTPHandler(object):
             if not self._silent:
                 logger.error(error_msg + "Uncaught exception: %s", e)
 
-        if self.return_response:
+        if urlproperties['return_response']:
             return r
         elif err:
             return None
@@ -198,31 +196,33 @@ class HTTPHandler(object):
         response_headers = r.headers
 
         if response_status in (200, 201):
-            return self._http_format_output(response_content, response_headers)
+            return self._http_format_output(response_content, response_headers, urlproperties)
 
-    def _http_format_output(self, response_content, response_headers):
+    def _http_format_output(self, response_content, response_headers, urlproperties):
         """Formats the request response to the desired type"""
         try:
-            if self.output_format == 'text':
+            output_format = urlproperties['output_format']
+            if output_format == 'text':
                 output = response_content.decode('utf-8', 'ignore')
-            elif self.output_format == 'dict':
+            elif output_format == 'dict':
                 output = helpers.convert_xml_to_dict(response_content)
-            elif self.output_format == 'json':
+            elif output_format == 'json':
                 output = helpers.convert_xml_to_json(response_content)
-            elif self.output_format == 'xml':
+            elif output_format == 'xml':
                 output = helpers.parse_xml(response_content)
             else:
                 output = response_content
+            callback = urlproperties['callback']
+            if callback:
+                return callback(output)
 
-            if self.callback:
-                return self.callback(output)
-
-            if self.return_type:
+            return_type = urlproperties['return_type']
+            if return_type:
                 return output, response_headers['Content-Type']
 
             return output
 
         except Exception as e:
             if not self._silent:
-                logger.warn("Failed format response from uri %s to %s error %s" % (self.uri, self.output_format, e))
+                logger.warn("Failed format response from uri %s to %s error %s" % (self.uri, output_format, e))
             return None
