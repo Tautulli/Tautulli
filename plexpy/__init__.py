@@ -490,8 +490,8 @@ def initialize_scheduler():
 
             schedule_job(activity_pinger.connect_server, 'Check for server response',
                          hours=0, minutes=0, seconds=0)
-            # schedule_job(web_socket.send_ping, 'Websocket ping',
-            #              hours=0, minutes=0, seconds=10 * bool(CONFIG.WEBSOCKET_MONITOR_PING_PONG))
+            schedule_job(web_socket.send_ping, 'Websocket ping',
+                         hours=0, minutes=0, seconds=10 * bool(CONFIG.WEBSOCKET_MONITOR_PING_PONG))
 
         else:
             # Cancel all jobs
@@ -2762,8 +2762,7 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
     webstart.stop()
 
     # Shutdown the websocket connection
-    if WEBSOCKET:
-        web_socket.shutdown()
+    web_socket.shutdown()
 
     if SCHED.running:
         SCHED.shutdown(wait=False)

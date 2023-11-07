@@ -2373,7 +2373,7 @@ class PmsConnect(object):
 
         if session_id:
             logger.info("Tautulli Pmsconnect :: Terminating session %s (session_id %s)." % (session_key, session_id))
-            response = self.get_sessions_terminate(session_id=session_id, reason=message, server_id=self.server_id)
+            response = self.get_sessions_terminate(session_id=session_id, reason=message)
             return response.ok
         else:
             msg = 'Missing session_id'

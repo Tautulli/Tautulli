@@ -55,12 +55,19 @@ pong_timer = None
 pong_count = 0
 ws_list = []
 
-
 def isServerUp():
     for ws in ws_list:
         if ws.WS_CONNECTED:
             return True
     return False
+
+def shutdown():
+    for ws in ws_list:
+        ws.shutdown()
+
+def send_ping():
+    for ws in ws_list:
+        ws.send_ping()
 
 def start_threads():
     try:
@@ -80,15 +87,13 @@ def start_threads():
     for owned_server in owned_servers:
         for server in plex_servers:
             if owned_server.server_id == server['pms_identifier']:
-                for connection in server['connections']:
-                    if connection['local']:
-                        wss=WebSocketServer(connection, owned_server.server_id)
-                        ws_list.append(wss)
-                        thread = threading.Thread(target=wss.run)
-                        thread.daemon = True
-                        thread.start()
-                        break
-                break
+                wss=WebSocketServer(server['connections'], owned_server.server_id)
+                ws_list.append(wss)
+                thread = threading.Thread(target=wss.run)
+                thread.daemon = True
+                thread.start()
+
+                continue
 
 
 class WebSocketServer(object):
@@ -193,53 +198,45 @@ class WebSocketServer(object):
 
 
     def run(self):
+        # try local first
+        if self.server:
+            for connection in self.server:
+                if plexpy.CONFIG.PMS_SSL:
+                    uri = connection['uri'].replace('https://', 'wss://') + '/:/websockets/notifications'
+                    secure = 'secure '
+                    if plexpy.CONFIG.VERIFY_SSL_CERT:
+                        sslopt = {'ca_certs': certifi.where()}
+                    else:
+                        sslopt = {'cert_reqs': ssl.CERT_NONE}
+                else:
+                    uri = 'ws://%s:%s/:/websockets/notifications' % (
+                        connection['address'],
+                        connection['port']
+                    )
+                    secure = ''
+                    sslopt = None
 
-        if plexpy.CONFIG.PMS_SSL:
-            uri = ""
-            if self.server:
-                uri = self.server['uri'].replace('https://', 'wss://') + '/:/websockets/notifications'
-            else:
-                uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
-            secure = 'secure '
-            if plexpy.CONFIG.VERIFY_SSL_CERT:
-                sslopt = {'ca_certs': certifi.where()}
-            else:
-                sslopt = {'cert_reqs': ssl.CERT_NONE}
-        else:
-            uri = ""
-            if self.server:
-                uri = 'ws://%s:%s/:/websockets/notifications' % (
-                    self.server['address'],
-                    self.server['port']
-                )
-            else:
-                uri = 'ws://%s:%s/:/websockets/notifications' % (
-                    plexpy.CONFIG.PMS_IP,
-                    plexpy.CONFIG.PMS_PORT
-                )
-            secure = ''
-            sslopt = None
+                # Set authentication token (if one is available)
+                if plexpy.CONFIG.PMS_TOKEN:
+                    header = {"X-Plex-Token": plexpy.CONFIG.PMS_TOKEN}
+                else:
+                    header = None
 
-        # Set authentication token (if one is available)
-        if plexpy.CONFIG.PMS_TOKEN:
-            header = {"X-Plex-Token": plexpy.CONFIG.PMS_TOKEN}
-        else:
-            header = None
+                timeout = plexpy.CONFIG.PMS_TIMEOUT
 
-        timeout = plexpy.CONFIG.PMS_TIMEOUT
+                global ws_shutdown
+                ws_shutdown = False
+                reconnects = 0
 
-        global ws_shutdown
-        ws_shutdown = False
-        reconnects = 0
-
-        # Try an open the websocket connection
-        logger.info("Tautulli WebSocket :: Opening %swebsocket." % secure)
-        try:
-            self.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
-            logger.info("Tautulli WebSocket :: Ready")
-            self.WS_CONNECTED = True
-        except (websocket.WebSocketException, IOError, Exception) as e:
-            logger.error("Tautulli WebSocket :: %s.", e)
+                # Try an open the websocket connection
+                logger.info("Tautulli WebSocket :: Opening %swebsocket." % secure)
+                try:
+                    self.WEBSOCKET = create_connection(uri, timeout=timeout, header=header, sslopt=sslopt)
+                    logger.info("Tautulli WebSocket :: Ready")
+                    self.WS_CONNECTED = True
+                    break
+                except (websocket.WebSocketException, IOError, Exception) as e:
+                    logger.error("Tautulli WebSocket :: %s.", e)
 
         if self.WS_CONNECTED:
             self.on_connect()

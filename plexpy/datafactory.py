@@ -1143,7 +1143,9 @@ class DataFactory(object):
                 if (parts[0] not in libraries):
                     libraries[parts[0]] = []
                 libraries[parts[0]].append(parts[1])
-
+        if len(libraries) < 1:
+            logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats")
+            return None
         try:
             query = "SELECT ls.id, ls.section_id, ls.section_name, ls.section_type, ls.thumb AS library_thumb, " \
                     "ls.custom_thumb_url AS custom_thumb, ls.art AS library_art, ls.custom_art_url AS custom_art, " \
@@ -1153,17 +1155,17 @@ class DataFactory(object):
                     "sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, " \
                     "sh.user, sh.user_id, sh.player, " \
                     "shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, " \
-                    "MAX(sh.started) AS last_watch, ls.server_id as server_id " \
+                    "ls.server_id as server_id " \
                     "FROM library_sections AS ls " \
                     "LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id AND ls.server_id = sh.server_id " \
-                    "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id AND sh.server_id = shm.server_id " 
+                    "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id AND sh.server_id = shm.server_id WHERE " 
             query_parts = []
             for library in libraries:
                 query_parts.append("(ls.section_id IN (" + ",".join(libraries[library]) + ") AND ls.deleted_section = 0 AND ls.server_id = '" + library +"' )")
             
             query +=(" or ").join(query_parts)
 
-            query += "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC "
+            query += " GROUP BY ls.section_id, ls.server_id ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC "
             result = monitor_db.select(query)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
