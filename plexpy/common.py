@@ -547,6 +547,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Duration', 'type': 'int', 'value': 'duration', 'description': 'The duration (in minutes) for the item.'},
              {'name': 'Duration (sec)', 'type': 'int', 'value': 'duration_sec', 'description': 'The duration (in seconds) for the item.'},
              {'name': 'Duration (ms)', 'type': 'int', 'value': 'duration_ms', 'description': 'The duration (in milliseconds) for the item.'},
+             {'name': 'Duration Time', 'type': 'str', 'value': 'duration_time', 'description': 'The duration (in time format) for the item.'},
              {'name': 'Poster URL', 'type': 'str', 'value': 'poster_url', 'description': 'A URL for the movie, TV show, or album poster.'},
              {'name': 'Plex ID', 'type': 'str', 'value': 'plex_id', 'description': 'The Plex ID for the item.', 'example': 'e.g. 5d7769a9594b2b001e6a6b7e'},
              {'name': 'Plex URL', 'type': 'str', 'value': 'plex_url', 'description': 'The Plex URL to your server for the item.'},

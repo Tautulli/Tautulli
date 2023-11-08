@@ -1155,6 +1155,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'duration': duration,
         'duration_sec': duration_sec,
         'duration_ms': notify_params['duration'],
+        'druation_time': arrow.get(duration_sec).format(duration_format),
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
         'plex_id': notify_params['plex_id'],
