@@ -41,6 +41,7 @@ import pytz
 
 PYTHON2 = sys.version_info[0] == 2
 
+import plexpy
 if PYTHON2:
     import activity_handler
     import activity_pinger
@@ -1440,6 +1441,16 @@ def dbcheck():
             "ALTER TABLE sessions ADD COLUMN marker INTEGER DEFAULT 0"
         )
 
+    # Upgrade sessions table from earlier versions
+    try:
+        c_db.execute("SELECT server_id FROM sessions")
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions.")
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN server_id TEXT DEFAULT '" + plexpy.CONFIG.PMS_IDENTIFIER + "'"
+        )
+                
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute("SELECT reference_id FROM session_history")
@@ -1514,6 +1525,15 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.warn("Unable to capitalize Windows platform values in session_history table.")
 
+    # Upgrade session_history table from earlier versions
+    try:
+        c_db.execute("SELECT server_id FROM session_history")
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history.")
+        c_db.execute(
+            "ALTER TABLE session_history ADD COLUMN server_id TEXT DEFAULT '" + plexpy.CONFIG.PMS_IDENTIFIER + "'"
+        )
+
     # Upgrade session_history_metadata table from earlier versions
     try:
         c_db.execute("SELECT full_title FROM session_history_metadata")
@@ -1578,6 +1598,15 @@ def dbcheck():
         )
         c_db.execute(
             "ALTER TABLE session_history_metadata ADD COLUMN marker_credits_final INTEGER DEFAULT NULL"
+        )
+
+    # Upgrade session_history_metadata table from earlier versions
+    try:
+        c_db.execute("SELECT server_id FROM session_history_metadata")
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_metadata.")
+        c_db.execute(
+            "ALTER TABLE session_history_metadata ADD COLUMN server_id TEXT DEFAULT '" + plexpy.CONFIG.PMS_IDENTIFIER + "'"
         )
 
     # Upgrade session_history_media_info table from earlier versions
@@ -1870,6 +1899,15 @@ def dbcheck():
             "ALTER TABLE session_history_media_info ADD COLUMN subtitle_forced INTEGER"
         )
 
+    # Upgrade session_history_media_info table from earlier versions
+    try:
+        c_db.execute("SELECT server_id FROM session_history_media_info")
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history_media_info.")
+        c_db.execute(
+            "ALTER TABLE session_history_media_info ADD COLUMN server_id TEXT DEFAULT '" + plexpy.CONFIG.PMS_IDENTIFIER + "'"
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute("SELECT section_id FROM session_history")
@@ -1918,6 +1956,15 @@ def dbcheck():
         )
         c_db.execute(
             "ALTER TABLE session_history_metadata_temp RENAME TO session_history_metadata"
+        )
+
+    # Upgrade session_history table from earlier versions
+    try:
+        c_db.execute("SELECT server_id FROM session_history")
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table session_history.")
+        c_db.execute(
+            "ALTER TABLE session_history ADD COLUMN server_id TEXT DEFAULT '" + plexpy.CONFIG.PMS_IDENTIFIER + "'"
         )
 
     # Upgrade users table from earlier versions
@@ -2710,6 +2757,15 @@ def dbcheck():
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_continued "
         "ON sessions_continued (user_id, machine_id, media_type)"
     )
+
+    # Upgrade sessions_continued table from earlier versions
+    try:
+        c_db.execute("SELECT server_id FROM sessions_continued")
+    except sqlite3.OperationalError:
+        logger.debug(u"Altering database. Updating database table sessions_continued.")
+        c_db.execute(
+            "ALTER TABLE sessions_continued ADD COLUMN server_id TEXT DEFAULT '" + plexpy.CONFIG.PMS_IDENTIFIER + "'"
+        )
 
     # Set database version
     result = c_db.execute("SELECT value FROM version_info WHERE key = 'version'").fetchone()

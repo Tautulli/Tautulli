@@ -285,8 +285,9 @@ class ActivityHandler(object):
         watched_notifiers = notification_handler.get_notify_state_enabled(
             session=self.db_session, notify_action='on_watched', notified=False)
 
-        for d in watched_notifiers:
-            self.put_notification('on_watched', notifier_id=d['notifier_id'])
+        if watched_notifiers is not None:
+            for d in watched_notifiers:
+                self.put_notification('on_watched', notifier_id=d['notifier_id'])
 
     # This function receives events from our websocket connection
     def process(self):
@@ -495,7 +496,7 @@ class TimelineHandler(object):
                 # Schedule a callback to clear the recently added queue
                 schedule_callback('rating_key-{}'.format(self.grandparent_rating_key),
                                     func=clear_recently_added_queue,
-                                    args=[self.grandparent_rating_key, self.title],
+                                    args=[self.grandparent_rating_key, self.title, self.server_id],
                                     seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
             elif self.media_type in ('season', 'album'):
@@ -510,7 +511,7 @@ class TimelineHandler(object):
                 # Schedule a callback to clear the recently added queue
                 schedule_callback('rating_key-{}'.format(self.parent_rating_key),
                                     func=clear_recently_added_queue,
-                                    args=[self.parent_rating_key, self.title],
+                                    args=[self.parent_rating_key, self.title, self.server_id],
                                     seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
             elif self.media_type in ('movie', 'show', 'artist'):
@@ -524,7 +525,7 @@ class TimelineHandler(object):
                 # Schedule a callback to clear the recently added queue
                 schedule_callback('rating_key-{}'.format(self.rating_key),
                                     func=clear_recently_added_queue,
-                                    args=[self.rating_key, self.title],
+                                    args=[self.rating_key, self.title, self.server_id],
                                     seconds=plexpy.CONFIG.NOTIFY_RECENTLY_ADDED_DELAY)
 
         # A movie, show, or artist is done processing
@@ -676,14 +677,14 @@ def force_stop_stream(session_key, title, user):
                 delete_metadata_cache(session_key)
 
 
-def clear_recently_added_queue(rating_key, title):
+def clear_recently_added_queue(rating_key, title, server_id):
     logger.debug("Tautulli TimelineHandler :: Starting callback for library item '%s' (%s) after delay.",
                  title, str(rating_key))
 
     child_keys = RECENTLY_ADDED_QUEUE[rating_key]
 
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
-        on_created(rating_key, child_keys=child_keys)
+        on_created(rating_key, server_id, child_keys=child_keys)
 
     elif child_keys:
         for child_key in child_keys:
@@ -694,13 +695,13 @@ def clear_recently_added_queue(rating_key, title):
 
             elif grandchild_keys:
                 for grandchild_key in grandchild_keys:
-                    on_created(grandchild_key)
+                    on_created(grandchild_key, server_id)
 
             else:
-                on_created(child_key)
+                on_created(child_key, server_id)
 
     else:
-        on_created(rating_key)
+        on_created(rating_key, server_id)
 
     # Remove all keys
     del_keys(rating_key)
