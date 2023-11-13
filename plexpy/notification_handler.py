@@ -982,8 +982,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'current_weekday': now_iso[2],
         'current_week': now_iso[1],
         'week_number': now_iso[1],  # Keep for backwards compatibility
-        'datestamp': now.format(date_format),
-        'timestamp': now.format(time_format),
+        'datestamp': CustomArrow(now, date_format),
+        'timestamp': CustomArrow(now, time_format),
         'unixtime': helpers.timestamp(),
         'utctime': helpers.utc_now_iso(),
         # Stream parameters
@@ -1278,8 +1278,8 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'current_weekday': now_iso[2],
         'current_week': now_iso[1],
         'week_number': now_iso[1],  # Keep for backwards compatibility
-        'datestamp': now.format(date_format),
-        'timestamp': now.format(time_format),
+        'datestamp': CustomArrow(now, date_format),
+        'timestamp': CustomArrow(now, time_format),
         'unixtime': helpers.timestamp(),
         'utctime': helpers.utc_now_iso(),
         # Plex remote access parameters
