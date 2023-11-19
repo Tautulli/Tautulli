@@ -699,13 +699,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
 
     if 'thetvdb://' in notify_params['guid'] or notify_params['thetvdb_id']:
+        thetvdb_media_type = 'movie' if notify_params['media_type'] == 'movie' else 'series'
         notify_params['thetvdb_id'] = notify_params['thetvdb_id'] or notify_params['guid'].split('thetvdb://')[1].split('/')[0].split('?')[0]
-        notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
+        notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/{thetvdb_media_type}/{notify_params["thetvdb_id"]}'
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
 
     elif 'thetvdbdvdorder://' in notify_params['guid']:
         notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0].split('?')[0]
-        notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
+        notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/series/{notify_params["thetvdb_id"]}'
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
 
     if 'themoviedb://' in notify_params['guid'] or notify_params['themoviedb_id']:
@@ -806,7 +807,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             notify_params.update(tvmaze_info)
 
             if tvmaze_info.get('thetvdb_id'):
-                notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
+                notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/series/{tvmaze_info["thetvdb_id"]}'
                 notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/{}' + str(notify_params['thetvdb_id']) + '?type=show'
             if tvmaze_info.get('imdb_id'):
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
