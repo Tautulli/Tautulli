@@ -378,7 +378,7 @@ class AuthController(object):
 
         if valid_login:
             time_delta = timedelta(days=30) if remember_me == '1' else timedelta(minutes=60)
-            expiry = datetime.utcnow() + time_delta
+            expiry = datetime.now() + time_delta
 
             payload = {
                 'user_id': user_details['user_id'],
