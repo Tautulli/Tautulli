@@ -1,6 +1,19 @@
 # Changelog
 
+## v2.13.3 (2023-12-03)
+
+* Notifications:
+  * New: Added duration_time notification parameter.
+  * New: Added file_size_bytes notification parameter.
+  * New: Added time formats notification text modifiers.
+  * New: Added support for thetvdb_url for movies.
+* UI:
+  * Fix: Activity card overflowing due to screen scaling. (#2033)
+  * Fix: Stream duration on activity card not being updated on track changes in some cases. (@2206)
+
+
 ## v2.13.2 (2023-10-26)
+
 * History:
   * New: Added quarter values icons for history watch status. (#2179, #2156) (Thanks @herby2212)
 * Graphs:
@@ -15,6 +28,7 @@
 
 
 ## v2.13.1 (2023-08-25)
+
 * Notes:
   * Support for Python 3.7 has been dropped. The minimum Python version is now 3.8.
 * Other:
