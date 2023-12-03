@@ -9,7 +9,7 @@
   * New: Added support for thetvdb_url for movies.
 * UI:
   * Fix: Activity card overflowing due to screen scaling. (#2033)
-  * Fix: Stream duration on activity card not being updated on track changes in some cases. (@2206)
+  * Fix: Stream duration on activity card not being updated on track changes in some cases. (#2206)
 
 
 ## v2.13.2 (2023-10-26)
