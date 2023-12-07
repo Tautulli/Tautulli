@@ -1,5 +1,12 @@
 # Changelog
 
+## v2.13.4 (2023-12-07)
+
+* UI:
+  * Fix: Tautulli configuration settings page not loading when system language is None.
+  * Fix: Login cookie expiring too quickly.
+
+
 ## v2.13.3 (2023-12-03)
 
 * Notifications:
