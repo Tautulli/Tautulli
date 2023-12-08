@@ -337,12 +337,12 @@ class AuthController(object):
 
         jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
         cherrypy.response.cookie[jwt_cookie] = ''
-        cherrypy.response.cookie[jwt_cookie]['expires'] = 0
+        cherrypy.response.cookie[jwt_cookie]['max-age'] = 0
         cherrypy.response.cookie[jwt_cookie]['path'] = plexpy.HTTP_ROOT.rstrip('/') or '/'
 
         if plexpy.HTTP_ROOT != '/':
             # Also expire the JWT on the root path
-            cherrypy.response.headers['Set-Cookie'] = jwt_cookie + '=""; expires=Thu, 01 Jan 1970 12:00:00 GMT; path=/'
+            cherrypy.response.headers['Set-Cookie'] = jwt_cookie + '=""; max-age=0; path=/'
 
         cherrypy.request.login = None
 
