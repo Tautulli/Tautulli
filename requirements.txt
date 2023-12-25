@@ -28,7 +28,7 @@ musicbrainzngs==0.7.1
 packaging==23.1
 paho-mqtt==1.6.1
 platformdirs==3.11.0
-plexapi==4.15.4
+plexapi==4.15.7
 portend==3.2.0
 profilehooks==1.12.0
 PyJWT==2.8.0
