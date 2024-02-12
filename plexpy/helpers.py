@@ -24,7 +24,7 @@ from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
 from collections import OrderedDict
-import datetime
+from datetime import date, datetime, timezone
 from functools import reduce, wraps
 import hashlib
 import imghdr
@@ -212,14 +212,14 @@ def timestamp():
 
 
 def today():
-    today = datetime.date.today()
-    yyyymmdd = datetime.date.isoformat(today)
+    today = date.today()
+    yyyymmdd = date.isoformat(today)
 
     return yyyymmdd
 
 
 def utc_now_iso():
-    utcnow = datetime.datetime.utcnow()
+    utcnow = datetime.now(tz=timezone.utc).replace(tzinfo=None)
 
     return utcnow.isoformat()
 
@@ -236,7 +236,7 @@ def timestamp_to_YMDHMS(ts, sep=False):
 
 
 def timestamp_to_datetime(ts):
-    return datetime.datetime.fromtimestamp(ts)
+    return datetime.fromtimestamp(ts)
 
 
 def iso_to_YMD(iso):
@@ -248,7 +248,7 @@ def iso_to_datetime(iso):
 
 
 def datetime_to_iso(dt, to_date=False):
-    if isinstance(dt, datetime.datetime):
+    if isinstance(dt, datetime):
         if to_date:
             dt = dt.date()
         return dt.isoformat()

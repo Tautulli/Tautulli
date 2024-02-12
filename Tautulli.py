@@ -24,10 +24,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib'))
 
 
-import appdirs
 import argparse
 import datetime
 import locale
+import platformdirs
 import pytz
 import signal
 import shutil
@@ -185,7 +185,7 @@ def main():
     if args.datadir:
         plexpy.DATA_DIR = args.datadir
     elif plexpy.FROZEN:
-        plexpy.DATA_DIR = appdirs.user_data_dir("Tautulli", False)
+        plexpy.DATA_DIR = platformdirs.user_data_dir("Tautulli", False)
     else:
         plexpy.DATA_DIR = plexpy.PROG_DIR
 

@@ -1925,6 +1925,21 @@
 {media_type!c} --> Movie</pre>
                     </div>
                     <div>
+                        <h4>Time Formats</h4>
+                    </div>
+                    <div style="padding-bottom: 10px;">
+                        <p class="help-block">
+                            Notification parameters which are "in date format" or "in time format" can be formatted using the
+                            <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Date & Time Format Options</a>
+                            by adding a <span class="inline-pre">:format</span> specifier.
+                            If no format is specified, the default Date Format and Time Format under Settings > General will be used.
+                        </p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{started_datestamp:ddd, MMMM DD, YYYY}   --> Mon, December 25, 2023
+{stopped_timestamp:h:mm a}               --> 9:56 pm
+{duration_time:HH:mm:ss}                 --> 01:42:20</pre>
+                    </div>
+                    <div>
                         <h4>List Slicing</h4>
                     </div>
                     <div style="padding-bottom: 10px;">
@@ -1994,7 +2009,7 @@ Rating: {rating}/10   --> Rating: /10
                             <li>Evaluation</li>
                             <li>Parameter</li>
                             <li>Case Modifier</li>
-                            <li>List Slicing</li>
+                            <li>Time Formats / List Slicing</li>
                             <li>Suffix</li>
                         </ol>
                         <p><strong style="color: #fff;">Example:</strong></p>

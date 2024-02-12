@@ -21,7 +21,7 @@
 # Session tool to be loaded.
 
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
 
 import cherrypy
@@ -370,7 +370,7 @@ class AuthController(object):
 
         if valid_login:
             time_delta = timedelta(days=30) if remember_me == '1' else timedelta(minutes=60)
-            expiry = datetime.utcnow() + time_delta
+            expiry = datetime.now(tz=timezone.utc) + time_delta
 
             payload = {
                 'user_id': user_details['user_id'],
@@ -391,7 +391,7 @@ class AuthController(object):
 
             jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
             cherrypy.response.cookie[jwt_cookie] = jwt_token
-            cherrypy.response.cookie[jwt_cookie]['expires'] = int(time_delta.total_seconds())
+            cherrypy.response.cookie[jwt_cookie]['max-age'] = int(time_delta.total_seconds())
             cherrypy.response.cookie[jwt_cookie]['path'] = plexpy.HTTP_ROOT.rstrip('/') or '/'
             cherrypy.response.cookie[jwt_cookie]['httponly'] = True
             cherrypy.response.cookie[jwt_cookie]['samesite'] = 'lax'

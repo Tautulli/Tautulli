@@ -965,7 +965,7 @@ a .users-poster-face:hover {
     font-size: 10px;
     text-align: right;
     text-transform: uppercase;
-    line-height: 14px;
+    line-height: 10px;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
 }

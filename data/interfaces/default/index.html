@@ -562,6 +562,7 @@
 
                         // Update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));
+                        $('#stream-duration-' + key).html(millisecondsToMinutes(parseInt(s.stream_duration), false));
                         var stream_view_offset = $('#stream-view-offset-' + key);
                         stream_view_offset.data('state', s.state);
                         if (stream_view_offset.data('last_view_offset') !== s.view_offset) {

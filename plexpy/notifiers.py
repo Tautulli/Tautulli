@@ -794,6 +794,7 @@ class PrettyMetadata(object):
                 'plexweb': 'Plex Web',
                 'imdb': 'IMDB',
                 'themoviedb': 'The Movie Database',
+                'thetvdb': 'TheTVDB',
                 'trakt': 'Trakt.tv'
                 }
 

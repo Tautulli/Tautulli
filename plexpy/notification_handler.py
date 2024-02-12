@@ -16,6 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from typing import Optional
 
 import arrow
 import bleach
@@ -680,13 +681,14 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
 
     if 'thetvdb://' in notify_params['guid'] or notify_params['thetvdb_id']:
+        thetvdb_media_type = 'movie' if notify_params['media_type'] == 'movie' else 'series'
         notify_params['thetvdb_id'] = notify_params['thetvdb_id'] or notify_params['guid'].split('thetvdb://')[1].split('/')[0].split('?')[0]
-        notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
+        notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/{thetvdb_media_type}/{notify_params["thetvdb_id"]}'
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
 
     elif 'thetvdbdvdorder://' in notify_params['guid']:
         notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0].split('?')[0]
-        notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + notify_params['thetvdb_id']
+        notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/series/{notify_params["thetvdb_id"]}'
         notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
 
     if 'themoviedb://' in notify_params['guid'] or notify_params['themoviedb_id']:
@@ -787,7 +789,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             notify_params.update(tvmaze_info)
 
             if tvmaze_info.get('thetvdb_id'):
-                notify_params['thetvdb_url'] = 'https://thetvdb.com/?tab=series&id=' + str(tvmaze_info['thetvdb_id'])
+                notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/series/{tvmaze_info["thetvdb_id"]}'
                 notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/{}' + str(notify_params['thetvdb_id']) + '?type=show'
             if tvmaze_info.get('imdb_id'):
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
@@ -963,8 +965,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'current_weekday': now_iso[2],
         'current_week': now_iso[1],
         'week_number': now_iso[1],  # Keep for backwards compatibility
-        'datestamp': now.format(date_format),
-        'timestamp': now.format(time_format),
+        'datestamp': CustomArrow(now, date_format),
+        'timestamp': CustomArrow(now, time_format),
         'unixtime': helpers.timestamp(),
         'utctime': helpers.utc_now_iso(),
         # Stream parameters
@@ -988,21 +990,21 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'product': notify_params['product'],
         'player': notify_params['player'],
         'ip_address': notify_params.get('ip_address', 'N/A'),
-        'started_datestamp': arrow.get(notify_params['started']).format(date_format) if notify_params['started'] else '',
-        'started_timestamp': arrow.get(notify_params['started']).format(time_format) if notify_params['started'] else '',
+        'started_datestamp': CustomArrow(arrow.get(notify_params['started']), date_format) if notify_params['started'] else '',
+        'started_timestamp': CustomArrow(arrow.get(notify_params['started']), time_format) if notify_params['started'] else '',
         'started_unixtime': notify_params['started'],
-        'stopped_datestamp': arrow.get(notify_params['stopped']).format(date_format) if notify_params['stopped'] else '',
-        'stopped_timestamp': arrow.get(notify_params['stopped']).format(time_format) if notify_params['stopped'] else '',
+        'stopped_datestamp': CustomArrow(arrow.get(notify_params['stopped']), date_format) if notify_params['stopped'] else '',
+        'stopped_timestamp': CustomArrow(arrow.get(notify_params['stopped']), time_format) if notify_params['stopped'] else '',
         'stopped_unixtime': notify_params['stopped'],
         'stream_duration': stream_duration,
         'stream_duration_sec': stream_duration_sec,
-        'stream_time': arrow.get(stream_duration_sec).format(duration_format),
+        'stream_time': CustomArrow(arrow.get(stream_duration_sec), duration_format),
         'remaining_duration': remaining_duration,
         'remaining_duration_sec': remaining_duration_sec,
-        'remaining_time': arrow.get(remaining_duration_sec).format(duration_format),
+        'remaining_time': CustomArrow(arrow.get(remaining_duration_sec), duration_format),
         'progress_duration': progress_duration,
         'progress_duration_sec': progress_duration_sec,
-        'progress_time': arrow.get(progress_duration_sec).format(duration_format),
+        'progress_time': CustomArrow(arrow.get(progress_duration_sec), duration_format),
         'progress_percent': helpers.get_percent(progress_duration_sec, duration_sec),
         'view_offset': session.get('view_offset', 0),
         'initial_stream': notify_params['initial_stream'],
@@ -1110,15 +1112,15 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'track_count': grandchild_count,
         'year': notify_params['year'],
         'show_year': show_year,
-        'release_date': arrow.get(notify_params['originally_available_at']).format(date_format)
+        'release_date': CustomArrow(arrow.get(notify_params['originally_available_at']), date_format)
             if notify_params['originally_available_at'] else '',
-        'air_date': arrow.get(notify_params['originally_available_at']).format(date_format)
+        'air_date': CustomArrow(arrow.get(notify_params['originally_available_at']), date_format)
             if notify_params['originally_available_at'] else '',
-        'added_date': arrow.get(int(notify_params['added_at'])).format(date_format)
+        'added_date': CustomArrow(arrow.get(int(notify_params['added_at'])), date_format)
             if notify_params['added_at'] else '',
-        'updated_date': arrow.get(int(notify_params['updated_at'])).format(date_format)
+        'updated_date': CustomArrow(arrow.get(int(notify_params['updated_at'])), date_format)
             if notify_params['updated_at'] else '',
-        'last_viewed_date': arrow.get(int(notify_params['last_viewed_at'])).format(date_format)
+        'last_viewed_date': CustomArrow(arrow.get(int(notify_params['last_viewed_at'])), date_format)
             if notify_params['last_viewed_at'] else '',
         'studio': notify_params['studio'],
         'content_rating': notify_params['content_rating'],
@@ -1137,6 +1139,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'duration': duration,
         'duration_sec': duration_sec,
         'duration_ms': notify_params['duration'],
+        'duration_time': CustomArrow(arrow.get(duration_sec), duration_format),
         'poster_title': notify_params['poster_title'],
         'poster_url': notify_params['poster_url'],
         'plex_id': notify_params['plex_id'],
@@ -1195,6 +1198,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'file': notify_params['file'],
         'filename': os.path.basename(notify_params['file'].replace('\\', os.sep)),
         'file_size': helpers.human_file_size(notify_params['file_size']),
+        'file_size_bytes': notify_params['file_size'],
         'indexes': notify_params['indexes'],
         'guid': notify_params['guid'],
         'section_id': notify_params['section_id'],
@@ -1258,8 +1262,8 @@ def build_server_notify_params(notify_action=None, **kwargs):
         'current_weekday': now_iso[2],
         'current_week': now_iso[1],
         'week_number': now_iso[1],  # Keep for backwards compatibility
-        'datestamp': now.format(date_format),
-        'timestamp': now.format(time_format),
+        'datestamp': CustomArrow(now, date_format),
+        'timestamp': CustomArrow(now, time_format),
         'unixtime': helpers.timestamp(),
         'utctime': helpers.utc_now_iso(),
         # Plex remote access parameters
@@ -1273,7 +1277,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
         # Plex Media Server update parameters
         'update_version': pms_download_info['version'],
         'update_url': pms_download_info['download_url'],
-        'update_release_date': arrow.get(pms_download_info['release_date']).format(date_format)
+        'update_release_date': CustomArrow(arrow.get(pms_download_info['release_date']), date_format)
             if pms_download_info['release_date'] else '',
         'update_channel': 'Beta' if update_channel == 'beta' else 'Public',
         'update_platform': pms_download_info['platform'],
@@ -2069,3 +2073,21 @@ class CustomFormatter(Formatter):
                 # result.append(self.format_field(obj, format_spec))
 
         return ''.join(result), auto_arg_index
+
+
+class CustomArrow:
+    def __init__(self, arrow_value: arrow.arrow.Arrow, default_format: Optional[str] = None):
+        self.arrow_value = arrow_value
+        self.default_format = default_format
+
+    def __format__(self, formatstr: str) -> str:
+        if len(formatstr) > 0:
+            return self.arrow_value.format(formatstr)
+
+        if self.default_format is not None:
+            return self.__format__(self.default_format)
+    
+        return str(self.arrow_value)
+
+    def __str__(self) -> str:
+        return self.__format__('')

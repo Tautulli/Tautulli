@@ -74,7 +74,7 @@ DOCUMENTATION :: END
         </tr>
         <tr>
             <td>System Language:</td>
-            <td>${plexpy.SYS_LANGUAGE + (' (override {})'.format(plexpy.CONFIG.PMS_LANGUAGE) if plexpy.CONFIG.PMS_LANGUAGE else '')}</td>
+            <td>${plexpy.SYS_LANGUAGE}${' (override {})'.format(plexpy.CONFIG.PMS_LANGUAGE) if plexpy.CONFIG.PMS_LANGUAGE else ''}</td>
         </tr>
         <tr>
             <td>Python Version:</td>
