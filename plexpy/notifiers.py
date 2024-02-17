@@ -3284,8 +3284,7 @@ class PUSHOVER(Notifier):
                           'value': self.config['api_token'],
                           'name': 'pushover_api_token',
                           'description': 'Your Pushover API token.',
-                          'input_type': 'token',
-                          'refresh': True
+                          'input_type': 'token'
                           },
                          {'label': 'Pushover User or Group Key',
                           'value': self.config['key'],
