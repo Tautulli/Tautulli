@@ -22,12 +22,12 @@ OPERATORS = {
     'lt': lambda v, q: v < q,
     'lte': lambda v, q: v <= q,
     'startswith': lambda v, q: v.startswith(q),
-    'istartswith': lambda v, q: v.lower().startswith(q),
+    'istartswith': lambda v, q: v.lower().startswith(q.lower()),
     'endswith': lambda v, q: v.endswith(q),
-    'iendswith': lambda v, q: v.lower().endswith(q),
+    'iendswith': lambda v, q: v.lower().endswith(q.lower()),
     'exists': lambda v, q: v is not None if q else v is None,
-    'regex': lambda v, q: re.match(q, v),
-    'iregex': lambda v, q: re.match(q, v, flags=re.IGNORECASE),
+    'regex': lambda v, q: bool(re.search(q, v)),
+    'iregex': lambda v, q: bool(re.search(q, v, flags=re.IGNORECASE)),
 }
 
 
@@ -98,7 +98,7 @@ class PlexObject:
         ecls = utils.PLEXOBJECTS.get(ehash, utils.PLEXOBJECTS.get(elem.tag))
         # log.debug('Building %s as %s', elem.tag, ecls.__name__)
         if ecls is not None:
-            return ecls(self._server, elem, initpath)
+            return ecls(self._server, elem, initpath, parent=self)
         raise UnknownType(f"Unknown library type <{elem.tag} type='{etype}'../>")
 
     def _buildItemOrNone(self, elem, cls=None, initpath=None):
@@ -227,7 +227,8 @@ class PlexObject:
 
                     fetchItem(ekey, viewCount__gte=0)
                     fetchItem(ekey, Media__container__in=["mp4", "mkv"])
-                    fetchItem(ekey, guid__iregex=r"(imdb://|themoviedb://)")
+                    fetchItem(ekey, guid__regex=r"com\.plexapp\.agents\.(imdb|themoviedb)://|tt\d+")
+                    fetchItem(ekey, guid__id__regex=r"(imdb|tmdb|tvdb)://")
                     fetchItem(ekey, Media__Part__file__startswith="D:\\Movies")
 
         """
@@ -439,7 +440,7 @@ class PlexObject:
         attrstr = parts[1] if len(parts) == 2 else None
         if attrstr:
             results = [] if results is None else results
-            for child in [c for c in elem if c.tag.lower() == attr.lower()]:
+            for child in (c for c in elem if c.tag.lower() == attr.lower()):
                 results += self._getAttrValue(child, attrstr, results)
             return [r for r in results if r is not None]
         # check were looking for the tag
@@ -564,6 +565,14 @@ class PlexPartialObject(PlexObject):
     def isPartialObject(self):
         """ Returns True if this is not a full object. """
         return not self.isFullObject()
+
+    def isLocked(self, field: str):
+        """ Returns True if the specified field is locked, otherwise False.
+
+            Parameters:
+                field (str): The name of the field.
+        """
+        return next((f.locked for f in self.fields if f.name == field), False)
 
     def _edit(self, **kwargs):
         """ Actually edit an object. """
@@ -763,6 +772,30 @@ class Playable:
             for part in item.parts:
                 yield part
 
+    def videoStreams(self):
+        """ Returns a list of :class:`~plexapi.media.videoStream` objects for all MediaParts. """
+        if self.isPartialObject():
+            self.reload()
+        return sum((part.videoStreams() for part in self.iterParts()), [])
+
+    def audioStreams(self):
+        """ Returns a list of :class:`~plexapi.media.AudioStream` objects for all MediaParts. """
+        if self.isPartialObject():
+            self.reload()
+        return sum((part.audioStreams() for part in self.iterParts()), [])
+
+    def subtitleStreams(self):
+        """ Returns a list of :class:`~plexapi.media.SubtitleStream` objects for all MediaParts. """
+        if self.isPartialObject():
+            self.reload()
+        return sum((part.subtitleStreams() for part in self.iterParts()), [])
+
+    def lyricStreams(self):
+        """ Returns a list of :class:`~plexapi.media.LyricStream` objects for all MediaParts. """
+        if self.isPartialObject():
+            self.reload()
+        return sum((part.lyricStreams() for part in self.iterParts()), [])
+
     def play(self, client):
         """ Start playback on the specified client.
 
@@ -953,8 +986,10 @@ class PlexHistory(object):
         raise NotImplementedError('History objects cannot be reloaded. Use source() to get the source media item.')
 
     def source(self):
-        """ Return the source media object for the history entry. """
-        return self.fetchItem(self._details_key)
+        """ Return the source media object for the history entry
+            or None if the media no longer exists on the server.
+        """
+        return self.fetchItem(self._details_key) if self._details_key else None
 
     def delete(self):
         """ Delete the history entry. """

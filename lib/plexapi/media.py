@@ -37,7 +37,7 @@ class Media(PlexObject):
             videoResolution (str): The video resolution of the media (ex: sd).
             width (int): The width of the video in pixels (ex: 608).
 
-            <Photo_only_attributes>: The following attributes are only available for photos.
+            Photo_only_attributes: The following attributes are only available for photos.
 
                 * aperture (str): The aperture used to take the photo.
                 * exposure (str): The exposure used to take the photo.
@@ -74,13 +74,13 @@ class Media(PlexObject):
         self.width = utils.cast(int, data.attrib.get('width'))
         self.uuid = data.attrib.get('uuid')
 
-        if self._isChildOf(etag='Photo'):
-            self.aperture = data.attrib.get('aperture')
-            self.exposure = data.attrib.get('exposure')
-            self.iso = utils.cast(int, data.attrib.get('iso'))
-            self.lens = data.attrib.get('lens')
-            self.make = data.attrib.get('make')
-            self.model = data.attrib.get('model')
+        # Photo only attributes
+        self.aperture = data.attrib.get('aperture')
+        self.exposure = data.attrib.get('exposure')
+        self.iso = utils.cast(int, data.attrib.get('iso'))
+        self.lens = data.attrib.get('lens')
+        self.make = data.attrib.get('make')
+        self.model = data.attrib.get('model')
 
         parent = self._parent()
         self._parentKey = parent.key
@@ -158,11 +158,8 @@ class MediaPart(PlexObject):
         self.videoProfile = data.attrib.get('videoProfile')
 
     def _buildStreams(self, data):
-        streams = []
-        for cls in (VideoStream, AudioStream, SubtitleStream, LyricStream):
-            items = self.findItems(data, cls, streamType=cls.STREAMTYPE)
-            streams.extend(items)
-        return streams
+        """ Returns a list of :class:`~plexapi.media.MediaPartStream` objects in this MediaPart. """
+        return self.findItems(data)
 
     @property
     def hasPreviewThumbnails(self):
@@ -216,7 +213,7 @@ class MediaPart(PlexObject):
         else:
             params['subtitleStreamID'] = stream
 
-        self._server.query(key, method=self._server._session.put)
+        self._server.query(key, method=self._server._session.put, params=params)
         return self
 
     def resetSelectedSubtitleStream(self):
@@ -384,7 +381,7 @@ class AudioStream(MediaPartStream):
             samplingRate (int): The sampling rate of the audio stream (ex: xxx)
             streamIdentifier (int): The stream identifier of the audio stream.
 
-            <Track_only_attributes>: The following attributes are only available for tracks.
+            Track_only_attributes: The following attributes are only available for tracks.
 
                 * albumGain (float): The gain for the album.
                 * albumPeak (float): The peak for the album.
@@ -411,16 +408,16 @@ class AudioStream(MediaPartStream):
         self.samplingRate = utils.cast(int, data.attrib.get('samplingRate'))
         self.streamIdentifier = utils.cast(int, data.attrib.get('streamIdentifier'))
 
-        if self._isChildOf(etag='Track'):
-            self.albumGain = utils.cast(float, data.attrib.get('albumGain'))
-            self.albumPeak = utils.cast(float, data.attrib.get('albumPeak'))
-            self.albumRange = utils.cast(float, data.attrib.get('albumRange'))
-            self.endRamp = data.attrib.get('endRamp')
-            self.gain = utils.cast(float, data.attrib.get('gain'))
-            self.loudness = utils.cast(float, data.attrib.get('loudness'))
-            self.lra = utils.cast(float, data.attrib.get('lra'))
-            self.peak = utils.cast(float, data.attrib.get('peak'))
-            self.startRamp = data.attrib.get('startRamp')
+        # Track only attributes
+        self.albumGain = utils.cast(float, data.attrib.get('albumGain'))
+        self.albumPeak = utils.cast(float, data.attrib.get('albumPeak'))
+        self.albumRange = utils.cast(float, data.attrib.get('albumRange'))
+        self.endRamp = data.attrib.get('endRamp')
+        self.gain = utils.cast(float, data.attrib.get('gain'))
+        self.loudness = utils.cast(float, data.attrib.get('loudness'))
+        self.lra = utils.cast(float, data.attrib.get('lra'))
+        self.peak = utils.cast(float, data.attrib.get('peak'))
+        self.startRamp = data.attrib.get('startRamp')
 
     def setSelected(self):
         """ Sets this audio stream as the selected audio stream.
@@ -444,8 +441,10 @@ class SubtitleStream(MediaPartStream):
             forced (bool): True if this is a forced subtitle.
             format (str): The format of the subtitle stream (ex: srt).
             headerCompression (str): The header compression of the subtitle stream.
+            hearingImpaired (bool): True if this is a hearing impaired (SDH) subtitle.
+            perfectMatch (bool): True if the on-demand subtitle is a perfect match.
             providerTitle (str): The provider title where the on-demand subtitle is downloaded from.
-            score (int): The match score of the on-demand subtitle.
+            score (int): The match score (download count) of the on-demand subtitle.
             sourceKey (str): The source key of the on-demand subtitle.
             transient (str): Unknown.
             userID (int): The user id of the user that downloaded the on-demand subtitle.
@@ -460,6 +459,8 @@ class SubtitleStream(MediaPartStream):
         self.forced = utils.cast(bool, data.attrib.get('forced', '0'))
         self.format = data.attrib.get('format')
         self.headerCompression = data.attrib.get('headerCompression')
+        self.hearingImpaired = utils.cast(bool, data.attrib.get('hearingImpaired', '0'))
+        self.perfectMatch = utils.cast(bool, data.attrib.get('perfectMatch'))
         self.providerTitle = data.attrib.get('providerTitle')
         self.score = utils.cast(int, data.attrib.get('score'))
         self.sourceKey = data.attrib.get('sourceKey')
@@ -1003,7 +1004,8 @@ class BaseResource(PlexObject):
         Attributes:
             TAG (str): 'Photo' or 'Track'
             key (str): API URL (/library/metadata/<ratingkey>).
-            provider (str): The source of the art or poster, None for Theme objects.
+            provider (str): The source of the resource. 'local' for local files (e.g. theme.mp3),
+                None if uploaded or agent-/plugin-supplied.
             ratingKey (str): Unique key identifying the resource.
             selected (bool): True if the resource is currently selected.
             thumb (str): The URL to retrieve the resource thumbnail.

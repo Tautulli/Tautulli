@@ -144,22 +144,21 @@ def cast(func, value):
             func (func): Callback function to used cast to type (int, bool, float).
             value (any): value to be cast and returned.
     """
-    if value is not None:
-        if func == bool:
-            if value in (1, True, "1", "true"):
-                return True
-            elif value in (0, False, "0", "false"):
-                return False
-            else:
-                raise ValueError(value)
+    if value is None:
+        return value
+    if func == bool:
+        if value in (1, True, "1", "true"):
+            return True
+        if value in (0, False, "0", "false"):
+            return False
+        raise ValueError(value)
 
-        elif func in (int, float):
-            try:
-                return func(value)
-            except ValueError:
-                return float('nan')
-        return func(value)
-    return value
+    if func in (int, float):
+        try:
+            return func(value)
+        except ValueError:
+            return float('nan')
+    return func(value)
 
 
 def joinArgs(args):
@@ -329,7 +328,7 @@ def toDatetime(value, format=None):
                 return None
             try:
                 return datetime.fromtimestamp(value)
-            except (OSError, OverflowError):
+            except (OSError, OverflowError, ValueError):
                 try:
                     return datetime.fromtimestamp(0) + timedelta(seconds=value)
                 except OverflowError:
@@ -407,7 +406,7 @@ def downloadSessionImages(server, filename=None, height=150, width=150,
     return info
 
 
-def download(url, token, filename=None, savepath=None, session=None, chunksize=4024,   # noqa: C901
+def download(url, token, filename=None, savepath=None, session=None, chunksize=4096,   # noqa: C901
              unpack=False, mocked=False, showstatus=False):
     """ Helper to download a thumb, videofile or other media item. Returns the local
         path to the downloaded file.
