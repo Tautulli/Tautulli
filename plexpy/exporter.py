@@ -991,6 +991,10 @@ class Export(object):
                     'name': None,
                     'locked': None
                 },
+                'genres': {
+                    'id': None,
+                    'tag': None
+                },
                 'grandparentArt': None,
                 'grandparentGuid': None,
                 'grandparentKey': None,
@@ -1555,7 +1559,7 @@ class Export(object):
                     'hasSonicAnalysis'
                 ],
                 2: [
-                    'collections.tag', 'moods.tag',
+                    'collections.tag', 'genres.tag', 'moods.tag',
                     'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
