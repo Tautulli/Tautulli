@@ -355,8 +355,7 @@ class PlexServer(PlexObject):
             key = f'/services/browse/{base64path}'
         else:
             key = '/services/browse'
-        if includeFiles:
-            key += '?includeFiles=1'
+        key += f'?includeFiles={int(includeFiles)}'  # starting with PMS v1.32.7.7621 this must set explicitly
         return self.fetchItems(key)
 
     def walk(self, path=None):

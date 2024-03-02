@@ -276,7 +276,7 @@ class Collection(
 
                 .. code-block:: python
 
-                    collection.updateSort(mode="alpha")
+                    collection.sortUpdate(sort="alpha")
 
         """
         if self.smart:
