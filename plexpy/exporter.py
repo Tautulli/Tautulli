@@ -1288,6 +1288,7 @@ class Export(object):
                 'playlistType': None,
                 'ratingKey': None,
                 'smart': None,
+                'sourceURI': None,
                 'summary': None,
                 'title': None,
                 'type': None,
