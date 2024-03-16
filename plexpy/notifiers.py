@@ -15,9 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-from future.builtins import object
 
 import base64
 import bleach
@@ -37,8 +34,8 @@ import subprocess
 import sys
 import threading
 import time
-from future.moves.urllib.parse import urlencode
-from future.moves.urllib.parse import urlparse
+from urllib.parse import urlencode
+from urllib.parse import urlparse
 
 try:
     from Cryptodome.Protocol.KDF import PBKDF2
@@ -61,24 +58,14 @@ import facebook
 import twitter
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import helpers
-    import logger
-    import mobile_app
-    import pmsconnect
-    import request
-    import users
-else:
-    from plexpy import common
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import mobile_app
-    from plexpy import pmsconnect
-    from plexpy import request
-    from plexpy import users
+from plexpy import common
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
+from plexpy import mobile_app
+from plexpy import pmsconnect
+from plexpy import request
+from plexpy import users
 
 
 BROWSER_NOTIFIERS = {}
@@ -3450,9 +3437,6 @@ class SCRIPTS(Notifier):
         if self.pythonpath and plexpy.INSTALL_TYPE not in ('windows', 'macos'):
             custom_env['PYTHONPATH'] = os.pathsep.join([p for p in sys.path if p])
 
-        if plexpy.PYTHON2:
-            custom_env = {k.encode('utf-8'): v.encode('utf-8') for k, v in custom_env.items()}
-
         env = os.environ.copy()
         env.update(custom_env)
 
@@ -3556,9 +3540,6 @@ class SCRIPTS(Notifier):
                 return
 
         script.extend(script_args)
-
-        if plexpy.PYTHON2:
-            script = [s.encode(plexpy.SYS_ENCODING, 'ignore') for s in script]
 
         logger.debug("Tautulli Notifiers :: Full script is: %s" % script)
         logger.debug("Tautulli Notifiers :: Executing script in a new thread.")

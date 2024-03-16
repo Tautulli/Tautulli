@@ -22,16 +22,10 @@ import sys
 import cherrypy
 
 import plexpy
-if plexpy.PYTHON2:
-    import logger
-    import webauth
-    from helpers import create_https_certificates
-    from webserve import WebInterface, BaseRedirect
-else:
-    from plexpy import logger
-    from plexpy import webauth
-    from plexpy.helpers import create_https_certificates
-    from plexpy.webserve import WebInterface, BaseRedirect
+from plexpy import logger
+from plexpy import webauth
+from plexpy.helpers import create_https_certificates
+from plexpy.webserve import WebInterface, BaseRedirect
 
 
 def start():

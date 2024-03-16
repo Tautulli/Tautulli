@@ -15,18 +15,13 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
 from io import open
 
 import os
 
 import plexpy
-if plexpy.PYTHON2:
-    import helpers
-    import logger
-else:
-    from plexpy import helpers
-    from plexpy import logger
+from plexpy import helpers
+from plexpy import logger
 
 
 def list_plex_logs():
