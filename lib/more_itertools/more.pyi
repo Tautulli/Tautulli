@@ -29,7 +29,7 @@ _U = TypeVar('_U')
 _V = TypeVar('_V')
 _W = TypeVar('_W')
 _T_co = TypeVar('_T_co', covariant=True)
-_GenFn = TypeVar('_GenFn', bound=Callable[..., Iterator[object]])
+_GenFn = TypeVar('_GenFn', bound=Callable[..., Iterator[Any]])
 _Raisable = BaseException | Type[BaseException]
 
 @type_check_only
@@ -74,7 +74,7 @@ class peekable(Generic[_T], Iterator[_T]):
     def __getitem__(self, index: slice) -> list[_T]: ...
 
 def consumer(func: _GenFn) -> _GenFn: ...
-def ilen(iterable: Iterable[object]) -> int: ...
+def ilen(iterable: Iterable[_T]) -> int: ...
 def iterate(func: Callable[[_T], _T], start: _T) -> Iterator[_T]: ...
 def with_iter(
     context_manager: ContextManager[Iterable[_T]],
@@ -116,7 +116,7 @@ class bucket(Generic[_T, _U], Container[_U]):
         self,
         iterable: Iterable[_T],
         key: Callable[[_T], _U],
-        validator: Callable[[object], object] | None = ...,
+        validator: Callable[[_U], object] | None = ...,
     ) -> None: ...
     def __contains__(self, value: object) -> bool: ...
     def __iter__(self) -> Iterator[_U]: ...
@@ -383,7 +383,7 @@ def mark_ends(
     iterable: Iterable[_T],
 ) -> Iterable[tuple[bool, bool, _T]]: ...
 def locate(
-    iterable: Iterable[object],
+    iterable: Iterable[_T],
     pred: Callable[..., Any] = ...,
     window_size: int | None = ...,
 ) -> Iterator[int]: ...
@@ -618,6 +618,9 @@ def duplicates_everseen(
 def duplicates_justseen(
     iterable: Iterable[_T], key: Callable[[_T], _U] | None = ...
 ) -> Iterator[_T]: ...
+def classify_unique(
+    iterable: Iterable[_T], key: Callable[[_T], _U] | None = ...
+) -> Iterator[tuple[_T, bool, bool]]: ...
 
 class _SupportsLessThan(Protocol):
     def __lt__(self, __other: Any) -> bool: ...
@@ -662,9 +665,9 @@ def minmax(
 def longest_common_prefix(
     iterables: Iterable[Iterable[_T]],
 ) -> Iterator[_T]: ...
-def iequals(*iterables: Iterable[object]) -> bool: ...
+def iequals(*iterables: Iterable[Any]) -> bool: ...
 def constrained_batches(
-    iterable: Iterable[object],
+    iterable: Iterable[_T],
     max_size: int,
     max_count: int | None = ...,
     get_len: Callable[[_T], object] = ...,
@@ -682,3 +685,11 @@ def outer_product(
     *args: Any,
     **kwargs: Any,
 ) -> Iterator[tuple[_V, ...]]: ...
+def iter_suppress(
+    iterable: Iterable[_T],
+    *exceptions: Type[BaseException],
+) -> Iterator[_T]: ...
+def filter_map(
+    func: Callable[[_T], _V | None],
+    iterable: Iterable[_T],
+) -> Iterator[_V]: ...

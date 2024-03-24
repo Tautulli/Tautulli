@@ -8,7 +8,6 @@ import dns.rdtypes.util
 
 @dns.immutable.immutable
 class NID(dns.rdata.Rdata):
-
     """NID record"""
 
     # see: rfc6742.txt

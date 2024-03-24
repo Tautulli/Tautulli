@@ -19,7 +19,6 @@ import itertools
 
 
 class Set:
-
     """A simple set class.
 
     This class was originally used to deal with sets being missing in

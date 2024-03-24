@@ -219,3 +219,16 @@ class TestMultiValuedAttributes(SoupTest):
         )
         assert soup.a['class'] == 'foo'
         assert soup.a['id'] == ['bar']
+
+    def test_hidden_tag_is_invisible(self):
+        # Setting .hidden on a tag makes it invisible in output, but
+        # leaves its contents visible.
+        #
+        # This is not a documented or supported feature of Beautiful
+        # Soup (e.g. NavigableString doesn't support .hidden even
+        # though it could), but some people use it and it's not
+        # hurting anything to verify that it keeps working.
+        #
+        soup = self.soup('<div id="1"><span id="2">a string</span></div>')
+        soup.span.hidden = True
+        assert '<div id="1">a string</div>' == str(soup.div)

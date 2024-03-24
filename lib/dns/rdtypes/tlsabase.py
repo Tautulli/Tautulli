@@ -25,7 +25,6 @@ import dns.rdatatype
 
 @dns.immutable.immutable
 class TLSABase(dns.rdata.Rdata):
-
     """Base class for TLSA and SMIMEA records"""
 
     # see: RFC 6698

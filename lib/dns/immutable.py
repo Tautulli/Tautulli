@@ -1,24 +1,30 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import collections.abc
-from typing import Any
+from typing import Any, Callable
 
 from dns._immutable_ctx import immutable
 
 
 @immutable
 class Dict(collections.abc.Mapping):  # lgtm[py/missing-equals]
-    def __init__(self, dictionary: Any, no_copy: bool = False):
+    def __init__(
+        self,
+        dictionary: Any,
+        no_copy: bool = False,
+        map_factory: Callable[[], collections.abc.MutableMapping] = dict,
+    ):
         """Make an immutable dictionary from the specified dictionary.
 
         If *no_copy* is `True`, then *dictionary* will be wrapped instead
         of copied.  Only set this if you are sure there will be no external
         references to the dictionary.
         """
-        if no_copy and isinstance(dictionary, dict):
+        if no_copy and isinstance(dictionary, collections.abc.MutableMapping):
             self._odict = dictionary
         else:
-            self._odict = dict(dictionary)
+            self._odict = map_factory()
+            self._odict.update(dictionary)
         self._hash = None
 
     def __getitem__(self, key):

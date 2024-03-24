@@ -25,7 +25,6 @@ import dns.tokenizer
 
 @dns.immutable.immutable
 class ISDN(dns.rdata.Rdata):
-
     """ISDN record"""
 
     # see: RFC 1183

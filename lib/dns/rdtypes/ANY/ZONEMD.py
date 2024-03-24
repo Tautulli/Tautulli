@@ -11,7 +11,6 @@ import dns.zonetypes
 
 @dns.immutable.immutable
 class ZONEMD(dns.rdata.Rdata):
-
     """ZONEMD record"""
 
     # See RFC 8976

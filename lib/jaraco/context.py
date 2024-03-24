@@ -5,10 +5,18 @@ import functools
 import tempfile
 import shutil
 import operator
+import warnings
 
 
 @contextlib.contextmanager
 def pushd(dir):
+    """
+    >>> tmp_path = getfixture('tmp_path')
+    >>> with pushd(tmp_path):
+    ...     assert os.getcwd() == os.fspath(tmp_path)
+    >>> assert os.getcwd() != os.fspath(tmp_path)
+    """
+
     orig = os.getcwd()
     os.chdir(dir)
     try:
@@ -29,6 +37,8 @@ def tarball_context(url, target_dir=None, runner=None, pushd=pushd):
         target_dir = os.path.basename(url).replace('.tar.gz', '').replace('.tgz', '')
     if runner is None:
         runner = functools.partial(subprocess.check_call, shell=True)
+    else:
+        warnings.warn("runner parameter is deprecated", DeprecationWarning)
     # In the tar command, use --strip-components=1 to strip the first path and
     #  then
     #  use -C to cause the files to be extracted to {target_dir}. This ensures
@@ -48,6 +58,15 @@ def tarball_context(url, target_dir=None, runner=None, pushd=pushd):
 def infer_compression(url):
     """
     Given a URL or filename, infer the compression code for tar.
+
+    >>> infer_compression('http://foo/bar.tar.gz')
+    'z'
+    >>> infer_compression('http://foo/bar.tgz')
+    'z'
+    >>> infer_compression('file.bz')
+    'j'
+    >>> infer_compression('file.xz')
+    'J'
     """
     # cheat and just assume it's the last two characters
     compression_indicator = url[-2:]
@@ -61,6 +80,12 @@ def temp_dir(remover=shutil.rmtree):
     """
     Create a temporary directory context. Pass a custom remover
     to override the removal behavior.
+
+    >>> import pathlib
+    >>> with temp_dir() as the_dir:
+    ...     assert os.path.isdir(the_dir)
+    ...     _ = pathlib.Path(the_dir).joinpath('somefile').write_text('contents')
+    >>> assert not os.path.exists(the_dir)
     """
     temp_dir = tempfile.mkdtemp()
     try:
@@ -90,6 +115,12 @@ def repo_context(url, branch=None, quiet=True, dest_ctx=temp_dir):
 
 @contextlib.contextmanager
 def null():
+    """
+    A null context suitable to stand in for a meaningful context.
+
+    >>> with null() as value:
+    ...     assert value is None
+    """
     yield
 
 
@@ -112,6 +143,10 @@ class ExceptionTrap:
     ...     raise ValueError("1 + 1 is not 3")
     >>> bool(trap)
     True
+    >>> trap.value
+    ValueError('1 + 1 is not 3')
+    >>> trap.tb
+    <traceback object at ...>
 
     >>> with ExceptionTrap(ValueError) as trap:
     ...     raise Exception()
@@ -211,3 +246,43 @@ class suppress(contextlib.suppress, contextlib.ContextDecorator):
     ...     {}['']
     >>> key_error()
     """
+
+
+class on_interrupt(contextlib.ContextDecorator):
+    """
+    Replace a KeyboardInterrupt with SystemExit(1)
+
+    >>> def do_interrupt():
+    ...     raise KeyboardInterrupt()
+    >>> on_interrupt('error')(do_interrupt)()
+    Traceback (most recent call last):
+    ...
+    SystemExit: 1
+    >>> on_interrupt('error', code=255)(do_interrupt)()
+    Traceback (most recent call last):
+    ...
+    SystemExit: 255
+    >>> on_interrupt('suppress')(do_interrupt)()
+    >>> with __import__('pytest').raises(KeyboardInterrupt):
+    ...     on_interrupt('ignore')(do_interrupt)()
+    """
+
+    def __init__(
+        self,
+        action='error',
+        # py3.7 compat
+        # /,
+        code=1,
+    ):
+        self.action = action
+        self.code = code
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exctype, excinst, exctb):
+        if exctype is not KeyboardInterrupt or self.action == 'ignore':
+            return
+        elif self.action == 'error':
+            raise SystemExit(self.code) from excinst
+        return self.action == 'suppress'

@@ -1,5 +1,7 @@
 import sys
 
+import dns._features
+
 if sys.platform == "win32":
     from typing import Any
 
@@ -15,14 +17,14 @@ if sys.platform == "win32":
     except KeyError:
         WindowsError = Exception
 
-    try:
+    if dns._features.have("wmi"):
         import threading
 
         import pythoncom  # pylint: disable=import-error
         import wmi  # pylint: disable=import-error
 
         _have_wmi = True
-    except Exception:
+    else:
         _have_wmi = False
 
     def _config_domain(domain):
@@ -51,9 +53,10 @@ if sys.platform == "win32":
                 try:
                     system = wmi.WMI()
                     for interface in system.Win32_NetworkAdapterConfiguration():
-                        if interface.IPEnabled and interface.DNSDomain:
-                            self.info.domain = _config_domain(interface.DNSDomain)
+                        if interface.IPEnabled and interface.DNSServerSearchOrder:
                             self.info.nameservers = list(interface.DNSServerSearchOrder)
+                            if interface.DNSDomain:
+                                self.info.domain = _config_domain(interface.DNSDomain)
                             if interface.DNSDomainSuffixSearchOrder:
                                 self.info.search = [
                                     _config_domain(x)

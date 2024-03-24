@@ -199,7 +199,7 @@ class Rdata:
         self,
         origin: Optional[dns.name.Name] = None,
         relativize: bool = True,
-        **kw: Dict[str, Any]
+        **kw: Dict[str, Any],
     ) -> str:
         """Convert an rdata to text format.
 
@@ -547,9 +547,7 @@ class Rdata:
     @classmethod
     def _as_ipv4_address(cls, value):
         if isinstance(value, str):
-            # call to check validity
-            dns.ipv4.inet_aton(value)
-            return value
+            return dns.ipv4.canonicalize(value)
         elif isinstance(value, bytes):
             return dns.ipv4.inet_ntoa(value)
         else:
@@ -558,9 +556,7 @@ class Rdata:
     @classmethod
     def _as_ipv6_address(cls, value):
         if isinstance(value, str):
-            # call to check validity
-            dns.ipv6.inet_aton(value)
-            return value
+            return dns.ipv6.canonicalize(value)
         elif isinstance(value, bytes):
             return dns.ipv6.inet_ntoa(value)
         else:
@@ -604,7 +600,6 @@ class Rdata:
 
 @dns.immutable.immutable
 class GenericRdata(Rdata):
-
     """Generic Rdata Class
 
     This class is used for rdata types for which we have no better
@@ -621,7 +616,7 @@ class GenericRdata(Rdata):
         self,
         origin: Optional[dns.name.Name] = None,
         relativize: bool = True,
-        **kw: Dict[str, Any]
+        **kw: Dict[str, Any],
     ) -> str:
         return r"\# %d " % len(self.data) + _hexify(self.data, **kw)
 
@@ -647,9 +642,9 @@ class GenericRdata(Rdata):
         return cls(rdclass, rdtype, parser.get_remaining())
 
 
-_rdata_classes: Dict[
-    Tuple[dns.rdataclass.RdataClass, dns.rdatatype.RdataType], Any
-] = {}
+_rdata_classes: Dict[Tuple[dns.rdataclass.RdataClass, dns.rdatatype.RdataType], Any] = (
+    {}
+)
 _module_prefix = "dns.rdtypes"
 
 
