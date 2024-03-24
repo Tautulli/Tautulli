@@ -25,7 +25,6 @@ import dns.tokenizer
 
 @dns.immutable.immutable
 class CAA(dns.rdata.Rdata):
-
     """CAA (Certification Authority Authorization) record"""
 
     # see: RFC 6844

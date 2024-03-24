@@ -30,5 +30,4 @@ from dns.rdtypes.dnskeybase import (  # noqa: F401  lgtm[py/unused-import]
 
 @dns.immutable.immutable
 class DNSKEY(dns.rdtypes.dnskeybase.DNSKEYBase):
-
     """DNSKEY record"""

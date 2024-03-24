@@ -32,7 +32,7 @@ def get_backend(name: str) -> Backend:
     *name*, a ``str``, the name of the backend.  Currently the "trio"
     and "asyncio" backends are available.
 
-    Raises NotImplementError if an unknown backend name is specified.
+    Raises NotImplementedError if an unknown backend name is specified.
     """
     # pylint: disable=import-outside-toplevel,redefined-outer-name
     backend = _backends.get(name)

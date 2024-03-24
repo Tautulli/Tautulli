@@ -168,9 +168,9 @@ class Arrow:
             isinstance(tzinfo, dt_tzinfo)
             and hasattr(tzinfo, "localize")
             and hasattr(tzinfo, "zone")
-            and tzinfo.zone  # type: ignore[attr-defined]
+            and tzinfo.zone
         ):
-            tzinfo = parser.TzinfoParser.parse(tzinfo.zone)  # type: ignore[attr-defined]
+            tzinfo = parser.TzinfoParser.parse(tzinfo.zone)
         elif isinstance(tzinfo, str):
             tzinfo = parser.TzinfoParser.parse(tzinfo)
 
@@ -495,7 +495,7 @@ class Arrow:
             yield current
 
             values = [getattr(current, f) for f in cls._ATTRS]
-            current = cls(*values, tzinfo=tzinfo).shift(  # type: ignore
+            current = cls(*values, tzinfo=tzinfo).shift(  # type: ignore[misc]
                 **{frame_relative: relative_steps}
             )
 
@@ -578,7 +578,7 @@ class Arrow:
             for _ in range(3 - len(values)):
                 values.append(1)
 
-            floor = self.__class__(*values, tzinfo=self.tzinfo)  # type: ignore
+            floor = self.__class__(*values, tzinfo=self.tzinfo)  # type: ignore[misc]
 
             if frame_absolute == "week":
                 # if week_start is greater than self.isoweekday() go back one week by setting delta = 7
@@ -792,7 +792,6 @@ class Arrow:
         return self._datetime.isoformat()
 
     def __format__(self, formatstr: str) -> str:
-
         if len(formatstr) > 0:
             return self.format(formatstr)
 
@@ -804,7 +803,6 @@ class Arrow:
     # attributes and properties
 
     def __getattr__(self, name: str) -> int:
-
         if name == "week":
             return self.isocalendar()[1]
 
@@ -965,7 +963,6 @@ class Arrow:
         absolute_kwargs = {}
 
         for key, value in kwargs.items():
-
             if key in self._ATTRS:
                 absolute_kwargs[key] = value
             elif key in ["week", "quarter"]:
@@ -1022,7 +1019,6 @@ class Arrow:
         additional_attrs = ["weeks", "quarters", "weekday"]
 
         for key, value in kwargs.items():
-
             if key in self._ATTRS_PLURAL or key in additional_attrs:
                 relative_kwargs[key] = value
             else:
@@ -1259,11 +1255,10 @@ class Arrow:
                     )
 
                 if trunc(abs(delta)) != 1:
-                    granularity += "s"  # type: ignore
+                    granularity += "s"  # type: ignore[assignment]
                 return locale.describe(granularity, delta, only_distance=only_distance)
 
             else:
-
                 if not granularity:
                     raise ValueError(
                         "Empty granularity list provided. "
@@ -1314,7 +1309,7 @@ class Arrow:
 
     def dehumanize(self, input_string: str, locale: str = "en_us") -> "Arrow":
         """Returns a new :class:`Arrow <arrow.arrow.Arrow>` object, that represents
-        the time difference relative to the attrbiutes of the
+        the time difference relative to the attributes of the
         :class:`Arrow <arrow.arrow.Arrow>` object.
 
         :param timestring: a ``str`` representing a humanized relative time.
@@ -1367,7 +1362,6 @@ class Arrow:
 
         # Search input string for each time unit within locale
         for unit, unit_object in locale_obj.timeframes.items():
-
             # Need to check the type of unit_object to create the correct dictionary
             if isinstance(unit_object, Mapping):
                 strings_to_search = unit_object
@@ -1378,7 +1372,6 @@ class Arrow:
             # Needs to cycle all through strings as some locales have strings that
             # could overlap in a regex match, since input validation isn't being performed.
             for time_delta, time_string in strings_to_search.items():
-
                 # Replace {0} with regex \d representing digits
                 search_string = str(time_string)
                 search_string = search_string.format(r"\d+")
@@ -1419,7 +1412,7 @@ class Arrow:
         # Assert error if string does not modify any units
         if not any([True for k, v in unit_visited.items() if v]):
             raise ValueError(
-                "Input string not valid. Note: Some locales do not support the week granulairty in Arrow. "
+                "Input string not valid. Note: Some locales do not support the week granularity in Arrow. "
                 "If you are attempting to use the week granularity on an unsupported locale, this could be the cause of this error."
             )
 
@@ -1718,7 +1711,6 @@ class Arrow:
     # math
 
     def __add__(self, other: Any) -> "Arrow":
-
         if isinstance(other, (timedelta, relativedelta)):
             return self.fromdatetime(self._datetime + other, self._datetime.tzinfo)
 
@@ -1736,7 +1728,6 @@ class Arrow:
         pass  # pragma: no cover
 
     def __sub__(self, other: Any) -> Union[timedelta, "Arrow"]:
-
         if isinstance(other, (timedelta, relativedelta)):
             return self.fromdatetime(self._datetime - other, self._datetime.tzinfo)
 
@@ -1749,7 +1740,6 @@ class Arrow:
         return NotImplemented
 
     def __rsub__(self, other: Any) -> timedelta:
-
         if isinstance(other, dt_datetime):
             return other - self._datetime
 
@@ -1758,42 +1748,36 @@ class Arrow:
     # comparisons
 
     def __eq__(self, other: Any) -> bool:
-
         if not isinstance(other, (Arrow, dt_datetime)):
             return False
 
         return self._datetime == self._get_datetime(other)
 
     def __ne__(self, other: Any) -> bool:
-
         if not isinstance(other, (Arrow, dt_datetime)):
             return True
 
         return not self.__eq__(other)
 
     def __gt__(self, other: Any) -> bool:
-
         if not isinstance(other, (Arrow, dt_datetime)):
             return NotImplemented
 
         return self._datetime > self._get_datetime(other)
 
     def __ge__(self, other: Any) -> bool:
-
         if not isinstance(other, (Arrow, dt_datetime)):
             return NotImplemented
 
         return self._datetime >= self._get_datetime(other)
 
     def __lt__(self, other: Any) -> bool:
-
         if not isinstance(other, (Arrow, dt_datetime)):
             return NotImplemented
 
         return self._datetime < self._get_datetime(other)
 
     def __le__(self, other: Any) -> bool:
-
         if not isinstance(other, (Arrow, dt_datetime)):
             return NotImplemented
 
@@ -1865,7 +1849,6 @@ class Arrow:
     def _get_iteration_params(cls, end: Any, limit: Optional[int]) -> Tuple[Any, int]:
         """Sets default end and limit values for range method."""
         if end is None:
-
             if limit is None:
                 raise ValueError("One of 'end' or 'limit' is required.")
 

@@ -36,7 +36,6 @@ class Flag(enum.IntFlag):
 
 @dns.immutable.immutable
 class DNSKEYBase(dns.rdata.Rdata):
-
     """Base class for rdata that is like a DNSKEY record"""
 
     __slots__ = ["flags", "protocol", "algorithm", "key"]

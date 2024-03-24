@@ -1,19 +1,18 @@
 """Module with helpers for serving static files."""
 
+import mimetypes
 import os
 import platform
 import re
 import stat
-import mimetypes
-import urllib.parse
 import unicodedata
-
+import urllib.parse
 from email.generator import _make_boundary as make_boundary
 from io import UnsupportedOperation
 
 import cherrypy
 from cherrypy._cpcompat import ntob
-from cherrypy.lib import cptools, httputil, file_generator_limited
+from cherrypy.lib import cptools, file_generator_limited, httputil
 
 
 def _setup_mimetypes():
@@ -185,7 +184,10 @@ def serve_fileobj(fileobj, content_type=None, disposition=None, name=None,
 
 
 def _serve_fileobj(fileobj, content_type, content_length, debug=False):
-    """Internal. Set response.body to the given file object, perhaps ranged."""
+    """Set ``response.body`` to the given file object, perhaps ranged.
+
+    Internal helper.
+    """
     response = cherrypy.serving.response
 
     # HTTP/1.0 didn't have Range/Accept-Ranges headers, or the 206 code

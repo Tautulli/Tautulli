@@ -395,10 +395,17 @@ class BleachHTMLTokenizer(HTMLTokenizer):
                 # followed by a series of characters. It's treated as a tag
                 # name that abruptly ends, but we should treat that like
                 # character data
-                yield {
-                    "type": TAG_TOKEN_TYPE_CHARACTERS,
-                    "data": "<" + self.currentToken["name"],
-                }
+                yield {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": self.stream.get_tag()}
+            elif last_error_token["data"] in (
+                "eof-in-attribute-name",
+                "eof-in-attribute-value-no-quotes",
+            ):
+                # Handle the case where the text being parsed ends with <
+                # followed by a series of characters and then space and then
+                # more characters. It's treated as a tag name followed by an
+                # attribute that abruptly ends, but we should treat that like
+                # character data.
+                yield {"type": TAG_TOKEN_TYPE_CHARACTERS, "data": self.stream.get_tag()}
             else:
                 yield last_error_token
 

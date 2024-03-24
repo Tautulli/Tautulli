@@ -32,7 +32,6 @@ class Relay(dns.rdtypes.util.Gateway):
 
 @dns.immutable.immutable
 class AMTRELAY(dns.rdata.Rdata):
-
     """AMTRELAY record"""
 
     # see: RFC 8777

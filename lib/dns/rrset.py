@@ -26,7 +26,6 @@ import dns.renderer
 
 
 class RRset(dns.rdataset.Rdataset):
-
     """A DNS RRset (named rdataset).
 
     RRset inherits from Rdataset, and RRsets can be treated as
@@ -132,7 +131,7 @@ class RRset(dns.rdataset.Rdataset):
         self,
         origin: Optional[dns.name.Name] = None,
         relativize: bool = True,
-        **kw: Dict[str, Any]
+        **kw: Dict[str, Any],
     ) -> str:
         """Convert the RRset into DNS zone file format.
 
@@ -159,7 +158,7 @@ class RRset(dns.rdataset.Rdataset):
         file: Any,
         compress: Optional[dns.name.CompressType] = None,  # type: ignore
         origin: Optional[dns.name.Name] = None,
-        **kw: Dict[str, Any]
+        **kw: Dict[str, Any],
     ) -> int:
         """Convert the RRset to wire format.
 
@@ -231,7 +230,7 @@ def from_text(
     ttl: int,
     rdclass: Union[dns.rdataclass.RdataClass, str],
     rdtype: Union[dns.rdatatype.RdataType, str],
-    *text_rdatas: Any
+    *text_rdatas: Any,
 ) -> RRset:
     """Create an RRset with the specified name, TTL, class, and type and with
     the specified rdatas in text format.

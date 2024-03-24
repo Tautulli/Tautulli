@@ -11,23 +11,22 @@
 # FOR A PARTICULAR PURPOSE.
 #
 ##############################################################################
-import os, re, sys, unittest, doctest
-import zc.lockfile, time, threading
-from zope.testing import renormalizing, setupstack
+import doctest
+import os
 import tempfile
-try:
-    from unittest.mock import Mock, patch
-except ImportError:
-    from mock import Mock, patch
+import threading
+import time
+import unittest
+from unittest.mock import Mock
+from unittest.mock import patch
 
-checker = renormalizing.RENormalizing([
-    # Python 3 adds module path to error class name.
-    (re.compile("zc\.lockfile\.LockError:"),
-     r"LockError:"),
-    ])
+from zope.testing import setupstack
+
+import zc.lockfile
+
 
 def inc():
-    while 1:
+    while True:
         try:
             lock = zc.lockfile.LockFile('f.lock')
         except zc.lockfile.LockError:
@@ -42,6 +41,7 @@ def inc():
     f.write(('%d\n' % v).encode('ASCII'))
     f.close()
     lock.close()
+
 
 def many_threads_read_and_write():
     r"""
@@ -72,6 +72,7 @@ def many_threads_read_and_write():
 
     """
 
+
 def pid_in_lockfile():
     r"""
     >>> import os, zc.lockfile
@@ -88,7 +89,7 @@ def pid_in_lockfile():
     >>> lock = zc.lockfile.LockFile("f.lock")
     Traceback (most recent call last):
       ...
-    LockError: Couldn't lock 'f.lock'
+    zc.lockfile.LockError: Couldn't lock 'f.lock'
 
     >>> f = open("f.lock")
     >>> _ = f.seek(1)
@@ -107,7 +108,8 @@ def hostname_in_lockfile():
 
     >>> import zc.lockfile
     >>> with patch('socket.gethostname', Mock(return_value='myhostname')):
-    ...     lock = zc.lockfile.LockFile("f.lock", content_template='{hostname}')
+    ...     lock = zc.lockfile.LockFile(
+    ...         "f.lock", content_template='{hostname}')
     >>> f = open("f.lock")
     >>> _ = f.seek(1)
     >>> f.read().rstrip()
@@ -119,7 +121,7 @@ def hostname_in_lockfile():
     >>> lock = zc.lockfile.LockFile("f.lock", content_template='{hostname}')
     Traceback (most recent call last):
       ...
-    LockError: Couldn't lock 'f.lock'
+    zc.lockfile.LockError: Couldn't lock 'f.lock'
 
     >>> f = open("f.lock")
     >>> _ = f.seek(1)
@@ -131,7 +133,7 @@ def hostname_in_lockfile():
     """
 
 
-class TestLogger(object):
+class TestLogger:
     def __init__(self):
         self.log_entries = []
 
@@ -141,6 +143,7 @@ class TestLogger(object):
 
 class LockFileLogEntryTestCase(unittest.TestCase):
     """Tests for logging in case of lock failure"""
+
     def setUp(self):
         self.here = os.getcwd()
         self.tmp = tempfile.mkdtemp(prefix='zc.lockfile-test-')
@@ -154,8 +157,8 @@ class LockFileLogEntryTestCase(unittest.TestCase):
         # PID and hostname are parsed and logged from lock file on failure
         with patch('os.getpid', Mock(return_value=123)):
             with patch('socket.gethostname', Mock(return_value='myhostname')):
-                lock = zc.lockfile.LockFile('f.lock',
-                                            content_template='{pid}/{hostname}')
+                lock = zc.lockfile.LockFile(
+                    'f.lock', content_template='{pid}/{hostname}')
                 with open('f.lock') as f:
                     self.assertEqual(' 123/myhostname\n', f.read())
 
@@ -191,11 +194,10 @@ class LockFileLogEntryTestCase(unittest.TestCase):
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(doctest.DocFileSuite(
-        'README.txt', checker=checker,
+        'README.txt',
         setUp=setupstack.setUpDirectory, tearDown=setupstack.tearDown))
     suite.addTest(doctest.DocTestSuite(
-        setUp=setupstack.setUpDirectory, tearDown=setupstack.tearDown,
-        checker=checker))
+        setUp=setupstack.setUpDirectory, tearDown=setupstack.tearDown))
     # Add unittest test cases from this module
     suite.addTest(unittest.defaultTestLoader.loadTestsFromName(__name__))
     return suite

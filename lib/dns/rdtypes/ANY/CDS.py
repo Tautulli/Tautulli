@@ -21,7 +21,6 @@ import dns.rdtypes.dsbase
 
 @dns.immutable.immutable
 class CDS(dns.rdtypes.dsbase.DSBase):
-
     """CDS record"""
 
     _digest_length_by_type = {

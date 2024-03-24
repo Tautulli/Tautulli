@@ -103,7 +103,6 @@ def _assert_raises(
     check_context=False,
     cause_cls=None,
 ):
-
     with _expect_raises(except_cls, msg, check_context, cause_cls) as ec:
         callable_(*args, **kwargs)
     return ec.error
