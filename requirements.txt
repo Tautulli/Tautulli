@@ -3,7 +3,7 @@ arrow==1.3.0
 backports.csv==1.0.7
 backports.functools-lru-cache==2.0.0
 backports.zoneinfo==0.2.1;python_version<"3.9"
-beautifulsoup4==4.12.2
+beautifulsoup4==4.12.3
 bleach==6.1.0
 certifi==2024.2.2
 cheroot==10.0.0

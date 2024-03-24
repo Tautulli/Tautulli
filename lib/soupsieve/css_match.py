@@ -85,7 +85,7 @@ class _DocumentNav:
 
         # Fail on unexpected types.
         if not cls.is_tag(tag):
-            raise TypeError("Expected a BeautifulSoup 'Tag', but instead received type {}".format(type(tag)))
+            raise TypeError(f"Expected a BeautifulSoup 'Tag', but instead received type {type(tag)}")
 
     @staticmethod
     def is_doc(obj: bs4.Tag) -> bool:
@@ -165,8 +165,7 @@ class _DocumentNav:
     def get_contents(self, el: bs4.Tag, no_iframe: bool = False) -> Iterator[bs4.PageElement]:
         """Get contents or contents in reverse."""
         if not no_iframe or not self.is_iframe(el):
-            for content in el.contents:
-                yield content
+            yield from el.contents
 
     def get_children(
         self,
@@ -283,7 +282,7 @@ class _DocumentNav:
         like we do in the case of `is_html_tag`.
         """
 
-        ns = getattr(el, 'namespace') if el else None
+        ns = getattr(el, 'namespace') if el else None  # noqa: B009
         return bool(ns and ns == NS_XHTML)
 
     @staticmethod
@@ -394,7 +393,7 @@ class Inputs:
     def validate_week(year: int, week: int) -> bool:
         """Validate week."""
 
-        max_week = datetime.strptime("{}-{}-{}".format(12, 31, year), "%m-%d-%Y").isocalendar()[1]
+        max_week = datetime.strptime(f"{12}-{31}-{year}", "%m-%d-%Y").isocalendar()[1]
         if max_week == 1:
             max_week = 53
         return 1 <= week <= max_week
@@ -1272,11 +1271,7 @@ class CSSMatch(_DocumentNav):
         # Auto handling for text inputs
         if ((is_input and itype in ('text', 'search', 'tel', 'url', 'email')) or is_textarea) and direction == 0:
             if is_textarea:
-                temp = []
-                for node in self.get_contents(el, no_iframe=True):
-                    if self.is_content_string(node):
-                        temp.append(node)
-                value = ''.join(temp)
+                value = ''.join(node for node in self.get_contents(el, no_iframe=True) if self.is_content_string(node))
             else:
                 value = cast(str, self.get_attribute_by_name(el, 'value', ''))
             if value:
@@ -1571,17 +1566,14 @@ class SoupSieve(ct.Immutable):
     def iselect(self, tag: bs4.Tag, limit: int = 0) -> Iterator[bs4.Tag]:
         """Iterate the specified tags."""
 
-        for el in CSSMatch(self.selectors, tag, self.namespaces, self.flags).select(limit):
-            yield el
+        yield from CSSMatch(self.selectors, tag, self.namespaces, self.flags).select(limit)
 
     def __repr__(self) -> str:  # pragma: no cover
         """Representation."""
 
-        return "SoupSieve(pattern={!r}, namespaces={!r}, custom={!r}, flags={!r})".format(
-            self.pattern,
-            self.namespaces,
-            self.custom,
-            self.flags
+        return (
+            f"SoupSieve(pattern={self.pattern!r}, namespaces={self.namespaces!r}, "
+            f"custom={self.custom!r}, flags={self.flags!r})"
         )
 
     __str__ = __repr__

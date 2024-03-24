@@ -1356,7 +1356,7 @@ class Tag(PageElement):
         This is the first step in the deepcopy process.
         """
         clone = type(self)(
-            None, self.builder, self.name, self.namespace,
+            None, None, self.name, self.namespace,
             self.prefix, self.attrs, is_xml=self._is_xml,
             sourceline=self.sourceline, sourcepos=self.sourcepos,
             can_be_empty_element=self.can_be_empty_element,
@@ -1845,6 +1845,11 @@ class Tag(PageElement):
         return space_before + s + space_after
 
     def _format_tag(self, eventual_encoding, formatter, opening):
+        if self.hidden:
+            # A hidden tag is invisible, although its contents
+            # are visible.
+            return ''
+
         # A tag starts with the < character (see below).
 
         # Then the / character, if this is a closing tag.

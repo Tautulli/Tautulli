@@ -77,7 +77,9 @@ class HTML5TreeBuilder(HTMLTreeBuilder):
 
         # html5lib only parses HTML, so if it's given XML that's worth
         # noting.
-        DetectsXMLParsedAsHTML.warn_if_markup_looks_like_xml(markup)
+        DetectsXMLParsedAsHTML.warn_if_markup_looks_like_xml(
+            markup, stacklevel=3
+        )
 
         yield (markup, None, None, False)
 
