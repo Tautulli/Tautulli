@@ -24,7 +24,7 @@ class HttpClient:
 
     def get_json(self, url):
         try:
-            response = self._http_client.request("GET", url, timeout=self.timeout)
+            response = self._http_client.request(method="GET", url=url, timeout=self.timeout)
             body = response.data
         except HTTPError as e:
             raise GeneralError("Unexpected error %s" % str(e))
