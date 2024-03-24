@@ -23,11 +23,6 @@ try:  # Python 2.7+
 except ImportError:
     from urllib3.packages.ordered_dict import OrderedDict
 
-try:  # Python 3.4+
-    from pathlib import Path as PathLibPathType
-except ImportError:
-    PathLibPathType = None
-
 if is_appengine_sandbox():
     # AppEngineManager uses AppEngine's URLFetch API behind the scenes
     _http = AppEngineManager()
@@ -503,32 +498,7 @@ def call_api(action, params, http_headers=None, return_error=False, unsigned=Fal
 
     if file:
         filename = options.get("filename")  # Custom filename provided by user (relevant only for streams and files)
-
-        if PathLibPathType and isinstance(file, PathLibPathType):
-            name = filename or file.name
-            data = file.read_bytes()
-        elif isinstance(file, string_types):
-            if utils.is_remote_url(file):
-                # URL
-                name = None
-                data = file
-            else:
-                # file path
-                name = filename or file
-                with open(file, "rb") as opened:
-                    data = opened.read()
-        elif hasattr(file, 'read') and callable(file.read):
-            # stream
-            data = file.read()
-            name = filename or (file.name if hasattr(file, 'name') and isinstance(file.name, str) else "stream")
-        elif isinstance(file, tuple):
-            name, data = file
-        else:
-            # Not a string, not a stream
-            name = filename or "file"
-            data = file
-
-        param_list.append(("file", (name, data) if name else data))
+        param_list.append(("file", utils.handle_file_parameter(file, filename)))
 
     kw = {}
     if timeout is not None:
@@ -536,7 +506,7 @@ def call_api(action, params, http_headers=None, return_error=False, unsigned=Fal
 
     code = 200
     try:
-        response = _http.request("POST", api_url, param_list, headers, **kw)
+        response = _http.request(method="POST", url=api_url, fields=param_list, headers=headers, **kw)
     except HTTPError as e:
         raise Error("Unexpected error - {0!r}".format(e))
     except socket.error as e:
