@@ -530,7 +530,7 @@ class Namespace:
     def _populate(self, d, l):
         for ident in l:
             if ident == "*":
-                for (k, v) in self._get_star():
+                for k, v in self._get_star():
                     d[k] = v
             else:
                 d[ident] = getattr(self, ident)
