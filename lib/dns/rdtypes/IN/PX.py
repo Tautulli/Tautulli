@@ -26,7 +26,6 @@ import dns.rdtypes.util
 
 @dns.immutable.immutable
 class PX(dns.rdata.Rdata):
-
     """PX record."""
 
     # see: RFC 2163

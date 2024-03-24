@@ -70,7 +70,6 @@ class NodeKind(enum.Enum):
 
 
 class Node:
-
     """A Node is a set of rdatasets.
 
     A node is either a CNAME node or an "other data" node.  A CNAME

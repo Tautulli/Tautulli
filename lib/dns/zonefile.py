@@ -86,7 +86,6 @@ def _upper_dollarize(s):
 
 
 class Reader:
-
     """Read a DNS zone file into a transaction."""
 
     def __init__(

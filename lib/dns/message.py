@@ -393,7 +393,7 @@ class Message:
             section_number = section
             section = self.section_from_number(section_number)
         elif isinstance(section, str):
-            section_number = MessageSection.from_text(section)
+            section_number = self._section_enum.from_text(section)
             section = self.section_from_number(section_number)
         else:
             section_number = self.section_number(section)
@@ -489,6 +489,34 @@ class Message:
             rrset = None
         return rrset
 
+    def section_count(self, section: SectionType) -> int:
+        """Returns the number of records in the specified section.
+
+        *section*, an ``int`` section number, a ``str`` section name, or one of
+        the section attributes of this message.  This specifies the
+        the section of the message to count.  For example::
+
+            my_message.section_count(my_message.answer)
+            my_message.section_count(dns.message.ANSWER)
+            my_message.section_count("ANSWER")
+        """
+
+        if isinstance(section, int):
+            section_number = section
+            section = self.section_from_number(section_number)
+        elif isinstance(section, str):
+            section_number = self._section_enum.from_text(section)
+            section = self.section_from_number(section_number)
+        else:
+            section_number = self.section_number(section)
+        count = sum(max(1, len(rrs)) for rrs in section)
+        if section_number == MessageSection.ADDITIONAL:
+            if self.opt is not None:
+                count += 1
+            if self.tsig is not None:
+                count += 1
+        return count
+
     def _compute_opt_reserve(self) -> int:
         """Compute the size required for the OPT RR, padding excluded"""
         if not self.opt:
@@ -527,6 +555,8 @@ class Message:
         max_size: int = 0,
         multi: bool = False,
         tsig_ctx: Optional[Any] = None,
+        prepend_length: bool = False,
+        prefer_truncation: bool = False,
         **kw: Dict[str, Any],
     ) -> bytes:
         """Return a string containing the message in DNS compressed wire
@@ -549,6 +579,15 @@ class Message:
         *tsig_ctx*, a ``dns.tsig.HMACTSig`` or ``dns.tsig.GSSTSig`` object, the
         ongoing TSIG context, used when signing zone transfers.
 
+        *prepend_length*, a ``bool``, should be set to ``True`` if the caller
+        wants the message length prepended to the message itself.  This is
+        useful for messages sent over TCP, TLS (DoT), or QUIC (DoQ).
+
+        *prefer_truncation*, a ``bool``, should be set to ``True`` if the caller
+        wants the message to be truncated if it would otherwise exceed the
+        maximum length.  If the truncation occurs before the additional section,
+        the TC bit will be set.
+
         Raises ``dns.exception.TooBig`` if *max_size* was exceeded.
 
         Returns a ``bytes``.
@@ -570,14 +609,21 @@ class Message:
         r.reserve(opt_reserve)
         tsig_reserve = self._compute_tsig_reserve()
         r.reserve(tsig_reserve)
-        for rrset in self.question:
-            r.add_question(rrset.name, rrset.rdtype, rrset.rdclass)
-        for rrset in self.answer:
-            r.add_rrset(dns.renderer.ANSWER, rrset, **kw)
-        for rrset in self.authority:
-            r.add_rrset(dns.renderer.AUTHORITY, rrset, **kw)
-        for rrset in self.additional:
-            r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
+        try:
+            for rrset in self.question:
+                r.add_question(rrset.name, rrset.rdtype, rrset.rdclass)
+            for rrset in self.answer:
+                r.add_rrset(dns.renderer.ANSWER, rrset, **kw)
+            for rrset in self.authority:
+                r.add_rrset(dns.renderer.AUTHORITY, rrset, **kw)
+            for rrset in self.additional:
+                r.add_rrset(dns.renderer.ADDITIONAL, rrset, **kw)
+        except dns.exception.TooBig:
+            if prefer_truncation:
+                if r.section < dns.renderer.ADDITIONAL:
+                    r.flags |= dns.flags.TC
+            else:
+                raise
         r.release_reserved()
         if self.opt is not None:
             r.add_opt(self.opt, self.pad, opt_reserve, tsig_reserve)
@@ -598,7 +644,10 @@ class Message:
             r.write_header()
             if multi:
                 self.tsig_ctx = ctx
-        return r.get_wire()
+        wire = r.get_wire()
+        if prepend_length:
+            wire = len(wire).to_bytes(2, "big") + wire
+        return wire
 
     @staticmethod
     def _make_tsig(
@@ -777,6 +826,8 @@ class Message:
             if request_payload is None:
                 request_payload = payload
             self.request_payload = request_payload
+            if pad < 0:
+                raise ValueError("pad must be non-negative")
             self.pad = pad
 
     @property
@@ -826,7 +877,7 @@ class Message:
         if wanted:
             self.ednsflags |= dns.flags.DO
         elif self.opt:
-            self.ednsflags &= ~dns.flags.DO
+            self.ednsflags &= ~int(dns.flags.DO)
 
     def rcode(self) -> dns.rcode.Rcode:
         """Return the rcode.
@@ -1035,7 +1086,6 @@ def _message_factory_from_opcode(opcode):
 
 
 class _WireReader:
-
     """Wire format reader.
 
     parser: the binary parser
@@ -1335,7 +1385,6 @@ def from_wire(
 
 
 class _TextReader:
-
     """Text format reader.
 
     tok: the tokenizer.
@@ -1768,30 +1817,34 @@ def make_response(
     our_payload: int = 8192,
     fudge: int = 300,
     tsig_error: int = 0,
+    pad: Optional[int] = None,
 ) -> Message:
     """Make a message which is a response for the specified query.
-    The message returned is really a response skeleton; it has all
-    of the infrastructure required of a response, but none of the
-    content.
+    The message returned is really a response skeleton; it has all of the infrastructure
+    required of a response, but none of the content.
 
-    The response's question section is a shallow copy of the query's
-    question section, so the query's question RRsets should not be
-    changed.
+    The response's question section is a shallow copy of the query's question section,
+    so the query's question RRsets should not be changed.
 
     *query*, a ``dns.message.Message``, the query to respond to.
 
     *recursion_available*, a ``bool``, should RA be set in the response?
 
-    *our_payload*, an ``int``, the payload size to advertise in EDNS
-    responses.
+    *our_payload*, an ``int``, the payload size to advertise in EDNS responses.
 
     *fudge*, an ``int``, the TSIG time fudge.
 
     *tsig_error*, an ``int``, the TSIG error.
 
-    Returns a ``dns.message.Message`` object whose specific class is
-    appropriate for the query.  For example, if query is a
-    ``dns.update.UpdateMessage``, response will be too.
+    *pad*, a non-negative ``int`` or ``None``.  If 0, the default, do not pad; otherwise
+    if not ``None`` add padding bytes to make the message size a multiple of *pad*.
+    Note that if padding is non-zero, an EDNS PADDING option will always be added to the
+    message.  If ``None``, add padding following RFC 8467, namely if the request is
+    padded, pad the response to 468 otherwise do not pad.
+
+    Returns a ``dns.message.Message`` object whose specific class is appropriate for the
+    query.  For example, if query is a ``dns.update.UpdateMessage``, response will be
+    too.
     """
 
     if query.flags & dns.flags.QR:
@@ -1804,7 +1857,13 @@ def make_response(
     response.set_opcode(query.opcode())
     response.question = list(query.question)
     if query.edns >= 0:
-        response.use_edns(0, 0, our_payload, query.payload)
+        if pad is None:
+            # Set response padding per RFC 8467
+            pad = 0
+            for option in query.options:
+                if option.otype == dns.edns.OptionType.PADDING:
+                    pad = 468
+        response.use_edns(0, 0, our_payload, query.payload, pad=pad)
     if query.had_tsig:
         response.use_tsig(
             query.keyring,

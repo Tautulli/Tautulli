@@ -203,7 +203,7 @@ class Transaction:
 
             - name
 
-            - name, rdataclass, rdatatype, [covers]
+            - name, rdatatype, [covers]
 
             - name, rdataset...
 
@@ -222,7 +222,7 @@ class Transaction:
 
             - name
 
-            - name, rdataclass, rdatatype, [covers]
+            - name, rdatatype, [covers]
 
             - name, rdataset...
 

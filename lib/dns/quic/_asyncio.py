@@ -101,9 +101,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                     )
                     if address[0] != self._peer[0] or address[1] != self._peer[1]:
                         continue
-                    self._connection.receive_datagram(
-                        datagram, self._peer[0], time.time()
-                    )
+                    self._connection.receive_datagram(datagram, address, time.time())
                     # Wake up the timer in case the sender is sleeping, as there may be
                     # stuff to send now.
                     async with self._wake_timer:
@@ -125,7 +123,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
         while not self._done:
             datagrams = self._connection.datagrams_to_send(time.time())
             for datagram, address in datagrams:
-                assert address == self._peer[0]
+                assert address == self._peer
                 await self._socket.sendto(datagram, self._peer, None)
             (expiration, interval) = self._get_timer_values()
             try:
@@ -147,11 +145,14 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                     await stream._add_input(event.data, event.end_stream)
             elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
-            elif isinstance(
-                event, aioquic.quic.events.ConnectionTerminated
-            ) or isinstance(event, aioquic.quic.events.StreamReset):
+            elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
                 self._done = True
                 self._receiver_task.cancel()
+            elif isinstance(event, aioquic.quic.events.StreamReset):
+                stream = self._streams.get(event.stream_id)
+                if stream:
+                    await stream._add_input(b"", True)
+
             count += 1
             if count > 10:
                 # yield
@@ -188,7 +189,6 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             self._connection.close()
             # sender might be blocked on this, so set it
             self._socket_created.set()
-            await self._socket.close()
             async with self._wake_timer:
                 self._wake_timer.notify_all()
             try:
@@ -199,14 +199,19 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                 await self._sender_task
             except asyncio.CancelledError:
                 pass
+            await self._socket.close()
 
 
 class AsyncioQuicManager(AsyncQuicManager):
     def __init__(self, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None):
         super().__init__(conf, verify_mode, AsyncioQuicConnection, server_name)
 
-    def connect(self, address, port=853, source=None, source_port=0):
-        (connection, start) = self._connect(address, port, source, source_port)
+    def connect(
+        self, address, port=853, source=None, source_port=0, want_session_ticket=True
+    ):
+        (connection, start) = self._connect(
+            address, port, source, source_port, want_session_ticket
+        )
         if start:
             connection.run()
         return connection

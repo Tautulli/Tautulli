@@ -25,7 +25,6 @@ import dns.rdatatype
 
 @dns.immutable.immutable
 class SSHFP(dns.rdata.Rdata):
-
     """SSHFP record"""
 
     # See RFC 4255

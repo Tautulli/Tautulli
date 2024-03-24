@@ -46,7 +46,6 @@ class Bitmap(dns.rdtypes.util.Bitmap):
 
 @dns.immutable.immutable
 class NSEC3(dns.rdata.Rdata):
-
     """NSEC3 record"""
 
     __slots__ = ["algorithm", "flags", "iterations", "salt", "next", "windows"]
@@ -64,9 +63,13 @@ class NSEC3(dns.rdata.Rdata):
             windows = Bitmap(windows)
         self.windows = tuple(windows.windows)
 
-    def to_text(self, origin=None, relativize=True, **kw):
+    def _next_text(self):
         next = base64.b32encode(self.next).translate(b32_normal_to_hex).lower().decode()
         next = next.rstrip("=")
+        return next
+
+    def to_text(self, origin=None, relativize=True, **kw):
+        next = self._next_text()
         if self.salt == b"":
             salt = "-"
         else:
@@ -118,3 +121,6 @@ class NSEC3(dns.rdata.Rdata):
         next = parser.get_counted_bytes()
         bitmap = Bitmap.from_wire_parser(parser)
         return cls(rdclass, rdtype, algorithm, flags, iterations, salt, next, bitmap)
+
+    def next_name(self, origin=None):
+        return dns.name.from_text(self._next_text(), origin)
