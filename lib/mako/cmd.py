@@ -1,5 +1,5 @@
 # mako/cmd.py
-# Copyright 2006-2022 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -25,7 +25,6 @@ def _exit():
 
 
 def cmdline(argv=None):
-
     parser = ArgumentParser()
     parser.add_argument(
         "--var",
