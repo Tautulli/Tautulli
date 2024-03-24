@@ -3,8 +3,9 @@ import io
 import itertools
 import pathlib
 from typing import Any, BinaryIO, Iterable, Iterator, NoReturn, Text, Optional
+from typing import runtime_checkable, Protocol
 
-from ._compat import runtime_checkable, Protocol, StrPath
+from .compat.py38 import StrPath
 
 
 __all__ = ["ResourceReader", "Traversable", "TraversableResources"]
