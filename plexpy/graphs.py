@@ -387,6 +387,333 @@ class Graphs(object):
                   'series': series_output}
         return output
 
+    def get_total_additions_per_day(self, time_range='30', growth=False):
+        monitor_db = database.MonitorDatabase()
+
+        time_range = helpers.cast_to_int(time_range) or 30
+        timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
+
+        join_statement = ' AS lsi JOIN library_sections AS ls ON ' \
+	                     'lsi.section_id = ls.section_id AND lsi.library_name = ls.section_name ' \
+                         'AND ls.is_active = 1 AND ls.deleted_section = 0 '
+
+        try:
+            if growth:
+                query = 'SELECT ' \
+                            '0 AS date_added, ' \
+                            'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                            'SUM(CASE WHEN media_type = "show" THEN 1 ELSE 0 END) AS tv_count, ' \
+                            'SUM(CASE WHEN media_type = "season" THEN 1 ELSE 0 END) AS season_count, ' \
+                            'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count, ' \
+                            'SUM(CASE WHEN media_type = "artist" THEN 1 ELSE 0 END) AS artist_count, ' \
+                            'SUM(CASE WHEN media_type = "album" THEN 1 ELSE 0 END) AS album_count, ' \
+                            'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
+                        'FROM library_stats_items %s' \
+                        'WHERE added_at < %s ' \
+                        'UNION ALL ' \
+                        'SELECT ' \
+                            'date(added_at, "unixepoch", "localtime") AS date_added, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "movie" THEN rating_key ELSE NULL END) AS movie_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "show" THEN grandparent_rating_key ELSE NULL END) AS tv_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "season" THEN parent_rating_key ELSE NULL END) AS season_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "episode" THEN rating_key ELSE NULL END) AS episode_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "artist" THEN grandparent_rating_key ELSE NULL END) AS artist_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "album" THEN parent_rating_key ELSE NULL END) AS album_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "track" THEN rating_key ELSE NULL END) AS track_count ' \
+                        'FROM library_stats_items %s' \
+                        'WHERE added_at >= %s ' \
+                        'GROUP BY date_added ' \
+                        'ORDER BY date_added' % (join_statement, timestamp,
+                                                 join_statement, timestamp)
+
+                result = monitor_db.select(query)
+            else:
+                query = 'SELECT ' \
+                            'date(added_at, "unixepoch", "localtime") AS date_added, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "movie" THEN rating_key ELSE NULL END) AS movie_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "show" THEN grandparent_rating_key ELSE NULL END) AS tv_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "season" THEN parent_rating_key ELSE NULL END) AS season_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "episode" THEN rating_key ELSE NULL END) AS episode_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "artist" THEN grandparent_rating_key ELSE NULL END) AS artist_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "album" THEN parent_rating_key ELSE NULL END) AS album_count, ' \
+                            'COUNT(DISTINCT CASE WHEN media_type = "track" THEN rating_key ELSE NULL END) AS track_count ' \
+                        'FROM library_stats_items %s' \
+                        'WHERE added_at >= %s ' \
+                        'GROUP BY date_added ' \
+                        'ORDER BY date_added' % (join_statement, timestamp)
+
+                result = monitor_db.select(query)
+        except Exception as e:
+            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_per_day: %s." % e)
+            return None
+
+        # create our date range as some days may not have any data
+        # but we still want to display them
+        base = datetime.date.today()
+        date_list = [base - datetime.timedelta(days=x) for x in range(0, int(time_range))]
+
+        categories = []
+        series_1 = []
+        series_2 = []
+        series_3 = []
+        series_4 = []
+        series_5 = []
+        series_6 = []
+        series_7 = []
+
+        if growth:
+            base_value_1 = result[0]['movie_count'] if result[0]['movie_count'] else 0
+            base_value_2 = result[0]['tv_count'] if result[0]['tv_count'] else 0
+            base_value_3 = result[0]['season_count'] if result[0]['season_count'] else 0
+            base_value_4 = result[0]['episode_count'] if result[0]['episode_count'] else 0
+            base_value_5 = result[0]['artist_count'] if result[0]['artist_count'] else 0
+            base_value_6 = result[0]['album_count'] if result[0]['album_count'] else 0
+            base_value_7 = result[0]['track_count'] if result[0]['track_count'] else 0
+
+        for date_item in sorted(date_list):
+            date_string = date_item.strftime('%Y-%m-%d')
+            categories.append(date_string)
+            series_1_value = 0
+            series_2_value = 0
+            series_3_value = 0
+            series_4_value = 0
+            series_5_value = 0
+            series_6_value = 0
+            series_7_value = 0
+
+            for item in result:
+                if date_string == item['date_added']:
+                    series_1_value = item['movie_count'] if item['movie_count'] else 0
+                    series_2_value = item['tv_count'] if item['tv_count'] else 0
+                    series_3_value = item['season_count'] if item['season_count'] else 0
+                    series_4_value = item['episode_count'] if item['episode_count'] else 0
+                    series_5_value = item['artist_count'] if item['artist_count'] else 0
+                    series_6_value = item['album_count'] if item['album_count'] else 0
+                    series_7_value = item['track_count'] if item['track_count'] else 0
+                    continue
+
+            series_1.append(series_1_value)
+            series_2.append(series_2_value)
+            series_3.append(series_3_value)
+            series_4.append(series_4_value)
+            series_5.append(series_5_value)
+            series_6.append(series_6_value)
+            series_7.append(series_7_value)
+
+        if growth:
+            for idx, day in enumerate(series_1):
+                series_1[idx] = base_value_1 + day
+                base_value_1 += day
+            for idx, day in enumerate(series_2):
+                series_2[idx] = base_value_2 + day
+                base_value_2 += day
+            for idx, day in enumerate(series_3):
+                series_3[idx] = base_value_3 + day
+                base_value_3 += day
+            for idx, day in enumerate(series_4):
+                series_4[idx] = base_value_4 + day
+                base_value_4 += day
+            for idx, day in enumerate(series_5):
+                series_5[idx] = base_value_5 + day
+                base_value_5 += day
+            for idx, day in enumerate(series_6):
+                series_6[idx] = base_value_6 + day
+                base_value_6 += day
+            for idx, day in enumerate(series_7):
+                series_7[idx] = base_value_7 + day
+                base_value_7 += day
+
+        series_1_output = {'name': 'Movies',
+                           'data': series_1}
+        series_2_output = {'name': 'Shows',
+                           'data': series_2}
+        series_3_output = {'name': 'Seasons',
+                           'data': series_3}
+        series_4_output = {'name': 'Episodes',
+                           'data': series_4}
+        series_5_output = {'name': 'Artists',
+                           'data': series_5}
+        series_6_output = {'name': 'Albums',
+                           'data': series_6}
+        series_7_output = {'name': 'Tracks',
+                           'data': series_7}
+
+        series_output = []
+        if libraries.has_library_type('movie'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('show'):
+            series_output.append(series_2_output)
+            series_output.append(series_3_output)
+            series_output.append(series_4_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_5_output)
+            series_output.append(series_6_output)
+            series_output.append(series_7_output)
+
+        output = {'categories': categories,
+                  'series': series_output}
+        
+        return output
+
+    def get_total_additions_by_media_type(self, time_range='30'):
+        monitor_db = database.MonitorDatabase()
+
+        time_range = helpers.cast_to_int(time_range) or 30
+        timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
+
+        try:
+            query = 'SELECT ' \
+                        'SUM(CASE WHEN media_type = "movie" THEN 1 ELSE 0 END) AS movie_count, ' \
+                        'SUM(CASE WHEN media_type = "show" THEN 1 ELSE 0 END) AS tv_count, ' \
+                        'SUM(CASE WHEN media_type = "season" THEN 1 ELSE 0 END) AS season_count, ' \
+                        'SUM(CASE WHEN media_type = "episode" THEN 1 ELSE 0 END) AS episode_count, ' \
+                        'SUM(CASE WHEN media_type = "artist" THEN 1 ELSE 0 END) AS artist_count, ' \
+                        'SUM(CASE WHEN media_type = "album" THEN 1 ELSE 0 END) AS album_count, ' \
+                        'SUM(CASE WHEN media_type = "track" THEN 1 ELSE 0 END) AS track_count ' \
+                    'FROM library_stats_items AS lsi JOIN library_sections AS ls ON ' \
+	                    'lsi.section_id = ls.section_id AND lsi.library_name = ls.section_name ' \
+                        'AND ls.is_active = 1 AND ls.deleted_section = 0 ' \
+                    'WHERE added_at >= %s' % timestamp
+
+            result = monitor_db.select(query)
+
+        except Exception as e:
+            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_by_media_type: %s." % e)
+            return None
+
+        categories = ["Movies", "TV", "Music"]
+        _catCount = len(categories)
+
+        series_1 = [None] * _catCount
+        series_2 = [None] * _catCount
+        series_3 = [None] * _catCount
+        series_4 = [None] * _catCount
+        series_5 = [None] * _catCount
+        series_6 = [None] * _catCount
+        series_7 = [None] * _catCount
+
+        content = result[0]
+
+        for idx, item in enumerate(categories):
+            if idx == 0:
+                series_1[idx] = content['movie_count']
+            elif idx == 1:
+                series_2[idx] = content['tv_count']
+                series_3[idx] = content['season_count']
+                series_4[idx] = content['episode_count']
+            else:
+                series_5[idx] = content['artist_count']
+                series_6[idx] = content['album_count']
+                series_7[idx] = content['track_count']
+
+        series_1_output = {'name': 'Movies',
+                           'data': series_1}
+        series_2_output = {'name': 'Shows',
+                           'data': series_2}
+        series_3_output = {'name': 'Seasons',
+                           'data': series_3}
+        series_4_output = {'name': 'Episodes',
+                           'data': series_4}
+        series_5_output = {'name': 'Artists',
+                           'data': series_5}
+        series_6_output = {'name': 'Albums',
+                           'data': series_6}
+        series_7_output = {'name': 'Tracks',
+                           'data': series_7}
+
+        series_output = []
+        if libraries.has_library_type('movie'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('show'):
+            series_output.append(series_2_output)
+            series_output.append(series_3_output)
+            series_output.append(series_4_output)
+        if libraries.has_library_type('artist'):
+            series_output.append(series_5_output)
+            series_output.append(series_6_output)
+            series_output.append(series_7_output)
+
+        output = {'categories': categories,
+                  'series': series_output}
+
+        return output
+
+    def get_total_additions_by_resolution(self, time_range='30'):
+        monitor_db = database.MonitorDatabase()
+
+        time_range = helpers.cast_to_int(time_range) or 30
+        timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
+
+        resolution = '(CASE WHEN media_info LIKE \'%"video_resolution": "4K"%\' THEN "1_4K" ' \
+                    'WHEN media_info LIKE \'%"video_resolution": "1080"%\' THEN "2_1080" ' \
+                    'WHEN media_info LIKE \'%"video_resolution": "720"%\' THEN "3_720" ' \
+                    'WHEN media_info LIKE \'%"video_resolution": "576"%\' THEN "4_576" ' \
+                    'WHEN media_info LIKE \'%"video_resolution": "480"%\' THEN "5_480" ' \
+                    'WHEN media_info LIKE \'%"video_resolution": "sd"%\' THEN "6_SD" ELSE "7_Unknown" END) AS resolution '
+
+        join_statement = ' AS lsi JOIN library_sections AS ls ON ' \
+	                     'lsi.section_id = ls.section_id AND lsi.library_name = ls.section_name ' \
+                         'AND ls.is_active = 1 AND ls.deleted_section = 0 '
+
+        try:
+            #Change queries for show and episode so they also get a resolution like before? -> Cool for the user,
+            #  but it doesn't make real sense as show/seasons itself have no resolution
+            query = 'SELECT ' \
+                        '%s, ' \
+                        'COUNT(DISTINCT CASE WHEN media_type = "movie" THEN rating_key ELSE NULL END) AS movie_count, ' \
+                        'COUNT(DISTINCT CASE WHEN media_type = "show" THEN grandparent_rating_key ELSE NULL END) AS tv_count, ' \
+                        'COUNT(DISTINCT CASE WHEN media_type = "season" THEN parent_rating_key ELSE NULL END) AS season_count, ' \
+                        'COUNT(DISTINCT CASE WHEN media_type = "episode" THEN rating_key ELSE NULL END) AS episode_count, ' \
+                        'COUNT(DISTINCT CASE WHEN media_type = "artist" THEN grandparent_rating_key ELSE NULL END) AS artist_count, ' \
+                        'COUNT(DISTINCT CASE WHEN media_type = "album" THEN parent_rating_key ELSE NULL END) AS album_count, ' \
+                        'COUNT(DISTINCT CASE WHEN media_type = "track" THEN rating_key ELSE NULL END) AS track_count ' \
+                    'FROM library_stats_items %s' \
+                    'WHERE added_at >= %s AND (media_type = "movie" OR media_type = "episode") ' \
+                    'GROUP BY resolution ' \
+                    'ORDER BY resolution' % (resolution, join_statement, timestamp)
+
+            result = monitor_db.select(query)
+
+        except Exception as e:
+            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_additions_by_resolution: %s." % e)
+            return None
+
+        categories = []
+        series_1 = []
+        series_2 = []
+        series_3 = []
+        series_4 = []
+
+        for idx, item in enumerate(result):
+            #remove sorting indicators (like 1_%)
+            categories.append(item['resolution'][2:])
+
+            series_1.append(item['movie_count'])
+            series_2.append(item['tv_count'])
+            series_3.append(item['season_count'])
+            series_4.append(item['episode_count'])
+
+        series_1_output = {'name': 'Movies',
+                           'data': series_1}
+        series_2_output = {'name': 'Shows',
+                           'data': series_2}
+        series_3_output = {'name': 'Seasons',
+                           'data': series_3}
+        series_4_output = {'name': 'Episodes',
+                           'data': series_4}
+
+        series_output = []
+        if libraries.has_library_type('movie'):
+            series_output.append(series_1_output)
+        if libraries.has_library_type('show'):
+            series_output.append(series_2_output)
+            series_output.append(series_3_output)
+            series_output.append(series_4_output)
+
+        output = {'categories': categories,
+                  'series': series_output}
+        return output
+
     def get_total_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 

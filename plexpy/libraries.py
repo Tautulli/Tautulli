@@ -35,6 +35,7 @@ if plexpy.PYTHON2:
     import pmsconnect
     import session
     import users
+    import datafactory
     from plex import Plex
 else:
     from plexpy import common
@@ -47,6 +48,7 @@ else:
     from plexpy import session
     from plexpy import users
     from plexpy.plex import Plex
+    from plexpy import datafactory
 
 
 def refresh_libraries():
@@ -109,6 +111,59 @@ def refresh_libraries():
         logger.warn("Tautulli Libraries :: Unable to refresh libraries list.")
         return False
 
+def refresh_library_statistics():
+    logger.info("Tautulli Library Statistics :: Requesting library statistics data refresh...")
+
+    server_id = plexpy.CONFIG.PMS_IDENTIFIER
+    if not server_id:
+        logger.error("Tautulli Library Statistics :: No PMS identifier, cannot refresh data. Verify server in settings.")
+        return
+
+    library_sections = pmsconnect.PmsConnect().get_library_details()
+
+    if library_sections:
+        ratingKeys = {}
+
+        _pms = pmsconnect.PmsConnect()
+        _datafactory = datafactory.DataFactory()
+
+        for section in library_sections:
+            if section['created_at'] and section['is_active']:
+                section_type = section['section_type']
+
+                # Push Data to library_sections table
+                # Placed here as statistics should represent current library status (be in sync)
+                # initial run: 16min for 16000 item (movies + shows + seasons + episodes + track + album + artist)
+                # update run: 8min -,-
+                _resultSet = []
+                _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type=section['section_type'], get_media_info=False))
+
+                # Add additional library contents for easier filtering at graph queries
+                if section_type == 'show':
+                    _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='season', get_media_info=False))
+                    _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='episode', get_media_info=False))
+                
+                if section_type == 'artist':
+                    _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='album', get_media_info=False))
+                    _resultSet.append(_pms.get_library_children_details(section_id=section['section_id'], section_type='track', get_media_info=False))
+
+                for result in _resultSet:
+                    for item in result['children_list']:
+                        if item['rating_key'] not in ratingKeys:
+                            ratingKeys[item['rating_key']] = section['created_at']
+            elif not section['created_at']:
+                logger.warn("Tautulli Library Statistics :: Library " + library['section_name'] + " skipped, because of no created_at timestamp!")
+
+        ratingKeys = sorted(ratingKeys.items())
+
+        for key, createdAt in ratingKeys:
+            _datafactory.set_library_stats_item(rating_key=key, created_at=createdAt)
+
+        logger.info("Tautulli Library Statistics :: Data refreshed.")
+        return True
+    else:
+        logger.warn("Tautulli Library Statistics :: Unable to refresh data.")
+        return False
 
 def add_live_tv_library(refresh=False):
     monitor_db = database.MonitorDatabase()
