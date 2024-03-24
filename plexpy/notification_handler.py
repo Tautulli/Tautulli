@@ -624,6 +624,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     stream_count = len(sessions)
     user_stream_count = len(user_sessions)
+    lan_streams = sum(1 for s in sessions if s['location'] == 'lan')
+    wan_streams = stream_count - lan_streams
 
     lan_bandwidth = sum(helpers.cast_to_int(s['bandwidth']) for s in sessions if s['location'] == 'lan')
     wan_bandwidth = sum(helpers.cast_to_int(s['bandwidth']) for s in sessions if s['location'] != 'lan')
@@ -989,6 +991,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'utctime': helpers.utc_now_iso(),
         # Stream parameters
         'streams': stream_count,
+        'lan_streams': lan_streams,
+        'wan_streams': wan_streams,
         'direct_plays': transcode_decision_count['direct play'],
         'direct_streams': transcode_decision_count['copy'],
         'transcodes': transcode_decision_count['transcode'],

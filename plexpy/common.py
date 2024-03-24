@@ -381,6 +381,8 @@ NOTIFICATION_PARAMETERS = [
         'category': 'Stream Details',
         'parameters': [
              {'name': 'Streams', 'type': 'int', 'value': 'streams', 'description': 'The total number of concurrent streams.'},
+             {'name': 'LAN Streams', 'type': 'int', 'value': 'lan_streams', 'description': 'The total number of concurrent LAN streams.'},
+             {'name': 'WAN Streams', 'type': 'int', 'value': 'wan_streams', 'description': 'The total number of concurrent WAN streams.'},
              {'name': 'Direct Plays', 'type': 'int', 'value': 'direct_plays', 'description': 'The total number of concurrent direct plays.'},
              {'name': 'Direct Streams', 'type': 'int', 'value': 'direct_streams', 'description': 'The total number of concurrent direct streams.'},
              {'name': 'Transcodes', 'type': 'int', 'value': 'transcodes', 'description': 'The total number of concurrent transcodes.'},
