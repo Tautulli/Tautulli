@@ -67,7 +67,6 @@ def _ctype_to_text(what):
 
 @dns.immutable.immutable
 class CERT(dns.rdata.Rdata):
-
     """CERT record"""
 
     # see RFC 4398

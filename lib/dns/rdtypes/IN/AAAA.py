@@ -24,7 +24,6 @@ import dns.tokenizer
 
 @dns.immutable.immutable
 class AAAA(dns.rdata.Rdata):
-
     """AAAA record."""
 
     __slots__ = ["address"]

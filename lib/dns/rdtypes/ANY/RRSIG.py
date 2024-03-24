@@ -28,7 +28,6 @@ import dns.rdatatype
 
 
 class BadSigTime(dns.exception.DNSException):
-
     """Time in DNS SIG or RRSIG resource record cannot be parsed."""
 
 
@@ -52,7 +51,6 @@ def posixtime_to_sigtime(what):
 
 @dns.immutable.immutable
 class RRSIG(dns.rdata.Rdata):
-
     """RRSIG record"""
 
     __slots__ = [

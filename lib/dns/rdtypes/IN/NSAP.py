@@ -25,7 +25,6 @@ import dns.tokenizer
 
 @dns.immutable.immutable
 class NSAP(dns.rdata.Rdata):
-
     """NSAP record."""
 
     # see: RFC 1706

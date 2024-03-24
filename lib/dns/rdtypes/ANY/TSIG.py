@@ -26,7 +26,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class TSIG(dns.rdata.Rdata):
-
     """TSIG record"""
 
     __slots__ = [

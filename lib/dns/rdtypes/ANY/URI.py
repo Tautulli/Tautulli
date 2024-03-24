@@ -27,7 +27,6 @@ import dns.rdtypes.util
 
 @dns.immutable.immutable
 class URI(dns.rdata.Rdata):
-
     """URI record"""
 
     # see RFC 7553

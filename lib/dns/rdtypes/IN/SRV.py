@@ -26,7 +26,6 @@ import dns.rdtypes.util
 
 @dns.immutable.immutable
 class SRV(dns.rdata.Rdata):
-
     """SRV record"""
 
     # see: RFC 2782

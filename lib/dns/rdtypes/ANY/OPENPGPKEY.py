@@ -25,7 +25,6 @@ import dns.tokenizer
 
 @dns.immutable.immutable
 class OPENPGPKEY(dns.rdata.Rdata):
-
     """OPENPGPKEY record"""
 
     # see: RFC 7929

@@ -44,7 +44,6 @@ def _validate_float_string(what):
 
 @dns.immutable.immutable
 class GPOS(dns.rdata.Rdata):
-
     """GPOS record"""
 
     # see: RFC 1712

@@ -1,9 +1,11 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-try:
+import dns._features
+import dns.asyncbackend
+
+if dns._features.have("doq"):
     import aioquic.quic.configuration  # type: ignore
 
-    import dns.asyncbackend
     from dns._asyncbackend import NullContext
     from dns.quic._asyncio import (
         AsyncioQuicConnection,
@@ -17,7 +19,7 @@ try:
 
     def null_factory(
         *args,  # pylint: disable=unused-argument
-        **kwargs  # pylint: disable=unused-argument
+        **kwargs,  # pylint: disable=unused-argument
     ):
         return NullContext(None)
 
@@ -31,7 +33,7 @@ try:
 
     _async_factories = {"asyncio": (null_factory, _asyncio_manager_factory)}
 
-    try:
+    if dns._features.have("trio"):
         import trio
 
         from dns.quic._trio import (  # pylint: disable=ungrouped-imports
@@ -47,15 +49,13 @@ try:
             return TrioQuicManager(context, *args, **kwargs)
 
         _async_factories["trio"] = (_trio_context_factory, _trio_manager_factory)
-    except ImportError:
-        pass
 
     def factories_for_backend(backend=None):
         if backend is None:
             backend = dns.asyncbackend.get_default_backend()
         return _async_factories[backend.name()]
 
-except ImportError:
+else:  # pragma: no cover
     have_quic = False
 
     from typing import Any

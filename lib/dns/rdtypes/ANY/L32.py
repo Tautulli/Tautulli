@@ -8,7 +8,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class L32(dns.rdata.Rdata):
-
     """L32 record"""
 
     # see: rfc6742.txt
