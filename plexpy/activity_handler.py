@@ -551,7 +551,7 @@ class ReachabilityHandler(object):
     def __init__(self, data):
         self.data = data
 
-        self.is_reachable = self.data.get('reachable', False)
+        self.is_reachable = self.data.get('reachability', False)
 
     def remote_access_enabled(self):
         pms_connect = pmsconnect.PmsConnect()
