@@ -20,9 +20,8 @@ __all__ = ["HAVE_SSL", "ssl", "SSLError", "SSLWantReadError", "SSLWantWriteError
 
 try:
     import ssl
-    from ssl import SSLError
-    from ssl import SSLWantReadError
-    from ssl import SSLWantWriteError
+    from ssl import SSLError, SSLWantReadError, SSLWantWriteError
+
     HAVE_SSL = True
 except ImportError:
     # dummy class of SSLError for environment without ssl support
