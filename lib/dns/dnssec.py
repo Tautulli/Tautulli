@@ -27,6 +27,7 @@ import time
 from datetime import datetime
 from typing import Callable, Dict, List, Optional, Set, Tuple, Union, cast
 
+import dns._features
 import dns.exception
 import dns.name
 import dns.node
@@ -1169,7 +1170,7 @@ def _need_pyca(*args, **kwargs):
     )  # pragma: no cover
 
 
-try:
+if dns._features.have("dnssec"):
     from cryptography.exceptions import InvalidSignature
     from cryptography.hazmat.primitives.asymmetric import dsa  # pylint: disable=W0611
     from cryptography.hazmat.primitives.asymmetric import ec  # pylint: disable=W0611
@@ -1184,20 +1185,20 @@ try:
         get_algorithm_cls_from_dnskey,
     )
     from dns.dnssecalgs.base import GenericPrivateKey, GenericPublicKey
-except ImportError:  # pragma: no cover
-    validate = _need_pyca
-    validate_rrsig = _need_pyca
-    sign = _need_pyca
-    make_dnskey = _need_pyca
-    make_cdnskey = _need_pyca
-    _have_pyca = False
-else:
+
     validate = _validate  # type: ignore
     validate_rrsig = _validate_rrsig  # type: ignore
     sign = _sign
     make_dnskey = _make_dnskey
     make_cdnskey = _make_cdnskey
     _have_pyca = True
+else:  # pragma: no cover
+    validate = _need_pyca
+    validate_rrsig = _need_pyca
+    sign = _need_pyca
+    make_dnskey = _need_pyca
+    make_cdnskey = _need_pyca
+    _have_pyca = False
 
 ### BEGIN generated Algorithm constants
 

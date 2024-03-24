@@ -1,22 +1,21 @@
+import collections.abc
+import contextlib
 import datetime
 import functools
 import numbers
 import time
-import collections.abc
-import contextlib
 
 import jaraco.functools
 
 
 class Stopwatch:
     """
-    A simple stopwatch which starts automatically.
+    A simple stopwatch that starts automatically.
 
     >>> w = Stopwatch()
     >>> _1_sec = datetime.timedelta(seconds=1)
     >>> w.split() < _1_sec
     True
-    >>> import time
     >>> time.sleep(1.0)
     >>> w.split() >= _1_sec
     True
@@ -27,13 +26,13 @@ class Stopwatch:
     >>> w.split() < _1_sec
     True
 
-    It should be possible to launch the Stopwatch in a context:
+    Launch the Stopwatch in a context:
 
     >>> with Stopwatch() as watch:
     ...     assert isinstance(watch.split(), datetime.timedelta)
 
-    In that case, the watch is stopped when the context is exited,
-    so to read the elapsed time:
+    After exiting the context, the watch is stopped; read the
+    elapsed time directly:
 
     >>> watch.elapsed
     datetime.timedelta(...)

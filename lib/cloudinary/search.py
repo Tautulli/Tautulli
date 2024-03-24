@@ -3,8 +3,8 @@ import json
 
 import cloudinary
 from cloudinary.api_client.call_api import call_json_api
-from cloudinary.utils import unique, unsigned_download_url_prefix, build_distribution_domain, base64url_encode, \
-    json_encode, compute_hex_hash, SIGNATURE_SHA256
+from cloudinary.utils import (unique, build_distribution_domain, base64url_encode, json_encode, compute_hex_hash,
+                              SIGNATURE_SHA256, build_array)
 
 
 class Search(object):
@@ -16,6 +16,7 @@ class Search(object):
         'sort_by': lambda x: next(iter(x)),
         'aggregate': None,
         'with_field': None,
+        'fields': None,
     }
 
     _ttl = 300  # Used for search URLs
@@ -55,6 +56,11 @@ class Search(object):
     def with_field(self, value):
         """Request an additional field in the result set."""
         self._add("with_field", value)
+        return self
+
+    def fields(self, value):
+        """Request which fields to return in the result set."""
+        self._add("fields", value)
         return self
 
     def ttl(self, ttl):
@@ -133,5 +139,5 @@ class Search(object):
     def _add(self, name, value):
         if name not in self.query:
             self.query[name] = []
-        self.query[name].append(value)
+        self.query[name].extend(build_array(value))
         return self

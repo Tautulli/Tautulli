@@ -21,7 +21,6 @@ import dns.rdtypes.nsbase
 
 @dns.immutable.immutable
 class CNAME(dns.rdtypes.nsbase.NSBase):
-
     """CNAME record
 
     Note: although CNAME is officially a singleton type, dnspython allows

@@ -8,8 +8,12 @@ import trio
 import trio.socket  # type: ignore
 
 import dns._asyncbackend
+import dns._features
 import dns.exception
 import dns.inet
+
+if not dns._features.have("trio"):
+    raise ImportError("trio not found or too old")
 
 
 def _maybe_timeout(timeout):
@@ -95,7 +99,7 @@ class StreamSocket(dns._asyncbackend.StreamSocket):
             raise NotImplementedError
 
 
-try:
+if dns._features.have("doh"):
     import httpcore
     import httpcore._backends.trio
     import httpx
@@ -177,7 +181,7 @@ try:
                 resolver, local_port, bootstrap_address, family
             )
 
-except ImportError:
+else:
     _HTTPTransport = dns._asyncbackend.NullTransport  # type: ignore
 
 

@@ -32,7 +32,6 @@ class Bitmap(dns.rdtypes.util.Bitmap):
 
 @dns.immutable.immutable
 class CSYNC(dns.rdata.Rdata):
-
     """CSYNC record"""
 
     __slots__ = ["serial", "flags", "windows"]

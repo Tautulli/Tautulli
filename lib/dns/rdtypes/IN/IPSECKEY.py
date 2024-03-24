@@ -29,7 +29,6 @@ class Gateway(dns.rdtypes.util.Gateway):
 
 @dns.immutable.immutable
 class IPSECKEY(dns.rdata.Rdata):
-
     """IPSECKEY record"""
 
     # see: RFC 4025

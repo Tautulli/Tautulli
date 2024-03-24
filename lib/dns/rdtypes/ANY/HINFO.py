@@ -25,7 +25,6 @@ import dns.tokenizer
 
 @dns.immutable.immutable
 class HINFO(dns.rdata.Rdata):
-
     """HINFO record"""
 
     # see: RFC 1035

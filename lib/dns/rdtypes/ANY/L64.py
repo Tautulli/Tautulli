@@ -8,7 +8,6 @@ import dns.rdtypes.util
 
 @dns.immutable.immutable
 class L64(dns.rdata.Rdata):
-
     """L64 record"""
 
     # see: rfc6742.txt

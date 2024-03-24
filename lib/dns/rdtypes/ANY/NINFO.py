@@ -21,7 +21,6 @@ import dns.rdtypes.txtbase
 
 @dns.immutable.immutable
 class NINFO(dns.rdtypes.txtbase.TXTBase):
-
     """NINFO record"""
 
     # see: draft-reid-dnsext-zs-01

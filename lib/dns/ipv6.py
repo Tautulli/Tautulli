@@ -104,7 +104,7 @@ _colon_colon_end = re.compile(rb".*::$")
 def inet_aton(text: Union[str, bytes], ignore_scope: bool = False) -> bytes:
     """Convert an IPv6 address in text form to binary form.
 
-    *text*, a ``str``, the IPv6 address in textual form.
+    *text*, a ``str`` or ``bytes``, the IPv6 address in textual form.
 
     *ignore_scope*, a ``bool``.  If ``True``, a scope will be ignored.
     If ``False``, the default, it is an error for a scope to be present.
@@ -206,3 +206,14 @@ def is_mapped(address: bytes) -> bool:
     """
 
     return address.startswith(_mapped_prefix)
+
+
+def canonicalize(text: Union[str, bytes]) -> str:
+    """Verify that *address* is a valid text form IPv6 address and return its
+    canonical text form.  Addresses with scopes are rejected.
+
+    *text*, a ``str`` or ``bytes``, the IPv6 address in textual form.
+
+    Raises ``dns.exception.SyntaxError`` if the text is not valid.
+    """
+    return dns.ipv6.inet_ntoa(dns.ipv6.inet_aton(text))

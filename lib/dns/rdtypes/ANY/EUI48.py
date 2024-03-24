@@ -22,7 +22,6 @@ import dns.rdtypes.euibase
 
 @dns.immutable.immutable
 class EUI48(dns.rdtypes.euibase.EUIBase):
-
     """EUI48 record"""
 
     # see: rfc7043.txt

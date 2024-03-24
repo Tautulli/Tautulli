@@ -38,7 +38,7 @@ CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAA
 URI_SCHEME = "cloudinary"
 API_VERSION = "v1_1"
 
-VERSION = "1.34.0"
+VERSION = "1.39.1"
 
 _USER_PLATFORM_DETAILS = "; ".join((platform(), "Python {}".format(python_version())))
 
@@ -741,7 +741,11 @@ class CloudinaryResource(object):
         :return: Video tag
         """
         public_id = options.get('public_id', self.public_id)
-        source = re.sub(r"\.({0})$".format("|".join(self.default_source_types())), '', public_id)
+        use_fetch_format = options.get('use_fetch_format', config().use_fetch_format)
+        if not use_fetch_format:
+            source = re.sub(r"\.({0})$".format("|".join(self.default_source_types())), '', public_id)
+        else:
+            source = public_id
 
         custom_attributes = options.pop("attributes", dict())
 

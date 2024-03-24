@@ -1,5 +1,5 @@
 # mako/template.py
-# Copyright 2006-2022 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -26,7 +26,6 @@ from mako.lexer import Lexer
 
 
 class Template:
-
     r"""Represents a compiled template.
 
     :class:`.Template` includes a reference to the original
