@@ -3,6 +3,8 @@ inflect: english language inflection
  - correctly generate plurals, ordinals, indefinite articles
  - convert numbers to words
 
+Copyright (C) 2010 Paul Dyson
+
 Based upon the Perl module
 `Lingua::EN::Inflect <https://metacpan.org/pod/Lingua::EN::Inflect>`_.
 
@@ -68,16 +70,11 @@ from typing import (
     cast,
     Any,
 )
-from typing_extensions import Literal
 from numbers import Number
 
 
-from pydantic import Field
-from typing_extensions import Annotated
-
-
-from .compat.pydantic1 import validate_call
-from .compat.pydantic import same_method
+from pydantic import Field, validate_arguments
+from pydantic.typing import Annotated
 
 
 class UnknownClassicalModeError(Exception):
@@ -106,6 +103,14 @@ class BadRcFileError(Exception):
 
 class BadGenderError(Exception):
     pass
+
+
+STDOUT_ON = False
+
+
+def print3(txt: str) -> None:
+    if STDOUT_ON:
+        print(txt)
 
 
 def enclose(s: str) -> str:
@@ -1722,43 +1727,65 @@ plverb_irregular_pres = {
     "is": "are",
     "was": "were",
     "were": "were",
+    "was": "were",
+    "have": "have",
     "have": "have",
     "has": "have",
+    "do": "do",
     "do": "do",
     "does": "do",
 }
 
 plverb_ambiguous_pres = {
     "act": "act",
+    "act": "act",
     "acts": "act",
+    "blame": "blame",
     "blame": "blame",
     "blames": "blame",
     "can": "can",
+    "can": "can",
+    "can": "can",
     "must": "must",
+    "must": "must",
+    "must": "must",
+    "fly": "fly",
     "fly": "fly",
     "flies": "fly",
     "copy": "copy",
+    "copy": "copy",
     "copies": "copy",
+    "drink": "drink",
     "drink": "drink",
     "drinks": "drink",
     "fight": "fight",
+    "fight": "fight",
     "fights": "fight",
+    "fire": "fire",
     "fire": "fire",
     "fires": "fire",
     "like": "like",
+    "like": "like",
     "likes": "like",
+    "look": "look",
     "look": "look",
     "looks": "look",
     "make": "make",
+    "make": "make",
     "makes": "make",
+    "reach": "reach",
     "reach": "reach",
     "reaches": "reach",
     "run": "run",
+    "run": "run",
     "runs": "run",
+    "sink": "sink",
     "sink": "sink",
     "sinks": "sink",
     "sleep": "sleep",
+    "sleep": "sleep",
     "sleeps": "sleep",
+    "view": "view",
     "view": "view",
     "views": "view",
 }
@@ -1827,7 +1854,7 @@ pl_adj_poss_keys = re.compile(fr"^({enclose('|'.join(pl_adj_poss))})$", re.IGNOR
 
 A_abbrev = re.compile(
     r"""
-^(?! FJO | [HLMNS]Y.  | RY[EO] | SQU
+(?! FJO | [HLMNS]Y.  | RY[EO] | SQU
   | ( F[LR]? | [HL] | MN? | N | RH? | S[CHKLMNPTVW]? | X(YL)?) [AEIOU])
 [FHLMNRSX][A-Z]
 """,
@@ -2026,14 +2053,15 @@ Falsish = Any  # ideally, falsish would only validate on bool(value) is False
 
 class engine:
     def __init__(self) -> None:
+
         self.classical_dict = def_classical.copy()
         self.persistent_count: Optional[int] = None
         self.mill_count = 0
-        self.pl_sb_user_defined: List[Optional[Word]] = []
-        self.pl_v_user_defined: List[Optional[Word]] = []
-        self.pl_adj_user_defined: List[Optional[Word]] = []
-        self.si_sb_user_defined: List[Optional[Word]] = []
-        self.A_a_user_defined: List[Optional[Word]] = []
+        self.pl_sb_user_defined: List[str] = []
+        self.pl_v_user_defined: List[str] = []
+        self.pl_adj_user_defined: List[str] = []
+        self.si_sb_user_defined: List[str] = []
+        self.A_a_user_defined: List[str] = []
         self.thegender = "neuter"
         self.__number_args: Optional[Dict[str, str]] = None
 
@@ -2045,8 +2073,28 @@ class engine:
     def _number_args(self, val):
         self.__number_args = val
 
-    @validate_call
-    def defnoun(self, singular: Optional[Word], plural: Optional[Word]) -> int:
+    deprecated_methods = dict(
+        pl="plural",
+        plnoun="plural_noun",
+        plverb="plural_verb",
+        pladj="plural_adj",
+        sinoun="single_noun",
+        prespart="present_participle",
+        numwords="number_to_words",
+        plequal="compare",
+        plnounequal="compare_nouns",
+        plverbequal="compare_verbs",
+        pladjequal="compare_adjs",
+        wordlist="join",
+    )
+
+    def __getattr__(self, meth):
+        if meth in self.deprecated_methods:
+            print3(f"{meth}() deprecated, use {self.deprecated_methods[meth]}()")
+            raise DeprecationWarning
+        raise AttributeError
+
+    def defnoun(self, singular: str, plural: str) -> int:
         """
         Set the noun plural of singular to plural.
 
@@ -2057,16 +2105,7 @@ class engine:
         self.si_sb_user_defined.extend((plural, singular))
         return 1
 
-    @validate_call
-    def defverb(
-        self,
-        s1: Optional[Word],
-        p1: Optional[Word],
-        s2: Optional[Word],
-        p2: Optional[Word],
-        s3: Optional[Word],
-        p3: Optional[Word],
-    ) -> int:
+    def defverb(self, s1: str, p1: str, s2: str, p2: str, s3: str, p3: str) -> int:
         """
         Set the verb plurals for s1, s2 and s3 to p1, p2 and p3 respectively.
 
@@ -2082,8 +2121,7 @@ class engine:
         self.pl_v_user_defined.extend((s1, p1, s2, p2, s3, p3))
         return 1
 
-    @validate_call
-    def defadj(self, singular: Optional[Word], plural: Optional[Word]) -> int:
+    def defadj(self, singular: str, plural: str) -> int:
         """
         Set the adjective plural of singular to plural.
 
@@ -2093,8 +2131,7 @@ class engine:
         self.pl_adj_user_defined.extend((singular, plural))
         return 1
 
-    @validate_call
-    def defa(self, pattern: Optional[Word]) -> int:
+    def defa(self, pattern: str) -> int:
         """
         Define the indefinite article as 'a' for words matching pattern.
 
@@ -2103,8 +2140,7 @@ class engine:
         self.A_a_user_defined.extend((pattern, "a"))
         return 1
 
-    @validate_call
-    def defan(self, pattern: Optional[Word]) -> int:
+    def defan(self, pattern: str) -> int:
         """
         Define the indefinite article as 'an' for words matching pattern.
 
@@ -2113,7 +2149,7 @@ class engine:
         self.A_a_user_defined.extend((pattern, "an"))
         return 1
 
-    def checkpat(self, pattern: Optional[Word]) -> None:
+    def checkpat(self, pattern: Optional[str]) -> None:
         """
         check for errors in a regex pattern
         """
@@ -2122,15 +2158,16 @@ class engine:
         try:
             re.match(pattern, "")
         except re.error:
-            raise BadUserDefinedPatternError(pattern)
+            print3(f"\nBad user-defined singular pattern:\n\t{pattern}\n")
+            raise BadUserDefinedPatternError
 
-    def checkpatplural(self, pattern: Optional[Word]) -> None:
+    def checkpatplural(self, pattern: str) -> None:
         """
         check for errors in a regex replace pattern
         """
         return
 
-    @validate_call
+    @validate_arguments
     def ud_match(self, word: Word, wordlist: Sequence[Optional[Word]]) -> Optional[str]:
         for i in range(len(wordlist) - 2, -2, -2):  # backwards through even elements
             mo = re.search(fr"^{wordlist[i]}$", word, re.IGNORECASE)
@@ -2270,7 +2307,7 @@ class engine:
 
     # 0. PERFORM GENERAL INFLECTIONS IN A STRING
 
-    @validate_call
+    @validate_arguments
     def inflect(self, text: Word) -> str:
         """
         Perform inflections in a string.
@@ -2347,7 +2384,7 @@ class engine:
         else:
             return "", "", ""
 
-    @validate_call
+    @validate_arguments
     def plural(self, text: Word, count: Optional[Union[str, int, Any]] = None) -> str:
         """
         Return the plural of text.
@@ -2371,7 +2408,7 @@ class engine:
         )
         return f"{pre}{plural}{post}"
 
-    @validate_call
+    @validate_arguments
     def plural_noun(
         self, text: Word, count: Optional[Union[str, int, Any]] = None
     ) -> str:
@@ -2392,7 +2429,7 @@ class engine:
         plural = self.postprocess(word, self._plnoun(word, count))
         return f"{pre}{plural}{post}"
 
-    @validate_call
+    @validate_arguments
     def plural_verb(
         self, text: Word, count: Optional[Union[str, int, Any]] = None
     ) -> str:
@@ -2416,7 +2453,7 @@ class engine:
         )
         return f"{pre}{plural}{post}"
 
-    @validate_call
+    @validate_arguments
     def plural_adj(
         self, text: Word, count: Optional[Union[str, int, Any]] = None
     ) -> str:
@@ -2437,7 +2474,7 @@ class engine:
         plural = self.postprocess(word, self._pl_special_adjective(word, count) or word)
         return f"{pre}{plural}{post}"
 
-    @validate_call
+    @validate_arguments
     def compare(self, word1: Word, word2: Word) -> Union[str, bool]:
         """
         compare word1 and word2 for equality regardless of plurality
@@ -2460,15 +2497,15 @@ class engine:
         >>> compare('egg', '')
         Traceback (most recent call last):
         ...
-        pydantic...ValidationError: ...
-        ...
-          ...at least 1 characters...
+        pydantic.error_wrappers.ValidationError: 1 validation error for Compare
+        word2
+          ensure this value has at least 1 characters...
         """
         norms = self.plural_noun, self.plural_verb, self.plural_adj
         results = (self._plequal(word1, word2, norm) for norm in norms)
         return next(filter(None, results), False)
 
-    @validate_call
+    @validate_arguments
     def compare_nouns(self, word1: Word, word2: Word) -> Union[str, bool]:
         """
         compare word1 and word2 for equality regardless of plurality
@@ -2484,7 +2521,7 @@ class engine:
         """
         return self._plequal(word1, word2, self.plural_noun)
 
-    @validate_call
+    @validate_arguments
     def compare_verbs(self, word1: Word, word2: Word) -> Union[str, bool]:
         """
         compare word1 and word2 for equality regardless of plurality
@@ -2500,7 +2537,7 @@ class engine:
         """
         return self._plequal(word1, word2, self.plural_verb)
 
-    @validate_call
+    @validate_arguments
     def compare_adjs(self, word1: Word, word2: Word) -> Union[str, bool]:
         """
         compare word1 and word2 for equality regardless of plurality
@@ -2516,13 +2553,13 @@ class engine:
         """
         return self._plequal(word1, word2, self.plural_adj)
 
-    @validate_call
+    @validate_arguments
     def singular_noun(
         self,
         text: Word,
         count: Optional[Union[int, str, Any]] = None,
         gender: Optional[str] = None,
-    ) -> Union[str, Literal[False]]:
+    ) -> Union[str, bool]:
         """
         Return the singular of text, where text is a plural noun.
 
@@ -2574,12 +2611,12 @@ class engine:
             return "s:p"
         self.classical_dict = classval.copy()
 
-        if same_method(pl, self.plural) or same_method(pl, self.plural_noun):
+        if pl == self.plural or pl == self.plural_noun:
             if self._pl_check_plurals_N(word1, word2):
                 return "p:p"
             if self._pl_check_plurals_N(word2, word1):
                 return "p:p"
-        if same_method(pl, self.plural) or same_method(pl, self.plural_adj):
+        if pl == self.plural or pl == self.plural_adj:
             if self._pl_check_plurals_adj(word1, word2):
                 return "p:p"
         return False
@@ -3229,11 +3266,11 @@ class engine:
 
         if words.last in si_sb_irregular_caps:
             llen = len(words.last)
-            return f"{word[:-llen]}{si_sb_irregular_caps[words.last]}"
+            return "{}{}".format(word[:-llen], si_sb_irregular_caps[words.last])
 
         if words.last.lower() in si_sb_irregular:
             llen = len(words.last.lower())
-            return f"{word[:-llen]}{si_sb_irregular[words.last.lower()]}"
+            return "{}{}".format(word[:-llen], si_sb_irregular[words.last.lower()])
 
         dash_split = words.lowered.split("-")
         if (" ".join(dash_split[-2:])).lower() in si_sb_irregular_compound:
@@ -3304,6 +3341,7 @@ class engine:
         # HANDLE INCOMPLETELY ASSIMILATED IMPORTS
 
         if self.classical_dict["ancient"]:
+
             if words.lowered[-6:] == "trices":
                 return word[:-3] + "x"
             if words.lowered[-4:] in ("eaux", "ieux"):
@@ -3421,6 +3459,7 @@ class engine:
         # HANDLE ...o
 
         if words.lowered[-2:] == "os":
+
             if words.last.lower() in si_sb_U_o_os_complete:
                 return word[:-1]
 
@@ -3450,7 +3489,7 @@ class engine:
 
     # ADJECTIVES
 
-    @validate_call
+    @validate_arguments
     def a(self, text: Word, count: Optional[Union[int, str, Any]] = 1) -> str:
         """
         Return the appropriate indefinite article followed by text.
@@ -3531,7 +3570,7 @@ class engine:
 
     # 2. TRANSLATE ZERO-QUANTIFIED $word TO "no plural($word)"
 
-    @validate_call
+    @validate_arguments
     def no(self, text: Word, count: Optional[Union[int, str]] = None) -> str:
         """
         If count is 0, no, zero or nil, return 'no' followed by the plural
@@ -3569,7 +3608,7 @@ class engine:
 
     # PARTICIPLES
 
-    @validate_call
+    @validate_arguments
     def present_participle(self, word: Word) -> str:
         """
         Return the present participle for word.
@@ -3588,31 +3627,31 @@ class engine:
 
     # NUMERICAL INFLECTIONS
 
-    @validate_call(config=dict(arbitrary_types_allowed=True))
-    def ordinal(self, num: Union[Number, Word]) -> str:
+    @validate_arguments
+    def ordinal(self, num: Union[int, Word]) -> str:  # noqa: C901
         """
         Return the ordinal of num.
 
-        >>> ordinal = engine().ordinal
-        >>> ordinal(1)
-        '1st'
-        >>> ordinal('one')
-        'first'
+        num can be an integer or text
+
+        e.g. ordinal(1) returns '1st'
+        ordinal('one') returns 'first'
+
         """
         if DIGIT.match(str(num)):
-            if isinstance(num, (float, int)) and int(num) == num:
+            if isinstance(num, (int, float)):
                 n = int(num)
             else:
                 if "." in str(num):
                     try:
                         # numbers after decimal,
                         # so only need last one for ordinal
-                        n = int(str(num)[-1])
+                        n = int(num[-1])
 
                     except ValueError:  # ends with '.', so need to use whole string
-                        n = int(str(num)[:-1])
+                        n = int(num[:-1])
                 else:
-                    n = int(num)  # type: ignore
+                    n = int(num)
             try:
                 post = nth[n % 100]
             except KeyError:
@@ -3621,7 +3660,7 @@ class engine:
         else:
             # Mad props to Damian Conway (?) whose ordinal()
             # algorithm is type-bendy enough to foil MyPy
-            str_num: str = num  # type: ignore[assignment]
+            str_num: str = num  # type:	ignore[assignment]
             mo = ordinal_suff.search(str_num)
             if mo:
                 post = ordinal[mo.group(1)]
@@ -3632,6 +3671,7 @@ class engine:
 
     def millfn(self, ind: int = 0) -> str:
         if ind > len(mill) - 1:
+            print3("number out of range")
             raise NumOutOfRangeError
         return mill[ind]
 
@@ -3747,7 +3787,7 @@ class engine:
             num = ONE_DIGIT_WORD.sub(self.unitsub, num, 1)
         return num
 
-    @validate_call(config=dict(arbitrary_types_allowed=True))  # noqa: C901
+    @validate_arguments(config=dict(arbitrary_types_allowed=True))  # noqa: C901
     def number_to_words(  # noqa: C901
         self,
         num: Union[Number, Word],
@@ -3899,7 +3939,7 @@ class engine:
 
     # Join words with commas and a trailing 'and' (when appropriate)...
 
-    @validate_call
+    @validate_arguments
     def join(
         self,
         words: Optional[Sequence[Word]],

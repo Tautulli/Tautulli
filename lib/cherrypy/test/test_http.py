@@ -136,9 +136,6 @@ class HTTPTests(helper.CPWebCase):
         self.assertStatus(200)
         self.assertBody(b'Hello world!')
 
-        response.close()
-        c.close()
-
         # Now send a message that has no Content-Length, but does send a body.
         # Verify that CP times out the socket and responds
         # with 411 Length Required.
@@ -161,9 +158,6 @@ class HTTPTests(helper.CPWebCase):
         self.body = response.fp.read()
         self.status = str(response.status)
         self.assertStatus(411)
-
-        response.close()
-        c.close()
 
     def test_post_multipart(self):
         alphabet = 'abcdefghijklmnopqrstuvwxyz'
@@ -189,9 +183,6 @@ class HTTPTests(helper.CPWebCase):
         self.assertStatus(200)
         parts = ['%s * 65536' % ch for ch in alphabet]
         self.assertBody(', '.join(parts))
-
-        response.close()
-        c.close()
 
     def test_post_filename_with_special_characters(self):
         """Testing that we can handle filenames with special characters.
@@ -225,9 +216,6 @@ class HTTPTests(helper.CPWebCase):
             self.status = str(response.status)
             self.assertStatus(200)
             self.assertBody(fname)
-
-            response.close()
-            c.close()
 
     def test_malformed_request_line(self):
         if getattr(cherrypy.server, 'using_apache', False):
@@ -275,9 +263,6 @@ class HTTPTests(helper.CPWebCase):
         self.assertStatus(400)
         self.body = response.fp.read(20)
         self.assertBody('Illegal header line.')
-
-        response.close()
-        c.close()
 
     def test_http_over_https(self):
         if self.scheme != 'https':

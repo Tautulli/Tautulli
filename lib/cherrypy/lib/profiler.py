@@ -47,9 +47,7 @@ try:
     import pstats
 
     def new_func_strip_path(func_name):
-        """Add ``__init__`` modules' parents.
-
-        This makes the profiler output more readable.
+        """Make profiler output more readable by adding `__init__` modules' parents
         """
         filename, line, name = func_name
         if filename.endswith('__init__.py'):

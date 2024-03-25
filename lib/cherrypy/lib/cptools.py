@@ -622,15 +622,13 @@ def autovary(ignore=None, debug=False):
 
 
 def convert_params(exception=ValueError, error=400):
-    """Convert request params based on function annotations.
+    """Convert request params based on function annotations, with error handling.
 
-    This function also processes errors that are subclasses of ``exception``.
+    exception
+        Exception class to catch.
 
-    :param BaseException exception: Exception class to catch.
-    :type exception: BaseException
-
-    :param error: The HTTP status code to return to the client on failure.
-    :type error: int
+    status
+        The HTTP error code to return to the client on failure.
     """
     request = cherrypy.serving.request
     types = request.handler.callable.__annotations__

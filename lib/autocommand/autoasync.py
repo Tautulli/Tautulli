@@ -20,7 +20,7 @@ from functools import wraps
 from inspect import signature
 
 
-async def _run_forever_coro(coro, args, kwargs, loop):
+def _launch_forever_coro(coro, args, kwargs, loop):
     '''
     This helper function launches an async main function that was tagged with
     forever=True. There are two possibilities:
@@ -48,7 +48,7 @@ async def _run_forever_coro(coro, args, kwargs, loop):
     # forever=True feature from autoasync at some point in the future.
     thing = coro(*args, **kwargs)
     if iscoroutine(thing):
-        await thing
+        loop.create_task(thing)
 
 
 def autoasync(coro=None, *, loop=None, forever=False, pass_loop=False):
@@ -127,9 +127,7 @@ def autoasync(coro=None, *, loop=None, forever=False, pass_loop=False):
             args, kwargs = bound_args.args, bound_args.kwargs
 
         if forever:
-            local_loop.create_task(_run_forever_coro(
-                coro, args, kwargs, local_loop
-            ))
+            _launch_forever_coro(coro, args, kwargs, local_loop)
             local_loop.run_forever()
         else:
             return local_loop.run_until_complete(coro(*args, **kwargs))

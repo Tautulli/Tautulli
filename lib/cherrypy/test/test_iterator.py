@@ -150,8 +150,6 @@ class IteratorTest(helper.CPWebCase):
             self.assertStatus(200)
             self.assertBody('0')
 
-            itr_conn.close()
-
         # Now we do the same check with streaming - some classes will
         # be automatically closed, while others cannot.
         stream_counts = {}
