@@ -238,6 +238,10 @@ def now(sep=False):
     return timestamp_to_YMDHMS(timestamp(), sep=sep)
 
 
+def YMD_to_timestamp(ymd):
+    return datetime.strptime(ymd, "%Y-%m-%d").timestamp()
+
+
 def timestamp_to_YMDHMS(ts, sep=False):
     dt = timestamp_to_datetime(ts)
     if sep:

@@ -367,11 +367,10 @@ class DataFactory(object):
 
     def get_home_stats(self, grouping=None, time_range=30, stats_type='plays',
                        stats_start=0, stats_count=10, stat_id='', stats_cards=None,
-                       section_id=None, user_id=None):
+                       section_id=None, user_id=None, before=None, after=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range)
-        timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
         stats_start = helpers.cast_to_int(stats_start)
         stats_count = helpers.cast_to_int(stats_count)
@@ -381,6 +380,21 @@ class DataFactory(object):
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
         if stats_cards is None:
             stats_cards = plexpy.CONFIG.HOME_STATS_CARDS
+
+        where_timeframe = ''
+        if before:
+            where_timeframe += "AND strftime('%%Y-%%m-%%d', datetime(started, 'unixepoch', 'localtime')) <= '%s' " % before
+            if not after:
+                timestamp = helpers.YMD_to_timestamp(before) - time_range * 24 * 60 * 60
+                where_timeframe += "AND session_history.stopped >= %s " % timestamp
+        if after:
+            where_timeframe += "AND strftime('%%Y-%%m-%%d', datetime(started, 'unixepoch', 'localtime')) >= '%s' " % after
+            if not before:
+                timestamp = helpers.YMD_to_timestamp(after) + time_range * 24 * 60 * 60
+                where_timeframe += "AND session_history.stopped <= %s " % timestamp
+        if not (before and after):
+            timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
+            where_timeframe += "AND session_history.stopped >= %s" % timestamp
 
         where_id = ''
         if section_id:
@@ -404,13 +418,12 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s " \
-                            "       AND session_history.media_type = 'movie' %s " \
+                            "   WHERE session_history.media_type = 'movie' %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "GROUP BY shm.full_title, shm.year " \
                             "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_movies: %s." % e)
@@ -457,13 +470,12 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s " \
-                            "       AND session_history.media_type = 'movie' %s " \
+                            "   WHERE session_history.media_type = 'movie' %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "GROUP BY shm.full_title, shm.year " \
                             "ORDER BY users_watched DESC, %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: popular_movies: %s." % e)
@@ -509,13 +521,12 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s " \
-                            "       AND session_history.media_type = 'episode' %s " \
+                            "   WHERE session_history.media_type = 'episode' %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "GROUP BY shm.grandparent_title " \
                             "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_tv: %s." % e)
@@ -564,13 +575,12 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s " \
-                            "       AND session_history.media_type = 'episode' %s " \
+                            "   WHERE session_history.media_type = 'episode' %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "GROUP BY shm.grandparent_title " \
                             "ORDER BY users_watched DESC, %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: popular_tv: %s." % e)
@@ -615,13 +625,12 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s " \
-                            "       AND session_history.media_type = 'track' %s " \
+                            "   WHERE session_history.media_type = 'track' %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "GROUP BY shm.original_title, shm.grandparent_title " \
                             "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_music: %s." % e)
@@ -669,13 +678,12 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s " \
-                            "       AND session_history.media_type = 'track' %s " \
+                            "   WHERE session_history.media_type = 'track' %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "GROUP BY shm.original_title, shm.grandparent_title " \
                             "ORDER BY users_watched DESC, %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: popular_music: %s." % e)
@@ -726,14 +734,14 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s %s " \
+                            "   WHERE %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN (SELECT * FROM library_sections WHERE deleted_section = 0) " \
                             "   AS ls ON sh.section_id = ls.section_id " \
                             "GROUP BY sh.section_id " \
                             "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe[4:], where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_libraries: %s." % e)
@@ -815,13 +823,13 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s %s " \
+                            "   WHERE %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id " \
                             "GROUP BY sh.user_id " \
                             "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe[4:], where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_users: %s." % e)
@@ -884,11 +892,11 @@ class DataFactory(object):
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
                             "   FROM session_history " \
-                            "   WHERE session_history.stopped >= %s %s " \
+                            "   WHERE %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "GROUP BY sh.platform " \
                             "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (timestamp, where_id, group_by, sort_type, stats_count, stats_start)
+                            "LIMIT %s OFFSET %s " % (where_timeframe[4:], where_id, group_by, sort_type, stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_platforms: %s." % e)
@@ -978,9 +986,8 @@ class DataFactory(object):
                             "   (CASE WHEN duration IS NULL THEN 1.0 ELSE duration * 1.0 END) AS _duration " \
                             "   FROM session_history " \
                             "   JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                            "   WHERE session_history.stopped >= %s " \
-                            "       AND (session_history.media_type = 'movie' " \
-                            "           OR session_history.media_type = 'episode') %s " \
+                            "   WHERE (session_history.media_type = 'movie' " \
+                            "           OR session_history.media_type = 'episode') %s %s " \
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id " \
@@ -988,7 +995,7 @@ class DataFactory(object):
                             "GROUP BY sh.id " \
                             "ORDER BY last_watch DESC " \
                             "LIMIT %s OFFSET %s" % (watched_threshold,
-                                                    timestamp, where_id, group_by, watched_where,
+                                                    where_timeframe, where_id, group_by, watched_where,
                                                     stats_count, stats_start)
                     result = monitor_db.select(query)
                 except Exception as e:
@@ -1076,7 +1083,7 @@ class DataFactory(object):
                     base_query = "SELECT sh.started, sh.stopped " \
                                  "FROM session_history AS sh " \
                                  "JOIN session_history_media_info AS shmi ON sh.id = shmi.id " \
-                                 "WHERE sh.stopped >= %s " % timestamp
+                                 "WHERE %s " % where_timeframe[4:].replace('session_history.', 'sh.')
 
                     title = 'Concurrent Streams'
                     query = base_query

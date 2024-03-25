@@ -6283,7 +6283,7 @@ class WebInterface(object):
     @addtoapi()
     def get_home_stats(self, grouping=None, time_range=30, stats_type='plays',
                        stats_start=0, stats_count=10, stat_id='',
-                       section_id=None, user_id=None, **kwargs):
+                       section_id=None, user_id=None, before=None, after=None, **kwargs):
         """ Get the homepage watch statistics.
 
             ```
@@ -6301,6 +6301,8 @@ class WebInterface(object):
                                         'top_users', 'top_platforms', 'last_watched', 'most_concurrent'
                 section_id (int):       The id of the Plex library section
                 user_id (int):          The id of the Plex user
+                before (str):           Stats before and including the date, "YYYY-MM-DD"
+                after (str):            Stats after and including the date, "YYYY-MM-DD"
 
             Returns:
                 json:
@@ -6384,7 +6386,9 @@ class WebInterface(object):
                                              stats_count=stats_count,
                                              stat_id=stat_id,
                                              section_id=section_id,
-                                             user_id=user_id)
+                                             user_id=user_id,
+                                             before=before,
+                                             after=after)
 
         if result:
             return result
