@@ -227,10 +227,12 @@ def unwrap(s):
     return '\n'.join(cleaned)
 
 
-lorem_ipsum: str = files(__name__).joinpath('Lorem ipsum.txt').read_text()
+lorem_ipsum: str = (
+    files(__name__).joinpath('Lorem ipsum.txt').read_text(encoding='utf-8')
+)
 
 
-class Splitter(object):
+class Splitter:
     """object that will split a string with the given arguments for each call
 
     >>> s = Splitter(',')
@@ -367,7 +369,7 @@ class WordSet(tuple):
         return self.trim_left(item).trim_right(item)
 
     def __getitem__(self, item):
-        result = super(WordSet, self).__getitem__(item)
+        result = super().__getitem__(item)
         if isinstance(item, slice):
             result = WordSet(result)
         return result
@@ -582,7 +584,7 @@ def join_continuation(lines):
     ['foobarbaz']
 
     Not sure why, but...
-    The character preceeding the backslash is also elided.
+    The character preceding the backslash is also elided.
 
     >>> list(join_continuation(['goo\\', 'dly']))
     ['godly']
@@ -607,16 +609,16 @@ def read_newlines(filename, limit=1024):
     r"""
     >>> tmp_path = getfixture('tmp_path')
     >>> filename = tmp_path / 'out.txt'
-    >>> _ = filename.write_text('foo\n', newline='')
+    >>> _ = filename.write_text('foo\n', newline='', encoding='utf-8')
     >>> read_newlines(filename)
     '\n'
-    >>> _ = filename.write_text('foo\r\n', newline='')
+    >>> _ = filename.write_text('foo\r\n', newline='', encoding='utf-8')
     >>> read_newlines(filename)
     '\r\n'
-    >>> _ = filename.write_text('foo\r\nbar\nbing\r', newline='')
+    >>> _ = filename.write_text('foo\r\nbar\nbing\r', newline='', encoding='utf-8')
     >>> read_newlines(filename)
     ('\r', '\n', '\r\n')
     """
-    with open(filename) as fp:
+    with open(filename, encoding='utf-8') as fp:
         fp.read(limit)
     return fp.newlines

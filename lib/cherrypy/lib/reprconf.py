@@ -188,7 +188,7 @@ class Parser(configparser.ConfigParser):
 
     def dict_from_file(self, file):
         if hasattr(file, 'read'):
-            self.readfp(file)
+            self.read_file(file)
         else:
             self.read(file)
         return self.as_dict()

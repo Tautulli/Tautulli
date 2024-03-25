@@ -494,7 +494,7 @@ class Bus(object):
                     "Cannot reconstruct command from '-c'. "
                     'Ref: https://github.com/cherrypy/cherrypy/issues/1545')
         except AttributeError:
-            """It looks Py_GetArgcArgv is completely absent in some environments
+            """It looks Py_GetArgcArgv's completely absent in some environments
 
             It is known, that there's no Py_GetArgcArgv in MS Windows and
             ``ctypes`` module is completely absent in Google AppEngine

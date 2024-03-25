@@ -5,9 +5,26 @@ import itertools
 import copy
 import functools
 import random
+from collections.abc import Container, Iterable, Mapping
+from typing import Callable, Union
 
-from jaraco.classes.properties import NonDataProperty
 import jaraco.text
+
+
+_Matchable = Union[Callable, Container, Iterable, re.Pattern]
+
+
+def _dispatch(obj: _Matchable) -> Callable:
+    # can't rely on singledispatch for Union[Container, Iterable]
+    # due to ambiguity
+    # (https://peps.python.org/pep-0443/#abstract-base-classes).
+    if isinstance(obj, re.Pattern):
+        return obj.fullmatch
+    if not isinstance(obj, Callable):  # type: ignore
+        if not isinstance(obj, Container):
+            obj = set(obj)  # type: ignore
+        obj = obj.__contains__
+    return obj  # type: ignore
 
 
 class Projection(collections.abc.Mapping):
@@ -16,12 +33,21 @@ class Projection(collections.abc.Mapping):
 
     >>> sample = {'a': 1, 'b': 2, 'c': 3}
     >>> prj = Projection(['a', 'c', 'd'], sample)
-    >>> prj == {'a': 1, 'c': 3}
+    >>> dict(prj)
+    {'a': 1, 'c': 3}
+
+    Projection also accepts an iterable or callable or pattern.
+
+    >>> iter_prj = Projection(iter('acd'), sample)
+    >>> call_prj = Projection(lambda k: ord(k) in (97, 99, 100), sample)
+    >>> pat_prj = Projection(re.compile(r'[acd]'), sample)
+    >>> prj == iter_prj == call_prj == pat_prj
     True
 
     Keys should only appear if they were specified and exist in the space.
+    Order is retained.
 
-    >>> sorted(list(prj.keys()))
+    >>> list(prj)
     ['a', 'c']
 
     Attempting to access a key not in the projection
@@ -36,119 +62,58 @@ class Projection(collections.abc.Mapping):
 
     >>> target = {'a': 2, 'b': 2}
     >>> target.update(prj)
-    >>> target == {'a': 1, 'b': 2, 'c': 3}
-    True
+    >>> target
+    {'a': 1, 'b': 2, 'c': 3}
 
-    Also note that Projection keeps a reference to the original dict, so
-    if you modify the original dict, that could modify the Projection.
+    Projection keeps a reference to the original dict, so
+    modifying the original dict may modify the Projection.
 
     >>> del sample['a']
     >>> dict(prj)
     {'c': 3}
     """
 
-    def __init__(self, keys, space):
-        self._keys = tuple(keys)
+    def __init__(self, keys: _Matchable, space: Mapping):
+        self._match = _dispatch(keys)
         self._space = space
 
     def __getitem__(self, key):
-        if key not in self._keys:
+        if not self._match(key):
             raise KeyError(key)
         return self._space[key]
 
+    def _keys_resolved(self):
+        return filter(self._match, self._space)
+
     def __iter__(self):
-        return iter(set(self._keys).intersection(self._space))
+        return self._keys_resolved()
 
     def __len__(self):
-        return len(tuple(iter(self)))
+        return len(tuple(self._keys_resolved()))
 
 
-class DictFilter(collections.abc.Mapping):
+class Mask(Projection):
     """
-    Takes a dict, and simulates a sub-dict based on the keys.
+    The inverse of a :class:`Projection`, masking out keys.
 
     >>> sample = {'a': 1, 'b': 2, 'c': 3}
-    >>> filtered = DictFilter(sample, ['a', 'c'])
-    >>> filtered == {'a': 1, 'c': 3}
-    True
-    >>> set(filtered.values()) == {1, 3}
-    True
-    >>> set(filtered.items()) == {('a', 1), ('c', 3)}
-    True
-
-    One can also filter by a regular expression pattern
-
-    >>> sample['d'] = 4
-    >>> sample['ef'] = 5
-
-    Here we filter for only single-character keys
-
-    >>> filtered = DictFilter(sample, include_pattern='.$')
-    >>> filtered == {'a': 1, 'b': 2, 'c': 3, 'd': 4}
-    True
-
-    >>> filtered['e']
-    Traceback (most recent call last):
-    ...
-    KeyError: 'e'
-
-    >>> 'e' in filtered
-    False
-
-    Pattern is useful for excluding keys with a prefix.
-
-    >>> filtered = DictFilter(sample, include_pattern=r'(?![ace])')
-    >>> dict(filtered)
-    {'b': 2, 'd': 4}
-
-    Also note that DictFilter keeps a reference to the original dict, so
-    if you modify the original dict, that could modify the filtered dict.
-
-    >>> del sample['d']
-    >>> dict(filtered)
+    >>> msk = Mask(['a', 'c', 'd'], sample)
+    >>> dict(msk)
     {'b': 2}
     """
 
-    def __init__(self, dict, include_keys=[], include_pattern=None):
-        self.dict = dict
-        self.specified_keys = set(include_keys)
-        if include_pattern is not None:
-            self.include_pattern = re.compile(include_pattern)
-        else:
-            # for performance, replace the pattern_keys property
-            self.pattern_keys = set()
-
-    def get_pattern_keys(self):
-        keys = filter(self.include_pattern.match, self.dict.keys())
-        return set(keys)
-
-    pattern_keys = NonDataProperty(get_pattern_keys)
-
-    @property
-    def include_keys(self):
-        return self.specified_keys | self.pattern_keys
-
-    def __getitem__(self, i):
-        if i not in self.include_keys:
-            raise KeyError(i)
-        return self.dict[i]
-
-    def __iter__(self):
-        return filter(self.include_keys.__contains__, self.dict.keys())
-
-    def __len__(self):
-        return len(list(self))
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # self._match = compose(operator.not_, self._match)
+        self._match = lambda key, orig=self._match: not orig(key)
 
 
 def dict_map(function, dictionary):
     """
-    dict_map is much like the built-in function map.  It takes a dictionary
-    and applys a function to the values of that dictionary, returning a
-    new dictionary with the mapped values in the original keys.
+    Return a new dict with function applied to values of dictionary.
 
-    >>> d = dict_map(lambda x:x+1, dict(a=1, b=2))
-    >>> d == dict(a=2,b=3)
-    True
+    >>> dict_map(lambda x: x+1, dict(a=1, b=2))
+    {'a': 2, 'b': 3}
     """
     return dict((key, function(value)) for key, value in dictionary.items())
 
@@ -164,7 +129,7 @@ class RangeMap(dict):
     One may supply keyword parameters to be passed to the sort function used
     to sort keys (i.e. key, reverse) as sort_params.
 
-    Let's create a map that maps 1-3 -> 'a', 4-6 -> 'b'
+    Create a map that maps 1-3 -> 'a', 4-6 -> 'b'
 
     >>> r = RangeMap({3: 'a', 6: 'b'})  # boy, that was easy
     >>> r[1], r[2], r[3], r[4], r[5], r[6]
@@ -176,7 +141,7 @@ class RangeMap(dict):
     >>> r[4.5]
     'b'
 
-    But you'll notice that the way rangemap is defined, it must be open-ended
+    Notice that the way rangemap is defined, it must be open-ended
     on one side.
 
     >>> r[0]
@@ -279,7 +244,7 @@ class RangeMap(dict):
         return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
     # some special values for the RangeMap
-    undefined_value = type(str('RangeValueUndefined'), (), {})()
+    undefined_value = type('RangeValueUndefined', (), {})()
 
     class Item(int):
         "RangeMap Item"
@@ -294,7 +259,7 @@ def __identity(x):
 
 def sorted_items(d, key=__identity, reverse=False):
     """
-    Return the items of the dictionary sorted by the keys
+    Return the items of the dictionary sorted by the keys.
 
     >>> sample = dict(foo=20, bar=42, baz=10)
     >>> tuple(sorted_items(sample))
@@ -307,6 +272,7 @@ def sorted_items(d, key=__identity, reverse=False):
     >>> tuple(sorted_items(sample, reverse=True))
     (('foo', 20), ('baz', 10), ('bar', 42))
     """
+
     # wrap the key func so it operates on the first element of each item
     def pairkey_key(item):
         return key(item[0])
@@ -475,7 +441,7 @@ class ItemsAsAttributes:
     Mix-in class to enable a mapping object to provide items as
     attributes.
 
-    >>> C = type(str('C'), (dict, ItemsAsAttributes), dict())
+    >>> C = type('C', (dict, ItemsAsAttributes), dict())
     >>> i = C()
     >>> i['foo'] = 'bar'
     >>> i.foo
@@ -504,7 +470,7 @@ class ItemsAsAttributes:
 
     >>> missing_func = lambda self, key: 'missing item'
     >>> C = type(
-    ...     str('C'),
+    ...     'C',
     ...     (dict, ItemsAsAttributes),
     ...     dict(__missing__ = missing_func),
     ... )
