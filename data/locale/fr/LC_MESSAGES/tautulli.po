@@ -2,9 +2,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-04 21:35-0700\n"
-"PO-Revision-Date: 2021-06-05 04:48+0000\n"
-"Last-Translator: JonnyWong16 <9099342+JonnyWong16@users.noreply.github.com>\n"
+"POT-Creation-Date: 2021-06-05 00:01-0700\n"
+"PO-Revision-Date: 2021-06-08 15:32+0000\n"
+"Last-Translator: J. Lavoie <j.lavoie@net-c.ca>\n"
 "Language-Team: French <https://hosted.weblate.org/projects/tautulli/tautulli/"
 "fr/>\n"
 "Language: fr\n"
@@ -14,50 +14,80 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Generator: Weblate 4.7-dev\n"
 
-msgid "base.nav.libraries"
-msgstr "Bibliothèques"
+msgid "base.nav.check_for_updates"
+msgstr "Vérifier les mises à jour"
 
-msgid "base.nav.users"
-msgstr "Utilisateurs"
-
-msgid "base.nav.history"
-msgstr "Historique"
+msgid "base.nav.donate"
+msgstr "Faire un don"
 
 msgid "base.nav.graphs"
 msgstr "Graphiques"
 
+msgid "base.nav.history"
+msgstr "Historique"
+
+msgid "base.nav.libraries"
+msgstr "Bibliothèques"
+
+msgid "base.nav.restart"
+msgstr "Redémarrer"
+
+msgid "base.nav.settings"
+msgstr "Paramètres"
+
+msgid "base.nav.shutdown"
+msgstr "Éteindre"
+
+msgid "base.nav.support"
+msgstr "Assistance"
+
 msgid "base.nav.synced_items"
 msgstr "Éléments synchronisés"
 
-msgid "base.nav.settings"
-msgstr ""
+msgid "base.nav.users"
+msgstr "Utilisateurs"
 
 msgid "base.nav.view_logs"
-msgstr ""
+msgstr "Afficher les journaux"
 
-msgid "base.nav.support"
-msgstr ""
+msgid "global.cancel"
+msgstr "Annuler"
 
-msgid "base.nav.donate"
-msgstr ""
+msgid "global.confirm"
+msgstr "Confirmer"
 
-msgid "base.nav.check_for_updates"
-msgstr ""
+msgid "login.admin_login"
+msgstr "Connexion admin"
 
-msgid "base.nav.restart"
-msgstr ""
+msgid "login.error_plex_communication"
+msgstr "Erreur de communication avec Plex.tv."
 
-msgid "base.nav.shutdown"
-msgstr ""
+msgid "login.error_plex_invalid"
+msgstr "Connexion Plex invalide."
 
-msgid "base.nav.admin_login"
-msgstr ""
+msgid "login.error_retry"
+msgstr "`Trop de tentatives de connexion. Réessayez dans ${retry} minute(s).`"
 
-msgid "base.nav.sign_out"
-msgstr ""
+msgid "login.error_tautulli_invalid"
+msgstr "Nom d'utilisateur ou mot de passe incorrect."
+
+msgid "login.password"
+msgstr "Mot de passe"
 
 msgid "login.remember_me"
-msgstr ""
+msgstr "Se souvenir de moi"
 
 msgid "login.sign_in"
-msgstr ""
+msgstr "Se connecter"
+
+msgid "login.sign_in_plex"
+msgstr "Se connecter avec Plex"
+
+msgid "login.sign_in_tautulli"
+msgstr "Se connecter avec Tautulli"
+
+msgid "login.sign_out"
+msgstr "Se déconnecter"
+
+msgid "login.username"
+msgstr "Nom d'utilisateur"
