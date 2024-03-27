@@ -19,6 +19,7 @@ data['children_list'] :: Usable paramaters
 == Global keys ==
 rating_key              Returns the unique identifier for the media item.
 media_index             Returns the episode number.
+originally_available_at Returns the air date of the item.
 title                   Returns the name of the episode.
 thumb                   Returns the location of the item's thumbnail. Use with pms_image_proxy.
 parent_thumb            Returns the location of the item's parent thumbnail. Use with pms_image_proxy.
@@ -28,7 +29,7 @@ DOCUMENTATION :: END
 
 % if data != None:
 <%
-    from plexpy.helpers import cast_to_int, page, short_season
+    from plexpy.helpers import cast_to_int, page, short_season, format_date_based_show
 %>
 % if data['children_count'] > 0:
 <div class="item-children-wrapper">
@@ -176,7 +177,7 @@ DOCUMENTATION :: END
                     <div class="item-children-poster-face episode-item" style="background-image: url(${page('pms_image_proxy', child['thumb'], child['rating_key'], 500, 280, fallback='art')});">
                         <div class="item-children-card-overlay">
                             <div class="item-children-overlay-text">
-                                Episode ${child['media_index'] or child['originally_available_at']}
+                                Episode ${child['media_index'] or format_date_based_show(child['originally_available_at'])}
                             </div>
                         </div>
                     </div>
