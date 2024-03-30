@@ -17,7 +17,7 @@ ga4mp==2.0.4
 gntp==1.0.3
 html5lib==1.1
 httpagentparser==1.9.5
-idna==3.4
+idna==3.6
 importlib-metadata==7.1.0
 importlib-resources==6.4.0
 git+https://github.com/Tautulli/ipwhois.git@master#egg=ipwhois
