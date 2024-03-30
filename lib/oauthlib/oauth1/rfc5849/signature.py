@@ -37,14 +37,14 @@ should have no impact on properly behaving programs.
 import binascii
 import hashlib
 import hmac
+import ipaddress
 import logging
+import urllib.parse as urlparse
 import warnings
 
 from oauthlib.common import extract_params, safe_string_equals, urldecode
-import urllib.parse as urlparse
 
 from . import utils
-
 
 log = logging.getLogger(__name__)
 
@@ -131,7 +131,12 @@ def base_string_uri(uri: str, host: str = None) -> str:
         raise ValueError('uri must be a string.')
 
     # FIXME: urlparse does not support unicode
-    scheme, netloc, path, params, query, fragment = urlparse.urlparse(uri)
+    output = urlparse.urlparse(uri)
+    scheme = output.scheme
+    hostname = output.hostname
+    port = output.port
+    path = output.path
+    params = output.params
 
     # The scheme, authority, and path of the request resource URI `RFC3986`
     # are included by constructing an "http" or "https" URI representing
@@ -153,13 +158,22 @@ def base_string_uri(uri: str, host: str = None) -> str:
 
     # 1.  The scheme and host MUST be in lowercase.
     scheme = scheme.lower()
-    netloc = netloc.lower()
     # Note: if ``host`` is used, it will be converted to lowercase below
+    if hostname is not None:
+        hostname = hostname.lower()
 
     # 2.  The host and port values MUST match the content of the HTTP
     #     request "Host" header field.
     if host is not None:
-        netloc = host.lower()  # override value in uri with provided host
+        # NOTE: override value in uri with provided host
+        # Host argument is equal to netloc. It means it's missing scheme.
+        # Add it back, before parsing.
+
+        host = host.lower()
+        host = f"{scheme}://{host}"
+        output = urlparse.urlparse(host)
+        hostname = output.hostname
+        port = output.port
 
     # 3.  The port MUST be included if it is not the default port for the
     #     scheme, and MUST be excluded if it is the default.  Specifically,
@@ -170,33 +184,28 @@ def base_string_uri(uri: str, host: str = None) -> str:
     # .. _`RFC2616`: https://tools.ietf.org/html/rfc2616
     # .. _`RFC2818`: https://tools.ietf.org/html/rfc2818
 
-    if ':' in netloc:
-        # Contains a colon ":", so try to parse as "host:port"
+    if hostname is None:
+        raise ValueError('missing host')
 
-        hostname, port_str = netloc.split(':', 1)
+    # NOTE: Try guessing if we're dealing with IP or hostname
+    try:
+        hostname = ipaddress.ip_address(hostname)
+    except ValueError:
+        pass
 
-        if len(hostname) == 0:
-            raise ValueError('missing host')  # error: netloc was ":port" or ":"
+    if isinstance(hostname, ipaddress.IPv6Address):
+        hostname = f"[{hostname}]"
+    elif isinstance(hostname, ipaddress.IPv4Address):
+        hostname = f"{hostname}"
 
-        if len(port_str) == 0:
-            netloc = hostname  # was "host:", so just use the host part
-        else:
-            try:
-                port_num = int(port_str)  # try to parse into an integer number
-            except ValueError:
-                raise ValueError('port is not an integer')
-
-            if port_num <= 0 or 65535 < port_num:
-                raise ValueError('port out of range')  # 16-bit unsigned ints
-            if (scheme, port_num) in (('http', 80), ('https', 443)):
-                netloc = hostname  # default port for scheme: exclude port num
-            else:
-                netloc = hostname + ':' + str(port_num)  # use hostname:port
+    if port is not None and not (0 < port <= 65535):
+        raise ValueError('port out of range')  # 16-bit unsigned ints
+    if (scheme, port) in (('http', 80), ('https', 443)):
+        netloc = hostname  # default port for scheme: exclude port num
+    elif port:
+        netloc = f"{hostname}:{port}"  # use hostname:port
     else:
-        # Does not contain a colon, so entire value must be the hostname
-
-        if len(netloc) == 0:
-            raise ValueError('missing host')  # error: netloc was empty string
+        netloc = hostname
 
     v = urlparse.urlunparse((scheme, netloc, path, params, '', ''))
 

@@ -257,6 +257,7 @@ def get_token_from_header(request):
 
 
 class TokenBase:
+    __slots__ = ()
 
     def __call__(self, request, refresh_token=False):
         raise NotImplementedError('Subclasses must implement this method.')

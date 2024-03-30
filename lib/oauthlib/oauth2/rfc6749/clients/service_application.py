@@ -31,7 +31,7 @@ class ServiceApplicationClient(Client):
 
     def __init__(self, client_id, private_key=None, subject=None, issuer=None,
                  audience=None, **kwargs):
-        """Initalize a JWT client with defaults for implicit use later.
+        """Initialize a JWT client with defaults for implicit use later.
 
         :param client_id: Client identifier given by the OAuth provider upon
                           registration.
@@ -99,7 +99,7 @@ class ServiceApplicationClient(Client):
         :param extra_claims: A dict of additional claims to include in the JWT.
 
         :param body: Existing request body (URL encoded string) to embed parameters
-                     into. This may contain extra paramters. Default ''.
+                     into. This may contain extra parameters. Default ''.
 
         :param scope: The scope of the access request.
 

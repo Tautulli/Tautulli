@@ -4,7 +4,9 @@ authlib.openid.connect.core.tokens
 
 This module contains methods for adding JWT tokens to requests.
 """
-from oauthlib.oauth2.rfc6749.tokens import TokenBase, random_token_generator, get_token_from_header
+from oauthlib.oauth2.rfc6749.tokens import (
+    TokenBase, get_token_from_header, random_token_generator,
+)
 
 
 class JWTToken(TokenBase):

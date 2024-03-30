@@ -5,12 +5,11 @@ oauthlib.oauth2.rfc8628
 This module is an implementation of various logic needed
 for consuming and providing OAuth 2.0 Device Authorization RFC8628.
 """
-
+from oauthlib.common import add_params_to_uri
 from oauthlib.oauth2 import BackendApplicationClient, Client
 from oauthlib.oauth2.rfc6749.errors import InsecureTransportError
 from oauthlib.oauth2.rfc6749.parameters import prepare_token_request
 from oauthlib.oauth2.rfc6749.utils import is_secure_transport, list_to_scope
-from oauthlib.common import add_params_to_uri
 
 
 class DeviceClient(Client):
@@ -62,7 +61,7 @@ class DeviceClient(Client):
         body.
 
         :param body: Existing request body (URL encoded string) to embed parameters
-                     into. This may contain extra paramters. Default ''.
+                     into. This may contain extra parameters. Default ''.
         :param scope:   The scope of the access request as described by
                         `Section 3.3`_.
 
@@ -84,6 +83,8 @@ class DeviceClient(Client):
             >>> client.prepare_request_body(scope=['hello', 'world'])
             'grant_type=urn:ietf:params:oauth:grant-type:device_code&scope=hello+world'
 
+        .. _`Section 3.2.1`: https://datatracker.ietf.org/doc/html/rfc6749#section-3.2.1
+        .. _`Section 3.3`: https://datatracker.ietf.org/doc/html/rfc6749#section-3.3
         .. _`Section 3.4`: https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
         """
 
