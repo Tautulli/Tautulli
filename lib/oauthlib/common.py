@@ -18,11 +18,9 @@ from urllib.parse import (
 from . import get_debug
 
 try:
-    from secrets import randbits
-    from secrets import SystemRandom
+    from secrets import SystemRandom, randbits
 except ImportError:
-    from random import getrandbits as randbits
-    from random import SystemRandom
+    from random import SystemRandom, getrandbits as randbits
 
 UNICODE_ASCII_CHARACTER_SET = ('abcdefghijklmnopqrstuvwxyz'
                                'ABCDEFGHIJKLMNOPQRSTUVWXYZ'

@@ -84,7 +84,7 @@ class AuthorizationTokenGrantDispatcher(Dispatcher):
         code = parameters.get('code', None)
         redirect_uri = parameters.get('redirect_uri', None)
 
-        # If code is not pressent fallback to `default_grant` which will
+        # If code is not present fallback to `default_grant` which will
         # raise an error for the missing `code` in `create_token_response` step.
         if code:
             scopes = self.request_validator.get_authorization_code_scopes(client_id, code, redirect_uri, request)

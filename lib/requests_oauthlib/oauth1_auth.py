@@ -1,20 +1,15 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import logging
 
 from oauthlib.common import extract_params
 from oauthlib.oauth1 import Client, SIGNATURE_HMAC, SIGNATURE_TYPE_AUTH_HEADER
 from oauthlib.oauth1 import SIGNATURE_TYPE_BODY
-from requests.compat import is_py3
 from requests.utils import to_native_string
 from requests.auth import AuthBase
 
 CONTENT_TYPE_FORM_URLENCODED = "application/x-www-form-urlencoded"
 CONTENT_TYPE_MULTI_PART = "multipart/form-data"
 
-if is_py3:
-    unicode = str
 
 log = logging.getLogger(__name__)
 
@@ -83,7 +78,7 @@ class OAuth1(AuthBase):
             or self.client.signature_type == SIGNATURE_TYPE_BODY
         ):
             content_type = CONTENT_TYPE_FORM_URLENCODED
-        if not isinstance(content_type, unicode):
+        if not isinstance(content_type, str):
             content_type = content_type.decode("utf-8")
 
         is_form_encoded = CONTENT_TYPE_FORM_URLENCODED in content_type
@@ -96,17 +91,17 @@ class OAuth1(AuthBase):
         if is_form_encoded:
             r.headers["Content-Type"] = CONTENT_TYPE_FORM_URLENCODED
             r.url, headers, r.body = self.client.sign(
-                unicode(r.url), unicode(r.method), r.body or "", r.headers
+                str(r.url), str(r.method), r.body or "", r.headers
             )
         elif self.force_include_body:
             # To allow custom clients to work on non form encoded bodies.
             r.url, headers, r.body = self.client.sign(
-                unicode(r.url), unicode(r.method), r.body or "", r.headers
+                str(r.url), str(r.method), r.body or "", r.headers
             )
         else:
             # Omit body data in the signing of non form-encoded requests
             r.url, headers, _ = self.client.sign(
-                unicode(r.url), unicode(r.method), None, r.headers
+                str(r.url), str(r.method), None, r.headers
             )
 
         r.prepare_headers(headers)

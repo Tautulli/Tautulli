@@ -1,14 +1,12 @@
 import json
 
-from oauthlib.common import to_unicode
-
 
 def douban_compliance_fix(session):
     def fix_token_type(r):
         token = json.loads(r.text)
         token.setdefault("token_type", "Bearer")
         fixed_token = json.dumps(token)
-        r._content = to_unicode(fixed_token).encode("utf-8")
+        r._content = fixed_token.encode()
         return r
 
     session._client_default_token_placement = "query"
