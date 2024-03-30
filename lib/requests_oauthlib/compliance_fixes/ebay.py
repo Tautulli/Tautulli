@@ -1,5 +1,4 @@
 import json
-from oauthlib.common import to_unicode
 
 
 def ebay_compliance_fix(session):
@@ -13,7 +12,7 @@ def ebay_compliance_fix(session):
         if token.get("token_type") in ["Application Access Token", "User Access Token"]:
             token["token_type"] = "Bearer"
             fixed_token = json.dumps(token)
-            response._content = to_unicode(fixed_token).encode("utf-8")
+            response._content = fixed_token.encode()
 
         return response
 

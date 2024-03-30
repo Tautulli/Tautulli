@@ -1,7 +1,4 @@
-try:
-    from urlparse import urlparse, parse_qs
-except ImportError:
-    from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs
 
 from oauthlib.common import add_params_to_uri
 
