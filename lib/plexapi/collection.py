@@ -503,6 +503,8 @@ class Collection(
                 :class:`~plexapi.collection.Collection`: A new instance of the created Collection.
         """
         if smart:
+            if items:
+                raise BadRequest('Cannot create a smart collection with items.')
             return cls._createSmart(server, title, section, limit, libtype, sort, filters, **kwargs)
         else:
             return cls._create(server, title, section, items)

@@ -434,6 +434,8 @@ class Playlist(
         if m3ufilepath:
             return cls._createFromM3U(server, title, section, m3ufilepath)
         elif smart:
+            if items:
+                raise BadRequest('Cannot create a smart playlist with items.')
             return cls._createSmart(server, title, section, limit, libtype, sort, filters, **kwargs)
         else:
             return cls._create(server, title, items)

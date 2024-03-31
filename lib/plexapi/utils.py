@@ -136,6 +136,19 @@ def registerPlexObject(cls):
     return cls
 
 
+def getPlexObject(ehash, default):
+    """ Return the PlexObject class for the specified ehash. This recursively looks up the class
+        with the highest specificity, falling back to the default class if not found.
+    """
+    cls = PLEXOBJECTS.get(ehash)
+    if cls is not None:
+        return cls
+    if '.' in ehash:
+        ehash = ehash.rsplit('.', 1)[0]
+        return getPlexObject(ehash, default=default)
+    return PLEXOBJECTS.get(default)
+
+
 def cast(func, value):
     """ Cast the specified value to the specified type (returned by func). Currently this
         only support str, int, float, bool. Should be extended if needed.
