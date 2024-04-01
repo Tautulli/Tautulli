@@ -1,4 +1,4 @@
-# This file is part of Tautulli.
+﻿# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -139,7 +139,7 @@ class ActivityHandler(object):
 
         logger.debug("Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
                         % (str(self.session['session_key']), str(self.session['user_id']), self.session['username'],
-                        str(self.session['rating_key']), self.session['full_title'], '[Live TV]' if self.session['live'] else ''))
+                        str(self.session['rating_key']), self.session['full_title'], ' [Live TV]' if self.session['live'] else ''))
 
         # Write the new session to our temp session table
         self.update_db_session(notify=True)
