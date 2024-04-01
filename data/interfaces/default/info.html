@@ -408,8 +408,8 @@ DOCUMENTATION :: END
                                 % endif
                             </div>
                             <div class="summary-content-details-tag" id="channel-icon">
-                                % if media_info['channel_identifier']:
-                                Channel <strong> <span class="thumb-tooltip" data-toggle="popover" data-img="${media_info['channel_thumb']}" data-height="40" data-width="40">${media_info['channel_call_sign']} ${media_info['channel_identifier']}</span> </strong>
+                                % if media_info['channel_vcn']:
+                                Channel <strong> <span class="thumb-tooltip" data-toggle="popover" data-img="${media_info['channel_thumb']}" data-height="40" data-width="40">${media_info['channel_title'] or (media_info['channel_vcn'] + ' ' + media_info['channel_call_sign'])}</span> </strong>
                                 % endif
                             </div>
                         </div>
