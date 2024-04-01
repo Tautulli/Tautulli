@@ -147,6 +147,23 @@ class PmsConnect(object):
 
         return request
 
+    def get_epg_metadata(self, epg_key='', output_format=''):
+        """
+        Return epg metadata for request item.
+
+        Parameters required:    epg_key { Plex key }
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = epg_key
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format,
+                                                    raise_errors=False)
+
+        return request
+
     def get_metadata_children(self, rating_key='', collection=False, output_format=''):
         """
         Return metadata for children of the request item.
@@ -515,6 +532,22 @@ class PmsConnect(object):
 
         return request
 
+    def get_dvrs(self, output_format=''):
+        """
+        Return Plex dvrs.
+
+        Parameters required:
+        Optional parameters:    output_format { dict, json }
+
+        Output: array
+        """
+        uri = '/livetv/dvrs'
+        request = self.request_handler.make_request(uri=uri,
+                                                    request_type='GET',
+                                                    output_format=output_format)
+
+        return request
+
     def get_recently_added_details(self, start='0', count='0',  media_type='', section_id=''):
         """
         Return processed and validated list of recently added items.
@@ -654,7 +687,7 @@ class PmsConnect(object):
 
         return output
 
-    def get_metadata_details(self, rating_key='', sync_id='', plex_guid='', section_id='',
+    def get_metadata_details(self, rating_key='', sync_id='', plex_guid='', epg_key='', section_id='',
                              skip_cache=False, cache_key=None, return_cache=False, media_info=True):
         """
         Return processed and validated metadata list for requested item.
@@ -692,6 +725,8 @@ class PmsConnect(object):
             rating_key = plex_guid.rsplit('/', 1)[-1]
             plextv_metadata = PmsConnect(url='https://metadata.provider.plex.tv', token=plexpy.CONFIG.PMS_TOKEN)
             metadata_xml = plextv_metadata.get_metadata(rating_key, output_format='xml')
+        elif epg_key:
+            metadata_xml = self.get_epg_metadata(epg_key, output_format='xml')
         else:
             return metadata
 
@@ -912,7 +947,10 @@ class PmsConnect(object):
             show_details = {}
             if plex_guid and parent_guid:
                 show_details = self.get_metadata_details(plex_guid=parent_guid)
-            elif not plex_guid and parent_rating_key:
+            elif epg_key and parent_guid:
+                epg_key_root = epg_key.rsplit('/', maxsplit=1)[0]
+                show_details = self.get_metadata_details(epg_key=f"{epg_key_root}/{quote_plus(parent_guid)}")
+            elif not plex_guid and not epg_key and parent_rating_key:
                 show_details = self.get_metadata_details(parent_rating_key)
 
             metadata = {'media_type': metadata_type,
@@ -976,6 +1014,9 @@ class PmsConnect(object):
             show_details = {}
             if plex_guid and grandparent_guid:
                 show_details = self.get_metadata_details(plex_guid=grandparent_guid)
+            elif epg_key and grandparent_guid:
+                epg_key_root = epg_key.rsplit('/', maxsplit=1)[0]
+                show_details = self.get_metadata_details(epg_key=f"{epg_key_root}/{quote_plus(grandparent_guid)}")
             elif not plex_guid and grandparent_rating_key:
                 show_details = self.get_metadata_details(grandparent_rating_key)
 
@@ -984,7 +1025,7 @@ class PmsConnect(object):
             parent_thumb = helpers.get_xml_attr(metadata_main, 'parentThumb')
             season_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
 
-            if not plex_guid and not parent_rating_key:
+            if not plex_guid and not epg_key and not parent_rating_key:
                 # Try getting the parent_rating_key from the parent_thumb
                 if parent_thumb.startswith('/library/metadata/'):
                     parent_rating_key = parent_thumb.split('/')[3]
@@ -1474,8 +1515,28 @@ class PmsConnect(object):
         else:
             return metadata
 
+        # Get additional metadata EPG provider
+        epg_metadata = None
+        if not epg_key and metadata['live']:
+            metadata['section_id'] = common.LIVE_TV_SECTION_ID
+            metadata['library_name'] = common.LIVE_TV_SECTION_NAME
+
+            # Don't know the DVR key so need to try them all
+            for dvr in self.get_dvrs_list():
+                epg_metadata = self.get_metadata_details(epg_key=f"/{dvr['epg_identifier']}/metadata/{quote_plus(metadata['guid'])}", media_info=True)
+                if epg_metadata:
+                    metadata['epg_identifier'] = dvr['epg_identifier']
+                    keys_to_update = [
+                        'content_rating', 'summary', 'duration', 'guid',
+                        'grandparent_title', 'grandparent_thumb', 'grandparent_guid',
+                        'parent_title', 'parent_thumb', 'parent_guid'
+                    ]
+                    for key in keys_to_update:
+                        metadata[key] = epg_metadata[key]
+                    metadata['originally_available_at'] = helpers.timestamp_to_YMDHMS(epg_metadata['media_info'][0]['begins_at'], sep=True, ymd=True)
+                    break
         # Get additional metadata from metadata.provider.plex.tv
-        if not plex_guid and metadata['live']:
+        elif not plex_guid and metadata['live']:
             metadata['section_id'] = common.LIVE_TV_SECTION_ID
             metadata['library_name'] = common.LIVE_TV_SECTION_NAME
 
@@ -1577,7 +1638,7 @@ class PmsConnect(object):
 
                 audio_channels = helpers.get_xml_attr(media, 'audioChannels')
 
-                media_info = {'id': helpers.get_xml_attr(media, 'id'),
+                _media_info = {'id': helpers.get_xml_attr(media, 'id'),
                               'container': helpers.get_xml_attr(media, 'container'),
                               'bitrate': helpers.get_xml_attr(media, 'bitrate'),
                               'height': helpers.get_xml_attr(media, 'height'),
@@ -1594,12 +1655,25 @@ class PmsConnect(object):
                               'audio_profile': helpers.get_xml_attr(media, 'audioProfile'),
                               'optimized_version': int(helpers.get_xml_attr(media, 'proxyType') == '42'),
                               'channel_call_sign': helpers.get_xml_attr(media, 'channelCallSign'),
+                              'channel_id': helpers.get_xml_attr(media, 'channelID'),
                               'channel_identifier': helpers.get_xml_attr(media, 'channelIdentifier'),
+                              'channel_title': helpers.get_xml_attr(media, 'channelTitle'),
                               'channel_thumb': helpers.get_xml_attr(media, 'channelThumb'),
+                              'channel_vcn': helpers.get_xml_attr(media, 'channelVcn'),
+                              'protocol': helpers.get_xml_attr(media, 'protocol'),  # livetv
+                              'begins_at': helpers.cast_to_int(helpers.get_xml_attr(media, 'beginsAt')),  # livetv
+                              'ends_at': helpers.cast_to_int(helpers.get_xml_attr(media, 'endsAt')),  # livetv
                               'parts': parts
                               }
 
-                medias.append(media_info)
+                if epg_metadata:
+                    media_info_keys_to_update = [
+                        'channel_id', 'channel_title', 'channel_vcn'
+                    ]
+                    for key in media_info_keys_to_update:
+                        _media_info[key] = epg_metadata['media_info'][0][key]
+
+                medias.append(_media_info)
 
             metadata['media_info'] = medias
 
@@ -3325,3 +3399,30 @@ class PmsConnect(object):
         if not video_dynamic_range:
             return 'SDR'
         return '/'.join(video_dynamic_range)
+
+    def get_dvrs_list(self):
+        dvrs_xml = self.get_dvrs(output_format='xml')
+
+        try:
+            xml_head = dvrs_xml.getElementsByTagName('MediaContainer')
+        except Exception as e:
+            logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_dvrs_list: %s." % e)
+
+        dvrs_output = []
+
+        for a in xml_head:
+            dvrs = a.getElementsByTagName('Dvr')
+            for dvr in dvrs:
+                dvr_info = {
+                    'key': helpers.get_xml_attr(dvr, 'key'),
+                    'uuid': helpers.get_xml_attr(dvr, 'uuid'),
+                    'language': helpers.get_xml_attr(dvr, 'language'),
+                    'lineup_title': helpers.get_xml_attr(dvr, 'lineupTitle'),
+                    'lineup': helpers.get_xml_attr(dvr, 'lineup'),
+                    'country': helpers.get_xml_attr(dvr, 'country'),
+                    'refreshedAt': helpers.get_xml_attr(dvr, 'refreshedAt'),
+                    'epg_identifier': helpers.get_xml_attr(dvr, 'epgIdentifier')
+                }
+                dvrs_output.append(dvr_info)
+
+        return dvrs_output

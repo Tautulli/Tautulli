@@ -242,10 +242,14 @@ def YMD_to_timestamp(ymd):
     return datetime.strptime(ymd, "%Y-%m-%d").timestamp()
 
 
-def timestamp_to_YMDHMS(ts, sep=False):
+def timestamp_to_YMDHMS(ts, sep=False, ymd=False):
     dt = timestamp_to_datetime(ts)
     if sep:
+        if ymd:
+            return dt.strftime("%Y-%m-%d")
         return dt.strftime("%Y-%m-%d %H:%M:%S")
+    if ymd:
+        return dt.strftime("%Y%m%d")
     return dt.strftime("%Y%m%d%H%M%S")
 
 

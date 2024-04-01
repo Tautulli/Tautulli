@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -163,7 +163,6 @@ class ActivityHandler(object):
         # Set force_stop to true to disable the state set
         if not force_stop:
             # Set the view offset equal to the duration if it is within the last 10 seconds
-            # TODO: temporary workaround for missing livetv duration
             if self.db_session['duration'] > 0 and self.db_session['duration'] - self.view_offset <= 10000:
                 view_offset = self.db_session['duration']
             else:

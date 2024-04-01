@@ -78,7 +78,6 @@ class ActivityProcessor(object):
                       'added_at': session.get('added_at', ''),
                       'guid': session.get('guid', ''),
                       'view_offset': session.get('view_offset', ''),
-                      # TODO: temporary workaround for missing livetv duration
                       'duration': session.get('duration', '') or 0,
                       'video_decision': session.get('video_decision', ''),
                       'audio_decision': session.get('audio_decision', ''),
