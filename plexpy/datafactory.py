@@ -283,7 +283,7 @@ class DataFactory(object):
 
             base_watched_value = watched_percent[item['media_type']] / 4.0
 
-            if helpers.check_watched(
+            if item['live'] or helpers.check_watched(
                 item['media_type'], item['view_offset'], item['duration'],
                 item['marker_credits_first'], item['marker_credits_final']
             ):
