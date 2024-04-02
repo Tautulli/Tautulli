@@ -1203,8 +1203,8 @@ class DataFactory(object):
 
         return library_stats
 
-    def get_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None):
-        if rating_key is None:
+    def get_watch_time_stats(self, rating_key=None, guid=None, media_type=None, grouping=None, query_days=None):
+        if rating_key is None and guid is None:
             return []
 
         if grouping is None:
@@ -1253,6 +1253,16 @@ class DataFactory(object):
                                 )
                         
                         result = monitor_db.select(query, args=[timestamp_query] + rating_keys * 3)
+                    elif guid:
+                        query = "SELECT (SUM(stopped - started) - " \
+                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
+                                "COUNT(DISTINCT %s) AS total_plays, section_id " \
+                                "FROM session_history " \
+                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
+                                "WHERE stopped >= ? " \
+                                "AND session_history_metadata.guid = ? " % group_by
+
+                        result = monitor_db.select(query, args=[timestamp_query, guid])
                     else:
                         result = []
                 else:
@@ -1269,6 +1279,15 @@ class DataFactory(object):
                                 )
                         
                         result = monitor_db.select(query, args=rating_keys * 3)
+                    elif guid:
+                        query = "SELECT (SUM(stopped - started) - " \
+                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
+                                "COUNT(DISTINCT %s) AS total_plays, section_id " \
+                                "FROM session_history " \
+                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
+                                "WHERE session_history_metadata.guid = ? " % group_by
+
+                        result = monitor_db.select(query, args=[guid])
                     else:
                         result = []
             except Exception as e:
@@ -1297,7 +1316,7 @@ class DataFactory(object):
 
         return item_watch_time_stats
 
-    def get_user_stats(self, rating_key=None, media_type=None, grouping=None):
+    def get_user_stats(self, rating_key=None, guid=None, media_type=None, grouping=None):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
@@ -1338,6 +1357,21 @@ class DataFactory(object):
                         )
 
                 result = monitor_db.select(query, args=rating_keys * 3)
+            elif guid:
+                query = "SELECT (CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = '' " \
+                        "THEN users.username ELSE users.friendly_name END) AS friendly_name, " \
+                        "users.user_id, users.username, users.thumb, users.custom_avatar_url AS custom_thumb, " \
+                        "COUNT(DISTINCT %s) AS total_plays, (SUM(stopped - started) - " \
+                        "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
+                        "section_id " \
+                        "FROM session_history " \
+                        "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
+                        "JOIN users ON users.user_id = session_history.user_id " \
+                        "WHERE session_history_metadata.guid = ? " \
+                        "GROUP BY users.user_id " \
+                        "ORDER BY total_plays DESC, total_time DESC" % group_by
+
+                result = monitor_db.select(query, args=[guid])
             else:
                 result = []
         except Exception as e:

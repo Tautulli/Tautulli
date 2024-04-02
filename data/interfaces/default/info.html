@@ -878,7 +878,7 @@ DOCUMENTATION :: END
                     transcode_decision: transcode_decision,
                     user_id: "${history_user_id}",
                     % if data['live']:
-                    guid: "${data['guid']}
+                    guid: "${data['guid']}"
                     % elif data['media_type'] in ('show', 'artist'):
                     grandparent_rating_key: "${data['rating_key']}"
                     % elif data['media_type'] in ('season', 'album'):
@@ -947,8 +947,12 @@ DOCUMENTATION :: END
         url: 'item_watch_time_stats',
         async: true,
         data: { 
+            % if data['live']:
+            guid: "${data['guid']}"
+            % else:
             rating_key: "${data['rating_key']}",
-            media_type: "${data['media_type']}"    
+            media_type: "${data['media_type']}"
+            % endif
         },
         complete: function(xhr, status) {
             $("#watch-time-stats").html(xhr.responseText);
@@ -959,8 +963,12 @@ DOCUMENTATION :: END
         url: 'item_user_stats',
         async: true,
         data: { 
+            % if data['live']:
+            guid: "${data['guid']}"
+            % else:
             rating_key: "${data['rating_key']}",
-            media_type: "${data['media_type']}"    
+            media_type: "${data['media_type']}"
+            % endif
         },
         complete: function(xhr, status) {
             $("#user-stats").html(xhr.responseText);

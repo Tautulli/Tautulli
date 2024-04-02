@@ -4497,10 +4497,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
-        if rating_key:
+    def item_watch_time_stats(self, rating_key=None, guid=None, media_type=None, **kwargs):
+        if rating_key or guid:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_watch_time_stats(rating_key=rating_key, guid=guid, media_type=media_type)
         else:
             result = None
 
@@ -4512,10 +4512,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
-        if rating_key:
+    def item_user_stats(self, rating_key=None, guid=None, media_type=None, **kwargs):
+        if rating_key or guid:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_user_stats(rating_key=rating_key, guid=guid, media_type=media_type)
         else:
             result = None
 
