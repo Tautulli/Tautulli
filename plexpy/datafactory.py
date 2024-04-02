@@ -1539,8 +1539,9 @@ class DataFactory(object):
                     "session_history_media_info.video_full_resolution, " \
                     "session_history_media_info.video_framerate, session_history_media_info.audio_codec, " \
                     "session_history_media_info.audio_channels, session_history_metadata.live, " \
-                    "session_history_metadata.channel_call_sign, session_history_metadata.channel_identifier, " \
-                    "session_history_metadata.channel_thumb " \
+                    "session_history_metadata.channel_call_sign, session_history_metadata.channel_id, " \
+                    "session_history_metadata.channel_identifier, session_history_metadata.channel_title, " \
+                    "session_history_metadata.channel_thumb, session_history_metadata.channel_vcn " \
                     "FROM session_history_metadata " \
                     "JOIN library_sections ON session_history.section_id = library_sections.section_id " \
                     "JOIN session_history ON session_history_metadata.id = session_history.id " \
@@ -1570,8 +1571,11 @@ class DataFactory(object):
                            'audio_codec': item['audio_codec'],
                            'audio_channels': item['audio_channels'],
                            'channel_call_sign': item['channel_call_sign'],
+                           'channel_id': item['channel_id'],
                            'channel_identifier': item['channel_identifier'],
-                           'channel_thumb': item['channel_thumb']
+                           'channel_title': item['channel_title'],
+                           'channel_thumb': item['channel_thumb'],
+                           'channel_vcn': item['channel_vcn']
                            }]
 
             metadata = {'media_type': item['media_type'],
