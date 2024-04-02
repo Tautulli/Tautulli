@@ -494,11 +494,13 @@ class ActivityProcessor(object):
         prev_watched = None
 
         if session['live']:
-            # Check if we should group the session, select the last guid from the user
+            # Check if we should group the session, select the last guid from the user within the last day
             query = "SELECT session_history.id, session_history_metadata.guid, session_history.reference_id " \
                     "FROM session_history " \
                     "JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
-                    "WHERE session_history.id <= ? AND session_history.user_id = ? ORDER BY session_history.id DESC LIMIT 1 "
+                    "WHERE session_history.id <= ? AND session_history.user_id = ? " \
+                    "AND datetime(session_history.started, 'unixepoch', 'localtime') > datetime('now', '-1 day') " \
+                    "ORDER BY session_history.id DESC LIMIT 1 "
 
             args = [last_id, session['user_id']]
 
@@ -506,12 +508,14 @@ class ActivityProcessor(object):
 
             if len(result) > 0:
                 new_session = {'id': last_id,
-                                'guid': metadata['guid'] if metadata else session['guid'],
-                                'reference_id': last_id}
+                               'guid': metadata['guid'] if metadata else session['guid'],
+                               'reference_id': last_id}
 
                 prev_session = {'id': result[0]['id'],
                                 'guid': result[0]['guid'],
                                 'reference_id': result[0]['reference_id']}
+                
+                prev_watched = False
 
         else:
             # Check if we should group the session, select the last two rows from the user
@@ -524,9 +528,9 @@ class ActivityProcessor(object):
 
             if len(result) > 1:
                 new_session = {'id': result[0]['id'],
-                                'rating_key': result[0]['rating_key'],
-                                'view_offset': helpers.cast_to_int(result[0]['view_offset']),
-                                'reference_id': result[0]['reference_id']}
+                               'rating_key': result[0]['rating_key'],
+                               'view_offset': helpers.cast_to_int(result[0]['view_offset']),
+                               'reference_id': result[0]['reference_id']}
 
                 prev_session = {'id': result[1]['id'],
                                 'rating_key': result[1]['rating_key'],
@@ -550,8 +554,10 @@ class ActivityProcessor(object):
         # and new session view offset is greater,
         # then set the reference_id to the previous row,
         # else set the reference_id to the new id
-        if (prev_watched is False and prev_session['view_offset'] <= new_session['view_offset'] or 
-                session['live'] and prev_session['guid'] == new_session['guid']):
+        if prev_watched is False and (
+            not session['live'] and prev_session['view_offset'] <= new_session['view_offset'] or 
+            session['live'] and prev_session['guid'] == new_session['guid']
+        ):
             if metadata:
                 logger.debug("Tautulli ActivityProcessor :: Grouping history for sessionKey %s", session['session_key'])
             args = [prev_session['reference_id'], new_session['id']]
