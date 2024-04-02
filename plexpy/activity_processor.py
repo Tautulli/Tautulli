@@ -150,8 +150,11 @@ class ActivityProcessor(object):
                       'rating_key_websocket': session.get('rating_key_websocket', ''),
                       'raw_stream_info': json.dumps(session),
                       'channel_call_sign': session.get('channel_call_sign', ''),
+                      'channel_id': session.get('channel_id', ''),
                       'channel_identifier': session.get('channel_identifier', ''),
+                      'channel_title': session.get('channel_title', ''),
                       'channel_thumb': session.get('channel_thumb', ''),
+                      'channel_vcn': session.get('channel_vcn', ''),
                       'stopped': helpers.timestamp()
                       }
 
@@ -470,8 +473,11 @@ class ActivityProcessor(object):
                           'labels': labels,
                           'live': session['live'],
                           'channel_call_sign': media_info.get('channel_call_sign', ''),
+                          'channel_id': media_info.get('channel_id', ''),
                           'channel_identifier': media_info.get('channel_identifier', ''),
+                          'channel_title': media_info.get('channel_title', ''),
                           'channel_thumb': media_info.get('channel_thumb', ''),
+                          'channel_vcn': media_info.get('channel_vcn', ''),
                           'marker_credits_first': marker_credits_first,
                           'marker_credits_final': marker_credits_final
                           }
