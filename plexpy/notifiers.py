@@ -44,14 +44,14 @@ try:
     from Cryptodome.Protocol.KDF import PBKDF2
     from Cryptodome.Cipher import AES
     from Cryptodome.Random import get_random_bytes
-    from Cryptodome.Hash import HMAC, SHA1
+    from Cryptodome.Hash import SHA256
     CRYPTODOME = True
 except ImportError:
     try:
         from Crypto.Protocol.KDF import PBKDF2
         from Crypto.Cipher import AES
         from Crypto.Random import get_random_bytes
-        from Crypto.Hash import HMAC, SHA1
+        from Crypto.Hash import SHA256
         CRYPTODOME = True
     except ImportError:
         CRYPTODOME = False
@@ -3825,9 +3825,8 @@ class TAUTULLIREMOTEAPP(Notifier):
             salt = get_random_bytes(16)
             passphrase = device['device_token']
             key_length = 32  # AES256
-            iterations = 1000
-            key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations,
-                         prf=lambda p, s: HMAC.new(p, s, SHA1).digest())
+            iterations = 600000
+            key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations, hmac_hash_module=SHA256)
 
             #logger.debug("Encryption key (base64): {}".format(base64.b64encode(key)))
 
@@ -3846,6 +3845,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                        'include_player_ids': [device['onesignal_id']],
                        'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': True,
+                                'version': 2,
                                 'cipher_text': base64.b64encode(encrypted_data),
                                 'nonce': base64.b64encode(nonce),
                                 'salt': base64.b64encode(salt),
