@@ -272,6 +272,7 @@ class ActivityProcessor(object):
                 logger.debug("Tautulli ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
 
             if logging_enabled:
+                media_info = {}
 
                 # Fetch metadata first so we can return false if it fails
                 if not is_import:
@@ -283,10 +284,12 @@ class ActivityProcessor(object):
                                                                     return_cache=True)
                     else:
                         metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
-                    if not metadata:
+
+                    if session['live'] and not metadata:
+                        metadata = session
+                    elif not metadata:
                         return False
                     else:
-                        media_info = {}
                         if 'media_info' in metadata and len(metadata['media_info']) > 0:
                             media_info = metadata['media_info'][0]
                 else:
@@ -472,12 +475,12 @@ class ActivityProcessor(object):
                           'studio': metadata['studio'],
                           'labels': labels,
                           'live': session['live'],
-                          'channel_call_sign': media_info.get('channel_call_sign', ''),
-                          'channel_id': media_info.get('channel_id', ''),
-                          'channel_identifier': media_info.get('channel_identifier', ''),
-                          'channel_title': media_info.get('channel_title', ''),
-                          'channel_thumb': media_info.get('channel_thumb', ''),
-                          'channel_vcn': media_info.get('channel_vcn', ''),
+                          'channel_call_sign': media_info.get('channel_call_sign', session.get('channel_call_sign', '')),
+                          'channel_id': media_info.get('channel_id', session.get('channel_id', '')),
+                          'channel_identifier': media_info.get('channel_identifier', session.get('channel_identifier', '')),
+                          'channel_title': media_info.get('channel_title', session.get('channel_title', '')),
+                          'channel_thumb': media_info.get('channel_thumb', session.get('channel_thumb', '')),
+                          'channel_vcn': media_info.get('channel_vcn', session.get('channel_vcn', '')),
                           'marker_credits_first': marker_credits_first,
                           'marker_credits_final': marker_credits_final
                           }
