@@ -6,6 +6,7 @@ ARG BRANCH
 ARG COMMIT
 
 ENV TAUTULLI_DOCKER=True
+ENV TAUTULLI_DOCKER_GOSU=True
 ENV TZ=UTC
 
 WORKDIR /app
@@ -21,8 +22,8 @@ RUN \
   touch /config/DOCKER
 VOLUME /config
 
-CMD [ "python", "Tautulli.py", "--datadir", "/config" ]
 ENTRYPOINT [ "./start.sh" ]
+CMD [ "python", "Tautulli.py", "--datadir", "/config" ]
 
 EXPOSE 8181
 HEALTHCHECK --start-period=90s CMD curl -ILfSs http://localhost:8181/status > /dev/null || curl -ILfkSs https://localhost:8181/status > /dev/null || exit 1

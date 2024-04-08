@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 
 if [[ "$TAUTULLI_DOCKER" == "True" ]]; then
-    PUID=${PUID:-1000}
-    PGID=${PGID:-1000}
+    if [[ "$TAUTULLI_DOCKER_GOSU" == "True" ]]; then
+        PUID=${PUID:-1000}
+        PGID=${PGID:-1000}
 
-    groupmod -o -g "$PGID" tautulli
-    usermod -o -u "$PUID" tautulli
+        groupmod -o -g "$PGID" tautulli
+        usermod -o -u "$PUID" tautulli
 
-    find /config \! \( -uid $(id -u tautulli) -gid $(id -g tautulli) \) -print0 | xargs -0r chown tautulli:tautulli
+        find /config \! \( -uid $(id -u tautulli) -gid $(id -g tautulli) \) -print0 | xargs -0r chown tautulli:tautulli
 
-    echo "Running Tautulli using user tautulli (uid=$(id -u tautulli)) and group tautulli (gid=$(id -g tautulli))"
-    exec gosu tautulli "$@"
+        echo "Running Tautulli using user tautulli (uid=$(id -u tautulli)) and group tautulli (gid=$(id -g tautulli))"
+        exec gosu tautulli "$@"
+    else
+        exec tautulli "$@"
+    fi
 else
     python_versions=("python3.11" "python3.10" "python3.9" "python3.8" "python3" "python")
     for cmd in "${python_versions[@]}"; do
