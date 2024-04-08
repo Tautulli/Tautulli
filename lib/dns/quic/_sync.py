@@ -82,10 +82,6 @@ class SyncQuicConnection(BaseQuicConnection):
     def __init__(self, connection, address, port, source, source_port, manager):
         super().__init__(connection, address, port, source, source_port, manager)
         self._socket = socket.socket(self._af, socket.SOCK_DGRAM, 0)
-        self._socket.connect(self._peer)
-        (self._send_wakeup, self._receive_wakeup) = socket.socketpair()
-        self._receive_wakeup.setblocking(False)
-        self._socket.setblocking(False)
         if self._source is not None:
             try:
                 self._socket.bind(
@@ -94,6 +90,10 @@ class SyncQuicConnection(BaseQuicConnection):
             except Exception:
                 self._socket.close()
                 raise
+        self._socket.connect(self._peer)
+        (self._send_wakeup, self._receive_wakeup) = socket.socketpair()
+        self._receive_wakeup.setblocking(False)
+        self._socket.setblocking(False)
         self._handshake_complete = threading.Event()
         self._worker_thread = None
         self._lock = threading.Lock()
@@ -107,7 +107,7 @@ class SyncQuicConnection(BaseQuicConnection):
             except BlockingIOError:
                 return
             with self._lock:
-                self._connection.receive_datagram(datagram, self._peer[0], time.time())
+                self._connection.receive_datagram(datagram, self._peer, time.time())
 
     def _drain_wakeup(self):
         while True:
@@ -128,6 +128,8 @@ class SyncQuicConnection(BaseQuicConnection):
                     key.data()
                 with self._lock:
                     self._handle_timer(expiration)
+                self._handle_events()
+                with self._lock:
                     datagrams = self._connection.datagrams_to_send(time.time())
                 for datagram, _ in datagrams:
                     try:
@@ -135,7 +137,6 @@ class SyncQuicConnection(BaseQuicConnection):
                     except BlockingIOError:
                         # we let QUIC handle any lossage
                         pass
-                self._handle_events()
         finally:
             with self._lock:
                 self._done = True
@@ -155,11 +156,14 @@ class SyncQuicConnection(BaseQuicConnection):
                     stream._add_input(event.data, event.end_stream)
             elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
-            elif isinstance(
-                event, aioquic.quic.events.ConnectionTerminated
-            ) or isinstance(event, aioquic.quic.events.StreamReset):
+            elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
                 with self._lock:
                     self._done = True
+            elif isinstance(event, aioquic.quic.events.StreamReset):
+                with self._lock:
+                    stream = self._streams.get(event.stream_id)
+                if stream:
+                    stream._add_input(b"", True)
 
     def write(self, stream, data, is_end=False):
         with self._lock:
@@ -203,9 +207,13 @@ class SyncQuicManager(BaseQuicManager):
         super().__init__(conf, verify_mode, SyncQuicConnection, server_name)
         self._lock = threading.Lock()
 
-    def connect(self, address, port=853, source=None, source_port=0):
+    def connect(
+        self, address, port=853, source=None, source_port=0, want_session_ticket=True
+    ):
         with self._lock:
-            (connection, start) = self._connect(address, port, source, source_port)
+            (connection, start) = self._connect(
+                address, port, source, source_port, want_session_ticket
+            )
             if start:
                 connection.run()
             return connection
@@ -213,6 +221,10 @@ class SyncQuicManager(BaseQuicManager):
     def closed(self, address, port):
         with self._lock:
             super().closed(address, port)
+
+    def save_session_ticket(self, address, port, ticket):
+        with self._lock:
+            super().save_session_ticket(address, port, ticket)
 
     def __enter__(self):
         return self

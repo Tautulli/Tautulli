@@ -37,7 +37,7 @@ class SelectorSyntaxError(Exception):
         if pattern is not None and index is not None:
             # Format pattern to show line and column position
             self.context, self.line, self.col = get_pattern_context(pattern, index)
-            msg = '{}\n  line {}:\n{}'.format(msg, self.line, self.context)
+            msg = f'{msg}\n  line {self.line}:\n{self.context}'
 
         super().__init__(msg)
 
@@ -105,7 +105,7 @@ def get_pattern_context(pattern: str, index: int) -> tuple[str, int, int]:
             # we will render the output with just `\n`. We will still log the column
             # correctly though.
             text.append('\n')
-        text.append('{}{}'.format(indent, linetext))
+        text.append(f'{indent}{linetext}')
         if offset is not None:
             text.append('\n')
             text.append(' ' * (col + offset) + '^')

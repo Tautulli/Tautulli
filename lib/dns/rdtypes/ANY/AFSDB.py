@@ -21,7 +21,6 @@ import dns.rdtypes.mxbase
 
 @dns.immutable.immutable
 class AFSDB(dns.rdtypes.mxbase.UncompressedDowncasingMX):
-
     """AFSDB record"""
 
     # Use the property mechanism to make "subtype" an alias for the

@@ -30,7 +30,6 @@ class Bitmap(dns.rdtypes.util.Bitmap):
 
 @dns.immutable.immutable
 class NSEC(dns.rdata.Rdata):
-
     """NSEC record"""
 
     __slots__ = ["next", "windows"]

@@ -1,5 +1,5 @@
 # mako/pyparser.py
-# Copyright 2006-2022 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -64,7 +64,6 @@ class FindIdentifiers(_ast_util.NodeVisitor):
         self._add_declared(node.name)
 
     def visit_Assign(self, node):
-
         # flip around the visiting of Assign so the expression gets
         # evaluated first, in the case of a clause like "x=x+5" (x
         # is undeclared)
@@ -99,7 +98,6 @@ class FindIdentifiers(_ast_util.NodeVisitor):
                 yield arg
 
     def _visit_function(self, node, islambda):
-
         # push function state onto stack.  dont log any more
         # identifiers as "declared" until outside of the function,
         # but keep logging identifiers as "undeclared". track
@@ -122,7 +120,6 @@ class FindIdentifiers(_ast_util.NodeVisitor):
         self.local_ident_stack = local_ident_stack
 
     def visit_For(self, node):
-
         # flip around visit
 
         self.visit(node.iter)

@@ -1,5 +1,5 @@
 # mako/lexer.py
-# Copyright 2006-2022 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -247,6 +247,8 @@ class Lexer:
                 continue
             if self.match_python_block():
                 continue
+            if self.match_percent():
+                continue
             if self.match_text():
                 continue
 
@@ -352,14 +354,24 @@ class Lexer:
         else:
             return True
 
+    def match_percent(self):
+        match = self.match(r"(?<=^)(\s*)%%(%*)", re.M)
+        if match:
+            self.append_node(
+                parsetree.Text, match.group(1) + "%" + match.group(2)
+            )
+            return True
+        else:
+            return False
+
     def match_text(self):
         match = self.match(
             r"""
                 (.*?)         # anything, followed by:
                 (
-                 (?<=\n)(?=[ \t]*(?=%|\#\#)) # an eval or line-based
-                                             # comment preceded by a
-                                             # consumed newline and whitespace
+                 (?<=\n)(?=[ \t]*(?=%|\#\#))  # an eval or line-based
+                                            # comment, preceded by a
+                                            # consumed newline and whitespace
                  |
                  (?=\${)      # an expression
                  |

@@ -4497,10 +4497,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_watch_time_stats(self, rating_key=None, media_type=None, **kwargs):
-        if rating_key:
+    def item_watch_time_stats(self, rating_key=None, guid=None, media_type=None, **kwargs):
+        if rating_key or guid:
             item_data = datafactory.DataFactory()
-            result = item_data.get_watch_time_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_watch_time_stats(rating_key=rating_key, guid=guid, media_type=media_type)
         else:
             result = None
 
@@ -4512,10 +4512,10 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def item_user_stats(self, rating_key=None, media_type=None, **kwargs):
-        if rating_key:
+    def item_user_stats(self, rating_key=None, guid=None, media_type=None, **kwargs):
+        if rating_key or guid:
             item_data = datafactory.DataFactory()
-            result = item_data.get_user_stats(rating_key=rating_key, media_type=media_type)
+            result = item_data.get_user_stats(rating_key=rating_key, guid=guid, media_type=media_type)
         else:
             result = None
 
@@ -5439,8 +5439,11 @@ class WebInterface(object):
                              "audio_profile": "",
                              "bitrate": "10617",
                              "channel_call_sign": "",
+                             "channel_id": "",
                              "channel_identifier": "",
+                             "channel_title": "",
                              "channel_thumb": "",
+                             "channel_vcn": "",
                              "container": "mkv",
                              "height": "1078",
                              "id": "257925",
@@ -5464,6 +5467,13 @@ class WebInterface(object):
                                              "video_color_space": "bt709",
                                              "video_color_trc": "",
                                              "video_dynamic_range": "SDR",
+                                             "video_dovi_bl_present": 0,
+                                             "video_dovi_el_present": 0,
+                                             "video_dovi_level": 0,
+                                             "video_dovi_present": 0,
+                                             "video_dovi_profile": 0,
+                                             "video_dovi_rpu_present": 0,
+                                             "video_dovi_version": 0,
                                              "video_frame_rate": "23.976",
                                              "video_height": "1078",
                                              "video_language": "",
@@ -5853,9 +5863,12 @@ class WebInterface(object):
                              "bif_thumb": "/library/parts/274169/indexes/sd/1000",
                              "bitrate": "10617",
                              "channel_call_sign": "",
+                             "channel_id": "",
                              "channel_identifier": "",
                              "channel_stream": 0,
+                             "channel_title": "",
                              "channel_thumb": "",
+                             "channel_vcn": "",
                              "children_count": "",
                              "collections": [],
                              "container": "mkv",
@@ -6276,7 +6289,7 @@ class WebInterface(object):
     @addtoapi()
     def get_home_stats(self, grouping=None, time_range=30, stats_type='plays',
                        stats_start=0, stats_count=10, stat_id='',
-                       section_id=None, user_id=None, **kwargs):
+                       section_id=None, user_id=None, before=None, after=None, **kwargs):
         """ Get the homepage watch statistics.
 
             ```
@@ -6294,6 +6307,8 @@ class WebInterface(object):
                                         'top_users', 'top_platforms', 'last_watched', 'most_concurrent'
                 section_id (int):       The id of the Plex library section
                 user_id (int):          The id of the Plex user
+                before (str):           Stats before and including the date, "YYYY-MM-DD"
+                after (str):            Stats after and including the date, "YYYY-MM-DD"
 
             Returns:
                 json:
@@ -6377,7 +6392,9 @@ class WebInterface(object):
                                              stats_count=stats_count,
                                              stat_id=stat_id,
                                              section_id=section_id,
-                                             user_id=user_id)
+                                             user_id=user_id,
+                                             before=before,
+                                             after=after)
 
         if result:
             return result

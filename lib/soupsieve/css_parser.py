@@ -92,94 +92,79 @@ PSEUDO_SUPPORTED = PSEUDO_SIMPLE | PSEUDO_SIMPLE_NO_MATCH | PSEUDO_COMPLEX | PSE
 # Sub-patterns parts
 # Whitespace
 NEWLINE = r'(?:\r\n|(?!\r\n)[\n\f\r])'
-WS = r'(?:[ \t]|{})'.format(NEWLINE)
+WS = fr'(?:[ \t]|{NEWLINE})'
 # Comments
 COMMENTS = r'(?:/\*[^*]*\*+(?:[^/*][^*]*\*+)*/)'
 # Whitespace with comments included
-WSC = r'(?:{ws}|{comments})'.format(ws=WS, comments=COMMENTS)
+WSC = fr'(?:{WS}|{COMMENTS})'
 # CSS escapes
-CSS_ESCAPES = r'(?:\\(?:[a-f0-9]{{1,6}}{ws}?|[^\r\n\f]|$))'.format(ws=WS)
-CSS_STRING_ESCAPES = r'(?:\\(?:[a-f0-9]{{1,6}}{ws}?|[^\r\n\f]|$|{nl}))'.format(ws=WS, nl=NEWLINE)
+CSS_ESCAPES = fr'(?:\\(?:[a-f0-9]{{1,6}}{WS}?|[^\r\n\f]|$))'
+CSS_STRING_ESCAPES = fr'(?:\\(?:[a-f0-9]{{1,6}}{WS}?|[^\r\n\f]|$|{NEWLINE}))'
 # CSS Identifier
-IDENTIFIER = r'''
-(?:(?:-?(?:[^\x00-\x2f\x30-\x40\x5B-\x5E\x60\x7B-\x9f]|{esc})+|--)
-(?:[^\x00-\x2c\x2e\x2f\x3A-\x40\x5B-\x5E\x60\x7B-\x9f]|{esc})*)
-'''.format(esc=CSS_ESCAPES)
+IDENTIFIER = fr'''
+(?:(?:-?(?:[^\x00-\x2f\x30-\x40\x5B-\x5E\x60\x7B-\x9f]|{CSS_ESCAPES})+|--)
+(?:[^\x00-\x2c\x2e\x2f\x3A-\x40\x5B-\x5E\x60\x7B-\x9f]|{CSS_ESCAPES})*)
+'''
 # `nth` content
-NTH = r'(?:[-+])?(?:[0-9]+n?|n)(?:(?<=n){ws}*(?:[-+]){ws}*(?:[0-9]+))?'.format(ws=WSC)
+NTH = fr'(?:[-+])?(?:[0-9]+n?|n)(?:(?<=n){WSC}*(?:[-+]){WSC}*(?:[0-9]+))?'
 # Value: quoted string or identifier
-VALUE = r'''
-(?:"(?:\\(?:.|{nl})|[^\\"\r\n\f]+)*?"|'(?:\\(?:.|{nl})|[^\\'\r\n\f]+)*?'|{ident}+)
-'''.format(nl=NEWLINE, ident=IDENTIFIER)
+VALUE = fr'''(?:"(?:\\(?:.|{NEWLINE})|[^\\"\r\n\f]+)*?"|'(?:\\(?:.|{NEWLINE})|[^\\'\r\n\f]+)*?'|{IDENTIFIER}+)'''
 # Attribute value comparison. `!=` is handled special as it is non-standard.
-ATTR = r'''
-(?:{ws}*(?P<cmp>[!~^|*$]?=){ws}*(?P<value>{value})(?:{ws}*(?P<case>[is]))?)?{ws}*\]
-'''.format(ws=WSC, value=VALUE)
+ATTR = fr'(?:{WSC}*(?P<cmp>[!~^|*$]?=){WSC}*(?P<value>{VALUE})(?:{WSC}*(?P<case>[is]))?)?{WSC}*\]'
 
 # Selector patterns
 # IDs (`#id`)
-PAT_ID = r'\#{ident}'.format(ident=IDENTIFIER)
+PAT_ID = fr'\#{IDENTIFIER}'
 # Classes (`.class`)
-PAT_CLASS = r'\.{ident}'.format(ident=IDENTIFIER)
+PAT_CLASS = fr'\.{IDENTIFIER}'
 # Prefix:Tag (`prefix|tag`)
-PAT_TAG = r'(?P<tag_ns>(?:{ident}|\*)?\|)?(?P<tag_name>{ident}|\*)'.format(ident=IDENTIFIER)
+PAT_TAG = fr'(?P<tag_ns>(?:{IDENTIFIER}|\*)?\|)?(?P<tag_name>{IDENTIFIER}|\*)'
 # Attributes (`[attr]`, `[attr=value]`, etc.)
-PAT_ATTR = r'''
-\[{ws}*(?P<attr_ns>(?:{ident}|\*)?\|)?(?P<attr_name>{ident}){attr}
-'''.format(ws=WSC, ident=IDENTIFIER, attr=ATTR)
+PAT_ATTR = fr'\[{WSC}*(?P<attr_ns>(?:{IDENTIFIER}|\*)?\|)?(?P<attr_name>{IDENTIFIER}){ATTR}'
 # Pseudo class (`:pseudo-class`, `:pseudo-class(`)
-PAT_PSEUDO_CLASS = r'(?P<name>:{ident})(?P<open>\({ws}*)?'.format(ws=WSC, ident=IDENTIFIER)
+PAT_PSEUDO_CLASS = fr'(?P<name>:{IDENTIFIER})(?P<open>\({WSC}*)?'
 # Pseudo class special patterns. Matches `:pseudo-class(` for special case pseudo classes.
-PAT_PSEUDO_CLASS_SPECIAL = r'(?P<name>:{ident})(?P<open>\({ws}*)'.format(ws=WSC, ident=IDENTIFIER)
+PAT_PSEUDO_CLASS_SPECIAL = fr'(?P<name>:{IDENTIFIER})(?P<open>\({WSC}*)'
 # Custom pseudo class (`:--custom-pseudo`)
-PAT_PSEUDO_CLASS_CUSTOM = r'(?P<name>:(?=--){ident})'.format(ident=IDENTIFIER)
+PAT_PSEUDO_CLASS_CUSTOM = fr'(?P<name>:(?=--){IDENTIFIER})'
 # Closing pseudo group (`)`)
-PAT_PSEUDO_CLOSE = r'{ws}*\)'.format(ws=WSC)
+PAT_PSEUDO_CLOSE = fr'{WSC}*\)'
 # Pseudo element (`::pseudo-element`)
-PAT_PSEUDO_ELEMENT = r':{}'.format(PAT_PSEUDO_CLASS)
+PAT_PSEUDO_ELEMENT = fr':{PAT_PSEUDO_CLASS}'
 # At rule (`@page`, etc.) (not supported)
-PAT_AT_RULE = r'@P{ident}'.format(ident=IDENTIFIER)
+PAT_AT_RULE = fr'@P{IDENTIFIER}'
 # Pseudo class `nth-child` (`:nth-child(an+b [of S]?)`, `:first-child`, etc.)
-PAT_PSEUDO_NTH_CHILD = r'''
-(?P<pseudo_nth_child>{name}
-(?P<nth_child>{nth}|even|odd))(?:{wsc}*\)|(?P<of>{comments}*{ws}{wsc}*of{comments}*{ws}{wsc}*))
-'''.format(name=PAT_PSEUDO_CLASS_SPECIAL, wsc=WSC, comments=COMMENTS, ws=WS, nth=NTH)
+PAT_PSEUDO_NTH_CHILD = fr'''
+(?P<pseudo_nth_child>{PAT_PSEUDO_CLASS_SPECIAL}
+(?P<nth_child>{NTH}|even|odd))(?:{WSC}*\)|(?P<of>{COMMENTS}*{WS}{WSC}*of{COMMENTS}*{WS}{WSC}*))
+'''
 # Pseudo class `nth-of-type` (`:nth-of-type(an+b)`, `:first-of-type`, etc.)
-PAT_PSEUDO_NTH_TYPE = r'''
-(?P<pseudo_nth_type>{name}
-(?P<nth_type>{nth}|even|odd)){ws}*\)
-'''.format(name=PAT_PSEUDO_CLASS_SPECIAL, ws=WSC, nth=NTH)
+PAT_PSEUDO_NTH_TYPE = fr'''
+(?P<pseudo_nth_type>{PAT_PSEUDO_CLASS_SPECIAL}
+(?P<nth_type>{NTH}|even|odd)){WSC}*\)
+'''
 # Pseudo class language (`:lang("*-de", en)`)
-PAT_PSEUDO_LANG = r'{name}(?P<values>{value}(?:{ws}*,{ws}*{value})*){ws}*\)'.format(
-    name=PAT_PSEUDO_CLASS_SPECIAL, ws=WSC, value=VALUE
-)
+PAT_PSEUDO_LANG = fr'{PAT_PSEUDO_CLASS_SPECIAL}(?P<values>{VALUE}(?:{WSC}*,{WSC}*{VALUE})*){WSC}*\)'
 # Pseudo class direction (`:dir(ltr)`)
-PAT_PSEUDO_DIR = r'{name}(?P<dir>ltr|rtl){ws}*\)'.format(name=PAT_PSEUDO_CLASS_SPECIAL, ws=WSC)
+PAT_PSEUDO_DIR = fr'{PAT_PSEUDO_CLASS_SPECIAL}(?P<dir>ltr|rtl){WSC}*\)'
 # Combining characters (`>`, `~`, ` `, `+`, `,`)
-PAT_COMBINE = r'{wsc}*?(?P<relation>[,+>~]|{ws}(?![,+>~])){wsc}*'.format(ws=WS, wsc=WSC)
+PAT_COMBINE = fr'{WSC}*?(?P<relation>[,+>~]|{WS}(?![,+>~])){WSC}*'
 # Extra: Contains (`:contains(text)`)
-PAT_PSEUDO_CONTAINS = r'{name}(?P<values>{value}(?:{ws}*,{ws}*{value})*){ws}*\)'.format(
-    name=PAT_PSEUDO_CLASS_SPECIAL, ws=WSC, value=VALUE
-)
+PAT_PSEUDO_CONTAINS = fr'{PAT_PSEUDO_CLASS_SPECIAL}(?P<values>{VALUE}(?:{WSC}*,{WSC}*{VALUE})*){WSC}*\)'
 
 # Regular expressions
 # CSS escape pattern
-RE_CSS_ESC = re.compile(r'(?:(\\[a-f0-9]{{1,6}}{ws}?)|(\\[^\r\n\f])|(\\$))'.format(ws=WSC), re.I)
-RE_CSS_STR_ESC = re.compile(
-    r'(?:(\\[a-f0-9]{{1,6}}{ws}?)|(\\[^\r\n\f])|(\\$)|(\\{nl}))'.format(ws=WS, nl=NEWLINE), re.I
-)
+RE_CSS_ESC = re.compile(fr'(?:(\\[a-f0-9]{{1,6}}{WSC}?)|(\\[^\r\n\f])|(\\$))', re.I)
+RE_CSS_STR_ESC = re.compile(fr'(?:(\\[a-f0-9]{{1,6}}{WS}?)|(\\[^\r\n\f])|(\\$)|(\\{NEWLINE}))', re.I)
 # Pattern to break up `nth` specifiers
-RE_NTH = re.compile(
-    r'(?P<s1>[-+])?(?P<a>[0-9]+n?|n)(?:(?<=n){ws}*(?P<s2>[-+]){ws}*(?P<b>[0-9]+))?'.format(ws=WSC),
-    re.I
-)
+RE_NTH = re.compile(fr'(?P<s1>[-+])?(?P<a>[0-9]+n?|n)(?:(?<=n){WSC}*(?P<s2>[-+]){WSC}*(?P<b>[0-9]+))?', re.I)
 # Pattern to iterate multiple values.
-RE_VALUES = re.compile(r'(?:(?P<value>{value})|(?P<split>{ws}*,{ws}*))'.format(ws=WSC, value=VALUE), re.X)
+RE_VALUES = re.compile(fr'(?:(?P<value>{VALUE})|(?P<split>{WSC}*,{WSC}*))', re.X)
 # Whitespace checks
 RE_WS = re.compile(WS)
-RE_WS_BEGIN = re.compile('^{}*'.format(WSC))
-RE_WS_END = re.compile('{}*$'.format(WSC))
-RE_CUSTOM = re.compile(r'^{}$'.format(PAT_PSEUDO_CLASS_CUSTOM), re.X)
+RE_WS_BEGIN = re.compile(fr'^{WSC}*')
+RE_WS_END = re.compile(fr'{WSC}*$')
+RE_CUSTOM = re.compile(fr'^{PAT_PSEUDO_CLASS_CUSTOM}$', re.X)
 
 # Constants
 # List split token
@@ -241,9 +226,9 @@ def process_custom(custom: ct.CustomSelectors | None) -> dict[str, str | ct.Sele
         for key, value in custom.items():
             name = util.lower(key)
             if RE_CUSTOM.match(name) is None:
-                raise SelectorSyntaxError("The name '{}' is not a valid custom pseudo-class name".format(name))
+                raise SelectorSyntaxError(f"The name '{name}' is not a valid custom pseudo-class name")
             if name in custom_selectors:
-                raise KeyError("The custom selector '{}' has already been registered".format(name))
+                raise KeyError(f"The custom selector '{name}' has already been registered")
             custom_selectors[css_unescape(name)] = value
     return custom_selectors
 
@@ -283,23 +268,23 @@ def escape(ident: str) -> str:
     start_dash = length > 0 and ident[0] == '-'
     if length == 1 and start_dash:
         # Need to escape identifier that is a single `-` with no other characters
-        string.append('\\{}'.format(ident))
+        string.append(f'\\{ident}')
     else:
         for index, c in enumerate(ident):
             codepoint = ord(c)
             if codepoint == 0x00:
                 string.append('\ufffd')
             elif (0x01 <= codepoint <= 0x1F) or codepoint == 0x7F:
-                string.append('\\{:x} '.format(codepoint))
+                string.append(f'\\{codepoint:x} ')
             elif (index == 0 or (start_dash and index == 1)) and (0x30 <= codepoint <= 0x39):
-                string.append('\\{:x} '.format(codepoint))
+                string.append(f'\\{codepoint:x} ')
             elif (
                 codepoint in (0x2D, 0x5F) or codepoint >= 0x80 or (0x30 <= codepoint <= 0x39) or
                 (0x30 <= codepoint <= 0x39) or (0x41 <= codepoint <= 0x5A) or (0x61 <= codepoint <= 0x7A)
             ):
                 string.append(c)
             else:
-                string.append('\\{}'.format(c))
+                string.append(f'\\{c}')
     return ''.join(string)
 
 
@@ -419,11 +404,10 @@ class _Selector:
         """String representation."""
 
         return (
-            '_Selector(tag={!r}, ids={!r}, classes={!r}, attributes={!r}, nth={!r}, selectors={!r}, '
-            'relations={!r}, rel_type={!r}, contains={!r}, lang={!r}, flags={!r}, no_match={!r})'
-        ).format(
-            self.tag, self.ids, self.classes, self.attributes, self.nth, self.selectors,
-            self.relations, self.rel_type, self.contains, self.lang, self.flags, self.no_match
+            f'_Selector(tag={self.tag!r}, ids={self.ids!r}, classes={self.classes!r}, attributes={self.attributes!r}, '
+            f'nth={self.nth!r}, selectors={self.selectors!r}, relations={self.relations!r}, '
+            f'rel_type={self.rel_type!r}, contains={self.contains!r}, lang={self.lang!r}, flags={self.flags!r}, '
+            f'no_match={self.no_match!r})'
         )
 
     __repr__ = __str__
@@ -563,7 +547,7 @@ class CSSParser:
         selector = self.custom.get(pseudo)
         if selector is None:
             raise SelectorSyntaxError(
-                "Undefined custom selector '{}' found at position {}".format(pseudo, m.end(0)),
+                f"Undefined custom selector '{pseudo}' found at position {m.end(0)}",
                 self.pattern,
                 m.end(0)
             )
@@ -663,13 +647,13 @@ class CSSParser:
             has_selector = True
         elif pseudo in PSEUDO_SUPPORTED:
             raise SelectorSyntaxError(
-                "Invalid syntax for pseudo class '{}'".format(pseudo),
+                f"Invalid syntax for pseudo class '{pseudo}'",
                 self.pattern,
                 m.start(0)
             )
         else:
             raise NotImplementedError(
-                "'{}' pseudo-class is not implemented at this time".format(pseudo)
+                f"'{pseudo}' pseudo-class is not implemented at this time"
             )
 
         return has_selector, is_html
@@ -793,7 +777,7 @@ class CSSParser:
                 # multiple non-whitespace combinators. So if the current combinator is not a whitespace,
                 # then we've hit the multiple combinator case, so we should fail.
                 raise SelectorSyntaxError(
-                    'The multiple combinators at position {}'.format(index),
+                    f'The multiple combinators at position {index}',
                     self.pattern,
                     index
                 )
@@ -824,7 +808,7 @@ class CSSParser:
         if not has_selector:
             if not is_forgive or combinator != COMMA_COMBINATOR:
                 raise SelectorSyntaxError(
-                    "The combinator '{}' at position {}, must have a selector before it".format(combinator, index),
+                    f"The combinator '{combinator}' at position {index}, must have a selector before it",
                     self.pattern,
                     index
                 )
@@ -869,7 +853,7 @@ class CSSParser:
 
         pseudo = util.lower(css_unescape(m.group('name')))
         if pseudo == ":contains":
-            warnings.warn(
+            warnings.warn(  # noqa: B028
                 "The pseudo class ':contains' is deprecated, ':-soup-contains' should be used moving forward.",
                 FutureWarning
             )
@@ -982,13 +966,13 @@ class CSSParser:
 
                 # Handle parts
                 if key == "at_rule":
-                    raise NotImplementedError("At-rules found at position {}".format(m.start(0)))
+                    raise NotImplementedError(f"At-rules found at position {m.start(0)}")
                 elif key == 'pseudo_class_custom':
                     has_selector = self.parse_pseudo_class_custom(sel, m, has_selector)
                 elif key == 'pseudo_class':
                     has_selector, is_html = self.parse_pseudo_class(sel, m, has_selector, iselector, is_html)
                 elif key == 'pseudo_element':
-                    raise NotImplementedError("Pseudo-element found at position {}".format(m.start(0)))
+                    raise NotImplementedError(f"Pseudo-element found at position {m.start(0)}")
                 elif key == 'pseudo_contains':
                     has_selector = self.parse_pseudo_contains(sel, m, has_selector)
                 elif key in ('pseudo_nth_type', 'pseudo_nth_child'):
@@ -1003,7 +987,7 @@ class CSSParser:
                     if not has_selector:
                         if not is_forgive:
                             raise SelectorSyntaxError(
-                                "Expected a selector at position {}".format(m.start(0)),
+                                f"Expected a selector at position {m.start(0)}",
                                 self.pattern,
                                 m.start(0)
                             )
@@ -1013,7 +997,7 @@ class CSSParser:
                         break
                     else:
                         raise SelectorSyntaxError(
-                            "Unmatched pseudo-class close at position {}".format(m.start(0)),
+                            f"Unmatched pseudo-class close at position {m.start(0)}",
                             self.pattern,
                             m.start(0)
                         )
@@ -1031,7 +1015,7 @@ class CSSParser:
                 elif key == 'tag':
                     if has_selector:
                         raise SelectorSyntaxError(
-                            "Tag name found at position {} instead of at the start".format(m.start(0)),
+                            f"Tag name found at position {m.start(0)} instead of at the start",
                             self.pattern,
                             m.start(0)
                         )
@@ -1046,7 +1030,7 @@ class CSSParser:
         # Handle selectors that are not closed
         if is_open and not closed:
             raise SelectorSyntaxError(
-                "Unclosed pseudo-class at position {}".format(index),
+                f"Unclosed pseudo-class at position {index}",
                 self.pattern,
                 index
             )
@@ -1076,7 +1060,7 @@ class CSSParser:
             # We will always need to finish a selector when `:has()` is used as it leads with combining.
             # May apply to others as well.
             raise SelectorSyntaxError(
-                'Expected a selector at position {}'.format(index),
+                f'Expected a selector at position {index}',
                 self.pattern,
                 index
             )
@@ -1108,7 +1092,7 @@ class CSSParser:
         end = (m.start(0) - 1) if m else (len(pattern) - 1)
 
         if self.debug:  # pragma: no cover
-            print('## PARSING: {!r}'.format(pattern))
+            print(f'## PARSING: {pattern!r}')
         while index <= end:
             m = None
             for v in self.css_tokens:
@@ -1116,7 +1100,7 @@ class CSSParser:
                 if m:
                     name = v.get_name()
                     if self.debug:  # pragma: no cover
-                        print("TOKEN: '{}' --> {!r} at position {}".format(name, m.group(0), m.start(0)))
+                        print(f"TOKEN: '{name}' --> {m.group(0)!r} at position {m.start(0)}")
                     index = m.end(0)
                     yield name, m
                     break
@@ -1126,15 +1110,15 @@ class CSSParser:
                 # throw an exception mentioning that the known selector type is in error;
                 # otherwise, report the invalid character.
                 if c == '[':
-                    msg = "Malformed attribute selector at position {}".format(index)
+                    msg = f"Malformed attribute selector at position {index}"
                 elif c == '.':
-                    msg = "Malformed class selector at position {}".format(index)
+                    msg = f"Malformed class selector at position {index}"
                 elif c == '#':
-                    msg = "Malformed id selector at position {}".format(index)
+                    msg = f"Malformed id selector at position {index}"
                 elif c == ':':
-                    msg = "Malformed pseudo-class selector at position {}".format(index)
+                    msg = f"Malformed pseudo-class selector at position {index}"
                 else:
-                    msg = "Invalid character {!r} position {}".format(c, index)
+                    msg = f"Invalid character {c!r} position {index}"
                 raise SelectorSyntaxError(msg, self.pattern, index)
         if self.debug:  # pragma: no cover
             print('## END PARSING')

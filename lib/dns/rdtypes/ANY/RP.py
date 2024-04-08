@@ -23,7 +23,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class RP(dns.rdata.Rdata):
-
     """RP record"""
 
     # see: RFC 1183

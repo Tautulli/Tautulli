@@ -8,7 +8,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class LP(dns.rdata.Rdata):
-
     """LP record"""
 
     # see: rfc6742.txt

@@ -7,7 +7,7 @@ description: >
   The only thing missing is "why they watched it", but who am I to question your 42 plays of Frozen. 
   All statistics are presented in a nice and clean interface with many tables and graphs, which makes it easy to brag about your server to everyone else.
 
-base: core20
+base: core22
 confinement: strict
 
 architectures:
@@ -37,8 +37,8 @@ parts:
       - python3-setuptools
       - python3-pkg-resources
     override-pull: |
-      snapcraftctl pull
-      git config --global --add safe.directory /data/parts/tautulli/src
+      craftctl default
+      git config --global --add safe.directory /root/parts/tautulli/src
       TAG_FULL=$(git describe --tag)
       TAG=$(echo $TAG_FULL | grep -oP '(v\d+\.\d+\.\d+(?>-beta)?)')
       BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -60,10 +60,10 @@ parts:
       fi
       echo $BRANCH > branch.txt
       echo $COMMIT > version.txt
-      snapcraftctl set-version "$VERSION"
-      snapcraftctl set-grade "$GRADE"
+      craftctl set version="$VERSION"
+      craftctl set grade="$GRADE"
     override-prime: |
-      snapcraftctl prime
+      craftctl default
       mkdir -p usr/bin
       ln -s /usr/bin/python3 usr/bin/python3
 

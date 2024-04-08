@@ -180,6 +180,8 @@ class Photo(
             parentThumb (str): URL to photo album thumbnail image (/library/metadata/<parentRatingKey>/thumb/<thumbid>).
             parentTitle (str): Name of the photo album for the photo.
             ratingKey (int): Unique key identifying the photo.
+            sourceURI (str): Remote server URI (server://<machineIdentifier>/com.plexapp.plugins.library)
+                (remote playlist item only).
             summary (str): Summary of the photo.
             tags (List<:class:`~plexapi.media.Tag`>): List of tag objects.
             thumb (str): URL to thumbnail image (/library/metadata/<ratingKey>/thumb/<thumbid>).
@@ -218,6 +220,7 @@ class Photo(
         self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
+        self.sourceURI = data.attrib.get('source')  # remote playlist item
         self.summary = data.attrib.get('summary')
         self.tags = self.findItems(data, media.Tag)
         self.thumb = data.attrib.get('thumb')

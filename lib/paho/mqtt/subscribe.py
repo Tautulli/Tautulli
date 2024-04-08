@@ -5,7 +5,7 @@
 # and Eclipse Distribution License v1.0 which accompany this distribution.
 #
 # The Eclipse Public License is available at
-#    http://www.eclipse.org/legal/epl-v10.html
+#    http://www.eclipse.org/legal/epl-v20.html
 # and the Eclipse Distribution License is available at
 #   http://www.eclipse.org/org/documents/edl-v10.php.
 #
@@ -18,26 +18,21 @@ to topics and retrieving messages. The two functions are simple(), which
 returns one or messages matching a set of topics, and callback() which allows
 you to pass a callback for processing of messages.
 """
-from __future__ import absolute_import
 
 from .. import mqtt
 from . import client as paho
 
 
-def _on_connect_v5(client, userdata, flags, rc, properties):
+def _on_connect(client, userdata, flags, reason_code, properties):
     """Internal callback"""
-    if rc != 0:
-        raise mqtt.MQTTException(paho.connack_string(rc))
+    if reason_code != 0:
+        raise mqtt.MQTTException(paho.connack_string(reason_code))
 
     if isinstance(userdata['topics'], list):
         for topic in userdata['topics']:
             client.subscribe(topic, userdata['qos'])
     else:
         client.subscribe(userdata['topics'], userdata['qos'])
-
-def _on_connect(client, userdata, flags, rc):
-    """Internal v5 callback"""
-    _on_connect_v5(client, userdata, flags, rc, None)
 
 
 def _on_message_callback(client, userdata, message):
@@ -77,40 +72,41 @@ def callback(callback, topics, qos=0, userdata=None, hostname="localhost",
     to a list of topics. Incoming messages are processed by the user provided
     callback.  This is a blocking function and will never return.
 
-    callback : function of the form "on_message(client, userdata, message)" for
+    :param callback: function with the same signature as `on_message` for
                processing the messages received.
 
-    topics : either a string containing a single topic to subscribe to, or a
+    :param topics: either a string containing a single topic to subscribe to, or a
              list of topics to subscribe to.
 
-    qos : the qos to use when subscribing. This is applied to all topics.
+    :param int qos: the qos to use when subscribing. This is applied to all topics.
 
-    userdata : passed to the callback
+    :param userdata: passed to the callback
 
-    hostname : a string containing the address of the broker to connect to.
+    :param str hostname: the address of the broker to connect to.
                Defaults to localhost.
 
-    port : the port to connect to the broker on. Defaults to 1883.
+    :param int port: the port to connect to the broker on. Defaults to 1883.
 
-    client_id : the MQTT client id to use. If "" or None, the Paho library will
+    :param str client_id: the MQTT client id to use. If "" or None, the Paho library will
                 generate a client id automatically.
 
-    keepalive : the keepalive timeout value for the client. Defaults to 60
+    :param int keepalive: the keepalive timeout value for the client. Defaults to 60
                 seconds.
 
-    will : a dict containing will parameters for the client: will = {'topic':
+    :param will: a dict containing will parameters for the client: will = {'topic':
            "<topic>", 'payload':"<payload">, 'qos':<qos>, 'retain':<retain>}.
            Topic is required, all other parameters are optional and will
            default to None, 0 and False respectively.
+
            Defaults to None, which indicates no will should be used.
 
-    auth : a dict containing authentication parameters for the client:
+    :param auth: a dict containing authentication parameters for the client:
            auth = {'username':"<username>", 'password':"<password>"}
            Username is required, password is optional and will default to None
            if not provided.
            Defaults to None, which indicates no authentication is to be used.
 
-    tls : a dict containing TLS configuration parameters for the client:
+    :param tls: a dict containing TLS configuration parameters for the client:
           dict = {'ca_certs':"<ca_certs>", 'certfile':"<certfile>",
           'keyfile':"<keyfile>", 'tls_version':"<tls_version>",
           'ciphers':"<ciphers">, 'insecure':"<bool>"}
@@ -121,17 +117,17 @@ def callback(callback, topics, qos=0, userdata=None, hostname="localhost",
           processed using the tls_set_context method.
           Defaults to None, which indicates that TLS should not be used.
 
-    transport : set to "tcp" to use the default setting of transport which is
+    :param str transport: set to "tcp" to use the default setting of transport which is
           raw TCP. Set to "websockets" to use WebSockets as the transport.
 
-    clean_session : a boolean that determines the client type. If True,
+    :param clean_session: a boolean that determines the client type. If True,
                     the broker will remove all information about this client
                     when it disconnects. If False, the client is a persistent
                     client and subscription information and queued messages
                     will be retained when the client disconnects.
                     Defaults to True.
 
-    proxy_args: a dictionary that will be given to the client.
+    :param proxy_args: a dictionary that will be given to the client.
     """
 
     if qos < 0 or qos > 2:
@@ -143,14 +139,18 @@ def callback(callback, topics, qos=0, userdata=None, hostname="localhost",
         'qos':qos,
         'userdata':userdata}
 
-    client = paho.Client(client_id=client_id, userdata=callback_userdata,
-                         protocol=protocol, transport=transport,
-                         clean_session=clean_session)
+    client = paho.Client(
+        paho.CallbackAPIVersion.VERSION2,
+        client_id=client_id,
+        userdata=callback_userdata,
+        protocol=protocol,
+        transport=transport,
+        clean_session=clean_session,
+    )
+    client.enable_logger()
+
     client.on_message = _on_message_callback
-    if protocol == mqtt.client.MQTTv5:
-        client.on_connect = _on_connect_v5
-    else:
-        client.on_connect = _on_connect
+    client.on_connect = _on_connect
 
     if proxy_args is not None:
         client.proxy_set(**proxy_args)
@@ -193,45 +193,45 @@ def simple(topics, qos=0, msg_count=1, retained=True, hostname="localhost",
     to a list of topics. Once "msg_count" messages have been received, it
     disconnects cleanly from the broker and returns the messages.
 
-    topics : either a string containing a single topic to subscribe to, or a
+    :param topics: either a string containing a single topic to subscribe to, or a
              list of topics to subscribe to.
 
-    qos : the qos to use when subscribing. This is applied to all topics.
+    :param int qos: the qos to use when subscribing. This is applied to all topics.
 
-    msg_count : the number of messages to retrieve from the broker.
+    :param int msg_count: the number of messages to retrieve from the broker.
                 if msg_count == 1 then a single MQTTMessage will be returned.
                 if msg_count > 1 then a list of MQTTMessages will be returned.
 
-    retained : If set to True, retained messages will be processed the same as
+    :param bool retained: If set to True, retained messages will be processed the same as
                non-retained messages. If set to False, retained messages will
                be ignored. This means that with retained=False and msg_count=1,
                the function will return the first message received that does
                not have the retained flag set.
 
-    hostname : a string containing the address of the broker to connect to.
+    :param str hostname: the address of the broker to connect to.
                Defaults to localhost.
 
-    port : the port to connect to the broker on. Defaults to 1883.
+    :param int port: the port to connect to the broker on. Defaults to 1883.
 
-    client_id : the MQTT client id to use. If "" or None, the Paho library will
+    :param str client_id: the MQTT client id to use. If "" or None, the Paho library will
                 generate a client id automatically.
 
-    keepalive : the keepalive timeout value for the client. Defaults to 60
+    :param int keepalive: the keepalive timeout value for the client. Defaults to 60
                 seconds.
 
-    will : a dict containing will parameters for the client: will = {'topic':
+    :param will: a dict containing will parameters for the client: will = {'topic':
            "<topic>", 'payload':"<payload">, 'qos':<qos>, 'retain':<retain>}.
            Topic is required, all other parameters are optional and will
            default to None, 0 and False respectively.
            Defaults to None, which indicates no will should be used.
 
-    auth : a dict containing authentication parameters for the client:
+    :param auth: a dict containing authentication parameters for the client:
            auth = {'username':"<username>", 'password':"<password>"}
            Username is required, password is optional and will default to None
            if not provided.
            Defaults to None, which indicates no authentication is to be used.
 
-    tls : a dict containing TLS configuration parameters for the client:
+    :param tls: a dict containing TLS configuration parameters for the client:
           dict = {'ca_certs':"<ca_certs>", 'certfile':"<certfile>",
           'keyfile':"<keyfile>", 'tls_version':"<tls_version>",
           'ciphers':"<ciphers">, 'insecure':"<bool>"}
@@ -242,17 +242,20 @@ def simple(topics, qos=0, msg_count=1, retained=True, hostname="localhost",
           processed using the tls_set_context method.
           Defaults to None, which indicates that TLS should not be used.
 
-    transport : set to "tcp" to use the default setting of transport which is
+    :param protocol: the MQTT protocol version to use. Defaults to MQTTv311.
+
+    :param transport: set to "tcp" to use the default setting of transport which is
           raw TCP. Set to "websockets" to use WebSockets as the transport.
 
-    clean_session : a boolean that determines the client type. If True,
+    :param clean_session: a boolean that determines the client type. If True,
                     the broker will remove all information about this client
                     when it disconnects. If False, the client is a persistent
                     client and subscription information and queued messages
                     will be retained when the client disconnects.
-                    Defaults to True.
+                    Defaults to True. If protocol is MQTTv50, clean_session
+                    is ignored.
 
-    proxy_args: a dictionary that will be given to the client.
+    :param proxy_args: a dictionary that will be given to the client.
     """
 
     if msg_count < 1:
@@ -264,6 +267,10 @@ def simple(topics, qos=0, msg_count=1, retained=True, hostname="localhost",
         messages = None
     else:
         messages = []
+
+    # Ignore clean_session if protocol is MQTTv50, otherwise Client will raise
+    if protocol == paho.MQTTv5:
+        clean_session = None
 
     userdata = {'retained':retained, 'msg_count':msg_count, 'messages':messages}
 

@@ -33,7 +33,6 @@ def _write_string(file, s):
 
 @dns.immutable.immutable
 class NAPTR(dns.rdata.Rdata):
-
     """NAPTR record"""
 
     # see: RFC 3403

@@ -238,10 +238,18 @@ def now(sep=False):
     return timestamp_to_YMDHMS(timestamp(), sep=sep)
 
 
-def timestamp_to_YMDHMS(ts, sep=False):
+def YMD_to_timestamp(ymd):
+    return datetime.strptime(ymd, "%Y-%m-%d").timestamp()
+
+
+def timestamp_to_YMDHMS(ts, sep=False, ymd=False):
     dt = timestamp_to_datetime(ts)
     if sep:
+        if ymd:
+            return dt.strftime("%Y-%m-%d")
         return dt.strftime("%Y-%m-%d %H:%M:%S")
+    if ymd:
+        return dt.strftime("%Y%m%d")
     return dt.strftime("%Y%m%d%H%M%S")
 
 
@@ -921,7 +929,12 @@ def delete_from_cloudinary(rating_key=None, delete_all=False):
     )
 
     if delete_all:
-        delete_resources_by_tag('tautulli')
+        partial = True
+        next_cursor = ''
+        while partial is True:
+            r = delete_resources_by_tag('tautulli', next_cursor=next_cursor)
+            partial = r.get('partial', False)
+            next_cursor = r.get('next_cursor', '')
         logger.debug("Tautulli Helpers :: Deleted all images from Cloudinary.")
     elif rating_key:
         delete_resources_by_tag(str(rating_key))

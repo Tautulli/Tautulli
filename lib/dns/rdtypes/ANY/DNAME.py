@@ -21,7 +21,6 @@ import dns.rdtypes.nsbase
 
 @dns.immutable.immutable
 class DNAME(dns.rdtypes.nsbase.UncompressedNS):
-
     """DNAME record"""
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):

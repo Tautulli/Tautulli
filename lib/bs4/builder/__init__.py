@@ -514,15 +514,19 @@ class DetectsXMLParsedAsHTML(object):
     XML_PREFIX_B = b'<?xml'
     
     @classmethod
-    def warn_if_markup_looks_like_xml(cls, markup):
+    def warn_if_markup_looks_like_xml(cls, markup, stacklevel=3):
         """Perform a check on some markup to see if it looks like XML
         that's not XHTML. If so, issue a warning.
 
         This is much less reliable than doing the check while parsing,
         but some of the tree builders can't do that.
 
+        :param stacklevel: The stacklevel of the code calling this
+        function.
+
         :return: True if the markup looks like non-XHTML XML, False
         otherwise.
+
         """
         if isinstance(markup, bytes):
             prefix = cls.XML_PREFIX_B
@@ -535,15 +539,16 @@ class DetectsXMLParsedAsHTML(object):
             and markup.startswith(prefix)
             and not looks_like_html.search(markup[:500])
         ):
-            cls._warn()
+            cls._warn(stacklevel=stacklevel+2)
             return True
         return False
 
     @classmethod
-    def _warn(cls):
+    def _warn(cls, stacklevel=5):
         """Issue a warning about XML being parsed as HTML."""
         warnings.warn(
-            XMLParsedAsHTMLWarning.MESSAGE, XMLParsedAsHTMLWarning
+            XMLParsedAsHTMLWarning.MESSAGE, XMLParsedAsHTMLWarning,
+            stacklevel=stacklevel
         )
         
     def _initialize_xml_detector(self):

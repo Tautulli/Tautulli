@@ -1,30 +1,31 @@
-"""
-*******************************************************************
-  Copyright (c) 2017, 2019 IBM Corp.
+# *******************************************************************
+#   Copyright (c) 2017, 2019 IBM Corp.
+#
+#   All rights reserved. This program and the accompanying materials
+#   are made available under the terms of the Eclipse Public License v2.0
+#   and Eclipse Distribution License v1.0 which accompany this distribution.
+#
+#   The Eclipse Public License is available at
+#      http://www.eclipse.org/legal/epl-v20.html
+#   and the Eclipse Distribution License is available at
+#     http://www.eclipse.org/org/documents/edl-v10.php.
+#
+#   Contributors:
+#      Ian Craggs - initial implementation and/or documentation
+# *******************************************************************
 
-  All rights reserved. This program and the accompanying materials
-  are made available under the terms of the Eclipse Public License v2.0
-  and Eclipse Distribution License v1.0 which accompany this distribution.
-
-  The Eclipse Public License is available at
-     http://www.eclipse.org/legal/epl-v10.html
-  and the Eclipse Distribution License is available at
-    http://www.eclipse.org/org/documents/edl-v10.php.
-
-  Contributors:
-     Ian Craggs - initial implementation and/or documentation
-*******************************************************************
-"""
-
-import sys
+import functools
+import warnings
+from typing import Any
 
 from .packettypes import PacketTypes
 
 
-class ReasonCodes:
+@functools.total_ordering
+class ReasonCode:
     """MQTT version 5.0 reason codes class.
 
-    See ReasonCodes.names for a list of possible numeric values along with their
+    See ReasonCode.names for a list of possible numeric values along with their
     names and the packets to which they apply.
 
     """
@@ -135,10 +136,12 @@ class ReasonCodes:
 
         Used when displaying the reason code.
         """
-        assert identifier in self.names.keys(), identifier
+        if identifier not in self.names:
+            raise KeyError(identifier)
         names = self.names[identifier]
         namelist = [name for name in names.keys() if packetType in names[name]]
-        assert len(namelist) == 1
+        if len(namelist) != 1:
+            raise ValueError(f"Expected exactly one name, found {namelist!r}")
         return namelist[0]
 
     def getId(self, name):
@@ -148,22 +151,17 @@ class ReasonCodes:
         Used when setting the reason code for a packetType
         check that only valid codes for the packet are set.
         """
-        identifier = None
         for code in self.names.keys():
             if name in self.names[code].keys():
                 if self.packetType in self.names[code][name]:
-                    identifier = code
-                break
-        assert identifier is not None, name
-        return identifier
+                    return code
+        raise KeyError(f"Reason code name not found: {name}")
 
     def set(self, name):
         self.value = self.getId(name)
 
     def unpack(self, buffer):
         c = buffer[0]
-        if sys.version_info[0] < 3:
-            c = ord(c)
         name = self.__getName__(self.packetType, c)
         self.value = self.getId(name)
         return 1
@@ -177,10 +175,25 @@ class ReasonCodes:
         if isinstance(other, int):
             return self.value == other
         if isinstance(other, str):
-            return self.value == str(self)
-        if isinstance(other, ReasonCodes):
+            return other == str(self)
+        if isinstance(other, ReasonCode):
             return self.value == other.value
         return False
+
+    def __lt__(self, other):
+        if isinstance(other, int):
+            return self.value < other
+        if isinstance(other, ReasonCode):
+            return self.value < other.value
+        return NotImplemented
+
+    def __repr__(self):
+        try:
+            packet_name = PacketTypes.Names[self.packetType]
+        except IndexError:
+            packet_name = "Unknown"
+
+        return f"ReasonCode({packet_name}, {self.getName()!r})"
 
     def __str__(self):
         return self.getName()
@@ -190,3 +203,21 @@ class ReasonCodes:
 
     def pack(self):
         return bytearray([self.value])
+
+    @property
+    def is_failure(self) -> bool:
+        return self.value >= 0x80
+
+
+class _CompatibilityIsInstance(type):
+    def __instancecheck__(self, other: Any) -> bool:
+        return isinstance(other, ReasonCode)
+
+
+class ReasonCodes(ReasonCode, metaclass=_CompatibilityIsInstance):
+    def __init__(self, *args, **kwargs):
+        warnings.warn("ReasonCodes is deprecated, use ReasonCode (singular) instead",
+            category=DeprecationWarning,
+            stacklevel=2,
+        )
+        super().__init__(*args, **kwargs)

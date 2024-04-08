@@ -14,7 +14,8 @@ from cloudinary import utils
 from cloudinary.api_client.call_api import (
     call_api,
     call_metadata_api,
-    call_json_api
+    call_json_api,
+    _call_v2_api
 )
 from cloudinary.exceptions import (
     BadRequest,
@@ -54,6 +55,19 @@ def usage(**options):
     return call_api("get", uri, {}, **options)
 
 
+def config(**options):
+    """
+    Get account config details.
+
+    :param options:     Additional options.
+    :type options:      dict, optional
+    :return:            Detailed config information.
+    :rtype:             Response
+    """
+    params = only(options, "settings")
+    return call_api("get", ["config"], params, **options)
+
+
 def resource_types(**options):
     return call_api("get", ["resources"], {}, **options)
 
@@ -64,24 +78,22 @@ def resources(**options):
     uri = ["resources", resource_type]
     if upload_type:
         uri.append(upload_type)
-    params = only(options, "next_cursor", "max_results", "prefix", "tags",
-                  "context", "moderations", "direction", "start_at", "metadata")
+    params = __list_resources_params(**options)
+    params.update(only(options, "prefix", "start_at"))
     return call_api("get", uri, params, **options)
 
 
 def resources_by_tag(tag, **options):
     resource_type = options.pop("resource_type", "image")
     uri = ["resources", resource_type, "tags", tag]
-    params = only(options, "next_cursor", "max_results", "tags",
-                  "context", "moderations", "direction", "metadata")
+    params = __list_resources_params(**options)
     return call_api("get", uri, params, **options)
 
 
 def resources_by_moderation(kind, status, **options):
     resource_type = options.pop("resource_type", "image")
     uri = ["resources", resource_type, "moderations", kind, status]
-    params = only(options, "next_cursor", "max_results", "tags",
-                  "context", "moderations", "direction", "metadata")
+    params = __list_resources_params(**options)
     return call_api("get", uri, params, **options)
 
 
@@ -89,7 +101,7 @@ def resources_by_ids(public_ids, **options):
     resource_type = options.pop("resource_type", "image")
     upload_type = options.pop("type", "upload")
     uri = ["resources", resource_type, upload_type]
-    params = dict(only(options, "tags", "moderations", "context"), public_ids=public_ids)
+    params = dict(__resources_params(**options), public_ids=public_ids)
     return call_api("get", uri, params, **options)
 
 
@@ -105,7 +117,7 @@ def resources_by_asset_folder(asset_folder, **options):
     :rtype:             Response
     """
     uri = ["resources", "by_asset_folder"]
-    params = only(options, "max_results", "tags", "moderations", "context", "next_cursor")
+    params = __list_resources_params(**options)
     params["asset_folder"] = asset_folder
     return call_api("get", uri, params, **options)
 
@@ -125,7 +137,7 @@ def resources_by_asset_ids(asset_ids, **options):
     :rtype:             Response
     """
     uri = ["resources", 'by_asset_ids']
-    params = dict(only(options, "tags", "moderations", "context"), asset_ids=asset_ids)
+    params = dict(__resources_params(**options), asset_ids=asset_ids)
     return call_api("get", uri, params, **options)
 
 
@@ -147,15 +159,43 @@ def resources_by_context(key, value=None, **options):
     """
     resource_type = options.pop("resource_type", "image")
     uri = ["resources", resource_type, "context"]
-    params = only(options, "next_cursor", "max_results", "tags",
-                  "context", "moderations", "direction", "metadata")
+    params = __list_resources_params(**options)
     params["key"] = key
     if value is not None:
         params["value"] = value
     return call_api("get", uri, params, **options)
 
 
-def visual_search(image_url=None, image_asset_id=None, text=None, **options):
+def __resources_params(**options):
+    """
+       Prepares optional parameters for resources_* API calls.
+
+       :param options: Additional options
+       :return: Optional parameters
+
+       :internal
+       """
+    params = only(options, "tags", "context", "metadata", "moderations")
+    params["fields"] = options.get("fields") and utils.encode_list(utils.build_array(options["fields"]))
+    return params
+
+
+def __list_resources_params(**options):
+    """
+       Prepares optional parameters for resources_* API calls.
+
+       :param options: Additional options
+       :return: Optional parameters
+
+       :internal
+       """
+    resources_params = __resources_params(**options)
+    resources_params.update(only(options, "next_cursor", "max_results", "direction"))
+
+    return resources_params
+
+
+def visual_search(image_url=None, image_asset_id=None, text=None, image_file=None, **options):
     """
     Find images based on their visual content.
 
@@ -165,14 +205,17 @@ def visual_search(image_url=None, image_asset_id=None, text=None, **options):
     :type image_asset_id:   str
     :param text:            A textual description, e.g., "cat"
     :type text:             str
+    :param image_file:      The image file.
+    :type image_file:       str|callable|Path|bytes
     :param options:         Additional options
     :type options:          dict, optional
     :return:                Resources (assets) that were found
     :rtype:                 Response
     """
     uri = ["resources", "visual_search"]
-    params = {"image_url": image_url, "image_asset_id": image_asset_id, "text": text}
-    return call_api("get", uri, params, **options)
+    params = {"image_url": image_url, "image_asset_id": image_asset_id, "text": text,
+              "image_file": utils.handle_file_parameter(image_file, "file")}
+    return call_api("post", uri, params, **options)
 
 
 def resource(public_id, **options):
@@ -224,11 +267,11 @@ def update(public_id, **options):
     if "tags" in options:
         params["tags"] = ",".join(utils.build_array(options["tags"]))
     if "face_coordinates" in options:
-        params["face_coordinates"] = utils.encode_double_array(
-            options.get("face_coordinates"))
+        params["face_coordinates"] = utils.encode_double_array(options.get("face_coordinates"))
     if "custom_coordinates" in options:
-        params["custom_coordinates"] = utils.encode_double_array(
-            options.get("custom_coordinates"))
+        params["custom_coordinates"] = utils.encode_double_array(options.get("custom_coordinates"))
+    if "regions" in options:
+        params["regions"] = utils.json_encode(options.get("regions"))
     if "context" in options:
         params["context"] = utils.encode_context(options.get("context"))
     if "metadata" in options:
@@ -656,9 +699,8 @@ def add_metadata_field(field, **options):
 
     :rtype: Response
     """
-    params = only(field, "type", "external_id", "label", "mandatory",
-                  "default_value", "validation", "datasource")
-    return call_metadata_api("post", [], params, **options)
+
+    return call_metadata_api("post", [], __metadata_field_params(field), **options)
 
 
 def update_metadata_field(field_external_id, field, **options):
@@ -677,8 +719,13 @@ def update_metadata_field(field_external_id, field, **options):
     :rtype: Response
     """
     uri = [field_external_id]
-    params = only(field, "label", "mandatory", "default_value", "validation")
-    return call_metadata_api("put", uri, params, **options)
+
+    return call_metadata_api("put", uri, __metadata_field_params(field), **options)
+
+
+def __metadata_field_params(field):
+    return only(field, "type", "external_id", "label", "mandatory", "restrictions",
+                "default_value", "validation", "datasource")
 
 
 def delete_metadata_field(field_external_id, **options):
@@ -798,3 +845,18 @@ def reorder_metadata_fields(order_by, direction=None, **options):
     uri = ['order']
     params = {'order_by': order_by, 'direction': direction}
     return call_metadata_api('put', uri, params, **options)
+
+
+def analyze(input_type, analysis_type, uri=None, **options):
+    """Analyzes an asset with the requested analysis type.
+
+    :param input_type: The type of input for the asset to analyze ('uri').
+    :param analysis_type: The type of analysis to run ('google_tagging', 'captioning', 'fashion').
+    :param uri: The URI of the asset to analyze.
+    :param options: Additional options.
+
+    :rtype: Response
+    """
+    api_uri = ['analysis', 'analyze', input_type]
+    params = {'analysis_type': analysis_type, 'uri': uri, 'parameters': options.get("parameters")}
+    return _call_v2_api('post', api_uri, params, **options)

@@ -63,9 +63,8 @@ def execute_request(http_connector, method, params, headers, auth, api_url, **op
     processed_params = process_params(params)
 
     api_url = smart_escape(unquote(api_url))
-
     try:
-        response = http_connector.request(method.upper(), api_url, processed_params, req_headers, **kw)
+        response = http_connector.request(method=method.upper(), url=api_url, fields=processed_params, headers=req_headers, **kw)
         body = response.data
     except HTTPError as e:
         raise GeneralError("Unexpected error %s" % str(e))
