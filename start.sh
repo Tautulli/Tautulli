@@ -13,7 +13,7 @@ if [[ "$TAUTULLI_DOCKER" == "True" ]]; then
         echo "Running Tautulli using user tautulli (uid=$(id -u tautulli)) and group tautulli (gid=$(id -g tautulli))"
         exec gosu tautulli "$@"
     else
-        exec tautulli "$@"
+        exec "$@"
     fi
 else
     python_versions=("python3.11" "python3.10" "python3.9" "python3.8" "python3" "python")
