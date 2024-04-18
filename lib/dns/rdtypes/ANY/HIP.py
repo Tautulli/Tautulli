@@ -27,7 +27,6 @@ import dns.rdatatype
 
 @dns.immutable.immutable
 class HIP(dns.rdata.Rdata):
-
     """HIP record"""
 
     # see: RFC 5205

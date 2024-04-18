@@ -25,7 +25,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class SOA(dns.rdata.Rdata):
-
     """SOA record"""
 
     # see: RFC 1035

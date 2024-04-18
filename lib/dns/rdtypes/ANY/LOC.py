@@ -105,7 +105,6 @@ def _check_coordinate_list(value, low, high):
 
 @dns.immutable.immutable
 class LOC(dns.rdata.Rdata):
-
     """LOC record"""
 
     # see: RFC 1876

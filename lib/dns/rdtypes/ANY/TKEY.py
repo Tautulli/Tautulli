@@ -25,7 +25,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class TKEY(dns.rdata.Rdata):
-
     """TKEY Record"""
 
     __slots__ = [

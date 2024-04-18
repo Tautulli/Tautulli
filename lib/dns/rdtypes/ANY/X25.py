@@ -25,7 +25,6 @@ import dns.tokenizer
 
 @dns.immutable.immutable
 class X25(dns.rdata.Rdata):
-
     """X25 record"""
 
     # see RFC 1183

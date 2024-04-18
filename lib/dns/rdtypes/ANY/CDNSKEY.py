@@ -30,5 +30,4 @@ from dns.rdtypes.dnskeybase import (  # noqa: F401  lgtm[py/unused-import]
 
 @dns.immutable.immutable
 class CDNSKEY(dns.rdtypes.dnskeybase.DNSKEYBase):
-
     """CDNSKEY record"""

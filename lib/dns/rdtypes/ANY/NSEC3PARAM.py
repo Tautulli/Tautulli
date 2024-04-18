@@ -25,7 +25,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class NSEC3PARAM(dns.rdata.Rdata):
-
     """NSEC3PARAM record"""
 
     __slots__ = ["algorithm", "flags", "iterations", "salt"]
