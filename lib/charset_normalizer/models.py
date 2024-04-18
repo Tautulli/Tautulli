@@ -54,16 +54,19 @@ class CharsetMatch:
 
         # Below 1% difference --> Use Coherence
         if chaos_difference < 0.01 and coherence_difference > 0.02:
-            # When having a tough decision, use the result that decoded as many multi-byte as possible.
-            if chaos_difference == 0.0 and self.coherence == other.coherence:
-                return self.multi_byte_usage > other.multi_byte_usage
             return self.coherence > other.coherence
+        elif chaos_difference < 0.01 and coherence_difference <= 0.02:
+            # When having a difficult decision, use the result that decoded as many multi-byte as possible.
+            # preserve RAM usage!
+            if len(self._payload) >= TOO_BIG_SEQUENCE:
+                return self.chaos < other.chaos
+            return self.multi_byte_usage > other.multi_byte_usage
 
         return self.chaos < other.chaos
 
     @property
     def multi_byte_usage(self) -> float:
-        return 1.0 - len(str(self)) / len(self.raw)
+        return 1.0 - (len(str(self)) / len(self.raw))
 
     def __str__(self) -> str:
         # Lazy Str Loading

@@ -21,11 +21,11 @@ limitations under the License.
 
 import argparse
 import code
+import gzip
+import ssl
 import sys
 import threading
 import time
-import ssl
-import gzip
 import zlib
 from urllib.parse import urlparse
 
@@ -50,8 +50,13 @@ ENCODING = get_encoding()
 
 
 class VAction(argparse.Action):
-
-    def __call__(self, parser: argparse.Namespace, args: tuple, values: str, option_string: str = None) -> None:
+    def __call__(
+        self,
+        parser: argparse.Namespace,
+        args: tuple,
+        values: str,
+        option_string: str = None,
+    ) -> None:
         if values is None:
             values = "1"
         try:
@@ -63,36 +68,42 @@ class VAction(argparse.Action):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="WebSocket Simple Dump Tool")
-    parser.add_argument("url", metavar="ws_url",
-                        help="websocket url. ex. ws://echo.websocket.events/")
-    parser.add_argument("-p", "--proxy",
-                        help="proxy url. ex. http://127.0.0.1:8080")
-    parser.add_argument("-v", "--verbose", default=0, nargs='?', action=VAction,
-                        dest="verbose",
-                        help="set verbose mode. If set to 1, show opcode. "
-                        "If set to 2, enable to trace  websocket module")
-    parser.add_argument("-n", "--nocert", action='store_true',
-                        help="Ignore invalid SSL cert")
-    parser.add_argument("-r", "--raw", action="store_true",
-                        help="raw output")
-    parser.add_argument("-s", "--subprotocols", nargs='*',
-                        help="Set subprotocols")
-    parser.add_argument("-o", "--origin",
-                        help="Set origin")
-    parser.add_argument("--eof-wait", default=0, type=int,
-                        help="wait time(second) after 'EOF' received.")
-    parser.add_argument("-t", "--text",
-                        help="Send initial text")
-    parser.add_argument("--timings", action="store_true",
-                        help="Print timings in seconds")
-    parser.add_argument("--headers",
-                        help="Set custom headers. Use ',' as separator")
+    parser.add_argument(
+        "url", metavar="ws_url", help="websocket url. ex. ws://echo.websocket.events/"
+    )
+    parser.add_argument("-p", "--proxy", help="proxy url. ex. http://127.0.0.1:8080")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=0,
+        nargs="?",
+        action=VAction,
+        dest="verbose",
+        help="set verbose mode. If set to 1, show opcode. "
+        "If set to 2, enable to trace  websocket module",
+    )
+    parser.add_argument(
+        "-n", "--nocert", action="store_true", help="Ignore invalid SSL cert"
+    )
+    parser.add_argument("-r", "--raw", action="store_true", help="raw output")
+    parser.add_argument("-s", "--subprotocols", nargs="*", help="Set subprotocols")
+    parser.add_argument("-o", "--origin", help="Set origin")
+    parser.add_argument(
+        "--eof-wait",
+        default=0,
+        type=int,
+        help="wait time(second) after 'EOF' received.",
+    )
+    parser.add_argument("-t", "--text", help="Send initial text")
+    parser.add_argument(
+        "--timings", action="store_true", help="Print timings in seconds"
+    )
+    parser.add_argument("--headers", help="Set custom headers. Use ',' as separator")
 
     return parser.parse_args()
 
 
 class RawInput:
-
     def raw_input(self, prompt: str = "") -> str:
         line = input(prompt)
 
@@ -105,7 +116,6 @@ class RawInput:
 
 
 class InteractiveConsole(RawInput, code.InteractiveConsole):
-
     def write(self, data: str) -> None:
         sys.stdout.write("\033[2K\033[E")
         # sys.stdout.write("\n")
@@ -118,7 +128,6 @@ class InteractiveConsole(RawInput, code.InteractiveConsole):
 
 
 class NonInteractive(RawInput):
-
     def write(self, data: str) -> None:
         sys.stdout.write(data)
         sys.stdout.write("\n")
@@ -146,7 +155,7 @@ def main() -> None:
     if args.nocert:
         opts = {"cert_reqs": ssl.CERT_NONE, "check_hostname": False}
     if args.headers:
-        options['header'] = list(map(str.strip, args.headers.split(',')))
+        options["header"] = list(map(str.strip, args.headers.split(",")))
     ws = websocket.create_connection(args.url, sslopt=opts, **options)
     if args.raw:
         console = NonInteractive()
@@ -160,7 +169,7 @@ def main() -> None:
         except websocket.WebSocketException:
             return websocket.ABNF.OPCODE_CLOSE, ""
         if not frame:
-            raise websocket.WebSocketException("Not a valid frame {frame}".format(frame=frame))
+            raise websocket.WebSocketException(f"Not a valid frame {frame}")
         elif frame.opcode in OPCODE_DATA:
             return frame.opcode, frame.data
         elif frame.opcode == websocket.ABNF.OPCODE_CLOSE:
@@ -178,14 +187,18 @@ def main() -> None:
             msg = None
             if opcode == websocket.ABNF.OPCODE_TEXT and isinstance(data, bytes):
                 data = str(data, "utf-8")
-            if isinstance(data, bytes) and len(data) > 2 and data[:2] == b'\037\213':  # gzip magick
+            if (
+                isinstance(data, bytes) and len(data) > 2 and data[:2] == b"\037\213"
+            ):  # gzip magick
                 try:
                     data = "[gzip] " + str(gzip.decompress(data), "utf-8")
                 except:
                     pass
             elif isinstance(data, bytes):
                 try:
-                    data = "[zlib] " + str(zlib.decompress(data, -zlib.MAX_WBITS), "utf-8")
+                    data = "[zlib] " + str(
+                        zlib.decompress(data, -zlib.MAX_WBITS), "utf-8"
+                    )
                 except:
                     pass
 
@@ -193,13 +206,13 @@ def main() -> None:
                 data = repr(data)
 
             if args.verbose:
-                msg = "{opcode}: {data}".format(opcode=websocket.ABNF.OPCODE_MAP.get(opcode), data=data)
+                msg = f"{websocket.ABNF.OPCODE_MAP.get(opcode)}: {data}"
             else:
                 msg = data
 
             if msg is not None:
                 if args.timings:
-                    console.write(str(time.time() - start_time) + ": " + msg)
+                    console.write(f"{time.time() - start_time}: {msg}")
                 else:
                     console.write(msg)
 

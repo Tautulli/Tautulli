@@ -49,7 +49,7 @@ class WebApplicationClient(Client):
         using the "application/x-www-form-urlencoded" format, per `Appendix B`_:
 
         :param redirect_uri:  OPTIONAL. The redirect URI must be an absolute URI
-                              and it should have been registerd with the OAuth
+                              and it should have been registered with the OAuth
                               provider prior to use. As described in `Section 3.1.2`_.
 
         :param scope:  OPTIONAL. The scope of the access request as described by
@@ -117,7 +117,7 @@ class WebApplicationClient(Client):
                                 values MUST be identical.
 
         :param body: Existing request body (URL encoded string) to embed parameters
-                     into. This may contain extra paramters. Default ''.
+                     into. This may contain extra parameters. Default ''.
 
         :param include_client_id: `True` (default) to send the `client_id` in the
                                   body of the upstream request. This is required

@@ -12,7 +12,7 @@ from plexapi import (BASE_HEADERS, CONFIG, TIMEOUT, X_PLEX_ENABLE_FAST_CONNECT, 
                      log, logfilter, utils)
 from plexapi.base import PlexObject
 from plexapi.client import PlexClient
-from plexapi.exceptions import BadRequest, NotFound, Unauthorized
+from plexapi.exceptions import BadRequest, NotFound, Unauthorized, TwoFactorRequired
 from plexapi.library import LibrarySection
 from plexapi.server import PlexServer
 from plexapi.sonos import PlexSonosClient
@@ -108,6 +108,7 @@ class MyPlexAccount(PlexObject):
     OPTOUTS = 'https://plex.tv/api/v2/user/{userUUID}/settings/opt_outs'                        # get
     LINK = 'https://plex.tv/api/v2/pins/link'                                                   # put
     VIEWSTATESYNC = 'https://plex.tv/api/v2/user/view_state_sync'                               # put
+    PING = 'https://plex.tv/api/v2/ping'
     # Hub sections
     VOD = 'https://vod.provider.plex.tv'                                                        # get
     MUSIC = 'https://music.provider.plex.tv'                                                    # get
@@ -236,6 +237,8 @@ class MyPlexAccount(PlexObject):
             errtext = response.text.replace('\n', ' ')
             message = f'({response.status_code}) {codename}; {response.url} {errtext}'
             if response.status_code == 401:
+                if "verification code" in response.text:
+                    raise TwoFactorRequired(message)
                 raise Unauthorized(message)
             elif response.status_code == 404:
                 raise NotFound(message)
@@ -249,6 +252,15 @@ class MyPlexAccount(PlexObject):
             return response.text.strip()
         data = response.text.encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
+
+    def ping(self):
+        """ Ping the Plex.tv API.
+            This will refresh the authentication token to prevent it from expiring.
+        """
+        pong = self.query(self.PING)
+        if pong is not None:
+            return utils.cast(bool, pong.text)
+        return False
 
     def device(self, name=None, clientId=None):
         """ Returns the :class:`~plexapi.myplex.MyPlexDevice` that matches the name specified.
@@ -1694,7 +1706,9 @@ class MyPlexPinLogin:
 
     @property
     def pin(self):
-        """ Return the 4 character PIN used for linking a device at https://plex.tv/link. """
+        """ Return the 4 character PIN used for linking a device at
+            https://plex.tv/link.
+        """
         if self._oauth:
             raise BadRequest('Cannot use PIN for Plex OAuth login')
         return self._code
@@ -1726,6 +1740,7 @@ class MyPlexPinLogin:
 
     def run(self, callback=None, timeout=None):
         """ Starts the thread which monitors the PIN login state.
+
             Parameters:
                 callback (Callable[str]): Callback called with the received authentication token (optional).
                 timeout (int): Timeout in seconds waiting for the PIN login to succeed (optional).
@@ -1748,6 +1763,7 @@ class MyPlexPinLogin:
 
     def waitForLogin(self):
         """ Waits for the PIN login to succeed or expire.
+
             Parameters:
                 callback (Callable[str]): Callback called with the received authentication token (optional).
                 timeout (int): Timeout in seconds waiting for the PIN login to succeed (optional).

@@ -624,6 +624,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     stream_count = len(sessions)
     user_stream_count = len(user_sessions)
+    lan_streams = sum(1 for s in sessions if s['location'] == 'lan')
+    wan_streams = stream_count - lan_streams
 
     lan_bandwidth = sum(helpers.cast_to_int(s['bandwidth']) for s in sessions if s['location'] == 'lan')
     wan_bandwidth = sum(helpers.cast_to_int(s['bandwidth']) for s in sessions if s['location'] != 'lan')
@@ -989,6 +991,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'utctime': helpers.utc_now_iso(),
         # Stream parameters
         'streams': stream_count,
+        'lan_streams': lan_streams,
+        'wan_streams': wan_streams,
         'direct_plays': transcode_decision_count['direct play'],
         'direct_streams': transcode_decision_count['copy'],
         'transcodes': transcode_decision_count['transcode'],
@@ -1005,7 +1009,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'user_thumb': notify_params['user_thumb'],
         'device': notify_params['device'],
         'platform': notify_params['platform'],
+        'platform_version': notify_params['platform_version'],
         'product': notify_params['product'],
+        'product_version': notify_params['product_version'],
         'player': notify_params['player'],
         'ip_address': notify_params.get('ip_address', 'N/A'),
         'started_datestamp': CustomArrow(arrow.get(notify_params['started']), date_format) if notify_params['started'] else '',
@@ -1041,8 +1047,11 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'credits_marker_first': helpers.cast_to_int(marker['first']),
         'credits_marker_final': helpers.cast_to_int(marker['final']),
         'channel_call_sign': notify_params['channel_call_sign'],
+        'channel_id': notify_params['channel_id'],
         'channel_identifier': notify_params['channel_identifier'],
+        'channel_title': notify_params['channel_title'],
         'channel_thumb': notify_params['channel_thumb'],
+        'channel_vcn': notify_params['channel_vcn'],
         'secure': 'unknown' if notify_params['secure'] is None else notify_params['secure'],
         'relayed': notify_params['relayed'],
         'stream_local': notify_params['local'],
@@ -1061,6 +1070,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'stream_video_color_space': notify_params['stream_video_color_space'],
         'stream_video_color_trc': notify_params['stream_video_color_trc'],
         'stream_video_dynamic_range': notify_params['stream_video_dynamic_range'],
+        'stream_video_dovi_present': notify_params['stream_video_dovi_present'],
+        'stream_video_dovi_level': notify_params['stream_video_dovi_level'],
+        'stream_video_dovi_profile': notify_params['stream_video_dovi_profile'],
         'stream_video_framerate': notify_params['stream_video_framerate'],
         'stream_video_full_resolution': notify_params['stream_video_full_resolution'],
         'stream_video_ref_frames': notify_params['stream_video_ref_frames'],
@@ -1189,6 +1201,9 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'video_color_space': notify_params['video_color_space'],
         'video_color_trc': notify_params['video_color_trc'],
         'video_dynamic_range': notify_params['video_dynamic_range'],
+        'video_dovi_present': notify_params['video_dovi_present'],
+        'video_dovi_level': notify_params['video_dovi_level'],
+        'video_dovi_profile': notify_params['video_dovi_profile'],
         'video_framerate': notify_params['video_framerate'],
         'video_full_resolution': notify_params['video_full_resolution'],
         'video_ref_frames': notify_params['video_ref_frames'],

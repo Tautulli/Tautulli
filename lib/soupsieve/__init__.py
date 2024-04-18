@@ -78,13 +78,13 @@ def purge() -> None:
 
 def closest(
     select: str,
-    tag: 'bs4.Tag',
+    tag: bs4.Tag,
     namespaces: dict[str, str] | None = None,
     flags: int = 0,
     *,
     custom: dict[str, str] | None = None,
     **kwargs: Any
-) -> 'bs4.Tag':
+) -> bs4.Tag:
     """Match closest ancestor."""
 
     return compile(select, namespaces, flags, **kwargs).closest(tag)
@@ -92,7 +92,7 @@ def closest(
 
 def match(
     select: str,
-    tag: 'bs4.Tag',
+    tag: bs4.Tag,
     namespaces: dict[str, str] | None = None,
     flags: int = 0,
     *,
@@ -106,13 +106,13 @@ def match(
 
 def filter(  # noqa: A001
     select: str,
-    iterable: Iterable['bs4.Tag'],
+    iterable: Iterable[bs4.Tag],
     namespaces: dict[str, str] | None = None,
     flags: int = 0,
     *,
     custom: dict[str, str] | None = None,
     **kwargs: Any
-) -> list['bs4.Tag']:
+) -> list[bs4.Tag]:
     """Filter list of nodes."""
 
     return compile(select, namespaces, flags, **kwargs).filter(iterable)
@@ -120,13 +120,13 @@ def filter(  # noqa: A001
 
 def select_one(
     select: str,
-    tag: 'bs4.Tag',
+    tag: bs4.Tag,
     namespaces: dict[str, str] | None = None,
     flags: int = 0,
     *,
     custom: dict[str, str] | None = None,
     **kwargs: Any
-) -> 'bs4.Tag':
+) -> bs4.Tag:
     """Select a single tag."""
 
     return compile(select, namespaces, flags, **kwargs).select_one(tag)
@@ -134,14 +134,14 @@ def select_one(
 
 def select(
     select: str,
-    tag: 'bs4.Tag',
+    tag: bs4.Tag,
     namespaces: dict[str, str] | None = None,
     limit: int = 0,
     flags: int = 0,
     *,
     custom: dict[str, str] | None = None,
     **kwargs: Any
-) -> list['bs4.Tag']:
+) -> list[bs4.Tag]:
     """Select the specified tags."""
 
     return compile(select, namespaces, flags, **kwargs).select(tag, limit)
@@ -149,18 +149,17 @@ def select(
 
 def iselect(
     select: str,
-    tag: 'bs4.Tag',
+    tag: bs4.Tag,
     namespaces: dict[str, str] | None = None,
     limit: int = 0,
     flags: int = 0,
     *,
     custom: dict[str, str] | None = None,
     **kwargs: Any
-) -> Iterator['bs4.Tag']:
+) -> Iterator[bs4.Tag]:
     """Iterate the specified tags."""
 
-    for el in compile(select, namespaces, flags, **kwargs).iselect(tag, limit):
-        yield el
+    yield from compile(select, namespaces, flags, **kwargs).iselect(tag, limit)
 
 
 def escape(ident: str) -> str:

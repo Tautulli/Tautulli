@@ -66,7 +66,7 @@ IPv4address = r"%(dec_octet)s \. %(dec_octet)s \. %(dec_octet)s \. %(dec_octet)s
 )
 
 #   IPv6address
-IPv6address = r"([A-Fa-f0-9:]+:+)+[A-Fa-f0-9]+"
+IPv6address = r"([A-Fa-f0-9:]+[:$])[A-Fa-f0-9]{1,4}"
 
 #   IPvFuture     = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
 IPvFuture = r"v %(HEXDIG)s+ \. (?: %(unreserved)s | %(sub_delims)s | : )+" % locals()

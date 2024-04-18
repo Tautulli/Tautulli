@@ -10,7 +10,7 @@ The format and various output types is fairly known (though it
 hasn't been tested extensively to make sure we aren't missing corners).
 
 Example:
-
+-------
 ```
 >>> import soupsieve as sv
 >>> sv.compile('this > that.class[name=value]').selectors.pretty()
@@ -64,6 +64,7 @@ SelectorList(
     is_not=False,
     is_html=False)
 ```
+
 """
 from __future__ import annotations
 import re
@@ -123,16 +124,16 @@ def pretty(obj: Any) -> str:  # pragma: no cover
                 index = m.end(0)
                 if name in ('class', 'lstrt', 'dstrt', 'tstrt'):
                     indent += 4
-                    output.append('{}\n{}'.format(m.group(0), " " * indent))
+                    output.append(f'{m.group(0)}\n{" " * indent}')
                 elif name in ('param', 'int', 'kword', 'sqstr', 'dqstr', 'empty'):
                     output.append(m.group(0))
                 elif name in ('lend', 'dend', 'tend'):
                     indent -= 4
                     output.append(m.group(0))
                 elif name in ('sep',):
-                    output.append('{}\n{}'.format(m.group(1), " " * indent))
+                    output.append(f'{m.group(1)}\n{" " * indent}')
                 elif name in ('dsep',):
-                    output.append('{} '.format(m.group(1)))
+                    output.append(f'{m.group(1)} ')
                 break
 
     return ''.join(output)

@@ -6,10 +6,13 @@ on:
     branches: [master, beta, nightly]
     tags: [v*]
 
+env:
+  PYTHON_VERSION: '3.11'
+
 jobs:
   build-installer:
     name: Build ${{ matrix.os_upper }} Installer
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     strategy:
       fail-fast: false
@@ -17,9 +20,13 @@ jobs:
         include:
           - os: 'windows'
             os_upper: 'Windows'
+            os_version: 'latest'
+            arch: 'x64'
             ext: 'exe'
           - os: 'macos'
             os_upper: 'MacOS'
+            os_version: '14'
+            arch: 'universal'
             ext: 'pkg'
 
     steps:
@@ -52,16 +59,16 @@ jobs:
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
           cache-dependency-path: '**/requirements*.txt'
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r package/requirements-package.txt
+          pip install -r package/requirements-package.txt --no-binary cffi
 
       - name: Build Package
         run: |
@@ -74,7 +81,7 @@ jobs:
           script-file: ./package/Tautulli.nsi
           arguments: >
             /DVERSION=${{ steps.get_version.outputs.VERSION_NSIS }}
-            /DINSTALLER_NAME=..\Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
+            /DINSTALLER_NAME=..\Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
           additional-plugin-paths: package/nsis-plugins
 
       - name: Create MacOS Installer
@@ -85,13 +92,13 @@ jobs:
             --version ${{ steps.get_version.outputs.VERSION }} \
             --component ./dist/Tautulli.app \
             --scripts ./package/macos-scripts \
-            Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
+            Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
 
       - name: Upload Installer
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Tautulli-${{ matrix.os }}-installer
-          path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.${{ matrix.ext }}
+          path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
 
   release:
     name: Release Installers
@@ -99,9 +106,6 @@ jobs:
     if: always() && startsWith(github.ref, 'refs/tags/') && !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
     steps:
-      - name: Get Build Job Status
-        uses: technote-space/workflow-conclusion-action@v3
-
       - name: Checkout Code
         uses: actions/checkout@v4
 
@@ -111,8 +115,8 @@ jobs:
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: Download Installers
-        if: env.WORKFLOW_CONCLUSION == 'success'
-        uses: actions/download-artifact@v3
+        if: needs.build-installer.result == 'success'
+        uses: actions/download-artifact@v4
 
       - name: Get Changelog
         id: get_changelog
@@ -125,7 +129,7 @@ jobs:
           echo "$EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         id: create_release
         env:
           GITHUB_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
@@ -147,23 +151,10 @@ jobs:
     if: always() && !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
     steps:
-      - name: Get Build Job Status
-        uses: technote-space/workflow-conclusion-action@v3
-
-      - name: Combine Job Status
-        id: status
-        run: |
-          failures=(neutral, skipped, timed_out, action_required)
-          if [[ ${array[@]} =~ $WORKFLOW_CONCLUSION ]]; then
-            echo "status=failure" >> $GITHUB_OUTPUT
-          else
-            echo "status=$WORKFLOW_CONCLUSION" >> $GITHUB_OUTPUT
-          fi
-
       - name: Post Status to Discord
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ steps.status.outputs.status }}
+          status: ${{ needs.build-installer.result == 'success' && 'success' || contains(needs.*.result, 'failure') && 'failure' || 'cancelled' }}
           title: ${{ github.workflow }}
           nofail: true

@@ -179,7 +179,9 @@ class LXMLTreeBuilderForXML(TreeBuilder):
             self.processing_instruction_class = ProcessingInstruction
             # We're in HTML mode, so if we're given XML, that's worth
             # noting.
-            DetectsXMLParsedAsHTML.warn_if_markup_looks_like_xml(markup)
+            DetectsXMLParsedAsHTML.warn_if_markup_looks_like_xml(
+                markup, stacklevel=3
+            )
         else:
             self.processing_instruction_class = XMLProcessingInstruction
 

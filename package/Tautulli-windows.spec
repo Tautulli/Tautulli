@@ -31,7 +31,8 @@ exe = EXE(
     exclude_binaries=True,
     name='Tautulli',
     console=False,
-    icon='..\\data\\interfaces\\default\\images\\logo-circle.ico'
+    icon='..\\data\\interfaces\\default\\images\\logo-circle.ico',
+    contents_directory='.'
 )
 coll = COLLECT(
     exe,

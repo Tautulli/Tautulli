@@ -1,5 +1,5 @@
 # mako/lookup.py
-# Copyright 2006-2022 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -178,7 +178,6 @@ class TemplateLookup(TemplateCollection):
         lexer_cls=None,
         include_error_handler=None,
     ):
-
         self.directories = [
             posixpath.normpath(d) for d in util.to_list(directories, ())
         ]
