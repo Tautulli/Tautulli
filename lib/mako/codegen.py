@@ -838,13 +838,24 @@ class _GenerateRenderMethod:
                 text = node.text
             self.printer.writeline(text)
             children = node.get_children()
-            # this covers the three situations where we want to insert a pass:
-            #    1) a ternary control line with no children,
-            #    2) a primary control line with nothing but its own ternary
-            #          and end control lines, and
-            #    3) any control line with no content other than comments
-            if not children or (
-                all(
+
+            # this covers the four situations where we want to insert a pass:
+            # 1) a ternary control line with no children,
+            # 2) a primary control line with nothing but its own ternary
+            #       and end control lines, and
+            # 3) any control line with no content other than comments
+            # 4) the first control block with no content other than comments
+            def _search_for_control_line():
+                for c in children:
+                    if isinstance(c, parsetree.Comment):
+                        continue
+                    elif isinstance(c, parsetree.ControlLine):
+                        return True
+                    return False
+
+            if (
+                not children
+                or all(
                     isinstance(c, (parsetree.Comment, parsetree.ControlLine))
                     for c in children
                 )
@@ -853,6 +864,7 @@ class _GenerateRenderMethod:
                     for c in children
                     if isinstance(c, parsetree.ControlLine)
                 )
+                or _search_for_control_line()
             ):
                 self.printer.writeline("pass")
 
