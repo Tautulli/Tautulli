@@ -90,6 +90,26 @@ class FindIdentifiers(_ast_util.NodeVisitor):
         self._add_declared(node.name)
         self._visit_function(node, False)
 
+    def visit_ListComp(self, node):
+        if self.in_function:
+            if not isinstance(node.elt, _ast.Name):
+                self.visit(node.elt)
+            for comp in node.generators:
+                self.visit(comp.iter)
+        else:
+            self.generic_visit(node)
+
+    visit_SetComp = visit_GeneratorExp = visit_ListComp
+
+    def visit_DictComp(self, node):
+        if self.in_function:
+            if not isinstance(node.key, _ast.Name):
+                self.visit(node.elt)
+            for comp in node.generators:
+                self.visit(comp.iter)
+        else:
+            self.generic_visit(node)
+
     def _expand_tuples(self, args):
         for arg in args:
             if isinstance(arg, _ast.Tuple):
