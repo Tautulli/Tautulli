@@ -2004,7 +2004,8 @@ class IFTTT(Notifier):
                           'value': self.config['key'],
                           'name': 'ifttt_key',
                           'description': 'Your IFTTT webhook key. You can get a key from'
-                                         ' <a href="' + helpers.anon_url('https://ifttt.com/maker_webhooks') + '" target="_blank">here</a>.',
+                                         ' <a href="' + helpers.anon_url('https://ifttt.com/maker_webhooks') +
+                                         '" target="_blank" rel="noreferrer">here</a>.',
                           'input_type': 'token'
                           },
                          {'label': 'IFTTT Event',
@@ -3893,7 +3894,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                                'Instructions can be found in the '
                                '<a href="' + helpers.anon_url(
                                  'https://github.com/%s/%s/wiki/Frequently-Asked-Questions#notifications-pycryptodome'
-                                 % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank">FAQ</a>.' ,
+                                 % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank" rel="noreferrer">FAQ</a>.' ,
                 'input_type': 'help'
             })
         else:
@@ -3905,10 +3906,10 @@ class TAUTULLIREMOTEAPP(Notifier):
             })
 
         config_option[-1]['description'] += ('<br><br>Notifications are sent using '
-            '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank">'
+            '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank" rel="noreferrer">'
             'OneSignal</a>. Some user data is collected and cannot be encrypted.<br>'
             'Please read the <a href="' + helpers.anon_url(
-                'https://onesignal.com/privacy_policy') + '" target="_blank">'
+                'https://onesignal.com/privacy_policy') + '" target="_blank" rel="noreferrer">'
             'OneSignal Privacy Policy</a> for more details.')
 
         devices = self.get_devices()
@@ -4057,7 +4058,7 @@ class TELEGRAM(Notifier):
                           'name': 'telegram_bot_token',
                           'description': 'Your Telegram bot token. '
                                          'Contact <a href="' + helpers.anon_url('https://telegram.me/BotFather') +
-                                         '" target="_blank">@BotFather</a>'
+                                         '" target="_blank" rel="noreferrer">@BotFather</a>'
                                          ' on Telegram to get one.',
                           'input_type': 'token'
                           },
@@ -4066,7 +4067,7 @@ class TELEGRAM(Notifier):
                           'name': 'telegram_chat_id',
                           'description': 'Your Telegram Chat ID, Group ID, Channel ID or @channelusername. '
                                          'Contact <a href="' + helpers.anon_url('https://telegram.me/myidbot') +
-                                         '" target="_blank">@myidbot</a>'
+                                         '" target="_blank" rel="noreferrer">@myidbot</a>'
                                          ' on Telegram to get an ID. '
                                          'For a group topic, append <span class="inline-pre">/topicID</span> to the group ID.',
                           'input_type': 'text'
