@@ -1,5 +1,40 @@
 # Changelog
 
+## v2.14.0-beta (2024-04-19)
+
+* History:
+  * Fix: Live TV activity not logging to history.
+  * Fix: Incorrect grouping of live TV history.
+* Notifications:
+  * Fix: Pushover configuration settings refreshing after entering a token.
+  * Fix: Plex remote access down notifications not triggering.
+  * Fix: Deleting all images from Cloudinary only deleting 1000 images.
+  * New: Added platform version and product version notification parameters.
+  * New: Added LAN streams and WAN streams notification parameters.
+  * New: Added Dolby Vision notification parameters.
+  * New: Added live TV channel notification parameters.
+  * Change: Improved Tautulli Remote App notification encryption method.
+    * Note: Requires Tautulli Remote App version 3.2.4.
+* Exporter:
+  * New: Added slug attribute to exporter fields.
+  * New: Added track genres to exporter fields.
+  * New: Added playlist source URI to exporter fields.
+* UI:
+  * Fix: Mask deleted usernames in the logs.
+  * Fix: Live TV watch stats not showing on the media info page.
+  * Removed: Deprecated synced item pages.
+  * Removed: Anonymous redirect settings. Links now use browser no-referrer policy instead.
+* API:
+  * New: Added Dolby Vision info to the get_metadata API command.
+  * New: Added before and after parameters to the get_home_stats API command.
+* Packages:
+  * New: Universal binary for macOS for Apple silicon.
+  * New: Bump Snap package to core22.
+* Other:
+  * Change: Login cookie expires changed to max-age.
+  * Change: Improved key generation for login password. It is recommended to reenter your HTTP Password in the settings after upgrading.
+
+
 ## v2.13.4 (2023-12-07)
 
 * UI:
