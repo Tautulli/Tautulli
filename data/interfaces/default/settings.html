@@ -976,6 +976,25 @@
                             <p class="help-block">Refresh the libraries list when Tautulli starts.</p>
                         </div>
 
+                        <div class="form-group advanced-setting">
+                            <label for="refresh_library_stats_data_interval">Library Statistics Data Refresh Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="refresh_library_stats_data_interval" name="refresh_library_stats_data_interval" value="${config['refresh_library_stats_data_interval']}" size="5" data-parsley-range="[6,24]" data-parsley-trigger="change" data-parsley-errors-container="#refresh_library_stats_data_interval_error" required>
+                                </div>
+                                <div id="refresh_library_stats_data_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">The interval (in hours) Tautulli will request an update of all media items from your Plex Media Server.</p>
+                            <p class="help-block">Minimum 6, maximum 24, default 12.</p>
+                            <p class="help-block">This process, depending on your library sizes, can take multiple minutes up to half an hour.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="refresh_library_stats_data_on_startup" name="refresh_library_stats_data_on_startup" value="1" ${config['refresh_library_stats_data_on_startup']}> Refresh Library Statistics Data on Startup
+                            </label>
+                            <p class="help-block">Refresh the library statistics data when Tautulli starts.</p>
+                        </div>
+
                         <div class="padded-header">
                             <h3>Plex.tv Authentication</h3>
                         </div>

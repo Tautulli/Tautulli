@@ -2505,6 +2505,48 @@ class WebInterface(object):
         else:
             logger.warn("Unable to retrieve data for get_plays_by_top_10_users.")
             return result
+    
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    #called additions instead of adds so it isn't blocked by adblockers...
+    def get_additions_by_media_type(self, time_range='30'):
+        graph = graphs.Graphs()
+        result = graph.get_total_additions_by_media_type(time_range=time_range)
+
+        if result:
+            return result
+        else:
+            logger.warn("Unable to retrieve data for get_additions_by_media_type.")
+            return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    #called additions instead of adds so it isn't blocked by adblockers...
+    def get_additions_by_resolution(self, time_range='30'):
+        graph = graphs.Graphs()
+        result = graph.get_total_additions_by_resolution(time_range=time_range)
+
+        if result:
+            return result
+        else:
+            logger.warn("Unable to retrieve data for get_additions_by_resolution.")
+            return result
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    #called additions instead of adds so it isn't blocked by adblockers...
+    def get_additions_by_date(self, time_range='30', growth=False):
+        graph = graphs.Graphs()
+        result = graph.get_total_additions_per_day(time_range=time_range, growth=growth)
+
+        if result:
+            return result
+        else:
+            logger.warn("Unable to retrieve data for get_additions_by_date.")
+            return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -3248,14 +3290,28 @@ class WebInterface(object):
             first_run = True
             server_changed = True
 
-        if not first_run:
-            for checked_config in config.CHECKED_SETTINGS:
-                checked_config = checked_config.lower()
-                if checked_config not in kwargs:
-                    # checked items should be zero or one. if they were not sent then the item was not checked
-                    kwargs[checked_config] = 0
-                else:
-                    kwargs[checked_config] = 1
+        checked_configs = [
+            "launch_browser", "launch_startup", "enable_https", "https_create_cert",
+            "api_enabled", "freeze_db", "check_github",
+            "group_history_tables",
+            "pms_url_manual", "week_start_monday",
+            "refresh_libraries_on_startup", "refresh_users_on_startup",
+            "notify_consecutive", "notify_recently_added_upgrade",
+            "notify_group_recently_added_grandparent", "notify_group_recently_added_parent",
+            "notify_new_device_initial_only",
+            "notify_server_update_repeat", "notify_plexpy_update_repeat",
+            "monitor_pms_updates", "get_file_sizes", "log_blacklist",
+            "allow_guest_access", "cache_images", "http_proxy", "notify_concurrent_by_ip",
+            "history_table_activity", "plexpy_auto_update",
+            "themoviedb_lookup", "tvmaze_lookup", "musicbrainz_lookup", "http_plex_admin",
+            "newsletter_self_hosted", "newsletter_inline_styles", "sys_tray_icon"
+        ]
+        for checked_config in checked_configs:
+            if checked_config not in kwargs:
+                # checked items should be zero or one. if they were not sent then the item was not checked
+                kwargs[checked_config] = 0
+            else:
+                kwargs[checked_config] = 1
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password') == '    ':

@@ -44,6 +44,7 @@
             <li role="presentation"><a id="nav-tabs-plays" href="#tabs-plays" aria-controls="tabs-plays" data-toggle="tab" role="tab">Media Type</a></li>
             <li role="presentation"><a id="nav-tabs-stream" href="#tabs-stream" aria-controls="tabs-stream" data-toggle="tab" role="tab">Stream Type</a></li>
             <li role="presentation"><a id="nav-tabs-total" href="#tabs-total" aria-controls="tabs-total" data-toggle="tab" role="tab">Play Totals</a></li>
+            <li role="presentation"><a id="nav-tabs-library-statistics" href="#tabs-library-statistics" aria-controls="tabs-library-statistics" data-toggle="tab" role="tab">Library Statistics</a></li>
         </ul>
         <div class="tab-content">
             <div role="tabpanel" class="tab-pane" id="tabs-plays">
@@ -225,6 +226,68 @@
                     </div>
                 </div>
             </div>
+            <div role="tabpanel" class="tab-pane" id="tabs-library-statistics">
+                <div id="section-library-graphs">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4><i class="fa fa-history"></i> Daily addition by media type <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The total addition count of shows, seasons, episodes and movies per day.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="graph_additions_by_day">
+                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4><i class="fa fa-signal"></i> Library Growth <small>Last <span class="days">30</span> days</small></h4>
+                            <p class="help-block">
+                                The overall library growth by the library stats per day.
+                            </p>
+                            <div class="graphs-instance">
+                                <div class="watch-chart" id="library_growth_by_day">
+                                    <div class="graphs-load"><i class="fa fa-refresh fa-spin"></i> Loading chart...</div>
+                                    <br>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-television"></i> Addition count by media type <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of tv, movies, and music added to the server.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_additions_by_media_type" style="float: left;">
+                                <div class="graphs-load">
+                                    <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4><i class="fa fa-television"></i> Addition count by source resolution <small>Last <span class="days">30</span> days</small></h4>
+                        <p class="help-block">
+                            The combined total of tv, movies, and music added to the server by source resolution.
+                        </p>
+                        <div class="graphs-instance">
+                            <div class="watch-chart" id="graph_additions_by_source_resolution" style="float: left;">
+                                <div class="graphs-load">
+                                    <i class="fa fa-refresh fa-spin"></i> Loading chart...
+                                </div>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -246,6 +309,8 @@
 
 <script>
     var selected_user_id = null;
+    var _Charts = [];
+    var _enableChartSync = false;
 
     // Modal popup dialog
     function selectHandler(selectedDate, selectedSeries) {
@@ -304,15 +369,154 @@
         return data_series.map(function(s) {
             var obj = Object.assign({}, s);
             obj.visible = (chart_visibility[s.name] !== false);
+            if(chart_name == "graph_additions_by_day" || chart_name == "library_growth_by_day") {
+                if(obj.name == "Episodes") {
+                    obj.yAxis = 1;
+                } else if(obj.name == "Tracks") {
+                    obj.yAxis = 2;
+                }
+                obj.softThreshold = true;
+            }          
             return obj
         });
     }
 
+    var syncLinks = {
+        'library_growth_by_day': 'graph_additions_by_day',
+        'graph_additions_by_day': 'library_growth_by_day'
+    }
+
+    function syncGraphs(instance, chart_name, series_name, browserEvent) {
+        var otherChart = _Charts.find(c => c['renderTo'].id == syncLinks[chart_name]);
+        var sisterSeries = otherChart.series.find(s => s['name'] == series_name);
+
+        // Chart Visibility in storage - needs to be done before setting axis visibility
+        setGraphVisibility(syncLinks[chart_name], otherChart.series, series_name);
+
+        // Axis visibility
+        if (sisterSeries) {
+            if (instance.visible) {
+                sisterSeries.hide();
+            } else {
+                sisterSeries.show();
+            }
+        }
+        
+        // Axis name visibility
+        if (series_name == "Episodes") {
+            document.getElementsByClassName("highcharts-yaxis-title")[0].innerHTML = (instance.visible) ? "" : "Episodes";
+            document.getElementsByClassName("highcharts-yaxis-title")[2].innerHTML = (instance.visible) ? "" : "Episodes";
+        } else if(series_name == "Tracks") {
+            document.getElementsByClassName("highcharts-yaxis-title")[1].innerHTML = (instance.visible) ? "" : "Tracks";
+            document.getElementsByClassName("highcharts-yaxis-title")[3].innerHTML = (instance.visible) ? "" : "Tracks";
+        }
+
+        // Tooltip
+        if(browserEvent) {
+            //syncTooltip(browserEvent);
+        }
+    }
+
+
+    // Sync selected day (tooltip position)
+    // https://jsfiddle.net/BlackLabel/5wq9sdbp
+    ['mousemove', 'touchmove', 'touchstart', 'mouseleave'].forEach(function (eventType) {
+            document.getElementById('section-library-graphs').addEventListener(
+            eventType,
+            function(e) {
+                if(_enableChartSync) {
+                    syncTooltip(e);
+                }
+            }
+        );
+    });
+
+    function syncTooltip(e) {
+        var chart, otherChart,
+            point, points,
+            i, event;
+        
+        for (i = 0; i < Highcharts.charts.length; i = i + 1) {                                
+            chart = _Charts[i];
+            if(chart == undefined || chart.options.chart.type != "line" || !syncLinks.hasOwnProperty(chart.renderTo.id)) {
+                continue;
+            }
+
+            // Find coordinates within the chart
+            event = chart.pointer.normalize(e);
+            const isMouseLeave = e.type == "mouseleave";
+            otherChart = _Charts.find(c => c['renderTo'].id == syncLinks[chart.renderTo.id]);
+
+            // Get the hovered points
+            points = [];
+            chart.series.forEach(function (series, idx) {
+                var _point = series.searchPoint(event, true);
+                if(isMouseLeave) {
+                    if(_point) {
+                        _point.setState('');
+                        points.push(_point);
+                    }
+                } else {
+                    if(_point && _point.series.visible == true) {
+                        points.push(_point);
+                    }
+                }
+            });
+
+            if(points.length && !points.includes(undefined)) {
+                number = 0;
+                if(isMouseLeave) {
+                    chart.tooltip.hide();
+                    chart.xAxis[0].hideCrosshair();
+                } else {
+                    chart.tooltip.refresh(points);
+                    chart.xAxis[0].drawCrosshair(e, points[0]);
+                    //chart.xAxis[0].drawCrosshair(e, points[points.length]);
+
+                    pointsChart2 = []
+                }
+                
+                otherChart.series.forEach(function(_series, idx) {
+                    if(_series.visible) {
+                        try {
+                            var _point = _series.points[points[number].x];
+                            if(isMouseLeave) {
+                                _point.setState('');
+                            } else {
+                                pointsChart2.push(_point);
+                            }
+                            number++;
+                        } catch {
+                            // Graph render issue. Normalizes by itself so no additional measures required.
+                            // No effect on the user.
+                        }
+                    }
+                });
+
+                if(isMouseLeave) {
+                    otherChart.tooltip.hide();
+                    otherChart.xAxis[0].hideCrosshair();
+                } else {
+                    otherChart.tooltip.refresh(pointsChart2);
+                    otherChart.xAxis[0].drawCrosshair(e, pointsChart2[0]);
+                }           
+            }
+
+            /**
+             * If a matching chart is found the other will be retrieved through the syncLink so no additional iteration is required.
+            **/
+            break;
+        }
+    }
+    
     function setGraphVisibility(chart_name, data_series, series_name) {
         var chart_key = 'HighCharts_' + chart_name;
 
         var chart_visibility = data_series.map(function(s) {
-            return {name: s.name, visible: (s.name === series_name) ? !s.visible : s.visible}
+            var _visible = (s.name === series_name) ? !s.visible : s.visible;
+            return {
+                name: s.name, visible: _visible
+            }
         });
 
         setLocalStorage(chart_key, JSON.stringify(chart_visibility));
@@ -320,6 +524,12 @@
 
     function getGraphColors(data_series) {
         var colors = {
+            'Artists': '#461d1d',
+            'Albums': '#9b4141',
+            'Tracks': '#f06464',
+            'Shows': '#ff3300',
+            'Seasons': '#ff6600',
+            'Episodes': '#ff9933',
             'TV': '#E5A00D',
             'Movies': '#FFFFFF',
             'Music': '#F06464',
@@ -336,6 +546,10 @@
         return series_colors;
     }
 </script>
+<script src="${http_root}js/graphs/library_additions_by_media_type.js${cache_param}"></script>
+<script src="${http_root}js/graphs/library_growth_by_day.js${cache_param}"></script>
+<script src="${http_root}js/graphs/library_additions_by_source_resolution.js${cache_param}"></script>
+<script src="${http_root}js/graphs/library_additions_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_day.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_dayofweek.js${cache_param}"></script>
 <script src="${http_root}js/graphs/plays_by_hourofday.js${cache_param}"></script>
@@ -368,6 +582,8 @@
             case '#tabs-3':
                 current_tab = '#tabs-total'
                 break
+            case '#tabs-4':
+                current_tab = '#tabs-library-statistics'
             default:
                 break
         }
@@ -436,6 +652,8 @@
         function loadGraphsTab1(time_range, yaxis) {
             $('#days-selection').show();
             $('#months-selection').hide();
+            $('#user-selection').show();
+            $('#yaxis-selection').show();
 
             setGraphFormat(yaxis);
 
@@ -512,7 +730,7 @@
             $.ajax({
                 url: "get_plays_by_top_10_users",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id  },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -522,13 +740,15 @@
                     var hc_plays_by_user = new Highcharts.Chart(hc_plays_by_user_options);
                 }
             });
-
+            
             $('#nav-tabs-plays').tab('show');
         }
 
         function loadGraphsTab2(time_range, yaxis) {
             $('#days-selection').show();
             $('#months-selection').hide();
+            $('#user-selection').show();
+            $('#yaxis-selection').show();
 
             setGraphFormat(yaxis);
 
@@ -649,6 +869,8 @@
         function loadGraphsTab3(time_range, yaxis) {
             $('#days-selection').hide();
             $('#months-selection').show();
+            $('#user-selection').show();
+            $('#yaxis-selection').show();
 
             setGraphFormat(yaxis);
 
@@ -669,6 +891,132 @@
 
             $('#nav-tabs-total').tab('show');
         }
+
+        function loadGraphsTab4(time_range, yaxis) {
+            $('#days-selection').show();
+            $('#months-selection').hide();
+            $('#user-selection').hide();
+            $('#yaxis-selection').hide();
+
+            // Fixed as graph uses own measurement 'addition count' with formatting of 'plays'
+            setGraphFormat("plays", "ddd D MMM YY");
+
+            var _graph_1_call = $.ajax({
+                url: "get_additions_by_date",
+                type: 'get',
+                data: { time_range: time_range },
+                dataType: "json",
+                success: function(data) {
+                    var dateArray = [];
+                    $.each(data.categories, function (i, day) {
+                        dateArray.push(moment(day, 'YYYY-MM-DD').valueOf());
+                        // Highlight the weekend
+                        if ((moment(day, 'YYYY-MM-DD').format('ddd') === 'Sat') ||
+                            (moment(day, 'YYYY-MM-DD').format('ddd') === 'Sun')) {
+                            hc_library_additions_by_day_options.xAxis.plotBands.push({
+                                from: i-0.5,
+                                to: i+0.5,
+                                color: 'rgba(80,80,80,0.3)'
+                            });
+                        }
+                    });
+                    hc_library_additions_by_day_options.yAxis.min = 0;
+                    hc_library_additions_by_day_options.xAxis.categories = dateArray;
+                    hc_library_additions_by_day_options.series = getGraphVisibility(hc_library_additions_by_day_options.chart.renderTo, data.series);
+                    hc_library_additions_by_day_options.colors = getGraphColors(data.series);
+                    const hc_library_additions_by_day = new Highcharts.Chart(hc_library_additions_by_day_options);
+                }
+            });
+
+            var _graph_2_call = $.ajax({
+                url: "get_additions_by_date",
+                type: 'get',
+                data: { time_range: time_range, growth: 1 },
+                dataType: "json",
+                success: function(data) {
+                    var dateArray = [];
+                    $.each(data.categories, function (i, day) {
+                        dateArray.push(moment(day, 'YYYY-MM-DD').valueOf());
+                        // Highlight the weekend
+                        if ((moment(day, 'YYYY-MM-DD').format('ddd') === 'Sat') ||
+                            (moment(day, 'YYYY-MM-DD').format('ddd') === 'Sun')) {
+                            hc_library_growth_by_day_options.xAxis.plotBands.push({
+                                from: i-0.5,
+                                to: i+0.5,
+                                color: 'rgba(80,80,80,0.3)'
+                            });
+                        }
+                    });
+
+                    hc_library_growth_by_day_options.yAxis.min = 0;
+                    hc_library_growth_by_day_options.xAxis.categories = dateArray;
+                    hc_library_growth_by_day_options.series = getGraphVisibility(hc_library_growth_by_day_options.chart.renderTo, data.series);
+                    hc_library_growth_by_day_options.colors = getGraphColors(data.series);
+                    const hc_library_growth_by_day = new Highcharts.Chart(hc_library_growth_by_day_options);
+                }
+            });
+
+            $.ajax({
+                url: "get_additions_by_media_type",
+                type: 'get',
+                data: { time_range: time_range },
+                dataType: "json",
+                success: function(data) {
+                    hc_library_additions_by_media_type_options.xAxis.categories = data.categories;
+                    hc_library_additions_by_media_type_options.series = getGraphVisibility(hc_library_additions_by_media_type_options.chart.renderTo, data.series);
+                    hc_library_additions_by_media_type_options.colors = getGraphColors(data.series);
+                    const hc_library_additions_by_media_type = new Highcharts.Chart(hc_library_additions_by_media_type_options);
+                }
+            });
+
+            $.ajax({
+                url: "get_additions_by_resolution",
+                type: 'get',
+                data: { time_range: time_range },
+                dataType: "json",
+                success: function(data) {
+                    hc_library_additions_by_source_resolution_options.xAxis.categories = data.categories;
+                    hc_library_additions_by_source_resolution_options.series = getGraphVisibility(hc_library_additions_by_source_resolution_options.chart.renderTo, data.series);
+                    hc_library_additions_by_source_resolution_options.colors = getGraphColors(data.series);
+                    const hc_library_additions_by_source_resolution = new Highcharts.Chart(hc_library_additions_by_source_resolution_options);
+                }
+            });
+
+            $.when(_graph_1_call, _graph_2_call).then(function(a1, a2) {
+                // Define charts.
+                if(Highcharts.charts.includes(undefined)) {
+                    _Charts = Highcharts.charts.filter(chart => chart !== undefined);
+                } else {
+                    _Charts = Highcharts.charts;
+                }
+
+                // Both graphs loaded successful. Prepare sync.
+                chart = _Charts.find(c => c['renderTo'].id == "graph_additions_by_day");
+                otherChart = _Charts.find(c => c['renderTo'].id == syncLinks["graph_additions_by_day"]);
+
+                /**
+                * Sync different series to fix possible misconfiguration/data that leads
+                * to a series having different states in the two additions_by_day graphs.
+                **/
+                chart.series.forEach(function(series) {
+                    _othSeries = otherChart.series.find(s => s['name'] == series.name);
+                    if(!series.visible == _othSeries.visible) {
+                        syncGraphs(series, syncLinks["graph_additions_by_day"], series.name);
+                    }
+                });
+
+                // Enable sync.
+                _enableChartSync = true;
+            });
+
+            $('#nav-tabs-library-statistics').tab('show')
+        }
+
+        // Set initial state
+        if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
+        if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
+        if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
+        if (current_tab === '#tabs-library-statistics') { loadGraphsTab4(current_day_range, yaxis); }
 
         // Tab1 opened
         $('#nav-tabs-plays').on('shown.bs.tab', function (e) {
@@ -694,6 +1042,14 @@
             loadGraphsTab3(current_month_range, yaxis);
         });
 
+        // Tab4 opened
+        $('#nav-tabs-library-statistics').on('shown.bs.tab', function (e) {
+            e.preventDefault();
+            current_tab = $(this).attr('href');
+            setLocalStorage('graph_tab', current_tab.replace('#',''));
+            loadGraphsTab4(current_day_range, yaxis);
+        });
+
         // Date range changed
         $('#graph-days').tooltip({ container: 'body', placement: 'top', html: true });
         $('#graph-days').on('change', function() {
@@ -702,6 +1058,7 @@
             setLocalStorage('graph_days', current_day_range);
             if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-library-statistics') { loadGraphsTab4(current_day_range, yaxis); }
             $('.days').text(current_day_range);
         });
         
@@ -732,6 +1089,7 @@
             if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
             if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
+            //GraphTab4 not needed as no user relevant graph is included here -> may change in the future?
         });
         
         // Y-axis changed
@@ -741,14 +1099,15 @@
             if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
             if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
             if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
+            //GraphTab4 not needed as Addition Count is used for the Y-Axis
         });
 
-        function setGraphFormat(type) {
+        function setGraphFormat(type, tooltipFormat) {
             if (type === 'plays') {
                 yaxis_format = function() { return this.value; };
                 tooltip_format = function() {
                     if (moment(this.x, 'X').isValid() && (this.x > 946684800)) {
-                        var s = '<b>'+ moment(this.x).format('ddd MMM D') +'</b>';
+                        var s = tooltipFormat ? '<b>'+ moment(this.x).format(tooltipFormat) +'</b>' : '<b>'+ moment(this.x).format('ddd MMM D') +'</b>';
                     } else {
                         var s = '<b>'+ this.x +'</b>';
                     }
@@ -800,6 +1159,8 @@
             }
 
             hc_plays_by_day_options.xAxis.plotBands = [];
+            hc_library_additions_by_day_options.xAxis.plotBands = [];
+            hc_library_growth_by_day_options.xAxis.plotBands = [];
             hc_plays_by_stream_type_options.xAxis.plotBands = [];
             hc_concurrent_streams_by_stream_type_options.xAxis.plotBands = [];
 
@@ -812,6 +1173,14 @@
             hc_plays_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_stream_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_platform_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
+            hc_library_additions_by_day_options.yAxis[0].labels.formatter = yaxis_format;
+            hc_library_additions_by_day_options.yAxis[1].labels.formatter = yaxis_format;
+            hc_library_additions_by_day_options.yAxis[2].labels.formatter = yaxis_format;
+            hc_library_growth_by_day_options.yAxis[0].labels.formatter = yaxis_format;
+            hc_library_growth_by_day_options.yAxis[1].labels.formatter = yaxis_format;
+            hc_library_growth_by_day_options.yAxis[2].labels.formatter = yaxis_format;
+            hc_library_additions_by_media_type_options.yAxis.labels.formatter = yaxis_format;
+            hc_library_additions_by_source_resolution_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_user_by_stream_type_options.yAxis.labels.formatter = yaxis_format;
             hc_plays_by_month_options.yAxis.labels.formatter = yaxis_format;
 
@@ -819,6 +1188,10 @@
             hc_plays_by_dayofweek_options.tooltip.formatter = tooltip_format;
             hc_plays_by_hourofday_options.tooltip.formatter = tooltip_format;
             hc_plays_by_platform_options.tooltip.formatter = tooltip_format;
+            hc_library_additions_by_media_type_options.tooltip.formatter = tooltip_format;
+            hc_library_additions_by_source_resolution_options.tooltip.formatter = tooltip_format;
+            hc_library_additions_by_day_options.tooltip.formatter = tooltip_format;
+            hc_library_growth_by_day_options.tooltip.formatter = tooltip_format;
             hc_plays_by_user_options.tooltip.formatter = tooltip_format;
             hc_plays_by_stream_type_options.tooltip.formatter = tooltip_format;
             hc_plays_by_source_resolution_options.tooltip.formatter = tooltip_format;

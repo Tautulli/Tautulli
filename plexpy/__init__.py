@@ -485,11 +485,15 @@ def initialize_scheduler():
             # Refresh the users list and libraries list
             user_hours = CONFIG.REFRESH_USERS_INTERVAL if 1 <= CONFIG.REFRESH_USERS_INTERVAL <= 24 else 12
             library_hours = CONFIG.REFRESH_LIBRARIES_INTERVAL if 1 <= CONFIG.REFRESH_LIBRARIES_INTERVAL <= 24 else 12
+            library_stats_data_hours = CONFIG.REFRESH_LIBRARY_STATS_DATA_INTERVAL if 6 <= CONFIG.REFRESH_LIBRARY_STATS_DATA_INTERVAL <= 24 else 12
 
             schedule_job(users.refresh_users, 'Refresh users list',
                          hours=user_hours, minutes=0, seconds=0)
             schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
                          hours=library_hours, minutes=0, seconds=0)
+            
+            schedule_job(libraries.refresh_library_statistics, 'Refresh libraries statistics data',
+                         hours=library_stats_data_hours, minutes=0, seconds=0)
 
             schedule_job(activity_pinger.connect_server, 'Check for server response',
                          hours=0, minutes=0, seconds=0)
@@ -507,6 +511,9 @@ def initialize_scheduler():
             schedule_job(users.refresh_users, 'Refresh users list',
                          hours=0, minutes=0, seconds=0)
             schedule_job(libraries.refresh_libraries, 'Refresh libraries list',
+                         hours=0, minutes=0, seconds=0)
+
+            schedule_job(libraries.refresh_library_statistics, 'Refresh libraries statistics data',
                          hours=0, minutes=0, seconds=0)
 
             # Schedule job to reconnect server
@@ -611,6 +618,9 @@ def startup_refresh():
     if CONFIG.PMS_IP and CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARIES_ON_STARTUP:
         libraries.refresh_libraries()
 
+    # Refresh the library stats data on startup
+    if CONFIG.PMS_IP and CONFIG.PMS_TOKEN and CONFIG.REFRESH_LIBRARY_STATS_DATA_ON_STARTUP:
+        libraries.refresh_library_statistics()
 
 def sig_handler(signum=None, frame=None):
     if signum is not None:
@@ -819,6 +829,14 @@ def dbcheck():
         "added_at INTEGER, pms_identifier TEXT, section_id INTEGER, "
         "rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, "
         "media_info TEXT)"
+    )
+
+    # library_stats_items table :: This table keeps record of all added items
+    c_db.execute(
+        'CREATE TABLE IF NOT EXISTS library_stats_items (id INTEGER PRIMARY KEY AUTOINCREMENT, '
+        'added_at INTEGER, updated_at INTEGER, last_viewed_at INTEGER, pms_identifier TEXT, section_id INTEGER, '
+        'library_name TEXT, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, '
+        'media_type TEXT, media_info TEXT, user_ratings TEXT)'
     )
 
     # mobile_devices table :: This table keeps record of devices linked with the mobile app
@@ -2714,6 +2732,20 @@ def dbcheck():
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_media_info_transcode_decision "
         "ON session_history_media_info (transcode_decision)"
+    )
+
+    # Create library_stats_items table indices
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_library_stats_items_media_type" '
+        'ON "library_stats_items" ("media_type")'
+    )
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_library_stats_items_added_at" '
+        'ON "library_stats_items" ("added_at")'
+    )
+    c_db.execute(
+        'CREATE INDEX IF NOT EXISTS "idx_library_stats_items_rating_key" '
+        'ON "library_stats_items" ("rating_key")'
     )
 
     # Create lookup table indices
