@@ -127,7 +127,7 @@ class ActivityHandler(object):
 
         logger.debug("Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
                         % (str(self.session['session_key']), str(self.session['user_id']), self.session['username'],
-                        str(self.session['rating_key']), self.session['full_title'], '[Live TV]' if self.session['live'] else ''))
+                        str(self.session['rating_key']), self.session['full_title'], ' [Live TV]' if self.session['live'] else ''))
 
         # Write the new session to our temp session table
         self.update_db_session(notify=True)
@@ -151,7 +151,7 @@ class ActivityHandler(object):
         # Set force_stop to true to disable the state set
         if not force_stop:
             # Set the view offset equal to the duration if it is within the last 10 seconds
-            if self.db_session['duration'] - self.view_offset <= 10000:
+            if self.db_session['duration'] > 0 and self.db_session['duration'] - self.view_offset <= 10000:
                 view_offset = self.db_session['duration']
             else:
                 view_offset = self.view_offset
@@ -539,7 +539,7 @@ class ReachabilityHandler(object):
     def __init__(self, data):
         self.data = data
 
-        self.is_reachable = self.data.get('reachable', False)
+        self.is_reachable = self.data.get('reachability', False)
 
     def remote_access_enabled(self):
         pms_connect = pmsconnect.PmsConnect()
@@ -734,7 +734,7 @@ def on_created(rating_key, **kwargs):
 
 def delete_metadata_cache(session_key):
     try:
-        os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata/metadata-sessionKey-%s.json' % session_key))
+        os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata', 'metadata-sessionKey-%s.json' % session_key))
     except OSError as e:
         logger.error("Tautulli ActivityHandler :: Failed to remove metadata cache file (sessionKey %s): %s"
                      % (session_key, e))

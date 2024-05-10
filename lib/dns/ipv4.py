@@ -62,3 +62,16 @@ def inet_aton(text: Union[str, bytes]) -> bytes:
         return struct.pack("BBBB", *b)
     except Exception:
         raise dns.exception.SyntaxError
+
+
+def canonicalize(text: Union[str, bytes]) -> str:
+    """Verify that *address* is a valid text form IPv4 address and return its
+    canonical text form.
+
+    *text*, a ``str`` or ``bytes``, the IPv4 address in textual form.
+
+    Raises ``dns.exception.SyntaxError`` if the text is not valid.
+    """
+    # Note that inet_aton() only accepts canonial form, but we still run through
+    # inet_ntoa() to ensure the output is a str.
+    return dns.ipv4.inet_ntoa(dns.ipv4.inet_aton(text))

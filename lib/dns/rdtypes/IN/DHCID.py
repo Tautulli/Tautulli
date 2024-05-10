@@ -24,7 +24,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class DHCID(dns.rdata.Rdata):
-
     """DHCID record"""
 
     # see: RFC 4701

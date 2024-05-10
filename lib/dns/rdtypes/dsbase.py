@@ -26,7 +26,6 @@ import dns.rdatatype
 
 @dns.immutable.immutable
 class DSBase(dns.rdata.Rdata):
-
     """Base class for rdata that is like a DS record"""
 
     __slots__ = ["key_tag", "algorithm", "digest_type", "digest"]

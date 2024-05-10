@@ -16,5 +16,5 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
-PLEXPY_BRANCH = "master"
-PLEXPY_RELEASE_VERSION = "v2.13.4"
+PLEXPY_BRANCH = "beta"
+PLEXPY_RELEASE_VERSION = "v2.14.0-beta"

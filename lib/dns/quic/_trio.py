@@ -76,30 +76,43 @@ class TrioQuicConnection(AsyncQuicConnection):
     def __init__(self, connection, address, port, source, source_port, manager=None):
         super().__init__(connection, address, port, source, source_port, manager)
         self._socket = trio.socket.socket(self._af, socket.SOCK_DGRAM, 0)
-        if self._source:
-            trio.socket.bind(dns.inet.low_level_address_tuple(self._source, self._af))
         self._handshake_complete = trio.Event()
         self._run_done = trio.Event()
         self._worker_scope = None
+        self._send_pending = False
 
     async def _worker(self):
         try:
+            if self._source:
+                await self._socket.bind(
+                    dns.inet.low_level_address_tuple(self._source, self._af)
+                )
             await self._socket.connect(self._peer)
             while not self._done:
                 (expiration, interval) = self._get_timer_values(False)
+                if self._send_pending:
+                    # Do not block forever if sends are pending.  Even though we
+                    # have a wake-up mechanism if we've already started the blocking
+                    # read, the possibility of context switching in send means that
+                    # more writes can happen while we have no wake up context, so
+                    # we need self._send_pending to avoid (effectively) a "lost wakeup"
+                    # race.
+                    interval = 0.0
                 with trio.CancelScope(
                     deadline=trio.current_time() + interval
                 ) as self._worker_scope:
                     datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
-                    self._connection.receive_datagram(
-                        datagram, self._peer[0], time.time()
-                    )
+                    self._connection.receive_datagram(datagram, self._peer, time.time())
                 self._worker_scope = None
                 self._handle_timer(expiration)
+                await self._handle_events()
+                # We clear this now, before sending anything, as sending can cause
+                # context switches that do more sends.  We want to know if that
+                # happens so we don't block a long time on the recv() above.
+                self._send_pending = False
                 datagrams = self._connection.datagrams_to_send(time.time())
                 for datagram, _ in datagrams:
                     await self._socket.send(datagram)
-                await self._handle_events()
         finally:
             self._done = True
             self._handshake_complete.set()
@@ -116,11 +129,13 @@ class TrioQuicConnection(AsyncQuicConnection):
                     await stream._add_input(event.data, event.end_stream)
             elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
-            elif isinstance(
-                event, aioquic.quic.events.ConnectionTerminated
-            ) or isinstance(event, aioquic.quic.events.StreamReset):
+            elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
                 self._done = True
                 self._socket.close()
+            elif isinstance(event, aioquic.quic.events.StreamReset):
+                stream = self._streams.get(event.stream_id)
+                if stream:
+                    await stream._add_input(b"", True)
             count += 1
             if count > 10:
                 # yield
@@ -129,6 +144,7 @@ class TrioQuicConnection(AsyncQuicConnection):
 
     async def write(self, stream, data, is_end=False):
         self._connection.send_stream_data(stream, data, is_end)
+        self._send_pending = True
         if self._worker_scope is not None:
             self._worker_scope.cancel()
 
@@ -159,6 +175,7 @@ class TrioQuicConnection(AsyncQuicConnection):
             self._manager.closed(self._peer[0], self._peer[1])
             self._closed = True
             self._connection.close()
+            self._send_pending = True
             if self._worker_scope is not None:
                 self._worker_scope.cancel()
             await self._run_done.wait()
@@ -171,8 +188,12 @@ class TrioQuicManager(AsyncQuicManager):
         super().__init__(conf, verify_mode, TrioQuicConnection, server_name)
         self._nursery = nursery
 
-    def connect(self, address, port=853, source=None, source_port=0):
-        (connection, start) = self._connect(address, port, source, source_port)
+    def connect(
+        self, address, port=853, source=None, source_port=0, want_session_ticket=True
+    ):
+        (connection, start) = self._connect(
+            address, port, source, source_port, want_session_ticket
+        )
         if start:
             self._nursery.start_soon(connection.run)
         return connection

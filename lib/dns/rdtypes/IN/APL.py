@@ -29,7 +29,6 @@ import dns.tokenizer
 
 @dns.immutable.immutable
 class APLItem:
-
     """An APL list item."""
 
     __slots__ = ["family", "negation", "address", "prefix"]
@@ -80,7 +79,6 @@ class APLItem:
 
 @dns.immutable.immutable
 class APL(dns.rdata.Rdata):
-
     """APL record."""
 
     # see: RFC 3123

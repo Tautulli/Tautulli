@@ -32,6 +32,24 @@ AUTHORITY = 2
 ADDITIONAL = 3
 
 
+@contextlib.contextmanager
+def prefixed_length(output, length_length):
+    output.write(b"\00" * length_length)
+    start = output.tell()
+    yield
+    end = output.tell()
+    length = end - start
+    if length > 0:
+        try:
+            output.seek(start - length_length)
+            try:
+                output.write(length.to_bytes(length_length, "big"))
+            except OverflowError:
+                raise dns.exception.FormError
+        finally:
+            output.seek(end)
+
+
 class Renderer:
     """Helper class for building DNS wire-format messages.
 
@@ -133,6 +151,15 @@ class Renderer:
         if self.output.tell() > self.max_size:
             self._rollback(start)
             raise dns.exception.TooBig
+
+    @contextlib.contextmanager
+    def _temporarily_seek_to(self, where):
+        current = self.output.tell()
+        try:
+            self.output.seek(where)
+            yield
+        finally:
+            self.output.seek(current)
 
     def add_question(self, qname, rdtype, rdclass=dns.rdataclass.IN):
         """Add a question to the message."""
@@ -269,18 +296,14 @@ class Renderer:
         with self._track_size():
             keyname.to_wire(self.output, compress, self.origin)
             self.output.write(
-                struct.pack("!HHIH", dns.rdatatype.TSIG, dns.rdataclass.ANY, 0, 0)
+                struct.pack("!HHI", dns.rdatatype.TSIG, dns.rdataclass.ANY, 0)
             )
-            rdata_start = self.output.tell()
-            tsig.to_wire(self.output)
+            with prefixed_length(self.output, 2):
+                tsig.to_wire(self.output)
 
-        after = self.output.tell()
-        self.output.seek(rdata_start - 2)
-        self.output.write(struct.pack("!H", after - rdata_start))
         self.counts[ADDITIONAL] += 1
-        self.output.seek(10)
-        self.output.write(struct.pack("!H", self.counts[ADDITIONAL]))
-        self.output.seek(0, io.SEEK_END)
+        with self._temporarily_seek_to(10):
+            self.output.write(struct.pack("!H", self.counts[ADDITIONAL]))
 
     def write_header(self):
         """Write the DNS message header.
@@ -290,19 +313,18 @@ class Renderer:
         is added.
         """
 
-        self.output.seek(0)
-        self.output.write(
-            struct.pack(
-                "!HHHHHH",
-                self.id,
-                self.flags,
-                self.counts[0],
-                self.counts[1],
-                self.counts[2],
-                self.counts[3],
+        with self._temporarily_seek_to(0):
+            self.output.write(
+                struct.pack(
+                    "!HHHHHH",
+                    self.id,
+                    self.flags,
+                    self.counts[0],
+                    self.counts[1],
+                    self.counts[2],
+                    self.counts[3],
+                )
             )
-        )
-        self.output.seek(0, io.SEEK_END)
 
     def get_wire(self):
         """Return the wire format message."""

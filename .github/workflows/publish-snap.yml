@@ -44,7 +44,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Upload Snap Package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Tautulli-snap-package-${{ matrix.architecture }}
           path: ${{ steps.build.outputs.snap }}
@@ -69,23 +69,10 @@ jobs:
     if: always() && !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
     steps:
-      - name: Get Build Job Status
-        uses: technote-space/workflow-conclusion-action@v3
-
-      - name: Combine Job Status
-        id: status
-        run: |
-          failures=(neutral, skipped, timed_out, action_required)
-          if [[ ${array[@]} =~ $WORKFLOW_CONCLUSION ]]; then
-            echo "status=failure" >> $GITHUB_OUTPUT
-          else
-            echo "status=$WORKFLOW_CONCLUSION" >> $GITHUB_OUTPUT
-          fi
-
       - name: Post Status to Discord
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ steps.status.outputs.status }}
+          status: ${{ needs.build-snap.result == 'success' && 'success' || contains(needs.*.result, 'failure') && 'failure' || 'cancelled' }}
           title: ${{ github.workflow }}
           nofail: true

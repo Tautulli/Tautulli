@@ -49,13 +49,15 @@ def refresh_users():
         new_users = []
 
         for item in result:
-            user_ids.append(helpers.cast_to_int(item['user_id']))
-
             if item.get('shared_libraries'):
                 item['shared_libraries'] = ';'.join(item['shared_libraries'])
+                # Only add user if libraries are shared
+                user_ids.add(helpers.cast_to_int(item['user_id']))
             elif item.get('server_token'):
                 libs = libraries.Libraries().get_sections()
                 item['shared_libraries'] = ';'.join([str(l['section_id']) for l in libs])
+                # Only add user if libraries are shared
+                user_ids.add(helpers.cast_to_int(item['user_id']))
 
             keys_dict = {"user_id": item.pop('user_id')}
 
@@ -87,7 +89,7 @@ def refresh_users():
         query = "UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})".format(", ".join(["?"] * len(user_ids)))
         monitor_db.action(query=query, args=user_ids)
 
-        # Add new users to loger username filter
+        # Add new users to logger username filter
         logger.filter_usernames(new_users)
 
         logger.info("Tautulli Users :: Users list refreshed.")
@@ -665,15 +667,17 @@ class Users(object):
 
         return recently_watched
 
-    def get_users(self):
+    def get_users(self, include_deleted=False):
         monitor_db = database.MonitorDatabase()
+
+        where = '' if include_deleted else 'WHERE deleted_user = 0'
 
         try:
             query = "SELECT id AS row_id, user_id, username, friendly_name, thumb, custom_avatar_url, email, " \
                     "is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
                     "do_notify, keep_history, allow_guest, shared_libraries, " \
                     "filter_all, filter_movies, filter_tv, filter_music, filter_photos " \
-                    "FROM users WHERE deleted_user = 0"
+                    "FROM users %s" % where
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_users: %s." % e)

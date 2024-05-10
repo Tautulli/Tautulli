@@ -1,8 +1,6 @@
 from json import dumps, loads
 import re
 
-from oauthlib.common import to_unicode
-
 
 def plentymarkets_compliance_fix(session):
     def _to_snake_case(n):
@@ -22,7 +20,7 @@ def plentymarkets_compliance_fix(session):
         for k, v in token.items():
             fixed_token[_to_snake_case(k)] = v
 
-        r._content = to_unicode(dumps(fixed_token)).encode("UTF-8")
+        r._content = dumps(fixed_token).encode()
         return r
 
     session.register_compliance_hook("access_token_response", _compliance_fix)

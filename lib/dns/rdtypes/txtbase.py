@@ -17,18 +17,17 @@
 
 """TXT-like base class."""
 
-import struct
 from typing import Any, Dict, Iterable, Optional, Tuple, Union
 
 import dns.exception
 import dns.immutable
 import dns.rdata
+import dns.renderer
 import dns.tokenizer
 
 
 @dns.immutable.immutable
 class TXTBase(dns.rdata.Rdata):
-
     """Base class for rdata that is like a TXT record (see RFC 1035)."""
 
     __slots__ = ["strings"]
@@ -56,7 +55,7 @@ class TXTBase(dns.rdata.Rdata):
         self,
         origin: Optional[dns.name.Name] = None,
         relativize: bool = True,
-        **kw: Dict[str, Any]
+        **kw: Dict[str, Any],
     ) -> str:
         txt = ""
         prefix = ""
@@ -93,10 +92,8 @@ class TXTBase(dns.rdata.Rdata):
 
     def _to_wire(self, file, compress=None, origin=None, canonicalize=False):
         for s in self.strings:
-            l = len(s)
-            assert l < 256
-            file.write(struct.pack("!B", l))
-            file.write(s)
+            with dns.renderer.prefixed_length(file, 1):
+                file.write(s)
 
     @classmethod
     def from_wire_parser(cls, rdclass, rdtype, parser, origin=None):

@@ -10,6 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Label Issues
-        uses: dessant/label-actions@v3
+        uses: dessant/label-actions@v4
         with:
           github-token: ${{ github.token }}

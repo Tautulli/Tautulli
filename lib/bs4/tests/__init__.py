@@ -1105,7 +1105,7 @@ class XMLTreeBuilderSmokeTest(TreeBuilderSmokeTest):
         doc = """<?xml version="1.0" encoding="utf-8"?>
 <Document xmlns="http://example.com/ns0"
     xmlns:ns1="http://example.com/ns1"
-    xmlns:ns2="http://example.com/ns2"
+    xmlns:ns2="http://example.com/ns2">
     <ns1:tag>foo</ns1:tag>
     <ns1:tag>bar</ns1:tag>
     <ns2:tag key="value">baz</ns2:tag>

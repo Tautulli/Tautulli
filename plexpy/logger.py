@@ -69,7 +69,7 @@ def filter_usernames(new_users=None):
     global _FILTER_USERNAMES
 
     if new_users is None:
-        new_users = [user['username'] for user in users.Users().get_users()]
+        new_users = [user['username'] for user in users.Users().get_users(include_deleted=True)]
 
     for username in new_users:
         if username.lower() not in ('local', 'guest') and len(username) > 3 and username not in _FILTER_USERNAMES:

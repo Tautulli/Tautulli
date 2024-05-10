@@ -69,6 +69,7 @@ class RefreshTokenGrant(GrantTypeBase):
 
         log.debug('Issuing new token to client id %r (%r), %r.',
                   request.client_id, request.client, token)
+        headers.update(self._create_cors_headers(request))
         return headers, json.dumps(token), 200
 
     def validate_token_request(self, request):

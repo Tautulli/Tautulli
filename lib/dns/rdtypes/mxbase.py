@@ -28,7 +28,6 @@ import dns.rdtypes.util
 
 @dns.immutable.immutable
 class MXBase(dns.rdata.Rdata):
-
     """Base class for rdata that is like an MX record."""
 
     __slots__ = ["preference", "exchange"]
@@ -71,7 +70,6 @@ class MXBase(dns.rdata.Rdata):
 
 @dns.immutable.immutable
 class UncompressedMX(MXBase):
-
     """Base class for rdata that is like an MX record, but whose name
     is not compressed when converted to DNS wire format, and whose
     digestable form is not downcased."""
@@ -82,7 +80,6 @@ class UncompressedMX(MXBase):
 
 @dns.immutable.immutable
 class UncompressedDowncasingMX(MXBase):
-
     """Base class for rdata that is like an MX record, but whose name
     is not compressed when convert to DNS wire format."""
 

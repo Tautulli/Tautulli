@@ -29,3 +29,8 @@ class Unsupported(PlexApiException):
 class Unauthorized(BadRequest):
     """ Invalid username/password or token. """
     pass
+
+
+class TwoFactorRequired(Unauthorized):
+    """ Two factor authentication required. """
+    pass

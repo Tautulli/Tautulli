@@ -8,7 +8,6 @@ from oauthlib.oauth2.rfc6749.errors import (
     ConsentRequired, InvalidRequestError, LoginRequired,
 )
 
-
 log = logging.getLogger(__name__)
 
 

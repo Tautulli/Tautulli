@@ -28,7 +28,6 @@ import dns.rdata
 
 @dns.immutable.immutable
 class OPT(dns.rdata.Rdata):
-
     """OPT record"""
 
     __slots__ = ["options"]

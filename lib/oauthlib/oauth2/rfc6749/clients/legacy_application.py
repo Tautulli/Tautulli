@@ -49,7 +49,7 @@ class LegacyApplicationClient(Client):
         :param username:    The resource owner username.
         :param password:    The resource owner password.
         :param body: Existing request body (URL encoded string) to embed parameters
-                     into. This may contain extra paramters. Default ''.
+                     into. This may contain extra parameters. Default ''.
         :param scope:   The scope of the access request as described by
                         `Section 3.3`_.
         :param include_client_id: `True` to send the `client_id` in the

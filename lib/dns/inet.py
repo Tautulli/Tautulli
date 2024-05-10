@@ -178,3 +178,20 @@ def any_for_af(af):
     elif af == socket.AF_INET6:
         return "::"
     raise NotImplementedError(f"unknown address family {af}")
+
+
+def canonicalize(text: str) -> str:
+    """Verify that *address* is a valid text form IPv4 or IPv6 address and return its
+    canonical text form.  IPv6 addresses with scopes are rejected.
+
+    *text*, a ``str``, the address in textual form.
+
+    Raises ``ValueError`` if the text is not valid.
+    """
+    try:
+        return dns.ipv6.canonicalize(text)
+    except Exception:
+        try:
+            return dns.ipv4.canonicalize(text)
+        except Exception:
+            raise ValueError

@@ -25,6 +25,11 @@ from cloudinary import auth_token
 from cloudinary.api_client.tcp_keep_alive_manager import TCPKeepAlivePoolManager, TCPKeepAliveProxyManager
 from cloudinary.compat import PY3, to_bytes, to_bytearray, to_string, string_types, urlparse
 
+try:  # Python 3.4+
+    from pathlib import Path as PathLibPathType
+except ImportError:
+    PathLibPathType = None
+
 VAR_NAME_RE = r'(\$\([a-zA-Z]\w+\))'
 
 urlencode = six.moves.urllib.parse.urlencode
@@ -127,6 +132,7 @@ __SERIALIZED_UPLOAD_PARAMS = [
     "allowed_formats",
     "face_coordinates",
     "custom_coordinates",
+    "regions",
     "context",
     "auto_tagging",
     "responsive_breakpoints",
@@ -181,12 +187,11 @@ def compute_hex_hash(s, algorithm=SIGNATURE_SHA1):
 
 
 def build_array(arg):
-    if isinstance(arg, list):
+    if isinstance(arg, (list, tuple)):
         return arg
     elif arg is None:
         return []
-    else:
-        return [arg]
+    return [arg]
 
 
 def build_list_of_dicts(val):
@@ -235,8 +240,7 @@ def encode_double_array(array):
     array = build_array(array)
     if len(array) > 0 and isinstance(array[0], list):
         return "|".join([",".join([str(i) for i in build_array(inner)]) for inner in array])
-    else:
-        return encode_list([str(i) for i in array])
+    return encode_list([str(i) for i in array])
 
 
 def encode_dict(arg):
@@ -246,8 +250,7 @@ def encode_dict(arg):
         else:
             items = arg.iteritems()
         return "|".join((k + "=" + v) for k, v in items)
-    else:
-        return arg
+    return arg
 
 
 def normalize_context_value(value):
@@ -288,9 +291,14 @@ def json_encode(value, sort_keys=False):
     Converts value to a json encoded string
 
     :param value: value to be encoded
+    :param sort_keys: whether to sort keys
 
     :return: JSON encoded string
     """
+
+    if isinstance(value, str) or value is None:
+        return value
+
     return json.dumps(value, default=__json_serializer, separators=(',', ':'), sort_keys=sort_keys)
 
 
@@ -309,11 +317,13 @@ def patch_fetch_format(options):
     """
     When upload type is fetch, remove the format options.
     In addition, set the fetch_format options to the format value unless it was already set.
-    Mutates the options parameter!
+    Mutates the "options" parameter!
 
     :param options: URL and transformation options
     """
-    if options.get("type", "upload") != "fetch":
+    use_fetch_format = options.pop("use_fetch_format", cloudinary.config().use_fetch_format)
+
+    if options.get("type", "upload") != "fetch" and not use_fetch_format:
         return
 
     resource_format = options.pop("format", None)
@@ -351,8 +361,7 @@ def generate_transformation_string(**options):
         def recurse(bs):
             if isinstance(bs, dict):
                 return generate_transformation_string(**bs)[0]
-            else:
-                return generate_transformation_string(transformation=bs)[0]
+            return generate_transformation_string(transformation=bs)[0]
 
         base_transformations = list(map(recurse, base_transformations))
         named_transformation = None
@@ -375,7 +384,7 @@ def generate_transformation_string(**options):
     flags = ".".join(build_array(options.pop("flags", None)))
     dpr = options.pop("dpr", cloudinary.config().dpr)
     duration = norm_range_value(options.pop("duration", None))
-    
+
     so_raw = options.pop("start_offset", None)
     start_offset = norm_auto_range_value(so_raw)
     if start_offset == None:
@@ -513,8 +522,7 @@ def split_range(range):
         return [range[0], range[-1]]
     elif isinstance(range, string_types) and re.match(RANGE_RE, range):
         return range.split("..", 1)
-    else:
-        return None
+    return None
 
 
 def norm_range_value(value):
@@ -570,6 +578,9 @@ def process_params(params):
         processed_params = {}
         for key, value in params.items():
             if isinstance(value, list) or isinstance(value, tuple):
+                if len(value) == 2 and value[0] == "file":  # keep file parameter as is.
+                    processed_params[key] = value
+                    continue
                 value_list = {"{}[{}]".format(key, i): i_value for i, i_value in enumerate(value)}
                 processed_params.update(value_list)
             elif value is not None:
@@ -578,7 +589,26 @@ def process_params(params):
 
 
 def cleanup_params(params):
+    """
+    Cleans and normalizes parameters when calculating signature in Upload API.
+
+    :param params:
+    :return:
+    """
     return dict([(k, __safe_value(v)) for (k, v) in params.items() if v is not None and not v == ""])
+
+
+def normalize_params(params):
+    """
+    Normalizes Admin API parameters.
+
+    :param params:
+    :return:
+    """
+    if not params or not isinstance(params, dict):
+        return params
+
+    return dict([(k, __bool_string(v)) for (k, v) in params.items() if v is not None and not v == ""])
 
 
 def sign_request(params, options):
@@ -1086,6 +1116,7 @@ def build_upload_params(**options):
         "allowed_formats": options.get("allowed_formats") and encode_list(build_array(options["allowed_formats"])),
         "face_coordinates": encode_double_array(options.get("face_coordinates")),
         "custom_coordinates": encode_double_array(options.get("custom_coordinates")),
+        "regions": json_encode(options.get("regions")),
         "context": encode_context(options.get("context")),
         "auto_tagging": options.get("auto_tagging") and str(options.get("auto_tagging")),
         "responsive_breakpoints": generate_responsive_breakpoints_string(options.get("responsive_breakpoints")),
@@ -1099,6 +1130,37 @@ def build_upload_params(**options):
     params.update(serialized_params)
 
     return params
+
+
+def handle_file_parameter(file, filename):
+    if not file:
+        return None
+
+    if PathLibPathType and isinstance(file, PathLibPathType):
+        name = filename or file.name
+        data = file.read_bytes()
+    elif isinstance(file, string_types):
+        if is_remote_url(file):
+            # URL
+            name = None
+            data = file
+        else:
+            # file path
+            name = filename or file
+            with open(file, "rb") as opened:
+                data = opened.read()
+    elif hasattr(file, 'read') and callable(file.read):
+        # stream
+        data = file.read()
+        name = filename or (file.name if hasattr(file, 'name') and isinstance(file.name, str) else "stream")
+    elif isinstance(file, tuple):
+        name, data = file
+    else:
+        # Not a string, not a stream
+        name = filename or "file"
+        data = file
+
+    return (name, data) if name else data
 
 
 def build_multi_and_sprite_params(**options):
@@ -1166,8 +1228,21 @@ def __process_text_options(layer, layer_parameter):
 
 
 def process_layer(layer, layer_parameter):
-    if isinstance(layer, string_types) and layer.startswith("fetch:"):
-        layer = {"url": layer[len('fetch:'):]}
+    if isinstance(layer, string_types):
+        resource_type = None
+        if layer.startswith("fetch:"):
+            url = layer[len('fetch:'):]
+        elif layer.find(":fetch:", 0, 12) != -1:
+            resource_type, _, url = layer.split(":", 2)
+        else:
+            # nothing to process, a raw string, keep as is.
+            return layer
+
+        # handle remote fetch URL
+        layer = {"url": url, "type": "fetch"}
+        if resource_type:
+            layer["resource_type"] = resource_type
+
     if not isinstance(layer, dict):
         return layer
 
@@ -1176,19 +1251,19 @@ def process_layer(layer, layer_parameter):
     type = layer.get("type")
     public_id = layer.get("public_id")
     format = layer.get("format")
-    fetch = layer.get("url")
+    fetch_url = layer.get("url")
     components = list()
 
     if text is not None and resource_type is None:
         resource_type = "text"
 
-    if fetch and resource_type is None:
-        resource_type = "fetch"
+    if fetch_url and type is None:
+        type = "fetch"
 
     if public_id is not None and format is not None:
         public_id = public_id + "." + format
 
-    if public_id is None and resource_type != "text" and resource_type != "fetch":
+    if public_id is None and resource_type != "text" and type != "fetch":
         raise ValueError("Must supply public_id for for non-text " + layer_parameter)
 
     if resource_type is not None and resource_type != "image":
@@ -1212,8 +1287,6 @@ def process_layer(layer, layer_parameter):
 
         if text is not None:
             var_pattern = VAR_NAME_RE
-            match = re.findall(var_pattern, text)
-
             parts = filter(lambda p: p is not None, re.split(var_pattern, text))
             encoded_text = []
             for part in parts:
@@ -1223,11 +1296,9 @@ def process_layer(layer, layer_parameter):
                     encoded_text.append(smart_escape(smart_escape(part, r"([,/])")))
 
             text = ''.join(encoded_text)
-            # text = text.replace("%2C", "%252C")
-            # text = text.replace("/", "%252F")
             components.append(text)
-    elif resource_type == "fetch":
-        b64 = base64_encode_url(fetch)
+    elif type == "fetch":
+        b64 = base64url_encode(fetch_url)
         components.append(b64)
     else:
         public_id = public_id.replace("/", ':')
@@ -1359,8 +1430,7 @@ def normalize_expression(expression):
         result = re.sub(replaceRE, translate_if, result)
         result = re.sub('[ _]+', '_', result)
         return result
-    else:
-        return expression
+    return expression
 
 
 def __join_pair(key, value):
@@ -1368,8 +1438,7 @@ def __join_pair(key, value):
         return None
     elif value is True:
         return key
-    else:
-        return u"{0}=\"{1}\"".format(key, value)
+    return u"{0}=\"{1}\"".format(key, value)
 
 
 def html_attrs(attrs, only=None):
@@ -1379,9 +1448,14 @@ def html_attrs(attrs, only=None):
 def __safe_value(v):
     if isinstance(v, bool):
         return "1" if v else "0"
-    else:
-        return v
+    return v
 
+
+def __bool_string(v):
+    if isinstance(v, bool):
+        return "true" if v else "false"
+
+    return v
 
 def __crc(source):
     return str((zlib.crc32(to_bytearray(source)) & 0xffffffff) % 5 + 1)

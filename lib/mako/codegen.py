@@ -1,5 +1,5 @@
 # mako/codegen.py
-# Copyright 2006-2022 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -816,7 +816,6 @@ class _GenerateRenderMethod:
             )
             or len(self.compiler.default_filters)
         ):
-
             s = self.create_filter_callable(
                 node.escapes_code.args, "%s" % node.text, True
             )
@@ -839,13 +838,24 @@ class _GenerateRenderMethod:
                 text = node.text
             self.printer.writeline(text)
             children = node.get_children()
-            # this covers the three situations where we want to insert a pass:
-            #    1) a ternary control line with no children,
-            #    2) a primary control line with nothing but its own ternary
-            #          and end control lines, and
-            #    3) any control line with no content other than comments
-            if not children or (
-                all(
+
+            # this covers the four situations where we want to insert a pass:
+            # 1) a ternary control line with no children,
+            # 2) a primary control line with nothing but its own ternary
+            #       and end control lines, and
+            # 3) any control line with no content other than comments
+            # 4) the first control block with no content other than comments
+            def _search_for_control_line():
+                for c in children:
+                    if isinstance(c, parsetree.Comment):
+                        continue
+                    elif isinstance(c, parsetree.ControlLine):
+                        return True
+                    return False
+
+            if (
+                not children
+                or all(
                     isinstance(c, (parsetree.Comment, parsetree.ControlLine))
                     for c in children
                 )
@@ -854,6 +864,7 @@ class _GenerateRenderMethod:
                     for c in children
                     if isinstance(c, parsetree.ControlLine)
                 )
+                or _search_for_control_line()
             ):
                 self.printer.writeline("pass")
 
@@ -1181,7 +1192,6 @@ class _Identifiers:
 
     def visitBlockTag(self, node):
         if node is not self.node and not node.is_anonymous:
-
             if isinstance(self.node, parsetree.DefTag):
                 raise exceptions.CompileException(
                     "Named block '%s' not allowed inside of def '%s'"

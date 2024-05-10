@@ -21,7 +21,18 @@ import contextlib
 import io
 import os
 import struct
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Iterable,
+    Iterator,
+    List,
+    MutableMapping,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 
 import dns.exception
 import dns.grange
@@ -43,47 +54,70 @@ from dns.zonetypes import DigestHashAlgorithm, DigestScheme, _digest_hashers
 
 
 class BadZone(dns.exception.DNSException):
-
     """The DNS zone is malformed."""
 
 
 class NoSOA(BadZone):
-
     """The DNS zone has no SOA RR at its origin."""
 
 
 class NoNS(BadZone):
-
     """The DNS zone has no NS RRset at its origin."""
 
 
 class UnknownOrigin(BadZone):
-
     """The DNS zone's origin is unknown."""
 
 
 class UnsupportedDigestScheme(dns.exception.DNSException):
-
     """The zone digest's scheme is unsupported."""
 
 
 class UnsupportedDigestHashAlgorithm(dns.exception.DNSException):
-
     """The zone digest's origin is unsupported."""
 
 
 class NoDigest(dns.exception.DNSException):
-
     """The DNS zone has no ZONEMD RRset at its origin."""
 
 
 class DigestVerificationFailure(dns.exception.DNSException):
-
     """The ZONEMD digest failed to verify."""
 
 
-class Zone(dns.transaction.TransactionManager):
+def _validate_name(
+    name: dns.name.Name,
+    origin: Optional[dns.name.Name],
+    relativize: bool,
+) -> dns.name.Name:
+    # This name validation code is shared by Zone and Version
+    if origin is None:
+        # This should probably never happen as other code (e.g.
+        # _rr_line) will notice the lack of an origin before us, but
+        # we check just in case!
+        raise KeyError("no zone origin is defined")
+    if name.is_absolute():
+        if not name.is_subdomain(origin):
+            raise KeyError("name parameter must be a subdomain of the zone origin")
+        if relativize:
+            name = name.relativize(origin)
+    else:
+        # We have a relative name.  Make sure that the derelativized name is
+        # not too long.
+        try:
+            abs_name = name.derelativize(origin)
+        except dns.name.NameTooLong:
+            # We map dns.name.NameTooLong to KeyError to be consistent with
+            # the other exceptions above.
+            raise KeyError("relative name too long for zone")
+        if not relativize:
+            # We have a relative name in a non-relative zone, so use the
+            # derelativized name.
+            name = abs_name
+    return name
 
+
+class Zone(dns.transaction.TransactionManager):
     """A DNS zone.
 
     A ``Zone`` is a mapping from names to nodes.  The zone object may be
@@ -94,7 +128,10 @@ class Zone(dns.transaction.TransactionManager):
     the zone.
     """
 
-    node_factory = dns.node.Node
+    node_factory: Callable[[], dns.node.Node] = dns.node.Node
+    map_factory: Callable[[], MutableMapping[dns.name.Name, dns.node.Node]] = dict
+    writable_version_factory: Optional[Callable[[], "WritableVersion"]] = None
+    immutable_version_factory: Optional[Callable[[], "ImmutableVersion"]] = None
 
     __slots__ = ["rdclass", "origin", "nodes", "relativize"]
 
@@ -125,7 +162,7 @@ class Zone(dns.transaction.TransactionManager):
                 raise ValueError("origin parameter must be an absolute name")
         self.origin = origin
         self.rdclass = rdclass
-        self.nodes: Dict[dns.name.Name, dns.node.Node] = {}
+        self.nodes: MutableMapping[dns.name.Name, dns.node.Node] = self.map_factory()
         self.relativize = relativize
 
     def __eq__(self, other):
@@ -154,26 +191,13 @@ class Zone(dns.transaction.TransactionManager):
         return not self.__eq__(other)
 
     def _validate_name(self, name: Union[dns.name.Name, str]) -> dns.name.Name:
+        # Note that any changes in this method should have corresponding changes
+        # made in the Version _validate_name() method.
         if isinstance(name, str):
             name = dns.name.from_text(name, None)
         elif not isinstance(name, dns.name.Name):
             raise KeyError("name parameter must be convertible to a DNS name")
-        if name.is_absolute():
-            if self.origin is None:
-                # This should probably never happen as other code (e.g.
-                # _rr_line) will notice the lack of an origin before us, but
-                # we check just in case!
-                raise KeyError("no zone origin is defined")
-            if not name.is_subdomain(self.origin):
-                raise KeyError("name parameter must be a subdomain of the zone origin")
-            if self.relativize:
-                name = name.relativize(self.origin)
-        elif not self.relativize:
-            # We have a relative name in a non-relative zone, so derelativize.
-            if self.origin is None:
-                raise KeyError("no zone origin is defined")
-            name = name.derelativize(self.origin)
-        return name
+        return _validate_name(name, self.origin, self.relativize)
 
     def __getitem__(self, key):
         key = self._validate_name(key)
@@ -251,9 +275,6 @@ class Zone(dns.transaction.TransactionManager):
 
         *create*, a ``bool``.  If true, the node will be created if it does
         not exist.
-
-        Raises ``KeyError`` if the name is not known and create was
-        not specified, or if the name was not a subdomain of the origin.
 
         Returns a ``dns.node.Node`` or ``None``.
         """
@@ -526,9 +547,6 @@ class Zone(dns.transaction.TransactionManager):
 
         *create*, a ``bool``.  If true, the node will be created if it does
         not exist.
-
-        Raises ``KeyError`` if the name is not known and create was
-        not specified, or if the name was not a subdomain of the origin.
 
         Returns a ``dns.rrset.RRset`` or ``None``.
         """
@@ -952,7 +970,7 @@ class Version:
         self,
         zone: Zone,
         id: int,
-        nodes: Optional[Dict[dns.name.Name, dns.node.Node]] = None,
+        nodes: Optional[MutableMapping[dns.name.Name, dns.node.Node]] = None,
         origin: Optional[dns.name.Name] = None,
     ):
         self.zone = zone
@@ -960,26 +978,11 @@ class Version:
         if nodes is not None:
             self.nodes = nodes
         else:
-            self.nodes = {}
+            self.nodes = zone.map_factory()
         self.origin = origin
 
     def _validate_name(self, name: dns.name.Name) -> dns.name.Name:
-        if name.is_absolute():
-            if self.origin is None:
-                # This should probably never happen as other code (e.g.
-                # _rr_line) will notice the lack of an origin before us, but
-                # we check just in case!
-                raise KeyError("no zone origin is defined")
-            if not name.is_subdomain(self.origin):
-                raise KeyError("name is not a subdomain of the zone origin")
-            if self.zone.relativize:
-                name = name.relativize(self.origin)
-        elif not self.zone.relativize:
-            # We have a relative name in a non-relative zone, so derelativize.
-            if self.origin is None:
-                raise KeyError("no zone origin is defined")
-            name = name.derelativize(self.origin)
-        return name
+        return _validate_name(name, self.origin, self.zone.relativize)
 
     def get_node(self, name: dns.name.Name) -> Optional[dns.node.Node]:
         name = self._validate_name(name)
@@ -1085,7 +1088,9 @@ class ImmutableVersion(Version):
                 version.nodes[name] = ImmutableVersionedNode(node)
         # We're changing the type of the nodes dictionary here on purpose, so
         # we ignore the mypy error.
-        self.nodes = dns.immutable.Dict(version.nodes, True)  # type: ignore
+        self.nodes = dns.immutable.Dict(
+            version.nodes, True, self.zone.map_factory
+        )  # type: ignore
 
 
 class Transaction(dns.transaction.Transaction):
@@ -1101,7 +1106,10 @@ class Transaction(dns.transaction.Transaction):
 
     def _setup_version(self):
         assert self.version is None
-        self.version = WritableVersion(self.zone, self.replacement)
+        factory = self.manager.writable_version_factory
+        if factory is None:
+            factory = WritableVersion
+        self.version = factory(self.zone, self.replacement)
 
     def _get_rdataset(self, name, rdtype, covers):
         return self.version.get_rdataset(name, rdtype, covers)
@@ -1132,7 +1140,10 @@ class Transaction(dns.transaction.Transaction):
             self.zone._end_read(self)
         elif commit and len(self.version.changed) > 0:
             if self.make_immutable:
-                version = ImmutableVersion(self.version)
+                factory = self.manager.immutable_version_factory
+                if factory is None:
+                    factory = ImmutableVersion
+                version = factory(self.version)
             else:
                 version = self.version
             self.zone._commit_version(self, version, self.version.origin)
@@ -1166,6 +1177,48 @@ class Transaction(dns.transaction.Transaction):
             else:
                 effective = absolute
         return (absolute, relativize, effective)
+
+
+def _from_text(
+    text: Any,
+    origin: Optional[Union[dns.name.Name, str]] = None,
+    rdclass: dns.rdataclass.RdataClass = dns.rdataclass.IN,
+    relativize: bool = True,
+    zone_factory: Any = Zone,
+    filename: Optional[str] = None,
+    allow_include: bool = False,
+    check_origin: bool = True,
+    idna_codec: Optional[dns.name.IDNACodec] = None,
+    allow_directives: Union[bool, Iterable[str]] = True,
+) -> Zone:
+    # See the comments for the public APIs from_text() and from_file() for
+    # details.
+
+    # 'text' can also be a file, but we don't publish that fact
+    # since it's an implementation detail.  The official file
+    # interface is from_file().
+
+    if filename is None:
+        filename = "<string>"
+    zone = zone_factory(origin, rdclass, relativize=relativize)
+    with zone.writer(True) as txn:
+        tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
+        reader = dns.zonefile.Reader(
+            tok,
+            rdclass,
+            txn,
+            allow_include=allow_include,
+            allow_directives=allow_directives,
+        )
+        try:
+            reader.read()
+        except dns.zonefile.UnknownOrigin:
+            # for backwards compatibility
+            raise dns.zone.UnknownOrigin
+    # Now that we're done reading, do some basic checking of the zone.
+    if check_origin:
+        zone.check_origin()
+    return zone
 
 
 def from_text(
@@ -1228,32 +1281,18 @@ def from_text(
 
     Returns a subclass of ``dns.zone.Zone``.
     """
-
-    # 'text' can also be a file, but we don't publish that fact
-    # since it's an implementation detail.  The official file
-    # interface is from_file().
-
-    if filename is None:
-        filename = "<string>"
-    zone = zone_factory(origin, rdclass, relativize=relativize)
-    with zone.writer(True) as txn:
-        tok = dns.tokenizer.Tokenizer(text, filename, idna_codec=idna_codec)
-        reader = dns.zonefile.Reader(
-            tok,
-            rdclass,
-            txn,
-            allow_include=allow_include,
-            allow_directives=allow_directives,
-        )
-        try:
-            reader.read()
-        except dns.zonefile.UnknownOrigin:
-            # for backwards compatibility
-            raise dns.zone.UnknownOrigin
-    # Now that we're done reading, do some basic checking of the zone.
-    if check_origin:
-        zone.check_origin()
-    return zone
+    return _from_text(
+        text,
+        origin,
+        rdclass,
+        relativize,
+        zone_factory,
+        filename,
+        allow_include,
+        check_origin,
+        idna_codec,
+        allow_directives,
+    )
 
 
 def from_file(
@@ -1324,7 +1363,7 @@ def from_file(
     else:
         cm = contextlib.nullcontext(f)
     with cm as f:
-        return from_text(
+        return _from_text(
             f,
             origin,
             rdclass,

@@ -377,6 +377,7 @@ class Export(object):
                     'role': None,
                     'thumb': None
                 },
+                'slug': None,
                 'studio': None,
                 'summary': None,
                 'tagline': None,
@@ -462,6 +463,7 @@ class Export(object):
                 },
                 'seasonCount': None,
                 'showOrdering': None,
+                'slug': None,
                 'studio': None,
                 'subtitleLanguage': None,
                 'subtitleMode': None,
@@ -526,6 +528,7 @@ class Export(object):
                 'parentTitle': None,
                 'ratingKey': None,
                 'seasonNumber': None,
+                'slug': None,
                 'subtitleLanguage': None,
                 'subtitleMode': None,
                 'summary': None,
@@ -785,6 +788,7 @@ class Export(object):
                 },
                 'seasonEpisode': None,
                 'seasonNumber': None,
+                'slug': None,
                 'summary': None,
                 'thumb': None,
                 'thumbBlurHash': None,
@@ -976,6 +980,10 @@ class Export(object):
                 'fields': {
                     'name': None,
                     'locked': None
+                },
+                'genres': {
+                    'id': None,
+                    'tag': None
                 },
                 'grandparentArt': None,
                 'grandparentGuid': None,
@@ -1270,6 +1278,7 @@ class Export(object):
                 'playlistType': None,
                 'ratingKey': None,
                 'smart': None,
+                'sourceURI': None,
                 'summary': None,
                 'title': None,
                 'type': None,
@@ -1541,7 +1550,7 @@ class Export(object):
                     'hasSonicAnalysis'
                 ],
                 2: [
-                    'collections.tag', 'moods.tag',
+                    'collections.tag', 'genres.tag', 'moods.tag',
                     'fields.name', 'fields.locked', 'guids.id'
                 ],
                 3: [
