@@ -24,7 +24,7 @@ import collections
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, List, Tuple, Union
 
-from paho.mqtt.enums import CallbackAPIVersion
+from paho.mqtt.enums import CallbackAPIVersion, MQTTProtocolVersion
 from paho.mqtt.properties import Properties
 from paho.mqtt.reasoncodes import ReasonCode
 
@@ -112,7 +112,7 @@ def multiple(
     will: MessageDict | None = None,
     auth: AuthParameter | None = None,
     tls: TLSParameter | None = None,
-    protocol: int = paho.MQTTv311,
+    protocol: MQTTProtocolVersion = paho.MQTTv311,
     transport: Literal["tcp", "websockets"] = "tcp",
     proxy_args: Any | None = None,
 ) -> None:
@@ -240,7 +240,7 @@ def single(
     will: MessageDict | None = None,
     auth: AuthParameter | None = None,
     tls: TLSParameter | None = None,
-    protocol: int = paho.MQTTv311,
+    protocol: MQTTProtocolVersion = paho.MQTTv311,
     transport: Literal["tcp", "websockets"] = "tcp",
     proxy_args: Any | None = None,
 ) -> None:
