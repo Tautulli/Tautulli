@@ -5,20 +5,20 @@ import time
 from typing import Optional, Union
 
 # websocket modules
-from ._abnf import *
-from ._exceptions import *
-from ._handshake import *
-from ._http import *
-from ._logging import *
-from ._socket import *
-from ._ssl_compat import *
-from ._utils import *
+from ._abnf import ABNF, STATUS_NORMAL, continuous_frame, frame_buffer
+from ._exceptions import WebSocketProtocolException, WebSocketConnectionClosedException
+from ._handshake import SUPPORTED_REDIRECT_STATUSES, handshake
+from ._http import connect, proxy_info
+from ._logging import debug, error, trace, isEnabledForError, isEnabledForTrace
+from ._socket import getdefaulttimeout, recv, send, sock_opt
+from ._ssl_compat import ssl
+from ._utils import NoLock
 
 """
 _core.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -259,7 +259,7 @@ class WebSocket:
 
         try:
             self.handshake_response = handshake(self.sock, url, *addrs, **options)
-            for attempt in range(options.pop("redirect_limit", 3)):
+            for _ in range(options.pop("redirect_limit", 3)):
                 if self.handshake_response.status in SUPPORTED_REDIRECT_STATUSES:
                     url = self.handshake_response.headers["location"]
                     self.sock.close()

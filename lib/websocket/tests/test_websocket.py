@@ -7,6 +7,7 @@ import unittest
 from base64 import decodebytes as base64decode
 
 import websocket as ws
+from websocket._exceptions import WebSocketBadStatusException, WebSocketAddressException
 from websocket._handshake import _create_sec_websocket_key
 from websocket._handshake import _validate as _validate_header
 from websocket._http import read_headers
@@ -16,7 +17,7 @@ from websocket._utils import validate_utf8
 test_websocket.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,7 +34,6 @@ limitations under the License.
 
 try:
     import ssl
-    from ssl import SSLError
 except ImportError:
     # dummy class of SSLError for ssl none-support environment.
     class SSLError(Exception):
@@ -95,24 +95,24 @@ class WebSocketTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def testDefaultTimeout(self):
+    def test_default_timeout(self):
         self.assertEqual(ws.getdefaulttimeout(), None)
         ws.setdefaulttimeout(10)
         self.assertEqual(ws.getdefaulttimeout(), 10)
         ws.setdefaulttimeout(None)
 
-    def testWSKey(self):
+    def test_ws_key(self):
         key = _create_sec_websocket_key()
         self.assertTrue(key != 24)
         self.assertTrue("¥n" not in key)
 
-    def testNonce(self):
+    def test_nonce(self):
         """WebSocket key should be a random 16-byte nonce."""
         key = _create_sec_websocket_key()
         nonce = base64decode(key.encode("utf-8"))
         self.assertEqual(16, len(nonce))
 
-    def testWsUtils(self):
+    def test_ws_utils(self):
         key = "c6b8hTg4EeGb2gQMztV1/g=="
         required_header = {
             "upgrade": "websocket",
@@ -157,16 +157,12 @@ class WebSocketTest(unittest.TestCase):
         # This case will print out a logging error using the error() function, but that is expected
         self.assertEqual(_validate_header(header, key, ["Sub1", "suB2"]), (False, None))
 
-    def testReadHeader(self):
-        status, header, status_message = read_headers(
-            HeaderSockMock("data/header01.txt")
-        )
+    def test_read_header(self):
+        status, header, _ = read_headers(HeaderSockMock("data/header01.txt"))
         self.assertEqual(status, 101)
         self.assertEqual(header["connection"], "Upgrade")
 
-        status, header, status_message = read_headers(
-            HeaderSockMock("data/header03.txt")
-        )
+        status, header, _ = read_headers(HeaderSockMock("data/header03.txt"))
         self.assertEqual(status, 101)
         self.assertEqual(header["connection"], "Upgrade, Keep-Alive")
 
@@ -175,7 +171,7 @@ class WebSocketTest(unittest.TestCase):
             ws.WebSocketException, read_headers, HeaderSockMock("data/header02.txt")
         )
 
-    def testSend(self):
+    def test_send(self):
         # TODO: add longer frame data
         sock = ws.WebSocket()
         sock.set_mask_key(create_mask_key)
@@ -194,7 +190,7 @@ class WebSocketTest(unittest.TestCase):
 
         self.assertEqual(sock.send_binary(b"1111111111101"), 19)
 
-    def testRecv(self):
+    def test_recv(self):
         # TODO: add longer frame data
         sock = ws.WebSocket()
         s = sock.sock = SockMock()
@@ -210,7 +206,7 @@ class WebSocketTest(unittest.TestCase):
         self.assertEqual(data, "Hello")
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testIter(self):
+    def test_iter(self):
         count = 2
         s = ws.create_connection("wss://api.bitfinex.com/ws/2")
         s.send('{"event": "subscribe", "channel": "ticker"}')
@@ -220,11 +216,11 @@ class WebSocketTest(unittest.TestCase):
                 break
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testNext(self):
+    def test_next(self):
         sock = ws.create_connection("wss://api.bitfinex.com/ws/2")
         self.assertEqual(str, type(next(sock)))
 
-    def testInternalRecvStrict(self):
+    def test_internal_recv_strict(self):
         sock = ws.WebSocket()
         s = sock.sock = SockMock()
         s.add_packet(b"foo")
@@ -241,7 +237,7 @@ class WebSocketTest(unittest.TestCase):
         with self.assertRaises(ws.WebSocketConnectionClosedException):
             sock.frame_buffer.recv_strict(1)
 
-    def testRecvTimeout(self):
+    def test_recv_timeout(self):
         sock = ws.WebSocket()
         s = sock.sock = SockMock()
         s.add_packet(b"\x81")
@@ -258,7 +254,7 @@ class WebSocketTest(unittest.TestCase):
         with self.assertRaises(ws.WebSocketConnectionClosedException):
             sock.recv()
 
-    def testRecvWithSimpleFragmentation(self):
+    def test_recv_with_simple_fragmentation(self):
         sock = ws.WebSocket()
         s = sock.sock = SockMock()
         # OPCODE=TEXT, FIN=0, MSG="Brevity is "
@@ -270,7 +266,7 @@ class WebSocketTest(unittest.TestCase):
         with self.assertRaises(ws.WebSocketConnectionClosedException):
             sock.recv()
 
-    def testRecvWithFireEventOfFragmentation(self):
+    def test_recv_with_fire_event_of_fragmentation(self):
         sock = ws.WebSocket(fire_cont_frame=True)
         s = sock.sock = SockMock()
         # OPCODE=TEXT, FIN=0, MSG="Brevity is "
@@ -296,7 +292,7 @@ class WebSocketTest(unittest.TestCase):
         with self.assertRaises(ws.WebSocketConnectionClosedException):
             sock.recv()
 
-    def testClose(self):
+    def test_close(self):
         sock = ws.WebSocket()
         sock.connected = True
         sock.close
@@ -308,14 +304,14 @@ class WebSocketTest(unittest.TestCase):
         sock.recv()
         self.assertEqual(sock.connected, False)
 
-    def testRecvContFragmentation(self):
+    def test_recv_cont_fragmentation(self):
         sock = ws.WebSocket()
         s = sock.sock = SockMock()
         # OPCODE=CONT, FIN=1, MSG="the soul of wit"
         s.add_packet(b"\x80\x8fabcd\x15\n\x06D\x12\r\x16\x08A\r\x05D\x16\x0b\x17")
         self.assertRaises(ws.WebSocketException, sock.recv)
 
-    def testRecvWithProlongedFragmentation(self):
+    def test_recv_with_prolonged_fragmentation(self):
         sock = ws.WebSocket()
         s = sock.sock = SockMock()
         # OPCODE=TEXT, FIN=0, MSG="Once more unto the breach, "
@@ -331,7 +327,7 @@ class WebSocketTest(unittest.TestCase):
         with self.assertRaises(ws.WebSocketConnectionClosedException):
             sock.recv()
 
-    def testRecvWithFragmentationAndControlFrame(self):
+    def test_recv_with_fragmentation_and_control_frame(self):
         sock = ws.WebSocket()
         sock.set_mask_key(create_mask_key)
         s = sock.sock = SockMock()
@@ -352,7 +348,7 @@ class WebSocketTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testWebSocket(self):
+    def test_websocket(self):
         s = ws.create_connection(f"ws://127.0.0.1:{LOCAL_WS_SERVER_PORT}")
         self.assertNotEqual(s, None)
         s.send("Hello, World")
@@ -369,7 +365,7 @@ class WebSocketTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testPingPong(self):
+    def test_ping_pong(self):
         s = ws.create_connection(f"ws://127.0.0.1:{LOCAL_WS_SERVER_PORT}")
         self.assertNotEqual(s, None)
         s.ping("Hello")
@@ -377,17 +373,13 @@ class WebSocketTest(unittest.TestCase):
         s.close()
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testSupportRedirect(self):
+    def test_support_redirect(self):
         s = ws.WebSocket()
-        self.assertRaises(
-            ws._exceptions.WebSocketBadStatusException, s.connect, "ws://google.com/"
-        )
+        self.assertRaises(WebSocketBadStatusException, s.connect, "ws://google.com/")
         # Need to find a URL that has a redirect code leading to a websocket
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testSecureWebSocket(self):
-        import ssl
-
+    def test_secure_websocket(self):
         s = ws.create_connection("wss://api.bitfinex.com/ws/2")
         self.assertNotEqual(s, None)
         self.assertTrue(isinstance(s.sock, ssl.SSLSocket))
@@ -401,7 +393,7 @@ class WebSocketTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testWebSocketWithCustomHeader(self):
+    def test_websocket_with_custom_header(self):
         s = ws.create_connection(
             f"ws://127.0.0.1:{LOCAL_WS_SERVER_PORT}",
             headers={"User-Agent": "PythonWebsocketClient"},
@@ -417,7 +409,7 @@ class WebSocketTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testAfterClose(self):
+    def test_after_close(self):
         s = ws.create_connection(f"ws://127.0.0.1:{LOCAL_WS_SERVER_PORT}")
         self.assertNotEqual(s, None)
         s.close()
@@ -429,7 +421,7 @@ class SockOptTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testSockOpt(self):
+    def test_sockopt(self):
         sockopt = ((socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),)
         s = ws.create_connection(
             f"ws://127.0.0.1:{LOCAL_WS_SERVER_PORT}", sockopt=sockopt
@@ -441,7 +433,7 @@ class SockOptTest(unittest.TestCase):
 
 
 class UtilsTest(unittest.TestCase):
-    def testUtf8Validator(self):
+    def test_utf8_validator(self):
         state = validate_utf8(b"\xf0\x90\x80\x80")
         self.assertEqual(state, True)
         state = validate_utf8(
@@ -454,7 +446,7 @@ class UtilsTest(unittest.TestCase):
 
 class HandshakeTest(unittest.TestCase):
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def test_http_SSL(self):
+    def test_http_ssl(self):
         websock1 = ws.WebSocket(
             sslopt={"cert_chain": ssl.get_default_verify_paths().capath},
             enable_multithread=False,
@@ -466,7 +458,7 @@ class HandshakeTest(unittest.TestCase):
         )
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testManualHeaders(self):
+    def test_manual_headers(self):
         websock3 = ws.WebSocket(
             sslopt={
                 "ca_certs": ssl.get_default_verify_paths().cafile,
@@ -474,7 +466,7 @@ class HandshakeTest(unittest.TestCase):
             }
         )
         self.assertRaises(
-            ws._exceptions.WebSocketBadStatusException,
+            WebSocketBadStatusException,
             websock3.connect,
             "wss://api.bitfinex.com/ws/2",
             cookie="chocolate",
@@ -490,16 +482,14 @@ class HandshakeTest(unittest.TestCase):
             },
         )
 
-    def testIPv6(self):
+    def test_ipv6(self):
         websock2 = ws.WebSocket()
         self.assertRaises(ValueError, websock2.connect, "2001:4860:4860::8888")
 
-    def testBadURLs(self):
+    def test_bad_urls(self):
         websock3 = ws.WebSocket()
         self.assertRaises(ValueError, websock3.connect, "ws//example.com")
-        self.assertRaises(
-            ws.WebSocketAddressException, websock3.connect, "ws://example"
-        )
+        self.assertRaises(WebSocketAddressException, websock3.connect, "ws://example")
         self.assertRaises(ValueError, websock3.connect, "example.com")
 
 

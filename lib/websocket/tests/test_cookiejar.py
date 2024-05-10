@@ -6,7 +6,7 @@ from websocket._cookiejar import SimpleCookieJar
 test_cookiejar.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ limitations under the License.
 
 
 class CookieJarTest(unittest.TestCase):
-    def testAdd(self):
+    def test_add(self):
         cookie_jar = SimpleCookieJar()
         cookie_jar.add("")
         self.assertFalse(
@@ -67,7 +67,7 @@ class CookieJarTest(unittest.TestCase):
         self.assertEqual(cookie_jar.get("xyz"), "e=f")
         self.assertEqual(cookie_jar.get("something"), "")
 
-    def testSet(self):
+    def test_set(self):
         cookie_jar = SimpleCookieJar()
         cookie_jar.set("a=b")
         self.assertFalse(
@@ -104,7 +104,7 @@ class CookieJarTest(unittest.TestCase):
         self.assertEqual(cookie_jar.get("xyz"), "e=f")
         self.assertEqual(cookie_jar.get("something"), "")
 
-    def testGet(self):
+    def test_get(self):
         cookie_jar = SimpleCookieJar()
         cookie_jar.set("a=b; c=d; domain=abc.com")
         self.assertEqual(cookie_jar.get("abc.com"), "a=b; c=d")

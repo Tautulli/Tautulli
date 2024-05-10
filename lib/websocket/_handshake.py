@@ -2,7 +2,7 @@
 _handshake.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ from base64 import encodebytes as base64encode
 from http import HTTPStatus
 
 from ._cookiejar import SimpleCookieJar
-from ._exceptions import *
-from ._http import *
-from ._logging import *
-from ._socket import *
+from ._exceptions import WebSocketException, WebSocketBadStatusException
+from ._http import read_headers
+from ._logging import dump, error
+from ._socket import send
 
 __all__ = ["handshake_response", "handshake", "SUPPORTED_REDIRECT_STATUSES"]
 

@@ -2,7 +2,7 @@
 _http.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,11 +21,15 @@ import os
 import socket
 from base64 import encodebytes as base64encode
 
-from ._exceptions import *
-from ._logging import *
-from ._socket import *
-from ._ssl_compat import *
-from ._url import *
+from ._exceptions import (
+    WebSocketAddressException,
+    WebSocketException,
+    WebSocketProxyException,
+)
+from ._logging import debug, dump, trace
+from ._socket import DEFAULT_SOCKET_OPTION, recv_line, send
+from ._ssl_compat import HAVE_SSL, ssl
+from ._url import get_proxy_info, parse_url
 
 __all__ = ["proxy_info", "connect", "read_headers"]
 
@@ -283,22 +287,22 @@ def _wrap_sni_socket(sock: socket.socket, sslopt: dict, hostname, check_hostname
 
 
 def _ssl_socket(sock: socket.socket, user_sslopt: dict, hostname):
-    sslopt: dict = dict(cert_reqs=ssl.CERT_REQUIRED)
+    sslopt: dict = {"cert_reqs": ssl.CERT_REQUIRED}
     sslopt.update(user_sslopt)
 
-    certPath = os.environ.get("WEBSOCKET_CLIENT_CA_BUNDLE")
+    cert_path = os.environ.get("WEBSOCKET_CLIENT_CA_BUNDLE")
     if (
-        certPath
-        and os.path.isfile(certPath)
+        cert_path
+        and os.path.isfile(cert_path)
         and user_sslopt.get("ca_certs", None) is None
     ):
-        sslopt["ca_certs"] = certPath
+        sslopt["ca_certs"] = cert_path
     elif (
-        certPath
-        and os.path.isdir(certPath)
+        cert_path
+        and os.path.isdir(cert_path)
         and user_sslopt.get("ca_cert_path", None) is None
     ):
-        sslopt["ca_cert_path"] = certPath
+        sslopt["ca_cert_path"] = cert_path
 
     if sslopt.get("server_hostname", None):
         hostname = sslopt["server_hostname"]
@@ -327,7 +331,7 @@ def _tunnel(sock: socket.socket, host, port: int, auth) -> socket.socket:
     send(sock, connect_header)
 
     try:
-        status, resp_headers, status_message = read_headers(sock)
+        status, _, _ = read_headers(sock)
     except Exception as e:
         raise WebSocketProxyException(str(e))
 

@@ -5,7 +5,7 @@ from typing import Optional
 _cookiejar.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ limitations under the License.
 
 class SimpleCookieJar:
     def __init__(self) -> None:
-        self.jar: dict = dict()
+        self.jar: dict = {}
 
     def add(self, set_cookie: Optional[str]) -> None:
         if set_cookie:
-            simpleCookie = http.cookies.SimpleCookie(set_cookie)
+            simple_cookie = http.cookies.SimpleCookie(set_cookie)
 
-            for k, v in simpleCookie.items():
+            for v in simple_cookie.values():
                 if domain := v.get("domain"):
                     if not domain.startswith("."):
                         domain = f".{domain}"
@@ -38,25 +38,25 @@ class SimpleCookieJar:
                         if self.jar.get(domain)
                         else http.cookies.SimpleCookie()
                     )
-                    cookie.update(simpleCookie)
+                    cookie.update(simple_cookie)
                     self.jar[domain.lower()] = cookie
 
     def set(self, set_cookie: str) -> None:
         if set_cookie:
-            simpleCookie = http.cookies.SimpleCookie(set_cookie)
+            simple_cookie = http.cookies.SimpleCookie(set_cookie)
 
-            for k, v in simpleCookie.items():
+            for v in simple_cookie.values():
                 if domain := v.get("domain"):
                     if not domain.startswith("."):
                         domain = f".{domain}"
-                    self.jar[domain.lower()] = simpleCookie
+                    self.jar[domain.lower()] = simple_cookie
 
     def get(self, host: str) -> str:
         if not host:
             return ""
 
         cookies = []
-        for domain, simpleCookie in self.jar.items():
+        for domain, _ in self.jar.items():
             host = host.lower()
             if host.endswith(domain) or host == domain[1:]:
                 cookies.append(self.jar.get(domain))
@@ -66,7 +66,7 @@ class SimpleCookieJar:
                 None,
                 sorted(
                     [
-                        "%s=%s" % (k, v.value)
+                        f"{k}={v.value}"
                         for cookie in filter(None, cookies)
                         for k, v in cookie.items()
                     ]

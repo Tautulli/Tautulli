@@ -7,7 +7,7 @@ import ssl
 import unittest
 
 import websocket
-import websocket as ws
+from websocket._exceptions import WebSocketProxyException, WebSocketException
 from websocket._http import (
     _get_addrinfo_list,
     _start_proxied_socket,
@@ -15,13 +15,14 @@ from websocket._http import (
     connect,
     proxy_info,
     read_headers,
+    HAVE_PYTHON_SOCKS,
 )
 
 """
 test_http.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -93,20 +94,18 @@ class OptsList:
 
 
 class HttpTest(unittest.TestCase):
-    def testReadHeader(self):
-        status, header, status_message = read_headers(
-            HeaderSockMock("data/header01.txt")
-        )
+    def test_read_header(self):
+        status, header, _ = read_headers(HeaderSockMock("data/header01.txt"))
         self.assertEqual(status, 101)
         self.assertEqual(header["connection"], "Upgrade")
         # header02.txt is intentionally malformed
         self.assertRaises(
-            ws.WebSocketException, read_headers, HeaderSockMock("data/header02.txt")
+            WebSocketException, read_headers, HeaderSockMock("data/header02.txt")
         )
 
-    def testTunnel(self):
+    def test_tunnel(self):
         self.assertRaises(
-            ws.WebSocketProxyException,
+            WebSocketProxyException,
             _tunnel,
             HeaderSockMock("data/header01.txt"),
             "example.com",
@@ -114,7 +113,7 @@ class HttpTest(unittest.TestCase):
             ("username", "password"),
         )
         self.assertRaises(
-            ws.WebSocketProxyException,
+            WebSocketProxyException,
             _tunnel,
             HeaderSockMock("data/header02.txt"),
             "example.com",
@@ -123,9 +122,9 @@ class HttpTest(unittest.TestCase):
         )
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testConnect(self):
+    def test_connect(self):
         # Not currently testing an actual proxy connection, so just check whether proxy errors are raised. This requires internet for a DNS lookup
-        if ws._http.HAVE_PYTHON_SOCKS:
+        if HAVE_PYTHON_SOCKS:
             # Need this check, otherwise case where python_socks is not installed triggers
             # websocket._exceptions.WebSocketException: Python Socks is needed for SOCKS proxying but is not available
             self.assertRaises(
@@ -244,7 +243,7 @@ class HttpTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testProxyConnect(self):
+    def test_proxy_connect(self):
         ws = websocket.WebSocket()
         ws.connect(
             f"ws://127.0.0.1:{LOCAL_WS_SERVER_PORT}",
@@ -289,7 +288,7 @@ class HttpTest(unittest.TestCase):
         # TODO: Test SOCKS4 and SOCK5 proxies with unit tests
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testSSLopt(self):
+    def test_sslopt(self):
         ssloptions = {
             "check_hostname": False,
             "server_hostname": "ServerName",
@@ -315,7 +314,7 @@ class HttpTest(unittest.TestCase):
         ws_ssl2.connect("wss://api.bitfinex.com/ws/2")
         ws_ssl2.close
 
-    def testProxyInfo(self):
+    def test_proxy_info(self):
         self.assertEqual(
             proxy_info(
                 http_proxy_host="127.0.0.1", http_proxy_port="8080", proxy_type="http"
