@@ -1,7 +1,9 @@
 """Tests for TCP connection handling, including proper and timely close."""
 
 import errno
+from re import match as _matches_pattern
 import socket
+import sys
 import time
 import logging
 import traceback as traceback_
@@ -17,6 +19,7 @@ from cheroot._compat import IS_CI, IS_MACOS, IS_PYPY, IS_WINDOWS
 import cheroot.server
 
 
+IS_PY36 = sys.version_info[:2] == (3, 6)
 IS_SLOW_ENV = IS_MACOS or IS_WINDOWS
 
 
@@ -53,7 +56,8 @@ class Controller(helper.Controller):
                 "'POST' != request.method %r" %
                 req.environ['REQUEST_METHOD'],
             )
-        return "thanks for '%s'" % req.environ['wsgi.input'].read()
+        input_contents = req.environ['wsgi.input'].read().decode('utf-8')
+        return f"thanks for '{input_contents !s}'"
 
     def custom_204(req, resp):
         """Render response with status 204."""
@@ -605,18 +609,18 @@ def test_keepalive_conn_management(test_client):
         pytest.param(RuntimeError, 666, True, id='RuntimeError(666)'),
         pytest.param(socket.error, -1, True, id='socket.error(-1)'),
     ) + (
-            pytest.param(
-                ConnectionResetError, errno.ECONNRESET, False,
-                id='ConnectionResetError(ECONNRESET)',
-            ),
-            pytest.param(
-                BrokenPipeError, errno.EPIPE, False,
-                id='BrokenPipeError(EPIPE)',
-            ),
-            pytest.param(
-                BrokenPipeError, errno.ESHUTDOWN, False,
-                id='BrokenPipeError(ESHUTDOWN)',
-            ),
+        pytest.param(
+            ConnectionResetError, errno.ECONNRESET, False,
+            id='ConnectionResetError(ECONNRESET)',
+        ),
+        pytest.param(
+            BrokenPipeError, errno.EPIPE, False,
+            id='BrokenPipeError(EPIPE)',
+        ),
+        pytest.param(
+            BrokenPipeError, errno.ESHUTDOWN, False,
+            id='BrokenPipeError(ESHUTDOWN)',
+        ),
     ),
 )
 def test_broken_connection_during_tcp_fin(
@@ -697,6 +701,275 @@ def test_broken_connection_during_tcp_fin(
         assert _close_kernel_socket.fin_spy.spy_exception.errno == error_number
 
     assert _close_kernel_socket.exception_leaked is exception_leaks
+
+
+def test_broken_connection_during_http_communication_fallback(  # noqa: WPS118
+        monkeypatch,
+        test_client,
+        testing_server,
+        wsgi_server_thread,
+):
+    """Test that unhandled internal error cascades into shutdown."""
+    def _raise_connection_reset(*_args, **_kwargs):
+        raise ConnectionResetError(666)
+
+    def _read_request_line(self):
+        monkeypatch.setattr(self.conn.rfile, 'close', _raise_connection_reset)
+        monkeypatch.setattr(self.conn.wfile, 'write', _raise_connection_reset)
+        _raise_connection_reset()
+
+    monkeypatch.setattr(
+        test_client.server_instance.ConnectionClass.RequestHandlerClass,
+        'read_request_line',
+        _read_request_line,
+    )
+
+    test_client.get_connection().send(b'GET / HTTP/1.1')
+    wsgi_server_thread.join()  # no extra logs upon server termination
+
+    actual_log_entries = testing_server.error_log.calls[:]
+    testing_server.error_log.calls.clear()  # prevent post-test assertions
+
+    expected_log_entries = (
+        (logging.WARNING, r'^socket\.error 666$'),
+        (
+            logging.INFO,
+            '^Got a connection error while handling a connection '
+            r'from .*:\d{1,5} \(666\)',
+        ),
+        (
+            logging.CRITICAL,
+            r'A fatal exception happened\. Setting the server interrupt flag '
+            r'to ConnectionResetError\(666,?\) and giving up\.\n\nPlease, '
+            'report this on the Cheroot tracker at '
+            r'<https://github\.com/cherrypy/cheroot/issues/new/choose>, '
+            'providing a full reproducer with as much context and details '
+            r'as possible\.$',
+        ),
+    )
+
+    assert len(actual_log_entries) == len(expected_log_entries)
+
+    for (  # noqa: WPS352
+            (expected_log_level, expected_msg_regex),
+            (actual_msg, actual_log_level, _tb),
+    ) in zip(expected_log_entries, actual_log_entries):
+        assert expected_log_level == actual_log_level
+        assert _matches_pattern(expected_msg_regex, actual_msg) is not None, (
+            f'{actual_msg !r} does not match {expected_msg_regex !r}'
+        )
+
+
+def test_kb_int_from_http_handler(
+        test_client,
+        testing_server,
+        wsgi_server_thread,
+):
+    """Test that a keyboard interrupt from HTTP handler causes shutdown."""
+    def _trigger_kb_intr(_req, _resp):
+        raise KeyboardInterrupt('simulated test handler keyboard interrupt')
+    testing_server.wsgi_app.handlers['/kb_intr'] = _trigger_kb_intr
+
+    http_conn = test_client.get_connection()
+    http_conn.putrequest('GET', '/kb_intr', skip_host=True)
+    http_conn.putheader('Host', http_conn.host)
+    http_conn.endheaders()
+    wsgi_server_thread.join()  # no extra logs upon server termination
+
+    actual_log_entries = testing_server.error_log.calls[:]
+    testing_server.error_log.calls.clear()  # prevent post-test assertions
+
+    expected_log_entries = (
+        (
+            logging.DEBUG,
+            '^Got a server shutdown request while handling a connection '
+            r'from .*:\d{1,5} \(simulated test handler keyboard interrupt\)$',
+        ),
+        (
+            logging.DEBUG,
+            '^Setting the server interrupt flag to KeyboardInterrupt'
+            r"\('simulated test handler keyboard interrupt',?\)$",
+        ),
+        (
+            logging.INFO,
+            '^Keyboard Interrupt: shutting down$',
+        ),
+    )
+
+    assert len(actual_log_entries) == len(expected_log_entries)
+
+    for (  # noqa: WPS352
+            (expected_log_level, expected_msg_regex),
+            (actual_msg, actual_log_level, _tb),
+    ) in zip(expected_log_entries, actual_log_entries):
+        assert expected_log_level == actual_log_level
+        assert _matches_pattern(expected_msg_regex, actual_msg) is not None, (
+            f'{actual_msg !r} does not match {expected_msg_regex !r}'
+        )
+
+
+@pytest.mark.xfail(
+    IS_CI and IS_PYPY and IS_PY36 and not IS_SLOW_ENV,
+    reason='Fails under PyPy 3.6 under Ubuntu 20.04 in CI for unknown reason',
+    # NOTE: Actually covers any Linux
+    strict=False,
+)
+def test_unhandled_exception_in_request_handler(
+        mocker,
+        monkeypatch,
+        test_client,
+        testing_server,
+        wsgi_server_thread,
+):
+    """Ensure worker threads are resilient to in-handler exceptions."""
+
+    class SillyMistake(BaseException):  # noqa: WPS418, WPS431
+        """A simulated crash within an HTTP handler."""
+
+    def _trigger_scary_exc(_req, _resp):
+        raise SillyMistake('simulated unhandled exception 💣 in test handler')
+
+    testing_server.wsgi_app.handlers['/scary_exc'] = _trigger_scary_exc
+
+    server_connection_close_spy = mocker.spy(
+        test_client.server_instance.ConnectionClass,
+        'close',
+    )
+
+    http_conn = test_client.get_connection()
+    http_conn.putrequest('GET', '/scary_exc', skip_host=True)
+    http_conn.putheader('Host', http_conn.host)
+    http_conn.endheaders()
+
+    # NOTE: This spy ensure the log entry gets recorded before we're testing
+    # NOTE: them and before server shutdown, preserving their order and making
+    # NOTE: the log entry presence non-flaky.
+    while not server_connection_close_spy.called:  # noqa: WPS328
+        pass
+
+    assert len(testing_server.requests._threads) == 10
+    while testing_server.requests.idle < 10:  # noqa: WPS328
+        pass
+    assert len(testing_server.requests._threads) == 10
+    testing_server.interrupt = SystemExit('test requesting shutdown')
+    assert not testing_server.requests._threads
+    wsgi_server_thread.join()  # no extra logs upon server termination
+
+    actual_log_entries = testing_server.error_log.calls[:]
+    testing_server.error_log.calls.clear()  # prevent post-test assertions
+
+    expected_log_entries = (
+        (
+            logging.ERROR,
+            '^Unhandled error while processing an incoming connection '
+            'SillyMistake'
+            r"\('simulated unhandled exception 💣 in test handler',?\)$",
+        ),
+        (
+            logging.INFO,
+            '^SystemExit raised: shutting down$',
+        ),
+    )
+
+    assert len(actual_log_entries) == len(expected_log_entries)
+
+    for (  # noqa: WPS352
+            (expected_log_level, expected_msg_regex),
+            (actual_msg, actual_log_level, _tb),
+    ) in zip(expected_log_entries, actual_log_entries):
+        assert expected_log_level == actual_log_level
+        assert _matches_pattern(expected_msg_regex, actual_msg) is not None, (
+            f'{actual_msg !r} does not match {expected_msg_regex !r}'
+        )
+
+
+@pytest.mark.xfail(
+    IS_CI and IS_PYPY and IS_PY36 and not IS_SLOW_ENV,
+    reason='Fails under PyPy 3.6 under Ubuntu 20.04 in CI for unknown reason',
+    # NOTE: Actually covers any Linux
+    strict=False,
+)
+def test_remains_alive_post_unhandled_exception(
+        mocker,
+        monkeypatch,
+        test_client,
+        testing_server,
+        wsgi_server_thread,
+):
+    """Ensure worker threads are resilient to unhandled exceptions."""
+
+    class ScaryCrash(BaseException):  # noqa: WPS418, WPS431
+        """A simulated crash during HTTP parsing."""
+
+    _orig_read_request_line = (
+        test_client.server_instance.
+        ConnectionClass.RequestHandlerClass.
+        read_request_line
+    )
+
+    def _read_request_line(self):
+        _orig_read_request_line(self)
+        raise ScaryCrash(666)
+
+    monkeypatch.setattr(
+        test_client.server_instance.ConnectionClass.RequestHandlerClass,
+        'read_request_line',
+        _read_request_line,
+    )
+
+    server_connection_close_spy = mocker.spy(
+        test_client.server_instance.ConnectionClass,
+        'close',
+    )
+
+    # NOTE: The initial worker thread count is 10.
+    assert len(testing_server.requests._threads) == 10
+
+    test_client.get_connection().send(b'GET / HTTP/1.1')
+
+    # NOTE: This spy ensure the log entry gets recorded before we're testing
+    # NOTE: them and before server shutdown, preserving their order and making
+    # NOTE: the log entry presence non-flaky.
+    while not server_connection_close_spy.called:  # noqa: WPS328
+        pass
+
+    # NOTE: This checks for whether there's any crashed threads
+    while testing_server.requests.idle < 10:  # noqa: WPS328
+        pass
+    assert len(testing_server.requests._threads) == 10
+    assert all(
+        worker_thread.is_alive()
+        for worker_thread in testing_server.requests._threads
+    )
+    testing_server.interrupt = SystemExit('test requesting shutdown')
+    assert not testing_server.requests._threads
+    wsgi_server_thread.join()  # no extra logs upon server termination
+
+    actual_log_entries = testing_server.error_log.calls[:]
+    testing_server.error_log.calls.clear()  # prevent post-test assertions
+
+    expected_log_entries = (
+        (
+            logging.ERROR,
+            '^Unhandled error while processing an incoming connection '
+            r'ScaryCrash\(666,?\)$',
+        ),
+        (
+            logging.INFO,
+            '^SystemExit raised: shutting down$',
+        ),
+    )
+
+    assert len(actual_log_entries) == len(expected_log_entries)
+
+    for (  # noqa: WPS352
+            (expected_log_level, expected_msg_regex),
+            (actual_msg, actual_log_level, _tb),
+    ) in zip(expected_log_entries, actual_log_entries):
+        assert expected_log_level == actual_log_level
+        assert _matches_pattern(expected_msg_regex, actual_msg) is not None, (
+            f'{actual_msg !r} does not match {expected_msg_regex !r}'
+        )
 
 
 @pytest.mark.parametrize(
@@ -917,7 +1190,7 @@ def test_100_Continue(test_client):
     status_line, _actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 200
-    expected_resp_body = ("thanks for '%s'" % body).encode()
+    expected_resp_body = f"thanks for '{body.decode() !s}'".encode()
     assert actual_resp_body == expected_resp_body
     conn.close()
 
@@ -987,7 +1260,7 @@ def test_readall_or_close(test_client, max_request_body_size):
     status_line, actual_headers, actual_resp_body = webtest.shb(response)
     actual_status = int(status_line[:3])
     assert actual_status == 200
-    expected_resp_body = ("thanks for '%s'" % body).encode()
+    expected_resp_body = f"thanks for '{body.decode() !s}'".encode()
     assert actual_resp_body == expected_resp_body
     conn.close()
 

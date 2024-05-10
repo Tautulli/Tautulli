@@ -157,7 +157,7 @@ QUOTED_SLASH = b'%2F'
 QUOTED_SLASH_REGEX = re.compile(b''.join((b'(?i)', QUOTED_SLASH)))
 
 
-_STOPPING_FOR_INTERRUPT = object()  # sentinel used during shutdown
+_STOPPING_FOR_INTERRUPT = Exception()  # sentinel used during shutdown
 
 
 comma_separated_headers = [
@@ -209,7 +209,11 @@ class HeaderReader:
             if not line.endswith(CRLF):
                 raise ValueError('HTTP requires CRLF terminators')
 
-            if line[0] in (SPACE, TAB):
+            if line[:1] in (SPACE, TAB):
+                # NOTE: `type(line[0]) is int` and `type(line[:1]) is bytes`.
+                # NOTE: The former causes a the following warning:
+                # NOTE: `BytesWarning('Comparison between bytes and int')`
+                # NOTE: The latter is equivalent and does not.
                 # It's a continuation line.
                 v = line.strip()
             else:
@@ -1725,16 +1729,16 @@ class HTTPServer:
         """Run the server forever, and stop it cleanly on exit."""
         try:
             self.start()
-        except (KeyboardInterrupt, IOError):
-            # The time.sleep call might raise
-            # "IOError: [Errno 4] Interrupted function call" on KBInt.
-            self.error_log('Keyboard Interrupt: shutting down')
-            self.stop()
-            raise
-        except SystemExit:
-            self.error_log('SystemExit raised: shutting down')
-            self.stop()
-            raise
+        except KeyboardInterrupt as kb_intr_exc:
+            underlying_interrupt = self.interrupt
+            if not underlying_interrupt:
+                self.interrupt = kb_intr_exc
+            raise kb_intr_exc from underlying_interrupt
+        except SystemExit as sys_exit_exc:
+            underlying_interrupt = self.interrupt
+            if not underlying_interrupt:
+                self.interrupt = sys_exit_exc
+            raise sys_exit_exc from underlying_interrupt
 
     def prepare(self):  # noqa: C901  # FIXME
         """Prepare server to serving requests.
@@ -2111,6 +2115,13 @@ class HTTPServer:
         has completed.
         """
         self._interrupt = _STOPPING_FOR_INTERRUPT
+
+        if isinstance(interrupt, KeyboardInterrupt):
+            self.error_log('Keyboard Interrupt: shutting down')
+
+        if isinstance(interrupt, SystemExit):
+            self.error_log('SystemExit raised: shutting down')
+
         self.stop()
         self._interrupt = interrupt
 

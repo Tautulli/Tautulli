@@ -6,6 +6,7 @@
 """
 
 import collections
+import logging
 import threading
 import time
 import socket
@@ -30,7 +31,7 @@ class TrueyZero:
 
 trueyzero = TrueyZero()
 
-_SHUTDOWNREQUEST = None
+_SHUTDOWNREQUEST = object()
 
 
 class WorkerThread(threading.Thread):
@@ -99,39 +100,127 @@ class WorkerThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        """Process incoming HTTP connections.
+        """Set up incoming HTTP connection processing loop.
 
-        Retrieves incoming connections from thread pool.
+        This is the thread's entry-point. It performs lop-layer
+        exception handling and interrupt processing.
+        :exc:`KeyboardInterrupt` and :exc:`SystemExit` bubbling up
+        from the inner-layer code constitute a global server interrupt
+        request. When they happen, the worker thread exits.
+
+        :raises BaseException: when an unexpected non-interrupt
+                               exception leaks from the inner layers
+
+        # noqa: DAR401 KeyboardInterrupt SystemExit
         """
         self.server.stats['Worker Threads'][self.name] = self.stats
+        self.ready = True
         try:
-            self.ready = True
-            while True:
-                conn = self.server.requests.get()
-                if conn is _SHUTDOWNREQUEST:
-                    return
+            self._process_connections_until_interrupted()
+        except (KeyboardInterrupt, SystemExit) as interrupt_exc:
+            interrupt_cause = interrupt_exc.__cause__ or interrupt_exc
+            self.server.error_log(
+                f'Setting the server interrupt flag to {interrupt_cause !r}',
+                level=logging.DEBUG,
+            )
+            self.server.interrupt = interrupt_cause
+        except BaseException as underlying_exc:  # noqa: WPS424
+            # NOTE: This is the last resort logging with the last dying breath
+            # NOTE: of the worker. It is only reachable when exceptions happen
+            # NOTE: in the `finally` branch of the internal try/except block.
+            self.server.error_log(
+                'A fatal exception happened. Setting the server interrupt flag'
+                f' to {underlying_exc !r} and giving up.'
+                '\N{NEW LINE}\N{NEW LINE}'
+                'Please, report this on the Cheroot tracker at '
+                '<https://github.com/cherrypy/cheroot/issues/new/choose>, '
+                'providing a full reproducer with as much context and details as possible.',
+                level=logging.CRITICAL,
+                traceback=True,
+            )
+            self.server.interrupt = underlying_exc
+            raise
+        finally:
+            self.ready = False
 
-                self.conn = conn
-                is_stats_enabled = self.server.stats['Enabled']
+    def _process_connections_until_interrupted(self):
+        """Process incoming HTTP connections in an infinite loop.
+
+        Retrieves incoming connections from thread pool, processing
+        them one by one.
+
+        :raises SystemExit: on the internal requests to stop the
+                            server instance
+        """
+        while True:
+            conn = self.server.requests.get()
+            if conn is _SHUTDOWNREQUEST:
+                return
+
+            self.conn = conn
+            is_stats_enabled = self.server.stats['Enabled']
+            if is_stats_enabled:
+                self.start_time = time.time()
+            keep_conn_open = False
+            try:
+                keep_conn_open = conn.communicate()
+            except ConnectionError as connection_error:
+                keep_conn_open = False  # Drop the connection cleanly
+                self.server.error_log(
+                    'Got a connection error while handling a '
+                    f'connection from {conn.remote_addr !s}:'
+                    f'{conn.remote_port !s} ({connection_error !s})',
+                    level=logging.INFO,
+                )
+                continue
+            except (KeyboardInterrupt, SystemExit) as shutdown_request:
+                # Shutdown request
+                keep_conn_open = False  # Drop the connection cleanly
+                self.server.error_log(
+                    'Got a server shutdown request while handling a '
+                    f'connection from {conn.remote_addr !s}:'
+                    f'{conn.remote_port !s} ({shutdown_request !s})',
+                    level=logging.DEBUG,
+                )
+                raise SystemExit(
+                    str(shutdown_request),
+                ) from shutdown_request
+            except BaseException as unhandled_error:  # noqa: WPS424
+                # NOTE: Only a shutdown request should bubble up to the
+                # NOTE: external cleanup code. Otherwise, this thread dies.
+                # NOTE: If this were to happen, the threadpool would still
+                # NOTE: list a dead thread without knowing its state. And
+                # NOTE: the calling code would fail to schedule processing
+                # NOTE: of new requests.
+                self.server.error_log(
+                    'Unhandled error while processing an incoming '
+                    f'connection {unhandled_error !r}',
+                    level=logging.ERROR,
+                    traceback=True,
+                )
+                continue  # Prevent the thread from dying
+            finally:
+                # NOTE: Any exceptions coming from within `finally` may
+                # NOTE: kill the thread, causing the threadpool to only
+                # NOTE: contain references to dead threads rendering the
+                # NOTE: server defunct, effectively meaning a DoS.
+                # NOTE: Ideally, things called here should process
+                # NOTE: everything recoverable internally. Any unhandled
+                # NOTE: errors will bubble up into the outer try/except
+                # NOTE: block. They will be treated as fatal and turned
+                # NOTE: into server shutdown requests and then reraised
+                # NOTE: unconditionally.
+                if keep_conn_open:
+                    self.server.put_conn(conn)
+                else:
+                    conn.close()
                 if is_stats_enabled:
-                    self.start_time = time.time()
-                keep_conn_open = False
-                try:
-                    keep_conn_open = conn.communicate()
-                finally:
-                    if keep_conn_open:
-                        self.server.put_conn(conn)
-                    else:
-                        conn.close()
-                    if is_stats_enabled:
-                        self.requests_seen += self.conn.requests_seen
-                        self.bytes_read += self.conn.rfile.bytes_read
-                        self.bytes_written += self.conn.wfile.bytes_written
-                        self.work_time += time.time() - self.start_time
-                        self.start_time = None
-                    self.conn = None
-        except (KeyboardInterrupt, SystemExit) as ex:
-            self.server.interrupt = ex
+                    self.requests_seen += conn.requests_seen
+                    self.bytes_read += conn.rfile.bytes_read
+                    self.bytes_written += conn.wfile.bytes_written
+                    self.work_time += time.time() - self.start_time
+                    self.start_time = None
+                self.conn = None
 
 
 class ThreadPool:
