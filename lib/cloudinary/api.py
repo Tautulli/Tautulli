@@ -565,7 +565,9 @@ def delete_folder(path, **options):
 
     :rtype: Response
     """
-    return call_api("delete", ["folders", path], {}, **options)
+
+    params = only(options, "skip_backup")
+    return call_api("delete", ["folders", path], params, **options)
 
 
 def restore(public_ids, **options):
