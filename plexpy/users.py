@@ -50,13 +50,13 @@ def refresh_users():
         for item in result:
             if item.get('shared_libraries'):
                 item['shared_libraries'] = ';'.join(item['shared_libraries'])
-                # Only add user if libraries are shared
-                user_ids.add(helpers.cast_to_int(item['user_id']))
+                # Only append user if libraries are shared
+                user_ids.append(helpers.cast_to_int(item['user_id']))
             elif item.get('server_token'):
                 libs = libraries.Libraries().get_sections()
                 item['shared_libraries'] = ';'.join([str(l['section_id']) for l in libs])
-                # Only add user if libraries are shared
-                user_ids.add(helpers.cast_to_int(item['user_id']))
+                # Only append user if libraries are shared
+                user_ids.append(helpers.cast_to_int(item['user_id']))
 
             keys_dict = {"user_id": item.pop('user_id')}
 
