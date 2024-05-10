@@ -170,7 +170,16 @@ class PlexObject:
         elem = ElementTree.fromstring(xml)
         return self._buildItemOrNone(elem, cls)
 
-    def fetchItems(self, ekey, cls=None, container_start=None, container_size=None, maxresults=None, **kwargs):
+    def fetchItems(
+        self,
+        ekey,
+        cls=None,
+        container_start=None,
+        container_size=None,
+        maxresults=None,
+        params=None,
+        **kwargs,
+    ):
         """ Load the specified key to find and build all items with the specified tag
             and attrs.
 
@@ -186,6 +195,7 @@ class PlexObject:
                 container_start (None, int): offset to get a subset of the data
                 container_size (None, int): How many items in data
                 maxresults (int, optional): Only return the specified number of results.
+                params (dict, optional): Any additional params to add to the request.
                 **kwargs (dict): Optionally add XML attribute to filter the items.
                     See the details below for more info.
 
@@ -268,7 +278,7 @@ class PlexObject:
             headers['X-Plex-Container-Start'] = str(container_start)
             headers['X-Plex-Container-Size'] = str(container_size)
 
-            data = self._server.query(ekey, headers=headers)
+            data = self._server.query(ekey, headers=headers, params=params)
             subresults = self.findItems(data, cls, ekey, **kwargs)
             total_size = utils.cast(int, data.attrib.get('totalSize') or data.attrib.get('size')) or len(subresults)
 
@@ -283,17 +293,17 @@ class PlexObject:
 
             results.extend(subresults)
 
+            container_start += container_size
+
+            if container_start > total_size:
+                break
+
             wanted_number_of_items = total_size - offset
             if maxresults is not None:
                 wanted_number_of_items = min(maxresults, wanted_number_of_items)
                 container_size = min(container_size, wanted_number_of_items - len(results))
 
             if wanted_number_of_items <= len(results):
-                break
-
-            container_start += container_size
-
-            if container_start > total_size:
                 break
 
         return results
@@ -337,7 +347,7 @@ class PlexObject:
             kwargs['type'] = cls.TYPE
         # rtag to iter on a specific root tag using breadth-first search
         if rtag:
-            data = next(utils.iterXMLBFS(data, rtag), [])
+            data = next(utils.iterXMLBFS(data, rtag), Element('Empty'))
         # loop through all data elements to find matches
         items = MediaContainer[cls](self._server, data, initpath=initpath) if data.tag == 'MediaContainer' else []
         for elem in data:
