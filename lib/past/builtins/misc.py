@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
 
 import inspect
+import sys
 import math
 import numbers
 
 from future.utils import PY2, PY3, exec_
+
 
 if PY2:
     from collections import Mapping
@@ -103,13 +105,12 @@ if PY3:
         return '0' + builtins.oct(number)[2:]
 
     raw_input = input
-
-    try:
+    # imp was deprecated in python 3.6
+    if sys.version_info >= (3, 6):
         from importlib import reload
-    except ImportError:
+    else:
         # for python2, python3 <= 3.4
         from imp import reload
-
     unicode = str
     unichr = chr
     xrange = range

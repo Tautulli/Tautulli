@@ -1,15 +1,16 @@
-import re
-import operator
+from __future__ import annotations
+
 import collections.abc
-import itertools
 import copy
 import functools
+import itertools
+import operator
 import random
+import re
 from collections.abc import Container, Iterable, Mapping
-from typing import Callable, Union
+from typing import Any, Callable, Union
 
 import jaraco.text
-
 
 _Matchable = Union[Callable, Container, Iterable, re.Pattern]
 
@@ -199,7 +200,12 @@ class RangeMap(dict):
 
     """
 
-    def __init__(self, source, sort_params={}, key_match_comparator=operator.le):
+    def __init__(
+        self,
+        source,
+        sort_params: Mapping[str, Any] = {},
+        key_match_comparator=operator.le,
+    ):
         dict.__init__(self, source)
         self.sort_params = sort_params
         self.match = key_match_comparator
@@ -291,7 +297,7 @@ class KeyTransformingDict(dict):
         return key
 
     def __init__(self, *args, **kargs):
-        super(KeyTransformingDict, self).__init__()
+        super().__init__()
         # build a dictionary using the default constructs
         d = dict(*args, **kargs)
         # build this dictionary using transformed keys.
@@ -300,31 +306,31 @@ class KeyTransformingDict(dict):
 
     def __setitem__(self, key, val):
         key = self.transform_key(key)
-        super(KeyTransformingDict, self).__setitem__(key, val)
+        super().__setitem__(key, val)
 
     def __getitem__(self, key):
         key = self.transform_key(key)
-        return super(KeyTransformingDict, self).__getitem__(key)
+        return super().__getitem__(key)
 
     def __contains__(self, key):
         key = self.transform_key(key)
-        return super(KeyTransformingDict, self).__contains__(key)
+        return super().__contains__(key)
 
     def __delitem__(self, key):
         key = self.transform_key(key)
-        return super(KeyTransformingDict, self).__delitem__(key)
+        return super().__delitem__(key)
 
     def get(self, key, *args, **kwargs):
         key = self.transform_key(key)
-        return super(KeyTransformingDict, self).get(key, *args, **kwargs)
+        return super().get(key, *args, **kwargs)
 
     def setdefault(self, key, *args, **kwargs):
         key = self.transform_key(key)
-        return super(KeyTransformingDict, self).setdefault(key, *args, **kwargs)
+        return super().setdefault(key, *args, **kwargs)
 
     def pop(self, key, *args, **kwargs):
         key = self.transform_key(key)
-        return super(KeyTransformingDict, self).pop(key, *args, **kwargs)
+        return super().pop(key, *args, **kwargs)
 
     def matching_key_for(self, key):
         """
@@ -333,8 +339,8 @@ class KeyTransformingDict(dict):
         """
         try:
             return next(e_key for e_key in self.keys() if e_key == key)
-        except StopIteration:
-            raise KeyError(key)
+        except StopIteration as err:
+            raise KeyError(key) from err
 
 
 class FoldedCaseKeyedDict(KeyTransformingDict):
@@ -483,7 +489,7 @@ class ItemsAsAttributes:
 
     def __getattr__(self, key):
         try:
-            return getattr(super(ItemsAsAttributes, self), key)
+            return getattr(super(), key)
         except AttributeError as e:
             # attempt to get the value from the mapping (return self[key])
             #  but be careful not to lose the original exception context.
@@ -677,7 +683,7 @@ class BijectiveMap(dict):
     """
 
     def __init__(self, *args, **kwargs):
-        super(BijectiveMap, self).__init__()
+        super().__init__()
         self.update(*args, **kwargs)
 
     def __setitem__(self, item, value):
@@ -691,19 +697,19 @@ class BijectiveMap(dict):
         )
         if overlap:
             raise ValueError("Key/Value pairs may not overlap")
-        super(BijectiveMap, self).__setitem__(item, value)
-        super(BijectiveMap, self).__setitem__(value, item)
+        super().__setitem__(item, value)
+        super().__setitem__(value, item)
 
     def __delitem__(self, item):
         self.pop(item)
 
     def __len__(self):
-        return super(BijectiveMap, self).__len__() // 2
+        return super().__len__() // 2
 
     def pop(self, key, *args, **kwargs):
         mirror = self[key]
-        super(BijectiveMap, self).__delitem__(mirror)
-        return super(BijectiveMap, self).pop(key, *args, **kwargs)
+        super().__delitem__(mirror)
+        return super().pop(key, *args, **kwargs)
 
     def update(self, *args, **kwargs):
         # build a dictionary using the default constructs
@@ -769,7 +775,7 @@ class FrozenDict(collections.abc.Mapping, collections.abc.Hashable):
     __slots__ = ['__data']
 
     def __new__(cls, *args, **kwargs):
-        self = super(FrozenDict, cls).__new__(cls)
+        self = super().__new__(cls)
         self.__data = dict(*args, **kwargs)
         return self
 
@@ -844,7 +850,7 @@ class Enumeration(ItemsAsAttributes, BijectiveMap):
             names = names.split()
         if codes is None:
             codes = itertools.count()
-        super(Enumeration, self).__init__(zip(names, codes))
+        super().__init__(zip(names, codes))
 
     @property
     def names(self):

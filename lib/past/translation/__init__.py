@@ -32,17 +32,31 @@ Author: Ed Schofield.
 Inspired by and based on ``uprefix`` by Vinay M. Sajip.
 """
 
-import imp
-import logging
-import marshal
-import os
 import sys
+# imp was deprecated in python 3.6
+if sys.version_info >= (3, 6):
+    import importlib as imp
+else:
+    import imp
+import logging
+import os
 import copy
 from lib2to3.pgen2.parse import ParseError
 from lib2to3.refactor import RefactoringTool
 
 from libfuturize import fixes
 
+try:
+    from importlib.machinery import (
+        PathFinder,
+        SourceFileLoader,
+    )
+except ImportError:
+    PathFinder = None
+    SourceFileLoader = object
+
+if sys.version_info[:2] < (3, 4):
+    import imp
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -225,6 +239,81 @@ def detect_python2(source, pathname):
         return False
 
 
+def transform(source, pathname):
+    # This implementation uses lib2to3,
+    # you can override and use something else
+    # if that's better for you
+
+    # lib2to3 likes a newline at the end
+    RTs.setup()
+    source += '\n'
+    try:
+        tree = RTs._rt.refactor_string(source, pathname)
+    except ParseError as e:
+        if e.msg != 'bad input' or e.value != '=':
+            raise
+        tree = RTs._rtp.refactor_string(source, pathname)
+    # could optimise a bit for only doing str(tree) if
+    # getattr(tree, 'was_changed', False) returns True
+    return str(tree)[:-1]  # remove added newline
+
+
+class PastSourceFileLoader(SourceFileLoader):
+    exclude_paths = []
+    include_paths = []
+
+    def _convert_needed(self):
+        fullname = self.name
+        if any(fullname.startswith(path) for path in self.exclude_paths):
+            convert = False
+        elif any(fullname.startswith(path) for path in self.include_paths):
+            convert = True
+        else:
+            convert = False
+        return convert
+
+    def _exec_transformed_module(self, module):
+        source = self.get_source(self.name)
+        pathname = self.path
+        if detect_python2(source, pathname):
+            source = transform(source, pathname)
+        code = compile(source, pathname, "exec")
+        exec(code, module.__dict__)
+
+    # For Python 3.3
+    def load_module(self, fullname):
+        logger.debug("Running load_module for %s", fullname)
+        if fullname in sys.modules:
+            mod = sys.modules[fullname]
+        else:
+            if self._convert_needed():
+                logger.debug("Autoconverting %s", fullname)
+                mod = imp.new_module(fullname)
+                sys.modules[fullname] = mod
+
+                # required by PEP 302
+                mod.__file__ = self.path
+                mod.__loader__ = self
+                if self.is_package(fullname):
+                    mod.__path__ = []
+                    mod.__package__ = fullname
+                else:
+                    mod.__package__ = fullname.rpartition('.')[0]
+                self._exec_transformed_module(mod)
+            else:
+                mod = super().load_module(fullname)
+        return mod
+
+    # For Python >=3.4
+    def exec_module(self, module):
+        logger.debug("Running exec_module for %s", module)
+        if self._convert_needed():
+            logger.debug("Autoconverting %s", self.name)
+            self._exec_transformed_module(module)
+        else:
+            super().exec_module(module)
+
+
 class Py2Fixer(object):
     """
     An import hook class that uses lib2to3 for source-to-source translation of
@@ -258,151 +347,30 @@ class Py2Fixer(object):
         """
         self.exclude_paths += paths
 
+    # For Python 3.3
     def find_module(self, fullname, path=None):
-        logger.debug('Running find_module: {0}...'.format(fullname))
-        if '.' in fullname:
-            parent, child = fullname.rsplit('.', 1)
-            if path is None:
-                loader = self.find_module(parent, path)
-                mod = loader.load_module(parent)
-                path = mod.__path__
-            fullname = child
-
-        # Perhaps we should try using the new importlib functionality in Python
-        # 3.3: something like this?
-        # thing = importlib.machinery.PathFinder.find_module(fullname, path)
-        try:
-            self.found = imp.find_module(fullname, path)
-        except Exception as e:
-            logger.debug('Py2Fixer could not find {0}')
-            logger.debug('Exception was: {0})'.format(fullname, e))
+        logger.debug("Running find_module: (%s, %s)", fullname, path)
+        loader = PathFinder.find_module(fullname, path)
+        if not loader:
+            logger.debug("Py2Fixer could not find %s", fullname)
             return None
-        self.kind = self.found[-1][-1]
-        if self.kind == imp.PKG_DIRECTORY:
-            self.pathname = os.path.join(self.found[1], '__init__.py')
-        elif self.kind == imp.PY_SOURCE:
-            self.pathname = self.found[1]
-        return self
+        loader.__class__ = PastSourceFileLoader
+        loader.exclude_paths = self.exclude_paths
+        loader.include_paths = self.include_paths
+        return loader
 
-    def transform(self, source):
-        # This implementation uses lib2to3,
-        # you can override and use something else
-        # if that's better for you
+    # For Python >=3.4
+    def find_spec(self, fullname, path=None, target=None):
+        logger.debug("Running find_spec: (%s, %s, %s)", fullname, path, target)
+        spec = PathFinder.find_spec(fullname, path, target)
+        if not spec:
+            logger.debug("Py2Fixer could not find %s", fullname)
+            return None
+        spec.loader.__class__ = PastSourceFileLoader
+        spec.loader.exclude_paths = self.exclude_paths
+        spec.loader.include_paths = self.include_paths
+        return spec
 
-        # lib2to3 likes a newline at the end
-        RTs.setup()
-        source += '\n'
-        try:
-            tree = RTs._rt.refactor_string(source, self.pathname)
-        except ParseError as e:
-            if e.msg != 'bad input' or e.value != '=':
-                raise
-            tree = RTs._rtp.refactor_string(source, self.pathname)
-        # could optimise a bit for only doing str(tree) if
-        # getattr(tree, 'was_changed', False) returns True
-        return str(tree)[:-1] # remove added newline
-
-    def load_module(self, fullname):
-        logger.debug('Running load_module for {0}...'.format(fullname))
-        if fullname in sys.modules:
-            mod = sys.modules[fullname]
-        else:
-            if self.kind in (imp.PY_COMPILED, imp.C_EXTENSION, imp.C_BUILTIN,
-                             imp.PY_FROZEN):
-                convert = False
-            # elif (self.pathname.startswith(_stdlibprefix)
-            #       and 'site-packages' not in self.pathname):
-            #     # We assume it's a stdlib package in this case. Is this too brittle?
-            #     # Please file a bug report at https://github.com/PythonCharmers/python-future
-            #     # if so.
-            #     convert = False
-            # in theory, other paths could be configured to be excluded here too
-            elif any([fullname.startswith(path) for path in self.exclude_paths]):
-                convert = False
-            elif any([fullname.startswith(path) for path in self.include_paths]):
-                convert = True
-            else:
-                convert = False
-            if not convert:
-                logger.debug('Excluded {0} from translation'.format(fullname))
-                mod = imp.load_module(fullname, *self.found)
-            else:
-                logger.debug('Autoconverting {0} ...'.format(fullname))
-                mod = imp.new_module(fullname)
-                sys.modules[fullname] = mod
-
-                # required by PEP 302
-                mod.__file__ = self.pathname
-                mod.__name__ = fullname
-                mod.__loader__ = self
-
-                # This:
-                #     mod.__package__ = '.'.join(fullname.split('.')[:-1])
-                # seems to result in "SystemError: Parent module '' not loaded,
-                # cannot perform relative import" for a package's __init__.py
-                # file. We use the approach below. Another option to try is the
-                # minimal load_module pattern from the PEP 302 text instead.
-
-                # Is the test in the next line more or less robust than the
-                # following one? Presumably less ...
-                # ispkg = self.pathname.endswith('__init__.py')
-
-                if self.kind == imp.PKG_DIRECTORY:
-                    mod.__path__ = [ os.path.dirname(self.pathname) ]
-                    mod.__package__ = fullname
-                else:
-                    #else, regular module
-                    mod.__path__ = []
-                    mod.__package__ = fullname.rpartition('.')[0]
-
-                try:
-                    cachename = imp.cache_from_source(self.pathname)
-                    if not os.path.exists(cachename):
-                        update_cache = True
-                    else:
-                        sourcetime = os.stat(self.pathname).st_mtime
-                        cachetime = os.stat(cachename).st_mtime
-                        update_cache = cachetime < sourcetime
-                    # # Force update_cache to work around a problem with it being treated as Py3 code???
-                    # update_cache = True
-                    if not update_cache:
-                        with open(cachename, 'rb') as f:
-                            data = f.read()
-                            try:
-                                code = marshal.loads(data)
-                            except Exception:
-                                # pyc could be corrupt. Regenerate it
-                                update_cache = True
-                    if update_cache:
-                        if self.found[0]:
-                            source = self.found[0].read()
-                        elif self.kind == imp.PKG_DIRECTORY:
-                            with open(self.pathname) as f:
-                                source = f.read()
-
-                        if detect_python2(source, self.pathname):
-                            source = self.transform(source)
-
-                        code = compile(source, self.pathname, 'exec')
-
-                        dirname = os.path.dirname(cachename)
-                        try:
-                            if not os.path.exists(dirname):
-                                os.makedirs(dirname)
-                            with open(cachename, 'wb') as f:
-                                data = marshal.dumps(code)
-                                f.write(data)
-                        except Exception:   # could be write-protected
-                            pass
-                    exec(code, mod.__dict__)
-                except Exception as e:
-                    # must remove module from sys.modules
-                    del sys.modules[fullname]
-                    raise # keep it simple
-
-        if self.found[0]:
-            self.found[0].close()
-        return mod
 
 _hook = Py2Fixer()
 

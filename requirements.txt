@@ -5,11 +5,12 @@ beautifulsoup4==4.12.3
 bleach==6.1.0
 certifi==2024.2.2
 cheroot==10.0.0
-cloudinary==1.39.1
 cherrypy==18.9.0
+cloudinary==1.39.1
 distro==1.9.0
 dnspython==2.6.1
 facebook-sdk==3.1.0
+future==1.0.0
 ga4mp==2.0.4
 gntp==1.0.3
 html5lib==1.1
@@ -36,8 +37,9 @@ pytz==2024.1
 requests==2.31.0
 requests-oauthlib==2.0.0
 rumps==0.4.0; platform_system == "Darwin"
-tempora==5.5.1
 simplejson==3.19.2
+six==1.16.0
+tempora==5.5.1
 tokenize-rt==5.2.0
 tzdata==2024.1
 tzlocal==5.0.1

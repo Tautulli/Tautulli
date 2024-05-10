@@ -37,7 +37,7 @@ from lib2to3.fixer_util import Name, syms, Node, Leaf, touch_import, Call, \
 
 def has_metaclass(parent):
     """ we have to check the cls_node without changing it.
-        There are two possiblities:
+        There are two possibilities:
           1)  clsdef => suite => simple_stmt => expr_stmt => Leaf('__meta')
           2)  clsdef => simple_stmt => expr_stmt => Leaf('__meta')
     """
@@ -63,7 +63,7 @@ def fixup_parse_tree(cls_node):
             # already in the preferred format, do nothing
             return
 
-    # !%@#! oneliners have no suite node, we have to fake one up
+    # !%@#! one-liners have no suite node, we have to fake one up
     for i, node in enumerate(cls_node.children):
         if node.type == token.COLON:
             break
