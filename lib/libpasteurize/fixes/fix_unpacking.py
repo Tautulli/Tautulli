@@ -18,8 +18,12 @@ def assignment_source(num_pre, num_post, LISTNAME, ITERNAME):
     Returns a source fit for Assign() from fixer_util
     """
     children = []
-    pre = unicode(num_pre)
-    post = unicode(num_post)
+    try:
+        pre = unicode(num_pre)
+        post = unicode(num_post)
+    except NameError:
+        pre = str(num_pre)
+        post = str(num_post)
     # This code builds the assignment source from lib2to3 tree primitives.
     # It's not very readable, but it seems like the most correct way to do it.
     if num_pre > 0:

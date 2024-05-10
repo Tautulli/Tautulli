@@ -13,10 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import object
-from future.builtins import str
-
 import os
 import re
 import shutil
@@ -27,12 +23,8 @@ from configobj import ConfigObj, ParseError
 from hashing_passwords import make_hash
 
 import plexpy
-if plexpy.PYTHON2:
-    import helpers
-    import logger
-else:
-    from plexpy import helpers
-    from plexpy import logger
+from plexpy import helpers
+from plexpy import logger
 
 
 def bool_int(value):

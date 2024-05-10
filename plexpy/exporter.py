@@ -15,10 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-from backports import csv
-
+import csv
 import json
 import os
 import requests
@@ -30,20 +27,12 @@ from io import open
 from multiprocessing.dummy import Pool as ThreadPool
 
 import plexpy
-if plexpy.PYTHON2:
-    import database
-    import datatables
-    import helpers
-    import logger
-    import users
-    from plex import Plex
-else:
-    from plexpy import database
-    from plexpy import datatables
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import users
-    from plexpy.plex import Plex
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import logger
+from plexpy import users
+from plexpy.plex import Plex
 
 
 class Export(object):

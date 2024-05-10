@@ -13,28 +13,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-from future.builtins import object
-
 from collections import defaultdict
 import json
 
 import plexpy
-if plexpy.PYTHON2:
-    import database
-    import helpers
-    import libraries
-    import logger
-    import pmsconnect
-    import users
-else:
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import libraries
-    from plexpy import logger
-    from plexpy import pmsconnect
-    from plexpy import users
+from plexpy import database
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import pmsconnect
+from plexpy import users
 
 
 class ActivityProcessor(object):

@@ -15,35 +15,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import next
-from future.builtins import str
-from future.builtins import object
-from future.moves.urllib.parse import parse_qsl
+from urllib.parse import parse_qsl
 
 import arrow
 import httpagentparser
-from datetime import datetime, timedelta
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import datatables
-    import helpers
-    import libraries
-    import logger
-    import plextv
-    import session
-else:
-    from plexpy import common
-    from plexpy import database
-    from plexpy import datatables
-    from plexpy import helpers
-    from plexpy import libraries
-    from plexpy import logger
-    from plexpy import plextv
-    from plexpy import session
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import plextv
+from plexpy import session
 
 
 def refresh_users():
@@ -63,13 +48,15 @@ def refresh_users():
         new_users = []
 
         for item in result:
-            user_ids.append(helpers.cast_to_int(item['user_id']))
-
             if item.get('shared_libraries'):
                 item['shared_libraries'] = ';'.join(item['shared_libraries'])
+                # Only add user if libraries are shared
+                user_ids.add(helpers.cast_to_int(item['user_id']))
             elif item.get('server_token'):
                 libs = libraries.Libraries().get_sections()
                 item['shared_libraries'] = ';'.join([str(l['section_id']) for l in libs])
+                # Only add user if libraries are shared
+                user_ids.add(helpers.cast_to_int(item['user_id']))
 
             keys_dict = {"user_id": item.pop('user_id')}
 
@@ -101,7 +88,7 @@ def refresh_users():
         query = "UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})".format(", ".join(["?"] * len(user_ids)))
         monitor_db.action(query=query, args=user_ids)
 
-        # Add new users to loger username filter
+        # Add new users to logger username filter
         logger.filter_usernames(new_users)
 
         logger.info("Tautulli Users :: Users list refreshed.")

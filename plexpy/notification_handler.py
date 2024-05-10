@@ -15,16 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from __future__ import division
-from __future__ import unicode_literals
-from typing import Optional
-from future.builtins import next
-from future.builtins import map
-from future.builtins import str
-from future.builtins import range
-
-import arrow
 import bleach
 from collections import Counter, defaultdict
 from functools import partial
@@ -36,32 +26,22 @@ import os
 import re
 from string import Formatter
 import threading
+from typing import Optional
 
+import arrow
 import musicbrainzngs
 
 import plexpy
-if plexpy.PYTHON2:
-    import activity_processor
-    import common
-    import database
-    import datafactory
-    import logger
-    import helpers
-    import notifiers
-    import pmsconnect
-    import request
-    from newsletter_handler import notify as notify_newsletter
-else:
-    from plexpy import activity_processor
-    from plexpy import common
-    from plexpy import database
-    from plexpy import datafactory
-    from plexpy import logger
-    from plexpy import helpers
-    from plexpy import notifiers
-    from plexpy import pmsconnect
-    from plexpy import request
-    from plexpy.newsletter_handler import notify as notify_newsletter
+from plexpy import activity_processor
+from plexpy import common
+from plexpy import database
+from plexpy import datafactory
+from plexpy import logger
+from plexpy import helpers
+from plexpy import notifiers
+from plexpy import pmsconnect
+from plexpy import request
+from plexpy.newsletter_handler import notify as notify_newsletter
 
 
 def process_queue():
@@ -2090,14 +2070,10 @@ class CustomFormatter(Formatter):
                 obj = self.convert_field(obj, conversion)
 
                 # expand the format spec, if needed
-                if plexpy.PYTHON2:
-                    format_spec = self._vformat(format_spec, args, kwargs,
-                                                used_args, recursion_depth - 1)
-                else:
-                    format_spec, auto_arg_index = self._vformat(
-                        format_spec, args, kwargs,
-                        used_args, recursion_depth-1,
-                        auto_arg_index=auto_arg_index)
+                format_spec, auto_arg_index = self._vformat(
+                    format_spec, args, kwargs,
+                    used_args, recursion_depth-1,
+                    auto_arg_index=auto_arg_index)
 
                 # format the object and append to the result
                 formatted_field = self.format_field(obj, format_spec)
@@ -2109,10 +2085,7 @@ class CustomFormatter(Formatter):
                         result.append(suffix)
                 # result.append(self.format_field(obj, format_spec))
 
-        if plexpy.PYTHON2:
-            return ''.join(result)
-        else:
-            return ''.join(result), auto_arg_index
+        return ''.join(result), auto_arg_index
 
 
 class CustomArrow:

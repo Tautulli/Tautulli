@@ -15,33 +15,18 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import next
-from future.builtins import str
-from future.builtins import object
-from future.moves.urllib.parse import unquote
-
 import json
+from urllib.parse import unquote
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import helpers
-    import http_handler
-    import logger
-    import users
-    import pmsconnect
-    import session
-    from plex import Plex
-else:
-    from plexpy import common
-    from plexpy import helpers
-    from plexpy import http_handler
-    from plexpy import logger
-    from plexpy import users
-    from plexpy import pmsconnect
-    from plexpy import session
-    from plexpy.plex import Plex
+from plexpy import common
+from plexpy import helpers
+from plexpy import http_handler
+from plexpy import logger
+from plexpy import users
+from plexpy import pmsconnect
+from plexpy import session
+from plexpy.plex import Plex
 
 
 def get_server_resources(return_presence=False, return_server=False, return_info=False, **kwargs):

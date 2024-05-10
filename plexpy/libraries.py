@@ -15,38 +15,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-from future.builtins import next
-from future.builtins import object
-
 import json
 import os
-from datetime import datetime, timedelta
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import datatables
-    import helpers
-    import logger
-    import plextv
-    import pmsconnect
-    import session
-    import users
-    from plex import Plex
-else:
-    from plexpy import common
-    from plexpy import database
-    from plexpy import datatables
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import plextv
-    from plexpy import pmsconnect
-    from plexpy import session
-    from plexpy import users
-    from plexpy.plex import Plex
+from plexpy import common
+from plexpy import database
+from plexpy import datatables
+from plexpy import helpers
+from plexpy import logger
+from plexpy import plextv
+from plexpy import pmsconnect
+from plexpy import session
+from plexpy import users
+from plexpy.plex import Plex
 
 
 def refresh_libraries():
