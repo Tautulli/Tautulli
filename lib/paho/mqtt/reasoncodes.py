@@ -30,7 +30,7 @@ class ReasonCode:
 
     """
 
-    def __init__(self, packetType, aName="Success", identifier=-1):
+    def __init__(self, packetType: int, aName: str ="Success", identifier: int =-1):
         """
         packetType: the type of the packet, such as PacketTypes.CONNECT that
             this reason code will be used with.  Some reason codes have different
