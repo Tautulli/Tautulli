@@ -27,11 +27,8 @@ except ImportError:
 
 from . import Adapter
 from .. import errors
-from .._compat import IS_ABOVE_OPENSSL10
 from ..makefile import StreamReader, StreamWriter
 from ..server import HTTPServer
-
-generic_socket_error = OSError
 
 
 def _assert_ssl_exc_contains(exc, *msgs):
@@ -265,62 +262,35 @@ class BuiltinSSLAdapter(Adapter):
 
     def wrap(self, sock):
         """Wrap and return the given socket, plus WSGI environ entries."""
-        EMPTY_RESULT = None, {}
         try:
             s = self.context.wrap_socket(
                 sock, do_handshake_on_connect=True, server_side=True,
             )
-        except ssl.SSLError as ex:
-            if ex.errno == ssl.SSL_ERROR_EOF:
-                # This is almost certainly due to the cherrypy engine
-                # 'pinging' the socket to assert it's connectable;
-                # the 'ping' isn't SSL.
-                return EMPTY_RESULT
-            elif ex.errno == ssl.SSL_ERROR_SSL:
-                if _assert_ssl_exc_contains(ex, 'http request'):
-                    # The client is speaking HTTP to an HTTPS server.
-                    raise errors.NoSSLError
+        except (
+            ssl.SSLEOFError,
+            ssl.SSLZeroReturnError,
+        ) as tls_connection_drop_error:
+            raise errors.FatalSSLAlert(
+                *tls_connection_drop_error.args,
+            ) from tls_connection_drop_error
+        except ssl.SSLError as generic_tls_error:
+            peer_speaks_plain_http_over_https = (
+                generic_tls_error.errno == ssl.SSL_ERROR_SSL and
+                _assert_ssl_exc_contains(generic_tls_error, 'http request')
+            )
+            if peer_speaks_plain_http_over_https:
+                reraised_connection_drop_exc_cls = errors.NoSSLError
+            else:
+                reraised_connection_drop_exc_cls = errors.FatalSSLAlert
 
-                # Check if it's one of the known errors
-                # Errors that are caught by PyOpenSSL, but thrown by
-                # built-in ssl
-                _block_errors = (
-                    'unknown protocol', 'unknown ca', 'unknown_ca',
-                    'unknown error',
-                    'https proxy request', 'inappropriate fallback',
-                    'wrong version number',
-                    'no shared cipher', 'certificate unknown',
-                    'ccs received early',
-                    'certificate verify failed',  # client cert w/o trusted CA
-                    'version too low',  # caused by SSL3 connections
-                    'unsupported protocol',  # caused by TLS1 connections
-                )
-                if _assert_ssl_exc_contains(ex, *_block_errors):
-                    # Accepted error, let's pass
-                    return EMPTY_RESULT
-            elif _assert_ssl_exc_contains(ex, 'handshake operation timed out'):
-                # This error is thrown by builtin SSL after a timeout
-                # when client is speaking HTTP to an HTTPS server.
-                # The connection can safely be dropped.
-                return EMPTY_RESULT
-            raise
-        except generic_socket_error as exc:
-            """It is unclear why exactly this happens.
+            raise reraised_connection_drop_exc_cls(
+                *generic_tls_error.args,
+            ) from generic_tls_error
+        except OSError as tcp_connection_drop_error:
+            raise errors.FatalSSLAlert(
+                *tcp_connection_drop_error.args,
+            ) from tcp_connection_drop_error
 
-            It's reproducible only with openssl>1.0 and stdlib
-            :py:mod:`ssl` wrapper.
-            In CherryPy it's triggered by Checker plugin, which connects
-            to the app listening to the socket port in TLS mode via plain
-            HTTP during startup (from the same process).
-
-
-            Ref: https://github.com/cherrypy/cherrypy/issues/1618
-            """
-            is_error0 = exc.args == (0, 'Error')
-
-            if is_error0 and IS_ABOVE_OPENSSL10:
-                return EMPTY_RESULT
-            raise
         return s, self.get_environ(s)
 
     def get_environ(self, sock):

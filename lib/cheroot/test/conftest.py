@@ -12,7 +12,10 @@ import pytest
 from .._compat import IS_MACOS, IS_WINDOWS  # noqa: WPS436
 from ..server import Gateway, HTTPServer
 from ..testing import (  # noqa: F401  # pylint: disable=unused-import
-    native_server, wsgi_server,
+    native_server,
+    thread_and_wsgi_server,
+    thread_and_native_server,
+    wsgi_server,
 )
 from ..testing import get_server_client
 
@@ -29,6 +32,28 @@ def http_request_timeout():
         computed_timeout *= 10
 
     return computed_timeout
+
+
+@pytest.fixture
+# pylint: disable=redefined-outer-name
+def wsgi_server_thread(thread_and_wsgi_server):  # noqa: F811
+    """Set up and tear down a Cheroot WSGI server instance.
+
+    This exposes the server thread.
+    """
+    server_thread, _srv = thread_and_wsgi_server
+    return server_thread
+
+
+@pytest.fixture
+# pylint: disable=redefined-outer-name
+def native_server_thread(thread_and_native_server):  # noqa: F811
+    """Set up and tear down a Cheroot HTTP server instance.
+
+    This exposes the server thread.
+    """
+    server_thread, _srv = thread_and_native_server
+    return server_thread
 
 
 @pytest.fixture
