@@ -15,10 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from typing import Optional
-
-import arrow
 import bleach
 from collections import Counter, defaultdict
 from functools import partial
@@ -30,7 +26,9 @@ import os
 import re
 from string import Formatter
 import threading
+from typing import Optional
 
+import arrow
 import musicbrainzngs
 
 import plexpy

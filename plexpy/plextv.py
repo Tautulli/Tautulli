@@ -15,9 +15,8 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from urllib.parse import unquote
-
 import json
+from urllib.parse import unquote
 
 import plexpy
 from plexpy import common

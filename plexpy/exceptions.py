@@ -14,7 +14,6 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
 class PlexPyException(Exception):
     """
     Generic Tautulli Exception - should never be thrown, only subclassed

@@ -17,6 +17,7 @@
 
 import os
 import sys
+
 from infi.systray import SysTrayIcon
 
 try:

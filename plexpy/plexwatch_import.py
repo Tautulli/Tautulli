@@ -15,11 +15,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import sqlite3
 from xml.dom import minidom
 
-import plexpy
 from plexpy import activity_processor
 from plexpy import database
 from plexpy import helpers

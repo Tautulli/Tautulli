@@ -15,11 +15,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import json
 
 import plexpy
-from plexpy import libraries
 from plexpy import common
 from plexpy import database
 from plexpy import datatables

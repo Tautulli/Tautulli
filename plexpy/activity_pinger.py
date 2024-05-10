@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import threading
 
 import plexpy
@@ -21,7 +20,6 @@ from plexpy import activity_handler
 from plexpy import activity_processor
 from plexpy import database
 from plexpy import helpers
-from plexpy import libraries
 from plexpy import logger
 from plexpy import notification_handler
 from plexpy import plextv

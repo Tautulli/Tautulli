@@ -15,10 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import plexpy
-from plexpy import logger
-
 
 class DummyObject(object):
     def __init__(self, *args, **kwargs):

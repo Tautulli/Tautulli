@@ -15,7 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
-
 from multiprocessing.dummy import Pool as ThreadPool
 from urllib.parse import urljoin
 

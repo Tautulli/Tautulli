@@ -15,15 +15,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import arrow
 from collections import OrderedDict
 import json
 from itertools import groupby
-from mako.lookup import TemplateLookup
-from mako import exceptions
 import os
 import re
+
+import arrow
+from mako.lookup import TemplateLookup
+from mako import exceptions
 
 import plexpy
 from plexpy import common

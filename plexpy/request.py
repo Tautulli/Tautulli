@@ -15,11 +15,10 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
-from bs4 import BeautifulSoup
+import collections
 from xml.dom import minidom
 
-import collections
+from bs4 import BeautifulSoup
 import requests
 from requests.packages import urllib3
 

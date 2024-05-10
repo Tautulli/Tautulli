@@ -15,15 +15,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-import csv
-
-from io import open, BytesIO
 import base64
+import csv
+from io import open, BytesIO
 import json
-import ssl as _ssl
 import linecache
 import os
 import shutil
+import ssl as _ssl
 import sys
 import threading
 import zipfile

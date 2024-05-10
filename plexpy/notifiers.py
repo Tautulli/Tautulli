@@ -15,20 +15,14 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import base64
-import bleach
 from collections import defaultdict
-import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import email.utils
-import paho.mqtt.client
-import paho.mqtt.publish
+import json
 import os
 import re
-import requests
-from requests.auth import HTTPBasicAuth
 import smtplib
 import subprocess
 import sys
@@ -36,6 +30,12 @@ import threading
 import time
 from urllib.parse import urlencode
 from urllib.parse import urlparse
+
+import bleach
+import paho.mqtt.client
+import paho.mqtt.publish
+import requests
+from requests.auth import HTTPBasicAuth
 
 try:
     from Cryptodome.Protocol.KDF import PBKDF2

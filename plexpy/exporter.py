@@ -16,7 +16,6 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import csv
-
 import json
 import os
 import requests

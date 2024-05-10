@@ -15,8 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
 from hashing_passwords import check_hash
 from io import open
 

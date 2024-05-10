@@ -17,7 +17,6 @@
 
 # Mostly borrowed from https://github.com/trakt/Plex-Trakt-Scrobbler
 
-
 import json
 import ssl
 import threading
