@@ -150,7 +150,7 @@ class SSLFileobjectMixin:
         return self._safe_call(
             False,
             super(SSLFileobjectMixin, self).sendall,
-            *args, **kwargs
+            *args, **kwargs,
         )
 
     def send(self, *args, **kwargs):
@@ -158,7 +158,7 @@ class SSLFileobjectMixin:
         return self._safe_call(
             False,
             super(SSLFileobjectMixin, self).send,
-            *args, **kwargs
+            *args, **kwargs,
         )
 
 
@@ -196,6 +196,7 @@ class SSLConnectionProxyMeta:
 
         def lock_decorator(method):
             """Create a proxy method for a new class."""
+
             def proxy_wrapper(self, *args):
                 self._lock.acquire()
                 try:
@@ -212,6 +213,7 @@ class SSLConnectionProxyMeta:
 
         def make_property(property_):
             """Create a proxy method for a new class."""
+
             def proxy_prop_wrapper(self):
                 return getattr(self._ssl_conn, property_)
             proxy_prop_wrapper.__name__ = property_

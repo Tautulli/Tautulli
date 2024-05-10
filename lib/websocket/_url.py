@@ -3,12 +3,13 @@ import socket
 import struct
 from typing import Optional
 from urllib.parse import unquote, urlparse
+from ._exceptions import WebSocketProxyException
 
 """
 _url.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -167,6 +168,8 @@ def get_proxy_info(
         return None, 0, None
 
     if proxy_host:
+        if not proxy_port:
+            raise WebSocketProxyException("Cannot use port 0 when proxy_host specified")
         port = proxy_port
         auth = proxy_auth
         return proxy_host, port, auth

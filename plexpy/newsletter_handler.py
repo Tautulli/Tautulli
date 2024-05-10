@@ -15,8 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-
 from io import open
 import os
 
@@ -24,16 +22,10 @@ from apscheduler.triggers.cron import CronTrigger
 import email.utils
 
 import plexpy
-if plexpy.PYTHON2:
-    import database
-    import helpers
-    import logger
-    import newsletters
-else:
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import newsletters
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
+from plexpy import newsletters
 
 
 NEWSLETTER_SCHED = None

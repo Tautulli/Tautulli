@@ -38,7 +38,7 @@ parts:
       - python3-pkg-resources
     override-pull: |
       craftctl default
-      git config --global --add safe.directory /root/parts/tautulli/src
+      git config --global --add safe.directory /data/parts/tautulli/src
       TAG_FULL=$(git describe --tag)
       TAG=$(echo $TAG_FULL | grep -oP '(v\d+\.\d+\.\d+(?>-beta)?)')
       BRANCH=$(git rev-parse --abbrev-ref HEAD)

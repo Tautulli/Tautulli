@@ -12,7 +12,7 @@ import websocket as ws
 test_app.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -53,10 +53,13 @@ class WebSocketAppTest(unittest.TestCase):
         WebSocketAppTest.get_mask_key_id = WebSocketAppTest.NotSetYet()
         WebSocketAppTest.on_error_data = WebSocketAppTest.NotSetYet()
 
+    def close(self):
+        pass
+
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testKeepRunning(self):
+    def test_keep_running(self):
         """A WebSocketApp should keep running as long as its self.keep_running
         is not False (in the boolean context).
         """
@@ -69,7 +72,7 @@ class WebSocketAppTest(unittest.TestCase):
             WebSocketAppTest.keep_running_open = self.keep_running
             self.keep_running = False
 
-        def on_message(wsapp, message):
+        def on_message(_, message):
             print(message)
             self.close()
 
@@ -87,7 +90,7 @@ class WebSocketAppTest(unittest.TestCase):
 
     #    @unittest.skipUnless(TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled")
     @unittest.skipUnless(False, "Test disabled for now (requires rel)")
-    def testRunForeverDispatcher(self):
+    def test_run_forever_dispatcher(self):
         """A WebSocketApp should keep running as long as its self.keep_running
         is not False (in the boolean context).
         """
@@ -98,7 +101,7 @@ class WebSocketAppTest(unittest.TestCase):
             self.recv()
             self.send("goodbye!")
 
-        def on_message(wsapp, message):
+        def on_message(_, message):
             print(message)
             self.close()
 
@@ -115,7 +118,7 @@ class WebSocketAppTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testRunForeverTeardownCleanExit(self):
+    def test_run_forever_teardown_clean_exit(self):
         """The WebSocketApp.run_forever() method should return `False` when the application ends gracefully."""
         app = ws.WebSocketApp(f"ws://127.0.0.1:{LOCAL_WS_SERVER_PORT}")
         threading.Timer(interval=0.2, function=app.close).start()
@@ -123,7 +126,7 @@ class WebSocketAppTest(unittest.TestCase):
         self.assertEqual(teardown, False)
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testSockMaskKey(self):
+    def test_sock_mask_key(self):
         """A WebSocketApp should forward the received mask_key function down
         to the actual socket.
         """
@@ -140,14 +143,14 @@ class WebSocketAppTest(unittest.TestCase):
         self.assertEqual(id(app.get_mask_key), id(my_mask_key_func))
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testInvalidPingIntervalPingTimeout(self):
+    def test_invalid_ping_interval_ping_timeout(self):
         """Test exception handling if ping_interval < ping_timeout"""
 
-        def on_ping(app, msg):
+        def on_ping(app, _):
             print("Got a ping!")
             app.close()
 
-        def on_pong(app, msg):
+        def on_pong(app, _):
             print("Got a pong! No need to respond")
             app.close()
 
@@ -163,14 +166,14 @@ class WebSocketAppTest(unittest.TestCase):
         )
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testPingInterval(self):
+    def test_ping_interval(self):
         """Test WebSocketApp proper ping functionality"""
 
-        def on_ping(app, msg):
+        def on_ping(app, _):
             print("Got a ping!")
             app.close()
 
-        def on_pong(app, msg):
+        def on_pong(app, _):
             print("Got a pong! No need to respond")
             app.close()
 
@@ -182,7 +185,7 @@ class WebSocketAppTest(unittest.TestCase):
         )
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testOpcodeClose(self):
+    def test_opcode_close(self):
         """Test WebSocketApp close opcode"""
 
         app = ws.WebSocketApp("wss://tsock.us1.twilio.com/v3/wsconnect")
@@ -197,7 +200,7 @@ class WebSocketAppTest(unittest.TestCase):
     #     app.run_forever(ping_interval=2, ping_timeout=1, ping_payload="Ping payload")
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testBadPingInterval(self):
+    def test_bad_ping_interval(self):
         """A WebSocketApp handling of negative ping_interval"""
         app = ws.WebSocketApp("wss://api-pub.bitfinex.com/ws/1")
         self.assertRaises(
@@ -208,7 +211,7 @@ class WebSocketAppTest(unittest.TestCase):
         )
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testBadPingTimeout(self):
+    def test_bad_ping_timeout(self):
         """A WebSocketApp handling of negative ping_timeout"""
         app = ws.WebSocketApp("wss://api-pub.bitfinex.com/ws/1")
         self.assertRaises(
@@ -219,7 +222,7 @@ class WebSocketAppTest(unittest.TestCase):
         )
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
-    def testCloseStatusCode(self):
+    def test_close_status_code(self):
         """Test extraction of close frame status code and close reason in WebSocketApp"""
 
         def on_close(wsapp, close_status_code, close_msg):
@@ -249,7 +252,7 @@ class WebSocketAppTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testCallbackFunctionException(self):
+    def test_callback_function_exception(self):
         """Test callback function exception handling"""
 
         exc = None
@@ -264,7 +267,7 @@ class WebSocketAppTest(unittest.TestCase):
             nonlocal exc
             exc = err
 
-        def on_pong(app, msg):
+        def on_pong(app, _):
             app.close()
 
         app = ws.WebSocketApp(
@@ -282,7 +285,7 @@ class WebSocketAppTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testCallbackMethodException(self):
+    def test_callback_method_exception(self):
         """Test callback method exception handling"""
 
         class Callbacks:
@@ -297,14 +300,14 @@ class WebSocketAppTest(unittest.TestCase):
                 )
                 self.app.run_forever(ping_interval=2, ping_timeout=1)
 
-            def on_open(self, app):
+            def on_open(self, _):
                 raise RuntimeError("Callback failed")
 
             def on_error(self, app, err):
                 self.passed_app = app
                 self.exc = err
 
-            def on_pong(self, app, msg):
+            def on_pong(self, app, _):
                 app.close()
 
         callbacks = Callbacks()
@@ -316,16 +319,16 @@ class WebSocketAppTest(unittest.TestCase):
     @unittest.skipUnless(
         TEST_WITH_LOCAL_SERVER, "Tests using local websocket server are disabled"
     )
-    def testReconnect(self):
+    def test_reconnect(self):
         """Test reconnect"""
         pong_count = 0
         exc = None
 
-        def on_error(app, err):
+        def on_error(_, err):
             nonlocal exc
             exc = err
 
-        def on_pong(app, msg):
+        def on_pong(app, _):
             nonlocal pong_count
             pong_count += 1
             if pong_count == 1:

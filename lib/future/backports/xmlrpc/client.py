@@ -134,10 +134,11 @@ from __future__ import (absolute_import, division, print_function,
 from future.builtins import bytes, dict, int, range, str
 
 import base64
-# Py2.7 compatibility hack
-base64.encodebytes = base64.encodestring
-base64.decodebytes = base64.decodestring
 import sys
+if sys.version_info < (3, 9):
+    # Py2.7 compatibility hack
+    base64.encodebytes = base64.encodestring
+    base64.decodebytes = base64.decodestring
 import time
 from datetime import datetime
 from future.backports.http import client as http_client
@@ -1251,7 +1252,7 @@ class Transport(object):
     # Send HTTP request.
     #
     # @param host Host descriptor (URL or (URL, x509 info) tuple).
-    # @param handler Targer RPC handler (a path relative to host)
+    # @param handler Target RPC handler (a path relative to host)
     # @param request_body The XML-RPC request body
     # @param debug Enable debugging if debug is true.
     # @return An HTTPConnection.

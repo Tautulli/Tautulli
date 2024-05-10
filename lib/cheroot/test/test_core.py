@@ -134,7 +134,7 @@ def test_query_string_request(test_client):
         '/hello',  # plain
         '/query_string?test=True',  # query
         '/{0}?{1}={2}'.format(  # quoted unicode
-            *map(urllib.parse.quote, ('Юххууу', 'ї', 'йо'))
+            *map(urllib.parse.quote, ('Юххууу', 'ї', 'йо')),
         ),
     ),
 )

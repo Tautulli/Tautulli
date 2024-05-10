@@ -9,11 +9,11 @@ python-modernize licence: BSD (from python-modernize/LICENSE)
 """
 
 from lib2to3.fixer_util import (FromImport, Newline, is_import,
-                                find_root, does_tree_import, Comma)
+                                find_root, does_tree_import,
+                                Call, Name, Comma)
 from lib2to3.pytree import Leaf, Node
-from lib2to3.pygram import python_symbols as syms, python_grammar
+from lib2to3.pygram import python_symbols as syms
 from lib2to3.pygram import token
-from lib2to3.fixer_util import (Node, Call, Name, syms, Comma, Number)
 import re
 
 
@@ -116,7 +116,7 @@ def suitify(parent):
     """
     for node in parent.children:
         if node.type == syms.suite:
-            # already in the prefered format, do nothing
+            # already in the preferred format, do nothing
             return
 
     # One-liners have no suite node, we have to fake one up
@@ -390,6 +390,7 @@ def touch_import_top(package, name_to_import, node):
                 break
         insert_pos = idx
 
+    children_hooks = []
     if package is None:
         import_ = Node(syms.import_name, [
             Leaf(token.NAME, u"import"),
@@ -413,8 +414,6 @@ def touch_import_top(package, name_to_import, node):
                                  ]
                                 )
             children_hooks = [install_hooks, Newline()]
-        else:
-            children_hooks = []
 
         # FromImport(package, [Leaf(token.NAME, name_to_import, prefix=u" ")])
 
@@ -448,7 +447,6 @@ def check_future_import(node):
     else:
         node = node.children[3]
     # now node is the import_as_name[s]
-    # print(python_grammar.number2symbol[node.type])  # breaks sometimes
     if node.type == syms.import_as_names:
         result = set()
         for n in node.children:

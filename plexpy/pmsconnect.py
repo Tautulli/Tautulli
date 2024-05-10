@@ -15,38 +15,22 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import next
-from future.builtins import str
-from future.builtins import object
-
 import json
 import os
 import time
-from future.moves.urllib.parse import quote, quote_plus, urlencode
+from urllib.parse import quote, quote_plus, urlencode
 from xml.dom.minidom import Node
 
 import plexpy
-if plexpy.PYTHON2:
-    import activity_processor
-    import common
-    import helpers
-    import http_handler
-    import libraries
-    import logger
-    import plextv
-    import session
-    import users
-else:
-    from plexpy import activity_processor
-    from plexpy import common
-    from plexpy import helpers
-    from plexpy import http_handler
-    from plexpy import libraries
-    from plexpy import logger
-    from plexpy import plextv
-    from plexpy import session
-    from plexpy import users
+from plexpy import activity_processor
+from plexpy import common
+from plexpy import helpers
+from plexpy import http_handler
+from plexpy import libraries
+from plexpy import logger
+from plexpy import plextv
+from plexpy import session
+from plexpy import users
 
 
 def get_server_friendly_name():

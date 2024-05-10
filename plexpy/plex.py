@@ -15,16 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import object
-from future.builtins import str
-
 import plexpy
-if plexpy.PYTHON2:
-    import logger
-else:
-    from plexpy import logger
-
 
 class DummyObject(object):
     def __init__(self, *args, **kwargs):

@@ -2,14 +2,14 @@
 #
 import unittest
 
-import websocket as ws
-from websocket._abnf import *
+from websocket._abnf import ABNF, frame_buffer
+from websocket._exceptions import WebSocketProtocolException
 
 """
 test_abnf.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ limitations under the License.
 
 
 class ABNFTest(unittest.TestCase):
-    def testInit(self):
+    def test_init(self):
         a = ABNF(0, 0, 0, 0, opcode=ABNF.OPCODE_PING)
         self.assertEqual(a.fin, 0)
         self.assertEqual(a.rsv1, 0)
@@ -38,28 +38,28 @@ class ABNFTest(unittest.TestCase):
         self.assertEqual(a_bad.rsv1, 1)
         self.assertEqual(a_bad.opcode, 77)
 
-    def testValidate(self):
+    def test_validate(self):
         a_invalid_ping = ABNF(0, 0, 0, 0, opcode=ABNF.OPCODE_PING)
         self.assertRaises(
-            ws._exceptions.WebSocketProtocolException,
+            WebSocketProtocolException,
             a_invalid_ping.validate,
             skip_utf8_validation=False,
         )
         a_bad_rsv_value = ABNF(0, 1, 0, 0, opcode=ABNF.OPCODE_TEXT)
         self.assertRaises(
-            ws._exceptions.WebSocketProtocolException,
+            WebSocketProtocolException,
             a_bad_rsv_value.validate,
             skip_utf8_validation=False,
         )
         a_bad_opcode = ABNF(0, 0, 0, 0, opcode=77)
         self.assertRaises(
-            ws._exceptions.WebSocketProtocolException,
+            WebSocketProtocolException,
             a_bad_opcode.validate,
             skip_utf8_validation=False,
         )
         a_bad_close_frame = ABNF(0, 0, 0, 0, opcode=ABNF.OPCODE_CLOSE, data=b"\x01")
         self.assertRaises(
-            ws._exceptions.WebSocketProtocolException,
+            WebSocketProtocolException,
             a_bad_close_frame.validate,
             skip_utf8_validation=False,
         )
@@ -67,7 +67,7 @@ class ABNFTest(unittest.TestCase):
             0, 0, 0, 0, opcode=ABNF.OPCODE_CLOSE, data=b"\x01\x8a\xaa\xff\xdd"
         )
         self.assertRaises(
-            ws._exceptions.WebSocketProtocolException,
+            WebSocketProtocolException,
             a_bad_close_frame_2.validate,
             skip_utf8_validation=False,
         )
@@ -75,12 +75,12 @@ class ABNFTest(unittest.TestCase):
             0, 0, 0, 0, opcode=ABNF.OPCODE_CLOSE, data=b"\x03\xe7"
         )
         self.assertRaises(
-            ws._exceptions.WebSocketProtocolException,
+            WebSocketProtocolException,
             a_bad_close_frame_3.validate,
             skip_utf8_validation=True,
         )
 
-    def testMask(self):
+    def test_mask(self):
         abnf_none_data = ABNF(
             0, 0, 0, 0, opcode=ABNF.OPCODE_PING, mask_value=1, data=None
         )
@@ -91,7 +91,7 @@ class ABNFTest(unittest.TestCase):
         )
         self.assertEqual(abnf_str_data._get_masked(bytes_val), b"aaaa\x00")
 
-    def testFormat(self):
+    def test_format(self):
         abnf_bad_rsv_bits = ABNF(2, 0, 0, 0, opcode=ABNF.OPCODE_TEXT)
         self.assertRaises(ValueError, abnf_bad_rsv_bits.format)
         abnf_bad_opcode = ABNF(0, 0, 0, 0, opcode=5)
@@ -110,7 +110,7 @@ class ABNFTest(unittest.TestCase):
         )
         self.assertEqual(b"\x01\x03\x01\x8a\xcc", abnf_no_mask.format())
 
-    def testFrameBuffer(self):
+    def test_frame_buffer(self):
         fb = frame_buffer(0, True)
         self.assertEqual(fb.recv, 0)
         self.assertEqual(fb.skip_utf8_validation, True)

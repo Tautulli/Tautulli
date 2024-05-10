@@ -28,7 +28,6 @@ import importlib
 # import collections.abc    # not present on Py2.7
 import re
 import subprocess
-import imp
 import time
 try:
     import sysconfig
@@ -341,37 +340,6 @@ def rmtree(path):
         if error.errno != errno.ENOENT:
             raise
 
-def make_legacy_pyc(source):
-    """Move a PEP 3147 pyc/pyo file to its legacy pyc/pyo location.
-
-    The choice of .pyc or .pyo extension is done based on the __debug__ flag
-    value.
-
-    :param source: The file system path to the source file.  The source file
-        does not need to exist, however the PEP 3147 pyc file must exist.
-    :return: The file system path to the legacy pyc file.
-    """
-    pyc_file = imp.cache_from_source(source)
-    up_one = os.path.dirname(os.path.abspath(source))
-    legacy_pyc = os.path.join(up_one, source + ('c' if __debug__ else 'o'))
-    os.rename(pyc_file, legacy_pyc)
-    return legacy_pyc
-
-def forget(modname):
-    """'Forget' a module was ever imported.
-
-    This removes the module from sys.modules and deletes any PEP 3147 or
-    legacy .pyc and .pyo files.
-    """
-    unload(modname)
-    for dirname in sys.path:
-        source = os.path.join(dirname, modname + '.py')
-        # It doesn't matter if they exist or not, unlink all possible
-        # combinations of PEP 3147 and legacy pyc and pyo files.
-        unlink(source + 'c')
-        unlink(source + 'o')
-        unlink(imp.cache_from_source(source, debug_override=True))
-        unlink(imp.cache_from_source(source, debug_override=False))
 
 # On some platforms, should not run gui test even if it is allowed
 # in `use_resources'.

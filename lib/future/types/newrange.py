@@ -105,7 +105,7 @@ class newrange(Sequence):
         raise ValueError('%r is not in range' % value)
 
     def count(self, value):
-        """Return the number of ocurrences of integer `value`
+        """Return the number of occurrences of integer `value`
         in the sequence this range represents."""
         # a value can occur exactly zero or one times
         return int(value in self)

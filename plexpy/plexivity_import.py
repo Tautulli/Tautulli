@@ -15,26 +15,16 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-
-import arrow
 import sqlite3
 from xml.dom import minidom
 
-import plexpy
-if plexpy.PYTHON2:
-    import activity_processor
-    import database
-    import helpers
-    import logger
-    import users
-else:
-    from plexpy import activity_processor
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import users
+import arrow
+
+from plexpy import activity_processor
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
+from plexpy import users
 
 
 def extract_plexivity_xml(xml=None):

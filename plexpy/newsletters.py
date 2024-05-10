@@ -15,39 +15,25 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import next
-from future.builtins import str
-from future.builtins import object
-
-import arrow
 from collections import OrderedDict
 import json
 from itertools import groupby
-from mako.lookup import TemplateLookup
-from mako import exceptions
 import os
 import re
 
+import arrow
+from mako.lookup import TemplateLookup
+from mako import exceptions
+
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import helpers
-    import libraries
-    import logger
-    import newsletter_handler
-    import pmsconnect
-    from notifiers import send_notification, EMAIL
-else:
-    from plexpy import common
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import libraries
-    from plexpy import logger
-    from plexpy import newsletter_handler
-    from plexpy import pmsconnect
-    from plexpy.notifiers import send_notification, EMAIL
+from plexpy import common
+from plexpy import database
+from plexpy import helpers
+from plexpy import libraries
+from plexpy import logger
+from plexpy import newsletter_handler
+from plexpy import pmsconnect
+from plexpy.notifiers import send_notification, EMAIL
 
 
 AGENT_IDS = {

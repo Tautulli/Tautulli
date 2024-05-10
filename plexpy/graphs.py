@@ -15,28 +15,17 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-from future.builtins import range
-from future.builtins import object
+import datetime
 
 import arrow
-import datetime
+
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import database
-    import helpers
-    import logger
-    import libraries
-    import session
-else:
-    from plexpy import common
-    from plexpy import database
-    from plexpy import helpers
-    from plexpy import logger
-    from plexpy import libraries
-    from plexpy import session
+from plexpy import common
+from plexpy import database
+from plexpy import helpers
+from plexpy import logger
+from plexpy import libraries
+from plexpy import session
 
 
 class Graphs(object):

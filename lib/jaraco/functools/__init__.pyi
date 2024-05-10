@@ -74,9 +74,6 @@ def result_invoke(
 def invoke(
     f: Callable[_P, _R], /, *args: _P.args, **kwargs: _P.kwargs
 ) -> Callable[_P, _R]: ...
-def call_aside(
-    f: Callable[_P, _R], *args: _P.args, **kwargs: _P.kwargs
-) -> Callable[_P, _R]: ...
 
 class Throttler(Generic[_R]):
     last_called: float

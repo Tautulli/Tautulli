@@ -75,12 +75,12 @@ Credits
 -------
 
 :Author:  Ed Schofield, Jordan M. Adler, et al
-:Sponsor: Python Charmers Pty Ltd, Australia: http://pythoncharmers.com
+:Sponsor: Python Charmers: https://pythoncharmers.com
 
 
 Licensing
 ---------
-Copyright 2013-2019 Python Charmers Pty Ltd, Australia.
+Copyright 2013-2024 Python Charmers, Australia.
 The software is distributed under an MIT licence. See LICENSE.txt.
 """
 
