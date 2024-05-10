@@ -223,9 +223,11 @@ class newint(with_metaclass(BaseNewInt, long)):
 
     def __rpow__(self, other):
         value = super(newint, self).__rpow__(other)
-        if value is NotImplemented:
+        if isint(value):
+            return newint(value)
+        elif value is NotImplemented:
             return other ** long(self)
-        return newint(value)
+        return value
 
     def __lshift__(self, other):
         if not isint(other):
@@ -318,7 +320,7 @@ class newint(with_metaclass(BaseNewInt, long)):
             bits = length * 8
             num = (2**bits) + self
             if num <= 0:
-                raise OverflowError("int too smal to convert")
+                raise OverflowError("int too small to convert")
         else:
             if self < 0:
                 raise OverflowError("can't convert negative int to unsigned")

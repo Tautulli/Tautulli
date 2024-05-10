@@ -17,6 +17,7 @@
 
 import os
 import sys
+
 from infi.systray import SysTrayIcon
 
 try:
@@ -30,14 +31,9 @@ except ImportError:
     import _winreg as winreg
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import logger
-    import versioncheck
-else:
-    from plexpy import common
-    from plexpy import logger
-    from plexpy import versioncheck
+from plexpy import common
+from plexpy import logger
+from plexpy import versioncheck
 
 
 class WindowsSystemTray(object):

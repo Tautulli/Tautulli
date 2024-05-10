@@ -52,7 +52,7 @@ Automatic conversion
 --------------------
 
 An included script called `futurize
-<http://python-future.org/automatic_conversion.html>`_ aids in converting
+<https://python-future.org/automatic_conversion.html>`_ aids in converting
 code (from either Python 2 or Python 3) to code compatible with both
 platforms. It is similar to ``python-modernize`` but goes further in
 providing Python 3 compatibility through the use of the backported types
@@ -62,21 +62,20 @@ and builtin functions in ``future``.
 Documentation
 -------------
 
-See: http://python-future.org
+See: https://python-future.org
 
 
 Credits
 -------
 
 :Author:  Ed Schofield, Jordan M. Adler, et al
-:Sponsor: Python Charmers Pty Ltd, Australia, and Python Charmers Pte
-          Ltd, Singapore. http://pythoncharmers.com
-:Others:  See docs/credits.rst or http://python-future.org/credits.html
+:Sponsor: Python Charmers: https://pythoncharmers.com
+:Others:  See docs/credits.rst or https://python-future.org/credits.html
 
 
 Licensing
 ---------
-Copyright 2013-2019 Python Charmers Pty Ltd, Australia.
+Copyright 2013-2024 Python Charmers, Australia.
 The software is distributed under an MIT licence. See LICENSE.txt.
 
 """
@@ -84,10 +83,10 @@ The software is distributed under an MIT licence. See LICENSE.txt.
 __title__ = 'future'
 __author__ = 'Ed Schofield'
 __license__ = 'MIT'
-__copyright__ = 'Copyright 2013-2019 Python Charmers Pty Ltd'
-__ver_major__ = 0
-__ver_minor__ = 18
-__ver_patch__ = 3
+__copyright__ = 'Copyright 2013-2024 Python Charmers (https://pythoncharmers.com)'
+__ver_major__ = 1
+__ver_minor__ = 0
+__ver_patch__ = 0
 __ver_sub__ = ''
 __version__ = "%d.%d.%d%s" % (__ver_major__, __ver_minor__,
                               __ver_patch__, __ver_sub__)

@@ -15,18 +15,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-
 import cherrypy
 
 import plexpy
-if plexpy.PYTHON2:
-    import common
-    import users
-else:
-    from plexpy import common
-    from plexpy import users
+from plexpy import common
+from plexpy import users
 
 
 def get_session_info():

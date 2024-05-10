@@ -2,7 +2,7 @@
 A module that brings in equivalents of the new and modified Python 3
 builtins into Py2. Has no effect on Py3.
 
-See the docs `here <http://python-future.org/what-else.html>`_
+See the docs `here <https://python-future.org/what-else.html>`_
 (``docs/what-else.rst``) for more information.
 
 """

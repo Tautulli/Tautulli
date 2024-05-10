@@ -15,9 +15,6 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import unicode_literals
-from future.builtins import str
-
 from logging import handlers
 
 import cherrypy
@@ -29,13 +26,8 @@ import threading
 import traceback
 
 import plexpy
-if plexpy.PYTHON2:
-    import helpers
-    import users
-    from config import _BLACKLIST_KEYS, _WHITELIST_KEYS
-else:
-    from plexpy import helpers, users
-    from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
+from plexpy import helpers, users
+from plexpy.config import _BLACKLIST_KEYS, _WHITELIST_KEYS
 
 
 # These settings are for file logging only
