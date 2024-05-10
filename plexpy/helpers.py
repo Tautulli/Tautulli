@@ -345,7 +345,7 @@ def bytes_to_mb(bytes):
 
 
 def mb_to_bytes(mb_str):
-    result = re.search('^(\d+(?:\.\d+)?)\s?(?:mb)?', mb_str, flags=re.I)
+    result = re.search(r'^(\d+(?:\.\d+)?)\s?(?:mb)?', mb_str, flags=re.I)
     if result:
         return int(float(result.group(1)) * 1048576)
 
@@ -395,9 +395,9 @@ def replace_all(text, dic, normalize=False):
 
 def replace_illegal_chars(string, type="file"):
     if type == "file":
-        string = re.sub('[\?"*:|<>/]', '_', string)
+        string = re.sub(r'[\?"*:|<>/]', '_', string)
     if type == "folder":
-        string = re.sub('[:\?<>"|]', '_', string)
+        string = re.sub(r'[:\?<>"|]', '_', string)
 
     return string
 
@@ -405,14 +405,14 @@ def replace_illegal_chars(string, type="file"):
 def cleanName(string):
 
     pass1 = latinToAscii(string).lower()
-    out_string = re.sub('[\.\-\/\!\@\#\$\%\^\&\*\(\)\+\-\"\'\,\;\:\[\]\{\}\<\>\=\_]', '', pass1).encode('utf-8')
+    out_string = re.sub(r'[\.\-\/\!\@\#\$\%\^\&\*\(\)\+\-\"\'\,\;\:\[\]\{\}\<\>\=\_]', '', pass1).encode('utf-8')
 
     return out_string
 
 
 def cleanTitle(title):
 
-    title = re.sub('[\.\-\/\_]', ' ', title).lower()
+    title = re.sub(r'[\.\-\/\_]', ' ', title).lower()
 
     # Strip out extra whitespace
     title = ' '.join(title.split())
