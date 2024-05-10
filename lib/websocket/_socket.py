@@ -3,15 +3,18 @@ import selectors
 import socket
 from typing import Union
 
-from ._exceptions import *
-from ._ssl_compat import *
-from ._utils import *
+from ._exceptions import (
+    WebSocketConnectionClosedException,
+    WebSocketTimeoutException,
+)
+from ._ssl_compat import SSLError, SSLWantReadError, SSLWantWriteError
+from ._utils import extract_error_code, extract_err_message
 
 """
 _socket.py
 websocket - WebSocket client library for Python
 
-Copyright 2023 engn33r
+Copyright 2024 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
