@@ -1,5 +1,13 @@
 # Changelog
 
+## v2.14.1-beta (2024-05-11)
+
+* UI:
+  * Fix: Users without access to Plex server not showing as inactive.
+* Other:
+  * Removed: Python 2 compatibility code. (#2098, #2226) (Thanks @zdimension)
+
+
 ## v2.14.0-beta (2024-04-19)
 
 * History:
@@ -9,9 +17,9 @@
   * Fix: Pushover configuration settings refreshing after entering a token.
   * Fix: Plex remote access down notifications not triggering.
   * Fix: Deleting all images from Cloudinary only deleting 1000 images.
-  * New: Added platform version and product version notification parameters.
-  * New: Added LAN streams and WAN streams notification parameters.
-  * New: Added Dolby Vision notification parameters.
+  * New: Added platform version and product version notification parameters. (#2244)
+  * New: Added LAN streams and WAN streams notification parameters. (#2276)
+  * New: Added Dolby Vision notification parameters. (#2240)
   * New: Added live TV channel notification parameters.
   * Change: Improved Tautulli Remote App notification encryption method.
     * Note: Requires Tautulli Remote App version 3.2.4.
@@ -26,7 +34,7 @@
   * Removed: Anonymous redirect settings. Links now use browser no-referrer policy instead.
 * API:
   * New: Added Dolby Vision info to the get_metadata API command.
-  * New: Added before and after parameters to the get_home_stats API command.
+  * New: Added before and after parameters to the get_home_stats API command. (#2231)
 * Packages:
   * New: Universal binary for macOS for Apple silicon.
   * New: Bump Snap package to core22.
