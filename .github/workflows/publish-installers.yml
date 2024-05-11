@@ -143,7 +143,7 @@ jobs:
           prerelease: ${{ endsWith(steps.get_version.outputs.RELEASE_VERSION, '-beta') }}
           files: |
             Tautulli-windows-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
-            Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.pkg
+            Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-universal.pkg
 
   discord:
     name: Discord Notification
