@@ -148,7 +148,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
-                'artProvider': lambda o: self.get_image_attr(o, 'art', 'provider'),
+                'artProvider': lambda o: self.get_image_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
                 'chapters': {
@@ -385,7 +385,7 @@ class Export(object):
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
-                'thumbProvider': lambda o: self.get_image_attr(o, 'thumb', 'provider'),
+                'thumbProvider': lambda o: self.get_image_provider(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -408,7 +408,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
-                'artProvider': lambda o: self.get_image_attr(o, 'art', 'provider'),
+                'artProvider': lambda o: self.get_image_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
                 'audioLanguage': None,
@@ -475,7 +475,7 @@ class Export(object):
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
-                'thumbProvider': lambda o: self.get_image_attr(o, 'thumb', 'provider'),
+                'thumbProvider': lambda o: self.get_image_provider(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -495,7 +495,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
-                'artProvider': lambda o: self.get_image_attr(o, 'art', 'provider'),
+                'artProvider': lambda o: self.get_image_provider(o, 'art'),
                 'audioLanguage': None,
                 'collections': {
                     'id': None,
@@ -539,7 +539,7 @@ class Export(object):
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
-                'thumbProvider': lambda o: self.get_image_attr(o, 'thumb', 'provider'),
+                'thumbProvider': lambda o: self.get_image_provider(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -558,7 +558,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
-                'artProvider': lambda o: self.get_image_attr(o, 'art', 'provider'),
+                'artProvider': lambda o: self.get_image_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
                 'chapters': {
@@ -799,7 +799,7 @@ class Export(object):
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
-                'thumbProvider': lambda o: self.get_image_attr(o, 'thumb', 'provider'),
+                'thumbProvider': lambda o: self.get_image_provider(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -822,7 +822,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
-                'artProvider': lambda o: self.get_image_attr(o, 'art', 'provider'),
+                'artProvider': lambda o: self.get_image_provider(o, 'art'),
                 'collections': {
                     'id': None,
                     'tag': None
@@ -875,7 +875,7 @@ class Export(object):
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
-                'thumbProvider': lambda o: self.get_image_attr(o, 'thumb', 'provider'),
+                'thumbProvider': lambda o: self.get_image_provider(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -892,7 +892,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
-                'artProvider': lambda o: self.get_image_attr(o, 'art', 'provider'),
+                'artProvider': lambda o: self.get_image_provider(o, 'art'),
                 'collections': {
                     'id': None,
                     'tag': None
@@ -955,7 +955,7 @@ class Export(object):
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
-                'thumbProvider': lambda o: self.get_image_attr(o, 'thumb', 'provider'),
+                'thumbProvider': lambda o: self.get_image_provider(o, 'thumb'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -1235,7 +1235,7 @@ class Export(object):
                 'art': None,
                 'artBlurHash': None,
                 'artFile': lambda o: self.get_image(o, 'art'),
-                'artProvider': lambda o: self.get_image_attr(o, 'art', 'provider'),
+                'artProvider': lambda o: self.get_image_provider(o, 'art'),
                 'childCount': None,
                 'collectionFilterBasedOnUser': None,
                 'collectionMode': None,
@@ -1266,7 +1266,7 @@ class Export(object):
                 'thumb': None,
                 'thumbBlurHash': None,
                 'thumbFile': lambda o: self.get_image(o, 'thumb'),
-                'thumbProvider': lambda o: self.get_image_attr(o, 'thumb', 'provider'),
+                'thumbProvider': lambda o: self.get_image_provider(o, 'poster'),
                 'title': None,
                 'titleSort': None,
                 'type': None,
@@ -2262,6 +2262,10 @@ class Export(object):
             if not hasattr(item, '_posters'):
                 item._posters = item.posters()
             return getattr(item, '_posters', [])
+        
+    def _get_selected_image(self, item, image):
+        images = self._get_cached_images(item, image)
+        return next((im for im in images if im.selected), None)
 
     def get_image(self, item, image):
         media_type = item.type
@@ -2269,9 +2273,8 @@ class Export(object):
 
         export_image = True
         if self.thumb_level == 1 or self.art_level == 1:
-            images = self._get_cached_images(item, image)
-            export_image = any(im.selected and im.ratingKey.startswith('upload://')
-                               for im in images)
+            selected = self._get_selected_image(item, image)
+            export_image = selected and selected.ratingKey.startswith('upload://')
         elif self.thumb_level == 2 or self.art_level == 2:
             export_image = any(field.locked and field.name == image
                                for field in item.fields)
@@ -2317,11 +2320,10 @@ class Export(object):
 
         return os.path.join(os.path.basename(dirpath), filename)
 
-    def get_image_attr(self, item, image, attr):
-        images = self._get_cached_images(item, image)
-        selected = next((im for im in images if im.selected), None)
+    def get_image_provider(self, item, image):
+        selected = self._get_selected_image(item, image)
         if selected:
-            return getattr(selected, attr)
+            return 'upload' if selected.ratingKey.startswith('upload://') else selected.provider
 
 
 class ExportObject(Export):
