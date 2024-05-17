@@ -308,7 +308,10 @@ def server_message(response, return_msg=False):
         message = response.content.strip()
 
     if message:
-        message = str(message, 'utf-8', 'replace')
+        try:
+            message = message.decode('utf-8', errors='replace')
+        except (UnicodeDecodeError, AttributeError):
+            pass
 
         # Truncate message if it is too long.
         if len(message) > 150:
