@@ -92,8 +92,6 @@ class FindIdentifiers(_ast_util.NodeVisitor):
 
     def visit_ListComp(self, node):
         if self.in_function:
-            if not isinstance(node.elt, _ast.Name):
-                self.visit(node.elt)
             for comp in node.generators:
                 self.visit(comp.iter)
         else:
@@ -103,8 +101,6 @@ class FindIdentifiers(_ast_util.NodeVisitor):
 
     def visit_DictComp(self, node):
         if self.in_function:
-            if not isinstance(node.key, _ast.Name):
-                self.visit(node.elt)
             for comp in node.generators:
                 self.visit(comp.iter)
         else:
