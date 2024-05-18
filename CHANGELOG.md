@@ -1,14 +1,6 @@
 # Changelog
 
-## v2.14.1-beta (2024-05-11)
-
-* UI:
-  * Fix: Users without access to Plex server not showing as inactive.
-* Other:
-  * Removed: Python 2 compatibility code. (#2098, #2226) (Thanks @zdimension)
-
-
-## v2.14.0-beta (2024-04-19)
+## v2.14.2 (2024-05-18)
 
 * History:
   * Fix: Live TV activity not logging to history.
@@ -27,9 +19,11 @@
   * New: Added slug attribute to exporter fields.
   * New: Added track genres to exporter fields.
   * New: Added playlist source URI to exporter fields.
+  * New: Added artProvider and thumbProvider to exporter fields.
 * UI:
   * Fix: Mask deleted usernames in the logs.
   * Fix: Live TV watch stats not showing on the media info page.
+  * Fix: Users without access to Plex server not showing as inactive.
   * Removed: Deprecated synced item pages.
   * Removed: Anonymous redirect settings. Links now use browser no-referrer policy instead.
 * API:
@@ -41,6 +35,7 @@
 * Other:
   * Change: Login cookie expires changed to max-age.
   * Change: Improved key generation for login password. It is recommended to reenter your HTTP Password in the settings after upgrading.
+  * Removed: Python 2 compatibility code. (#2098, #2226) (Thanks @zdimension)
 
 
 ## v2.13.4 (2023-12-07)
