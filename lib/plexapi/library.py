@@ -226,7 +226,7 @@ class Library(PlexObject):
             section.deleteMediaPreviews()
         return self
 
-    def add(self, name='', type='', agent='', scanner='', location='', language='en', *args, **kwargs):
+    def add(self, name='', type='', agent='', scanner='', location='', language='en-US', *args, **kwargs):
         """ Simplified add for the most common options.
 
             Parameters:
@@ -234,7 +234,7 @@ class Library(PlexObject):
                 agent (str): Example com.plexapp.agents.imdb
                 type (str): movie, show, # check me
                 location (str or list): /path/to/files, ["/path/to/files", "/path/to/morefiles"]
-                language (str): Two letter language fx en
+                language (str): Four letter language code (e.g. en-US)
                 kwargs (dict): Advanced options should be passed as a dict. where the id is the key.
 
             **Photo Preferences**

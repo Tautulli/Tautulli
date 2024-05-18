@@ -713,6 +713,7 @@ class Season(
         Attributes:
             TAG (str): 'Directory'
             TYPE (str): 'season'
+            audienceRating (float): Audience rating.
             audioLanguage (str): Setting that indicates the preferred audio language.
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
@@ -729,6 +730,7 @@ class Season(
             parentTheme (str): URL to show theme resource (/library/metadata/<parentRatingkey>/theme/<themeid>).
             parentThumb (str): URL to show thumbnail image (/library/metadata/<parentRatingKey>/thumb/<thumbid>).
             parentTitle (str): Name of the show for the season.
+            rating (float): Season rating (7.9; 9.8; 8.1).
             ratings (List<:class:`~plexapi.media.Rating`>): List of rating objects.
             subtitleLanguage (str): Setting that indicates the preferred subtitle language.
             subtitleMode (int): Setting that indicates the auto-select subtitle mode.
@@ -743,6 +745,7 @@ class Season(
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Video._loadData(self, data)
+        self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.audioLanguage = data.attrib.get('audioLanguage', '')
         self.collections = self.findItems(data, media.Collection)
         self.guids = self.findItems(data, media.Guid)
@@ -759,6 +762,7 @@ class Season(
         self.parentTheme = data.attrib.get('parentTheme')
         self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
+        self.rating = utils.cast(float, data.attrib.get('rating'))
         self.ratings = self.findItems(data, media.Rating)
         self.subtitleLanguage = data.attrib.get('subtitleLanguage', '')
         self.subtitleMode = utils.cast(int, data.attrib.get('subtitleMode', '-1'))

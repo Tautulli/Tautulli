@@ -181,6 +181,7 @@ class Artist(
             TYPE (str): 'artist'
             albumSort (int): Setting that indicates how albums are sorted for the artist
                 (-1 = Library default, 0 = Newest first, 1 = Oldest first, 2 = By name).
+            audienceRating (float): Audience rating.
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
             countries (List<:class:`~plexapi.media.Country`>): List country objects.
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
@@ -188,6 +189,7 @@ class Artist(
             key (str): API URL (/library/metadata/<ratingkey>).
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
             locations (List<str>): List of folder paths where the artist is found on disk.
+            rating (float): Artist rating (7.9; 9.8; 8.1).
             similar (List<:class:`~plexapi.media.Similar`>): List of similar objects.
             styles (List<:class:`~plexapi.media.Style`>): List of style objects.
             theme (str): URL to theme resource (/library/metadata/<ratingkey>/theme/<themeid>).
@@ -199,6 +201,7 @@ class Artist(
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
         self.albumSort = utils.cast(int, data.attrib.get('albumSort', '-1'))
+        self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.collections = self.findItems(data, media.Collection)
         self.countries = self.findItems(data, media.Country)
         self.genres = self.findItems(data, media.Genre)
@@ -206,6 +209,7 @@ class Artist(
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.labels = self.findItems(data, media.Label)
         self.locations = self.listAttrs(data, 'path', etag='Location')
+        self.rating = utils.cast(float, data.attrib.get('rating'))
         self.similar = self.findItems(data, media.Similar)
         self.styles = self.findItems(data, media.Style)
         self.theme = data.attrib.get('theme')
@@ -301,6 +305,7 @@ class Album(
         Attributes:
             TAG (str): 'Directory'
             TYPE (str): 'album'
+            audienceRating (float): Audience rating.
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
             formats (List<:class:`~plexapi.media.Format`>): List of format objects.
             genres (List<:class:`~plexapi.media.Genre`>): List of genre objects.
@@ -329,6 +334,7 @@ class Album(
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
+        self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.collections = self.findItems(data, media.Collection)
         self.formats = self.findItems(data, media.Format)
         self.genres = self.findItems(data, media.Genre)
@@ -426,6 +432,7 @@ class Track(
         Attributes:
             TAG (str): 'Directory'
             TYPE (str): 'track'
+            audienceRating (float): Audience rating.
             chapters (List<:class:`~plexapi.media.Chapter`>): List of Chapter objects.
             chapterSource (str): Unknown
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
@@ -451,6 +458,7 @@ class Track(
             parentThumb (str): URL to album thumbnail image (/library/metadata/<parentRatingKey>/thumb/<thumbid>).
             parentTitle (str): Name of the album for the track.
             primaryExtraKey (str) API URL for the primary extra for the track.
+            rating (float): Track rating (7.9; 9.8; 8.1).
             ratingCount (int): Number of listeners who have scrobbled this track, as reported by Last.fm.
             skipCount (int): Number of times the track has been skipped.
             sourceURI (str): Remote server URI (server://<machineIdentifier>/com.plexapp.plugins.library)
@@ -465,6 +473,7 @@ class Track(
         """ Load attribute values from Plex XML response. """
         Audio._loadData(self, data)
         Playable._loadData(self, data)
+        self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.chapters = self.findItems(data, media.Chapter)
         self.chapterSource = data.attrib.get('chapterSource')
         self.collections = self.findItems(data, media.Collection)
@@ -488,6 +497,7 @@ class Track(
         self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
         self.primaryExtraKey = data.attrib.get('primaryExtraKey')
+        self.rating = utils.cast(float, data.attrib.get('rating'))
         self.ratingCount = utils.cast(int, data.attrib.get('ratingCount'))
         self.skipCount = utils.cast(int, data.attrib.get('skipCount'))
         self.sourceURI = data.attrib.get('source')  # remote playlist item

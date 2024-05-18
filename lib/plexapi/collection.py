@@ -29,6 +29,7 @@ class Collection(
             addedAt (datetime): Datetime the collection was added to the library.
             art (str): URL to artwork image (/library/metadata/<ratingKey>/art/<artid>).
             artBlurHash (str): BlurHash string for artwork image.
+            audienceRating (float): Audience rating.
             childCount (int): Number of items in the collection.
             collectionFilterBasedOnUser (int): Which user's activity is used for the collection filtering.
             collectionMode (int): How the items in the collection are displayed.
@@ -47,6 +48,7 @@ class Collection(
             librarySectionTitle (str): :class:`~plexapi.library.LibrarySection` title.
             maxYear (int): Maximum year for the items in the collection.
             minYear (int): Minimum year for the items in the collection.
+            rating (float): Collection rating (7.9; 9.8; 8.1).
             ratingCount (int): The number of ratings.
             ratingKey (int): Unique key identifying the collection.
             smart (bool): True if the collection is a smart collection.
@@ -69,6 +71,7 @@ class Collection(
         self.addedAt = utils.toDatetime(data.attrib.get('addedAt'))
         self.art = data.attrib.get('art')
         self.artBlurHash = data.attrib.get('artBlurHash')
+        self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
         self.collectionFilterBasedOnUser = utils.cast(int, data.attrib.get('collectionFilterBasedOnUser', '0'))
         self.collectionMode = utils.cast(int, data.attrib.get('collectionMode', '-1'))
@@ -87,6 +90,7 @@ class Collection(
         self.librarySectionTitle = data.attrib.get('librarySectionTitle')
         self.maxYear = utils.cast(int, data.attrib.get('maxYear'))
         self.minYear = utils.cast(int, data.attrib.get('minYear'))
+        self.rating = utils.cast(float, data.attrib.get('rating'))
         self.ratingCount = utils.cast(int, data.attrib.get('ratingCount'))
         self.ratingKey = utils.cast(int, data.attrib.get('ratingKey'))
         self.smart = utils.cast(bool, data.attrib.get('smart', '0'))

@@ -99,7 +99,7 @@ class MyPlexAccount(PlexObject):
     EXISTINGUSER = 'https://plex.tv/api/home/users?invitedEmail={username}'                     # post with data
     FRIENDSERVERS = 'https://plex.tv/api/servers/{machineId}/shared_servers/{serverId}'         # put with data
     PLEXSERVERS = 'https://plex.tv/api/servers/{machineId}'                                     # get
-    FRIENDUPDATE = 'https://plex.tv/api/friends/{userId}'                                       # put with args, delete
+    FRIENDUPDATE = 'https://plex.tv/api/v2/sharings/{userId}'                                   # put with args, delete
     HOMEUSER = 'https://plex.tv/api/home/users/{userId}'                                        # delete, put
     MANAGEDHOMEUSER = 'https://plex.tv/api/v2/home/users/restricted/{userId}'                   # put
     SIGNIN = 'https://plex.tv/api/v2/users/signin'                                              # post with auth

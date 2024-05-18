@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from itertools import groupby
 from pathlib import Path
 from urllib.parse import quote_plus, unquote
 
@@ -212,19 +213,23 @@ class Playlist(
         if items and not isinstance(items, (list, tuple)):
             items = [items]
 
-        ratingKeys = []
-        for item in items:
-            if item.listType != self.playlistType:  # pragma: no cover
-                raise BadRequest(f'Can not mix media types when building a playlist: '
-                                 f'{self.playlistType} and {item.listType}')
-            ratingKeys.append(str(item.ratingKey))
+        # Group items by server to maintain order when adding items from multiple servers
+        for server, _items in groupby(items, key=lambda item: item._server):
 
-        ratingKeys = ','.join(ratingKeys)
-        uri = f'{self._server._uriRoot()}/library/metadata/{ratingKeys}'
+            ratingKeys = []
+            for item in _items:
+                if item.listType != self.playlistType:  # pragma: no cover
+                    raise BadRequest(f'Can not mix media types when building a playlist: '
+                                     f'{self.playlistType} and {item.listType}')
+                ratingKeys.append(str(item.ratingKey))
 
-        args = {'uri': uri}
-        key = f"{self.key}/items{utils.joinArgs(args)}"
-        self._server.query(key, method=self._server._session.put)
+            ratingKeys = ','.join(ratingKeys)
+            uri = f'{server._uriRoot()}/library/metadata/{ratingKeys}'
+
+            args = {'uri': uri}
+            key = f"{self.key}/items{utils.joinArgs(args)}"
+            self._server.query(key, method=self._server._session.put)
+
         return self
 
     @deprecated('use "removeItems" instead')
