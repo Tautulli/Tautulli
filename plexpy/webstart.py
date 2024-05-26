@@ -51,6 +51,7 @@ def start():
 def stop():
     logger.info("Tautulli WebStart :: Stopping Tautulli web server...")
     cherrypy.engine.exit()
+    cherrypy.server.httpserver = None
 
 
 def restart():
