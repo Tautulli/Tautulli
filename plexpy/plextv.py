@@ -39,7 +39,6 @@ def get_server_resources(return_presence=False, return_server=False, return_info
               'pms_ip': plexpy.CONFIG.PMS_IP,
               'pms_port': plexpy.CONFIG.PMS_PORT,
               'pms_ssl': plexpy.CONFIG.PMS_SSL,
-              'pms_is_remote': plexpy.CONFIG.PMS_IS_REMOTE,
               'pms_is_cloud': plexpy.CONFIG.PMS_IS_CLOUD,
               'pms_url': plexpy.CONFIG.PMS_URL,
               'pms_url_manual': plexpy.CONFIG.PMS_URL_MANUAL,
@@ -52,7 +51,7 @@ def get_server_resources(return_presence=False, return_server=False, return_info
 
     if kwargs:
         server.update(kwargs)
-        for k in ['pms_ssl', 'pms_is_remote', 'pms_is_cloud', 'pms_url_manual']:
+        for k in ['pms_ssl', 'pms_is_cloud', 'pms_url_manual']:
             server[k] = int(server[k])
 
     if server['pms_url_manual'] and server['pms_ssl'] or server['pms_is_cloud']:
@@ -88,30 +87,25 @@ def get_server_resources(return_presence=False, return_server=False, return_info
     # Only need to retrieve PMS_URL if using SSL
     if not server['pms_url_manual'] and server['pms_ssl']:
         if connections:
-            if server['pms_is_remote']:
-                # Get all remote connections
-                conns = [c for c in connections if
-                         c['local'] == '0' and ('plex.direct' in c['uri'] or 'plex.service' in c['uri'])]
-            else:
-                # Get all local connections
-                conns = [c for c in connections if
-                         c['local'] == '1' and ('plex.direct' in c['uri'] or 'plex.service' in c['uri'])]
-
-            if conns:
-                # Get connection with matching address, otherwise return first connection
-                conn = next((c for c in conns if c['address'] == server['pms_ip']
-                             and c['port'] == str(server['pms_port'])), conns[0])
-                server['pms_url'] = conn['uri']
-                logger.info("Tautulli PlexTV :: Server URL retrieved.")
+            # Get connection with matching address, otherwise return first connection
+            connection = next(
+                (c for c in connections if c['address'] == server['pms_ip'] and c['port'] == str(server['pms_port'])),
+                connections[0]
+            )
+            server['pms_url'] = connection['uri']
+            server['pms_is_remote'] = int(connection['local'] == '0')
+            logger.info("Tautulli PlexTV :: Server URL retrieved.")
 
         # get_server_urls() failed or PMS_URL not found, fallback url doesn't use SSL
         if not server['pms_url']:
             server['pms_url'] = fallback_url
+            server['pms_is_remote'] = 0
             logger.warn("Tautulli PlexTV :: Unable to retrieve server URLs. Using user-defined value without SSL.")
 
-        # Not using SSL, remote has no effect
+    # Not using SSL
     else:
         server['pms_url'] = fallback_url
+        server['pms_is_remote'] = 0
         logger.info("Tautulli PlexTV :: Using user-defined URL.")
 
     if return_server:

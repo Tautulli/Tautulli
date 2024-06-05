@@ -175,7 +175,6 @@ class WebInterface(object):
             "pms_identifier": plexpy.CONFIG.PMS_IDENTIFIER,
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_port": plexpy.CONFIG.PMS_PORT,
-            "pms_is_remote": plexpy.CONFIG.PMS_IS_REMOTE,
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
             "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "pms_name": helpers.pms_name(),
@@ -1997,15 +1996,15 @@ class WebInterface(object):
         if 'start_date' in kwargs:
             start_date = helpers.split_strip(kwargs.pop('start_date', ''))
             if start_date:
-                custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime"))', start_date])
+                custom_where.append(["strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime'))", start_date])
         if 'before' in kwargs:
             before = helpers.split_strip(kwargs.pop('before', ''))
             if before:
-                custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime")) <', before])
+                custom_where.append(["strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime')) <", before])
         if 'after' in kwargs:
             after = helpers.split_strip(kwargs.pop('after', ''))
             if after:
-                custom_where.append(['strftime("%Y-%m-%d", datetime(started, "unixepoch", "localtime")) >', after])
+                custom_where.append(["strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime')) >", after])
         if 'reference_id' in kwargs:
             reference_id = helpers.split_strip(kwargs.pop('reference_id', ''))
             if reference_id:
@@ -3247,7 +3246,6 @@ class WebInterface(object):
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
         if kwargs.get('pms_ssl') != str(plexpy.CONFIG.PMS_SSL) or \
-                kwargs.get('pms_is_remote') != str(plexpy.CONFIG.PMS_IS_REMOTE) or \
                 kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL:
             server_changed = True
 
@@ -4060,7 +4058,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, remote=0, manual=0,
+    def get_server_id(self, hostname=None, port=None, identifier=None, ssl=0, manual=0,
                       get_url=False, test_websocket=False, **kwargs):
         """ Get the PMS server identifier.
 
@@ -4115,7 +4113,6 @@ class WebInterface(object):
                 server = self.get_server_resources(pms_ip=hostname,
                                                    pms_port=port,
                                                    pms_ssl=ssl,
-                                                   pms_is_remote=remote,
                                                    pms_url_manual=manual,
                                                    pms_identifier=identifier)
                 result['url'] = server['pms_url']

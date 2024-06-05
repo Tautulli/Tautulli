@@ -767,7 +767,6 @@
                                                     data-identifier="${config['pms_identifier']}"
                                                     data-ip="${config['pms_ip']}"
                                                     data-port="${config['pms_port']}"
-                                                    data-local="${int(not int(config['pms_is_remote']))}"
                                                     data-ssl="${config['pms_ssl']}"
                                                     data-is_cloud="${config['pms_is_cloud']}"
                                                     data-label="${config['pms_name'] or 'Local'}"
@@ -799,13 +798,6 @@
                                 <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
                             </label>
                             <p class="help-block">Connect to your Plex server using HTTPS if you have <a href="${anon_url('https://support.plex.tv/articles/206225077-how-to-use-secure-server-connections')}" target="_blank" rel="noreferrer">secure connections</a> enabled.</p>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" id="pms_is_remote_checkbox" class="checkbox-toggle pms-settings" data-id="pms_is_remote" value="1" ${checked(config['pms_is_remote'])}> Remote Server
-                                <input type="hidden" id="pms_is_remote" name="pms_is_remote" value="${config['pms_is_remote']}">
-                            </label>
-                            <p class="help-block">Check this if your Plex Server is not on the same local network as Tautulli.</p>
                         </div>
                         <div class="form-group">
                             <label for="pms_url">Plex Server URL</label>
@@ -2597,7 +2589,6 @@ $(document).ready(function() {
                 return '<div data-identifier="' + item.clientIdentifier +
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
-                        '" data-local="' + item.local +
                         '" data-ssl="' + item.httpsRequired +
                         '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
@@ -2611,7 +2602,6 @@ $(document).ready(function() {
                 return '<div data-identifier="' + item.clientIdentifier +
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
-                        '" data-local="' + item.local +
                         '" data-ssl="' + item.httpsRequired +
                         '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
@@ -2634,7 +2624,6 @@ $(document).ready(function() {
             var identifier = $(pms_ip_selected).data('identifier');
             var ip = $(pms_ip_selected).data('ip');
             var port = $(pms_ip_selected).data('port');
-            var local = $(pms_ip_selected).data('local');
             var ssl = $(pms_ip_selected).data('ssl');
             var is_cloud = $(pms_ip_selected).data('is_cloud');
             var value = $(pms_ip_selected).data('value');
@@ -2642,8 +2631,6 @@ $(document).ready(function() {
             $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
             $('#pms_ip').val(ip !== 'undefined' ? ip : value);
             $('#pms_port').val(port !== 'undefined' ? port : 32400);
-            $('#pms_is_remote_checkbox').prop('checked', (local !== 'undefined' && local === 0));
-            $('#pms_is_remote').val(local !== 'undefined' && local === 0 ? 1 : 0);
             $('#pms_ssl_checkbox').prop('checked', (ssl !== 'undefined' && ssl === 1));
             $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
             $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
@@ -2681,7 +2668,6 @@ $(document).ready(function() {
         var pms_port = $("#pms_port").val();
         var pms_identifier = $("#pms_identifier").val();
         var pms_ssl = $("#pms_ssl").val();
-        var pms_is_remote = $("#pms_is_remote").val();
         var pms_url_manual = $("#pms_url_manual").is(':checked') ? 1 : 0;
 
         if (($("#pms_ip").val() !== '') || ($("#pms_port").val() !== '')) {
@@ -2693,7 +2679,6 @@ $(document).ready(function() {
                     hostname: pms_ip,
                     port: pms_port,
                     ssl: pms_ssl,
-                    remote: pms_is_remote,
                     manual: pms_url_manual,
                     get_url: true,
                     test_websocket: true
