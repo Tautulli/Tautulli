@@ -237,7 +237,7 @@ EXTRA_TYPES = {
 }
 
 SCHEDULER_LIST = [
-    ('Check GitHub for updates', 'websocket'),
+    ('Check GitHub for updates', 'scheduled'),
     ('Check for server response', 'websocket'),
     ('Check for active sessions', 'websocket'),
     ('Check for recently added items', 'websocket'),

@@ -13,8 +13,6 @@ DOCUMENTATION :: END
     import datetime
     import plexpy
     from plexpy import common, helpers
-
-    scheduled_jobs = [j.id for j in plexpy.SCHED.get_jobs()]
 %>
 
 <table class="config-scheduler-table small-muted">
@@ -29,16 +27,15 @@ DOCUMENTATION :: END
     </thead>
     <tbody>
         % for job, job_type in common.SCHEDULER_LIST.items():
-        % if job in scheduled_jobs:
         <%
             sched_job = plexpy.SCHED.get_job(job)
-            now = datetime.datetime.now(sched_job.next_run_time.tzinfo)
         %>
+        % if sched_job:
         <tr>
             <td>${sched_job.id}</td>
             <td><i class="fa fa-sm fa-fw fa-check"></i> Active</td>
             <td>${helpers.format_timedelta_Hms(sched_job.trigger.interval)}</td>
-            <td>${helpers.format_timedelta_Hms(sched_job.next_run_time - now)}</td>
+            <td>${helpers.format_timedelta_Hms(sched_job.next_run_time - datetime.datetime.now(sched_job.next_run_time.tzinfo))}</td>
             <td>${sched_job.next_run_time.astimezone(plexpy.SYS_TIMEZONE).strftime('%Y-%m-%d %H:%M:%S')}</td>
         </tr>
         % elif job_type == 'websocket' and plexpy.WS_CONNECTED:
