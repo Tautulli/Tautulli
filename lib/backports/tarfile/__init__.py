@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 #-------------------------------------------------------------------
 # tarfile.py
 #-------------------------------------------------------------------
@@ -46,7 +45,6 @@ import time
 import struct
 import copy
 import re
-import warnings
 
 from .compat.py38 import removesuffix
 
@@ -639,6 +637,10 @@ class _FileInFile(object):
     def flush(self):
         pass
 
+    @property
+    def mode(self):
+        return 'rb'
+
     def readable(self):
         return True
 
@@ -875,7 +877,7 @@ class TarInfo(object):
         pax_headers = ('A dictionary containing key-value pairs of an '
                        'associated pax extended header.'),
         sparse = 'Sparse member information.',
-        tarfile = None,
+        _tarfile = None,
         _sparse_structs = None,
         _link_target = None,
         )
@@ -903,6 +905,24 @@ class TarInfo(object):
 
         self.sparse = None      # sparse member information
         self.pax_headers = {}   # pax header information
+
+    @property
+    def tarfile(self):
+        import warnings
+        warnings.warn(
+            'The undocumented "tarfile" attribute of TarInfo objects '
+            + 'is deprecated and will be removed in Python 3.16',
+            DeprecationWarning, stacklevel=2)
+        return self._tarfile
+
+    @tarfile.setter
+    def tarfile(self, tarfile):
+        import warnings
+        warnings.warn(
+            'The undocumented "tarfile" attribute of TarInfo objects '
+            + 'is deprecated and will be removed in Python 3.16',
+            DeprecationWarning, stacklevel=2)
+        self._tarfile = tarfile
 
     @property
     def path(self):
@@ -1198,7 +1218,7 @@ class TarInfo(object):
         for keyword, value in pax_headers.items():
             keyword = keyword.encode("utf-8")
             if binary:
-                # Try to restore the original byte representation of `value'.
+                # Try to restore the original byte representation of 'value'.
                 # Needless to say, that the encoding must match the string.
                 value = value.encode(encoding, "surrogateescape")
             else:
@@ -1643,14 +1663,14 @@ class TarFile(object):
     def __init__(self, name=None, mode="r", fileobj=None, format=None,
             tarinfo=None, dereference=None, ignore_zeros=None, encoding=None,
             errors="surrogateescape", pax_headers=None, debug=None,
-            errorlevel=None, copybufsize=None):
-        """Open an (uncompressed) tar archive `name'. `mode' is either 'r' to
+            errorlevel=None, copybufsize=None, stream=False):
+        """Open an (uncompressed) tar archive 'name'. 'mode' is either 'r' to
            read from an existing archive, 'a' to append data to an existing
-           file or 'w' to create a new file overwriting an existing one. `mode'
+           file or 'w' to create a new file overwriting an existing one. 'mode'
            defaults to 'r'.
-           If `fileobj' is given, it is used for reading or writing data. If it
-           can be determined, `mode' is overridden by `fileobj's mode.
-           `fileobj' is not closed, when TarFile is closed.
+           If 'fileobj' is given, it is used for reading or writing data. If it
+           can be determined, 'mode' is overridden by 'fileobj's mode.
+           'fileobj' is not closed, when TarFile is closed.
         """
         modes = {"r": "rb", "a": "r+b", "w": "wb", "x": "xb"}
         if mode not in modes:
@@ -1674,6 +1694,8 @@ class TarFile(object):
             self._extfileobj = True
         self.name = os.path.abspath(name) if name else None
         self.fileobj = fileobj
+
+        self.stream = stream
 
         # Init attributes.
         if format is not None:
@@ -1977,7 +1999,7 @@ class TarFile(object):
                 self.fileobj.close()
 
     def getmember(self, name):
-        """Return a TarInfo object for member ``name``. If ``name`` can not be
+        """Return a TarInfo object for member 'name'. If 'name' can not be
            found in the archive, KeyError is raised. If a member occurs more
            than once in the archive, its last occurrence is assumed to be the
            most up-to-date version.
@@ -2005,9 +2027,9 @@ class TarFile(object):
 
     def gettarinfo(self, name=None, arcname=None, fileobj=None):
         """Create a TarInfo object from the result of os.stat or equivalent
-           on an existing file. The file is either named by ``name``, or
-           specified as a file object ``fileobj`` with a file descriptor. If
-           given, ``arcname`` specifies an alternative name for the file in the
+           on an existing file. The file is either named by 'name', or
+           specified as a file object 'fileobj' with a file descriptor. If
+           given, 'arcname' specifies an alternative name for the file in the
            archive, otherwise, the name is taken from the 'name' attribute of
            'fileobj', or the 'name' argument. The name should be a text
            string.
@@ -2031,7 +2053,7 @@ class TarFile(object):
         # Now, fill the TarInfo object with
         # information specific for the file.
         tarinfo = self.tarinfo()
-        tarinfo.tarfile = self  # Not needed
+        tarinfo._tarfile = self  # To be removed in 3.16.
 
         # Use os.stat or os.lstat, depending on if symlinks shall be resolved.
         if fileobj is None:
@@ -2103,11 +2125,15 @@ class TarFile(object):
         return tarinfo
 
     def list(self, verbose=True, *, members=None):
-        """Print a table of contents to sys.stdout. If ``verbose`` is False, only
-           the names of the members are printed. If it is True, an `ls -l'-like
-           output is produced. ``members`` is optional and must be a subset of the
+        """Print a table of contents to sys.stdout. If 'verbose' is False, only
+           the names of the members are printed. If it is True, an 'ls -l'-like
+           output is produced. 'members' is optional and must be a subset of the
            list returned by getmembers().
         """
+        # Convert tarinfo type to stat type.
+        type2mode = {REGTYPE: stat.S_IFREG, SYMTYPE: stat.S_IFLNK,
+                     FIFOTYPE: stat.S_IFIFO, CHRTYPE: stat.S_IFCHR,
+                     DIRTYPE: stat.S_IFDIR, BLKTYPE: stat.S_IFBLK}
         self._check()
 
         if members is None:
@@ -2117,7 +2143,8 @@ class TarFile(object):
                 if tarinfo.mode is None:
                     _safe_print("??????????")
                 else:
-                    _safe_print(stat.filemode(tarinfo.mode))
+                    modetype = type2mode.get(tarinfo.type, 0)
+                    _safe_print(stat.filemode(modetype | tarinfo.mode))
                 _safe_print("%s/%s" % (tarinfo.uname or tarinfo.uid,
                                        tarinfo.gname or tarinfo.gid))
                 if tarinfo.ischr() or tarinfo.isblk():
@@ -2141,11 +2168,11 @@ class TarFile(object):
             print()
 
     def add(self, name, arcname=None, recursive=True, *, filter=None):
-        """Add the file ``name`` to the archive. ``name`` may be any type of file
-           (directory, fifo, symbolic link, etc.). If given, ``arcname``
+        """Add the file 'name' to the archive. 'name' may be any type of file
+           (directory, fifo, symbolic link, etc.). If given, 'arcname'
            specifies an alternative name for the file in the archive.
            Directories are added recursively by default. This can be avoided by
-           setting ``recursive`` to False. ``filter`` is a function
+           setting 'recursive' to False. 'filter' is a function
            that expects a TarInfo object argument and returns the changed
            TarInfo object, if it returns None the TarInfo object will be
            excluded from the archive.
@@ -2192,12 +2219,15 @@ class TarFile(object):
             self.addfile(tarinfo)
 
     def addfile(self, tarinfo, fileobj=None):
-        """Add the TarInfo object ``tarinfo`` to the archive. If ``fileobj`` is
-           given, it should be a binary file, and tarinfo.size bytes are read
-           from it and added to the archive. You can create TarInfo objects
-           directly, or by using gettarinfo().
+        """Add the TarInfo object 'tarinfo' to the archive. If 'tarinfo' represents
+           a non zero-size regular file, the 'fileobj' argument should be a binary file,
+           and tarinfo.size bytes are read from it and added to the archive.
+           You can create TarInfo objects directly, or by using gettarinfo().
         """
         self._check("awx")
+
+        if fileobj is None and tarinfo.isreg() and tarinfo.size != 0:
+            raise ValueError("fileobj not provided for non zero-size regular file")
 
         tarinfo = copy.copy(tarinfo)
 
@@ -2220,11 +2250,12 @@ class TarFile(object):
         if filter is None:
             filter = self.extraction_filter
             if filter is None:
+                import warnings
                 warnings.warn(
                     'Python 3.14 will, by default, filter extracted tar '
                     + 'archives and reject files or modify their metadata. '
                     + 'Use the filter argument to control this behavior.',
-                    DeprecationWarning)
+                    DeprecationWarning, stacklevel=3)
                 return fully_trusted_filter
             if isinstance(filter, str):
                 raise TypeError(
@@ -2243,12 +2274,12 @@ class TarFile(object):
                    filter=None):
         """Extract all members from the archive to the current working
            directory and set owner, modification time and permissions on
-           directories afterwards. `path' specifies a different directory
-           to extract to. `members' is optional and must be a subset of the
-           list returned by getmembers(). If `numeric_owner` is True, only
+           directories afterwards. 'path' specifies a different directory
+           to extract to. 'members' is optional and must be a subset of the
+           list returned by getmembers(). If 'numeric_owner' is True, only
            the numbers for user/group names are used and not the names.
 
-           The `filter` function will be called on each member just
+           The 'filter' function will be called on each member just
            before extraction.
            It can return a changed TarInfo or None to skip the member.
            String names of common filters are accepted.
@@ -2288,13 +2319,13 @@ class TarFile(object):
                 filter=None):
         """Extract a member from the archive to the current working directory,
            using its full name. Its file information is extracted as accurately
-           as possible. `member' may be a filename or a TarInfo object. You can
-           specify a different directory using `path'. File attributes (owner,
-           mtime, mode) are set unless `set_attrs' is False. If `numeric_owner`
+           as possible. 'member' may be a filename or a TarInfo object. You can
+           specify a different directory using 'path'. File attributes (owner,
+           mtime, mode) are set unless 'set_attrs' is False. If 'numeric_owner'
            is True, only the numbers for user/group names are used and not
            the names.
 
-           The `filter` function will be called before extraction.
+           The 'filter' function will be called before extraction.
            It can return a changed TarInfo or None to skip the member.
            String names of common filters are accepted.
         """
@@ -2359,10 +2390,10 @@ class TarFile(object):
             self._dbg(1, "tarfile: %s %s" % (type(e).__name__, e))
 
     def extractfile(self, member):
-        """Extract a member from the archive as a file object. ``member`` may be
-           a filename or a TarInfo object. If ``member`` is a regular file or
+        """Extract a member from the archive as a file object. 'member' may be
+           a filename or a TarInfo object. If 'member' is a regular file or
            a link, an io.BufferedReader object is returned. For all other
-           existing members, None is returned. If ``member`` does not appear
+           existing members, None is returned. If 'member' does not appear
            in the archive, KeyError is raised.
         """
         self._check("r")
@@ -2406,7 +2437,7 @@ class TarFile(object):
         if upperdirs and not os.path.exists(upperdirs):
             # Create directories that are not part of the archive with
             # default permissions.
-            os.makedirs(upperdirs)
+            os.makedirs(upperdirs, exist_ok=True)
 
         if tarinfo.islnk() or tarinfo.issym():
             self._dbg(1, "%s -> %s" % (tarinfo.name, tarinfo.linkname))
@@ -2559,7 +2590,8 @@ class TarFile(object):
                     os.lchown(targetpath, u, g)
                 else:
                     os.chown(targetpath, u, g)
-            except OSError as e:
+            except (OSError, OverflowError) as e:
+                # OverflowError can be raised if an ID doesn't fit in 'id_t'
                 raise ExtractError("could not change owner") from e
 
     def chmod(self, tarinfo, targetpath):
@@ -2642,7 +2674,9 @@ class TarFile(object):
             break
 
         if tarinfo is not None:
-            self.members.append(tarinfo)
+            # if streaming the file we do not want to cache the tarinfo
+            if not self.stream:
+                self.members.append(tarinfo)
         else:
             self._loaded = True
 
@@ -2693,11 +2727,12 @@ class TarFile(object):
 
     def _load(self):
         """Read through the entire archive file and look for readable
-           members.
+           members. This should not run if the file is set to stream.
         """
-        while self.next() is not None:
-            pass
-        self._loaded = True
+        if not self.stream:
+            while self.next() is not None:
+                pass
+            self._loaded = True
 
     def _check(self, mode=None):
         """Check if TarFile is still open, and if the operation's mode

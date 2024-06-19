@@ -1,6 +1,4 @@
-"""
-Regression test suite for CherryPy.
-"""
+"""Regression test suite for CherryPy."""
 
 import os
 import sys

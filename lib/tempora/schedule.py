@@ -3,14 +3,24 @@ Classes for calling functions a schedule. Has time zone support.
 
 For example, to run a job at 08:00 every morning in 'Asia/Calcutta':
 
+>>> from tests.compat.py38 import zoneinfo
 >>> job = lambda: print("time is now", datetime.datetime())
->>> time = datetime.time(8, tzinfo=pytz.timezone('Asia/Calcutta'))
+>>> time = datetime.time(8, tzinfo=zoneinfo.ZoneInfo('Asia/Calcutta'))
 >>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
 >>> sched = InvokeScheduler()
 >>> sched.add(cmd)
 >>> while True:  # doctest: +SKIP
 ...     sched.run_pending()
 ...     time.sleep(.1)
+
+By default, the scheduler uses timezone-aware times in UTC. A
+client may override the default behavior by overriding ``now``
+and ``from_timestamp`` functions.
+
+>>> now()
+datetime.datetime(...utc)
+>>> from_timestamp(1718723533.7685602)
+datetime.datetime(...utc)
 """
 
 import datetime
@@ -18,27 +28,7 @@ import numbers
 import abc
 import bisect
 
-import pytz
-
-
-def now():
-    """
-    Provide the current timezone-aware datetime.
-
-    A client may override this function to change the default behavior,
-    such as to use local time or timezone-naïve times.
-    """
-    return datetime.datetime.now(pytz.utc)
-
-
-def from_timestamp(ts):
-    """
-    Convert a numeric timestamp to a timezone-aware datetime.
-
-    A client may override this function to change the default behavior,
-    such as to use local time or timezone-naïve times.
-    """
-    return datetime.datetime.fromtimestamp(ts, pytz.utc)
+from .utc import now, fromtimestamp as from_timestamp
 
 
 class DelayedCommand(datetime.datetime):
@@ -106,18 +96,7 @@ class PeriodicCommand(DelayedCommand):
         """
         Add delay to self, localized
         """
-        return self._localize(self + self.delay)
-
-    @staticmethod
-    def _localize(dt):
-        """
-        Rely on pytz.localize to ensure new result honors DST.
-        """
-        try:
-            tz = dt.tzinfo
-            return tz.localize(dt.replace(tzinfo=None))
-        except AttributeError:
-            return dt
+        return self + self.delay
 
     def next(self):
         cmd = self.__class__.from_datetime(self._next_time())
@@ -127,9 +106,7 @@ class PeriodicCommand(DelayedCommand):
 
     def __setattr__(self, key, value):
         if key == 'delay' and not value > datetime.timedelta():
-            raise ValueError(
-                "A PeriodicCommand must have a positive, " "non-zero delay."
-            )
+            raise ValueError("A PeriodicCommand must have a positive, non-zero delay.")
         super().__setattr__(key, value)
 
 
@@ -172,7 +149,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         when -= daily
         while when < now():
             when += daily
-        return cls.at_time(cls._localize(when), daily, target)
+        return cls.at_time(when, daily, target)
 
 
 class Scheduler:

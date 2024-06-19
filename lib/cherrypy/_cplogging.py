@@ -123,7 +123,6 @@ logfmt = logging.Formatter('%(message)s')
 
 
 class NullHandler(logging.Handler):
-
     """A no-op logging handler to silence the logging.lastResort handler."""
 
     def handle(self, record):
@@ -137,15 +136,16 @@ class NullHandler(logging.Handler):
 
 
 class LogManager(object):
-
     """An object to assist both simple and advanced logging.
 
     ``cherrypy.log`` is an instance of this class.
     """
 
     appid = None
-    """The id() of the Application object which owns this log manager. If this
-    is a global log manager, appid is None."""
+    """The id() of the Application object which owns this log manager.
+
+    If this is a global log manager, appid is None.
+    """
 
     error_log = None
     """The actual :class:`logging.Logger` instance for error messages."""
@@ -317,8 +317,8 @@ class LogManager(object):
     def screen(self):
         """Turn stderr/stdout logging on or off.
 
-        If you set this to True, it'll add the appropriate StreamHandler for
-        you. If you set it to False, it will remove the handler.
+        If you set this to True, it'll add the appropriate StreamHandler
+        for you. If you set it to False, it will remove the handler.
         """
         h = self._get_builtin_handler
         has_h = h(self.error_log, 'screen') or h(self.access_log, 'screen')
@@ -414,7 +414,6 @@ class LogManager(object):
 
 
 class WSGIErrorHandler(logging.Handler):
-
     "A handler class which writes logging records to environ['wsgi.errors']."
 
     def flush(self):
@@ -452,6 +451,8 @@ class WSGIErrorHandler(logging.Handler):
 
 class LazyRfc3339UtcTime(object):
     def __str__(self):
-        """Return utcnow() in RFC3339 UTC Format."""
-        iso_formatted_now = datetime.datetime.utcnow().isoformat('T')
+        """Return datetime in RFC3339 UTC Format."""
+        iso_formatted_now = datetime.datetime.now(
+            datetime.timezone.utc,
+        ).isoformat('T')
         return f'{iso_formatted_now!s}Z'

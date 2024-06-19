@@ -9,7 +9,6 @@ Even before any tweaking, this should serve a few demonstration pages.
 Change to this directory and run:
 
     cherryd -c site.conf
-
 """
 
 import cherrypy

@@ -50,7 +50,8 @@ class Server(ServerAdapter):
     """If given, the name of the UNIX socket to use instead of TCP/IP.
 
     When this option is not None, the `socket_host` and `socket_port` options
-    are ignored."""
+    are ignored.
+    """
 
     socket_queue_size = 5
     """The 'backlog' argument to socket.listen(); specifies the maximum number
@@ -79,17 +80,24 @@ class Server(ServerAdapter):
     """The number of worker threads to start up in the pool."""
 
     thread_pool_max = -1
-    """The maximum size of the worker-thread pool. Use -1 to indicate no limit.
+    """The maximum size of the worker-thread pool.
+
+    Use -1 to indicate no limit.
     """
 
     max_request_header_size = 500 * 1024
     """The maximum number of bytes allowable in the request headers.
-    If exceeded, the HTTP server should return "413 Request Entity Too Large".
+
+    If exceeded, the HTTP server should return "413 Request Entity Too
+    Large".
     """
 
     max_request_body_size = 100 * 1024 * 1024
-    """The maximum number of bytes allowable in the request body. If exceeded,
-    the HTTP server should return "413 Request Entity Too Large"."""
+    """The maximum number of bytes allowable in the request body.
+
+    If exceeded, the HTTP server should return "413 Request Entity Too
+    Large".
+    """
 
     instance = None
     """If not None, this should be an HTTP server instance (such as
@@ -119,7 +127,8 @@ class Server(ServerAdapter):
     the builtin WSGI server. Builtin options are: 'builtin' (to
     use the SSL library built into recent versions of Python).
     You may also register your own classes in the
-    cheroot.server.ssl_adapters dict."""
+    cheroot.server.ssl_adapters dict.
+    """
 
     statistics = False
     """Turns statistics-gathering on or off for aware HTTP servers."""
@@ -129,11 +138,13 @@ class Server(ServerAdapter):
 
     wsgi_version = (1, 0)
     """The WSGI version tuple to use with the builtin WSGI server.
-    The provided options are (1, 0) [which includes support for PEP 3333,
-    which declares it covers WSGI version 1.0.1 but still mandates the
-    wsgi.version (1, 0)] and ('u', 0), an experimental unicode version.
-    You may create and register your own experimental versions of the WSGI
-    protocol by adding custom classes to the cheroot.server.wsgi_gateways dict.
+
+    The provided options are (1, 0) [which includes support for PEP
+    3333, which declares it covers WSGI version 1.0.1 but still mandates
+    the wsgi.version (1, 0)] and ('u', 0), an experimental unicode
+    version. You may create and register your own experimental versions
+    of the WSGI protocol by adding custom classes to the
+    cheroot.server.wsgi_gateways dict.
     """
 
     peercreds = False
@@ -184,7 +195,8 @@ class Server(ServerAdapter):
     def bind_addr(self):
         """Return bind address.
 
-        A (host, port) tuple for TCP sockets or a str for Unix domain sockts.
+        A (host, port) tuple for TCP sockets or a str for Unix domain
+        sockets.
         """
         if self.socket_file:
             return self.socket_file

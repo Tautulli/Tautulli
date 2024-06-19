@@ -9,18 +9,14 @@ class TutorialTest(helper.CPWebCase):
 
     @classmethod
     def setup_server(cls):
-        """
-        Mount something so the engine starts.
-        """
+        """Mount something so the engine starts."""
         class Dummy:
             pass
         cherrypy.tree.mount(Dummy())
 
     @staticmethod
     def load_module(name):
-        """
-        Import or reload tutorial module as needed.
-        """
+        """Import or reload tutorial module as needed."""
         target = 'cherrypy.tutorial.' + name
         if target in sys.modules:
             module = importlib.reload(sys.modules[target])

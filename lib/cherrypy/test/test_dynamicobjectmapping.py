@@ -97,9 +97,7 @@ def setup_server():
     class UserContainerNode(object):
 
         def POST(self, name):
-            """
-            Allow the creation of a new Object
-            """
+            """Allow the creation of a new Object."""
             return 'POST %d' % make_user(name)
 
         def GET(self):
@@ -125,15 +123,11 @@ def setup_server():
                 raise cherrypy.HTTPError(404)
 
         def GET(self, *args, **kwargs):
-            """
-            Return the appropriate representation of the instance.
-            """
+            """Return the appropriate representation of the instance."""
             return str(self.user)
 
         def POST(self, name):
-            """
-            Update the fields of the user instance.
-            """
+            """Update the fields of the user instance."""
             self.user.name = name
             return 'POST %d' % self.user.id
 
@@ -151,9 +145,7 @@ def setup_server():
                 return 'PUT %d' % make_user(name, self.id)
 
         def DELETE(self):
-            """
-            Delete the user specified at the id.
-            """
+            """Delete the user specified at the id."""
             id = self.user.id
             del user_lookup[self.user.id]
             del self.user
@@ -199,7 +191,6 @@ def setup_server():
             return 'IndexOnly index'
 
     class DecoratedPopArgs:
-
         """Test _cp_dispatch with @cherrypy.popargs."""
 
         @cherrypy.expose
@@ -213,7 +204,6 @@ def setup_server():
         'a', 'b', handler=ABHandler())(DecoratedPopArgs)
 
     class NonDecoratedPopArgs:
-
         """Test _cp_dispatch = cherrypy.popargs()"""
 
         _cp_dispatch = cherrypy.popargs('a')
@@ -223,8 +213,7 @@ def setup_server():
             return 'index: ' + str(a)
 
     class ParameterizedHandler:
-
-        """Special handler created for each request"""
+        """Special handler created for each request."""
 
         def __init__(self, a):
             self.a = a
@@ -238,8 +227,7 @@ def setup_server():
             return self.a
 
     class ParameterizedPopArgs:
-
-        """Test cherrypy.popargs() with a function call handler"""
+        """Test cherrypy.popargs() with a function call handler."""
     ParameterizedPopArgs = cherrypy.popargs(
         'a', handler=ParameterizedHandler)(ParameterizedPopArgs)
 

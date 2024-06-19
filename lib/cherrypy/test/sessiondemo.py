@@ -3,6 +3,7 @@
 
 import calendar
 from datetime import datetime
+from datetime import timezone as _timezone
 import sys
 
 import cherrypy
@@ -123,9 +124,12 @@ class Root(object):
             'reqcookie': cherrypy.request.cookie.output(),
             'sessiondata': list(cherrypy.session.items()),
             'servertime': (
-                datetime.utcnow().strftime('%Y/%m/%d %H:%M') + ' UTC'
+                datetime.now(_timezone.utc).strftime('%Y/%m/%d %H:%M UTC')
             ),
-            'serverunixtime': calendar.timegm(datetime.utcnow().timetuple()),
+            'serverunixtime':
+            calendar.timegm(
+                datetime.utcnow(_timezone.utc).timetuple(),
+            ),
             'cpversion': cherrypy.__version__,
             'pyversion': sys.version,
             'expires': expires,

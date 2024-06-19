@@ -4,7 +4,7 @@ import threading
 import time
 from http.client import HTTPConnection
 
-from distutils.spawn import find_executable
+from shutil import which
 import pytest
 from path import Path
 from more_itertools import consume
@@ -146,9 +146,14 @@ class SessionTest(helper.CPWebCase):
     def teardown_class(cls):
         """Clean up sessions."""
         super(cls, cls).teardown_class()
+        try:
+            files_to_clean = localDir.iterdir()  # Python 3.8+
+        except AttributeError:
+            files_to_clean = localDir.listdir()  # Python 3.6-3.7
+
         consume(
             file.remove_p()
-            for file in localDir.listdir()
+            for file in files_to_clean
             if file.basename().startswith(
                 sessions.FileSession.SESSION_PREFIX
             )
@@ -402,7 +407,7 @@ class SessionTest(helper.CPWebCase):
 
 
 def is_memcached_present():
-    executable = find_executable('memcached')
+    executable = which('memcached')
     return bool(executable)
 
 
@@ -418,9 +423,7 @@ def memcached_client_present():
 
 @pytest.fixture(scope='session')
 def memcached_instance(request, watcher_getter, memcached_server_present):
-    """
-    Start up an instance of memcached.
-    """
+    """Start up an instance of memcached."""
 
     port = portend.find_available_local_port()
 

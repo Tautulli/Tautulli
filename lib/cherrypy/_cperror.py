@@ -136,19 +136,17 @@ from cherrypy.lib import httputil as _httputil
 
 
 class CherryPyException(Exception):
-
     """A base class for CherryPy exceptions."""
     pass
 
 
 class InternalRedirect(CherryPyException):
-
     """Exception raised to switch to the handler for a different URL.
 
-    This exception will redirect processing to another path within the site
-    (without informing the client). Provide the new path as an argument when
-    raising the exception. Provide any params in the querystring for the new
-    URL.
+    This exception will redirect processing to another path within the
+    site (without informing the client). Provide the new path as an
+    argument when raising the exception. Provide any params in the
+    querystring for the new URL.
     """
 
     def __init__(self, path, query_string=''):
@@ -173,7 +171,6 @@ class InternalRedirect(CherryPyException):
 
 
 class HTTPRedirect(CherryPyException):
-
     """Exception raised when the request should be redirected.
 
     This exception will force a HTTP redirect to the URL or URL's you give it.
@@ -202,7 +199,7 @@ class HTTPRedirect(CherryPyException):
     """The list of URL's to emit."""
 
     encoding = 'utf-8'
-    """The encoding when passed urls are not native strings"""
+    """The encoding when passed urls are not native strings."""
 
     def __init__(self, urls, status=None, encoding=None):
         self.urls = abs_urls = [
@@ -230,8 +227,7 @@ class HTTPRedirect(CherryPyException):
 
     @classproperty
     def default_status(cls):
-        """
-        The default redirect status for the request.
+        """The default redirect status for the request.
 
         RFC 2616 indicates a 301 response code fits our goal; however,
         browser support for 301 is quite messy. Use 302/303 instead. See
@@ -249,8 +245,9 @@ class HTTPRedirect(CherryPyException):
         """Modify cherrypy.response status, headers, and body to represent
         self.
 
-        CherryPy uses this internally, but you can also use it to create an
-        HTTPRedirect object and set its output without *raising* the exception.
+        CherryPy uses this internally, but you can also use it to create
+        an HTTPRedirect object and set its output without *raising* the
+        exception.
         """
         response = cherrypy.serving.response
         response.status = status = self.status
@@ -339,7 +336,6 @@ def clean_headers(status):
 
 
 class HTTPError(CherryPyException):
-
     """Exception used to return an HTTP error code (4xx-5xx) to the client.
 
     This exception can be used to automatically send a response using a
@@ -358,7 +354,9 @@ class HTTPError(CherryPyException):
     """
 
     status = None
-    """The HTTP status code. May be of type int or str (with a Reason-Phrase).
+    """The HTTP status code.
+
+    May be of type int or str (with a Reason-Phrase).
     """
 
     code = None
@@ -386,8 +384,9 @@ class HTTPError(CherryPyException):
         """Modify cherrypy.response status, headers, and body to represent
         self.
 
-        CherryPy uses this internally, but you can also use it to create an
-        HTTPError object and set its output without *raising* the exception.
+        CherryPy uses this internally, but you can also use it to create
+        an HTTPError object and set its output without *raising* the
+        exception.
         """
         response = cherrypy.serving.response
 
@@ -426,11 +425,10 @@ class HTTPError(CherryPyException):
 
 
 class NotFound(HTTPError):
-
     """Exception raised when a URL could not be mapped to any handler (404).
 
-    This is equivalent to raising
-    :class:`HTTPError("404 Not Found") <cherrypy._cperror.HTTPError>`.
+    This is equivalent to raising :class:`HTTPError("404 Not Found")
+    <cherrypy._cperror.HTTPError>`.
     """
 
     def __init__(self, path=None):
@@ -477,8 +475,8 @@ _HTTPErrorTemplate = '''<!DOCTYPE html PUBLIC
 def get_error_page(status, **kwargs):
     """Return an HTML page, containing a pretty error response.
 
-    status should be an int or a str.
-    kwargs will be interpolated into the page template.
+    status should be an int or a str. kwargs will be interpolated into
+    the page template.
     """
     try:
         code, reason, message = _httputil.valid_status(status)
@@ -595,8 +593,8 @@ def bare_error(extrabody=None):
     """Produce status, headers, body for a critical error.
 
     Returns a triple without calling any other questionable functions,
-    so it should be as error-free as possible. Call it from an HTTP server
-    if you get errors outside of the request.
+    so it should be as error-free as possible. Call it from an HTTP
+    server if you get errors outside of the request.
 
     If extrabody is None, a friendly but rather unhelpful error message
     is set in the body. If extrabody is a string, it will be appended

@@ -42,7 +42,6 @@ from cherrypy.lib import cptools, httputil
 
 
 class Cache(object):
-
     """Base class for Cache implementations."""
 
     def get(self):
@@ -64,17 +63,16 @@ class Cache(object):
 
 # ------------------------------ Memory Cache ------------------------------- #
 class AntiStampedeCache(dict):
-
     """A storage system for cached items which reduces stampede collisions."""
 
     def wait(self, key, timeout=5, debug=False):
         """Return the cached value for the given key, or None.
 
-        If timeout is not None, and the value is already
-        being calculated by another thread, wait until the given timeout has
-        elapsed. If the value is available before the timeout expires, it is
-        returned. If not, None is returned, and a sentinel placed in the cache
-        to signal other threads to wait.
+        If timeout is not None, and the value is already being
+        calculated by another thread, wait until the given timeout has
+        elapsed. If the value is available before the timeout expires,
+        it is returned. If not, None is returned, and a sentinel placed
+        in the cache to signal other threads to wait.
 
         If timeout is None, no waiting is performed nor sentinels used.
         """
@@ -127,7 +125,6 @@ class AntiStampedeCache(dict):
 
 
 class MemoryCache(Cache):
-
     """An in-memory cache for varying response content.
 
     Each key in self.store is a URI, and each value is an AntiStampedeCache.
@@ -381,7 +378,10 @@ def get(invalid_methods=('POST', 'PUT', 'DELETE'), debug=False, **kwargs):
 
 
 def tee_output():
-    """Tee response output to cache storage. Internal."""
+    """Tee response output to cache storage.
+
+    Internal.
+    """
     # Used by CachingTool by attaching to request.hooks
 
     request = cherrypy.serving.request
@@ -441,7 +441,6 @@ def expires(secs=0, force=False, debug=False):
             * Expires
 
         If any are already present, none of the above response headers are set.
-
     """
 
     response = cherrypy.serving.response

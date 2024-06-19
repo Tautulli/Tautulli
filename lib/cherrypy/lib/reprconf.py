@@ -27,18 +27,17 @@ from cherrypy._cpcompat import text_or_bytes
 
 
 class NamespaceSet(dict):
-
     """A dict of config namespace names and handlers.
 
-    Each config entry should begin with a namespace name; the corresponding
-    namespace handler will be called once for each config entry in that
-    namespace, and will be passed two arguments: the config key (with the
-    namespace removed) and the config value.
+    Each config entry should begin with a namespace name; the
+    corresponding namespace handler will be called once for each config
+    entry in that namespace, and will be passed two arguments: the
+    config key (with the namespace removed) and the config value.
 
     Namespace handlers may be any Python callable; they may also be
-    context managers, in which case their __enter__
-    method should return a callable to be used as the handler.
-    See cherrypy.tools (the Toolbox class) for an example.
+    context managers, in which case their __enter__ method should return
+    a callable to be used as the handler. See cherrypy.tools (the
+    Toolbox class) for an example.
     """
 
     def __call__(self, config):
@@ -48,9 +47,10 @@ class NamespaceSet(dict):
             A flat dict, where keys use dots to separate
             namespaces, and values are arbitrary.
 
-        The first name in each config key is used to look up the corresponding
-        namespace handler. For example, a config entry of {'tools.gzip.on': v}
-        will call the 'tools' namespace handler with the args: ('gzip.on', v)
+        The first name in each config key is used to look up the
+        corresponding namespace handler. For example, a config entry of
+        {'tools.gzip.on': v} will call the 'tools' namespace handler
+        with the args: ('gzip.on', v)
         """
         # Separate the given config into namespaces
         ns_confs = {}
@@ -103,7 +103,6 @@ class NamespaceSet(dict):
 
 
 class Config(dict):
-
     """A dict-like set of configuration data, with defaults and namespaces.
 
     May take a file, filename, or dict.
@@ -167,7 +166,7 @@ class Parser(configparser.ConfigParser):
                 self._read(fp, filename)
 
     def as_dict(self, raw=False, vars=None):
-        """Convert an INI file to a dictionary"""
+        """Convert an INI file to a dictionary."""
         # Load INI file into a dict
         result = {}
         for section in self.sections():

@@ -16,9 +16,7 @@ from cherrypy.test import helper
 
 
 def is_ascii(text):
-    """
-    Return True if the text encodes as ascii.
-    """
+    """Return True if the text encodes as ascii."""
     try:
         text.encode('ascii')
         return True
@@ -28,9 +26,9 @@ def is_ascii(text):
 
 
 def encode_filename(filename):
-    """
-    Given a filename to be used in a multipart/form-data,
-    encode the name. Return the key and encoded filename.
+    """Given a filename to be used in a multipart/form-data, encode the name.
+
+    Return the key and encoded filename.
     """
     if is_ascii(filename):
         return 'filename', '"{filename}"'.format(**locals())
@@ -114,7 +112,7 @@ class HTTPTests(helper.CPWebCase):
 
             @cherrypy.expose
             def post_filename(self, myfile):
-                '''Return the name of the file which was uploaded.'''
+                """Return the name of the file which was uploaded."""
                 return myfile.filename
 
         cherrypy.tree.mount(Root())
