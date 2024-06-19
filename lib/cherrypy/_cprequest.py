@@ -16,7 +16,6 @@ from cherrypy.lib import httputil, reprconf, encoding
 
 
 class Hook(object):
-
     """A callback and its metadata: failsafe, priority, and kwargs."""
 
     callback = None
@@ -30,10 +29,12 @@ class Hook(object):
     from the same call point raise exceptions."""
 
     priority = 50
+    """Defines the order of execution for a list of Hooks.
+
+    Priority numbers should be limited to the closed interval [0, 100],
+    but values outside this range are acceptable, as are fractional
+    values.
     """
-    Defines the order of execution for a list of Hooks. Priority numbers
-    should be limited to the closed interval [0, 100], but values outside
-    this range are acceptable, as are fractional values."""
 
     kwargs = {}
     """
@@ -74,7 +75,6 @@ class Hook(object):
 
 
 class HookMap(dict):
-
     """A map of call points to lists of callbacks (Hook objects)."""
 
     def __new__(cls, points=None):
@@ -190,23 +190,23 @@ hookpoints = ['on_start_resource', 'before_request_body',
 
 
 class Request(object):
-
     """An HTTP request.
 
-    This object represents the metadata of an HTTP request message;
-    that is, it contains attributes which describe the environment
-    in which the request URL, headers, and body were sent (if you
-    want tools to interpret the headers and body, those are elsewhere,
-    mostly in Tools). This 'metadata' consists of socket data,
-    transport characteristics, and the Request-Line. This object
-    also contains data regarding the configuration in effect for
-    the given URL, and the execution plan for generating a response.
+    This object represents the metadata of an HTTP request message; that
+    is, it contains attributes which describe the environment in which
+    the request URL, headers, and body were sent (if you want tools to
+    interpret the headers and body, those are elsewhere, mostly in
+    Tools). This 'metadata' consists of socket data, transport
+    characteristics, and the Request-Line. This object also contains
+    data regarding the configuration in effect for the given URL, and
+    the execution plan for generating a response.
     """
 
     prev = None
+    """The previous Request object (if any).
+
+    This should be None unless we are processing an InternalRedirect.
     """
-    The previous Request object (if any). This should be None
-    unless we are processing an InternalRedirect."""
 
     # Conversation/connection attributes
     local = httputil.Host('127.0.0.1', 80)
@@ -216,9 +216,10 @@ class Request(object):
     'An httputil.Host(ip, port, hostname) object for the client socket.'
 
     scheme = 'http'
+    """The protocol used between client and server.
+
+    In most cases, this will be either 'http' or 'https'.
     """
-    The protocol used between client and server. In most cases,
-    this will be either 'http' or 'https'."""
 
     server_protocol = 'HTTP/1.1'
     """
@@ -227,25 +228,30 @@ class Request(object):
 
     base = ''
     """The (scheme://host) portion of the requested URL.
+
     In some cases (e.g. when proxying via mod_rewrite), this may contain
     path segments which cherrypy.url uses when constructing url's, but
-    which otherwise are ignored by CherryPy. Regardless, this value
-    MUST NOT end in a slash."""
+    which otherwise are ignored by CherryPy. Regardless, this value MUST
+    NOT end in a slash.
+    """
 
     # Request-Line attributes
     request_line = ''
+    """The complete Request-Line received from the client.
+
+    This is a single string consisting of the request method, URI, and
+    protocol version (joined by spaces). Any final CRLF is removed.
     """
-    The complete Request-Line received from the client. This is a
-    single string consisting of the request method, URI, and protocol
-    version (joined by spaces). Any final CRLF is removed."""
 
     method = 'GET'
+    """Indicates the HTTP method to be performed on the resource identified by
+    the Request-URI.
+
+    Common methods include GET, HEAD, POST, PUT, and DELETE. CherryPy
+    allows any extension method; however, various HTTP servers and
+    gateways may restrict the set of allowable methods. CherryPy
+    applications SHOULD restrict the set (on a per-URI basis).
     """
-    Indicates the HTTP method to be performed on the resource identified
-    by the Request-URI. Common methods include GET, HEAD, POST, PUT, and
-    DELETE. CherryPy allows any extension method; however, various HTTP
-    servers and gateways may restrict the set of allowable methods.
-    CherryPy applications SHOULD restrict the set (on a per-URI basis)."""
 
     query_string = ''
     """
@@ -277,22 +283,26 @@ class Request(object):
     A dict which combines query string (GET) and request entity (POST)
     variables. This is populated in two stages: GET params are added
     before the 'on_start_resource' hook, and POST params are added
-    between the 'before_request_body' and 'before_handler' hooks."""
+    between the 'before_request_body' and 'before_handler' hooks.
+    """
 
     # Message attributes
     header_list = []
+    """A list of the HTTP request headers as (name, value) tuples.
+
+    In general, you should use request.headers (a dict) instead.
     """
-    A list of the HTTP request headers as (name, value) tuples.
-    In general, you should use request.headers (a dict) instead."""
 
     headers = httputil.HeaderMap()
-    """
-    A dict-like object containing the request headers. Keys are header
+    """A dict-like object containing the request headers.
+
+    Keys are header
     names (in Title-Case format); however, you may get and set them in
     a case-insensitive manner. That is, headers['Content-Type'] and
     headers['content-type'] refer to the same value. Values are header
     values (decoded according to :rfc:`2047` if necessary). See also:
-    httputil.HeaderMap, httputil.HeaderElement."""
+    httputil.HeaderMap, httputil.HeaderElement.
+    """
 
     cookie = SimpleCookie()
     """See help(Cookie)."""
@@ -336,7 +346,8 @@ class Request(object):
     or multipart, this will be None. Otherwise, this will be an instance
     of :class:`RequestBody<cherrypy._cpreqbody.RequestBody>` (which you
     can .read()); this value is set between the 'before_request_body' and
-    'before_handler' hooks (assuming that process_request_body is True)."""
+    'before_handler' hooks (assuming that process_request_body is True).
+    """
 
     # Dispatch attributes
     dispatch = cherrypy.dispatch.Dispatcher()
@@ -347,23 +358,24 @@ class Request(object):
     calls the dispatcher as early as possible, passing it a 'path_info'
     argument.
 
-    The default dispatcher discovers the page handler by matching path_info
-    to a hierarchical arrangement of objects, starting at request.app.root.
-    See help(cherrypy.dispatch) for more information."""
+    The default dispatcher discovers the page handler by matching
+    path_info to a hierarchical arrangement of objects, starting at
+    request.app.root. See help(cherrypy.dispatch) for more information.
+    """
 
     script_name = ''
-    """
-    The 'mount point' of the application which is handling this request.
+    """The 'mount point' of the application which is handling this request.
 
     This attribute MUST NOT end in a slash. If the script_name refers to
     the root of the URI, it MUST be an empty string (not "/").
     """
 
     path_info = '/'
+    """The 'relative path' portion of the Request-URI.
+
+    This is relative to the script_name ('mount point') of the
+    application which is handling this request.
     """
-    The 'relative path' portion of the Request-URI. This is relative
-    to the script_name ('mount point') of the application which is
-    handling this request."""
 
     login = None
     """
@@ -391,14 +403,16 @@ class Request(object):
     of the form: {Toolbox.namespace: {Tool.name: config dict}}."""
 
     config = None
+    """A flat dict of all configuration entries which apply to the current
+    request.
+
+    These entries are collected from global config, application config
+    (based on request.path_info), and from handler config (exactly how
+    is governed by the request.dispatch object in effect for this
+    request; by default, handler config can be attached anywhere in the
+    tree between request.app.root and the final handler, and inherits
+    downward).
     """
-    A flat dict of all configuration entries which apply to the
-    current request. These entries are collected from global config,
-    application config (based on request.path_info), and from handler
-    config (exactly how is governed by the request.dispatch object in
-    effect for this request; by default, handler config can be attached
-    anywhere in the tree between request.app.root and the final handler,
-    and inherits downward)."""
 
     is_index = None
     """
@@ -409,13 +423,14 @@ class Request(object):
     the trailing slash. See cherrypy.tools.trailing_slash."""
 
     hooks = HookMap(hookpoints)
-    """
-    A HookMap (dict-like object) of the form: {hookpoint: [hook, ...]}.
+    """A HookMap (dict-like object) of the form: {hookpoint: [hook, ...]}.
+
     Each key is a str naming the hook point, and each value is a list
     of hooks which will be called at that hook point during this request.
     The list of hooks is generally populated as early as possible (mostly
     from Tools specified in config), but may be extended at any time.
-    See also: _cprequest.Hook, _cprequest.HookMap, and cherrypy.tools."""
+    See also: _cprequest.Hook, _cprequest.HookMap, and cherrypy.tools.
+    """
 
     error_response = cherrypy.HTTPError(500).set_response
     """
@@ -428,12 +443,11 @@ class Request(object):
     error response to the user-agent."""
 
     error_page = {}
-    """
-    A dict of {error code: response filename or callable} pairs.
+    """A dict of {error code: response filename or callable} pairs.
 
     The error code must be an int representing a given HTTP error code,
-    or the string 'default', which will be used if no matching entry
-    is found for a given numeric code.
+    or the string 'default', which will be used if no matching entry is
+    found for a given numeric code.
 
     If a filename is provided, the file should contain a Python string-
     formatting template, and can expect by default to receive format
@@ -447,8 +461,8 @@ class Request(object):
     iterable of strings which will be set to response.body. It may also
     override headers or perform any other processing.
 
-    If no entry is given for an error code, and no 'default' entry exists,
-    a default template will be used.
+    If no entry is given for an error code, and no 'default' entry
+    exists, a default template will be used.
     """
 
     show_tracebacks = True
@@ -473,9 +487,10 @@ class Request(object):
     """True once the close method has been called, False otherwise."""
 
     stage = None
+    """A string containing the stage reached in the request-handling process.
+
+    This is useful when debugging a live server with hung requests.
     """
-    A string containing the stage reached in the request-handling process.
-    This is useful when debugging a live server with hung requests."""
 
     unique_id = None
     """A lazy object generating and memorizing UUID4 on ``str()`` render."""
@@ -492,9 +507,10 @@ class Request(object):
                  server_protocol='HTTP/1.1'):
         """Populate a new Request object.
 
-        local_host should be an httputil.Host object with the server info.
-        remote_host should be an httputil.Host object with the client info.
-        scheme should be a string, either "http" or "https".
+        local_host should be an httputil.Host object with the server
+        info. remote_host should be an httputil.Host object with the
+        client info. scheme should be a string, either "http" or
+        "https".
         """
         self.local = local_host
         self.remote = remote_host
@@ -514,7 +530,10 @@ class Request(object):
         self.unique_id = LazyUUID4()
 
     def close(self):
-        """Run cleanup code. (Core)"""
+        """Run cleanup code.
+
+        (Core)
+        """
         if not self.closed:
             self.closed = True
             self.stage = 'on_end_request'
@@ -551,7 +570,6 @@ class Request(object):
 
         Consumer code (HTTP servers) should then access these response
         attributes to build the outbound stream.
-
         """
         response = cherrypy.serving.response
         self.stage = 'run'
@@ -631,7 +649,10 @@ class Request(object):
         return response
 
     def respond(self, path_info):
-        """Generate a response for the resource at self.path_info. (Core)"""
+        """Generate a response for the resource at self.path_info.
+
+        (Core)
+        """
         try:
             try:
                 try:
@@ -702,7 +723,10 @@ class Request(object):
         response.finalize()
 
     def process_query_string(self):
-        """Parse the query string into Python structures. (Core)"""
+        """Parse the query string into Python structures.
+
+        (Core)
+        """
         try:
             p = httputil.parse_query_string(
                 self.query_string, encoding=self.query_string_encoding)
@@ -715,7 +739,10 @@ class Request(object):
         self.params.update(p)
 
     def process_headers(self):
-        """Parse HTTP header data into Python structures. (Core)"""
+        """Parse HTTP header data into Python structures.
+
+        (Core)
+        """
         # Process the headers into self.headers
         headers = self.headers
         for name, value in self.header_list:
@@ -751,7 +778,10 @@ class Request(object):
         self.base = '%s://%s' % (self.scheme, host)
 
     def get_resource(self, path):
-        """Call a dispatcher (which sets self.handler and .config). (Core)"""
+        """Call a dispatcher (which sets self.handler and .config).
+
+        (Core)
+        """
         # First, see if there is a custom dispatch at this URI. Custom
         # dispatchers can only be specified in app.config, not in _cp_config
         # (since custom dispatchers may not even have an app.root).
@@ -762,7 +792,10 @@ class Request(object):
         dispatch(path)
 
     def handle_error(self):
-        """Handle the last unanticipated exception. (Core)"""
+        """Handle the last unanticipated exception.
+
+        (Core)
+        """
         try:
             self.hooks.run('before_error_response')
             if self.error_response:
@@ -776,7 +809,6 @@ class Request(object):
 
 
 class ResponseBody(object):
-
     """The body of the HTTP response (the response entity)."""
 
     unicode_err = ('Page handlers MUST return bytes. Use tools.encode '
@@ -802,18 +834,18 @@ class ResponseBody(object):
 
 
 class Response(object):
-
     """An HTTP Response, including status, headers, and body."""
 
     status = ''
     """The HTTP Status-Code and Reason-Phrase."""
 
     header_list = []
-    """
-    A list of the HTTP response headers as (name, value) tuples.
+    """A list of the HTTP response headers as (name, value) tuples.
+
     In general, you should use response.headers (a dict) instead. This
     attribute is generated from response.headers and is not valid until
-    after the finalize phase."""
+    after the finalize phase.
+    """
 
     headers = httputil.HeaderMap()
     """
@@ -833,7 +865,10 @@ class Response(object):
     """The body (entity) of the HTTP response."""
 
     time = None
-    """The value of time.time() when created. Use in HTTP dates."""
+    """The value of time.time() when created.
+
+    Use in HTTP dates.
+    """
 
     stream = False
     """If False, buffer the response body."""
@@ -861,15 +896,15 @@ class Response(object):
         return new_body
 
     def _flush_body(self):
-        """
-        Discard self.body but consume any generator such that
-        any finalization can occur, such as is required by
-        caching.tee_output().
-        """
+        """Discard self.body but consume any generator such that any
+        finalization can occur, such as is required by caching.tee_output()."""
         consume(iter(self.body))
 
     def finalize(self):
-        """Transform headers (and cookies) into self.header_list. (Core)"""
+        """Transform headers (and cookies) into self.header_list.
+
+        (Core)
+        """
         try:
             code, reason, _ = httputil.valid_status(self.status)
         except ValueError:

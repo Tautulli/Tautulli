@@ -31,7 +31,6 @@ _module__file__base = os.getcwd()
 
 
 class SimplePlugin(object):
-
     """Plugin base class which auto-subscribes methods for known channels."""
 
     bus = None
@@ -59,7 +58,6 @@ class SimplePlugin(object):
 
 
 class SignalHandler(object):
-
     """Register bus channels (and listeners) for system signals.
 
     You can modify what signals your application listens for, and what it does
@@ -171,8 +169,8 @@ class SignalHandler(object):
         If the optional 'listener' argument is provided, it will be
         subscribed as a listener for the given signal's channel.
 
-        If the given signal name or number is not available on the current
-        platform, ValueError is raised.
+        If the given signal name or number is not available on the
+        current platform, ValueError is raised.
         """
         if isinstance(signal, text_or_bytes):
             signum = getattr(_signal, signal, None)
@@ -218,11 +216,10 @@ except ImportError:
 
 
 class DropPrivileges(SimplePlugin):
-
     """Drop privileges. uid/gid arguments not available on Windows.
 
     Special thanks to `Gavin Baker
-    <http://antonym.org/2005/12/dropping-privileges-in-python.html>`_
+    <http://antonym.org/2005/12/dropping-privileges-in-python.html>`_.
     """
 
     def __init__(self, bus, umask=None, uid=None, gid=None):
@@ -234,7 +231,10 @@ class DropPrivileges(SimplePlugin):
 
     @property
     def uid(self):
-        """The uid under which to run. Availability: Unix."""
+        """The uid under which to run.
+
+        Availability: Unix.
+        """
         return self._uid
 
     @uid.setter
@@ -250,7 +250,10 @@ class DropPrivileges(SimplePlugin):
 
     @property
     def gid(self):
-        """The gid under which to run. Availability: Unix."""
+        """The gid under which to run.
+
+        Availability: Unix.
+        """
         return self._gid
 
     @gid.setter
@@ -332,7 +335,6 @@ class DropPrivileges(SimplePlugin):
 
 
 class Daemonizer(SimplePlugin):
-
     """Daemonize the running script.
 
     Use this with a Web Site Process Bus via::
@@ -423,7 +425,6 @@ class Daemonizer(SimplePlugin):
 
 
 class PIDFile(SimplePlugin):
-
     """Maintain a PID file via a WSPBus."""
 
     def __init__(self, bus, pidfile):
@@ -453,12 +454,11 @@ class PIDFile(SimplePlugin):
 
 
 class PerpetualTimer(threading.Timer):
-
     """A responsive subclass of threading.Timer whose run() method repeats.
 
     Use this timer only when you really need a very interruptible timer;
-    this checks its 'finished' condition up to 20 times a second, which can
-    results in pretty high CPU usage
+    this checks its 'finished' condition up to 20 times a second, which
+    can results in pretty high CPU usage
     """
 
     def __init__(self, *args, **kwargs):
@@ -483,14 +483,14 @@ class PerpetualTimer(threading.Timer):
 
 
 class BackgroundTask(threading.Thread):
-
     """A subclass of threading.Thread whose run() method repeats.
 
-    Use this class for most repeating tasks. It uses time.sleep() to wait
-    for each interval, which isn't very responsive; that is, even if you call
-    self.cancel(), you'll have to wait until the sleep() call finishes before
-    the thread stops. To compensate, it defaults to being daemonic, which means
-    it won't delay stopping the whole process.
+    Use this class for most repeating tasks. It uses time.sleep() to
+    wait for each interval, which isn't very responsive; that is, even
+    if you call self.cancel(), you'll have to wait until the sleep()
+    call finishes before the thread stops. To compensate, it defaults to
+    being daemonic, which means it won't delay stopping the whole
+    process.
     """
 
     def __init__(self, interval, function, args=[], kwargs={}, bus=None):
@@ -525,7 +525,6 @@ class BackgroundTask(threading.Thread):
 
 
 class Monitor(SimplePlugin):
-
     """WSPBus listener to periodically run a callback in its own thread."""
 
     callback = None
@@ -582,7 +581,6 @@ class Monitor(SimplePlugin):
 
 
 class Autoreloader(Monitor):
-
     """Monitor which re-executes the process when files change.
 
     This :ref:`plugin<plugins>` restarts the process (via :func:`os.execv`)
@@ -699,20 +697,20 @@ class Autoreloader(Monitor):
 
 
 class ThreadManager(SimplePlugin):
-
     """Manager for HTTP request threads.
 
     If you have control over thread creation and destruction, publish to
-    the 'acquire_thread' and 'release_thread' channels (for each thread).
-    This will register/unregister the current thread and publish to
-    'start_thread' and 'stop_thread' listeners in the bus as needed.
+    the 'acquire_thread' and 'release_thread' channels (for each
+    thread). This will register/unregister the current thread and
+    publish to 'start_thread' and 'stop_thread' listeners in the bus as
+    needed.
 
     If threads are created and destroyed by code you do not control
     (e.g., Apache), then, at the beginning of every HTTP request,
     publish to 'acquire_thread' only. You should not publish to
-    'release_thread' in this case, since you do not know whether
-    the thread will be re-used or not. The bus will call
-    'stop_thread' listeners for you when it stops.
+    'release_thread' in this case, since you do not know whether the
+    thread will be re-used or not. The bus will call 'stop_thread'
+    listeners for you when it stops.
     """
 
     threads = None

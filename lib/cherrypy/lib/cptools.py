@@ -94,8 +94,8 @@ def validate_etags(autotags=False, debug=False):
 def validate_since():
     """Validate the current Last-Modified against If-Modified-Since headers.
 
-    If no code has set the Last-Modified response header, then no validation
-    will be performed.
+    If no code has set the Last-Modified response header, then no
+    validation will be performed.
     """
     response = cherrypy.serving.response
     lastmod = response.headers.get('Last-Modified')
@@ -123,9 +123,9 @@ def validate_since():
 def allow(methods=None, debug=False):
     """Raise 405 if request.method not in methods (default ['GET', 'HEAD']).
 
-    The given methods are case-insensitive, and may be in any order.
-    If only one method is allowed, you may supply a single string;
-    if more than one, supply a list of strings.
+    The given methods are case-insensitive, and may be in any order. If
+    only one method is allowed, you may supply a single string; if more
+    than one, supply a list of strings.
 
     Regardless of whether the current method is allowed or not, this
     also emits an 'Allow' response header, containing the given methods.
@@ -154,22 +154,23 @@ def proxy(base=None, local='X-Forwarded-Host', remote='X-Forwarded-For',
           scheme='X-Forwarded-Proto', debug=False):
     """Change the base URL (scheme://host[:port][/path]).
 
-    For running a CP server behind Apache, lighttpd, or other HTTP server.
+    For running a CP server behind Apache, lighttpd, or other HTTP
+    server.
 
-    For Apache and lighttpd, you should leave the 'local' argument at the
-    default value of 'X-Forwarded-Host'. For Squid, you probably want to set
-    tools.proxy.local = 'Origin'.
+    For Apache and lighttpd, you should leave the 'local' argument at
+    the default value of 'X-Forwarded-Host'. For Squid, you probably
+    want to set tools.proxy.local = 'Origin'.
 
-    If you want the new request.base to include path info (not just the host),
-    you must explicitly set base to the full base path, and ALSO set 'local'
-    to '', so that the X-Forwarded-Host request header (which never includes
-    path info) does not override it. Regardless, the value for 'base' MUST
-    NOT end in a slash.
+    If you want the new request.base to include path info (not just the
+    host), you must explicitly set base to the full base path, and ALSO
+    set 'local' to '', so that the X-Forwarded-Host request header
+    (which never includes path info) does not override it. Regardless,
+    the value for 'base' MUST NOT end in a slash.
 
     cherrypy.request.remote.ip (the IP address of the client) will be
-    rewritten if the header specified by the 'remote' arg is valid.
-    By default, 'remote' is set to 'X-Forwarded-For'. If you do not
-    want to rewrite remote.ip, set the 'remote' arg to an empty string.
+    rewritten if the header specified by the 'remote' arg is valid. By
+    default, 'remote' is set to 'X-Forwarded-For'. If you do not want to
+    rewrite remote.ip, set the 'remote' arg to an empty string.
     """
 
     request = cherrypy.serving.request
@@ -217,8 +218,8 @@ def proxy(base=None, local='X-Forwarded-Host', remote='X-Forwarded-For',
 def ignore_headers(headers=('Range',), debug=False):
     """Delete request headers whose field names are included in 'headers'.
 
-    This is a useful tool for working behind certain HTTP servers;
-    for example, Apache duplicates the work that CP does for 'Range'
+    This is a useful tool for working behind certain HTTP servers; for
+    example, Apache duplicates the work that CP does for 'Range'
     headers, and will doubly-truncate the response.
     """
     request = cherrypy.serving.request
@@ -281,7 +282,6 @@ def referer(pattern, accept=True, accept_missing=False, error=403,
 
 
 class SessionAuth(object):
-
     """Assert that the user is logged in."""
 
     session_key = 'username'
@@ -319,7 +319,10 @@ Message: %(error_msg)s
 </body></html>""") % vars()).encode('utf-8')
 
     def do_login(self, username, password, from_page='..', **kwargs):
-        """Login. May raise redirect, or return True if request handled."""
+        """Login.
+
+        May raise redirect, or return True if request handled.
+        """
         response = cherrypy.serving.response
         error_msg = self.check_username_and_password(username, password)
         if error_msg:
@@ -336,7 +339,10 @@ Message: %(error_msg)s
             raise cherrypy.HTTPRedirect(from_page or '/')
 
     def do_logout(self, from_page='..', **kwargs):
-        """Logout. May raise redirect, or return True if request handled."""
+        """Logout.
+
+        May raise redirect, or return True if request handled.
+        """
         sess = cherrypy.session
         username = sess.get(self.session_key)
         sess[self.session_key] = None
@@ -346,7 +352,9 @@ Message: %(error_msg)s
         raise cherrypy.HTTPRedirect(from_page)
 
     def do_check(self):
-        """Assert username. Raise redirect, or return True if request handled.
+        """Assert username.
+
+        Raise redirect, or return True if request handled.
         """
         sess = cherrypy.session
         request = cherrypy.serving.request
@@ -408,8 +416,7 @@ def session_auth(**kwargs):
 
     Any attribute of the SessionAuth class may be overridden
     via a keyword arg to this function:
-
-    """ + '\n    '.join(
+    """ + '\n' + '\n    '.join(
         '{!s}: {!s}'.format(k, type(getattr(SessionAuth, k)).__name__)
         for k in dir(SessionAuth)
         if not k.startswith('__')
@@ -490,8 +497,8 @@ def trailing_slash(missing=True, extra=False, status=None, debug=False):
 def flatten(debug=False):
     """Wrap response.body in a generator that recursively iterates over body.
 
-    This allows cherrypy.response.body to consist of 'nested generators';
-    that is, a set of generators that yield generators.
+    This allows cherrypy.response.body to consist of 'nested
+    generators'; that is, a set of generators that yield generators.
     """
     def flattener(input):
         numchunks = 0

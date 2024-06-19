@@ -1,4 +1,4 @@
-"""logtest, a unittest.TestCase helper for testing log output."""
+"""Logtest, a unittest.TestCase helper for testing log output."""
 
 import sys
 import time
@@ -32,7 +32,6 @@ except ImportError:
 
 
 class LogCase(object):
-
     """unittest.TestCase mixin for testing log messages.
 
     logfile: a filename for the desired log. Yes, I know modes are evil,
@@ -116,7 +115,8 @@ class LogCase(object):
         """Return lines from self.logfile in the marked region.
 
         If marker is None, self.lastmarker is used. If the log hasn't
-        been marked (using self.markLog), the entire log will be returned.
+        been marked (using self.markLog), the entire log will be
+        returned.
         """
 # Give the logger time to finish writing?
 # time.sleep(0.5)
@@ -146,9 +146,10 @@ class LogCase(object):
     def assertInLog(self, line, marker=None):
         """Fail if the given (partial) line is not in the log.
 
-        The log will be searched from the given marker to the next marker.
-        If marker is None, self.lastmarker is used. If the log hasn't
-        been marked (using self.markLog), the entire log will be searched.
+        The log will be searched from the given marker to the next
+        marker. If marker is None, self.lastmarker is used. If the log
+        hasn't been marked (using self.markLog), the entire log will be
+        searched.
         """
         data = self._read_marked_region(marker)
         for logline in data:
@@ -160,9 +161,10 @@ class LogCase(object):
     def assertNotInLog(self, line, marker=None):
         """Fail if the given (partial) line is in the log.
 
-        The log will be searched from the given marker to the next marker.
-        If marker is None, self.lastmarker is used. If the log hasn't
-        been marked (using self.markLog), the entire log will be searched.
+        The log will be searched from the given marker to the next
+        marker. If marker is None, self.lastmarker is used. If the log
+        hasn't been marked (using self.markLog), the entire log will be
+        searched.
         """
         data = self._read_marked_region(marker)
         for logline in data:
@@ -173,9 +175,10 @@ class LogCase(object):
     def assertValidUUIDv4(self, marker=None):
         """Fail if the given UUIDv4 is not valid.
 
-        The log will be searched from the given marker to the next marker.
-        If marker is None, self.lastmarker is used. If the log hasn't
-        been marked (using self.markLog), the entire log will be searched.
+        The log will be searched from the given marker to the next
+        marker. If marker is None, self.lastmarker is used. If the log
+        hasn't been marked (using self.markLog), the entire log will be
+        searched.
         """
         data = self._read_marked_region(marker)
         data = [
@@ -200,9 +203,10 @@ class LogCase(object):
     def assertLog(self, sliceargs, lines, marker=None):
         """Fail if log.readlines()[sliceargs] is not contained in 'lines'.
 
-        The log will be searched from the given marker to the next marker.
-        If marker is None, self.lastmarker is used. If the log hasn't
-        been marked (using self.markLog), the entire log will be searched.
+        The log will be searched from the given marker to the next
+        marker. If marker is None, self.lastmarker is used. If the log
+        hasn't been marked (using self.markLog), the entire log will be
+        searched.
         """
         data = self._read_marked_region(marker)
         if isinstance(sliceargs, int):

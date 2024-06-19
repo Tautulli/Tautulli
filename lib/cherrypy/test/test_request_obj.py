@@ -275,7 +275,6 @@ class RequestObjectTests(helper.CPWebCase):
                 return 'success'
 
         class Divorce(Test):
-
             """HTTP Method handlers shouldn't collide with normal method names.
             For example, a GET-handler shouldn't collide with a method named
             'get'.
@@ -757,8 +756,8 @@ class RequestObjectTests(helper.CPWebCase):
         self.assertBody('application/json')
 
     def test_dangerous_host(self):
-        """
-        Dangerous characters like newlines should be elided.
+        """Dangerous characters like newlines should be elided.
+
         Ref #1974.
         """
         # foo\nbar

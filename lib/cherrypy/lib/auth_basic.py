@@ -18,7 +18,6 @@ as the credentials store::
                   'tools.auth_basic.accept_charset': 'UTF-8',
     }
     app_config = { '/' : basic_auth }
-
 """
 
 import binascii

@@ -137,7 +137,6 @@ def popargs(*args, **kwargs):
         class Root:
             def index(self):
                 #...
-
     """
     # Since keyword arg comes after *args, we have to process it ourselves
     # for lower versions of python.
@@ -201,16 +200,17 @@ def url(path='', qs='', script_name=None, base=None, relative=None):
     If it does not start with a slash, this returns
         (base + script_name [+ request.path_info] + path + qs).
 
-    If script_name is None, cherrypy.request will be used
-    to find a script_name, if available.
+    If script_name is None, cherrypy.request will be used to find a
+    script_name, if available.
 
     If base is None, cherrypy.request.base will be used (if available).
     Note that you can use cherrypy.tools.proxy to change this.
 
-    Finally, note that this function can be used to obtain an absolute URL
-    for the current request path (minus the querystring) by passing no args.
-    If you call url(qs=cherrypy.request.query_string), you should get the
-    original browser URL (assuming no internal redirections).
+    Finally, note that this function can be used to obtain an absolute
+    URL for the current request path (minus the querystring) by passing
+    no args. If you call url(qs=cherrypy.request.query_string), you
+    should get the original browser URL (assuming no internal
+    redirections).
 
     If relative is None or not provided, request.app.relative_urls will
     be used (if available, else False). If False, the output will be an
@@ -320,8 +320,8 @@ def normalize_path(path):
 class _ClassPropertyDescriptor(object):
     """Descript for read-only class-based property.
 
-    Turns a classmethod-decorated func into a read-only property of that class
-    type (means the value cannot be set).
+    Turns a classmethod-decorated func into a read-only property of that
+    class type (means the value cannot be set).
     """
 
     def __init__(self, fget, fset=None):

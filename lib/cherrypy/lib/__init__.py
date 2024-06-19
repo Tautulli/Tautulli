@@ -6,8 +6,8 @@ def is_iterator(obj):
 
     (i.e. like a generator).
 
-    This will return False for objects which are iterable,
-    but not iterators themselves.
+    This will return False for objects which are iterable, but not
+    iterators themselves.
     """
     from types import GeneratorType
     if isinstance(obj, GeneratorType):

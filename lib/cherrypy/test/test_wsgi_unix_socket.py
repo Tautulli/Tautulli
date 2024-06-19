@@ -21,9 +21,7 @@ USOCKET_PATH = usocket_path()
 
 
 class USocketHTTPConnection(HTTPConnection):
-    """
-    HTTPConnection over a unix socket.
-    """
+    """HTTPConnection over a unix socket."""
 
     def __init__(self, path):
         HTTPConnection.__init__(self, 'localhost')
