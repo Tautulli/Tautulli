@@ -2621,6 +2621,7 @@ class NTFY(Notifier):
     def agent_notify(self, subject='', body='', action='', **kwargs):
         method = "POST"
         url = f"{self.config['host']}/{self.config['topic']}"
+        params = {}
         data = body
         headers = {
             'Priority': self.config['priority'],
@@ -2646,8 +2647,18 @@ class NTFY(Notifier):
             # Add optional poster
             if self.config['incl_poster']:
                 method = "PUT"  # Need to use PUT instead of POST to send attachments
-                poster_url = pretty_metadata.get_poster_url()
-                headers['Attach'] = poster_url
+                image_file_name, image_content, image_file_type = pretty_metadata.get_image()
+
+                if image_file_name and image_content:
+                    # Image data will take up "data", message content needs to shift to the "message" query parameter
+                    params['message'] = data
+                    data = image_content
+                    headers['Filename'] = image_file_name
+                else:
+                    # Fallback to default Tautulli media type poster
+                    # Can keep message content in "data" payload and just add a header for the attachment
+                    poster_url = pretty_metadata.get_poster_url()
+                    headers['Attach'] = poster_url
 
             # Add optional links (actions)
             actions = []
@@ -2673,7 +2684,7 @@ class NTFY(Notifier):
             if actions:
                 headers['Actions'] = ';'.join(actions)
 
-        return self.make_request(url=url, method=method, headers=headers, data=data)
+        return self.make_request(url=url, method=method, headers=headers, params=params, data=data)
 
     def _return_config_options(self):
         config_option = [{'label': 'ntfy Host Address',
