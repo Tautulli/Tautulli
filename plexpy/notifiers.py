@@ -96,7 +96,8 @@ AGENT_IDS = {'growl': 0,
              'plexmobileapp': 26,
              'lunasea': 27,
              'microsoftteams': 28,
-             'gotify': 29
+             'gotify': 29,
+             'ntfy': 30
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': [], 'type': None}]
@@ -196,6 +197,12 @@ def available_notification_agents():
                'name': 'mqtt',
                'id': AGENT_IDS['mqtt'],
                'class': MQTT,
+               'action_types': ('all',)
+               },
+              {'label': 'ntfy',
+               'name': 'ntfy',
+               'id': AGENT_IDS['ntfy'],
+               'class': NTFY,
                'action_types': ('all',)
                },
               {'label': 'Plex Home Theater',
@@ -2587,6 +2594,176 @@ class MQTT(Notifier):
                           'description': 'Parse and send the subject and body as JSON instead of as a raw string.',
                           'input_type': 'checkbox'
                           },
+                         ]
+
+        return config_option
+
+
+class NTFY(Notifier):
+    """
+    ntfy notifications
+    """
+    NAME = 'ntfy'
+    _DEFAULT_CONFIG = {'host': '',
+                       'access_token': '',
+                       'topic': '',
+                       'priority': 'default',
+                       'incl_subject': 1,
+                       'incl_description': 1,
+                       'incl_poster': 0,
+                       'incl_url': 0,
+                       'incl_pmslink': 0,
+                       'movie_provider': '',
+                       'tv_provider': '',
+                       'music_provider': ''
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        method = "POST"
+        url = f"{self.config['host']}/{self.config['topic']}"
+        data = body
+        headers = {
+            'Priority': self.config['priority'],
+            'Authorization': f'Bearer {self.config["access_token"]}',
+            'Icon': 'https://tautulli.com/images/favicon.ico'
+        }
+
+        # Add optional subject
+        if self.config['incl_subject']:
+            headers['Title'] = subject
+
+        # Add optional parameters (dependent on notification type + metadata extraction)
+        if kwargs.get('parameters', {}).get('media_type'):
+            # Grab formatted metadata
+            pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+            # Add optional description
+            if self.config['incl_description']:
+                description = pretty_metadata.get_description()
+                if description:
+                    data = f"{data}\n\n{description}"
+
+            # Add optional poster
+            if self.config['incl_poster']:
+                method = "PUT"  # Need to use PUT instead of POST to send attachments
+                poster_url = pretty_metadata.get_poster_url()
+                headers['Attach'] = poster_url
+
+            # Add optional links (actions)
+            actions = []
+
+            if self.config['incl_url']:
+                if pretty_metadata.media_type == 'movie':
+                    provider = self.config['movie_provider']
+                elif pretty_metadata.media_type in ('show', 'season', 'episode'):
+                    provider = self.config['tv_provider']
+                elif pretty_metadata.media_type in ('artist', 'album', 'track'):
+                    provider = self.config['music_provider']
+                else:
+                    provider = None
+
+                provider_name = pretty_metadata.get_provider_name(provider)
+                provider_link = pretty_metadata.get_provider_link(provider)
+                actions.append(f"view, View on {provider_name}, {provider_link}, clear=true")
+
+            if self.config['incl_pmslink']:
+                plex_url = pretty_metadata.get_plex_url()
+                actions.append(f"view, View on Plex, {plex_url}, clear=true")
+
+            if actions:
+                headers['Actions'] = ';'.join(actions)
+
+        return self.make_request(url=url, method=method, headers=headers, data=data)
+
+    def _return_config_options(self):
+        config_option = [{'label': 'ntfy Host Address',
+                          'value': self.config['host'],
+                          'name': 'ntfy_host',
+                          'description': 'Host running ntfy (e.g. http://localhost:80).',
+                          'input_type': 'text'
+                          },
+                         {'label': 'ntfy Access Token',
+                          'value': self.config['access_token'],
+                          'name': 'ntfy_access_token',
+                          'description': 'Your ntfy access token.',
+                          'input_type': 'token'
+                          },
+                         {'label': 'ntfy Topic',
+                          'value': self.config['topic'],
+                          'name': 'ntfy_topic',
+                          'description': 'The topic to publish notifications to.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Priority',
+                          'value': self.config['priority'],
+                          'name': 'ntfy_priority',
+                          'description': 'Set the notification priority.',
+                          'input_type': 'select',
+                          'select_options': {
+                              'min': 1,
+                              'low': 2,
+                              'default': 3,
+                              'high': 4,
+                              'max': 5
+                          }
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'ntfy_incl_subject',
+                          'description': 'Include a subject line in the notification.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Poster Image',
+                          'value': self.config['incl_poster'],
+                          'name': 'ntfy_incl_poster',
+                          'description': 'Include a poster of the media item in the notification.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Summary',
+                          'value': self.config['incl_description'],
+                          'name': 'ntfy_incl_description',
+                          'description': 'Include a summary of the media item in the notification.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Metadata Provider',
+                          'value': self.config['incl_url'],
+                          'name': 'ntfy_incl_url',
+                          'description': 'Include a link to the media item on the metadata provider in the notification.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Include Link to Plex Web',
+                          'value': self.config['incl_pmslink'],
+                          'name': 'ntfy_incl_pmslink',
+                          'description': 'Include a link to the media item in Plex Web in the notification.',
+                          'input_type': 'checkbox'
+                          },
+                         {'label': 'Movie Link Source',
+                          'value': self.config['movie_provider'],
+                          'name': 'ntfy_movie_provider',
+                          'description': 'Select the source for movie links in the notification. Leave blank to disable.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_movie_providers()
+                          },
+                         {'label': 'TV Show Link Source',
+                          'value': self.config['tv_provider'],
+                          'name': 'ntfy_tv_provider',
+                          'description': 'Select the source for TV show links in the notification. Leave blank to disable.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_tv_providers()
+                          },
+                         {'label': 'Music Link Source',
+                          'value': self.config['music_provider'],
+                          'name': 'ntfy_music_provider',
+                          'description': 'Select the source for music links in the notification. Leave blank to disable.<br>'
+                                         'Note: <a data-tab-destination="3rd_party_apis" data-dismiss="modal" >Metadata Lookups</a> '
+                                         'may need to be enabled under the 3rd Party APIs settings tab.',
+                          'input_type': 'select',
+                          'select_options': PrettyMetadata().get_music_providers()
+                          }
                          ]
 
         return config_option
