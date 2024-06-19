@@ -1,4 +1,4 @@
-"""Native adapter for serving CherryPy via mod_python
+"""Native adapter for serving CherryPy via mod_python.
 
 Basic usage:
 

@@ -3,9 +3,9 @@ arrow==1.3.0
 backports.zoneinfo==0.2.1;python_version<"3.9"
 beautifulsoup4==4.12.3
 bleach==6.1.0
-certifi==2024.2.2
+certifi==2024.6.2
 cheroot==10.0.1
-cherrypy==18.9.0
+cherrypy==18.10.0
 cloudinary==1.40.0
 distro==1.9.0
 dnspython==2.6.1
@@ -34,12 +34,12 @@ pyparsing==3.1.2
 python-dateutil==2.9.0.post0
 python-twitter==3.5
 pytz==2024.1
-requests==2.31.0
+requests==2.32.3
 requests-oauthlib==2.0.0
 rumps==0.4.0; platform_system == "Darwin"
 simplejson==3.19.2
 six==1.16.0
-tempora==5.5.1
+tempora==5.6.0
 tokenize-rt==5.2.0
 tzdata==2024.1
 tzlocal==5.0.1
@@ -47,7 +47,7 @@ urllib3<2
 webencodings==0.5.1
 websocket-client==1.8.0
 xmltodict==0.13.0
-zipp==3.18.2
+zipp==3.19.2
 
 # configobj==5.1.0
 # sgmllib3k==1.0.0

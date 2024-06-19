@@ -28,7 +28,6 @@ serverpem = os.path.join(os.getcwd(), thisdir, 'test.pem')
 
 
 class Supervisor(object):
-
     """Base class for modeling and controlling servers during testing."""
 
     def __init__(self, **kwargs):
@@ -43,14 +42,13 @@ def log_to_stderr(msg, level):
 
 
 class LocalSupervisor(Supervisor):
-
     """Base class for modeling/controlling servers which run in the same
     process.
 
-    When the server side runs in a different process, start/stop can dump all
-    state between each test module easily. When the server side runs in the
-    same process as the client, however, we have to do a bit more work to
-    ensure config and mounted apps are reset between tests.
+    When the server side runs in a different process, start/stop can
+    dump all state between each test module easily. When the server side
+    runs in the same process as the client, however, we have to do a bit
+    more work to ensure config and mounted apps are reset between tests.
     """
 
     using_apache = False
@@ -99,7 +97,6 @@ class LocalSupervisor(Supervisor):
 
 
 class NativeServerSupervisor(LocalSupervisor):
-
     """Server supervisor for the builtin HTTP server."""
 
     httpserver_class = 'cherrypy._cpnative_server.CPHTTPServer'
@@ -111,7 +108,6 @@ class NativeServerSupervisor(LocalSupervisor):
 
 
 class LocalWSGISupervisor(LocalSupervisor):
-
     """Server supervisor for the builtin WSGI server."""
 
     httpserver_class = 'cherrypy._cpwsgi_server.CPWSGIServer'
@@ -311,8 +307,7 @@ class CPWebCase(webtest.WebCase):
         sys.exit()
 
     def getPage(self, url, *args, **kwargs):
-        """Open the url.
-        """
+        """Open the url."""
         if self.script_name:
             url = httputil.urljoin(self.script_name, url)
         return webtest.WebCase.getPage(self, url, *args, **kwargs)
@@ -323,8 +318,9 @@ class CPWebCase(webtest.WebCase):
     def assertErrorPage(self, status, message=None, pattern=''):
         """Compare the response body with a built in error page.
 
-        The function will optionally look for the regexp pattern,
-        within the exception embedded in the error page."""
+        The function will optionally look for the regexp pattern, within
+        the exception embedded in the error page.
+        """
 
         # This will never contain a traceback
         page = cherrypy._cperror.get_error_page(status, message=message)
@@ -453,19 +449,17 @@ server.ssl_private_key: r'%s'
             '-c', self.config_file,
             '-p', self.pid_file,
         ]
-        r"""
-        Command for running cherryd server with autoreload enabled
+        r"""Command for running cherryd server with autoreload enabled.
 
         Using
 
         ```
         ['-c',
          "__requires__ = 'CherryPy'; \
-         import pkg_resources, re, sys; \
+         import importlib.metadata, re, sys; \
          sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0]); \
          sys.exit(\
-            pkg_resources.load_entry_point(\
-                'CherryPy', 'console_scripts', 'cherryd')())"]
+            importlib.metadata.distribution('cherrypy').entry_points[0])"]
         ```
 
         doesn't work as it's impossible to reconstruct the `-c`'s contents.

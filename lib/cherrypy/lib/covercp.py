@@ -22,7 +22,7 @@ it will call ``serve()`` for you.
 
 import re
 import sys
-import cgi
+import html
 import os
 import os.path
 import urllib.parse
@@ -352,9 +352,9 @@ class CoverStats(object):
                 buffer.append((lineno, line))
             if empty_the_buffer:
                 for lno, pastline in buffer:
-                    yield template % (lno, cgi.escape(pastline))
+                    yield template % (lno, html.escape(pastline))
                 buffer = []
-                yield template % (lineno, cgi.escape(line))
+                yield template % (lineno, html.escape(line))
 
     @cherrypy.expose
     def report(self, name):

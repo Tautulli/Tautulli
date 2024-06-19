@@ -433,14 +433,13 @@ test_case_name: "test_signal_handler_unsubscribe"
 
 
 def test_safe_wait_INADDR_ANY():  # pylint: disable=invalid-name
-    """
-    Wait on INADDR_ANY should not raise IOError
+    """Wait on INADDR_ANY should not raise IOError.
 
-    In cases where the loopback interface does not exist, CherryPy cannot
-    effectively determine if a port binding to INADDR_ANY was effected.
-    In this situation, CherryPy should assume that it failed to detect
-    the binding (not that the binding failed) and only warn that it could
-    not verify it.
+    In cases where the loopback interface does not exist, CherryPy
+    cannot effectively determine if a port binding to INADDR_ANY was
+    effected. In this situation, CherryPy should assume that it failed
+    to detect the binding (not that the binding failed) and only warn
+    that it could not verify it.
     """
     # At such a time that CherryPy can reliably determine one or more
     #  viable IP addresses of the host, this test may be removed.

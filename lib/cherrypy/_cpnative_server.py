@@ -120,10 +120,10 @@ class NativeGateway(cheroot.server.Gateway):
 class CPHTTPServer(cheroot.server.HTTPServer):
     """Wrapper for cheroot.server.HTTPServer.
 
-    cheroot has been designed to not reference CherryPy in any way,
-    so that it can be used in other frameworks and applications.
-    Therefore, we wrap it here, so we can apply some attributes
-    from config -> cherrypy.server -> HTTPServer.
+    cheroot has been designed to not reference CherryPy in any way, so
+    that it can be used in other frameworks and applications. Therefore,
+    we wrap it here, so we can apply some attributes from config ->
+    cherrypy.server -> HTTPServer.
     """
 
     def __init__(self, server_adapter=cherrypy.server):

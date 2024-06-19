@@ -199,7 +199,7 @@ def test_custom_log_format(log_tracker, monkeypatch, server):
 
 
 def test_utc_in_timez(monkeypatch):
-    """Test that ``LazyRfc3339UtcTime`` is rendered as ``str`` using UTC timestamp."""
+    """Test ``LazyRfc3339UtcTime`` renders as ``str`` UTC timestamp."""
     utcoffset8_local_time_in_naive_utc = (
         datetime.datetime(
             year=2020,
@@ -216,7 +216,7 @@ def test_utc_in_timez(monkeypatch):
 
     class mock_datetime:
         @classmethod
-        def utcnow(cls):
+        def now(cls, tz):
             return utcoffset8_local_time_in_naive_utc
 
     monkeypatch.setattr('datetime.datetime', mock_datetime)

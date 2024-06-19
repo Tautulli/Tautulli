@@ -55,7 +55,7 @@ def TRACE(msg):
 
 
 def get_ha1_dict_plain(user_password_dict):
-    """Returns a get_ha1 function which obtains a plaintext password from a
+    """Return a get_ha1 function which obtains a plaintext password from a
     dictionary of the form: {username : password}.
 
     If you want a simple dictionary-based authentication scheme, with plaintext
@@ -72,7 +72,7 @@ def get_ha1_dict_plain(user_password_dict):
 
 
 def get_ha1_dict(user_ha1_dict):
-    """Returns a get_ha1 function which obtains a HA1 password hash from a
+    """Return a get_ha1 function which obtains a HA1 password hash from a
     dictionary of the form: {username : HA1}.
 
     If you want a dictionary-based authentication scheme, but with
@@ -87,7 +87,7 @@ def get_ha1_dict(user_ha1_dict):
 
 
 def get_ha1_file_htdigest(filename):
-    """Returns a get_ha1 function which obtains a HA1 password hash from a
+    """Return a get_ha1 function which obtains a HA1 password hash from a
     flat file with lines of the same format as that produced by the Apache
     htdigest utility. For example, for realm 'wonderland', username 'alice',
     and password '4x5istwelve', the htdigest line would be::
@@ -135,7 +135,7 @@ def synthesize_nonce(s, key, timestamp=None):
 
 
 def H(s):
-    """The hash function H"""
+    """The hash function H."""
     return md5_hex(s)
 
 
@@ -259,10 +259,11 @@ class HttpDigestAuthorization(object):
         return False
 
     def is_nonce_stale(self, max_age_seconds=600):
-        """Returns True if a validated nonce is stale. The nonce contains a
-        timestamp in plaintext and also a secure hash of the timestamp.
-        You should first validate the nonce to ensure the plaintext
-        timestamp is not spoofed.
+        """Return True if a validated nonce is stale.
+
+        The nonce contains a timestamp in plaintext and also a secure
+        hash of the timestamp. You should first validate the nonce to
+        ensure the plaintext timestamp is not spoofed.
         """
         try:
             timestamp, hashpart = self.nonce.split(':', 1)
@@ -275,7 +276,10 @@ class HttpDigestAuthorization(object):
         return True
 
     def HA2(self, entity_body=''):
-        """Returns the H(A2) string. See :rfc:`2617` section 3.2.2.3."""
+        """Return the H(A2) string.
+
+        See :rfc:`2617` section 3.2.2.3.
+        """
         # RFC 2617 3.2.2.3
         # If the "qop" directive's value is "auth" or is unspecified,
         # then A2 is:
@@ -306,7 +310,6 @@ class HttpDigestAuthorization(object):
             4.3.  This refers to the entity the user agent sent in the
             request which has the Authorization header. Typically GET
             requests don't have an entity, and POST requests do.
-
         """
         ha2 = self.HA2(entity_body)
         # Request-Digest -- RFC 2617 3.2.2.1
@@ -395,7 +398,6 @@ def digest_auth(realm, get_ha1, key, debug=False, accept_charset='utf-8'):
     key
         A secret string known only to the server, used in the synthesis
         of nonces.
-
     """
     request = cherrypy.serving.request
 
@@ -447,9 +449,7 @@ def digest_auth(realm, get_ha1, key, debug=False, accept_charset='utf-8'):
 
 
 def _respond_401(realm, key, accept_charset, debug, **kwargs):
-    """
-    Respond with 401 status and a WWW-Authenticate header
-    """
+    """Respond with 401 status and a WWW-Authenticate header."""
     header = www_authenticate(
         realm, key,
         accept_charset=accept_charset,

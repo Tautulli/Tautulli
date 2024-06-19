@@ -1,7 +1,7 @@
 """CherryPy tools. A "tool" is any helper, adapted to CP.
 
-Tools are usually designed to be used in a variety of ways (although some
-may only offer one if they choose):
+Tools are usually designed to be used in a variety of ways (although
+some may only offer one if they choose):
 
     Library calls
         All tools are callables that can be used wherever needed.
@@ -48,10 +48,10 @@ _attr_error = (
 
 
 class Tool(object):
-
     """A registered function for use with CherryPy request-processing hooks.
 
-    help(tool.callable) should give you more information about this Tool.
+    help(tool.callable) should give you more information about this
+    Tool.
     """
 
     namespace = 'tools'
@@ -135,8 +135,8 @@ class Tool(object):
     def _setup(self):
         """Hook this tool into cherrypy.request.
 
-        The standard CherryPy request object will automatically call this
-        method when the tool is "turned on" in config.
+        The standard CherryPy request object will automatically call
+        this method when the tool is "turned on" in config.
         """
         conf = self._merged_args()
         p = conf.pop('priority', None)
@@ -147,15 +147,15 @@ class Tool(object):
 
 
 class HandlerTool(Tool):
-
     """Tool which is called 'before main', that may skip normal handlers.
 
-    If the tool successfully handles the request (by setting response.body),
-    if should return True. This will cause CherryPy to skip any 'normal' page
-    handler. If the tool did not handle the request, it should return False
-    to tell CherryPy to continue on and call the normal page handler. If the
-    tool is declared AS a page handler (see the 'handler' method), returning
-    False will raise NotFound.
+    If the tool successfully handles the request (by setting
+    response.body), if should return True. This will cause CherryPy to
+    skip any 'normal' page handler. If the tool did not handle the
+    request, it should return False to tell CherryPy to continue on and
+    call the normal page handler. If the tool is declared AS a page
+    handler (see the 'handler' method), returning False will raise
+    NotFound.
     """
 
     def __init__(self, callable, name=None):
@@ -185,8 +185,8 @@ class HandlerTool(Tool):
     def _setup(self):
         """Hook this tool into cherrypy.request.
 
-        The standard CherryPy request object will automatically call this
-        method when the tool is "turned on" in config.
+        The standard CherryPy request object will automatically call
+        this method when the tool is "turned on" in config.
         """
         conf = self._merged_args()
         p = conf.pop('priority', None)
@@ -197,7 +197,6 @@ class HandlerTool(Tool):
 
 
 class HandlerWrapperTool(Tool):
-
     """Tool which wraps request.handler in a provided wrapper function.
 
     The 'newhandler' arg must be a handler wrapper function that takes a
@@ -232,7 +231,6 @@ class HandlerWrapperTool(Tool):
 
 
 class ErrorTool(Tool):
-
     """Tool which is used to replace the default request.error_response."""
 
     def __init__(self, callable, name=None):
@@ -244,8 +242,8 @@ class ErrorTool(Tool):
     def _setup(self):
         """Hook this tool into cherrypy.request.
 
-        The standard CherryPy request object will automatically call this
-        method when the tool is "turned on" in config.
+        The standard CherryPy request object will automatically call
+        this method when the tool is "turned on" in config.
         """
         cherrypy.serving.request.error_response = self._wrapper
 
@@ -254,7 +252,6 @@ class ErrorTool(Tool):
 
 
 class SessionTool(Tool):
-
     """Session Tool for CherryPy.
 
     sessions.locking
@@ -282,8 +279,8 @@ class SessionTool(Tool):
     def _setup(self):
         """Hook this tool into cherrypy.request.
 
-        The standard CherryPy request object will automatically call this
-        method when the tool is "turned on" in config.
+        The standard CherryPy request object will automatically call
+        this method when the tool is "turned on" in config.
         """
         hooks = cherrypy.serving.request.hooks
 
@@ -325,7 +322,6 @@ class SessionTool(Tool):
 
 
 class XMLRPCController(object):
-
     """A Controller (page handler collection) for XML-RPC.
 
     To use it, have your controllers subclass this base class (it will
@@ -392,7 +388,6 @@ class SessionAuthTool(HandlerTool):
 
 
 class CachingTool(Tool):
-
     """Caching Tool for CherryPy."""
 
     def _wrapper(self, **kwargs):
@@ -416,11 +411,11 @@ class CachingTool(Tool):
 
 
 class Toolbox(object):
-
     """A collection of Tools.
 
     This object also functions as a config namespace handler for itself.
-    Custom toolboxes should be added to each Application's toolboxes dict.
+    Custom toolboxes should be added to each Application's toolboxes
+    dict.
     """
 
     def __init__(self, namespace):

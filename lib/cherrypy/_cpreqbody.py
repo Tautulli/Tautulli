@@ -248,7 +248,10 @@ def process_multipart_form_data(entity):
 
 
 def _old_process_multipart(entity):
-    """The behavior of 3.2 and lower. Deprecated and will be changed in 3.3."""
+    """The behavior of 3.2 and lower.
+
+    Deprecated and will be changed in 3.3.
+    """
     process_multipart(entity)
 
     params = entity.params
@@ -277,7 +280,6 @@ def _old_process_multipart(entity):
 
 # -------------------------------- Entities --------------------------------- #
 class Entity(object):
-
     """An HTTP request body, or MIME multipart body.
 
     This class collects information about the HTTP request entity. When a
@@ -346,13 +348,15 @@ class Entity(object):
     content_type = None
     """The value of the Content-Type request header.
 
-    If the Entity is part of a multipart payload, this will be the Content-Type
-    given in the MIME headers for this part.
+    If the Entity is part of a multipart payload, this will be the
+    Content-Type given in the MIME headers for this part.
     """
 
     default_content_type = 'application/x-www-form-urlencoded'
     """This defines a default ``Content-Type`` to use if no Content-Type header
-    is given. The empty string is used for RequestBody, which results in the
+    is given.
+
+    The empty string is used for RequestBody, which results in the
     request body not being read or parsed at all. This is by design; a missing
     ``Content-Type`` header in the HTTP request entity is an error at best,
     and a security hole at worst. For multipart parts, however, the MIME spec
@@ -402,8 +406,8 @@ class Entity(object):
     part_class = None
     """The class used for multipart parts.
 
-    You can replace this with custom subclasses to alter the processing of
-    multipart parts.
+    You can replace this with custom subclasses to alter the processing
+    of multipart parts.
     """
 
     def __init__(self, fp, headers, params=None, parts=None):
@@ -509,7 +513,8 @@ class Entity(object):
         """Return a file-like object into which the request body will be read.
 
         By default, this will return a TemporaryFile. Override as needed.
-        See also :attr:`cherrypy._cpreqbody.Part.maxrambytes`."""
+        See also :attr:`cherrypy._cpreqbody.Part.maxrambytes`.
+        """
         return tempfile.TemporaryFile()
 
     def fullvalue(self):
@@ -525,7 +530,7 @@ class Entity(object):
         return value
 
     def decode_entity(self, value):
-        """Return a given byte encoded value as a string"""
+        """Return a given byte encoded value as a string."""
         for charset in self.attempt_charsets:
             try:
                 value = value.decode(charset)
@@ -569,7 +574,6 @@ class Entity(object):
 
 
 class Part(Entity):
-
     """A MIME part entity, part of a multipart entity."""
 
     # "The default character set, which must be assumed in the absence of a
@@ -653,8 +657,8 @@ class Part(Entity):
     def read_lines_to_boundary(self, fp_out=None):
         """Read bytes from self.fp and return or write them to a file.
 
-        If the 'fp_out' argument is None (the default), all bytes read are
-        returned in a single byte string.
+        If the 'fp_out' argument is None (the default), all bytes read
+        are returned in a single byte string.
 
         If the 'fp_out' argument is not None, it must be a file-like
         object that supports the 'write' method; all bytes read will be
@@ -755,15 +759,15 @@ class SizedReader:
     def read(self, size=None, fp_out=None):
         """Read bytes from the request body and return or write them to a file.
 
-        A number of bytes less than or equal to the 'size' argument are read
-        off the socket. The actual number of bytes read are tracked in
-        self.bytes_read. The number may be smaller than 'size' when 1) the
-        client sends fewer bytes, 2) the 'Content-Length' request header
-        specifies fewer bytes than requested, or 3) the number of bytes read
-        exceeds self.maxbytes (in which case, 413 is raised).
+        A number of bytes less than or equal to the 'size' argument are
+        read off the socket. The actual number of bytes read are tracked
+        in self.bytes_read. The number may be smaller than 'size' when
+        1) the client sends fewer bytes, 2) the 'Content-Length' request
+        header specifies fewer bytes than requested, or 3) the number of
+        bytes read exceeds self.maxbytes (in which case, 413 is raised).
 
-        If the 'fp_out' argument is None (the default), all bytes read are
-        returned in a single byte string.
+        If the 'fp_out' argument is None (the default), all bytes read
+        are returned in a single byte string.
 
         If the 'fp_out' argument is not None, it must be a file-like
         object that supports the 'write' method; all bytes read will be
@@ -918,7 +922,6 @@ class SizedReader:
 
 
 class RequestBody(Entity):
-
     """The entity of the HTTP request."""
 
     bufsize = 8 * 1024

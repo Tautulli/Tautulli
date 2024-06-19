@@ -1,4 +1,7 @@
-"""Windows service. Requires pywin32."""
+"""Windows service.
+
+Requires pywin32.
+"""
 
 import os
 import win32api
@@ -11,7 +14,6 @@ from cherrypy.process import wspbus, plugins
 
 
 class ConsoleCtrlHandler(plugins.SimplePlugin):
-
     """A WSPBus plugin for handling Win32 console events (like Ctrl-C)."""
 
     def __init__(self, bus):
@@ -69,10 +71,10 @@ class ConsoleCtrlHandler(plugins.SimplePlugin):
 
 
 class Win32Bus(wspbus.Bus):
-
     """A Web Site Process Bus implementation for Win32.
 
-    Instead of time.sleep, this bus blocks using native win32event objects.
+    Instead of time.sleep, this bus blocks using native win32event
+    objects.
     """
 
     def __init__(self):
@@ -120,7 +122,6 @@ class Win32Bus(wspbus.Bus):
 
 
 class _ControlCodes(dict):
-
     """Control codes used to "signal" a service via ControlService.
 
     User-defined control codes are in the range 128-255. We generally use
@@ -152,7 +153,6 @@ def signal_child(service, command):
 
 
 class PyWebService(win32serviceutil.ServiceFramework):
-
     """Python Web Service."""
 
     _svc_name_ = 'Python Web Service'

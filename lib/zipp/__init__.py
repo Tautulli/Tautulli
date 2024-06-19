@@ -5,6 +5,7 @@ import itertools
 import contextlib
 import pathlib
 import re
+import stat
 import sys
 
 from .compat.py310 import text_encoding
@@ -85,7 +86,69 @@ class InitializedState:
         super().__init__(*args, **kwargs)
 
 
-class CompleteDirs(InitializedState, zipfile.ZipFile):
+class SanitizedNames:
+    """
+    ZipFile mix-in to ensure names are sanitized.
+    """
+
+    def namelist(self):
+        return list(map(self._sanitize, super().namelist()))
+
+    @staticmethod
+    def _sanitize(name):
+        r"""
+        Ensure a relative path with posix separators and no dot names.
+
+        Modeled after
+        https://github.com/python/cpython/blob/bcc1be39cb1d04ad9fc0bd1b9193d3972835a57c/Lib/zipfile/__init__.py#L1799-L1813
+        but provides consistent cross-platform behavior.
+
+        >>> san = SanitizedNames._sanitize
+        >>> san('/foo/bar')
+        'foo/bar'
+        >>> san('//foo.txt')
+        'foo.txt'
+        >>> san('foo/.././bar.txt')
+        'foo/bar.txt'
+        >>> san('foo../.bar.txt')
+        'foo../.bar.txt'
+        >>> san('\\foo\\bar.txt')
+        'foo/bar.txt'
+        >>> san('D:\\foo.txt')
+        'D/foo.txt'
+        >>> san('\\\\server\\share\\file.txt')
+        'server/share/file.txt'
+        >>> san('\\\\?\\GLOBALROOT\\Volume3')
+        '?/GLOBALROOT/Volume3'
+        >>> san('\\\\.\\PhysicalDrive1\\root')
+        'PhysicalDrive1/root'
+
+        Retain any trailing slash.
+        >>> san('abc/')
+        'abc/'
+
+        Raises a ValueError if the result is empty.
+        >>> san('../..')
+        Traceback (most recent call last):
+        ...
+        ValueError: Empty filename
+        """
+
+        def allowed(part):
+            return part and part not in {'..', '.'}
+
+        # Remove the drive letter.
+        # Don't use ntpath.splitdrive, because that also strips UNC paths
+        bare = re.sub('^([A-Z]):', r'\1', name, flags=re.IGNORECASE)
+        clean = bare.replace('\\', '/')
+        parts = clean.split('/')
+        joined = '/'.join(filter(allowed, parts))
+        if not joined:
+            raise ValueError("Empty filename")
+        return joined + '/' * name.endswith('/')
+
+
+class CompleteDirs(InitializedState, SanitizedNames, zipfile.ZipFile):
     """
     A ZipFile subclass that ensures that implied directories
     are always included in the namelist.
@@ -188,7 +251,10 @@ def _extract_text_encoding(encoding=None, *args, **kwargs):
 
 class Path:
     """
-    A pathlib-compatible interface for zip files.
+    A :class:`importlib.resources.abc.Traversable` interface for zip files.
+
+    Implements many of the features users enjoy from
+    :class:`pathlib.Path`.
 
     Consider a zip file with this structure::
 
@@ -391,9 +457,11 @@ class Path:
 
     def is_symlink(self):
         """
-        Return whether this path is a symlink. Always false (python/cpython#82102).
+        Return whether this path is a symlink.
         """
-        return False
+        info = self.root.getinfo(self.at)
+        mode = info.external_attr >> 16
+        return stat.S_ISLNK(mode)
 
     def glob(self, pattern):
         if not pattern:

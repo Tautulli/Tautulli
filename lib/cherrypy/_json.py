@@ -1,5 +1,4 @@
-"""
-JSON support.
+"""JSON support.
 
 Expose preferred json module as json and provide encode/decode
 convenience functions.

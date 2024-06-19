@@ -1,7 +1,7 @@
-"""
-WSGI server interface (see PEP 333).
+"""WSGI server interface (see PEP 333).
 
-This adds some CP-specific bits to the framework-agnostic cheroot package.
+This adds some CP-specific bits to the framework-agnostic cheroot
+package.
 """
 import sys
 
@@ -35,10 +35,11 @@ class CPWSGIHTTPRequest(cheroot.server.HTTPRequest):
 class CPWSGIServer(cheroot.wsgi.Server):
     """Wrapper for cheroot.wsgi.Server.
 
-    cheroot has been designed to not reference CherryPy in any way,
-    so that it can be used in other frameworks and applications. Therefore,
-    we wrap it here, so we can set our own mount points from cherrypy.tree
-    and apply some attributes from config -> cherrypy.server -> wsgi.Server.
+    cheroot has been designed to not reference CherryPy in any way, so
+    that it can be used in other frameworks and applications. Therefore,
+    we wrap it here, so we can set our own mount points from
+    cherrypy.tree and apply some attributes from config ->
+    cherrypy.server -> wsgi.Server.
     """
 
     fmt = 'CherryPy/{cherrypy.__version__} {cheroot.wsgi.Server.version}'
