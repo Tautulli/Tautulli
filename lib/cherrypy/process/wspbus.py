@@ -57,7 +57,6 @@ the new state.::
           |        \    |
           |         V   V
         STARTED <-- STARTING
-
 """
 
 import atexit
@@ -65,7 +64,7 @@ import atexit
 try:
     import ctypes
 except ImportError:
-    """Google AppEngine is shipped without ctypes
+    """Google AppEngine is shipped without ctypes.
 
     :seealso: http://stackoverflow.com/a/6523777/70170
     """
@@ -165,8 +164,8 @@ class Bus(object):
     All listeners for a given channel are guaranteed to be called even
     if others at the same channel fail. Each failure is logged, but
     execution proceeds on to the next listener. The only way to stop all
-    processing from inside a listener is to raise SystemExit and stop the
-    whole server.
+    processing from inside a listener is to raise SystemExit and stop
+    the whole server.
     """
 
     states = states
@@ -312,8 +311,9 @@ class Bus(object):
     def restart(self):
         """Restart the process (may close connections).
 
-        This method does not restart the process from the calling thread;
-        instead, it stops the bus and asks the main thread to call execv.
+        This method does not restart the process from the calling
+        thread; instead, it stops the bus and asks the main thread to
+        call execv.
         """
         self.execv = True
         self.exit()
@@ -327,10 +327,11 @@ class Bus(object):
         """Wait for the EXITING state, KeyboardInterrupt or SystemExit.
 
         This function is intended to be called only by the main thread.
-        After waiting for the EXITING state, it also waits for all threads
-        to terminate, and then calls os.execv if self.execv is True. This
-        design allows another thread to call bus.restart, yet have the main
-        thread perform the actual execv call (required on some platforms).
+        After waiting for the EXITING state, it also waits for all
+        threads to terminate, and then calls os.execv if self.execv is
+        True. This design allows another thread to call bus.restart, yet
+        have the main thread perform the actual execv call (required on
+        some platforms).
         """
         try:
             self.wait(states.EXITING, interval=interval, channel='main')
@@ -379,13 +380,14 @@ class Bus(object):
     def _do_execv(self):
         """Re-execute the current process.
 
-        This must be called from the main thread, because certain platforms
-        (OS X) don't allow execv to be called in a child thread very well.
+        This must be called from the main thread, because certain
+        platforms (OS X) don't allow execv to be called in a child
+        thread very well.
         """
         try:
             args = self._get_true_argv()
         except NotImplementedError:
-            """It's probably win32 or GAE"""
+            """It's probably win32 or GAE."""
             args = [sys.executable] + self._get_interpreter_argv() + sys.argv
 
         self.log('Re-spawning %s' % ' '.join(args))
@@ -472,7 +474,7 @@ class Bus(object):
                 c_ind = None
 
             if is_module:
-                """It's containing `-m -m` sequence of arguments"""
+                """It's containing `-m -m` sequence of arguments."""
                 if is_command and c_ind < m_ind:
                     """There's `-c -c` before `-m`"""
                     raise RuntimeError(
@@ -481,7 +483,7 @@ class Bus(object):
                 # Survive module argument here
                 original_module = sys.argv[0]
                 if not os.access(original_module, os.R_OK):
-                    """There's no such module exist"""
+                    """There's no such module exist."""
                     raise AttributeError(
                         "{} doesn't seem to be a module "
                         'accessible by current user'.format(original_module))
@@ -489,7 +491,7 @@ class Bus(object):
                 # ... and substitute it with the original module path:
                 _argv.insert(m_ind, original_module)
             elif is_command:
-                """It's containing just `-c -c` sequence of arguments"""
+                """It's containing just `-c -c` sequence of arguments."""
                 raise RuntimeError(
                     "Cannot reconstruct command from '-c'. "
                     'Ref: https://github.com/cherrypy/cherrypy/issues/1545')
@@ -512,13 +514,13 @@ class Bus(object):
         """Prepend current working dir to PATH environment variable if needed.
 
         If sys.path[0] is an empty string, the interpreter was likely
-        invoked with -m and the effective path is about to change on
-        re-exec.  Add the current directory to $PYTHONPATH to ensure
-        that the new process sees the same path.
+        invoked with -m and the effective path is about to change on re-
+        exec.  Add the current directory to $PYTHONPATH to ensure that
+        the new process sees the same path.
 
         This issue cannot be addressed in the general case because
-        Python cannot reliably reconstruct the
-        original command line (http://bugs.python.org/issue14208).
+        Python cannot reliably reconstruct the original command line (
+        http://bugs.python.org/issue14208).
 
         (This idea filched from tornado.autoreload)
         """
@@ -536,10 +538,10 @@ class Bus(object):
         """Set the CLOEXEC flag on all open files (except stdin/out/err).
 
         If self.max_cloexec_files is an integer (the default), then on
-        platforms which support it, it represents the max open files setting
-        for the operating system. This function will be called just before
-        the process is restarted via os.execv() to prevent open files
-        from persisting into the new process.
+        platforms which support it, it represents the max open files
+        setting for the operating system. This function will be called
+        just before the process is restarted via os.execv() to prevent
+        open files from persisting into the new process.
 
         Set self.max_cloexec_files to 0 to disable this behavior.
         """
@@ -578,7 +580,10 @@ class Bus(object):
         return t
 
     def log(self, msg='', level=20, traceback=False):
-        """Log the given message. Append the last traceback if requested."""
+        """Log the given message.
+
+        Append the last traceback if requested.
+        """
         if traceback:
             msg += '\n' + ''.join(_traceback.format_exception(*sys.exc_info()))
         self.publish('log', msg, level)

@@ -10,19 +10,22 @@ from cherrypy.lib import httputil, reprconf
 class Application(object):
     """A CherryPy Application.
 
-    Servers and gateways should not instantiate Request objects directly.
-    Instead, they should ask an Application object for a request object.
+    Servers and gateways should not instantiate Request objects
+    directly. Instead, they should ask an Application object for a
+    request object.
 
-    An instance of this class may also be used as a WSGI callable
-    (WSGI application object) for itself.
+    An instance of this class may also be used as a WSGI callable (WSGI
+    application object) for itself.
     """
 
     root = None
-    """The top-most container of page handlers for this app. Handlers should
-    be arranged in a hierarchy of attributes, matching the expected URI
-    hierarchy; the default dispatcher then searches this hierarchy for a
-    matching handler. When using a dispatcher other than the default,
-    this value may be None."""
+    """The top-most container of page handlers for this app.
+
+    Handlers should be arranged in a hierarchy of attributes, matching
+    the expected URI hierarchy; the default dispatcher then searches
+    this hierarchy for a matching handler. When using a dispatcher other
+    than the default, this value may be None.
+    """
 
     config = {}
     """A dict of {path: pathconf} pairs, where 'pathconf' is itself a dict
@@ -32,10 +35,16 @@ class Application(object):
     toolboxes = {'tools': cherrypy.tools}
 
     log = None
-    """A LogManager instance. See _cplogging."""
+    """A LogManager instance.
+
+    See _cplogging.
+    """
 
     wsgiapp = None
-    """A CPWSGIApp instance. See _cpwsgi."""
+    """A CPWSGIApp instance.
+
+    See _cpwsgi.
+    """
 
     request_class = _cprequest.Request
     response_class = _cprequest.Response
@@ -82,12 +91,15 @@ class Application(object):
     def script_name(self):  # noqa: D401; irrelevant for properties
         """The URI "mount point" for this app.
 
-        A mount point is that portion of the URI which is constant for all URIs
-        that are serviced by this application; it does not include scheme,
-        host, or proxy ("virtual host") portions of the URI.
+        A mount point is that portion of the URI which is constant for
+        all URIs that are serviced by this application; it does not
+        include scheme, host, or proxy ("virtual host") portions of the
+        URI.
 
-        For example, if script_name is "/my/cool/app", then the URL
-        "http://www.example.com/my/cool/app/page1" might be handled by a
+        For example, if script_name is "/my/cool/app", then the URL "
+
+        http://www.example.com/my/cool/app/page1"
+        might be handled by a
         "page1" method on the root object.
 
         The value of script_name MUST NOT end in a slash. If the script_name
@@ -171,9 +183,9 @@ class Application(object):
 class Tree(object):
     """A registry of CherryPy applications, mounted at diverse points.
 
-    An instance of this class may also be used as a WSGI callable
-    (WSGI application object), in which case it dispatches to all
-    mounted apps.
+    An instance of this class may also be used as a WSGI callable (WSGI
+    application object), in which case it dispatches to all mounted
+    apps.
     """
 
     apps = {}

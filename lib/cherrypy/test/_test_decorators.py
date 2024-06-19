@@ -1,4 +1,4 @@
-"""Test module for the @-decorator syntax, which is version-specific"""
+"""Test module for the @-decorator syntax, which is version-specific."""
 
 import cherrypy
 from cherrypy import expose, tools

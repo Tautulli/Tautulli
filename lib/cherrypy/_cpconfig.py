@@ -1,5 +1,4 @@
-"""
-Configuration system for CherryPy.
+"""Configuration system for CherryPy.
 
 Configuration in CherryPy is implemented via dictionaries. Keys are strings
 which name the mapped value, which may be of any type.
@@ -132,8 +131,8 @@ def _if_filename_register_autoreload(ob):
 def merge(base, other):
     """Merge one app config (from a dict, file, or filename) into another.
 
-    If the given config is a filename, it will be appended to
-    the list of files to monitor for "autoreload" changes.
+    If the given config is a filename, it will be appended to the list
+    of files to monitor for "autoreload" changes.
     """
     _if_filename_register_autoreload(other)
 

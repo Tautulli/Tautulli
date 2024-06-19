@@ -1,9 +1,10 @@
 """CherryPy dispatchers.
 
 A 'dispatcher' is the object which looks up the 'page handler' callable
-and collects config for the current request based on the path_info, other
-request attributes, and the application architecture. The core calls the
-dispatcher as early as possible, passing it a 'path_info' argument.
+and collects config for the current request based on the path_info,
+other request attributes, and the application architecture. The core
+calls the dispatcher as early as possible, passing it a 'path_info'
+argument.
 
 The default dispatcher discovers the page handler by matching path_info
 to a hierarchical arrangement of objects, starting at request.app.root.
@@ -21,7 +22,6 @@ import cherrypy
 
 
 class PageHandler(object):
-
     """Callable which sets response.body."""
 
     def __init__(self, callable, *args, **kwargs):
@@ -64,8 +64,7 @@ class PageHandler(object):
 
 
 def test_callable_spec(callable, callable_args, callable_kwargs):
-    """
-    Inspect callable and test to see if the given args are suitable for it.
+    """Inspect callable and test to see if the given args are suitable for it.
 
     When an error occurs during the handler's invoking stage there are 2
     erroneous cases:
@@ -252,16 +251,16 @@ else:
 
 
 class Dispatcher(object):
-
     """CherryPy Dispatcher which walks a tree of objects to find a handler.
 
-    The tree is rooted at cherrypy.request.app.root, and each hierarchical
-    component in the path_info argument is matched to a corresponding nested
-    attribute of the root object. Matching handlers must have an 'exposed'
-    attribute which evaluates to True. The special method name "index"
-    matches a URI which ends in a slash ("/"). The special method name
-    "default" may match a portion of the path_info (but only when no longer
-    substring of the path_info matches some other object).
+    The tree is rooted at cherrypy.request.app.root, and each
+    hierarchical component in the path_info argument is matched to a
+    corresponding nested attribute of the root object. Matching handlers
+    must have an 'exposed' attribute which evaluates to True. The
+    special method name "index" matches a URI which ends in a slash
+    ("/"). The special method name "default" may match a portion of the
+    path_info (but only when no longer substring of the path_info
+    matches some other object).
 
     This is the default, built-in dispatcher for CherryPy.
     """
@@ -306,9 +305,9 @@ class Dispatcher(object):
 
         The second object returned will be a list of names which are
         'virtual path' components: parts of the URL which are dynamic,
-        and were not used when looking up the handler.
-        These virtual path components are passed to the handler as
-        positional arguments.
+        and were not used when looking up the handler. These virtual
+        path components are passed to the handler as positional
+        arguments.
         """
         request = cherrypy.serving.request
         app = request.app
@@ -448,13 +447,11 @@ class Dispatcher(object):
 
 
 class MethodDispatcher(Dispatcher):
-
     """Additional dispatch based on cherrypy.request.method.upper().
 
-    Methods named GET, POST, etc will be called on an exposed class.
-    The method names must be all caps; the appropriate Allow header
-    will be output showing all capitalized method names as allowable
-    HTTP verbs.
+    Methods named GET, POST, etc will be called on an exposed class. The
+    method names must be all caps; the appropriate Allow header will be
+    output showing all capitalized method names as allowable HTTP verbs.
 
     Note that the containing class must be exposed, not the methods.
     """
@@ -492,16 +489,14 @@ class MethodDispatcher(Dispatcher):
 
 
 class RoutesDispatcher(object):
-
     """A Routes based dispatcher for CherryPy."""
 
     def __init__(self, full_result=False, **mapper_options):
-        """
-        Routes dispatcher
+        """Routes dispatcher.
 
-        Set full_result to True if you wish the controller
-        and the action to be passed on to the page handler
-        parameters. By default they won't be.
+        Set full_result to True if you wish the controller and the
+        action to be passed on to the page handler parameters. By
+        default they won't be.
         """
         import routes
         self.full_result = full_result
@@ -617,8 +612,7 @@ def XMLRPCDispatcher(next_dispatcher=Dispatcher()):
 
 def VirtualHost(next_dispatcher=Dispatcher(), use_x_forwarded_host=True,
                 **domains):
-    """
-    Select a different handler based on the Host header.
+    """Select a different handler based on the Host header.
 
     This can be useful when running multiple sites within one CP server.
     It allows several domains to point to different parts of a single

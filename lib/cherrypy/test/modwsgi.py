@@ -94,7 +94,6 @@ SetEnv testmod %(testmod)s
 
 
 class ModWSGISupervisor(helper.Supervisor):
-
     """Server Controller for ModWSGI and CherryPy."""
 
     using_apache = True

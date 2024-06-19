@@ -28,7 +28,7 @@ def suppress_type_checks() -> ContextManager[None]: ...
 
 
 def suppress_type_checks(
-    func: Callable[P, T] | None = None
+    func: Callable[P, T] | None = None,
 ) -> Callable[P, T] | ContextManager[None]:
     """
     Temporarily suppress all type checking.

@@ -261,9 +261,7 @@ class ResponseEncoder:
 
 
 def prepare_iter(value):
-    """
-    Ensure response body is iterable and resolves to False when empty.
-    """
+    """Ensure response body is iterable and resolves to False when empty."""
     if isinstance(value, text_or_bytes):
         # strings get wrapped in a list because iterating over a single
         # item list is much faster than iterating over every character
@@ -360,7 +358,6 @@ def gzip(compress_level=5, mime_types=['text/html', 'text/plain'],
         * No 'gzip' or 'x-gzip' is present in the Accept-Encoding header
         * No 'gzip' or 'x-gzip' with a qvalue > 0 is present
         * The 'identity' value is given with a qvalue > 0.
-
     """
     request = cherrypy.serving.request
     response = cherrypy.serving.response

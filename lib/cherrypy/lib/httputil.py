@@ -12,7 +12,6 @@ import email.utils
 import re
 import builtins
 from binascii import b2a_base64
-from cgi import parse_header
 from email.header import decode_header
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import unquote_plus
@@ -21,6 +20,7 @@ import jaraco.collections
 
 import cherrypy
 from cherrypy._cpcompat import ntob, ntou
+from .headers import parse_header
 
 response_codes = BaseHTTPRequestHandler.responses.copy()
 
@@ -71,10 +71,10 @@ def protocol_from_http(protocol_str):
 def get_ranges(headervalue, content_length):
     """Return a list of (start, stop) indices from a Range header, or None.
 
-    Each (start, stop) tuple will be composed of two ints, which are suitable
-    for use in a slicing operation. That is, the header "Range: bytes=3-6",
-    if applied against a Python string, is requesting resource[3:7]. This
-    function will return the list [(3, 7)].
+    Each (start, stop) tuple will be composed of two ints, which are
+    suitable for use in a slicing operation. That is, the header "Range:
+    bytes=3-6", if applied against a Python string, is requesting
+    resource[3:7]. This function will return the list [(3, 7)].
 
     If this function returns an empty list, you should return HTTP 416.
     """
@@ -127,7 +127,6 @@ def get_ranges(headervalue, content_length):
 
 
 class HeaderElement(object):
-
     """An element (with parameters) from an HTTP header's element list."""
 
     def __init__(self, value, params=None):
@@ -169,14 +168,14 @@ q_separator = re.compile(r'; *q *=')
 
 
 class AcceptElement(HeaderElement):
-
     """An element (with parameters) from an Accept* header's element list.
 
-    AcceptElement objects are comparable; the more-preferred object will be
-    "less than" the less-preferred object. They are also therefore sortable;
-    if you sort a list of AcceptElement objects, they will be listed in
-    priority order; the most preferred value will be first. Yes, it should
-    have been the other way around, but it's too late to fix now.
+    AcceptElement objects are comparable; the more-preferred object will
+    be "less than" the less-preferred object. They are also therefore
+    sortable; if you sort a list of AcceptElement objects, they will be
+    listed in priority order; the most preferred value will be first.
+    Yes, it should have been the other way around, but it's too late to
+    fix now.
     """
 
     @classmethod
@@ -249,8 +248,7 @@ def header_elements(fieldname, fieldvalue):
 
 
 def decode_TEXT(value):
-    r"""
-    Decode :rfc:`2047` TEXT
+    r"""Decode :rfc:`2047` TEXT.
 
     >>> decode_TEXT("=?utf-8?q?f=C3=BCr?=") == b'f\xfcr'.decode('latin-1')
     True
@@ -265,9 +263,7 @@ def decode_TEXT(value):
 
 
 def decode_TEXT_maybe(value):
-    """
-    Decode the text but only if '=?' appears in it.
-    """
+    """Decode the text but only if '=?' appears in it."""
     return decode_TEXT(value) if '=?' in value else value
 
 
@@ -388,7 +384,6 @@ def parse_query_string(query_string, keep_blank_values=True, encoding='utf-8'):
 
 
 class CaseInsensitiveDict(jaraco.collections.KeyTransformingDict):
-
     """A case-insensitive dict subclass.
 
     Each key is changed on entry to title case.
@@ -417,7 +412,6 @@ else:
 
 
 class HeaderMap(CaseInsensitiveDict):
-
     """A dict subclass for HTTP request and response headers.
 
     Each key is changed on entry to str(key).title(). This allows headers
@@ -494,7 +488,6 @@ class HeaderMap(CaseInsensitiveDict):
 
 
 class Host(object):
-
     """An internet address.
 
     name

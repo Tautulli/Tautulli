@@ -19,6 +19,7 @@ import os
 import ssl
 import sys
 
+import cheroot.errors
 import cherrypy
 
 import plexpy
@@ -259,6 +260,13 @@ def initialize(options):
             'tools.auth.on': False
         }
     }
+
+    # Catch shutdown errors that can break cherrypy/cheroot
+    # See https://github.com/cherrypy/cheroot/issues/710
+    try:
+        cheroot.errors.acceptable_sock_shutdown_exceptions += (OSError,)
+    except AttributeError:
+        pass
 
     cherrypy.tree.mount(WebInterface(), options['http_root'], config=conf)
     if plexpy.HTTP_ROOT != '/':

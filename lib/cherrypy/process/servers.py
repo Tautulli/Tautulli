@@ -132,7 +132,6 @@ class Timeouts:
 
 
 class ServerAdapter(object):
-
     """Adapter for an HTTP server.
 
     If you need to start more than one HTTP server (to serve on multiple
@@ -188,9 +187,7 @@ class ServerAdapter(object):
 
     @property
     def description(self):
-        """
-        A description about where this server is bound.
-        """
+        """A description about where this server is bound."""
         if self.bind_addr is None:
             on_what = 'unknown interface (dynamic?)'
         elif isinstance(self.bind_addr, tuple):
@@ -292,7 +289,6 @@ class ServerAdapter(object):
 
 
 class FlupCGIServer(object):
-
     """Adapter for a flup.server.cgi.WSGIServer."""
 
     def __init__(self, *args, **kwargs):
@@ -316,7 +312,6 @@ class FlupCGIServer(object):
 
 
 class FlupFCGIServer(object):
-
     """Adapter for a flup.server.fcgi.WSGIServer."""
 
     def __init__(self, *args, **kwargs):
@@ -362,7 +357,6 @@ class FlupFCGIServer(object):
 
 
 class FlupSCGIServer(object):
-
     """Adapter for a flup.server.scgi.WSGIServer."""
 
     def __init__(self, *args, **kwargs):

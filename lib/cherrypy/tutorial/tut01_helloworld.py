@@ -11,8 +11,7 @@ import cherrypy
 
 
 class HelloWorld:
-
-    """ Sample request handler class. """
+    """Sample request handler class."""
 
     # Expose the index method through the web. CherryPy will never
     # publish methods that don't have the exposed attribute set to True.

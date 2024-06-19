@@ -184,7 +184,6 @@ To report statistics::
 To format statistics reports::
 
     See 'Reporting', above.
-
 """
 
 import logging
@@ -254,7 +253,6 @@ def proc_time(s):
 
 
 class ByteCountWrapper(object):
-
     """Wraps a file-like object, counting the number of bytes read."""
 
     def __init__(self, rfile):
@@ -307,7 +305,6 @@ def _get_threading_ident():
 
 
 class StatsTool(cherrypy.Tool):
-
     """Record various information about the current request."""
 
     def __init__(self):
@@ -316,8 +313,8 @@ class StatsTool(cherrypy.Tool):
     def _setup(self):
         """Hook this tool into cherrypy.request.
 
-        The standard CherryPy request object will automatically call this
-        method when the tool is "turned on" in config.
+        The standard CherryPy request object will automatically call
+        this method when the tool is "turned on" in config.
         """
         if appstats.get('Enabled', False):
             cherrypy.Tool._setup(self)

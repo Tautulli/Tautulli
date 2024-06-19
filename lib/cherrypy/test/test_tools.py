@@ -460,9 +460,7 @@ class SessionAuthTest(unittest.TestCase):
 
 class TestHooks:
     def test_priorities(self):
-        """
-        Hooks should sort by priority order.
-        """
+        """Hooks should sort by priority order."""
         Hook = cherrypy._cprequest.Hook
         hooks = [
             Hook(None, priority=48),

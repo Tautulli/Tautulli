@@ -7,22 +7,22 @@ class NeverExpires(object):
 
 
 class Timer(object):
-    """
-    A simple timer that will indicate when an expiration time has passed.
-    """
+    """A simple timer that will indicate when an expiration time has passed."""
     def __init__(self, expiration):
         'Create a timer that expires at `expiration` (UTC datetime)'
         self.expiration = expiration
 
     @classmethod
     def after(cls, elapsed):
-        """
-        Return a timer that will expire after `elapsed` passes.
-        """
-        return cls(datetime.datetime.utcnow() + elapsed)
+        """Return a timer that will expire after `elapsed` passes."""
+        return cls(
+            datetime.datetime.now(datetime.timezone.utc) + elapsed,
+        )
 
     def expired(self):
-        return datetime.datetime.utcnow() >= self.expiration
+        return datetime.datetime.now(
+            datetime.timezone.utc,
+        ) >= self.expiration
 
 
 class LockTimeout(Exception):
@@ -30,9 +30,7 @@ class LockTimeout(Exception):
 
 
 class LockChecker(object):
-    """
-    Keep track of the time and detect if a timeout has expired
-    """
+    """Keep track of the time and detect if a timeout has expired."""
     def __init__(self, session_id, timeout):
         self.session_id = session_id
         if timeout:

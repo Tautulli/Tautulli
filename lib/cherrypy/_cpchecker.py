@@ -313,7 +313,10 @@ class Checker(object):
 
     # -------------------- Specific config warnings -------------------- #
     def check_localhost(self):
-        """Warn if any socket_host is 'localhost'. See #711."""
+        """Warn if any socket_host is 'localhost'.
+
+        See #711.
+        """
         for k, v in cherrypy.config.items():
             if k == 'server.socket_host' and v == 'localhost':
                 warnings.warn("The use of 'localhost' as a socket host can "
