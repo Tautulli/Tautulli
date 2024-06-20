@@ -42,6 +42,7 @@ FILENAME = "config.ini"
 _CONFIG_DEFINITIONS = {
     'ALLOW_GUEST_ACCESS': (int, 'General', 0),
     'DATE_FORMAT': (str, 'General', 'YYYY-MM-DD'),
+    'DATE_BASED_TV_SHOW_FORMAT': (str, 'Advanced', 'YYYY&middot;MM&middot;DD'),
     'PMS_CLIENT_ID': (str, 'PMS', ''),
     'PMS_IDENTIFIER': (str, 'PMS', ''),
     'PMS_IP': (str, 'PMS', '127.0.0.1'),
@@ -240,6 +241,7 @@ SETTINGS = [
     'CLOUDINARY_API_SECRET',
     'CLOUDINARY_CLOUD_NAME',
     'DATE_FORMAT',
+    'DATE_BASED_TV_SHOW_FORMAT',
     'EXPORT_DIR',
     'GIT_BRANCH',
     'GIT_PATH',

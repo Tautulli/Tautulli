@@ -126,6 +126,15 @@
                             </div>
                             <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label for="date_based_tv_show_format">Date Based TV Show Format</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="date_based_tv_show_format" name="date_based_tv_show_format" value="${config['date_based_tv_show_format']}" data-parsley-trigger="change" required>
+                                </div>
+                            </div>
+                            <p class="help-block">Set your preferred display format for date based tv shows.</p>
+                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" id="week_start_monday" name="week_start_monday" value="1" ${config['week_start_monday']}> Week Starting on Monday
