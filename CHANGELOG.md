@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.14.3 (2024-06-19)
+
+* Graphs:
+  * Fix: History table not loading when clicking on the graphs in some instances.
+* UI:
+  * Fix: Scheduled tasks table not loading when certain tasks are disabled.
+  * Removed: Unnecessary Remote Server checkbox from the settings page.
+* Other:
+  * Fix: Webserver not restarting after the setup wizard.
+  * Fix: Workaround webserver crashing in some instances.
+
+
 ## v2.14.2 (2024-05-18)
 
 * History:
