@@ -3601,7 +3601,7 @@ class SLACK(Notifier):
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         if self.config['incl_subject']:
-            text = subject + '\r\n' + body
+            text = subject + '\n' + body
         else:
             text = body
 
@@ -3636,34 +3636,74 @@ class SLACK(Notifier):
             description = pretty_metadata.get_description()
             plex_url = pretty_metadata.get_plex_url()
 
-            # Build Slack post attachment
-            attachment = {'fallback': 'Image for %s' % title,
-                          'title': title
-                          }
+            if provider_link:
+                text = f"*<{provider_link}|{title}>*"
+            else:
+                text = f"*{title}*"
+
+            if self.config['incl_description']:
+                text = f'{text}\n{description}'
+
+            # Max length of text is 3000 characters
+            text = (text[:2997] + (text[2997:] and '...'))
+
+            section = {
+                'type': 'section',
+                'text': {
+                   'type': 'mrkdwn',
+                    'text': text,
+                }
+            }
+            if self.config['incl_thumbnail']:
+                section['accessory'] = {
+                    'type': 'image',
+                    'image_url': poster_url,
+                    'alt_text': title,
+                }
+            blocks = [section]
+
+            fields = []
+            field_title = {
+                'type': 'mrkdwn',
+                'text': 'View Details',
+            }
+            if provider_link:
+                fields.append(field_title)
+                fields.append({
+                    'type': 'mrkdwn',
+                    'text': f'<{provider_link}|{provider_name}>',
+                })
+            if self.config['incl_pmslink']:
+                fields.append(field_title)
+                fields.append({
+                    'type': 'mrkdwn',
+                    'text': f'<{plex_url}|Plex Web>',
+                })
+            if fields:
+                if len(fields) <= 2:
+                    fields.append({
+                        'type': 'plain_text',
+                        'text': ' ',
+                    })
+                blocks.append({
+                    'type': 'section',
+                    'fields': fields[::2] + fields[1::2],
+                })
+
+            if not self.config['incl_thumbnail']:
+                blocks.append({
+                    'type': 'image',
+                    'image_url': poster_url,
+                    'alt_text': title,
+                })
+
+            attachment = {
+                'blocks': blocks,
+
+            }
 
             if self.config['color'] and re.match(r'^#(?:[0-9a-fA-F]{3}){1,2}$', self.config['color']):
                 attachment['color'] = self.config['color']
-
-            if self.config['incl_thumbnail']:
-                attachment['thumb_url'] = poster_url
-            else:
-                attachment['image_url'] = poster_url
-
-            if self.config['incl_description']:
-                attachment['text'] = description
-
-            fields = []
-            if provider_link:
-                attachment['title_link'] = provider_link
-                fields.append({'title': 'View Details',
-                               'value': '<%s|%s>' % (provider_link, provider_name),
-                               'short': True})
-            if self.config['incl_pmslink']:
-                fields.append({'title': 'View Details',
-                               'value': '<%s|%s>' % (plex_url, 'Plex Web'),
-                               'short': True})
-            if fields:
-                attachment['fields'] = fields
 
             data['attachments'] = [attachment]
 
