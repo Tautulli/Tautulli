@@ -927,6 +927,7 @@ a .users-poster-face:hover {
     -webkit-flex-grow: 1;
     flex-grow: 1;
     z-index: 1;
+    overflow: scroll;
 }
 .dashboard-activity-info-scroller.scrollbar-macosx > .scroll-element.scroll-y {
     left: 10px;
