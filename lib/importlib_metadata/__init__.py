@@ -12,14 +12,13 @@ import inspect
 import pathlib
 import operator
 import textwrap
-import warnings
 import functools
 import itertools
 import posixpath
 import collections
 
-from . import _adapters, _meta
-from .compat import py39
+from . import _meta
+from .compat import py39, py311
 from ._collections import FreezableDefaultDict, Pair
 from ._compat import (
     NullFinder,
@@ -334,27 +333,7 @@ class FileHash:
         return f'<FileHash mode: {self.mode} value: {self.value}>'
 
 
-class DeprecatedNonAbstract:
-    # Required until Python 3.14
-    def __new__(cls, *args, **kwargs):
-        all_names = {
-            name for subclass in inspect.getmro(cls) for name in vars(subclass)
-        }
-        abstract = {
-            name
-            for name in all_names
-            if getattr(getattr(cls, name), '__isabstractmethod__', False)
-        }
-        if abstract:
-            warnings.warn(
-                f"Unimplemented abstract methods {abstract}",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-        return super().__new__(cls)
-
-
-class Distribution(DeprecatedNonAbstract):
+class Distribution(metaclass=abc.ABCMeta):
     """
     An abstract Python distribution package.
 
@@ -461,6 +440,9 @@ class Distribution(DeprecatedNonAbstract):
         Custom providers may provide the METADATA file or override this
         property.
         """
+        # deferred for performance (python/cpython#109829)
+        from . import _adapters
+
         opt_text = (
             self.read_text('METADATA')
             or self.read_text('PKG-INFO')
@@ -567,9 +549,8 @@ class Distribution(DeprecatedNonAbstract):
             return
 
         paths = (
-            (subdir / name)
-            .resolve()
-            .relative_to(self.locate_file('').resolve())
+            py311.relative_fix((subdir / name).resolve())
+            .relative_to(self.locate_file('').resolve(), walk_up=True)
             .as_posix()
             for name in text.splitlines()
         )
