@@ -866,6 +866,8 @@ class Playable:
 
             if kwargs:
                 # So this seems to be a a lot slower but allows transcode.
+                kwargs['mediaIndex'] = self.media.index(part._parent())
+                kwargs['partIndex'] = part._parent().parts.index(part)
                 download_url = self.getStreamURL(**kwargs)
             else:
                 download_url = self._server.url(f'{part.key}?download=1')

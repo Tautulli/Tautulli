@@ -413,16 +413,17 @@ class PlexServer(PlexObject):
         return items
 
     def client(self, name):
-        """ Returns the :class:`~plexapi.client.PlexClient` that matches the specified name.
+        """ Returns the :class:`~plexapi.client.PlexClient` that matches the specified name
+            or machine identifier.
 
             Parameters:
-                name (str): Name of the client to return.
+                name (str): Name or machine identifier of the client to return.
 
             Raises:
                 :exc:`~plexapi.exceptions.NotFound`: Unknown client name.
         """
         for client in self.clients():
-            if client and client.title == name:
+            if client and (client.title == name or client.machineIdentifier == name):
                 return client
 
         raise NotFound(f'Unknown client name: {name}')

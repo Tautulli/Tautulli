@@ -478,6 +478,7 @@ class SubtitleStream(MediaPartStream):
         return self.setSelected()
 
 
+@utils.registerPlexObject
 class LyricStream(MediaPartStream):
     """ Represents a lyric stream within a :class:`~plexapi.media.MediaPart`.
 
