@@ -34,6 +34,7 @@ import shutil
 import time
 import threading
 import tzlocal
+import ctypes
 
 import plexpy
 from plexpy import common, config, database, helpers, logger, webstart
@@ -69,10 +70,20 @@ def main():
     plexpy.SYS_ENCODING = None
 
     try:
-        locale.setlocale(locale.LC_ALL, "")
-        plexpy.SYS_LANGUAGE, plexpy.SYS_ENCODING = locale.getlocale()
-        if not plexpy.SYS_ENCODING:
-            plexpy.SYS_ENCODING = locale.getencoding()
+
+        language_code, encoding = locale.getlocale()
+        if not encoding:
+            encoding = locale.getencoding()
+
+        # Special case for Windows where getlocale doesn't return correctly
+        if sys.platform == 'win32':
+            # Get the kernel of the OS and the default UI Language to locate the language code in Windows
+            windll = ctypes.windll.kernel32
+            language_code = locale.windows_locale[windll.GetUserDefaultUILanguage()]
+            encoding = "cp1252"
+
+        plexpy.SYS_LANGUAGE = language_code
+        plexpy.SYS_ENCODING = encoding
     except (locale.Error, IOError):
         pass
 
