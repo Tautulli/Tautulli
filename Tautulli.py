@@ -71,19 +71,29 @@ def main():
 
     try:
 
+        # Attempt to get the system's locale settings
         language_code, encoding = locale.getlocale()
+
+        # If encoding is not returned, get the encoding
         if not encoding:
             encoding = locale.getencoding()
 
-        # Special case for Windows where getlocale doesn't return correctly
+        # Special handling for Windows platform
         if sys.platform == 'win32':
-            # Get the kernel of the OS and the default UI Language to locate the language code in Windows
+            # Get the user's default UI language on Windows
             windll = ctypes.windll.kernel32
-            language_code = locale.windows_locale[windll.GetUserDefaultUILanguage()]
+            lang_id = windll.GetUserDefaultUILanguage()
+
+            # Map Windows language ID to locale identifier
+            language_code = locale.windows_locale.get(lang_id, '')
+
+            # Set encoding to Windows default encoding
             encoding = "cp1252"
 
+        # Assign values to application-specific variable
         plexpy.SYS_LANGUAGE = language_code
         plexpy.SYS_ENCODING = encoding
+
     except (locale.Error, IOError):
         pass
 
