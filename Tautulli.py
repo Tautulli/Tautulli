@@ -74,10 +74,6 @@ def main():
         # Attempt to get the system's locale settings
         language_code, encoding = locale.getlocale()
 
-        # If encoding is not returned, get the encoding
-        if not encoding:
-            encoding = locale.getpreferredencoding()
-
         # Special handling for Windows platform
         if sys.platform == 'win32':
             # Get the user's current language settings on Windows
@@ -87,8 +83,8 @@ def main():
             # Map Windows language ID to locale identifier
             language_code = locale.windows_locale.get(lang_id, '')
 
-            # Set encoding to Windows default encoding
-            encoding = "cp1252"
+        # Get the preferred encoding
+        encoding = locale.getpreferredencoding()
 
         # Assign values to application-specific variable
         plexpy.SYS_LANGUAGE = language_code
