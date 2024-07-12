@@ -76,13 +76,13 @@ def main():
 
         # If encoding is not returned, get the encoding
         if not encoding:
-            encoding = locale.getencoding()
+            encoding = locale.getpreferredencoding()
 
         # Special handling for Windows platform
         if sys.platform == 'win32':
-            # Get the user's default UI language on Windows
+            # Get the user's current language settings on Windows
             windll = ctypes.windll.kernel32
-            lang_id = windll.GetUserDefaultUILanguage()
+            lang_id = windll.GetUserDefaultLCID()
 
             # Map Windows language ID to locale identifier
             language_code = locale.windows_locale.get(lang_id, '')
