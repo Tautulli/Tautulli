@@ -7,82 +7,90 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-04 21:44-0700\n"
+"POT-Creation-Date: 2021-06-05 00:01-0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: el\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.0\n"
 
-#: ../../data/interfaces/default/base.html:107
-#: ../../data/interfaces/default/base.html:109
-msgid "base.nav.libraries"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:112
-#: ../../data/interfaces/default/base.html:114
-msgid "base.nav.users"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:117
-#: ../../data/interfaces/default/base.html:119
-msgid "base.nav.history"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:122
-#: ../../data/interfaces/default/base.html:124
-msgid "base.nav.graphs"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:127
-#: ../../data/interfaces/default/base.html:129
-msgid "base.nav.synced_items"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:140
-msgid "base.nav.settings"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:142
-msgid "base.nav.view_logs"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:144
-msgid "base.nav.support"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:146
-msgid "base.nav.donate"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:149
 msgid "base.nav.check_for_updates"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:151
+msgid "base.nav.donate"
+msgstr ""
+
+msgid "base.nav.graphs"
+msgstr ""
+
+msgid "base.nav.history"
+msgstr ""
+
+msgid "base.nav.libraries"
+msgstr ""
+
 msgid "base.nav.restart"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:152
+msgid "base.nav.settings"
+msgstr ""
+
 msgid "base.nav.shutdown"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:154
-#: ../../data/interfaces/default/base.html:183
-msgid "base.nav.admin_login"
+msgid "base.nav.support"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:158
-msgid "base.nav.sign_out"
+msgid "base.nav.synced_items"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:202
+msgid "base.nav.users"
+msgstr ""
+
+msgid "base.nav.view_logs"
+msgstr ""
+
+msgid "global.cancel"
+msgstr ""
+
+msgid "global.confirm"
+msgstr ""
+
+msgid "login.admin_login"
+msgstr ""
+
+msgid "login.error_plex_communication"
+msgstr ""
+
+msgid "login.error_plex_invalid"
+msgstr ""
+
+msgid "login.error_retry"
+msgstr ""
+
+msgid "login.error_tautulli_invalid"
+msgstr ""
+
+msgid "login.password"
+msgstr ""
+
 msgid "login.remember_me"
 msgstr ""
 
-#: ../../data/interfaces/default/base.html:210
 msgid "login.sign_in"
+msgstr ""
+
+msgid "login.sign_in_plex"
+msgstr ""
+
+msgid "login.sign_in_tautulli"
+msgstr ""
+
+msgid "login.sign_out"
+msgstr ""
+
+msgid "login.username"
 msgstr ""
