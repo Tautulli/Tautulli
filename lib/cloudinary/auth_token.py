@@ -11,7 +11,7 @@ AUTH_TOKEN_UNSAFE_RE = r'([ "#%&\'\/:;<=>?@\[\\\]^`{\|}~]+)'
 
 
 def generate(url=None, acl=None, start_time=None, duration=None,
-             expiration=None, ip=None, key=None, token_name=AUTH_TOKEN_NAME):
+             expiration=None, ip=None, key=None, token_name=AUTH_TOKEN_NAME, **_):
 
     if expiration is None:
         if duration is not None:
