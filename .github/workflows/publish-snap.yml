@@ -38,7 +38,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
 
       - name: Build Snap Package
-        uses: diddlesnaps/snapcraft-multiarch-action@v1
+        uses: diddlesnaps/snapcraft-multiarch-action@master
         id: build
         with:
           architecture: ${{ matrix.architecture }}
@@ -50,7 +50,7 @@ jobs:
           path: ${{ steps.build.outputs.snap }}
 
       - name: Review Snap Package
-        uses: diddlesnaps/snapcraft-review-tools-action@v1
+        uses: diddlesnaps/snapcraft-review-tools-action@master
         with:
           snap: ${{ steps.build.outputs.snap }}
 
