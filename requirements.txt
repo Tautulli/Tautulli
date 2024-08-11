@@ -40,7 +40,7 @@ rumps==0.4.0; platform_system == "Darwin"
 simplejson==3.19.2
 six==1.16.0
 tempora==5.7.0
-tokenize-rt==5.2.0
+tokenize-rt==6.0.0
 tzdata==2024.1
 tzlocal==5.0.1
 urllib3<2

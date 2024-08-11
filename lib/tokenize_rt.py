@@ -99,6 +99,11 @@ def src_to_tokens(src: str) -> list[Token]:
             end_offset += len(newtok.encode())
 
         tok_name = tokenize.tok_name[tok_type]
+
+        if tok_name == 'FSTRING_MIDDLE':  # pragma: >=3.12 cover
+            ecol += tok_text.count('{') + tok_text.count('}')
+            tok_text = tok_text.replace('{', '{{').replace('}', '}}')
+
         tokens.append(Token(tok_name, tok_text, sline, end_offset))
         last_line, last_col = eline, ecol
         if sline != eline:
@@ -115,7 +120,7 @@ def tokens_to_src(tokens: Iterable[Token]) -> str:
 
 def reversed_enumerate(
         tokens: Sequence[Token],
-) -> Generator[tuple[int, Token], None, None]:
+) -> Generator[tuple[int, Token]]:
     for i in reversed(range(len(tokens))):
         yield i, tokens[i]
 
