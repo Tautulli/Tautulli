@@ -1,5 +1,16 @@
 # Changelog
 
+## v2.14.4 (2024-08-10)
+
+* Notifications:
+  * Fix: Update Slack notification info card.
+  * New: Added ntfy notification agent. (Thanks @nwithan8) (#2356, #2000)
+* UI:
+  * Fix: macOS platform capitalization.
+* Other:
+  * Fix: Remove deprecated getdefaultlocale (Thanks @teodorstelian) (#2364, #2345)
+
+
 ## v2.14.3 (2024-06-19)
 
 * Graphs:
