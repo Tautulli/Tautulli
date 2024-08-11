@@ -14,6 +14,14 @@ def compose(*funcs):
     """
     Compose any number of unary functions into a single unary function.
 
+    Comparable to
+    `function composition <https://en.wikipedia.org/wiki/Function_composition>`_
+    in mathematics:
+
+    ``h = g ∘ f`` implies ``h(x) = g(f(x))``.
+
+    In Python, ``h = compose(g, f)``.
+
     >>> import textwrap
     >>> expected = str.strip(textwrap.dedent(compose.__doc__))
     >>> strip_and_dedent = compose(str.strip, textwrap.dedent)
