@@ -10,6 +10,9 @@ from numbers import Number
 from typing import Union, Tuple, Iterable
 from typing import cast
 
+import dateutil.parser
+import dateutil.tz
+
 
 # some useful constants
 osc_per_year = 290_091_329_207_984_000
@@ -611,3 +614,40 @@ def date_range(start=None, stop=None, step=None):
     while start < stop:
         yield start
         start += step
+
+
+tzinfos = dict(
+    AEST=dateutil.tz.gettz("Australia/Sydney"),
+    AEDT=dateutil.tz.gettz("Australia/Sydney"),
+    ACST=dateutil.tz.gettz("Australia/Darwin"),
+    ACDT=dateutil.tz.gettz("Australia/Adelaide"),
+    AWST=dateutil.tz.gettz("Australia/Perth"),
+    EST=dateutil.tz.gettz("America/New_York"),
+    EDT=dateutil.tz.gettz("America/New_York"),
+    CST=dateutil.tz.gettz("America/Chicago"),
+    CDT=dateutil.tz.gettz("America/Chicago"),
+    MST=dateutil.tz.gettz("America/Denver"),
+    MDT=dateutil.tz.gettz("America/Denver"),
+    PST=dateutil.tz.gettz("America/Los_Angeles"),
+    PDT=dateutil.tz.gettz("America/Los_Angeles"),
+    GMT=dateutil.tz.gettz("Etc/GMT"),
+    UTC=dateutil.tz.gettz("UTC"),
+    CET=dateutil.tz.gettz("Europe/Berlin"),
+    CEST=dateutil.tz.gettz("Europe/Berlin"),
+    IST=dateutil.tz.gettz("Asia/Kolkata"),
+    BST=dateutil.tz.gettz("Europe/London"),
+    MSK=dateutil.tz.gettz("Europe/Moscow"),
+    EET=dateutil.tz.gettz("Europe/Helsinki"),
+    EEST=dateutil.tz.gettz("Europe/Helsinki"),
+    # Add more mappings as needed
+)
+
+
+def parse(*args, **kwargs):
+    """
+    Parse the input using dateutil.parser.parse with friendly tz support.
+
+    >>> parse('2024-07-26 12:59:00 EDT')
+    datetime.datetime(...America/New_York...)
+    """
+    return dateutil.parser.parse(*args, tzinfos=tzinfos, **kwargs)
