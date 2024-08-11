@@ -543,16 +543,30 @@ def create_upload_preset(**options):
     return call_api("post", uri, params, **options)
 
 
-def create_folder(path, **options):
-    return call_api("post", ["folders", path], {}, **options)
-
-
 def root_folders(**options):
     return call_api("get", ["folders"], only(options, "next_cursor", "max_results"), **options)
 
 
 def subfolders(of_folder_path, **options):
     return call_api("get", ["folders", of_folder_path], only(options, "next_cursor", "max_results"), **options)
+
+
+def create_folder(path, **options):
+    return call_api("post", ["folders", path], {}, **options)
+
+
+def rename_folder(from_path, to_path, **options):
+    """
+    Renames folder
+
+    :param from_path: The full path of an existing asset folder.
+    :param to_path:   The full path of the new asset folder.
+    :param options:   Additional options
+
+    :rtype: Response
+    """
+    params = {"to_folder": to_path}
+    return call_api("put", ["folders", from_path], params, **options)
 
 
 def delete_folder(path, **options):
@@ -727,7 +741,7 @@ def update_metadata_field(field_external_id, field, **options):
 
 def __metadata_field_params(field):
     return only(field, "type", "external_id", "label", "mandatory", "restrictions",
-                "default_value", "validation", "datasource")
+                "default_value", "default_disabled", "validation", "datasource")
 
 
 def delete_metadata_field(field_external_id, **options):

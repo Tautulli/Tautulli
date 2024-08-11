@@ -5,7 +5,7 @@ import warnings
 from calendar import timegm
 from collections.abc import Iterable
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List
 
 from . import api_jws
 from .exceptions import (
@@ -21,6 +21,7 @@ from .warnings import RemovedInPyjwt3Warning
 
 if TYPE_CHECKING:
     from .algorithms import AllowedPrivateKeys, AllowedPublicKeys
+    from .api_jwk import PyJWK
 
 
 class PyJWT:
@@ -100,7 +101,7 @@ class PyJWT:
     def decode_complete(
         self,
         jwt: str | bytes,
-        key: AllowedPublicKeys | str | bytes = "",
+        key: AllowedPublicKeys | PyJWK | str | bytes = "",
         algorithms: list[str] | None = None,
         options: dict[str, Any] | None = None,
         # deprecated arg, remove in pyjwt3
@@ -110,7 +111,7 @@ class PyJWT:
         # passthrough arguments to _validate_claims
         # consider putting in options
         audience: str | Iterable[str] | None = None,
-        issuer: str | None = None,
+        issuer: str | List[str] | None = None,
         leeway: float | timedelta = 0,
         # kwargs
         **kwargs: Any,
@@ -185,7 +186,7 @@ class PyJWT:
     def decode(
         self,
         jwt: str | bytes,
-        key: AllowedPublicKeys | str | bytes = "",
+        key: AllowedPublicKeys | PyJWK | str | bytes = "",
         algorithms: list[str] | None = None,
         options: dict[str, Any] | None = None,
         # deprecated arg, remove in pyjwt3
@@ -195,7 +196,7 @@ class PyJWT:
         # passthrough arguments to _validate_claims
         # consider putting in options
         audience: str | Iterable[str] | None = None,
-        issuer: str | None = None,
+        issuer: str | List[str] | None = None,
         leeway: float | timedelta = 0,
         # kwargs
         **kwargs: Any,
@@ -300,7 +301,7 @@ class PyJWT:
         try:
             exp = int(payload["exp"])
         except ValueError:
-            raise DecodeError("Expiration Time claim (exp) must be an" " integer.")
+            raise DecodeError("Expiration Time claim (exp) must be an integer.")
 
         if exp <= (now - leeway):
             raise ExpiredSignatureError("Signature has expired")
@@ -362,8 +363,12 @@ class PyJWT:
         if "iss" not in payload:
             raise MissingRequiredClaimError("iss")
 
-        if payload["iss"] != issuer:
-            raise InvalidIssuerError("Invalid issuer")
+        if isinstance(issuer, list):
+            if payload["iss"] not in issuer:
+                raise InvalidIssuerError("Invalid issuer")
+        else:
+            if payload["iss"] != issuer:
+                raise InvalidIssuerError("Invalid issuer")
 
 
 _jwt_global_obj = PyJWT()

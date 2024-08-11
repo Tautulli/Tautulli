@@ -6,7 +6,7 @@ bleach==6.1.0
 certifi==2024.7.4
 cheroot==10.0.1
 cherrypy==18.10.0
-cloudinary==1.40.0
+cloudinary==1.41.0
 distro==1.9.0
 dnspython==2.6.1
 facebook-sdk==3.1.0
@@ -16,7 +16,7 @@ gntp==1.0.3
 html5lib==1.1
 httpagentparser==1.9.5
 idna==3.7
-importlib-metadata==8.0.0
+importlib-metadata==8.2.0
 importlib-resources==6.4.0
 git+https://github.com/Tautulli/ipwhois.git@master#egg=ipwhois
 IPy==1.01
@@ -29,7 +29,7 @@ platformdirs==4.2.2
 plexapi==4.15.15
 portend==3.2.0
 profilehooks==1.12.0
-PyJWT==2.8.0
+PyJWT==2.9.0
 pyparsing==3.1.2
 python-dateutil==2.9.0.post0
 python-twitter==3.5
@@ -39,7 +39,7 @@ requests-oauthlib==2.0.0
 rumps==0.4.0; platform_system == "Darwin"
 simplejson==3.19.2
 six==1.16.0
-tempora==5.6.0
+tempora==5.7.0
 tokenize-rt==6.0.0
 tzdata==2024.1
 tzlocal==5.0.1

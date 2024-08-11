@@ -820,7 +820,7 @@ def cloudinary_url(source, **options):
     transformation = re.sub(r'([^:])/+', r'\1/', transformation)
 
     signature = None
-    if sign_url and not auth_token:
+    if sign_url and (not auth_token or auth_token.pop('set_url_signature', False)):
         to_sign = "/".join(__compact([transformation, source_to_sign]))
         if long_url_signature:
             # Long signature forces SHA256

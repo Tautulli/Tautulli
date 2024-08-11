@@ -1504,6 +1504,18 @@ def dbcheck():
     except sqlite3.OperationalError:
         logger.warn("Unable to capitalize Windows platform values in session_history table.")
 
+    # Upgrade session_history table from earlier versions
+    try:
+        result = c_db.execute("SELECT platform FROM session_history "
+                              "WHERE platform = 'macos'").fetchall()
+        if len(result) > 0:
+            logger.debug("Altering database. Capitalizing macOS platform values in session_history table.")
+            c_db.execute(
+                "UPDATE session_history SET platform = 'macOS' WHERE platform = 'macos' "
+            )
+    except sqlite3.OperationalError:
+        logger.warn("Unable to capitalize macOS platform values in session_history table.")
+
     # Upgrade session_history_metadata table from earlier versions
     try:
         c_db.execute("SELECT full_title FROM session_history_metadata")
