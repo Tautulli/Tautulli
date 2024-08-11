@@ -131,26 +131,15 @@ def is_pem_format(key: bytes) -> bool:
 
 
 # Based on https://github.com/pyca/cryptography/blob/bcb70852d577b3f490f015378c75cba74986297b/src/cryptography/hazmat/primitives/serialization/ssh.py#L40-L46
-_CERT_SUFFIX = b"-cert-v01@openssh.com"
-_SSH_PUBKEY_RC = re.compile(rb"\A(\S+)[ \t]+(\S+)")
-_SSH_KEY_FORMATS = [
+_SSH_KEY_FORMATS = (
     b"ssh-ed25519",
     b"ssh-rsa",
     b"ssh-dss",
     b"ecdsa-sha2-nistp256",
     b"ecdsa-sha2-nistp384",
     b"ecdsa-sha2-nistp521",
-]
+)
 
 
 def is_ssh_key(key: bytes) -> bool:
-    if any(string_value in key for string_value in _SSH_KEY_FORMATS):
-        return True
-
-    ssh_pubkey_match = _SSH_PUBKEY_RC.match(key)
-    if ssh_pubkey_match:
-        key_type = ssh_pubkey_match.group(1)
-        if _CERT_SUFFIX == key_type[-len(_CERT_SUFFIX) :]:
-            return True
-
-    return False
+    return key.startswith(_SSH_KEY_FORMATS)

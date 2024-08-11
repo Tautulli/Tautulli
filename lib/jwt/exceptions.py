@@ -58,6 +58,10 @@ class PyJWKError(PyJWTError):
     pass
 
 
+class MissingCryptographyError(PyJWKError):
+    pass
+
+
 class PyJWKSetError(PyJWTError):
     pass
 

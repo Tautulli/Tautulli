@@ -5,7 +5,13 @@ import time
 from typing import Any
 
 from .algorithms import get_default_algorithms, has_crypto, requires_cryptography
-from .exceptions import InvalidKeyError, PyJWKError, PyJWKSetError, PyJWTError
+from .exceptions import (
+    InvalidKeyError,
+    MissingCryptographyError,
+    PyJWKError,
+    PyJWKSetError,
+    PyJWTError,
+)
 from .types import JWKDict
 
 
@@ -50,21 +56,25 @@ class PyJWK:
                 raise InvalidKeyError(f"Unsupported kty: {kty}")
 
         if not has_crypto and algorithm in requires_cryptography:
-            raise PyJWKError(f"{algorithm} requires 'cryptography' to be installed.")
+            raise MissingCryptographyError(
+                f"{algorithm} requires 'cryptography' to be installed."
+            )
 
-        self.Algorithm = self._algorithms.get(algorithm)
+        self.algorithm_name = algorithm
 
-        if not self.Algorithm:
+        if algorithm in self._algorithms:
+            self.Algorithm = self._algorithms[algorithm]
+        else:
             raise PyJWKError(f"Unable to find an algorithm for key: {self._jwk_data}")
 
         self.key = self.Algorithm.from_jwk(self._jwk_data)
 
     @staticmethod
-    def from_dict(obj: JWKDict, algorithm: str | None = None) -> "PyJWK":
+    def from_dict(obj: JWKDict, algorithm: str | None = None) -> PyJWK:
         return PyJWK(obj, algorithm)
 
     @staticmethod
-    def from_json(data: str, algorithm: None = None) -> "PyJWK":
+    def from_json(data: str, algorithm: None = None) -> PyJWK:
         obj = json.loads(data)
         return PyJWK.from_dict(obj, algorithm)
 
@@ -94,7 +104,9 @@ class PyJWKSet:
         for key in keys:
             try:
                 self.keys.append(PyJWK(key))
-            except PyJWTError:
+            except PyJWTError as error:
+                if isinstance(error, MissingCryptographyError):
+                    raise error
                 # skip unusable keys
                 continue
 
@@ -104,16 +116,16 @@ class PyJWKSet:
             )
 
     @staticmethod
-    def from_dict(obj: dict[str, Any]) -> "PyJWKSet":
+    def from_dict(obj: dict[str, Any]) -> PyJWKSet:
         keys = obj.get("keys", [])
         return PyJWKSet(keys)
 
     @staticmethod
-    def from_json(data: str) -> "PyJWKSet":
+    def from_json(data: str) -> PyJWKSet:
         obj = json.loads(data)
         return PyJWKSet.from_dict(obj)
 
-    def __getitem__(self, kid: str) -> "PyJWK":
+    def __getitem__(self, kid: str) -> PyJWK:
         for key in self.keys:
             if key.key_id == kid:
                 return key
