@@ -2815,8 +2815,11 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
             logger.warn("Tautulli failed to reset git install: %s. Restarting." % e)
 
     if CREATEPID:
-        logger.info("Removing pidfile %s", PIDFILE)
-        os.remove(PIDFILE)
+        logger.info("Removing PID file: %s", PIDFILE)
+        try:
+            os.remove(PIDFILE)
+        except OSError:
+            logger.warn("Failed to remove PID file '%s'", PIDFILE)
 
     if restart:
         logger.info("Tautulli is restarting...")
