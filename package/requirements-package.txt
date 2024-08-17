@@ -1,9 +1,9 @@
 apscheduler==3.10.1
+cryptography==43.0.0
 importlib-metadata==8.2.0
 importlib-resources==6.4.0
 pyinstaller==6.8.0
 pyopenssl==24.2.1
-pycryptodomex==3.20.0
 
 pyobjc-core==10.3.1; platform_system == "Darwin"
 pyobjc-framework-Cocoa==10.3.1; platform_system == "Darwin"

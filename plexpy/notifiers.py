@@ -38,20 +38,12 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 try:
-    from Cryptodome.Protocol.KDF import PBKDF2
-    from Cryptodome.Cipher import AES
-    from Cryptodome.Random import get_random_bytes
-    from Cryptodome.Hash import SHA256
-    CRYPTODOME = True
+    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    _CRYPTOGRAPHY = True
 except ImportError:
-    try:
-        from Crypto.Protocol.KDF import PBKDF2
-        from Crypto.Cipher import AES
-        from Crypto.Random import get_random_bytes
-        from Crypto.Hash import SHA256
-        CRYPTODOME = True
-    except ImportError:
-        CRYPTODOME = False
+    _CRYPTOGRAPHY = False
 
 import gntp.notifier
 import facebook
@@ -4030,21 +4022,21 @@ class TAUTULLIREMOTEAPP(Notifier):
 
         #logger.debug("Plaintext data: {}".format(plaintext_data))
 
-        if CRYPTODOME:
+        if _CRYPTOGRAPHY:
             # Key generation
-            salt = get_random_bytes(16)
+            salt = os.urandom(16)
             passphrase = device['device_token']
             key_length = 32  # AES256
             iterations = 600000
-            key = PBKDF2(passphrase, salt, dkLen=key_length, count=iterations, hmac_hash_module=SHA256)
+            kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=key_length, salt=salt, iterations=iterations)
+            key = kdf.derive(passphrase.encode())
 
             #logger.debug("Encryption key (base64): {}".format(base64.b64encode(key)))
 
             # Encrypt using AES GCM
-            nonce = get_random_bytes(16)
-            cipher = AES.new(key, AES.MODE_GCM, nonce)
-            encrypted_data, gcm_tag = cipher.encrypt_and_digest(json.dumps(plaintext_data).encode('utf-8'))
-            encrypted_data += gcm_tag
+            nonce = os.urandom(16)
+            cipher = AESGCM(key)
+            encrypted_data = cipher.encrypt(nonce, json.dumps(plaintext_data).encode('utf-8'), None)
 
             #logger.debug("Encrypted data (base64): {}".format(base64.b64encode(encrypted_data)))
             #logger.debug("GCM tag (base64): {}".format(base64.b64encode(gcm_tag)))
@@ -4062,7 +4054,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                                 'server_id': plexpy.CONFIG.PMS_UUID}
                        }
         else:
-            logger.warn("Tautulli Notifiers :: PyCryptodome library is missing. "
+            logger.warn("Tautulli Notifiers :: Cryptography library is missing. "
                         "Tautulli Remote app notifications will be sent unecrypted. "
                         "Install the library to encrypt the notifications.")
 
@@ -4094,22 +4086,22 @@ class TAUTULLIREMOTEAPP(Notifier):
     def _return_config_options(self):
         config_option = []
 
-        if not CRYPTODOME:
+        if not _CRYPTOGRAPHY:
             config_option.append({
                 'label': 'Warning',
-                'description': '<strong>The PyCryptodome library is missing. '
+                'description': '<strong>The Cryptography library is missing. '
                                'The content of your notifications will be sent unencrypted!</strong><br>'
                                'Please install the library to encrypt the notification contents. '
                                'Instructions can be found in the '
                                '<a href="' + helpers.anon_url(
-                                 'https://github.com/%s/%s/wiki/Frequently-Asked-Questions#notifications-pycryptodome'
+                                 'https://github.com/%s/%s/wiki/Frequently-Asked-Questions#notifications-cryptography'
                                  % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank" rel="noreferrer">FAQ</a>.' ,
                 'input_type': 'help'
             })
         else:
             config_option.append({
                 'label': 'Note',
-                'description': 'The PyCryptodome library was found. '
+                'description': 'The Cryptography library was found. '
                                'The content of your notifications will be sent encrypted!',
                 'input_type': 'help'
             })
