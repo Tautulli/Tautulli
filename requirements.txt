@@ -3,7 +3,7 @@ arrow==1.3.0
 backports.zoneinfo==0.2.1;python_version<"3.9"
 beautifulsoup4==4.12.3
 bleach==6.1.0
-certifi==2024.7.4
+certifi==2024.8.30
 cheroot==10.0.1
 cherrypy==18.10.0
 cloudinary==1.41.0
