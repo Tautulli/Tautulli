@@ -2614,7 +2614,7 @@ class NTFY(Notifier):
         method = "POST"
         url = f"{self.config['host']}/{self.config['topic']}"
         params = {}
-        data = body
+        data = body.encode('utf-8')
         headers = {
             'Priority': self.config['priority'],
             'Authorization': f'Bearer {self.config["access_token"]}',
@@ -2623,7 +2623,7 @@ class NTFY(Notifier):
 
         # Add optional subject
         if self.config['incl_subject']:
-            headers['Title'] = subject
+            headers['Title'] = subject.encode('utf-8')
 
         # Add optional parameters (dependent on notification type + metadata extraction)
         if kwargs.get('parameters', {}).get('media_type'):
@@ -2634,7 +2634,7 @@ class NTFY(Notifier):
             if self.config['incl_description']:
                 description = pretty_metadata.get_description()
                 if description:
-                    data = f"{data}\n\n{description}"
+                    data += f"\n\n{description}".encode('utf-8')
 
             # Add optional poster
             if self.config['incl_poster']:
