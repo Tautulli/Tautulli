@@ -491,3 +491,7 @@ class MonitorDatabase(object):
         result = self.select_single(query="SELECT last_insert_rowid() AS last_id")
         if result:
             return result.get('last_id', None)
+        
+    def __del__(self):
+        # Close the database connection when object is garbage collected
+        self.connection.close()
