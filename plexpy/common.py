@@ -170,6 +170,7 @@ AUDIO_CODEC_OVERRIDES = {
 
 VIDEO_RESOLUTION_OVERRIDES = {
     'sd': 'SD',
+    '2k': '2k',
     '4k': '4k'
 }
 
