@@ -25,7 +25,7 @@ MarkupSafe==2.1.5
 musicbrainzngs==0.7.1
 packaging==24.1
 paho-mqtt==2.1.0
-platformdirs==4.2.2
+platformdirs==4.3.3
 plexapi==4.15.15
 portend==3.2.0
 profilehooks==1.12.0
