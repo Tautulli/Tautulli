@@ -1,5 +1,15 @@
 # Changelog
 
+## v2.14.5 (2024-09-20)
+
+* Activity:
+  * Fix: Display of 2k resolution on activity card.
+* Notifications:
+  * Fix: ntfy notifications with special characters failing to send.
+* Other:
+  * Fix: Memory leak with database closing. (#2404)
+
+
 ## v2.14.4 (2024-08-10)
 
 * Notifications:
@@ -8,7 +18,7 @@
 * UI:
   * Fix: macOS platform capitalization.
 * Other:
-  * Fix: Remove deprecated getdefaultlocale (Thanks @teodorstelian) (#2364, #2345)
+  * Fix: Remove deprecated getdefaultlocale. (Thanks @teodorstelian) (#2364, #2345)
 
 
 ## v2.14.3 (2024-06-19)
