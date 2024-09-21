@@ -375,6 +375,7 @@ class Movie(
             studio (str): Studio that created movie (Di Bonaventura Pictures; 21 Laps Entertainment).
             tagline (str): Movie tag line (Back 2 Work; Who says men can't change?).
             theme (str): URL to theme resource (/library/metadata/<ratingkey>/theme/<themeid>).
+            ultraBlurColors (:class:`~plexapi.media.UltraBlurColors`): Ultra blur color object.
             useOriginalTitle (int): Setting that indicates if the original title is used for the movie
                 (-1 = Library default, 0 = No, 1 = Yes).
             viewOffset (int): View offset in milliseconds.
@@ -420,6 +421,7 @@ class Movie(
         self.studio = data.attrib.get('studio')
         self.tagline = data.attrib.get('tagline')
         self.theme = data.attrib.get('theme')
+        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.useOriginalTitle = utils.cast(int, data.attrib.get('useOriginalTitle', '-1'))
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.writers = self.findItems(data, media.Writer)
@@ -456,8 +458,8 @@ class Movie(
 
     def reviews(self):
         """ Returns a list of :class:`~plexapi.media.Review` objects. """
-        data = self._server.query(self._details_key)
-        return self.findItems(data, media.Review, rtag='Video')
+        key = f'{self.key}?includeReviews=1'
+        return self.fetchItems(key, cls=media.Review, rtag='Video')
 
     def editions(self):
         """ Returns a list of :class:`~plexapi.video.Movie` objects
@@ -543,6 +545,7 @@ class Show(
                 (-1 = Account default, 0 = Manually selected, 1 = Shown with foreign audio, 2 = Always enabled).
             tagline (str): Show tag line.
             theme (str): URL to theme resource (/library/metadata/<ratingkey>/theme/<themeid>).
+            ultraBlurColors (:class:`~plexapi.media.UltraBlurColors`): Ultra blur color object.
             useOriginalTitle (int): Setting that indicates if the original title is used for the show
                 (-1 = Library default, 0 = No, 1 = Yes).
             viewedLeafCount (int): Number of items marked as played in the show view.
@@ -592,6 +595,7 @@ class Show(
         self.subtitleMode = utils.cast(int, data.attrib.get('subtitleMode', '-1'))
         self.tagline = data.attrib.get('tagline')
         self.theme = data.attrib.get('theme')
+        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.useOriginalTitle = utils.cast(int, data.attrib.get('useOriginalTitle', '-1'))
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
@@ -614,8 +618,8 @@ class Show(
         """ Returns show's On Deck :class:`~plexapi.video.Video` object or `None`.
             If show is unwatched, return will likely be the first episode.
         """
-        data = self._server.query(self._details_key)
-        return next(iter(self.findItems(data, rtag='OnDeck')), None)
+        key = f'{self.key}?includeOnDeck=1'
+        return next(iter(self.fetchItems(key, cls=Episode, rtag='OnDeck')), None)
 
     def season(self, title=None, season=None):
         """ Returns the season with the specified title or number.
@@ -735,6 +739,7 @@ class Season(
             subtitleLanguage (str): Setting that indicates the preferred subtitle language.
             subtitleMode (int): Setting that indicates the auto-select subtitle mode.
                 (-1 = Series default, 0 = Manually selected, 1 = Shown with foreign audio, 2 = Always enabled).
+            ultraBlurColors (:class:`~plexapi.media.UltraBlurColors`): Ultra blur color object.
             viewedLeafCount (int): Number of items marked as played in the season view.
             year (int): Year the season was released.
     """
@@ -766,6 +771,7 @@ class Season(
         self.ratings = self.findItems(data, media.Rating)
         self.subtitleLanguage = data.attrib.get('subtitleLanguage', '')
         self.subtitleMode = utils.cast(int, data.attrib.get('subtitleMode', '-1'))
+        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
 
@@ -796,8 +802,8 @@ class Season(
         """ Returns season's On Deck :class:`~plexapi.video.Video` object or `None`.
             Will only return a match if the show's On Deck episode is in this season.
         """
-        data = self._server.query(self._details_key)
-        return next(iter(self.findItems(data, rtag='OnDeck')), None)
+        key = f'{self.key}?includeOnDeck=1'
+        return next(iter(self.fetchItems(key, cls=Episode, rtag='OnDeck')), None)
 
     def episode(self, title=None, episode=None):
         """ Returns the episode with the given title or number.
@@ -914,6 +920,7 @@ class Episode(
             skipParent (bool): True if the show's seasons are set to hidden.
             sourceURI (str): Remote server URI (server://<machineIdentifier>/com.plexapp.plugins.library)
                 (remote playlist item only).
+            ultraBlurColors (:class:`~plexapi.media.UltraBlurColors`): Ultra blur color object.
             viewOffset (int): View offset in milliseconds.
             writers (List<:class:`~plexapi.media.Writer`>): List of writers objects.
             year (int): Year the episode was released.
@@ -958,6 +965,7 @@ class Episode(
         self.roles = self.findItems(data, media.Role)
         self.skipParent = utils.cast(bool, data.attrib.get('skipParent', '0'))
         self.sourceURI = data.attrib.get('source')  # remote playlist item
+        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.writers = self.findItems(data, media.Writer)
         self.year = utils.cast(int, data.attrib.get('year'))

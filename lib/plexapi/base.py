@@ -3,7 +3,7 @@ import re
 from typing import TYPE_CHECKING, Generic, Iterable, List, Optional, TypeVar, Union
 import weakref
 from functools import cached_property
-from urllib.parse import urlencode
+from urllib.parse import parse_qsl, urlencode, urlparse
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
@@ -391,10 +391,9 @@ class PlexObject:
 
             Parameters:
                 key (string, optional): Override the key to reload.
-                **kwargs (dict): A dictionary of XML include parameters to exclude or override.
-                    All parameters are included by default with the option to override each parameter
-                    or disable each parameter individually by setting it to False or 0.
+                **kwargs (dict): A dictionary of XML include parameters to include/exclude or override.
                     See :class:`~plexapi.base.PlexPartialObject` for all the available include parameters.
+                    Set parameter to True to include and False to exclude.
 
             Example:
 
@@ -402,18 +401,26 @@ class PlexObject:
 
                     from plexapi.server import PlexServer
                     plex = PlexServer('http://localhost:32400', token='xxxxxxxxxxxxxxxxxxxx')
-                    movie = plex.library.section('Movies').get('Cars')
 
-                    # Partial reload of the movie without the `checkFiles` parameter.
-                    # Excluding `checkFiles` will prevent the Plex server from reading the
-                    # file to check if the file still exists and is accessible.
-                    # The movie object will remain as a partial object.
-                    movie.reload(checkFiles=False)
+                    # Search results are partial objects.
+                    movie = plex.library.section('Movies').get('Cars')
                     movie.isPartialObject()  # Returns True
 
-                    # Full reload of the movie with all include parameters.
+                    # Partial reload of the movie without a default include parameter.
+                    # The movie object will remain as a partial object.
+                    movie.reload(includeMarkers=False)
+                    movie.isPartialObject()  # Returns True
+
+                    # Full reload of the movie with all default include parameters.
                     # The movie object will be a full object.
                     movie.reload()
+                    movie.isFullObject()  # Returns True
+
+                    # Full reload of the movie with all default and extra include parameter.
+                    # Including `checkFiles` will tell the Plex server to check if the file
+                    # still exists and is accessible.
+                    # The movie object will be a full object.
+                    movie.reload(checkFiles=True)
                     movie.isFullObject()  # Returns True
 
         """
@@ -505,25 +512,25 @@ class PlexPartialObject(PlexObject):
         automatically and update itself.
     """
     _INCLUDES = {
-        'checkFiles': 1,
-        'includeAllConcerts': 1,
+        'checkFiles': 0,
+        'includeAllConcerts': 0,
         'includeBandwidths': 1,
         'includeChapters': 1,
-        'includeChildren': 1,
-        'includeConcerts': 1,
-        'includeExternalMedia': 1,
-        'includeExtras': 1,
+        'includeChildren': 0,
+        'includeConcerts': 0,
+        'includeExternalMedia': 0,
+        'includeExtras': 0,
         'includeFields': 'thumbBlurHash,artBlurHash',
         'includeGeolocation': 1,
         'includeLoudnessRamps': 1,
         'includeMarkers': 1,
-        'includeOnDeck': 1,
-        'includePopularLeaves': 1,
-        'includePreferences': 1,
-        'includeRelated': 1,
-        'includeRelatedCount': 1,
-        'includeReviews': 1,
-        'includeStations': 1,
+        'includeOnDeck': 0,
+        'includePopularLeaves': 0,
+        'includePreferences': 0,
+        'includeRelated': 0,
+        'includeRelatedCount': 0,
+        'includeReviews': 0,
+        'includeStations': 0,
     }
     _EXCLUDES = {
         'excludeElements': (
@@ -592,7 +599,11 @@ class PlexPartialObject(PlexObject):
             search result for a movie often only contain a portion of the attributes a full
             object (main url) for that movie would contain.
         """
-        return not self.key or (self._details_key or self.key) == self._initpath
+        parsed_key = urlparse(self._details_key or self.key)
+        parsed_initpath = urlparse(self._initpath)
+        query_key = set(parse_qsl(parsed_key.query))
+        query_init = set(parse_qsl(parsed_initpath.query))
+        return not self.key or (parsed_key.path == parsed_initpath.path and query_key <= query_init)
 
     def isPartialObject(self):
         """ Returns True if this is not a full object. """

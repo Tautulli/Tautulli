@@ -250,7 +250,7 @@ class MyPlexAccount(PlexObject):
             return response.json()
         elif 'text/plain' in response.headers.get('Content-Type', ''):
             return response.text.strip()
-        data = response.text.encode('utf8')
+        data = utils.cleanXMLString(response.text).encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
 
     def ping(self):
