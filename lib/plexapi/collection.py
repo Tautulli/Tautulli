@@ -60,6 +60,7 @@ class Collection(
             title (str): Name of the collection.
             titleSort (str): Title to use when sorting (defaults to title).
             type (str): 'collection'
+            ultraBlurColors (:class:`~plexapi.media.UltraBlurColors`): Ultra blur color object.
             updatedAt (datetime): Datetime the collection was updated.
             userRating (float): Rating of the collection (0.0 - 10.0) equaling (0 stars - 5 stars).
     """
@@ -102,6 +103,7 @@ class Collection(
         self.title = data.attrib.get('title')
         self.titleSort = data.attrib.get('titleSort', self.title)
         self.type = data.attrib.get('type')
+        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.updatedAt = utils.toDatetime(data.attrib.get('updatedAt'))
         self.userRating = utils.cast(float, data.attrib.get('userRating'))
         self._items = None  # cache for self.items

@@ -768,7 +768,7 @@ class PlexServer(PlexObject):
                 raise NotFound(message)
             else:
                 raise BadRequest(message)
-        data = response.text.encode('utf8')
+        data = utils.cleanXMLString(response.text).encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
 
     def search(self, query, mediatype=None, limit=None, sectionId=None):

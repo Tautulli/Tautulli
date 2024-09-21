@@ -2823,7 +2823,8 @@ class FilteringType(PlexObject):
             additionalFields.extend([
                 ('duration', 'integer', 'Duration'),
                 ('viewOffset', 'integer', 'View Offset'),
-                ('label', 'tag', 'Label')
+                ('label', 'tag', 'Label'),
+                ('ratingCount', 'integer', 'Rating Count'),
             ])
         elif self.type == 'collection':
             additionalFields.extend([
