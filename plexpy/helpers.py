@@ -272,7 +272,8 @@ def human_duration(ms, sig='dhm', units='ms', return_seconds=300000):
         if return_seconds and ms < return_seconds:
             sig = 'dhms'
 
-        ms = ms * factors[units]
+        r = factors[sig[-1]]
+        ms = round(ms * factors[units] / r) * r
 
         d, h = divmod(ms, factors['d'])
         h, m = divmod(h, factors['h'])

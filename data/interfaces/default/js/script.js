@@ -360,7 +360,8 @@ function humanDuration(ms, sig='dhm', units='ms', return_seconds=300000) {
             sig = 'dhms'
         }
 
-        ms = ms * factors[units];
+        r = factors[sig.slice(-1)];
+        ms = Math.round(ms * factors[units] / r) * r;
 
         h =  ms % factors['d'];
         d = Math.trunc(ms / factors['d']);
