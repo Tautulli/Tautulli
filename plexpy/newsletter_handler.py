@@ -17,6 +17,7 @@
 
 from io import open
 import os
+import shlex
 
 from apscheduler.triggers.cron import CronTrigger
 import email.utils
@@ -58,25 +59,36 @@ def schedule_newsletters(newsletter_id=None):
 
 
 def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=False, args=None, cron=None):
-    # apscheduler day_of_week uses 0-6 = mon-sun
     if cron:
-        cron = cron.split(' ')
-        cron[4] = str((int(cron[4]) - 1) % 7) if cron[4].isdigit() else cron[4]
-        cron = ' '.join(cron)
+        values = shlex.split(cron)
+        # apscheduler day_of_week uses 0-6 = mon-sun
+        values[4] = str((int(values[4]) - 1) % 7) if values[4].isdigit() else values[4]
 
     if NEWSLETTER_SCHED.get_job(newsletter_job_id):
         if remove_job:
             NEWSLETTER_SCHED.remove_job(newsletter_job_id)
             logger.info("Tautulli NewsletterHandler :: Removed scheduled newsletter: %s" % name)
         else:
-            NEWSLETTER_SCHED.reschedule_job(
-                newsletter_job_id, args=args, trigger=CronTrigger.from_crontab(cron))
-            logger.info("Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
+            try:
+                NEWSLETTER_SCHED.reschedule_job(
+                    newsletter_job_id, args=args, trigger=CronTrigger(
+                        minute=values[0], hour=values[1], day=values[2], month=values[3], day_of_week=values[4]
+                    )
+                )
+                logger.info("Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
+            except ValueError as e:
+                logger.error("Tautulli NewsletterHandler :: Failed to re-schedule newsletter: %s" % e)
     elif not remove_job:
-        NEWSLETTER_SCHED.add_job(
-            func, args=args, id=newsletter_job_id, trigger=CronTrigger.from_crontab(cron),
-            misfire_grace_time=None)
-        logger.info("Tautulli NewsletterHandler :: Scheduled newsletter: %s" % name)
+        try:
+            NEWSLETTER_SCHED.add_job(
+                func, args=args, id=newsletter_job_id, trigger=CronTrigger(
+                    minute=values[0], hour=values[1], day=values[2], month=values[3], day_of_week=values[4]
+                ),
+                misfire_grace_time=None
+            )
+            logger.info("Tautulli NewsletterHandler :: Scheduled newsletter: %s" % name)
+        except ValueError as e:
+            logger.error("Tautulli NewsletterHandler :: Failed to schedule newsletter: %s" % e)
 
 
 def notify(newsletter_id=None, notify_action=None, **kwargs):
