@@ -930,3 +930,50 @@ $('.modal').on('hide.bs.modal', function (e) {
 $.fn.hasScrollBar = function() {
     return this.get(0).scrollHeight > this.get(0).clientHeight;
 }
+
+function paginateScroller(scrollerId, buttonClass) {
+    $(buttonClass).click(function (e) {
+        e.preventDefault();
+        var scroller = $(scrollerId + "-row-scroller");
+        var scrollerParent = scroller.parent();
+        var containerWidth = scrollerParent.width();
+        var scrollCurrent = scrollerParent.scrollLeft();
+        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
+        var scrollMax = scroller.width() - Math.abs(scrollAmount);
+        var scrollTotal = Math.min(parseInt(scrollCurrent / 175) * 175 + scrollAmount, scrollMax);
+        scrollerParent.animate({ scrollLeft: scrollTotal }, 250);
+    });    
+}
+
+function highlightScrollerButton(scrollerId) {
+    var scroller = $(scrollerId + "-row-scroller");
+    var scrollerParent = scroller.parent();
+    var buttonLeft = $(scrollerId + "-page-left");
+    var buttonRight = $(scrollerId + "-page-right");
+
+    var numElems = scroller.find("li").length;
+    scroller.width(numElems * 175);
+    $(buttonLeft).addClass("disabled").blur();
+    if (scroller.width() > scrollerParent.width()) {
+        $(buttonRight).removeClass("disabled");
+    } else {
+        $(buttonRight).addClass("disabled");
+    }
+
+    scrollerParent.scroll(function () {
+        var scrollCurrent = $(this).scrollLeft();
+        var scrollMax = scroller.width() - $(this).width();
+
+        if (scrollCurrent == 0) {
+            $(buttonLeft).addClass("disabled").blur();
+        } else {
+            $(buttonLeft).removeClass("disabled");
+        }
+
+        if (scrollCurrent >= scrollMax) {
+            $(buttonRight).addClass("disabled").blur();
+        } else {
+            $(buttonRight).removeClass("disabled");
+        }
+    });
+}

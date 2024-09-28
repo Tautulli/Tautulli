@@ -92,10 +92,10 @@
                 <h3 class="pull-left"><span id="recently-added-xml">Recently Added</span></h3>
                 <ul class="nav nav-header nav-dashboard pull-right" style="margin-top: -3px;">
                     <li>
-                        <a href="#" id="recently-added-page-left" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-left"></i></a>
+                        <a href="#" id="recently-added-page-left" class="paginate-added btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-left"></i></a>
                     </li>
                     <li>
-                        <a href="#" id="recently-added-page-right" class="paginate btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-right"></i></a>
+                        <a href="#" id="recently-added-page-right" class="paginate-added btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-right"></i></a>
                     </li>
                 </ul>
                 <div class="button-bar">
@@ -936,10 +936,14 @@
                 count: recently_added_count,
                 media_type: recently_added_type
             },
+            beforeSend: function () {
+                $(".dashboard-recent-media-row").animate({ scrollLeft: 0 }, 1000);
+            },
             complete: function (xhr, status) {
                 $("#recentlyAdded").html(xhr.responseText);
                 $('#ajaxMsg').fadeOut();
-                highlightAddedScrollerButton();
+                highlightScrollerButton("#recently-added");
+                paginateScroller("#recently-added", ".paginate-added");
             }
         });
     }
@@ -955,50 +959,6 @@
         recentlyAdded(recently_added_count, recently_added_type);
     }
 
-    function highlightAddedScrollerButton() {
-        var scroller = $("#recently-added-row-scroller");
-        var numElems = scroller.find("li:visible").length;
-        scroller.width(numElems * 175);
-        if (scroller.width() > $("body").find(".container-fluid").width()) {
-            $("#recently-added-page-right").removeClass("disabled");
-        } else {
-            $("#recently-added-page-right").addClass("disabled");
-        }
-    }
-
-    $(window).resize(function () {
-        highlightAddedScrollerButton();
-    });
-
-    function resetScroller() {
-        $(".dashboard-recent-media-row").animate({ scrollLeft: 0 }, 1000);
-        $("#recently-added-page-left").addClass("disabled").blur();
-    }
-
-    $(".paginate").click(function (e) {
-        e.preventDefault();
-        var scroller = $("#recently-added-row-scroller");
-        var scrollerParent = scroller.parent();
-        var containerWidth = $("body").find(".container-fluid").width();
-        var scrollCurrent = scrollerParent.scrollLeft();
-        var scrollAmount = $(this).data("id") * parseInt((containerWidth - 15) / 175) * 175;
-        var scrollMax = parseInt(scroller.width()) - Math.abs(scrollAmount);
-        var scrollTotal = Math.min(scrollCurrent + scrollAmount, scrollMax);
-        scrollerParent.animate({ scrollLeft: scrollTotal }, 250);
-
-        if (scrollTotal === 0) {
-            $("#recently-added-page-left").addClass("disabled").blur();
-        } else {
-            $("#recently-added-page-left").removeClass("disabled");
-        }
-
-        if (scrollTotal === scrollMax) {
-            $("#recently-added-page-right").addClass("disabled").blur();
-        } else {
-            $("#recently-added-page-right").removeClass("disabled");
-        }
-    });
-
     $('#recently-added-toggles').on('change', function () {
         $('#recently-added-toggles > label').removeClass('active');
         selected_filter = $('input[name=recently-added-toggle]:checked', '#recently-added-toggles');
@@ -1006,7 +966,6 @@
         recently_added_type = $(selected_filter).val();
         setLocalStorage('home_stats_recently_added_type', recently_added_type);
         recentlyAdded(recently_added_count, recently_added_type);
-        resetScroller();
     });
 
     $('#recently-added-count').change(function () {
@@ -1014,7 +973,6 @@
         recently_added_count = $(this).val();
         setLocalStorage('home_stats_recently_added_count', recently_added_count);
         recentlyAdded(recently_added_count, recently_added_type);
-        resetScroller();
     });
 
     $('#recently-added-count').tooltip({ container: 'body', placement: 'top', html: true });

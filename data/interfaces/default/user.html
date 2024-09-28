@@ -125,10 +125,10 @@ DOCUMENTATION :: END
                                     <div class="table-card-header">
                                         <ul class="nav nav-header nav-dashboard pull-right">
                                             <li>
-                                                <a href="#" id="recently-watched-page-left" class="paginate btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-left"></i></a>
+                                                <a href="#" id="recently-watched-page-left" class="paginate-watched btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-left"></i></a>
                                             </li>
                                             <li>
-                                                <a href="#" id="recently-watched-page-right" class="paginate btn-gray" data-id="+1"><i class="fa fa-lg fa-chevron-right"></i></a>
+                                                <a href="#" id="recently-watched-page-right" class="paginate-watched btn-gray" data-id="+1"><i class="fa fa-lg fa-chevron-right"></i></a>
                                             </li>
                                         </ul>
                                         <div class="header-bar">
@@ -666,51 +666,13 @@ DOCUMENTATION :: END
             },
             complete: function(xhr, status) {
                 $("#user-recently-watched").html(xhr.responseText);
-                highlightWatchedScrollerButton();
+                highlightScrollerButton("#recently-watched");
+                paginateScroller("#recently-watched", ".paginate-watched");
             }
         });
     }
 
     recentlyWatched();
-
-    function highlightWatchedScrollerButton() {
-        var scroller = $("#recently-watched-row-scroller");
-        var numElems = scroller.find("li").length;
-        scroller.width(numElems * 175);
-        if (scroller.width() > $("#user-recently-watched").width()) {
-            $("#recently-watched-page-right").removeClass("disabled");
-        } else {
-            $("#recently-watched-page-right").addClass("disabled");
-        }
-    }
-
-    $(window).resize(function() {
-        highlightWatchedScrollerButton();
-    });
-
-    $(".paginate").click(function (e) {
-        e.preventDefault();
-        var scroller = $("#recently-watched-row-scroller");
-        var scrollerParent = scroller.parent();
-        var containerWidth = $("#user-recently-watched").width();
-        var scrollCurrent = scrollerParent.scrollLeft();
-        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
-        var scrollMax = parseInt(scroller.width()) - Math.abs(scrollAmount);
-        var scrollTotal = Math.min(scrollCurrent + scrollAmount, scrollMax);
-        scrollerParent.animate({ scrollLeft: scrollTotal }, 250);
-
-        if (scrollTotal == 0) {
-            $("#recently-watched-page-left").addClass("disabled").blur();
-        } else {
-            $("#recently-watched-page-left").removeClass("disabled");
-        }
-
-        if (scrollTotal == scrollMax) {
-            $("#recently-watched-page-right").addClass("disabled").blur();
-        } else {
-            $("#recently-watched-page-right").removeClass("disabled");
-        }
-    });
 
     $(document).ready(function () {
         // Javascript to enable link to tab
