@@ -1478,7 +1478,8 @@ a:hover .dashboard-stats-square {
     text-align: center;
     position: relative;
     z-index: 0;
-    overflow: hidden;
+    overflow: auto;
+    scrollbar-width: none;
 }
 .dashboard-recent-media {
     width: 100%;
