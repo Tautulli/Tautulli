@@ -30,7 +30,7 @@ plexapi==4.15.16
 portend==3.2.0
 profilehooks==1.12.0
 PyJWT==2.9.0
-pyparsing==3.1.2
+pyparsing==3.1.4
 python-dateutil==2.9.0.post0
 python-twitter==3.5
 pytz==2024.1
