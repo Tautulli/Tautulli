@@ -46,7 +46,7 @@ tzlocal==5.0.1
 urllib3<2
 webencodings==0.5.1
 websocket-client==1.8.0
-xmltodict==0.13.0
+xmltodict==0.14.0
 zipp==3.19.2
 
 # configobj==5.1.0
