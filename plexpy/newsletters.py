@@ -763,7 +763,17 @@ class RecentlyAdded(Newsletter):
                 for (index, title), children in groupby(filtered_children,
                                                         key=lambda x: (x['parent_media_index'], x['parent_title'])):
                     episodes = list(children)
-                    num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in episodes])
+
+                    isDateBased = True
+                    for e in episodes:
+                        if e['media_index']:
+                            isDateBased = False
+                            break
+
+                    if isDateBased:
+                        num00 = helpers.format_date_based_show(episodes[0]['originally_available_at']) + " - " + helpers.format_date_based_show(episodes[len(episodes)-1]['originally_available_at'])
+                    else:
+                        num, num00 = format_group_index([helpers.cast_to_int(d['media_index']) for d in episodes])
 
                     seasons.append({'media_index': index,
                                     'title': title,
