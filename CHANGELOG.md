@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.14.6 (2024-10-12)
+
+* Newsletters:
+  * Fix: Allow formatting newsletter date parameters.
+  * Change: Support apscheduler compatible cron expressions.
+* UI:
+  * Fix: Round runtime before converting to human duration.
+  * Fix: Make recently added/watched rows touch scrollable.
+* Other:
+  * Fix: Auto-updater not running.
+
+
 ## v2.14.5 (2024-09-20)
 
 * Activity:
