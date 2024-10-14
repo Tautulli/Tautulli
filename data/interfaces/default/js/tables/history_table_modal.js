@@ -1,5 +1,6 @@
 var date_format = 'YYYY-MM-DD';
 var time_format = 'hh:mm a';
+var date_based_tv_show_format = 'YYYY\u00b7MM\u00b7DD';
 
 $.ajax({
     url: 'get_date_formats',
@@ -7,6 +8,7 @@ $.ajax({
     success: function(data) {
         date_format = data.date_format;
         time_format = data.time_format;
+        date_based_tv_show_format = data.date_based_tv_show_format;
     }
 });
 
@@ -112,9 +114,11 @@ history_table_modal_options = {
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, fallback) + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>';
                         $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'episode') {
+                        rowData['originally_available_at'] = moment(rowData['originally_available_at']).format(date_based_tv_show_format);
                         icon = (rowData['live']) ? 'fa-broadcast-tower' : 'fa-television';
                         icon_title = (rowData['live']) ? 'Live TV' : 'Episode';
                         if (!isNaN(parseInt(rowData['parent_media_index'])) && !isNaN(parseInt(rowData['media_index']))) { parent_info = ' (' + short_season(rowData['parent_title']) + ' &middot; E' + rowData['media_index'] + ')'; }
+                        else if (isNaN(parseInt(rowData['media_index'])) && rowData['originally_available_at']) { parent_info = ' (' + rowData['originally_available_at'] + ')'; }
                         else if (rowData['live'] && rowData['originally_available_at']) { parent_info = ' (' + rowData['originally_available_at'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="' + icon_title + '"><i class="fa ' + icon + ' fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, fallback) + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>';

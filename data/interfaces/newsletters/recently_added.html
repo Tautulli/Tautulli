@@ -1,7 +1,7 @@
 ﻿% if data:
 <%
     import plexpy
-    from plexpy.helpers import grouper, get_img_service
+    from plexpy.helpers import grouper, get_img_service, format_date_based_show
 
     recently_added = data['recently_added']
     if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
@@ -755,10 +755,13 @@
                                                                             <p class="nowrap mb5" style="font-family: 'Open Sans', Helvetica, Arial, sans-serif;font-weight: 400;margin: 0;margin-bottom: 5px;white-space: nowrap;text-overflow: ellipsis;overflow: hidden;max-width: 325px;color: #ffffff;">
                                                                                 % for i, season in enumerate(show['season'][:8]):
                                                                                     % if season['episode_count'] == 1:
-                                                                                        ${season['title']} &middot; Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
-                                                                                    % else:
-                                                                                        ${season['title']} &middot; Episodes ${season['episode_range']}
-                                                                                    % endif
+                                                                                        % if season['episode'][0]['media_index']:
+                                                                                            ${season['title']} &middot; Episode ${season['episode'][0]['media_index']} - ${season['episode'][0]['title']}
+                                                                                        % else:
+                                                                                            ${season['title']} &middot; Episode ${format_date_based_show(season['episode'][0]['originally_available_at'])}
+                                                                                                - ${season['episode'][0]['title']}
+                                                                                            ${season['title']} &middot; Episodes ${season['episode_range']}
+                                                                                        % endif
                                                                                     % if i < min(show['season_count'], 7):
                                                                                         <br>
                                                                                     % elif i == 7 and show['season_count'] > 8:

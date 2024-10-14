@@ -21,6 +21,7 @@ from io import open, BytesIO
 import json
 import linecache
 import os
+import html
 import shutil
 import ssl as _ssl
 import sys
@@ -271,7 +272,7 @@ class WebInterface(object):
                 json:
                     {"date_format": "YYYY-MM-DD",
                      "time_format": "HH:mm",
-                     }
+                     "date_based_tv_show_format": "YYYY\u00b7MM\u00b7DD"}
             ```
         """
         if plexpy.CONFIG.DATE_FORMAT:
@@ -282,9 +283,14 @@ class WebInterface(object):
             time_format = plexpy.CONFIG.TIME_FORMAT
         else:
             time_format = 'HH:mm'
+        if plexpy.CONFIG.DATE_BASED_TV_SHOW_FORMAT:
+            date_based_tv_show_format = html.unescape(plexpy.CONFIG.DATE_BASED_TV_SHOW_FORMAT)
+        else:
+            date_based_tv_show_format = html.unescape('YYYY&middot;MM&middot;DD')
 
         formats = {'date_format': date_format,
-                   'time_format': time_format}
+                   'time_format': time_format,
+                   'date_based_tv_show_format': date_based_tv_show_format}
 
         return formats
 
@@ -769,6 +775,7 @@ class WebInterface(object):
                           "media_type": "show",
                           "parent_media_index": "",
                           "parent_rating_key": "",
+                          "originally_available_at": "2011-08-21",
                           "play_count": 15,
                           "rating_key": "1219",
                           "section_id": 2,

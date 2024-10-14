@@ -21,6 +21,7 @@ parent_title            Returns the name of the artist.
 grandparent_title       Returns the name of the show.
 media_index             Returns the index number of the episode.
 parent_media_index      Returns the index number of the season.
+originally_available_at Returns the air date of the media item. 
 year                    Returns the release year of the movie, episode, or album.
 
 DOCUMENTATION :: END
@@ -28,7 +29,7 @@ DOCUMENTATION :: END
 
 % if data:
 <%
-    from plexpy.helpers import page, short_season
+    from plexpy.helpers import page, short_season, format_date_based_show
 %>
 <div class="dashboard-recent-media-row">
     <div id="recently-watched-row-scroller">
@@ -59,6 +60,9 @@ DOCUMENTATION :: END
                 </a>
                 <div class="dashboard-recent-media-metacontainer">
                     % if item['media_type'] == 'episode':
+                    % if not item['media_index']:
+                    item['originally_available_at'] = format_date_based_show(item['originally_available_at'])
+                    % endif
                     % if item['live']:
                     <h3>
                         <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['grandparent_title']}">${item['grandparent_title']}</a>
@@ -68,8 +72,12 @@ DOCUMENTATION :: END
                     </h3>
                     % if item['media_index']:
                     <h3 class="text-muted">
+                        % if item['media_index']:
                         <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="${item['parent_title']}">${short_season(item['parent_title'])}</a>
                          &middot; <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="Episode ${item['media_index']}">E${item['media_index']}</a>
+                         % else:
+                        <a href="${page('info', item['rating_key'], history=True, live=item['live'])}" title="Episode ${item['originally_available_at']}">E${item['originally_available_at']}</a>
+                        % endif
                     </h3>
                     % else:
                     <h3 class="text-muted">

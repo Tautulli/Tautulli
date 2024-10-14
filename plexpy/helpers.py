@@ -25,6 +25,7 @@ from collections import OrderedDict
 from datetime import date, datetime, timezone
 from functools import reduce, wraps
 import hashlib
+import html
 import imghdr
 from itertools import groupby
 from future.moves.itertools import islice, zip_longest
@@ -417,6 +418,8 @@ def clean_filename(filename, replace='_'):
     cleaned_filename = ''.join(c if c in whitelist else replace for c in cleaned_filename)
     return cleaned_filename
 
+def format_date_based_show(date):
+    return str(arrow.get(date).format(html.unescape(plexpy.CONFIG.DATE_BASED_TV_SHOW_FORMAT)))
 
 def split_strip(s, delimiter=','):
     return [x.strip() for x in str(s).split(delimiter) if x.strip()]
