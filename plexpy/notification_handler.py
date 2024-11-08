@@ -1453,6 +1453,7 @@ def strip_tag(data, agent_id=None):
                      'u': [], 'ins': [],
                      's': [], 'strike': [], 'del': [],
                      'span': ['class'], 'tg-spoiler': [],
+                     'blockquote': ['expandable'],
                      'a': ['href'],
                      'code': ['class'],
                      'pre': []}
