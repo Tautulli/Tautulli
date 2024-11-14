@@ -3148,6 +3148,7 @@ class PmsConnect(object):
         if media_type == 'season' or media_type == 'album':
             try:
                 metadata = self.get_metadata_details(rating_key=rating_key)
+                title = metadata['parent_title']
                 rating_key = metadata['parent_rating_key']
                 section_id = metadata['section_id']
                 library_name = metadata['library_name']
@@ -3158,6 +3159,7 @@ class PmsConnect(object):
         elif media_type == 'episode' or media_type == 'track':
             try:
                 metadata = self.get_metadata_details(rating_key=rating_key)
+                title = metadata['grandparent_title']
                 rating_key = metadata['grandparent_rating_key']
                 section_id = metadata['section_id']
                 library_name = metadata['library_name']
@@ -3165,9 +3167,10 @@ class PmsConnect(object):
                 logger.warn("Tautulli Pmsconnect :: Unable to get grandparent_rating_key for get_rating_keys_list: %s." % e)
                 return {}
 
-        elif media_type == 'artist':
+        elif media_type == 'show' or media_type == 'artist':
             try:
                 metadata = self.get_metadata_details(rating_key=rating_key)
+                title = metadata['title']
                 section_id = metadata['section_id']
                 library_name = metadata['library_name']
             except Exception as e:
@@ -3196,8 +3199,6 @@ class PmsConnect(object):
             if a.getAttribute('size'):
                 if a.getAttribute('size') == '0':
                     return {}
-
-            title = helpers.get_xml_attr(a, 'title2')
 
             if a.getElementsByTagName('Directory'):
                 parents_metadata = a.getElementsByTagName('Directory')
