@@ -4044,7 +4044,7 @@ class TAUTULLIREMOTEAPP(Notifier):
             #logger.debug("Salt (base64): {}".format(base64.b64encode(salt)))
 
             payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
-                       'include_player_ids': [device['onesignal_id']],
+                       'include_subscription_ids': [device['onesignal_id']],
                        'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': True,
                                 'version': 2,
@@ -4059,7 +4059,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                         "Install the library to encrypt the notifications.")
 
             payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
-                       'include_player_ids': [device['onesignal_id']],
+                       'include_subscription_ids': [device['onesignal_id']],
                        'contents': {'en': 'Tautulli Notification'},
                        'data': {'encrypted': False,
                                 'plain_text': plaintext_data,
@@ -4070,7 +4070,7 @@ class TAUTULLIREMOTEAPP(Notifier):
 
         headers = {'Content-Type': 'application/json'}
 
-        return self.make_request('https://onesignal.com/api/v1/notifications', headers=headers, json=payload)
+        return self.make_request('https://api.onesignal.com/notifications', headers=headers, json=payload)
 
     def get_devices(self):
         db = database.MonitorDatabase()

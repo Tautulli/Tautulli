@@ -198,11 +198,10 @@ def validate_onesignal_id(onesignal_id):
         return 2
 
     headers = {'Content-Type': 'application/json'}
-    params = {'app_id': _ONESIGNAL_APP_ID}
 
     logger.info("Tautulli MobileApp :: Validating OneSignal ID")
     try:
-        r = requests.get('https://onesignal.com/api/v1/players/{}'.format(onesignal_id), headers=headers, params=params)
+        r = requests.get(f'https://api.onesignal.com/apps/{_ONESIGNAL_APP_ID}/subscriptions/{onesignal_id}/user/identity', headers=headers)
         status_code = r.status_code
         logger.info("Tautulli MobileApp :: OneSignal ID validation returned status code %s", status_code)
         return int(status_code == 200)
