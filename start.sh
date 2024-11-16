@@ -12,7 +12,7 @@ if [[ "$TAUTULLI_DOCKER" == "True" ]]; then
     echo "Running Tautulli using user tautulli (uid=$(id -u tautulli)) and group tautulli (gid=$(id -g tautulli))"
     exec gosu tautulli "$@"
 else
-    python_versions=("python3.11" "python3.10" "python3.9" "python3.8" "python3" "python")
+    python_versions=("python3.11" "python3.10" "python3.9" "python3" "python")
     for cmd in "${python_versions[@]}"; do
         if command -v "$cmd" >/dev/null; then
             echo "Starting Tautulli with $cmd."
