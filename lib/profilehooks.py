@@ -39,28 +39,12 @@ instead of a detailed (but costly) profile.
 
 Caveats
 
-  A thread on python-dev convinced me that hotshot produces bogus numbers.
-  See https://mail.python.org/pipermail/python-dev/2005-November/058264.html
-
   I don't know what will happen if a decorated function will try to call
   another decorated function.  All decorators probably need to explicitly
   support nested profiling (currently TraceFuncCoverage is the only one
-  that supports this, while HotShotFuncProfile has support for recursive
-  functions.)
+  that supports this.)
 
-  Profiling with hotshot creates temporary files (*.prof for profiling,
-  *.cprof for coverage) in the current directory.  These files are not
-  cleaned up.  Exception: when you specify a filename to the profile
-  decorator (to store the pstats.Stats object for later inspection),
-  the temporary file will be the filename you specified with '.raw'
-  appended at the end.
-
-  Coverage analysis with hotshot seems to miss some executions resulting
-  in lower line counts and some lines errorneously marked as never
-  executed.  For this reason coverage analysis now uses trace.py which is
-  slower, but more accurate.
-
-Copyright (c) 2004--2020 Marius Gedminas <marius@gedmin.as>
+Copyright (c) 2004--2023 Marius Gedminas <marius@gedmin.as>
 Copyright (c) 2007 Hanno Schlichting
 Copyright (c) 2008 Florian Schulze
 
@@ -86,47 +70,21 @@ Released under the MIT licence since December 2006:
 
 (Previously it was distributed under the GNU General Public Licence.)
 """
-from __future__ import print_function
-
-__author__ = "Marius Gedminas <marius@gedmin.as>"
-__copyright__ = "Copyright 2004-2020 Marius Gedminas and contributors"
-__license__ = "MIT"
-__version__ = '1.12.0'
-__date__ = "2020-08-20"
-
 import atexit
-
+import dis
 import functools
 import inspect
 import logging
 import os
+import pstats
 import re
 import sys
-
-# For profiling
-from profile import Profile
-import pstats
-
-# For timecall
 import timeit
-
-# For hotshot profiling (inaccurate!)
-try:
-    import hotshot
-    import hotshot.stats
-except ImportError:
-    hotshot = None
-
-# For trace.py coverage
-import trace
-import dis
 import token
 import tokenize
+import trace
+from profile import Profile
 
-# For hotshot coverage (inaccurate!; uses undocumented APIs; might break)
-if hotshot is not None:
-    import _hotshot
-    import hotshot.log
 
 # For cProfile profiling (best)
 try:
@@ -134,28 +92,22 @@ try:
 except ImportError:
     cProfile = None
 
+
+__author__ = "Marius Gedminas <marius@gedmin.as>"
+__copyright__ = "Copyright 2004-2020 Marius Gedminas and contributors"
+__license__ = "MIT"
+__version__ = '1.13.0'
+__date__ = "2024-10-09"
+
+
 # registry of available profilers
 AVAILABLE_PROFILERS = {}
 
-__all__ = ['coverage', 'coverage_with_hotshot', 'profile', 'timecall']
-
-
-# Use tokenize.open() on Python >= 3.2, fall back to open() on Python 2
-tokenize_open = getattr(tokenize, 'open', open)
-
-
-def _unwrap(fn):
-    # inspect.unwrap() doesn't exist on Python 2
-    if not hasattr(fn, '__wrapped__'):
-        return fn
-    else:
-        # intentionally using recursion here instead of a while loop to
-        # make cycles fail with a recursion error instead of looping forever.
-        return _unwrap(fn.__wrapped__)
+__all__ = ['coverage', 'profile', 'timecall']
 
 
 def _identify(fn):
-    fn = _unwrap(fn)
+    fn = inspect.unwrap(fn)
     funcname = fn.__name__
     filename = fn.__code__.co_filename
     lineno = fn.__code__.co_firstlineno
@@ -168,7 +120,7 @@ def _is_file_like(o):
 
 def profile(fn=None, skip=0, filename=None, immediate=False, dirs=False,
             sort=None, entries=40,
-            profiler=('cProfile', 'profile', 'hotshot'),
+            profiler=('cProfile', 'profile'),
             stdout=True):
     """Mark `fn` for profiling.
 
@@ -205,7 +157,7 @@ def profile(fn=None, skip=0, filename=None, immediate=False, dirs=False,
 
     `profiler` can be used to select the preferred profiler, or specify a
     sequence of them, in order of preference.  The default is ('cProfile'.
-    'profile', 'hotshot').
+    'profile').
 
     If `filename` is specified, the profile stats will be stored in the
     named file.  You can load them with pstats.Stats(filename) or use a
@@ -279,26 +231,7 @@ def coverage(fn):
             ...
 
     """
-    fp = TraceFuncCoverage(fn)  # or HotShotFuncCoverage
-    # We cannot return fp or fp.__call__ directly as that would break method
-    # definitions, instead we need to return a plain function.
-
-    @functools.wraps(fn)
-    def new_fn(*args, **kw):
-        return fp(*args, **kw)
-    return new_fn
-
-
-def coverage_with_hotshot(fn):
-    """Mark `fn` for line coverage analysis.
-
-    Uses the 'hotshot' module for fast coverage analysis.
-
-    BUG: Produces inaccurate results.
-
-    See the docstring of `coverage` for usage examples.
-    """
-    fp = HotShotFuncCoverage(fn)
+    fp = TraceFuncCoverage(fn)
     # We cannot return fp or fp.__call__ directly as that would break method
     # definitions, instead we need to return a plain function.
 
@@ -424,148 +357,8 @@ if cProfile is not None:
     AVAILABLE_PROFILERS['cProfile'] = CProfileFuncProfile
 
 
-if hotshot is not None:
-
-    class HotShotFuncProfile(FuncProfile):
-        """Profiler for a function (uses hotshot)."""
-
-        # This flag is shared between all instances
-        in_profiler = False
-
-        def __init__(self, fn, skip=0, filename=None, immediate=False,
-                     dirs=False, sort=None, entries=40, stdout=True):
-            """Creates a profiler for a function.
-
-            Every profiler has its own log file (the name of which is derived
-            from the function name).
-
-            HotShotFuncProfile registers an atexit handler that prints
-            profiling information to sys.stderr when the program terminates.
-
-            The log file is not removed and remains there to clutter the
-            current working directory.
-            """
-            if filename:
-                self.logfilename = filename + ".raw"
-            else:
-                self.logfilename = "%s.%d.prof" % (fn.__name__, os.getpid())
-            super(HotShotFuncProfile, self).__init__(
-                fn, skip=skip, filename=filename, immediate=immediate,
-                dirs=dirs, sort=sort, entries=entries, stdout=stdout)
-
-        def __call__(self, *args, **kw):
-            """Profile a singe call to the function."""
-            self.ncalls += 1
-            if self.skip > 0:
-                self.skip -= 1
-                self.skipped += 1
-                return self.fn(*args, **kw)
-            if HotShotFuncProfile.in_profiler:
-                # handle recursive calls
-                return self.fn(*args, **kw)
-            if self.profiler is None:
-                self.profiler = hotshot.Profile(self.logfilename)
-            try:
-                HotShotFuncProfile.in_profiler = True
-                return self.profiler.runcall(self.fn, *args, **kw)
-            finally:
-                HotShotFuncProfile.in_profiler = False
-                if self.immediate:
-                    self.print_stats()
-                    self.reset_stats()
-
-        def print_stats(self):
-            if self.profiler is None:
-                self.stats = pstats.Stats(Profile())
-            else:
-                self.profiler.close()
-                self.stats = hotshot.stats.load(self.logfilename)
-            super(HotShotFuncProfile, self).print_stats()
-
-        def reset_stats(self):
-            self.profiler = None
-            self.ncalls = 0
-            self.skipped = 0
-
-    AVAILABLE_PROFILERS['hotshot'] = HotShotFuncProfile
-
-    class HotShotFuncCoverage:
-        """Coverage analysis for a function (uses _hotshot).
-
-        HotShot coverage is reportedly faster than trace.py, but it appears to
-        have problems with exceptions; also line counts in coverage reports
-        are generally lower from line counts produced by TraceFuncCoverage.
-        Is this my bug, or is it a problem with _hotshot?
-        """
-
-        def __init__(self, fn):
-            """Creates a profiler for a function.
-
-            Every profiler has its own log file (the name of which is derived
-            from the function name).
-
-            HotShotFuncCoverage registers an atexit handler that prints
-            profiling information to sys.stderr when the program terminates.
-
-            The log file is not removed and remains there to clutter the
-            current working directory.
-            """
-            self.fn = fn
-            self.logfilename = "%s.%d.cprof" % (fn.__name__, os.getpid())
-            self.profiler = _hotshot.coverage(self.logfilename)
-            self.ncalls = 0
-            atexit.register(self.atexit)
-
-        def __call__(self, *args, **kw):
-            """Profile a singe call to the function."""
-            self.ncalls += 1
-            old_trace = sys.gettrace()
-            try:
-                return self.profiler.runcall(self.fn, args, kw)
-            finally:  # pragma: nocover
-                sys.settrace(old_trace)
-
-        def atexit(self):
-            """Stop profiling and print profile information to sys.stderr.
-
-            This function is registered as an atexit hook.
-            """
-            self.profiler.close()
-            funcname, filename, lineno = _identify(self.fn)
-            print("")
-            print("*** COVERAGE RESULTS ***")
-            print("%s (%s:%s)" % (funcname, filename, lineno))
-            print("function called %d times" % self.ncalls)
-            print("")
-            fs = FuncSource(self.fn)
-            reader = hotshot.log.LogReader(self.logfilename)
-            for what, (filename, lineno, funcname), tdelta in reader:
-                if filename != fs.filename:
-                    continue
-                if what == hotshot.log.LINE:
-                    fs.mark(lineno)
-                if what == hotshot.log.ENTER:
-                    # hotshot gives us the line number of the function
-                    # definition and never gives us a LINE event for the first
-                    # statement in a function, so if we didn't perform this
-                    # mapping, the first statement would be marked as never
-                    # executed
-                    if lineno == fs.firstlineno:
-                        lineno = fs.firstcodelineno
-                    fs.mark(lineno)
-            reader.close()
-            print(fs)
-            never_executed = fs.count_never_executed()
-            if never_executed:
-                print("%d lines were not executed." % never_executed)
-
-
 class TraceFuncCoverage:
-    """Coverage analysis for a function (uses trace module).
-
-    HotShot coverage analysis is reportedly faster, but it appears to have
-    problems with exceptions.
-    """
+    """Coverage analysis for a function (uses trace module)."""
 
     # Shared between all instances so that nested calls work
     tracer = trace.Trace(count=True, trace=False,
@@ -646,13 +439,19 @@ class FuncSource:
 
     def find_source_lines(self):
         """Mark all executable source lines in fn as executed 0 times."""
-        if self.filename is None:
+        if self.filename is None:  # pragma: nocover
+            # I don't know how to make inspect.getsourcefile() return None in
+            # our test suite, but I've looked at its source and I know that it
+            # can do so.
             return
         strs = self._find_docstrings(self.filename)
         lines = {
             ln
-            for off, ln in dis.findlinestarts(_unwrap(self.fn).__code__)
-            if ln not in strs
+            for off, ln in dis.findlinestarts(inspect.unwrap(self.fn).__code__)
+            # skipping firstlineno because Python 3.11 adds a 'RESUME' opcode
+            # attributed to the `def` line, but then trace.py never sees it
+            # getting executed
+            if ln is not None and ln not in strs and ln != self.firstlineno
         }
         for lineno in lines:
             self.sourcelines.setdefault(lineno, 0)
@@ -667,7 +466,7 @@ class FuncSource:
         # Python 3.2 and removed in 3.6.
         strs = set()
         prev = token.INDENT  # so module docstring is detected as docstring
-        with tokenize_open(filename) as f:
+        with tokenize.open(filename) as f:
             tokens = tokenize.generate_tokens(f.readline)
             for ttype, tstr, start, end, line in tokens:
                 if ttype == token.STRING and prev == token.INDENT:
