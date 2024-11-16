@@ -1,19 +1,10 @@
 #!/usr/bin/env python
 "Makes working with XML feel like you are working with JSON"
 
-try:
-    from defusedexpat import pyexpat as expat
-except ImportError:
-    from xml.parsers import expat
+from xml.parsers import expat
 from xml.sax.saxutils import XMLGenerator
 from xml.sax.xmlreader import AttributesImpl
-try:  # pragma no cover
-    from cStringIO import StringIO
-except ImportError:  # pragma no cover
-    try:
-        from StringIO import StringIO
-    except ImportError:
-        from io import StringIO
+from io import StringIO
 
 _dict = dict
 import platform
@@ -22,17 +13,8 @@ if tuple(map(int, platform.python_version_tuple()[:2])) < (3, 7):
 
 from inspect import isgenerator
 
-try:  # pragma no cover
-    _basestring = basestring
-except NameError:  # pragma no cover
-    _basestring = str
-try:  # pragma no cover
-    _unicode = unicode
-except NameError:  # pragma no cover
-    _unicode = str
-
 __author__ = 'Martin Blech'
-__version__ = '0.13.0'
+__version__ = "0.14.2"
 __license__ = 'MIT'
 
 
@@ -40,7 +22,7 @@ class ParsingInterrupted(Exception):
     pass
 
 
-class _DictSAXHandler(object):
+class _DictSAXHandler:
     def __init__(self,
                  item_depth=0,
                  item_callback=lambda *args: True,
@@ -107,7 +89,7 @@ class _DictSAXHandler(object):
             attrs['xmlns'] = self.namespace_declarations
             self.namespace_declarations = self.dict_constructor()
         self.path.append((name, attrs or None))
-        if len(self.path) > self.item_depth:
+        if len(self.path) >= self.item_depth:
             self.stack.append((self.item, self.data))
             if self.xml_attribs:
                 attr_entries = []
@@ -135,7 +117,7 @@ class _DictSAXHandler(object):
 
             should_continue = self.item_callback(self.path, item)
             if not should_continue:
-                raise ParsingInterrupted()
+                raise ParsingInterrupted
         if self.stack:
             data = (None if not self.data
                     else self.cdata_separator.join(self.data))
@@ -335,9 +317,8 @@ def parse(xml_input, encoding=None, expat=expat, process_namespaces=False,
     """
     handler = _DictSAXHandler(namespace_separator=namespace_separator,
                               **kwargs)
-    if isinstance(xml_input, _unicode):
-        if not encoding:
-            encoding = 'utf-8'
+    if isinstance(xml_input, str):
+        encoding = encoding or 'utf-8'
         xml_input = xml_input.encode(encoding)
     if not process_namespaces:
         namespace_separator = None
@@ -372,8 +353,8 @@ def parse(xml_input, encoding=None, expat=expat, process_namespaces=False,
         parser.ParseFile(xml_input)
     elif isgenerator(xml_input):
         for chunk in xml_input:
-            parser.Parse(chunk,False)
-        parser.Parse(b'',True)
+            parser.Parse(chunk, False)
+        parser.Parse(b'', True)
     else:
         parser.Parse(xml_input, True)
     return handler.item
@@ -412,9 +393,7 @@ def _emit(key, value, content_handler,
         if result is None:
             return
         key, value = result
-    if (not hasattr(value, '__iter__')
-            or isinstance(value, _basestring)
-            or isinstance(value, dict)):
+    if not hasattr(value, '__iter__') or isinstance(value, (str, dict)):
         value = [value]
     for index, v in enumerate(value):
         if full_document and depth == 0 and index > 0:
@@ -422,16 +401,13 @@ def _emit(key, value, content_handler,
         if v is None:
             v = _dict()
         elif isinstance(v, bool):
-            if v:
-                v = _unicode('true')
-            else:
-                v = _unicode('false')
-        elif not isinstance(v, dict):
-            if expand_iter and hasattr(v, '__iter__') and not isinstance(v, _basestring):
+            v = 'true' if v else 'false'
+        elif not isinstance(v, (dict, str)):
+            if expand_iter and hasattr(v, '__iter__'):
                 v = _dict(((expand_iter, v),))
             else:
-                v = _unicode(v)
-        if isinstance(v, _basestring):
+                v = str(v)
+        if isinstance(v, str):
             v = _dict(((cdata_key, v),))
         cdata = None
         attrs = _dict()
@@ -445,14 +421,16 @@ def _emit(key, value, content_handler,
                                         attr_prefix)
                 if ik == '@xmlns' and isinstance(iv, dict):
                     for k, v in iv.items():
-                        attr = 'xmlns{}'.format(':{}'.format(k) if k else '')
-                        attrs[attr] = _unicode(v)
+                        attr = 'xmlns{}'.format(f':{k}' if k else '')
+                        attrs[attr] = str(v)
                     continue
-                if not isinstance(iv, _unicode):
-                    iv = _unicode(iv)
+                if not isinstance(iv, str):
+                    iv = str(iv)
                 attrs[ik[len(attr_prefix):]] = iv
                 continue
             children.append((ik, iv))
+        if isinstance(indent, int):
+            indent = ' ' * indent
         if pretty:
             content_handler.ignorableWhitespace(depth * indent)
         content_handler.startElement(key, AttributesImpl(attrs))
