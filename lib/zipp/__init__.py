@@ -1,15 +1,26 @@
+"""
+A Path-like interface for zipfiles.
+
+This codebase is shared between zipfile.Path in the stdlib
+and zipp in PyPI. See
+https://github.com/python/importlib_metadata/wiki/Development-Methodology
+for more detail.
+"""
+
+import functools
 import io
-import posixpath
-import zipfile
 import itertools
-import contextlib
 import pathlib
+import posixpath
 import re
 import stat
 import sys
+import zipfile
 
 from .compat.py310 import text_encoding
 from .glob import Translator
+
+from ._functools import save_method_args
 
 
 __all__ = ['Path']
@@ -37,7 +48,7 @@ def _parents(path):
 def _ancestry(path):
     """
     Given a path with elements separated by
-    posixpath.sep, generate all elements of that path
+    posixpath.sep, generate all elements of that path.
 
     >>> list(_ancestry('b/d'))
     ['b/d', 'b']
@@ -49,9 +60,14 @@ def _ancestry(path):
     ['b']
     >>> list(_ancestry(''))
     []
+
+    Multiple separators are treated like a single.
+
+    >>> list(_ancestry('//b//d///f//'))
+    ['//b//d///f', '//b//d', '//b']
     """
     path = path.rstrip(posixpath.sep)
-    while path and path != posixpath.sep:
+    while path.rstrip(posixpath.sep):
         yield path
         path, tail = posixpath.split(path)
 
@@ -73,82 +89,19 @@ class InitializedState:
     Mix-in to save the initialization state for pickling.
     """
 
+    @save_method_args
     def __init__(self, *args, **kwargs):
-        self.__args = args
-        self.__kwargs = kwargs
         super().__init__(*args, **kwargs)
 
     def __getstate__(self):
-        return self.__args, self.__kwargs
+        return self._saved___init__.args, self._saved___init__.kwargs
 
     def __setstate__(self, state):
         args, kwargs = state
         super().__init__(*args, **kwargs)
 
 
-class SanitizedNames:
-    """
-    ZipFile mix-in to ensure names are sanitized.
-    """
-
-    def namelist(self):
-        return list(map(self._sanitize, super().namelist()))
-
-    @staticmethod
-    def _sanitize(name):
-        r"""
-        Ensure a relative path with posix separators and no dot names.
-
-        Modeled after
-        https://github.com/python/cpython/blob/bcc1be39cb1d04ad9fc0bd1b9193d3972835a57c/Lib/zipfile/__init__.py#L1799-L1813
-        but provides consistent cross-platform behavior.
-
-        >>> san = SanitizedNames._sanitize
-        >>> san('/foo/bar')
-        'foo/bar'
-        >>> san('//foo.txt')
-        'foo.txt'
-        >>> san('foo/.././bar.txt')
-        'foo/bar.txt'
-        >>> san('foo../.bar.txt')
-        'foo../.bar.txt'
-        >>> san('\\foo\\bar.txt')
-        'foo/bar.txt'
-        >>> san('D:\\foo.txt')
-        'D/foo.txt'
-        >>> san('\\\\server\\share\\file.txt')
-        'server/share/file.txt'
-        >>> san('\\\\?\\GLOBALROOT\\Volume3')
-        '?/GLOBALROOT/Volume3'
-        >>> san('\\\\.\\PhysicalDrive1\\root')
-        'PhysicalDrive1/root'
-
-        Retain any trailing slash.
-        >>> san('abc/')
-        'abc/'
-
-        Raises a ValueError if the result is empty.
-        >>> san('../..')
-        Traceback (most recent call last):
-        ...
-        ValueError: Empty filename
-        """
-
-        def allowed(part):
-            return part and part not in {'..', '.'}
-
-        # Remove the drive letter.
-        # Don't use ntpath.splitdrive, because that also strips UNC paths
-        bare = re.sub('^([A-Z]):', r'\1', name, flags=re.IGNORECASE)
-        clean = bare.replace('\\', '/')
-        parts = clean.split('/')
-        joined = '/'.join(filter(allowed, parts))
-        if not joined:
-            raise ValueError("Empty filename")
-        return joined + '/' * name.endswith('/')
-
-
-class CompleteDirs(InitializedState, SanitizedNames, zipfile.ZipFile):
+class CompleteDirs(InitializedState, zipfile.ZipFile):
     """
     A ZipFile subclass that ensures that implied directories
     are always included in the namelist.
@@ -230,16 +183,18 @@ class FastLookup(CompleteDirs):
     """
 
     def namelist(self):
-        with contextlib.suppress(AttributeError):
-            return self.__names
-        self.__names = super().namelist()
-        return self.__names
+        return self._namelist
+
+    @functools.cached_property
+    def _namelist(self):
+        return super().namelist()
 
     def _name_set(self):
-        with contextlib.suppress(AttributeError):
-            return self.__lookup
-        self.__lookup = super()._name_set()
-        return self.__lookup
+        return self._name_set_prop
+
+    @functools.cached_property
+    def _name_set_prop(self):
+        return super()._name_set()
 
 
 def _extract_text_encoding(encoding=None, *args, **kwargs):
@@ -329,7 +284,7 @@ class Path:
     >>> str(path.parent)
     'mem'
 
-    If the zipfile has no filename, such ﻿attributes are not
+    If the zipfile has no filename, such attributes are not
     valid and accessing them will raise an Exception.
 
     >>> zf.filename = None
@@ -388,7 +343,7 @@ class Path:
         if self.is_dir():
             raise IsADirectoryError(self)
         zip_mode = mode[0]
-        if not self.exists() and zip_mode == 'r':
+        if zip_mode == 'r' and not self.exists():
             raise FileNotFoundError(self)
         stream = self.root.open(self.at, zip_mode, pwd=pwd)
         if 'b' in mode:
@@ -470,8 +425,7 @@ class Path:
         prefix = re.escape(self.at)
         tr = Translator(seps='/')
         matches = re.compile(prefix + tr.translate(pattern)).fullmatch
-        names = (data.filename for data in self.root.filelist)
-        return map(self._next, filter(matches, names))
+        return map(self._next, filter(matches, self.root.namelist()))
 
     def rglob(self, pattern):
         return self.glob(f'**/{pattern}')

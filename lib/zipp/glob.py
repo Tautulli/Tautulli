@@ -1,7 +1,6 @@
 import os
 import re
 
-
 _default_seps = os.sep + str(os.altsep) * bool(os.altsep)
 
 
@@ -28,7 +27,7 @@ class Translator:
         """
         Given a glob pattern, produce a regex that matches it.
         """
-        return self.extend(self.translate_core(pattern))
+        return self.extend(self.match_dirs(self.translate_core(pattern)))
 
     def extend(self, pattern):
         r"""
@@ -40,6 +39,14 @@ class Translator:
         Append '\Z' to imply fullmatch even when match is used.
         """
         return rf'(?s:{pattern})\Z'
+
+    def match_dirs(self, pattern):
+        """
+        Ensure that zipfile.Path directory names are matched.
+
+        zipfile.Path directory names always end in a slash.
+        """
+        return rf'{pattern}[/]?'
 
     def translate_core(self, pattern):
         r"""
