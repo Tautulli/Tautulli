@@ -1453,10 +1453,12 @@ def strip_tag(data, agent_id=None):
                      'u': [], 'ins': [],
                      's': [], 'strike': [], 'del': [],
                      'span': ['class'], 'tg-spoiler': [],
-                     'blockquote': ['expandable'],
                      'a': ['href'],
+                     'tg-emoji': ['emoji-id'],
                      'code': ['class'],
-                     'pre': []}
+                     'pre': [],
+                     'blockquote': ['expandable'],
+        }
         data = bleach.clean(data, tags=whitelist.keys(), attributes=whitelist, strip=True)
 
     elif agent_id in (10, 14, 20, 25):
