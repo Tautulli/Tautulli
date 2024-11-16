@@ -197,7 +197,7 @@ class PlexClient(PlexObject):
                 raise NotFound(message)
             else:
                 raise BadRequest(message)
-        data = response.text.encode('utf8')
+        data = utils.cleanXMLString(response.text).encode('utf8')
         return ElementTree.fromstring(data) if data.strip() else None
 
     def sendCommand(self, command, proxy=None, **params):

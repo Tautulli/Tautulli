@@ -26,14 +26,14 @@ parts:
     stage-packages:
       - python3
       - python3-openssl
-      - python3-pycryptodome
+      - python3-cryptography
       - python3-setuptools
       - python3-pkg-resources
     build-packages:
       - git
       - python3
       - python3-openssl
-      - python3-pycryptodome
+      - python3-cryptography
       - python3-setuptools
       - python3-pkg-resources
     override-pull: |
