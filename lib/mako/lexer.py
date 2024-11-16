@@ -375,7 +375,7 @@ class Lexer:
                  |
                  (?=\${)      # an expression
                  |
-                 (?=</?[%&])  # a substitution or block or call start or end
+                 (?=</?%)  # a substitution or block or call start or end
                               # - don't consume
                  |
                  (\\\r?\n)    # an escaped newline  - throw away
