@@ -1,14 +1,12 @@
 import unittest
 import os
-import contextlib
+import importlib
 
-try:
-    from test.support.warnings_helper import ignore_warnings, check_warnings
-except ImportError:
-    # older Python versions
-    from test.support import ignore_warnings, check_warnings
+from .compat.py39 import warnings_helper
 
 import importlib_resources as resources
+
+from . import util
 
 # Since the functional API forwards to Traversable, we only test
 # filesystem resources here -- not zip files, namespace packages etc.
@@ -16,16 +14,25 @@ import importlib_resources as resources
 
 
 class StringAnchorMixin:
-    anchor01 = 'importlib_resources.tests.data01'
-    anchor02 = 'importlib_resources.tests.data02'
+    anchor01 = 'data01'
+    anchor02 = 'data02'
 
 
 class ModuleAnchorMixin:
-    from . import data01 as anchor01
-    from . import data02 as anchor02
+    @property
+    def anchor01(self):
+        return importlib.import_module('data01')
+
+    @property
+    def anchor02(self):
+        return importlib.import_module('data02')
 
 
-class FunctionalAPIBase:
+class FunctionalAPIBase(util.DiskSetup):
+    def setUp(self):
+        super().setUp()
+        self.load_fixture('data02')
+
     def _gen_resourcetxt_path_parts(self):
         """Yield various names of a text file in anchor02, each in a subTest"""
         for path_parts in (
@@ -35,6 +42,12 @@ class FunctionalAPIBase:
         ):
             with self.subTest(path_parts=path_parts):
                 yield path_parts
+
+    def assertEndsWith(self, string, suffix):
+        """Assert that `string` ends with `suffix`.
+
+        Used to ignore an architecture-specific UTF-16 byte-order mark."""
+        self.assertEqual(string[-len(suffix) :], suffix)
 
     def test_read_text(self):
         self.assertEqual(
@@ -76,13 +89,13 @@ class FunctionalAPIBase:
             ),
             '\x00\x01\x02\x03',
         )
-        self.assertEqual(
+        self.assertEndsWith(  # ignore the BOM
             resources.read_text(
                 self.anchor01,
                 'utf-16.file',
                 errors='backslashreplace',
             ),
-            'Hello, UTF-16 world!\n'.encode('utf-16').decode(
+            'Hello, UTF-16 world!\n'.encode('utf-16-le').decode(
                 errors='backslashreplace',
             ),
         )
@@ -128,9 +141,9 @@ class FunctionalAPIBase:
             'utf-16.file',
             errors='backslashreplace',
         ) as f:
-            self.assertEqual(
+            self.assertEndsWith(  # ignore the BOM
                 f.read(),
-                'Hello, UTF-16 world!\n'.encode('utf-16').decode(
+                'Hello, UTF-16 world!\n'.encode('utf-16-le').decode(
                     errors='backslashreplace',
                 ),
             )
@@ -163,32 +176,32 @@ class FunctionalAPIBase:
             self.assertTrue(is_resource(self.anchor02, *path_parts))
 
     def test_contents(self):
-        with check_warnings((".*contents.*", DeprecationWarning)):
+        with warnings_helper.check_warnings((".*contents.*", DeprecationWarning)):
             c = resources.contents(self.anchor01)
         self.assertGreaterEqual(
             set(c),
             {'utf-8.file', 'utf-16.file', 'binary.file', 'subdirectory'},
         )
-        with contextlib.ExitStack() as cm:
-            cm.enter_context(self.assertRaises(OSError))
-            cm.enter_context(check_warnings((".*contents.*", DeprecationWarning)))
-
+        with self.assertRaises(OSError), warnings_helper.check_warnings((
+            ".*contents.*",
+            DeprecationWarning,
+        )):
             list(resources.contents(self.anchor01, 'utf-8.file'))
 
         for path_parts in self._gen_resourcetxt_path_parts():
-            with contextlib.ExitStack() as cm:
-                cm.enter_context(self.assertRaises(OSError))
-                cm.enter_context(check_warnings((".*contents.*", DeprecationWarning)))
-
+            with self.assertRaises(OSError), warnings_helper.check_warnings((
+                ".*contents.*",
+                DeprecationWarning,
+            )):
                 list(resources.contents(self.anchor01, *path_parts))
-        with check_warnings((".*contents.*", DeprecationWarning)):
+        with warnings_helper.check_warnings((".*contents.*", DeprecationWarning)):
             c = resources.contents(self.anchor01, 'subdirectory')
         self.assertGreaterEqual(
             set(c),
             {'binary.file'},
         )
 
-    @ignore_warnings(category=DeprecationWarning)
+    @warnings_helper.ignore_warnings(category=DeprecationWarning)
     def test_common_errors(self):
         for func in (
             resources.read_text,
@@ -227,16 +240,16 @@ class FunctionalAPIBase:
 
 
 class FunctionalAPITest_StringAnchor(
-    unittest.TestCase,
-    FunctionalAPIBase,
     StringAnchorMixin,
+    FunctionalAPIBase,
+    unittest.TestCase,
 ):
     pass
 
 
 class FunctionalAPITest_ModuleAnchor(
-    unittest.TestCase,
-    FunctionalAPIBase,
     ModuleAnchorMixin,
+    FunctionalAPIBase,
+    unittest.TestCase,
 ):
     pass
