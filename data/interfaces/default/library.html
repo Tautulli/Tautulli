@@ -149,10 +149,10 @@ DOCUMENTATION :: END
                                     <div class="table-card-header">
                                         <ul class="nav nav-header nav-dashboard pull-right">
                                             <li>
-                                                <a href="#" id="recently-watched-page-left" class="paginate-watched btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
+                                                <a href="#" id="recently-watched-page-left" class="paginate-watched btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-left"></i></a>
                                             </li>
                                             <li>
-                                                <a href="#" id="recently-watched-page-right" class="paginate-watched btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
+                                                <a href="#" id="recently-watched-page-right" class="paginate-watched btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-right"></i></a>
                                             </li>
                                         </ul>
                                         <div class="header-bar">
@@ -175,10 +175,10 @@ DOCUMENTATION :: END
                                     <div class="table-card-header">
                                         <ul class="nav nav-header nav-dashboard pull-right">
                                             <li>
-                                                <a href="#" id="recently-added-page-left" class="paginate-added btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-left"></i></a>
+                                                <a href="#" id="recently-added-page-left" class="paginate-added btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-left"></i></a>
                                             </li>
                                             <li>
-                                                <a href="#" id="recently-added-page-right" class="paginate-added btn-gray disabled" data-id="-1"><i class="fa fa-lg fa-chevron-right"></i></a>
+                                                <a href="#" id="recently-added-page-right" class="paginate-added btn-gray disabled" data-id="+1"><i class="fa fa-lg fa-chevron-right"></i></a>
                                             </li>
                                         </ul>
                                         <div class="header-bar">
@@ -690,7 +690,8 @@ DOCUMENTATION :: END
             },
             complete: function(xhr, status) {
                 $("#library-recently-watched").html(xhr.responseText);
-                highlightWatchedScrollerButton();
+                highlightScrollerButton("#recently-watched");
+                paginateScroller("#recently-watched", ".paginate-watched");
             }
         });
     }
@@ -706,7 +707,8 @@ DOCUMENTATION :: END
             },
             complete: function(xhr, status) {
                 $("#library-recently-added").html(xhr.responseText);
-                highlightAddedScrollerButton();
+                highlightScrollerButton("#recently-added");
+                paginateScroller("#recently-added", ".paginate-added");
             }
         });
     }
@@ -716,82 +718,7 @@ DOCUMENTATION :: END
     recentlyAdded();
     % endif
 
-    function highlightWatchedScrollerButton() {
-        var scroller = $("#recently-watched-row-scroller");
-        var numElems = scroller.find("li").length;
-        scroller.width(numElems * 175);
-        if (scroller.width() > $("#library-recently-watched").width()) {
-            $("#recently-watched-page-right").removeClass("disabled");
-        } else {
-            $("#recently-watched-page-right").addClass("disabled");
-        }
-    }
-
-    function highlightAddedScrollerButton() {
-        var scroller = $("#recently-added-row-scroller");
-        var numElems = scroller.find("li").length;
-        scroller.width(numElems * 175);
-        if (scroller.width() > $("#library-recently-added").width()) {
-            $("#recently-added-page-right").removeClass("disabled");
-        } else {
-            $("#recently-added-page-right").addClass("disabled");
-        }
-    }
-
-    $(window).resize(function() {
-        highlightWatchedScrollerButton();
-        highlightAddedScrollerButton();
-    });
-
     $('div.art-face').animate({ opacity: 0.2 }, { duration: 1000 });
-
-    var leftTotalWatched = 0;
-    $(".paginate-watched").click(function (e) {
-        e.preventDefault();
-        var scroller = $("#recently-watched-row-scroller");
-        var containerWidth = $("#library-recently-watched").width();
-        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
-        var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
-
-        leftTotalWatched = Math.max(Math.min(leftTotalWatched + scrollAmount, 0), leftMax);
-        scroller.animate({ left: leftTotalWatched }, 250);
-
-        if (leftTotalWatched == 0) {
-            $("#recently-watched-page-left").addClass("disabled").blur();
-        } else {
-            $("#recently-watched-page-left").removeClass("disabled");
-        }
-
-        if (leftTotalWatched == leftMax) {
-            $("#recently-watched-page-right").addClass("disabled").blur();
-        } else {
-            $("#recently-watched-page-right").removeClass("disabled");
-        }
-    });
-
-    var leftTotalAdded = 0;
-    $(".paginate-added").click(function (e) {
-        e.preventDefault();
-        var scroller = $("#recently-added-row-scroller");
-        var containerWidth = $("#library-recently-added").width();
-        var scrollAmount = $(this).data("id") * parseInt(containerWidth / 175) * 175;
-        var leftMax = Math.min(-parseInt(scroller.width()) + Math.abs(scrollAmount), 0);
-
-        leftTotalAdded = Math.max(Math.min(leftTotalAdded + scrollAmount, 0), leftMax);
-        scroller.animate({ left: leftTotalAdded }, 250);
-
-        if (leftTotalAdded == 0) {
-            $("#recently-added-page-left").addClass("disabled").blur();
-        } else {
-            $("#recently-added-page-left").removeClass("disabled");
-        }
-
-        if (leftTotalAdded == leftMax) {
-            $("#recently-added-page-right").addClass("disabled").blur();
-        } else {
-            $("#recently-added-page-right").removeClass("disabled");
-        }
-    });
 
     $(document).ready(function () {
 

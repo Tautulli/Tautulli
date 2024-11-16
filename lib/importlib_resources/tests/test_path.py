@@ -3,7 +3,6 @@ import pathlib
 import unittest
 
 import importlib_resources as resources
-from . import data01
 from . import util
 
 
@@ -25,9 +24,7 @@ class PathTests:
             self.assertEqual('Hello, UTF-8 world!\n', path.read_text(encoding='utf-8'))
 
 
-class PathDiskTests(PathTests, unittest.TestCase):
-    data = data01
-
+class PathDiskTests(PathTests, util.DiskSetup, unittest.TestCase):
     def test_natural_path(self):
         """
         Guarantee the internal implementation detail that

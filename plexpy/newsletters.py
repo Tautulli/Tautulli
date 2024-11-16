@@ -586,6 +586,8 @@ class Newsletter(object):
         return parameters
 
     def _build_params(self):
+        from plexpy.notification_handler import CustomArrow
+        
         date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
 
         if plexpy.CONFIG.NEWSLETTER_SELF_HOSTED and plexpy.CONFIG.HTTP_BASE_URL:
@@ -595,8 +597,8 @@ class Newsletter(object):
 
         parameters = {
             'server_name': helpers.pms_name(),
-            'start_date': self.start_date.format(date_format),
-            'end_date': self.end_date.format(date_format),
+            'start_date': CustomArrow(self.start_date, date_format),
+            'end_date': CustomArrow(self.end_date, date_format),
             'current_year': self.start_date.year,
             'current_month': self.start_date.month,
             'current_day': self.start_date.day,

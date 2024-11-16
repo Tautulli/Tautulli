@@ -24,8 +24,6 @@ from cloudinary.utils import cloudinary_url
 from collections import OrderedDict
 from datetime import date, datetime, timezone
 from functools import reduce, wraps
-import hashlib
-import imghdr
 from itertools import groupby
 from future.moves.itertools import islice, zip_longest
 from ipaddress import ip_address, ip_network, IPv4Address
@@ -272,7 +270,8 @@ def human_duration(ms, sig='dhm', units='ms', return_seconds=300000):
         if return_seconds and ms < return_seconds:
             sig = 'dhms'
 
-        ms = ms * factors[units]
+        r = factors[sig[-1]]
+        ms = round(ms * factors[units] / r) * r
 
         d, h = divmod(ms, factors['d'])
         h, m = divmod(h, factors['h'])
@@ -940,39 +939,6 @@ def cloudinary_transform(rating_key=None, width=1000, height=1500, opacity=100, 
         logger.error("Tautulli Helpers :: Unable to transform image '{}' ({}) on Cloudinary: {}".format(img_title, fallback, e))
 
     return url
-
-
-def cache_image(url, image=None):
-    """
-    Saves an image to the cache directory.
-    If no image is provided, tries to return the image from the cache directory.
-    """
-    # Create image directory if it doesn't exist
-    imgdir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images/')
-    if not os.path.exists(imgdir):
-        logger.debug("Tautulli Helpers :: Creating image cache directory at %s" % imgdir)
-        os.makedirs(imgdir)
-
-    # Create a hash of the url to use as the filename
-    imghash = hashlib.md5(url).hexdigest()
-    imagefile = os.path.join(imgdir, imghash)
-
-    # If an image is provided, save it to the cache directory
-    if image:
-        try:
-            with open(imagefile, 'wb') as cache_file:
-                cache_file.write(image)
-        except IOError as e:
-            logger.error("Tautulli Helpers :: Failed to cache image %s: %s" % (imagefile, e))
-
-    # Try to return the image from the cache directory
-    if os.path.isfile(imagefile):
-        imagetype = 'image/' + imghdr.what(os.path.abspath(imagefile))
-    else:
-        imagefile = None
-        imagetype = 'image/jpeg'
-
-    return imagefile, imagetype
 
 
 def build_datatables_json(kwargs, dt_columns, default_sort_col=None):

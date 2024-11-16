@@ -14,8 +14,8 @@ class AdvancedSettingsMixin:
 
     def preferences(self):
         """ Returns a list of :class:`~plexapi.settings.Preferences` objects. """
-        data = self._server.query(self._details_key)
-        return self.findItems(data, settings.Preferences, rtag='Preferences')
+        key = f'{self.key}?includePreferences=1'
+        return self.fetchItems(key, cls=settings.Preferences, rtag='Preferences')
 
     def preference(self, pref):
         """ Returns a :class:`~plexapi.settings.Preferences` object for the specified pref.
@@ -240,8 +240,7 @@ class UnmatchMatchMixin:
                     params['agent'] = utils.getAgentIdentifier(self.section(), agent)
 
         key = key + '?' + urlencode(params)
-        data = self._server.query(key, method=self._server._session.get)
-        return self.findItems(data, initpath=key)
+        return self.fetchItems(key, cls=media.SearchResult)
 
     def fixMatch(self, searchResult=None, auto=False, agent=None):
         """ Use match result to update show metadata.
@@ -278,8 +277,8 @@ class ExtrasMixin:
     def extras(self):
         """ Returns a list of :class:`~plexapi.video.Extra` objects. """
         from plexapi.video import Extra
-        data = self._server.query(self._details_key)
-        return self.findItems(data, Extra, rtag='Extras')
+        key = f'{self.key}/extras'
+        return self.fetchItems(key, cls=Extra)
 
 
 class HubsMixin:
@@ -289,8 +288,7 @@ class HubsMixin:
         """ Returns a list of :class:`~plexapi.library.Hub` objects. """
         from plexapi.library import Hub
         key = f'{self.key}/related'
-        data = self._server.query(key)
-        return self.findItems(data, Hub)
+        return self.fetchItems(key, cls=Hub)
 
 
 class PlayedUnplayedMixin:

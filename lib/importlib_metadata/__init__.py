@@ -1,24 +1,34 @@
+"""
+APIs exposing metadata from third-party Python packages.
+
+This codebase is shared between importlib.metadata in the stdlib
+and importlib_metadata in PyPI. See
+https://github.com/python/importlib_metadata/wiki/Development-Methodology
+for more detail.
+"""
+
 from __future__ import annotations
 
-import os
-import re
 import abc
-import sys
-import json
-import zipp
+import collections
 import email
-import types
-import inspect
-import pathlib
-import operator
-import textwrap
 import functools
 import itertools
+import operator
+import os
+import pathlib
 import posixpath
-import collections
+import re
+import sys
+import textwrap
+import types
+from contextlib import suppress
+from importlib import import_module
+from importlib.abc import MetaPathFinder
+from itertools import starmap
+from typing import Any, Iterable, List, Mapping, Match, Optional, Set, cast
 
 from . import _meta
-from .compat import py39, py311
 from ._collections import FreezableDefaultDict, Pair
 from ._compat import (
     NullFinder,
@@ -27,12 +37,7 @@ from ._compat import (
 from ._functools import method_cache, pass_none
 from ._itertools import always_iterable, bucket, unique_everseen
 from ._meta import PackageMetadata, SimplePath
-
-from contextlib import suppress
-from importlib import import_module
-from importlib.abc import MetaPathFinder
-from itertools import starmap
-from typing import Any, Iterable, List, Mapping, Match, Optional, Set, cast
+from .compat import py39, py311
 
 __all__ = [
     'Distribution',
@@ -58,7 +63,7 @@ class PackageNotFoundError(ModuleNotFoundError):
         return f"No package metadata was found for {self.name}"
 
     @property
-    def name(self) -> str:  # type: ignore[override]
+    def name(self) -> str:  # type: ignore[override] # make readonly
         (name,) = self.args
         return name
 
@@ -227,8 +232,25 @@ class EntryPoint:
         >>> ep.matches(attr='bong')
         True
         """
+        self._disallow_dist(params)
         attrs = (getattr(self, param) for param in params)
         return all(map(operator.eq, params.values(), attrs))
+
+    @staticmethod
+    def _disallow_dist(params):
+        """
+        Querying by dist is not allowed (dist objects are not comparable).
+        >>> EntryPoint(name='fan', value='fav', group='fag').matches(dist='foo')
+        Traceback (most recent call last):
+        ...
+        ValueError: "dist" is not suitable for matching...
+        """
+        if "dist" in params:
+            raise ValueError(
+                '"dist" is not suitable for matching. '
+                "Instead, use Distribution.entry_points.select() on a "
+                "located distribution."
+            )
 
     def _key(self):
         return self.name, self.value, self.group
@@ -259,7 +281,7 @@ class EntryPoints(tuple):
 
     __slots__ = ()
 
-    def __getitem__(self, name: str) -> EntryPoint:  # type: ignore[override]
+    def __getitem__(self, name: str) -> EntryPoint:  # type: ignore[override] # Work with str instead of int
         """
         Get the EntryPoint in self matching name.
         """
@@ -315,7 +337,7 @@ class PackagePath(pathlib.PurePosixPath):
     size: int
     dist: Distribution
 
-    def read_text(self, encoding: str = 'utf-8') -> str:  # type: ignore[override]
+    def read_text(self, encoding: str = 'utf-8') -> str:
         return self.locate().read_text(encoding=encoding)
 
     def read_binary(self) -> bytes:
@@ -373,6 +395,17 @@ class Distribution(metaclass=abc.ABCMeta):
         """
         Given a path to a file in this distribution, return a SimplePath
         to it.
+
+        This method is used by callers of ``Distribution.files()`` to
+        locate files within the distribution. If it's possible for a
+        Distribution to represent files in the distribution as
+        ``SimplePath`` objects, it should implement this method
+        to resolve such objects.
+
+        Some Distribution providers may elect not to resolve SimplePath
+        objects within the distribution by raising a
+        NotImplementedError, but consumers of such a Distribution would
+        be unable to invoke ``Distribution.files()``.
         """
 
     @classmethod
@@ -639,6 +672,9 @@ class Distribution(metaclass=abc.ABCMeta):
         return self._load_json('direct_url.json')
 
     def _load_json(self, filename):
+        # Deferred for performance (python/importlib_metadata#503)
+        import json
+
         return pass_none(json.loads)(
             self.read_text(filename),
             object_hook=lambda data: types.SimpleNamespace(**data),
@@ -723,7 +759,7 @@ class FastPath:
     True
     """
 
-    @functools.lru_cache()  # type: ignore
+    @functools.lru_cache()  # type: ignore[misc]
     def __new__(cls, root):
         return super().__new__(cls)
 
@@ -741,7 +777,10 @@ class FastPath:
         return []
 
     def zip_children(self):
-        zip_path = zipp.Path(self.root)
+        # deferred for performance (python/importlib_metadata#502)
+        from zipp.compat.overlay import zipfile
+
+        zip_path = zipfile.Path(self.root)
         names = zip_path.root.namelist()
         self.joinpath = zip_path.joinpath
 
@@ -1078,11 +1117,10 @@ def _get_toplevel_name(name: PackagePath) -> str:
     >>> _get_toplevel_name(PackagePath('foo.dist-info'))
     'foo.dist-info'
     """
-    return _topmost(name) or (
-        # python/typeshed#10328
-        inspect.getmodulename(name)  # type: ignore
-        or str(name)
-    )
+    # Defer import of inspect for performance (python/cpython#118761)
+    import inspect
+
+    return _topmost(name) or inspect.getmodulename(name) or str(name)
 
 
 def _top_level_inferred(dist):
