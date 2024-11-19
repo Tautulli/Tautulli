@@ -231,7 +231,7 @@ def weighted_processing_order(iterable):
         total = sum(rdata._processing_weight() or _no_weight for rdata in rdatas)
         while len(rdatas) > 1:
             r = random.uniform(0, total)
-            for n, rdata in enumerate(rdatas):
+            for n, rdata in enumerate(rdatas):  # noqa: B007
                 weight = rdata._processing_weight() or _no_weight
                 if weight > r:
                     break

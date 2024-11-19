@@ -68,7 +68,12 @@ class PrivateDSA(CryptographyPrivateKey):
     key_cls = dsa.DSAPrivateKey
     public_cls = PublicDSA
 
-    def sign(self, data: bytes, verify: bool = False) -> bytes:
+    def sign(
+        self,
+        data: bytes,
+        verify: bool = False,
+        deterministic: bool = True,
+    ) -> bytes:
         """Sign using a private key per RFC 2536, section 3."""
         public_dsa_key = self.key.public_key()
         if public_dsa_key.key_size > 1024:

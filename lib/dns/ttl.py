@@ -73,7 +73,7 @@ def from_text(text: str) -> int:
                 elif c == "s":
                     total += current
                 else:
-                    raise BadTTL("unknown unit '%s'" % c)
+                    raise BadTTL(f"unknown unit '{c}'")
                 current = 0
                 need_digit = True
         if not current == 0:

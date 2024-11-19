@@ -29,7 +29,12 @@ class PublicEDDSA(CryptographyPublicKey):
 class PrivateEDDSA(CryptographyPrivateKey):
     public_cls: Type[PublicEDDSA]
 
-    def sign(self, data: bytes, verify: bool = False) -> bytes:
+    def sign(
+        self,
+        data: bytes,
+        verify: bool = False,
+        deterministic: bool = True,
+    ) -> bytes:
         """Sign using a private key per RFC 8080, section 4."""
         signature = self.key.sign(data)
         if verify:

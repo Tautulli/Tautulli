@@ -37,9 +37,7 @@ class HINFO(dns.rdata.Rdata):
         self.os = self._as_bytes(os, True, 255)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return '"{}" "{}"'.format(
-            dns.rdata._escapify(self.cpu), dns.rdata._escapify(self.os)
-        )
+        return f'"{dns.rdata._escapify(self.cpu)}" "{dns.rdata._escapify(self.os)}"'
 
     @classmethod
     def from_text(

@@ -13,8 +13,8 @@ if sys.platform == "win32":
 
     # Keep pylint quiet on non-windows.
     try:
-        WindowsError is None  # pylint: disable=used-before-assignment
-    except KeyError:
+        _ = WindowsError  # pylint: disable=used-before-assignment
+    except NameError:
         WindowsError = Exception
 
     if dns._features.have("wmi"):
@@ -44,6 +44,7 @@ if sys.platform == "win32":
     if _have_wmi:
 
         class _WMIGetter(threading.Thread):
+            # pylint: disable=possibly-used-before-assignment
             def __init__(self):
                 super().__init__()
                 self.info = DnsInfo()
@@ -82,32 +83,21 @@ if sys.platform == "win32":
         def __init__(self):
             self.info = DnsInfo()
 
-        def _determine_split_char(self, entry):
-            #
-            # The windows registry irritatingly changes the list element
-            # delimiter in between ' ' and ',' (and vice-versa) in various
-            # versions of windows.
-            #
-            if entry.find(" ") >= 0:
-                split_char = " "
-            elif entry.find(",") >= 0:
-                split_char = ","
-            else:
-                # probably a singleton; treat as a space-separated list.
-                split_char = " "
-            return split_char
+        def _split(self, text):
+            # The windows registry has used both " " and "," as a delimiter, and while
+            # it is currently using "," in Windows 10 and later, updates can seemingly
+            # leave a space in too, e.g. "a, b".  So we just convert all commas to
+            # spaces, and use split() in its default configuration, which splits on
+            # all whitespace and ignores empty strings.
+            return text.replace(",", " ").split()
 
         def _config_nameservers(self, nameservers):
-            split_char = self._determine_split_char(nameservers)
-            ns_list = nameservers.split(split_char)
-            for ns in ns_list:
+            for ns in self._split(nameservers):
                 if ns not in self.info.nameservers:
                     self.info.nameservers.append(ns)
 
         def _config_search(self, search):
-            split_char = self._determine_split_char(search)
-            search_list = search.split(split_char)
-            for s in search_list:
+            for s in self._split(search):
                 s = _config_domain(s)
                 if s not in self.info.search:
                     self.info.search.append(s)
@@ -164,7 +154,7 @@ if sys.platform == "win32":
                     lm,
                     r"SYSTEM\CurrentControlSet\Control\Network"
                     r"\{4D36E972-E325-11CE-BFC1-08002BE10318}"
-                    r"\%s\Connection" % guid,
+                    rf"\{guid}\Connection",
                 )
 
                 try:
@@ -177,7 +167,7 @@ if sys.platform == "win32":
                         raise ValueError  # pragma: no cover
 
                     device_key = winreg.OpenKey(
-                        lm, r"SYSTEM\CurrentControlSet\Enum\%s" % pnp_id
+                        lm, rf"SYSTEM\CurrentControlSet\Enum\{pnp_id}"
                     )
 
                     try:
@@ -232,7 +222,7 @@ if sys.platform == "win32":
                                 self._config_fromkey(key, False)
                             finally:
                                 key.Close()
-                        except EnvironmentError:
+                        except OSError:
                             break
                 finally:
                     interfaces.Close()

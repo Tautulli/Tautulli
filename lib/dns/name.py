@@ -59,11 +59,11 @@ class NameRelation(dns.enum.IntEnum):
 
     @classmethod
     def _maximum(cls):
-        return cls.COMMONANCESTOR
+        return cls.COMMONANCESTOR  # pragma: no cover
 
     @classmethod
     def _short_name(cls):
-        return cls.__name__
+        return cls.__name__  # pragma: no cover
 
 
 # Backwards compatibility
@@ -277,6 +277,7 @@ class IDNA2008Codec(IDNACodec):
             raise NoIDNA2008
         try:
             if self.uts_46:
+                # pylint: disable=possibly-used-before-assignment
                 label = idna.uts46_remap(label, False, self.transitional)
             return idna.alabel(label)
         except idna.IDNAError as e:
