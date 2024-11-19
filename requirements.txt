@@ -28,7 +28,7 @@ platformdirs==4.3.6
 plexapi==4.15.16
 portend==3.2.0
 profilehooks==1.13.0
-PyJWT==2.9.0
+PyJWT==2.10.0
 pyparsing==3.1.4
 python-dateutil==2.9.0.post0
 python-twitter==3.5
