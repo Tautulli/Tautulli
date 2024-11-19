@@ -30,6 +30,7 @@ class Photoalbum(
             composite (str): URL to composite image (/library/metadata/<ratingKey>/composite/<compositeid>)
             fields (List<:class:`~plexapi.media.Field`>): List of field objects.
             guid (str): Plex GUID for the photo album (local://229674).
+            images (List<:class:`~plexapi.media.Image`>): List of image objects.
             index (sting): Plex index number for the photo album.
             key (str): API URL (/library/metadata/<ratingkey>).
             lastRatedAt (datetime): Datetime the photo album was last rated.
@@ -57,6 +58,7 @@ class Photoalbum(
         self.composite = data.attrib.get('composite')
         self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
+        self.images = self.findItems(data, media.Image)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = data.attrib.get('key', '').replace('/children', '')  # FIX_BUG_50
         self.lastRatedAt = utils.toDatetime(data.attrib.get('lastRatedAt'))
@@ -164,6 +166,7 @@ class Photo(
             createdAtTZOffset (int): Unknown (-25200).
             fields (List<:class:`~plexapi.media.Field`>): List of field objects.
             guid (str): Plex GUID for the photo (com.plexapp.agents.none://231714?lang=xn).
+            images (List<:class:`~plexapi.media.Image`>): List of image objects.
             index (sting): Plex index number for the photo.
             key (str): API URL (/library/metadata/<ratingkey>).
             lastRatedAt (datetime): Datetime the photo was last rated.
@@ -204,6 +207,7 @@ class Photo(
         self.createdAtTZOffset = utils.cast(int, data.attrib.get('createdAtTZOffset'))
         self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
+        self.images = self.findItems(data, media.Image)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = data.attrib.get('key', '')
         self.lastRatedAt = utils.toDatetime(data.attrib.get('lastRatedAt'))

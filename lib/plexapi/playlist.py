@@ -190,6 +190,20 @@ class Playlist(
         if self._items is None:
             key = f'{self.key}/items'
             items = self.fetchItems(key)
+
+            # Cache server connections to avoid reconnecting for each item
+            _servers = {}
+            for item in items:
+                if item.sourceURI:
+                    serverID = item.sourceURI.split('/')[2]
+                    if serverID not in _servers:
+                        try:
+                            _servers[serverID] = self._server.myPlexAccount().resource(serverID).connect()
+                        except NotFound:
+                            # Override the server connection with None if the server is not found
+                            _servers[serverID] = None
+                    item._server = _servers[serverID]
+
             self._items = items
         return self._items
 

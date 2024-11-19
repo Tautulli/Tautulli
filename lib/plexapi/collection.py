@@ -39,6 +39,7 @@ class Collection(
             contentRating (str) Content rating (PG-13; NR; TV-G).
             fields (List<:class:`~plexapi.media.Field`>): List of field objects.
             guid (str): Plex GUID for the collection (collection://XXXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXX).
+            images (List<:class:`~plexapi.media.Image`>): List of image objects.
             index (int): Plex index number for the collection.
             key (str): API URL (/library/metadata/<ratingkey>).
             labels (List<:class:`~plexapi.media.Label`>): List of label objects.
@@ -82,6 +83,7 @@ class Collection(
         self.contentRating = data.attrib.get('contentRating')
         self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
+        self.images = self.findItems(data, media.Image)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = data.attrib.get('key', '').replace('/children', '')  # FIX_BUG_50
         self.labels = self.findItems(data, media.Label)

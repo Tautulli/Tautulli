@@ -283,10 +283,10 @@ class MyPlexAccount(PlexObject):
         """ Returns the :class:`~plexapi.myplex.MyPlexResource` that matches the name specified.
 
             Parameters:
-                name (str): Name to match against.
+                name (str): Name  or machine identifier to match against.
         """
         for resource in self.resources():
-            if resource.name.lower() == name.lower():
+            if resource.name.lower() == name.lower() or resource.clientIdentifier == name:
                 return resource
         raise NotFound(f'Unable to find resource {name}')
 
