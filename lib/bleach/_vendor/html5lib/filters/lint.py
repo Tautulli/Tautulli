@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, unicode_literals
 
-from six import text_type
+from bleach.six_shim import text_type
 
 from . import base
 from ..constants import namespaces, voidElements

@@ -12,7 +12,7 @@ import re
 import warnings
 from xml.sax.saxutils import escape, unescape
 
-from six.moves import urllib_parse as urlparse
+from bleach.six_shim import urllib_parse as urlparse
 
 from . import base
 from ..constants import namespaces, prefixes
