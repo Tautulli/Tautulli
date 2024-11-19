@@ -50,6 +50,8 @@ class TXTBase(dns.rdata.Rdata):
         self.strings: Tuple[bytes] = self._as_tuple(
             strings, lambda x: self._as_bytes(x, True, 255)
         )
+        if len(self.strings) == 0:
+            raise ValueError("the list of strings must not be empty")
 
     def to_text(
         self,
@@ -60,7 +62,7 @@ class TXTBase(dns.rdata.Rdata):
         txt = ""
         prefix = ""
         for s in self.strings:
-            txt += '{}"{}"'.format(prefix, dns.rdata._escapify(s))
+            txt += f'{prefix}"{dns.rdata._escapify(s)}"'
             prefix = " "
         return txt
 

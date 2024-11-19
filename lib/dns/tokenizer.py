@@ -528,7 +528,7 @@ class Tokenizer:
         if value < 0 or value > 65535:
             if base == 8:
                 raise dns.exception.SyntaxError(
-                    "%o is not an octal unsigned 16-bit integer" % value
+                    f"{value:o} is not an octal unsigned 16-bit integer"
                 )
             else:
                 raise dns.exception.SyntaxError(

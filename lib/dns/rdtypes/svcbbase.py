@@ -35,6 +35,7 @@ class ParamKey(dns.enum.IntEnum):
     ECH = 5
     IPV6HINT = 6
     DOHPATH = 7
+    OHTTP = 8
 
     @classmethod
     def _maximum(cls):
@@ -396,6 +397,36 @@ class ECHParam(Param):
         file.write(self.ech)
 
 
+@dns.immutable.immutable
+class OHTTPParam(Param):
+    # We don't ever expect to instantiate this class, but we need
+    # a from_value() and a from_wire_parser(), so we just return None
+    # from the class methods when things are OK.
+
+    @classmethod
+    def emptiness(cls):
+        return Emptiness.ALWAYS
+
+    @classmethod
+    def from_value(cls, value):
+        if value is None or value == "":
+            return None
+        else:
+            raise ValueError("ohttp with non-empty value")
+
+    def to_text(self):
+        raise NotImplementedError  # pragma: no cover
+
+    @classmethod
+    def from_wire_parser(cls, parser, origin=None):  # pylint: disable=W0613
+        if parser.remaining() != 0:
+            raise dns.exception.FormError
+        return None
+
+    def to_wire(self, file, origin=None):  # pylint: disable=W0613
+        raise NotImplementedError  # pragma: no cover
+
+
 _class_for_key = {
     ParamKey.MANDATORY: MandatoryParam,
     ParamKey.ALPN: ALPNParam,
@@ -404,6 +435,7 @@ _class_for_key = {
     ParamKey.IPV4HINT: IPv4HintParam,
     ParamKey.ECH: ECHParam,
     ParamKey.IPV6HINT: IPv6HintParam,
+    ParamKey.OHTTP: OHTTPParam,
 }
 
 

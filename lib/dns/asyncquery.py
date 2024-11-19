@@ -19,10 +19,12 @@
 
 import base64
 import contextlib
+import random
 import socket
 import struct
 import time
-from typing import Any, Dict, Optional, Tuple, Union
+import urllib.parse
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import dns.asyncbackend
 import dns.exception
@@ -37,9 +39,11 @@ import dns.transaction
 from dns._asyncbackend import NullContext
 from dns.query import (
     BadResponse,
+    HTTPVersion,
     NoDOH,
     NoDOQ,
     UDPMode,
+    _check_status,
     _compute_times,
     _make_dot_ssl_context,
     _matches_destination,
@@ -338,7 +342,7 @@ async def _read_exactly(sock, count, expiration):
     while count > 0:
         n = await sock.recv(count, _timeout(expiration))
         if n == b"":
-            raise EOFError
+            raise EOFError("EOF")
         count = count - len(n)
         s = s + n
     return s
@@ -500,6 +504,20 @@ async def tls(
         return response
 
 
+def _maybe_get_resolver(
+    resolver: Optional["dns.asyncresolver.Resolver"],
+) -> "dns.asyncresolver.Resolver":
+    # We need a separate method for this to avoid overriding the global
+    # variable "dns" with the as-yet undefined local variable "dns"
+    # in https().
+    if resolver is None:
+        # pylint: disable=import-outside-toplevel,redefined-outer-name
+        import dns.asyncresolver
+
+        resolver = dns.asyncresolver.Resolver()
+    return resolver
+
+
 async def https(
     q: dns.message.Message,
     where: str,
@@ -515,7 +533,8 @@ async def https(
     verify: Union[bool, str] = True,
     bootstrap_address: Optional[str] = None,
     resolver: Optional["dns.asyncresolver.Resolver"] = None,
-    family: Optional[int] = socket.AF_UNSPEC,
+    family: int = socket.AF_UNSPEC,
+    http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-HTTPS.
 
@@ -529,25 +548,64 @@ async def https(
     parameters, exceptions, and return type of this method.
     """
 
-    if not have_doh:
-        raise NoDOH  # pragma: no cover
-    if client and not isinstance(client, httpx.AsyncClient):
-        raise ValueError("session parameter must be an httpx.AsyncClient")
-
-    wire = q.to_wire()
     try:
         af = dns.inet.af_for_address(where)
     except ValueError:
         af = None
-    transport = None
-    headers = {"accept": "application/dns-message"}
     if af is not None and dns.inet.is_address(where):
         if af == socket.AF_INET:
-            url = "https://{}:{}{}".format(where, port, path)
+            url = f"https://{where}:{port}{path}"
         elif af == socket.AF_INET6:
-            url = "https://[{}]:{}{}".format(where, port, path)
+            url = f"https://[{where}]:{port}{path}"
     else:
         url = where
+
+    extensions = {}
+    if bootstrap_address is None:
+        # pylint: disable=possibly-used-before-assignment
+        parsed = urllib.parse.urlparse(url)
+        if parsed.hostname is None:
+            raise ValueError("no hostname in URL")
+        if dns.inet.is_address(parsed.hostname):
+            bootstrap_address = parsed.hostname
+            extensions["sni_hostname"] = parsed.hostname
+        if parsed.port is not None:
+            port = parsed.port
+
+    if http_version == HTTPVersion.H3 or (
+        http_version == HTTPVersion.DEFAULT and not have_doh
+    ):
+        if bootstrap_address is None:
+            resolver = _maybe_get_resolver(resolver)
+            assert parsed.hostname is not None  # for mypy
+            answers = await resolver.resolve_name(parsed.hostname, family)
+            bootstrap_address = random.choice(list(answers.addresses()))
+        return await _http3(
+            q,
+            bootstrap_address,
+            url,
+            timeout,
+            port,
+            source,
+            source_port,
+            one_rr_per_rrset,
+            ignore_trailing,
+            verify=verify,
+            post=post,
+        )
+
+    if not have_doh:
+        raise NoDOH  # pragma: no cover
+    # pylint: disable=possibly-used-before-assignment
+    if client and not isinstance(client, httpx.AsyncClient):
+        raise ValueError("session parameter must be an httpx.AsyncClient")
+    # pylint: enable=possibly-used-before-assignment
+
+    wire = q.to_wire()
+    headers = {"accept": "application/dns-message"}
+
+    h1 = http_version in (HTTPVersion.H1, HTTPVersion.DEFAULT)
+    h2 = http_version in (HTTPVersion.H2, HTTPVersion.DEFAULT)
 
     backend = dns.asyncbackend.get_default_backend()
 
@@ -557,23 +615,22 @@ async def https(
     else:
         local_address = source
         local_port = source_port
-    transport = backend.get_transport_class()(
-        local_address=local_address,
-        http1=True,
-        http2=True,
-        verify=verify,
-        local_port=local_port,
-        bootstrap_address=bootstrap_address,
-        resolver=resolver,
-        family=family,
-    )
 
     if client:
         cm: contextlib.AbstractAsyncContextManager = NullContext(client)
     else:
-        cm = httpx.AsyncClient(
-            http1=True, http2=True, verify=verify, transport=transport
+        transport = backend.get_transport_class()(
+            local_address=local_address,
+            http1=h1,
+            http2=h2,
+            verify=verify,
+            local_port=local_port,
+            bootstrap_address=bootstrap_address,
+            resolver=resolver,
+            family=family,
         )
+
+        cm = httpx.AsyncClient(http1=h1, http2=h2, verify=verify, transport=transport)
 
     async with cm as the_client:
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
@@ -586,23 +643,33 @@ async def https(
                 }
             )
             response = await backend.wait_for(
-                the_client.post(url, headers=headers, content=wire), timeout
+                the_client.post(
+                    url,
+                    headers=headers,
+                    content=wire,
+                    extensions=extensions,
+                ),
+                timeout,
             )
         else:
             wire = base64.urlsafe_b64encode(wire).rstrip(b"=")
             twire = wire.decode()  # httpx does a repr() if we give it bytes
             response = await backend.wait_for(
-                the_client.get(url, headers=headers, params={"dns": twire}), timeout
+                the_client.get(
+                    url,
+                    headers=headers,
+                    params={"dns": twire},
+                    extensions=extensions,
+                ),
+                timeout,
             )
 
     # see https://tools.ietf.org/html/rfc8484#section-4.2.1 for info about DoH
     # status codes
     if response.status_code < 200 or response.status_code > 299:
         raise ValueError(
-            "{} responded with status code {}"
-            "\nResponse body: {!r}".format(
-                where, response.status_code, response.content
-            )
+            f"{where} responded with status code {response.status_code}"
+            f"\nResponse body: {response.content!r}"
         )
     r = dns.message.from_wire(
         response.content,
@@ -615,6 +682,181 @@ async def https(
     if not q.is_response(r):
         raise BadResponse
     return r
+
+
+async def _http3(
+    q: dns.message.Message,
+    where: str,
+    url: str,
+    timeout: Optional[float] = None,
+    port: int = 853,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    verify: Union[bool, str] = True,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+    hostname: Optional[str] = None,
+    post: bool = True,
+) -> dns.message.Message:
+    if not dns.quic.have_quic:
+        raise NoDOH("DNS-over-HTTP3 is not available.")  # pragma: no cover
+
+    url_parts = urllib.parse.urlparse(url)
+    hostname = url_parts.hostname
+    if url_parts.port is not None:
+        port = url_parts.port
+
+    q.id = 0
+    wire = q.to_wire()
+    (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
+
+    async with cfactory() as context:
+        async with mfactory(
+            context, verify_mode=verify, server_name=hostname, h3=True
+        ) as the_manager:
+            the_connection = the_manager.connect(where, port, source, source_port)
+            (start, expiration) = _compute_times(timeout)
+            stream = await the_connection.make_stream(timeout)
+            async with stream:
+                # note that send_h3() does not need await
+                stream.send_h3(url, wire, post)
+                wire = await stream.receive(_remaining(expiration))
+                _check_status(stream.headers(), where, wire)
+            finish = time.time()
+        r = dns.message.from_wire(
+            wire,
+            keyring=q.keyring,
+            request_mac=q.request_mac,
+            one_rr_per_rrset=one_rr_per_rrset,
+            ignore_trailing=ignore_trailing,
+        )
+    r.time = max(finish - start, 0.0)
+    if not q.is_response(r):
+        raise BadResponse
+    return r
+
+
+async def quic(
+    q: dns.message.Message,
+    where: str,
+    timeout: Optional[float] = None,
+    port: int = 853,
+    source: Optional[str] = None,
+    source_port: int = 0,
+    one_rr_per_rrset: bool = False,
+    ignore_trailing: bool = False,
+    connection: Optional[dns.quic.AsyncQuicConnection] = None,
+    verify: Union[bool, str] = True,
+    backend: Optional[dns.asyncbackend.Backend] = None,
+    hostname: Optional[str] = None,
+    server_hostname: Optional[str] = None,
+) -> dns.message.Message:
+    """Return the response obtained after sending an asynchronous query via
+    DNS-over-QUIC.
+
+    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
+    the default, then dnspython will use the default backend.
+
+    See :py:func:`dns.query.quic()` for the documentation of the other
+    parameters, exceptions, and return type of this method.
+    """
+
+    if not dns.quic.have_quic:
+        raise NoDOQ("DNS-over-QUIC is not available.")  # pragma: no cover
+
+    if server_hostname is not None and hostname is None:
+        hostname = server_hostname
+
+    q.id = 0
+    wire = q.to_wire()
+    the_connection: dns.quic.AsyncQuicConnection
+    if connection:
+        cfactory = dns.quic.null_factory
+        mfactory = dns.quic.null_factory
+        the_connection = connection
+    else:
+        (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
+
+    async with cfactory() as context:
+        async with mfactory(
+            context,
+            verify_mode=verify,
+            server_name=server_hostname,
+        ) as the_manager:
+            if not connection:
+                the_connection = the_manager.connect(where, port, source, source_port)
+            (start, expiration) = _compute_times(timeout)
+            stream = await the_connection.make_stream(timeout)
+            async with stream:
+                await stream.send(wire, True)
+                wire = await stream.receive(_remaining(expiration))
+            finish = time.time()
+        r = dns.message.from_wire(
+            wire,
+            keyring=q.keyring,
+            request_mac=q.request_mac,
+            one_rr_per_rrset=one_rr_per_rrset,
+            ignore_trailing=ignore_trailing,
+        )
+    r.time = max(finish - start, 0.0)
+    if not q.is_response(r):
+        raise BadResponse
+    return r
+
+
+async def _inbound_xfr(
+    txn_manager: dns.transaction.TransactionManager,
+    s: dns.asyncbackend.Socket,
+    query: dns.message.Message,
+    serial: Optional[int],
+    timeout: Optional[float],
+    expiration: float,
+) -> Any:
+    """Given a socket, does the zone transfer."""
+    rdtype = query.question[0].rdtype
+    is_ixfr = rdtype == dns.rdatatype.IXFR
+    origin = txn_manager.from_wire_origin()
+    wire = query.to_wire()
+    is_udp = s.type == socket.SOCK_DGRAM
+    if is_udp:
+        udp_sock = cast(dns.asyncbackend.DatagramSocket, s)
+        await udp_sock.sendto(wire, None, _timeout(expiration))
+    else:
+        tcp_sock = cast(dns.asyncbackend.StreamSocket, s)
+        tcpmsg = struct.pack("!H", len(wire)) + wire
+        await tcp_sock.sendall(tcpmsg, expiration)
+    with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
+        done = False
+        tsig_ctx = None
+        while not done:
+            (_, mexpiration) = _compute_times(timeout)
+            if mexpiration is None or (
+                expiration is not None and mexpiration > expiration
+            ):
+                mexpiration = expiration
+            if is_udp:
+                timeout = _timeout(mexpiration)
+                (rwire, _) = await udp_sock.recvfrom(65535, timeout)
+            else:
+                ldata = await _read_exactly(tcp_sock, 2, mexpiration)
+                (l,) = struct.unpack("!H", ldata)
+                rwire = await _read_exactly(tcp_sock, l, mexpiration)
+            r = dns.message.from_wire(
+                rwire,
+                keyring=query.keyring,
+                request_mac=query.mac,
+                xfr=True,
+                origin=origin,
+                tsig_ctx=tsig_ctx,
+                multi=(not is_udp),
+                one_rr_per_rrset=is_ixfr,
+            )
+            done = inbound.process_message(r)
+            yield r
+            tsig_ctx = r.tsig_ctx
+        if query.keyring and not r.had_tsig:
+            raise dns.exception.FormError("missing TSIG")
 
 
 async def inbound_xfr(
@@ -642,139 +884,30 @@ async def inbound_xfr(
         (query, serial) = dns.xfr.make_query(txn_manager)
     else:
         serial = dns.xfr.extract_serial_from_query(query)
-    rdtype = query.question[0].rdtype
-    is_ixfr = rdtype == dns.rdatatype.IXFR
-    origin = txn_manager.from_wire_origin()
-    wire = query.to_wire()
     af = dns.inet.af_for_address(where)
     stuple = _source_tuple(af, source, source_port)
     dtuple = (where, port)
+    if not backend:
+        backend = dns.asyncbackend.get_default_backend()
     (_, expiration) = _compute_times(lifetime)
-    retry = True
-    while retry:
-        retry = False
-        if is_ixfr and udp_mode != UDPMode.NEVER:
-            sock_type = socket.SOCK_DGRAM
-            is_udp = True
-        else:
-            sock_type = socket.SOCK_STREAM
-            is_udp = False
-        if not backend:
-            backend = dns.asyncbackend.get_default_backend()
+    if query.question[0].rdtype == dns.rdatatype.IXFR and udp_mode != UDPMode.NEVER:
         s = await backend.make_socket(
-            af, sock_type, 0, stuple, dtuple, _timeout(expiration)
+            af, socket.SOCK_DGRAM, 0, stuple, dtuple, _timeout(expiration)
         )
         async with s:
-            if is_udp:
-                await s.sendto(wire, dtuple, _timeout(expiration))
-            else:
-                tcpmsg = struct.pack("!H", len(wire)) + wire
-                await s.sendall(tcpmsg, expiration)
-            with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
-                done = False
-                tsig_ctx = None
-                while not done:
-                    (_, mexpiration) = _compute_times(timeout)
-                    if mexpiration is None or (
-                        expiration is not None and mexpiration > expiration
-                    ):
-                        mexpiration = expiration
-                    if is_udp:
-                        destination = _lltuple((where, port), af)
-                        while True:
-                            timeout = _timeout(mexpiration)
-                            (rwire, from_address) = await s.recvfrom(65535, timeout)
-                            if _matches_destination(
-                                af, from_address, destination, True
-                            ):
-                                break
-                    else:
-                        ldata = await _read_exactly(s, 2, mexpiration)
-                        (l,) = struct.unpack("!H", ldata)
-                        rwire = await _read_exactly(s, l, mexpiration)
-                    is_ixfr = rdtype == dns.rdatatype.IXFR
-                    r = dns.message.from_wire(
-                        rwire,
-                        keyring=query.keyring,
-                        request_mac=query.mac,
-                        xfr=True,
-                        origin=origin,
-                        tsig_ctx=tsig_ctx,
-                        multi=(not is_udp),
-                        one_rr_per_rrset=is_ixfr,
-                    )
-                    try:
-                        done = inbound.process_message(r)
-                    except dns.xfr.UseTCP:
-                        assert is_udp  # should not happen if we used TCP!
-                        if udp_mode == UDPMode.ONLY:
-                            raise
-                        done = True
-                        retry = True
-                        udp_mode = UDPMode.NEVER
-                        continue
-                    tsig_ctx = r.tsig_ctx
-                if not retry and query.keyring and not r.had_tsig:
-                    raise dns.exception.FormError("missing TSIG")
+            try:
+                async for _ in _inbound_xfr(
+                    txn_manager, s, query, serial, timeout, expiration
+                ):
+                    pass
+                return
+            except dns.xfr.UseTCP:
+                if udp_mode == UDPMode.ONLY:
+                    raise
 
-
-async def quic(
-    q: dns.message.Message,
-    where: str,
-    timeout: Optional[float] = None,
-    port: int = 853,
-    source: Optional[str] = None,
-    source_port: int = 0,
-    one_rr_per_rrset: bool = False,
-    ignore_trailing: bool = False,
-    connection: Optional[dns.quic.AsyncQuicConnection] = None,
-    verify: Union[bool, str] = True,
-    backend: Optional[dns.asyncbackend.Backend] = None,
-    server_hostname: Optional[str] = None,
-) -> dns.message.Message:
-    """Return the response obtained after sending an asynchronous query via
-    DNS-over-QUIC.
-
-    *backend*, a ``dns.asyncbackend.Backend``, or ``None``.  If ``None``,
-    the default, then dnspython will use the default backend.
-
-    See :py:func:`dns.query.quic()` for the documentation of the other
-    parameters, exceptions, and return type of this method.
-    """
-
-    if not dns.quic.have_quic:
-        raise NoDOQ("DNS-over-QUIC is not available.")  # pragma: no cover
-
-    q.id = 0
-    wire = q.to_wire()
-    the_connection: dns.quic.AsyncQuicConnection
-    if connection:
-        cfactory = dns.quic.null_factory
-        mfactory = dns.quic.null_factory
-        the_connection = connection
-    else:
-        (cfactory, mfactory) = dns.quic.factories_for_backend(backend)
-
-    async with cfactory() as context:
-        async with mfactory(
-            context, verify_mode=verify, server_name=server_hostname
-        ) as the_manager:
-            if not connection:
-                the_connection = the_manager.connect(where, port, source, source_port)
-            (start, expiration) = _compute_times(timeout)
-            stream = await the_connection.make_stream(timeout)
-            async with stream:
-                await stream.send(wire, True)
-                wire = await stream.receive(_remaining(expiration))
-            finish = time.time()
-        r = dns.message.from_wire(
-            wire,
-            keyring=q.keyring,
-            request_mac=q.request_mac,
-            one_rr_per_rrset=one_rr_per_rrset,
-            ignore_trailing=ignore_trailing,
-        )
-    r.time = max(finish - start, 0.0)
-    if not q.is_response(r):
-        raise BadResponse
-    return r
+    s = await backend.make_socket(
+        af, socket.SOCK_STREAM, 0, stuple, dtuple, _timeout(expiration)
+    )
+    async with s:
+        async for _ in _inbound_xfr(txn_manager, s, query, serial, timeout, expiration):
+            pass

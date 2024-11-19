@@ -54,7 +54,7 @@ def from_text(text: str) -> Tuple[int, int, int]:
         elif c.isdigit():
             cur += c
         else:
-            raise dns.exception.SyntaxError("Could not parse %s" % (c))
+            raise dns.exception.SyntaxError(f"Could not parse {c}")
 
     if state == 0:
         raise dns.exception.SyntaxError("no stop value specified")

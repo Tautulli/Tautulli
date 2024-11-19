@@ -37,7 +37,7 @@ class A(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         domain = self.domain.choose_relativity(origin, relativize)
-        return "%s %o" % (domain, self.address)
+        return f"{domain} {self.address:o}"
 
     @classmethod
     def from_text(
