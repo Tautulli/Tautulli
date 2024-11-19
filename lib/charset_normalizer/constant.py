@@ -544,6 +544,8 @@ COMMON_SAFE_ASCII_CHARACTERS: Set[str] = {
     "|",
     '"',
     "-",
+    "(",
+    ")",
 }
 
 

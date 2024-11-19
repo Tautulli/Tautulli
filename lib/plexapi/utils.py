@@ -90,6 +90,8 @@ TAGTYPES = {
     'theme': 317,
     'studio': 318,
     'network': 319,
+    'showOrdering': 322,
+    'clearLogo': 323,
     'place': 400,
 }
 REVERSETAGTYPES = {v: k for k, v in TAGTYPES.items()}

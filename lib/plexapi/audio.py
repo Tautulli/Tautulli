@@ -33,6 +33,7 @@ class Audio(PlexPartialObject, PlayedUnplayedMixin):
             distance (float): Sonic Distance of the item from the seed item.
             fields (List<:class:`~plexapi.media.Field`>): List of field objects.
             guid (str): Plex GUID for the artist, album, or track (plex://artist/5d07bcb0403c64029053ac4c).
+            images (List<:class:`~plexapi.media.Image`>): List of image objects.
             index (int): Plex index number (often the track number).
             key (str): API URL (/library/metadata/<ratingkey>).
             lastRatedAt (datetime): Datetime the item was last rated.
@@ -65,6 +66,7 @@ class Audio(PlexPartialObject, PlayedUnplayedMixin):
         self.distance = utils.cast(float, data.attrib.get('distance'))
         self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
+        self.images = self.findItems(data, media.Image)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = data.attrib.get('key', '')
         self.lastRatedAt = utils.toDatetime(data.attrib.get('lastRatedAt'))

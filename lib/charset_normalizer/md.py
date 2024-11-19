@@ -236,7 +236,7 @@ class SuspiciousRange(MessDetectorPlugin):
 
     @property
     def ratio(self) -> float:
-        if self._character_count <= 24:
+        if self._character_count <= 13:
             return 0.0
 
         ratio_of_suspicious_range_usage: float = (
@@ -260,6 +260,7 @@ class SuperWeirdWordPlugin(MessDetectorPlugin):
 
         self._buffer: str = ""
         self._buffer_accent_count: int = 0
+        self._buffer_glyph_count: int = 0
 
     def eligible(self, character: str) -> bool:
         return True
@@ -279,6 +280,14 @@ class SuperWeirdWordPlugin(MessDetectorPlugin):
                 and is_thai(character) is False
             ):
                 self._foreign_long_watch = True
+            if (
+                is_cjk(character)
+                or is_hangul(character)
+                or is_katakana(character)
+                or is_hiragana(character)
+                or is_thai(character)
+            ):
+                self._buffer_glyph_count += 1
             return
         if not self._buffer:
             return
@@ -291,17 +300,20 @@ class SuperWeirdWordPlugin(MessDetectorPlugin):
             self._character_count += buffer_length
 
             if buffer_length >= 4:
-                if self._buffer_accent_count / buffer_length > 0.34:
+                if self._buffer_accent_count / buffer_length >= 0.5:
                     self._is_current_word_bad = True
                 # Word/Buffer ending with an upper case accentuated letter are so rare,
                 # that we will consider them all as suspicious. Same weight as foreign_long suspicious.
-                if (
+                elif (
                     is_accentuated(self._buffer[-1])
                     and self._buffer[-1].isupper()
                     and all(_.isupper() for _ in self._buffer) is False
                 ):
                     self._foreign_long_count += 1
                     self._is_current_word_bad = True
+                elif self._buffer_glyph_count == 1:
+                    self._is_current_word_bad = True
+                    self._foreign_long_count += 1
             if buffer_length >= 24 and self._foreign_long_watch:
                 camel_case_dst = [
                     i
@@ -325,6 +337,7 @@ class SuperWeirdWordPlugin(MessDetectorPlugin):
             self._foreign_long_watch = False
             self._buffer = ""
             self._buffer_accent_count = 0
+            self._buffer_glyph_count = 0
         elif (
             character not in {"<", ">", "-", "=", "~", "|", "_"}
             and character.isdigit() is False
