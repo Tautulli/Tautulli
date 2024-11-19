@@ -824,16 +824,19 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         poster_thumb = notify_params['thumb']
         poster_key = notify_params['rating_key']
         poster_title = notify_params['title']
+        plex_slug = notify_params['slug']
     elif notify_params['media_type'] in ('season', 'album'):
         poster_thumb = notify_params['thumb'] or notify_params['parent_thumb']
         poster_key = notify_params['rating_key']
         poster_title = '%s - %s' % (notify_params['parent_title'],
                                     notify_params['title'])
+        plex_slug = notify_params['parent_slug']
     elif notify_params['media_type'] in ('episode', 'track'):
         poster_thumb = notify_params['parent_thumb'] or notify_params['grandparent_thumb']
         poster_key = notify_params['parent_rating_key']
         poster_title = '%s - %s' % (notify_params['grandparent_title'],
                                     notify_params['parent_title'])
+        plex_slug = notify_params['grandparent_slug']
     elif notify_params['media_type'] == 'clip':
         if notify_params['extra_type']:
             poster_thumb = notify_params['art'].replace('/art', '/thumb') or notify_params['thumb']
@@ -841,10 +844,19 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             poster_thumb = notify_params['parent_thumb'] or notify_params['thumb']
         poster_key = notify_params['rating_key']
         poster_title = notify_params['title']
+        plex_slug = notify_params['slug']
     else:
         poster_thumb = ''
         poster_key = ''
         poster_title = ''
+        plex_slug = ''
+
+    if notify_params['media_type'] == 'movie':
+        plex_watch_url = f'https://watch.plex.tv/movie/{plex_slug}'
+    elif notify_params['media_type'] in ('show', 'season', 'episode'):
+        plex_watch_url = f'https://watch.plex.tv/show/{plex_slug}'
+    else:
+        plex_watch_url = ''
 
     img_service = helpers.get_img_service(include_self=True)
     fallback = 'poster-live' if notify_params['live'] else 'poster'
@@ -1154,6 +1166,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'poster_url': notify_params['poster_url'],
         'plex_id': notify_params['plex_id'],
         'plex_url': notify_params['plex_url'],
+        'plex_slug': plex_slug,
+        'plex_watch_url': plex_watch_url,
         'imdb_id': notify_params['imdb_id'],
         'imdb_url': notify_params['imdb_url'],
         'thetvdb_id': notify_params['thetvdb_id'],

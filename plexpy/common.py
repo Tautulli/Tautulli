@@ -557,6 +557,8 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Poster URL', 'type': 'str', 'value': 'poster_url', 'description': 'A URL for the movie, TV show, or album poster.'},
              {'name': 'Plex ID', 'type': 'str', 'value': 'plex_id', 'description': 'The Plex ID for the item.', 'example': 'e.g. 5d7769a9594b2b001e6a6b7e'},
              {'name': 'Plex URL', 'type': 'str', 'value': 'plex_url', 'description': 'The Plex URL to your server for the item.'},
+             {'name': 'Plex Slug', 'type': 'str', 'value': 'plex_slug', 'description': 'The Plex URL slug for the item.'},
+             {'name': 'Plex Watch URL', 'type': 'str', 'value': 'plex_watch_url', 'description': 'The Plex URL to watch.plex.tv for the item.'},
              {'name': 'IMDB ID', 'type': 'str', 'value': 'imdb_id', 'description': 'The IMDB ID for the movie or TV show.', 'example': 'e.g. tt2488496'},
              {'name': 'IMDB URL', 'type': 'str', 'value': 'imdb_url', 'description': 'The IMDB URL for the movie or TV show.'},
              {'name': 'TVDB ID', 'type': 'int', 'value': 'thetvdb_id', 'description': 'The TVDB ID for the movie or TV show.', 'example': 'e.g. 121361'},
