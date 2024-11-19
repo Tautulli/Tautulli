@@ -81,7 +81,7 @@ class DNSException(Exception):
         if kwargs:
             assert (
                 set(kwargs.keys()) == self.supp_kwargs
-            ), "following set of keyword args is required: %s" % (self.supp_kwargs)
+            ), f"following set of keyword args is required: {self.supp_kwargs}"
         return kwargs
 
     def _fmt_kwargs(self, **kwargs):

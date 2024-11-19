@@ -42,7 +42,7 @@ class _DatagramProtocol:
             if exc is None:
                 # EOF we triggered.  Is there a better way to do this?
                 try:
-                    raise EOFError
+                    raise EOFError("EOF")
                 except EOFError as e:
                     self.recvfrom.set_exception(e)
             else:
@@ -64,7 +64,7 @@ async def _maybe_wait_for(awaitable, timeout):
 
 class DatagramSocket(dns._asyncbackend.DatagramSocket):
     def __init__(self, family, transport, protocol):
-        super().__init__(family)
+        super().__init__(family, socket.SOCK_DGRAM)
         self.transport = transport
         self.protocol = protocol
 
@@ -99,7 +99,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
 
 class StreamSocket(dns._asyncbackend.StreamSocket):
     def __init__(self, af, reader, writer):
-        self.family = af
+        super().__init__(af, socket.SOCK_STREAM)
         self.reader = reader
         self.writer = writer
 
@@ -197,7 +197,7 @@ if dns._features.have("doh"):
             family=socket.AF_UNSPEC,
             **kwargs,
         ):
-            if resolver is None:
+            if resolver is None and bootstrap_address is None:
                 # pylint: disable=import-outside-toplevel,redefined-outer-name
                 import dns.asyncresolver
 

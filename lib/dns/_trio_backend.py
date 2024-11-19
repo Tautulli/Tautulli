@@ -30,13 +30,16 @@ _lltuple = dns.inet.low_level_address_tuple
 
 
 class DatagramSocket(dns._asyncbackend.DatagramSocket):
-    def __init__(self, socket):
-        super().__init__(socket.family)
-        self.socket = socket
+    def __init__(self, sock):
+        super().__init__(sock.family, socket.SOCK_DGRAM)
+        self.socket = sock
 
     async def sendto(self, what, destination, timeout):
         with _maybe_timeout(timeout):
-            return await self.socket.sendto(what, destination)
+            if destination is None:
+                return await self.socket.send(what)
+            else:
+                return await self.socket.sendto(what, destination)
         raise dns.exception.Timeout(
             timeout=timeout
         )  # pragma: no cover  lgtm[py/unreachable-statement]
@@ -61,7 +64,7 @@ class DatagramSocket(dns._asyncbackend.DatagramSocket):
 
 class StreamSocket(dns._asyncbackend.StreamSocket):
     def __init__(self, family, stream, tls=False):
-        self.family = family
+        super().__init__(family, socket.SOCK_STREAM)
         self.stream = stream
         self.tls = tls
 
@@ -171,7 +174,7 @@ if dns._features.have("doh"):
             family=socket.AF_UNSPEC,
             **kwargs,
         ):
-            if resolver is None:
+            if resolver is None and bootstrap_address is None:
                 # pylint: disable=import-outside-toplevel,redefined-outer-name
                 import dns.asyncresolver
 
@@ -205,7 +208,7 @@ class Backend(dns._asyncbackend.Backend):
         try:
             if source:
                 await s.bind(_lltuple(source, af))
-            if socktype == socket.SOCK_STREAM:
+            if socktype == socket.SOCK_STREAM or destination is not None:
                 connected = False
                 with _maybe_timeout(timeout):
                     await s.connect(_lltuple(destination, af))

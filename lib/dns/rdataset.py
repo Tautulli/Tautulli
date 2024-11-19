@@ -160,7 +160,7 @@ class Rdataset(dns.set.Set):
                 return s[:100] + "..."
             return s
 
-        return "[%s]" % ", ".join("<%s>" % maybe_truncate(str(rr)) for rr in self)
+        return "[" + ", ".join(f"<{maybe_truncate(str(rr))}>" for rr in self) + "]"
 
     def __repr__(self):
         if self.covers == 0:
@@ -248,12 +248,8 @@ class Rdataset(dns.set.Set):
             # (which is meaningless anyway).
             #
             s.write(
-                "{}{}{} {}\n".format(
-                    ntext,
-                    pad,
-                    dns.rdataclass.to_text(rdclass),
-                    dns.rdatatype.to_text(self.rdtype),
-                )
+                f"{ntext}{pad}{dns.rdataclass.to_text(rdclass)} "
+                f"{dns.rdatatype.to_text(self.rdtype)}\n"
             )
         else:
             for rd in self:

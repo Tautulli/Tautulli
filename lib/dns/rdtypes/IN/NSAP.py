@@ -36,7 +36,7 @@ class NSAP(dns.rdata.Rdata):
         self.address = self._as_bytes(address)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return "0x%s" % binascii.hexlify(self.address).decode()
+        return f"0x{binascii.hexlify(self.address).decode()}"
 
     @classmethod
     def from_text(

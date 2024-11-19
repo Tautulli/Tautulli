@@ -17,7 +17,7 @@ PlexObjectT = TypeVar("PlexObjectT", bound='PlexObject')
 MediaContainerT = TypeVar("MediaContainerT", bound="MediaContainer")
 
 USER_DONT_RELOAD_FOR_KEYS = set()
-_DONT_RELOAD_FOR_KEYS = {'key'}
+_DONT_RELOAD_FOR_KEYS = {'key', 'sourceURI'}
 OPERATORS = {
     'exact': lambda v, q: v == q,
     'iexact': lambda v, q: v.lower() == q.lower(),
@@ -71,7 +71,7 @@ class PlexObject:
         self._details_key = self._buildDetailsKey()
 
     def __repr__(self):
-        uid = self._clean(self.firstAttr('_baseurl', 'ratingKey', 'id', 'key', 'playQueueID', 'uri'))
+        uid = self._clean(self.firstAttr('_baseurl', 'ratingKey', 'id', 'key', 'playQueueID', 'uri', 'type'))
         name = self._clean(self.firstAttr('title', 'name', 'username', 'product', 'tag', 'value'))
         return f"<{':'.join([p for p in [self.__class__.__name__, uid, name] if p])}>"
 

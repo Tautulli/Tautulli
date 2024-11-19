@@ -52,6 +52,8 @@ class OptionType(dns.enum.IntEnum):
     CHAIN = 13
     #: EDE (extended-dns-error)
     EDE = 15
+    #: REPORTCHANNEL
+    REPORTCHANNEL = 18
 
     @classmethod
     def _maximum(cls):
@@ -222,7 +224,7 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             self.addrdata = self.addrdata[:-1] + last
 
     def to_text(self) -> str:
-        return "ECS {}/{} scope/{}".format(self.address, self.srclen, self.scopelen)
+        return f"ECS {self.address}/{self.srclen} scope/{self.scopelen}"
 
     @staticmethod
     def from_text(text: str) -> Option:
@@ -255,10 +257,10 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
             ecs_text = tokens[0]
         elif len(tokens) == 2:
             if tokens[0] != optional_prefix:
-                raise ValueError('could not parse ECS from "{}"'.format(text))
+                raise ValueError(f'could not parse ECS from "{text}"')
             ecs_text = tokens[1]
         else:
-            raise ValueError('could not parse ECS from "{}"'.format(text))
+            raise ValueError(f'could not parse ECS from "{text}"')
         n_slashes = ecs_text.count("/")
         if n_slashes == 1:
             address, tsrclen = ecs_text.split("/")
@@ -266,18 +268,16 @@ class ECSOption(Option):  # lgtm[py/missing-equals]
         elif n_slashes == 2:
             address, tsrclen, tscope = ecs_text.split("/")
         else:
-            raise ValueError('could not parse ECS from "{}"'.format(text))
+            raise ValueError(f'could not parse ECS from "{text}"')
         try:
             scope = int(tscope)
         except ValueError:
-            raise ValueError(
-                "invalid scope " + '"{}": scope must be an integer'.format(tscope)
-            )
+            raise ValueError("invalid scope " + f'"{tscope}": scope must be an integer')
         try:
             srclen = int(tsrclen)
         except ValueError:
             raise ValueError(
-                "invalid srclen " + '"{}": srclen must be an integer'.format(tsrclen)
+                "invalid srclen " + f'"{tsrclen}": srclen must be an integer'
             )
         return ECSOption(address, srclen, scope)
 
@@ -430,10 +430,65 @@ class NSIDOption(Option):
         return cls(parser.get_remaining())
 
 
+class CookieOption(Option):
+    def __init__(self, client: bytes, server: bytes):
+        super().__init__(dns.edns.OptionType.COOKIE)
+        self.client = client
+        self.server = server
+        if len(client) != 8:
+            raise ValueError("client cookie must be 8 bytes")
+        if len(server) != 0 and (len(server) < 8 or len(server) > 32):
+            raise ValueError("server cookie must be empty or between 8 and 32 bytes")
+
+    def to_wire(self, file: Any = None) -> Optional[bytes]:
+        if file:
+            file.write(self.client)
+            if len(self.server) > 0:
+                file.write(self.server)
+            return None
+        else:
+            return self.client + self.server
+
+    def to_text(self) -> str:
+        client = binascii.hexlify(self.client).decode()
+        if len(self.server) > 0:
+            server = binascii.hexlify(self.server).decode()
+        else:
+            server = ""
+        return f"COOKIE {client}{server}"
+
+    @classmethod
+    def from_wire_parser(
+        cls, otype: Union[OptionType, str], parser: dns.wire.Parser
+    ) -> Option:
+        return cls(parser.get_bytes(8), parser.get_remaining())
+
+
+class ReportChannelOption(Option):
+    # RFC 9567
+    def __init__(self, agent_domain: dns.name.Name):
+        super().__init__(OptionType.REPORTCHANNEL)
+        self.agent_domain = agent_domain
+
+    def to_wire(self, file: Any = None) -> Optional[bytes]:
+        return self.agent_domain.to_wire(file)
+
+    def to_text(self) -> str:
+        return "REPORTCHANNEL " + self.agent_domain.to_text()
+
+    @classmethod
+    def from_wire_parser(
+        cls, otype: Union[OptionType, str], parser: dns.wire.Parser
+    ) -> Option:
+        return cls(parser.get_name())
+
+
 _type_to_class: Dict[OptionType, Any] = {
     OptionType.ECS: ECSOption,
     OptionType.EDE: EDEOption,
     OptionType.NSID: NSIDOption,
+    OptionType.COOKIE: CookieOption,
+    OptionType.REPORTCHANNEL: ReportChannelOption,
 }
 
 
@@ -512,5 +567,6 @@ KEEPALIVE = OptionType.KEEPALIVE
 PADDING = OptionType.PADDING
 CHAIN = OptionType.CHAIN
 EDE = OptionType.EDE
+REPORTCHANNEL = OptionType.REPORTCHANNEL
 
 ### END generated OptionType constants

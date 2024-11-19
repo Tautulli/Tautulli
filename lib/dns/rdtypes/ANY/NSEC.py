@@ -44,7 +44,7 @@ class NSEC(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         next = self.next.choose_relativity(origin, relativize)
         text = Bitmap(self.windows).to_text()
-        return "{}{}".format(next, text)
+        return f"{next}{text}"
 
     @classmethod
     def from_text(

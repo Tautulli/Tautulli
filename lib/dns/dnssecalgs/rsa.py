@@ -56,7 +56,12 @@ class PrivateRSA(CryptographyPrivateKey):
     public_cls = PublicRSA
     default_public_exponent = 65537
 
-    def sign(self, data: bytes, verify: bool = False) -> bytes:
+    def sign(
+        self,
+        data: bytes,
+        verify: bool = False,
+        deterministic: bool = True,
+    ) -> bytes:
         """Sign using a private key per RFC 3110, section 3."""
         signature = self.key.sign(data, padding.PKCS1v15(), self.public_cls.chosen_hash)
         if verify:

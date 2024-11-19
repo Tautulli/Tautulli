@@ -486,7 +486,7 @@ class Transaction:
                         if exact:
                             raise DeleteNotExact(f"{method}: missing rdataset")
                     else:
-                        self._delete_rdataset(name, rdtype, covers)
+                        self._checked_delete_rdataset(name, rdtype, covers)
                     return
                 else:
                     rdataset = self._rdataset_from_args(method, True, args)
@@ -529,8 +529,6 @@ class Transaction:
 
     def _end(self, commit):
         self._check_ended()
-        if self._ended:
-            raise AlreadyEnded
         try:
             self._end_transaction(commit)
         finally:

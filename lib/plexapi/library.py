@@ -1740,7 +1740,7 @@ class LibrarySection(PlexObject):
 
     def _edit(self, items=None, **kwargs):
         """ Actually edit multiple objects. """
-        if isinstance(self._edits, dict):
+        if isinstance(self._edits, dict) and items is None:
             self._edits.update(kwargs)
             return self
 

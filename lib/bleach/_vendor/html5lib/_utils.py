@@ -7,7 +7,7 @@ try:
 except ImportError:
     from collections import Mapping
 
-from six import text_type, PY3
+from bleach.six_shim import text_type, PY3
 
 if PY3:
     import xml.etree.ElementTree as default_etree

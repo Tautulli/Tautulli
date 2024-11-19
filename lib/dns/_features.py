@@ -32,6 +32,9 @@ def _version_check(
     package, minimum = requirement.split(">=")
     try:
         version = importlib.metadata.version(package)
+        # This shouldn't happen, but it apparently can.
+        if version is None:
+            return False
     except Exception:
         return False
     t_version = _tuple_from_text(version)
@@ -82,10 +85,10 @@ def force(feature: str, enabled: bool) -> None:
 
 _requirements: Dict[str, List[str]] = {
     ### BEGIN generated requirements
-    "dnssec": ["cryptography>=41"],
+    "dnssec": ["cryptography>=43"],
     "doh": ["httpcore>=1.0.0", "httpx>=0.26.0", "h2>=4.1.0"],
-    "doq": ["aioquic>=0.9.25"],
-    "idna": ["idna>=3.6"],
+    "doq": ["aioquic>=1.0.0"],
+    "idna": ["idna>=3.7"],
     "trio": ["trio>=0.23"],
     "wmi": ["wmi>=1.5.1"],
     ### END generated requirements

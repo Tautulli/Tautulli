@@ -36,16 +36,27 @@ class TrioQuicStream(BaseQuicStream):
                 await self._wake_up.wait()
             self._expecting = 0
 
+    async def wait_for_end(self):
+        while True:
+            if self._buffer.seen_end():
+                return
+            async with self._wake_up:
+                await self._wake_up.wait()
+
     async def receive(self, timeout=None):
         if timeout is None:
             context = NullContext(None)
         else:
             context = trio.move_on_after(timeout)
         with context:
-            await self.wait_for(2)
-            (size,) = struct.unpack("!H", self._buffer.get(2))
-            await self.wait_for(size)
-            return self._buffer.get(size)
+            if self._connection.is_h3():
+                await self.wait_for_end()
+                return self._buffer.get_all()
+            else:
+                await self.wait_for(2)
+                (size,) = struct.unpack("!H", self._buffer.get(2))
+                await self.wait_for(size)
+                return self._buffer.get(size)
         raise dns.exception.Timeout
 
     async def send(self, datagram, is_end=False):
@@ -115,6 +126,7 @@ class TrioQuicConnection(AsyncQuicConnection):
                     await self._socket.send(datagram)
         finally:
             self._done = True
+            self._socket.close()
             self._handshake_complete.set()
 
     async def _handle_events(self):
@@ -124,9 +136,28 @@ class TrioQuicConnection(AsyncQuicConnection):
             if event is None:
                 return
             if isinstance(event, aioquic.quic.events.StreamDataReceived):
-                stream = self._streams.get(event.stream_id)
-                if stream:
-                    await stream._add_input(event.data, event.end_stream)
+                if self.is_h3():
+                    h3_events = self._h3_conn.handle_event(event)
+                    for h3_event in h3_events:
+                        if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
+                            stream = self._streams.get(event.stream_id)
+                            if stream:
+                                if stream._headers is None:
+                                    stream._headers = h3_event.headers
+                                elif stream._trailers is None:
+                                    stream._trailers = h3_event.headers
+                                if h3_event.stream_ended:
+                                    await stream._add_input(b"", True)
+                        elif isinstance(h3_event, aioquic.h3.events.DataReceived):
+                            stream = self._streams.get(event.stream_id)
+                            if stream:
+                                await stream._add_input(
+                                    h3_event.data, h3_event.stream_ended
+                                )
+                else:
+                    stream = self._streams.get(event.stream_id)
+                    if stream:
+                        await stream._add_input(event.data, event.end_stream)
             elif isinstance(event, aioquic.quic.events.HandshakeCompleted):
                 self._handshake_complete.set()
             elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
@@ -183,9 +214,14 @@ class TrioQuicConnection(AsyncQuicConnection):
 
 class TrioQuicManager(AsyncQuicManager):
     def __init__(
-        self, nursery, conf=None, verify_mode=ssl.CERT_REQUIRED, server_name=None
+        self,
+        nursery,
+        conf=None,
+        verify_mode=ssl.CERT_REQUIRED,
+        server_name=None,
+        h3=False,
     ):
-        super().__init__(conf, verify_mode, TrioQuicConnection, server_name)
+        super().__init__(conf, verify_mode, TrioQuicConnection, server_name, h3)
         self._nursery = nursery
 
     def connect(

@@ -26,6 +26,7 @@ class Media(PlexObject):
             height (int): The height of the media in pixels (ex: 256).
             id (int): The unique ID for this media on the server.
             has64bitOffsets (bool): True if video has 64 bit offsets.
+            hasVoiceActivity (bool): True if video has voice activity analyzed.
             optimizedForStreaming (bool): True if video is optimized for streaming.
             parts (List<:class:`~plexapi.media.MediaPart`>): List of media part objects.
             proxyType (int): Equals 42 for optimized versions.
@@ -61,6 +62,7 @@ class Media(PlexObject):
         self.height = utils.cast(int, data.attrib.get('height'))
         self.id = utils.cast(int, data.attrib.get('id'))
         self.has64bitOffsets = utils.cast(bool, data.attrib.get('has64bitOffsets'))
+        self.hasVoiceActivity = utils.cast(bool, data.attrib.get('hasVoiceActivity', '0'))
         self.optimizedForStreaming = utils.cast(bool, data.attrib.get('optimizedForStreaming'))
         self.parts = self.findItems(data, MediaPart)
         self.proxyType = utils.cast(int, data.attrib.get('proxyType'))
@@ -441,6 +443,7 @@ class SubtitleStream(MediaPartStream):
         Attributes:
             TAG (str): 'Stream'
             STREAMTYPE (int): 3
+            canAutoSync (bool): True if the subtitle stream can be auto synced.
             container (str): The container of the subtitle stream.
             forced (bool): True if this is a forced subtitle.
             format (str): The format of the subtitle stream (ex: srt).
@@ -459,6 +462,7 @@ class SubtitleStream(MediaPartStream):
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         super(SubtitleStream, self)._loadData(data)
+        self.canAutoSync = utils.cast(bool, data.attrib.get('canAutoSync'))
         self.container = data.attrib.get('container')
         self.forced = utils.cast(bool, data.attrib.get('forced', '0'))
         self.format = data.attrib.get('format')
@@ -955,6 +959,26 @@ class Guid(PlexObject):
 
 
 @utils.registerPlexObject
+class Image(PlexObject):
+    """ Represents a single Image media tag.
+
+        Attributes:
+            TAG (str): 'Image'
+            alt (str): The alt text for the image.
+            type (str): The type of image (e.g. coverPoster, background, snapshot).
+            url (str): The API URL (/library/metadata/<ratingKey>/thumb/<thumbid>).
+    """
+    TAG = 'Image'
+
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        self._data = data
+        self.alt = data.attrib.get('alt')
+        self.type = data.attrib.get('type')
+        self.url = data.attrib.get('url')
+
+
+@utils.registerPlexObject
 class Rating(PlexObject):
     """ Represents a single Rating media tag.
 
@@ -1071,6 +1095,11 @@ class BaseResource(PlexObject):
 
 class Art(BaseResource):
     """ Represents a single Art object. """
+    TAG = 'Photo'
+
+
+class Logo(BaseResource):
+    """ Represents a single Logo object. """
     TAG = 'Photo'
 
 
