@@ -5352,6 +5352,7 @@ class WebInterface(object):
                          "tvdb://121361"
                      ],
                      "grandparent_rating_key": "1219",
+                     "grandparent_slug": "game-of-thrones",
                      "grandparent_thumb": "/library/metadata/1219/thumb/1462175063",
                      "grandparent_title": "Game of Thrones",
                      "grandparent_year": "2011",
@@ -5484,6 +5485,7 @@ class WebInterface(object):
                      ],
                      "parent_media_index": "6",
                      "parent_rating_key": "153036",
+                     "parent_slug": "game-of-thrones",
                      "parent_thumb": "/library/metadata/153036/thumb/1462175062",
                      "parent_title": "Season 6",
                      "parent_year": "2016",
@@ -5491,6 +5493,7 @@ class WebInterface(object):
                      "rating_image": "",
                      "rating_key": "153037",
                      "section_id": "2",
+                     "slug": "game-of-thrones",
                      "sort_title": "Red Woman",
                      "studio": "Revolution Sun Studios",
                      "summary": "The fate of Jon Snow is revealed. Daenerys meets a strong man. Cersei sees her daughter once again.",
