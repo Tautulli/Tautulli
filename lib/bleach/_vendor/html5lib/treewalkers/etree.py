@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, unicode_literals
 from collections import OrderedDict
 import re
 
-from six import string_types
+from bleach.six_shim import string_types
 
 from . import base
 from .._utils import moduleFactoryFactory

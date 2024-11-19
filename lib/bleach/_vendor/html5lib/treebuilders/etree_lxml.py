@@ -28,7 +28,7 @@ from . import etree as etree_builders
 from .. import _ihatexml
 
 import lxml.etree as etree
-from six import PY3, binary_type
+from bleach.six_shim import PY3, binary_type
 
 
 fullTree = True
