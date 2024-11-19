@@ -13,7 +13,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-            <h4 class="modal-title" id="newsletter-config-modal-header">${newsletter['agent_label']} Newsletter Settings &nbsp;<small><span class="newsletter_id">(Newsletter ID: ${newsletter['id']})</span></small></h4>
+            <h4 class="modal-title" id="newsletter-config-modal-header">${newsletter['agent_label']} Newsletter Settings &nbsp;<small><span class="newsletter_id">(Newsletter ID: ${newsletter['id']}${' - ' + newsletter['friendly_name'] if newsletter['friendly_name'] else ''})</span></small></h4>
         </div>
         <div class="modal-body">
             <div class="container-fluid">
