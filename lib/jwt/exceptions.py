@@ -72,3 +72,11 @@ class PyJWKClientError(PyJWTError):
 
 class PyJWKClientConnectionError(PyJWKClientError):
     pass
+
+
+class InvalidSubjectError(InvalidTokenError):
+    pass
+
+
+class InvalidJTIError(InvalidTokenError):
+    pass
