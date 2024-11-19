@@ -191,6 +191,7 @@ class Export(object):
                 },
                 'hasCreditsMarker': None,
                 'hasPreviewThumbnails': None,
+                'hasVoiceActivity': None,
                 'key': None,
                 'labels': {
                     'id': None,
@@ -223,6 +224,7 @@ class Export(object):
                     'id': None,
                     'isOptimizedVersion': None,
                     'has64bitOffsets': None,
+                    'hasVoiceActivity': None,
                     'optimizedForStreaming': None,
                     'proxyType': None,
                     'target': None,
@@ -334,6 +336,7 @@ class Export(object):
                             'streamIdentifier': None
                         },
                         'subtitleStreams': {
+                            'canAutoSync': None,
                             'codec': None,
                             'default': None,
                             'displayTitle': None,
@@ -601,6 +604,7 @@ class Export(object):
                 'hasCreditsMarker': None,
                 'hasIntroMarker': None,
                 'hasPreviewThumbnails': None,
+                'hasVoiceActivity': None,
                 'index': None,
                 'key': None,
                 'labels': {
@@ -633,6 +637,7 @@ class Export(object):
                     'id': None,
                     'isOptimizedVersion': None,
                     'has64bitOffsets': None,
+                    'hasVoiceActivity': None,
                     'optimizedForStreaming': None,
                     'proxyType': None,
                     'target': None,
@@ -744,6 +749,7 @@ class Export(object):
                             'streamIdentifier': None
                         },
                         'subtitleStreams': {
+                            'canAutoSync': None,
                             'codec': None,
                             'default': None,
                             'displayTitle': None,
@@ -1341,7 +1347,7 @@ class Export(object):
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails'
+                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails', 'hasVoiceActivity'
                 ],
                 9: self._get_all_metadata_attrs(_media_type)
             }
@@ -1454,7 +1460,7 @@ class Export(object):
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails',
+                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails', 'hasVoiceActivity',
                     'parentThumb', 'parentKey',
                     'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
                 ],
