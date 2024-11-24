@@ -36,20 +36,20 @@ from plexpy.plex import Plex
 
 
 class Export(object):
-    # True/False for allowed (thumb, art) image export
+    # True/False for allowed (thumb, art, logo) image export
     MEDIA_TYPES = {
-        'movie': (True, True),
-        'show': (True, True),
-        'season': (True, True),
-        'episode': (False, False),
-        'artist': (True, True),
-        'album': (True, True),
-        'track': (False, False),
-        'photoalbum': (False, False),
-        'photo': (False, False),
-        'clip': (False, False),
-        'collection': (True, True),
-        'playlist': (True, True)
+        'movie': (True, True, True),
+        'show': (True, True, True),
+        'season': (True, True, False),
+        'episode': (False, False, False),
+        'artist': (True, True, False),
+        'album': (True, True, False),
+        'track': (False, False, False),
+        'photoalbum': (False, False, False),
+        'photo': (False, False, False),
+        'clip': (False, False, False),
+        'collection': (True, True, False),
+        'playlist': (True, True, False)
     }
     PLURAL_MEDIA_TYPES = {
         'movie': 'movies',
@@ -96,7 +96,7 @@ class Export(object):
 
     def __init__(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                  metadata_level=1, media_info_level=1,
-                 thumb_level=0, art_level=0,
+                 thumb_level=0, art_level=0, logo_level=0,
                  custom_fields='', export_type='all', individual_files=False):
         self.section_id = helpers.cast_to_int(section_id) or None
         self.user_id = helpers.cast_to_int(user_id) or None
@@ -106,6 +106,7 @@ class Export(object):
         self.media_info_level = helpers.cast_to_int(media_info_level)
         self.thumb_level = helpers.cast_to_int(thumb_level)
         self.art_level = helpers.cast_to_int(art_level)
+        self.logo_level = helpers.cast_to_int(logo_level)
         self.custom_fields = custom_fields.replace(' ', '')
         self._custom_fields = {}
         self.export_type = str(export_type).lower() or 'all'
@@ -124,6 +125,7 @@ class Export(object):
         self.file_size = 0
         self.exported_thumb = False
         self.exported_art = False
+        self.exported_logo = False
         self._reload_check_files = False
 
         self.total_items = 0
@@ -136,6 +138,7 @@ class Export(object):
             self.media_info_level = 1
             self.thumb_level = 0
             self.art_level = 0
+            self.logo_level = 0
             self.custom_fields = ''
 
     def return_attrs(self, media_type, flatten=False):
@@ -204,6 +207,9 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'logo': lambda o: next((i.url for i in o.images if i.type == 'clearLogo'), None),
+                'logoFile': lambda o: self.get_image(o, 'logo'),
+                'logoProvider': lambda o: self.get_image_provider(o, 'logo'),
                 'markers': {
                     'end': None,
                     'final': None,
@@ -454,6 +460,9 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'logo': lambda o: next((i.url for i in o.images if i.type == 'clearLogo'), None),
+                'logoFile': lambda o: self.get_image(o, 'logo'),
+                'logoProvider': lambda o: self.get_image_provider(o, 'logo'),
                 'metadataDirectory': None,
                 'network': None,
                 'originallyAvailableAt': partial(helpers.datetime_to_iso, to_date=True),
@@ -1779,6 +1788,8 @@ class Export(object):
             msg = "Export called with invalid thumb_level '{}'.".format(self.thumb_level)
         elif self.art_level not in self.IMAGE_LEVELS:
             msg = "Export called with invalid art_level '{}'.".format(self.art_level)
+        elif self.logo_level not in self.IMAGE_LEVELS:
+            msg = "Export called with invalid logo_level '{}'.".format(self.logo_level)
         elif self.file_format not in self.FILE_FORMATS:
             msg = "Export called with invalid file_format '{}'.".format(self.file_format)
         elif self.export_type not in self.EXPORT_TYPES:
@@ -1806,10 +1817,10 @@ class Export(object):
         if self.rating_key:
             logger.debug(
                 "Tautulli Exporter :: Export called with rating_key %s, "
-                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, "
+                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, logo_level %s, "
                 "file_format %s",
                 self.rating_key, self.metadata_level, self.media_info_level,
-                self.thumb_level, self.art_level, self.file_format)
+                self.thumb_level, self.art_level, self.logo_level, self.file_format)
 
             self.obj = plex.get_item(self.rating_key)
             self.media_type = self._media_type(self.obj)
@@ -1825,10 +1836,10 @@ class Export(object):
         elif self.user_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with user_id %s, "
-                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, "
+                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, logo_level %s, "
                 "export_type %s, file_format %s",
                 self.user_id, self.metadata_level, self.media_info_level,
-                self.thumb_level, self.art_level, self.export_type, self.file_format)
+                self.thumb_level, self.art_level, self.logo_level, self.export_type, self.file_format)
 
             self.obj = plex.PlexServer
             self.media_type = self.export_type
@@ -1838,10 +1849,10 @@ class Export(object):
         elif self.section_id:
             logger.debug(
                 "Tautulli Exporter :: Export called with section_id %s, "
-                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, "
+                "metadata_level %d, media_info_level %d, thumb_level %s, art_level %s, logo_level %s, "
                 "export_type %s, file_format %s",
                 self.section_id, self.metadata_level, self.media_info_level,
-                self.thumb_level, self.art_level, self.export_type, self.file_format)
+                self.thumb_level, self.art_level, self.logo_level, self.export_type, self.file_format)
 
             self.obj = plex.get_library(self.section_id)
             if self.export_type == 'all':
@@ -1865,6 +1876,8 @@ class Export(object):
             self.thumb_level = 0
         if not self.MEDIA_TYPES[self.media_type][1]:
             self.art_level = 0
+        if not self.MEDIA_TYPES[self.media_type][2]:
+            self.logo_level = 0
 
         self._process_custom_fields()
 
@@ -1898,6 +1911,7 @@ class Export(object):
             'media_info_level': self.media_info_level,
             'thumb_level': self.thumb_level,
             'art_level': self.art_level,
+            'logo_level': self.logo_level,
             'custom_fields': self.custom_fields,
             'individual_files': self.individual_files
         }
@@ -1922,6 +1936,7 @@ class Export(object):
         values = {
             'thumb_level': self.thumb_level,
             'art_level': self.art_level,
+            'logo_level': self.logo_level,
             'complete': complete,
             'file_size': self.file_size
         }
@@ -1977,6 +1992,7 @@ class Export(object):
 
             self.thumb_level = self.thumb_level or 10 if self.exported_thumb else 0
             self.art_level = self.art_level or 10 if self.exported_art else 0
+            self.logo_level = self.logo_level or 10 if self.exported_logo else 0
 
             self.file_size += sum(item.file_size for item in items)
 
@@ -2043,6 +2059,8 @@ class Export(object):
                 self.exported_thumb = True
             elif any(f.endswith('.art.jpg') for f in files):
                 self.exported_art = True
+            elif any(f.endswith('.logo.jpg') for f in files):
+                self.exported_logo = True
 
     def _media_type(self, obj):
         return 'photoalbum' if self.is_photoalbum(obj) else obj.type
@@ -2114,7 +2132,7 @@ class Export(object):
         return media_type, field
 
     def _get_all_metadata_attrs(self, media_type):
-        exclude_attrs = ('locations', 'media', 'artFile', 'thumbFile')
+        exclude_attrs = ('locations', 'media', 'artFile', 'thumbFile', 'logoFile')
         all_attrs = self.return_attrs(media_type)
         return [attr for attr in all_attrs if attr not in exclude_attrs]
 
@@ -2139,6 +2157,9 @@ class Export(object):
         if self.art_level:
             if 'artFile' in media_attrs and self.MEDIA_TYPES[media_type][1]:
                 export_attrs_set.add('artFile')
+        if self.logo_level:
+            if 'logoFile' in media_attrs and self.MEDIA_TYPES[media_type][2]:
+                export_attrs_set.add('logoFile')
 
         if media_type in self._custom_fields:
             export_attrs_set.update(self._custom_fields[media_type])
@@ -2264,6 +2285,10 @@ class Export(object):
             if not hasattr(item, '_arts'):
                 item._arts = item.arts()
             return getattr(item, '_arts', [])
+        elif image == 'logo':
+            if not hasattr(item, '_logos'):
+                item._logos = item.logos()
+            return getattr(item, '_logos', [])
         else:
             if not hasattr(item, '_posters'):
                 item._posters = item.posters()
@@ -2278,13 +2303,13 @@ class Export(object):
         rating_key = item.ratingKey
 
         export_image = True
-        if self.thumb_level == 1 or self.art_level == 1:
+        if self.thumb_level == 1 or self.art_level == 1 or self.logo_level == 1:
             selected = self._get_selected_image(item, image)
             export_image = selected and selected.ratingKey.startswith('upload://')
-        elif self.thumb_level == 2 or self.art_level == 2:
+        elif self.thumb_level == 2 or self.art_level == 2 or self.logo_level == 2:
             export_image = any(field.locked and field.name == image
                                for field in item.fields)
-        elif self.thumb_level == 9 or self.art_level == 9:
+        elif self.thumb_level == 9 or self.art_level == 9 or self.logo_level == 9:
             export_image = True
 
         if not export_image and image + 'File' in self._custom_fields.get(media_type, set()):
@@ -2298,6 +2323,8 @@ class Export(object):
             image_url = item.thumbUrl
         elif image == 'art':
             image_url = item.artUrl
+        elif image == 'logo':
+            image_url = item.logoUrl
 
         if not image_url:
             return
@@ -2350,7 +2377,7 @@ class ExportObject(Export):
 
 def get_export(export_id):
     db = database.MonitorDatabase()
-    result = db.select_single("SELECT timestamp, title, file_format, thumb_level, art_level, "
+    result = db.select_single("SELECT timestamp, title, file_format, thumb_level, art_level, logo_level, "
                               "individual_files, complete "
                               "FROM exports WHERE id = ?",
                               [export_id])
@@ -2442,6 +2469,7 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                "exports.media_info_level",
                "exports.thumb_level",
                "exports.art_level",
+               "exports.logo_level",
                "exports.custom_fields",
                "exports.individual_files",
                "exports.file_size",
@@ -2487,6 +2515,7 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                'media_info_level': item['media_info_level'],
                'thumb_level': item['thumb_level'],
                'art_level': item['art_level'],
+               'logo_level': item['logo_level'],
                'custom_fields': item['custom_fields'],
                'individual_files': item['individual_files'],
                'file_size': item['file_size'],
@@ -2634,7 +2663,7 @@ def build_export_docs():
 
     sections = []
 
-    for media_type, (thumb, art) in export.MEDIA_TYPES.items():
+    for media_type, (thumb, art, logo) in export.MEDIA_TYPES.items():
         if media_type == 'photoalbum':
             section_title = 'Photo Albums'
         else:
@@ -2648,7 +2677,7 @@ def build_export_docs():
         # Metadata Fields table
         table_rows = []
         for attr, level in sorted(metadata_levels_map.items(), key=helpers.sort_attrs):
-            if thumb and attr == 'thumbFile' or art and attr == 'artFile':
+            if thumb and attr == 'thumbFile' or art and attr == 'artFile' or logo and attr == 'logoFile':
                 text = 'Refer to [Image Exports](#image-export)'
                 row = {
                     'attr': attr,

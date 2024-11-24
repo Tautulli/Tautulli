@@ -845,7 +845,7 @@ def dbcheck():
         "timestamp INTEGER, section_id INTEGER, user_id INTEGER, rating_key INTEGER, media_type TEXT, "
         "title TEXT, file_format TEXT, "
         "metadata_level INTEGER, media_info_level INTEGER, "
-        "thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0, "
+        "thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0, logo_level INTEGER DEFAULT 0, "
         "custom_fields TEXT, individual_files INTEGER DEFAULT 0, "
         "file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0, "
         "exported_items INTEGER DEFAULT 0, total_items INTEGER DEFAULT 0)"
@@ -2587,6 +2587,15 @@ def dbcheck():
         )
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN total_items INTEGER DEFAULT 0"
+        )
+
+    # Upgrade exports table from earlier versions
+    try:
+        c_db.execute("SELECT logo_level FROM exports")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table exports.")
+        c_db.execute(
+            "ALTER TABLE exports ADD COLUMN logo_level INTEGER DEFAULT 0"
         )
 
     # Fix unique constraints
