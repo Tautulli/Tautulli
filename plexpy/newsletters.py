@@ -459,8 +459,12 @@ class Newsletter(object):
 
         self.retrieve_data()
 
+        # Convert CustomArrow to string
+        from plexpy.notification_handler import CustomArrow
+        parameters = {k: str(v) if isinstance(v, CustomArrow) else v for k, v in self.parameters.items()}
+
         return {'title': self.NAME,
-                'parameters': self.parameters,
+                'parameters': parameters,
                 'data': self.data}
 
     def generate_newsletter(self, preview=False):
