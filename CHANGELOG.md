@@ -1,5 +1,29 @@
 # Changelog
 
+## v2.15.0 (2024-11-24)
+
+* Notes:
+  * Support for Python 3.8 has been dropped. The minimum Python version is now 3.9.
+* Notifications:
+  * New: Allow Telegram blockquote and tg-emoji HTML tags. (Thanks @MythodeaLoL) (#2427)
+  * New: Added Plex slug and Plex Watch URL notification parameters. (#2420)
+  * Change: Update OneSignal API calls to use the new API endpoint for Tautulli Remote App notifications.
+* Newsletters:
+  * Fix: Dumping custom dates in raw newsletter json.
+* History:
+  * Fix: Unable to fix match for artists. (#2429)
+* Exporter:
+  * New: Added movie and episode hasVoiceActivity attribute to exporter fields.
+  * New: Added subtitle canAutoSync attribute to exporter fields.
+  * New: Added logos to the exporter fields.
+* UI:
+  * New: Add friendly name to the top bar of config modals. (Thanks @peagravel) (#2432)
+* API:
+  * New: Added plex slugs to metadata in the get_metadata API command.
+* Other:
+  * Fix: Tautulli failing to start with Python 3.13. (#2426)
+
+
 ## v2.14.6 (2024-10-12)
 
 * Newsletters:
