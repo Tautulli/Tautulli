@@ -702,6 +702,72 @@
 
                         <input type="checkbox" name="auth_changed" id="auth_changed" value="1" style="display: none;">
 
+                        <div class="form-group">
+                            <label for="oidc_config_url"><abbr title="OpenID Connect">OIDC</abbr> Well-Known Configuration Endpoint</label>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="oidc_config_url" name="oidc_config_url" value="${config['oidc_config_url']}" size="30">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="oidc_provider_name">OIDC Provider Name</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="oidc_provider_name" name="oidc_provider_name" value="${config['oidc_provider_name']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Used for the text in the OIDC login button, defaults to "OpenID".</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="oidc_client_id">OIDC Client ID</label>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <input type="text" class="form-control" id="oidc_client_id" name="oidc_client_id" value="${config['oidc_client_id']}" size="30">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="oidc_client_secret">OIDC Client Secret</label>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <input type="text" class="form-control" id="oidc_client_secret" name="oidc_client_secret" value="${config['oidc_client_secret']}" size="30">
+                                </div>
+                            </div>
+                          </div>
+                        <div class="form-group">
+                            <label for="oidc_groups_claim">OIDC Groups Claim</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="oidc_groups_claim" name="oidc_groups_claim" value="${config['oidc_groups_claim']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">OIDC groups claim, defaults to "groups". Ignored if OIDC Admin Group is blank.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="oidc_admin_group">OIDC Admin Group</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="oidc_admin_group" name="oidc_admin_group" value="${config['oidc_admin_group']}" size="30">
+                                </div>
+                            </div>
+                            <p class="help-block">Only users in this group will be able to authenticate and have administrative access. Leave blank to allow all OIDC authenticated users.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="oidc_tls_cacert">OIDC TLS Certificate Authority</label>
+                            <div class="row">
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="oidc_tls_cacert" name="oidc_tls_cacert" value="${config['oidc_tls_cacert']}">
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-form" type="button" id="oidc_tls_cacert_browse" data-toggle="browse" data-target="#oidc_tls_cacert">Browse</button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="help-block">OIDC TLS certificate used to authenticate OIDC server connections. Leave blank to use default certificate authorities.</p>
+                        </div>
+
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
