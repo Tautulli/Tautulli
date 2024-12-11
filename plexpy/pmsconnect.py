@@ -3386,10 +3386,10 @@ class PmsConnect(object):
     def get_dynamic_range(stream):
         extended_display_title = helpers.get_xml_attr(stream, 'extendedDisplayTitle')
         bit_depth = helpers.cast_to_int(helpers.get_xml_attr(stream, 'bitDepth'))
-        color_space = helpers.get_xml_attr(stream, 'colorSpace')
+        color_trc = helpers.get_xml_attr(stream, 'colorTrc')
         DOVI_profile = helpers.get_xml_attr(stream, 'DOVIProfile')
 
-        HDR = bool(bit_depth > 8 and 'bt2020' in color_space)
+        HDR = bool(bit_depth > 8 and (color_trc == 'smpte2084' or color_trc == 'arib-std-b67'))
         DV = bool(DOVI_profile)
 
         if not HDR and not DV:
