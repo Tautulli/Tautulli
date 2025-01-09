@@ -716,7 +716,7 @@ class Show(
 class Season(
     Video,
     AdvancedSettingsMixin, ExtrasMixin, RatingMixin,
-    ArtMixin, PosterMixin, ThemeUrlMixin,
+    ArtMixin, LogoMixin, PosterMixin, ThemeUrlMixin,
     SeasonEditMixins
 ):
     """ Represents a single Season.
@@ -883,7 +883,7 @@ class Season(
 class Episode(
     Video, Playable,
     ExtrasMixin, RatingMixin,
-    ArtMixin, PosterMixin, ThemeUrlMixin,
+    ArtMixin, LogoMixin, PosterMixin, ThemeUrlMixin,
     EpisodeEditMixins
 ):
     """ Represents a single Episode.
