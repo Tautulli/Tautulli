@@ -171,6 +171,12 @@ def initialize(options):
         '/status': {
             'tools.auth_basic.on': False
         },
+        '/newsletter': {
+            'tools.auth_basic.on': False
+        },
+        '/image': {
+            'tools.auth_basic.on': False
+        },
         '/interfaces': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces",
