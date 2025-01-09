@@ -7,7 +7,7 @@
 !define APP_NAME "Tautulli"
 !define COMP_NAME "Tautulli"
 !define WEB_SITE "https://tautulli.com"
-!define COPYRIGHT "Tautulli © 2020"
+!define COPYRIGHT "Tautulli © 2025"
 !define DESCRIPTION "Monitor your Plex Media Server"
 !define APP_ICON "..\dist\Tautulli\data\interfaces\default\images\logo-circle.ico"
 !define LICENSE_TXT "..\dist\Tautulli\LICENSE"
