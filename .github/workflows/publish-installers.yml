@@ -100,6 +100,24 @@ jobs:
           name: Tautulli-${{ matrix.os }}-installer
           path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
 
+  virus-total:
+    name: VirusTotal Scan
+    needs: build-installer
+    if: needs.build-installer.result == 'success' && !contains(github.event.head_commit.message, '[skip ci]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Installers
+        if: needs.build-installer.result == 'success'
+        uses: actions/download-artifact@v4
+
+      - name: Upload to VirusTotal
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VT_API_KEY }}
+          files: |
+            Tautulli-windows-installer/Tautulli-windows-*-x64.exe
+            Tautulli-macos-installer/Tautulli-macos-*-universal.pkg
+
   release:
     name: Release Installers
     needs: build-installer

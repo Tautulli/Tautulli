@@ -23,3 +23,16 @@ jobs:
           # getting latest wingetcreate file
           iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
           .\wingetcreate.exe update $wingetPackage -s -v $version -u $installerUrl -t $gitToken
+
+  virus-total:
+    name: VirusTotal Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload to VirusTotal
+        uses: crazy-max/ghaction-virustotal@v4
+        with:
+          vt_api_key: ${{ secrets.VT_API_KEY }}
+          update_release_body: true
+          files: |
+            .exe$
+            .pkg$
