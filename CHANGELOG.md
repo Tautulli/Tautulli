@@ -1,5 +1,17 @@
 # Changelog
 
+## v2.15.1 (2025-01-11)
+
+* Activity:
+  * Fix: Detection of HDR transcodes. (Thanks @chrisdecker08) (#2412, #2466)
+* Newsletters:
+  * Fix: Disable basic authentication for /newsletter and /image endpoints. (#2472)
+* Exporter:
+  * New: Added logos to season and episode exports.
+* Other:
+  * Fix Docker container https health check.
+
+
 ## v2.15.0 (2024-11-24)
 
 * Notes:
