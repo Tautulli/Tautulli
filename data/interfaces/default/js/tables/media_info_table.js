@@ -224,6 +224,22 @@ media_info_table_options = {
         },
         {
             "targets": [10],
+            "data": "duration",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '' && cellData !== 0) {
+                    $(td).html(humanDuration(cellData));
+                } else {
+                    if (rowData['section_type'] != 'photo' && get_file_sizes != null) {
+                        get_file_sizes = true;
+                    }
+                }
+            },
+            "width": "7%",
+            "className": "no-wrap",
+            "searchable": false
+        },
+        {
+            "targets": [11],
             "data": "last_played",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -236,7 +252,7 @@ media_info_table_options = {
             "searchable": false
         },
         {
-            "targets": [11],
+            "targets": [12],
             "data": "play_count",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== null && cellData !== '') {
@@ -457,6 +473,7 @@ function childTableFormatMedia(rowData) {
                 '<th align="left" id="audio_codec">Audio Codec</th>' +
                 '<th align="left" id="audio_channels">Audio Channels</th>' +
                 '<th align="left" id="file_size">File Size</th>' +
+                '<th align="left" id="duration">Duration</th>' +
                 '<th align="left" id="last_played">Last Played</th>' +
                 '<th align="left" id="total_plays">Total Plays</th>' +
             '</tr>' +
