@@ -1,6 +1,6 @@
 apscheduler==3.10.1
 cryptography==43.0.3
-importlib-metadata==8.5.0
+importlib-metadata==8.6.1
 importlib-resources==6.4.5
 pyinstaller==6.11.1
 pyopenssl==24.2.1
