@@ -40,7 +40,7 @@ simplejson==3.19.3
 six==1.16.0
 tempora==5.7.0
 tokenize-rt==6.1.0
-tzdata==2024.2
+tzdata==2025.1
 tzlocal==5.0.1
 urllib3<2
 webencodings==0.5.1
