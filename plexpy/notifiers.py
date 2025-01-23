@@ -2667,7 +2667,8 @@ class NTFY(Notifier):
 
                 provider_name = pretty_metadata.get_provider_name(provider)
                 provider_link = pretty_metadata.get_provider_link(provider)
-                actions.append(f"view, View on {provider_name}, {provider_link}, clear=true")
+                if provider_link:
+                    actions.append(f"view, View on {provider_name}, {provider_link}, clear=true")
 
             if self.config['incl_pmslink']:
                 plex_url = pretty_metadata.get_plex_url()
