@@ -74,6 +74,7 @@ DOCUMENTATION :: END
     parent_href = page('info', data['parent_rating_key'])
     grandparent_href = page('info', data['grandparent_rating_key'])
     user_href = page('user', data['user_id']) if data['user_id'] else '#'
+    library_href = page('library', data['section_id'])
     season = short_season(data['parent_title'])
 %>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
@@ -463,21 +464,27 @@ DOCUMENTATION :: END
         <div class="dashboard-activity-metadata-subtitle-container">
             % if data['live']:
             <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="Live TV">
-                <i class="fa fa-fw fa-broadcast-tower"></i>&nbsp;
+                <a href="${library_href}">
+                    <i class="fa fa-fw fa-broadcast-tower"></i>
+                </a>&nbsp;
             </div>
             % elif data['channel_stream'] == 0:
             <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="${data['media_type'].capitalize()}">
-                % if data['media_type'] == 'movie':
-                <i class="fa fa-fw fa-film"></i>&nbsp;
-                % elif data['media_type'] == 'episode':
-                <i class="fa fa-fw fa-television"></i>&nbsp;
-                % elif data['media_type'] == 'track':
-                <i class="fa fa-fw fa-music"></i>&nbsp;
-                % elif data['media_type'] == 'photo':
-                <i class="fa fa-fw fa-picture-o"></i>&nbsp;
-                % elif data['media_type'] == 'clip':
-                <i class="fa fa-fw fa-video-camera"></i>&nbsp;
-                % endif
+                <a href="${library_href}">
+                    % if data['media_type'] == 'movie':
+                    <i class="fa fa-fw fa-film"></i>
+                    % elif data['media_type'] == 'episode':
+                    <i class="fa fa-fw fa-television"></i>
+                    % elif data['media_type'] == 'track':
+                    <i class="fa fa-fw fa-music"></i>
+                    % elif data['media_type'] == 'photo':
+                    <i class="fa fa-fw fa-picture-o"></i>
+                    % elif data['media_type'] == 'clip':
+                    <i class="fa fa-fw fa-video-camera"></i>
+                    % else:
+                    <i class="fa fa-fw fa-question-circle"></i>
+                    % endif
+                </a>&nbsp;
             </div>
             % else:
             <div id="media-type-${sk}" class="dashboard-activity-metadata-media_type-icon" title="Channel">
