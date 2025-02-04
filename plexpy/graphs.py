@@ -138,6 +138,12 @@ class Graphs(object):
         if libraries.has_library_type('live'):
             series_output.append(series_4_output)
 
+        if len(series_output) > 0:
+            series_total = [sum(x) for x in zip(*[x['data'] for x in series_output])]
+            series_total_output = {'name': 'Total',
+                                   'data': series_total}
+            series_output.append(series_total_output)
+
         output = {'categories': categories,
                   'series': series_output}
         return output
