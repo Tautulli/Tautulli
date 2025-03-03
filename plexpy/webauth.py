@@ -50,7 +50,7 @@ def plex_user_login(token=None, headers=None):
     user_token = None
     user_id = None
 
-    # Try to login to Plex.tv to check if the user has a vaild account
+    # Try to login to Plex.tv to check if the user has a valid account
     if token:
         plex_tv = PlexTV(token=token, headers=headers)
         plex_user = plex_tv.get_plex_account_details()

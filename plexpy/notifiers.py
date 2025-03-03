@@ -4055,7 +4055,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                        }
         else:
             logger.warn("Tautulli Notifiers :: Cryptography library is missing. "
-                        "Tautulli Remote app notifications will be sent unecrypted. "
+                        "Tautulli Remote app notifications will be sent unencrypted. "
                         "Install the library to encrypt the notifications.")
 
             payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,

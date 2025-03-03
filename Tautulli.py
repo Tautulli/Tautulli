@@ -129,7 +129,7 @@ def main():
     if args.quiet:
         plexpy.QUIET = True
 
-    # Do an intial setup of the logger.
+    # Do an initial setup of the logger.
     # Require verbose for pre-initilization to see critical errors
     logger.initLogger(console=not plexpy.QUIET, log_dir=False, verbose=True)
 

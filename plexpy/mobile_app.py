@@ -132,7 +132,7 @@ def set_mobile_device_config(mobile_device_id=None, **kwargs):
     if str(mobile_device_id).isdigit():
         mobile_device_id = int(mobile_device_id)
     else:
-        logger.error("Tautulli MobileApp :: Unable to set exisiting mobile device: invalid mobile_device_id %s." % mobile_device_id)
+        logger.error("Tautulli MobileApp :: Unable to set existing mobile device: invalid mobile_device_id %s." % mobile_device_id)
         return False
 
     keys = {'id': mobile_device_id}

@@ -173,7 +173,7 @@ def check_active_sessions(ws_request=False):
                     row_id = monitor_process.write_session_history(session=stream)
 
                     if row_id:
-                        # If session is written to the databaase successfully, remove the session from the session table
+                        # If session is written to the database successfully, remove the session from the session table
                         logger.debug("Tautulli Monitor :: Removing sessionKey %s ratingKey %s from session queue"
                                      % (stream['session_key'], stream['rating_key']))
                         monitor_process.delete_session(row_id=row_id)
