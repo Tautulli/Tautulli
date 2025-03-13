@@ -2096,6 +2096,7 @@ class PmsConnect(object):
                              'stream_audio_channel_layout_': stream_audio_channel_layouts_,
                              'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
+                             'stream_audio_profile': helpers.get_xml_attr(audio_stream_info, 'profile'),
                              'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision') or 'direct play'
                              }
         else:
@@ -2108,6 +2109,7 @@ class PmsConnect(object):
                              'stream_audio_channel_layout_': '',
                              'stream_audio_language': '',
                              'stream_audio_language_code': '',
+                             'stream_audio_profile': '',
                              'stream_audio_decision': ''
                              }
 

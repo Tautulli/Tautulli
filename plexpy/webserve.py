@@ -5921,6 +5921,7 @@ class WebInterface(object):
                              "stream_audio_decision": "direct play",
                              "stream_audio_language": "",
                              "stream_audio_language_code": "",
+                             "stream_audio_profile": "",
                              "stream_audio_sample_rate": "48000",
                              "stream_bitrate": "10617",
                              "stream_container": "mkv",
