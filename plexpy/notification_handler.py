@@ -955,7 +955,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     now_iso = now.isocalendar()
 
     available_params = {
-        # Global paramaters
+        # Global parameters
         'tautulli_version': common.RELEASE,
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
@@ -1267,7 +1267,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
     now_iso = now.isocalendar()
 
     available_params = {
-        # Global paramaters
+        # Global parameters
         'tautulli_version': common.RELEASE,
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
