@@ -568,7 +568,7 @@ class Config(object):
 
     def _upgrade(self):
         """
-        Upgrades config file from previous verisions and bumps up config version
+        Upgrades config file from previous versions and bumps up config version
         """
         if self.CONFIG_VERSION == 0:
             self.CONFIG_VERSION = 1

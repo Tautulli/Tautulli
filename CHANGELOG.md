@@ -3,7 +3,7 @@
 ## v2.15.1 (2025-01-11)
 
 * Activity:
-  * Fix: Detection of HDR transcodes. (Thanks @chrisdecker08) (#2412, #2466)
+  * Fix: Detection of HDR transcodes. (Thanks @cdecker08) (#2412, #2466)
 * Newsletters:
   * Fix: Disable basic authentication for /newsletter and /image endpoints. (#2472)
 * Exporter:

@@ -608,7 +608,7 @@ class WebInterface(object):
             status_message = ''
         else:
             result = None
-            status_message = 'An error occured.'
+            status_message = 'An error occurred.'
 
         return serve_template(template_name="edit_library.html", title="Edit Library",
                               data=result, server_id=plexpy.CONFIG.PMS_IDENTIFIER, status_message=status_message)
@@ -1347,7 +1347,7 @@ class WebInterface(object):
             status_message = ''
         else:
             result = None
-            status_message = 'An error occured.'
+            status_message = 'An error occurred.'
 
         return serve_template(template_name="edit_user.html", title="Edit User", data=result, status_message=status_message)
 
@@ -1365,7 +1365,7 @@ class WebInterface(object):
                 keep_history (int):         0 or 1
                 allow_guest (int):          0 or 1
 
-            Optional paramters:
+            Optional parameters:
                 None
 
             Returns:
@@ -3031,7 +3031,7 @@ class WebInterface(object):
         """ Delete the Tautulli notification logs.
 
             ```
-            Required paramters:
+            Required parameters:
                 None
 
             Optional parameters:
@@ -3056,7 +3056,7 @@ class WebInterface(object):
         """ Delete the Tautulli newsletter logs.
 
             ```
-            Required paramters:
+            Required parameters:
                 None
 
             Optional parameters:
@@ -3081,7 +3081,7 @@ class WebInterface(object):
         """ Delete the Tautulli login logs.
 
             ```
-            Required paramters:
+            Required parameters:
                 None
 
             Optional parameters:
@@ -5921,6 +5921,7 @@ class WebInterface(object):
                              "stream_audio_decision": "direct play",
                              "stream_audio_language": "",
                              "stream_audio_language_code": "",
+                             "stream_audio_profile": "",
                              "stream_audio_sample_rate": "48000",
                              "stream_bitrate": "10617",
                              "stream_container": "mkv",

@@ -314,6 +314,10 @@ class ActivityHandler(object):
             if self.metadata:
                 this_guid = self.metadata['guid']
 
+        # Check for stream offset notifications
+        self.check_markers()
+        self.check_watched()
+
         # Make sure the same item is being played
         if (self.rating_key == last_rating_key
                 or self.rating_key == last_rating_key_websocket
@@ -354,10 +358,6 @@ class ActivityHandler(object):
             self.on_stop(force_stop=True)
             self.on_start()
 
-        # Check for stream offset notifications
-        self.check_markers()
-        self.check_watched()
-    
     def check_markers(self):
         # Monitor if the stream has reached the intro or credit marker offsets
         self.get_metadata()

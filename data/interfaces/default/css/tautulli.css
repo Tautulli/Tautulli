@@ -4325,6 +4325,10 @@ a:hover .overlay-refresh-image:hover {
 .stream-info tr:nth-child(even) td {
     background-color: rgba(255,255,255,0.010);
 }
+.stream-info td:nth-child(3),
+.stream-info th:nth-child(3) {
+    width: 25px;
+}
 .number-input {
     margin: 0 !important;
     width: 55px !important;

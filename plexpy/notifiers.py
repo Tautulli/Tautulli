@@ -2667,7 +2667,8 @@ class NTFY(Notifier):
 
                 provider_name = pretty_metadata.get_provider_name(provider)
                 provider_link = pretty_metadata.get_provider_link(provider)
-                actions.append(f"view, View on {provider_name}, {provider_link}, clear=true")
+                if provider_link:
+                    actions.append(f"view, View on {provider_name}, {provider_link}, clear=true")
 
             if self.config['incl_pmslink']:
                 plex_url = pretty_metadata.get_plex_url()
@@ -3390,8 +3391,11 @@ class PUSHOVER(Notifier):
 
             image = pretty_metadata.get_image()
             if image:
-                files = {'attachment': image}
-                headers = {}
+                if len(image[1]) <= 5242880:  # 5MB max attachment size
+                    files = {'attachment': image}
+                    headers = {}
+                else:
+                    logger.warn("Tautulli Notifiers :: Image size exceeds 5MB limit for {name}.".format(name=self.NAME))
 
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
 
@@ -4055,7 +4059,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                        }
         else:
             logger.warn("Tautulli Notifiers :: Cryptography library is missing. "
-                        "Tautulli Remote app notifications will be sent unecrypted. "
+                        "Tautulli Remote app notifications will be sent unencrypted. "
                         "Install the library to encrypt the notifications.")
 
             payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
@@ -4460,7 +4464,8 @@ class WEBHOOK(Notifier):
                           'select_options': {'GET': 'GET',
                                              'POST': 'POST',
                                              'PUT': 'PUT',
-                                             'DELETE': 'DELETE'}
+                                             'DELETE': 'DELETE',
+                                             'PATCH': 'PATCH'}
                           }
                          ]
 

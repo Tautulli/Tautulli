@@ -68,13 +68,13 @@ DOCUMENTATION :: END
             <table class="stream-info" style="margin-top: 0;">
                 <thead>
                     <tr>
-                        <th>
-                        </th>
-                        <th class="heading">
-                            Stream Details
-                        </th>
+                        <th></th>
                         <th class="heading">
                             Source Details
+                        </th>
+                        <th><i class="fa fa-long-arrow-right"></i></th>
+                        <th class="heading">
+                            Stream Details
                         </th>
                     </tr>
                 </thead>
@@ -85,38 +85,46 @@ DOCUMENTATION :: END
                         <th>
                             Media
                         </th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td>Bitrate</td>
-                        <td>${data['stream_bitrate']} ${'kbps' if data['stream_bitrate'] else ''}</td>
                         <td>${data['bitrate']} ${'kbps' if data['bitrate'] else ''}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_bitrate']} ${'kbps' if data['stream_bitrate'] else ''}</td>
                     </tr>
                     % if data['media_type'] != 'track':
                     <tr>
                         <td>Resolution</td>
-                        <td>${data['stream_video_full_resolution']}</td>
                         <td>${data['video_full_resolution']}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_video_full_resolution']}</td>
                     </tr>
                     % endif
                     <tr>
                         <td>Quality</td>
-                        <td>${data['quality_profile']}</td>
                         <td>-</td>
+                        <td></td>
+                        <td>${data['quality_profile']}</td>
                     </tr>
                     % if data['optimized_version'] == 1:
                     <tr>
                         <td>Optimized Version</td>
-                        <td>-</td>
                         <td>${data['optimized_version_profile']}<br>(${data['optimized_version_title']})</td>
+                        <td></td>
+                        <td>-</td>
                     </tr>
                     % endif
                     % if data['synced_version'] == 1:
                     <tr>
                         <td>Synced Version</td>
-                        <td>-</td>
                         <td>${data['synced_version_profile']}</td>
+                        <td></td>
+                        <td>-</td>
                     </tr>
                     % endif
                 </tbody>
@@ -127,6 +135,8 @@ DOCUMENTATION :: END
                         <th>
                             Container
                         </th>
+                        <th></th>
+                        <th></th>
                         <th>
                             ${data['stream_container_decision']}
                         </th>
@@ -135,8 +145,9 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Container</td>
-                        <td>${data['stream_container'].upper()}</td>
                         <td>${data['container'].upper()}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_container'].upper()}</td>
                     </tr>
                 </tbody>
             </table>
@@ -147,6 +158,8 @@ DOCUMENTATION :: END
                         <th>
                             Video
                         </th>
+                        <th></th>
+                        <th></th>
                         <th>
                             ${data['stream_video_decision']}
                         </th>
@@ -155,38 +168,45 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Codec</td>
-                        <td>${data['stream_video_codec'].upper()} ${'(HW)' if data['transcode_hw_encoding'] else ''}</td>
                         <td>${data['video_codec'].upper()} ${'(HW)' if data['transcode_hw_decoding'] else ''}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_video_codec'].upper()} ${'(HW)' if data['transcode_hw_encoding'] else ''}</td>
                     </tr>
                     <tr>
                         <td>Bitrate</td>
-                        <td>${data['stream_video_bitrate']} ${'kbps' if data['stream_video_bitrate'] else ''}</td>
                         <td>${data['video_bitrate']} ${'kbps' if data['video_bitrate'] else ''}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_video_bitrate']} ${'kbps' if data['stream_video_bitrate'] else ''}</td>
                     </tr>
                     <tr>
                         <td>Width</td>
-                        <td>${data['stream_video_width']}</td>
                         <td>${data['video_width']}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_video_width']}</td>
                     </tr>
                     <tr>
                         <td>Height</td>
-                        <td>${data['stream_video_height']}</td>
                         <td>${data['video_height']}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_video_height']}</td>
                     </tr>
                     <tr>
                         <td>Framerate</td>
-                        <td>${data['stream_video_framerate']}</td>
                         <td>${data['video_framerate']}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_video_framerate']}</td>
                     </tr>
                     <tr>
                         <td>Dynamic Range</td>
-                        <td>${data['stream_video_dynamic_range']}</td>
                         <td>${data['video_dynamic_range']}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_video_dynamic_range']}</td>
                     </tr>
                     <tr>
                         <td>Aspect Ratio</td>
-                        <td>-</td>
                         <td>${data['aspect_ratio']}</td>
+                        <td></td>
+                        <td>-</td>
                     </tr>
                 </tbody>
             </table>
@@ -197,6 +217,8 @@ DOCUMENTATION :: END
                         <th>
                             Audio
                         </th>
+                        <th></th>
+                        <th></th>
                         <th>
                             ${data['stream_audio_decision']}
                         </th>
@@ -205,23 +227,27 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Codec</td>
-                        <td>${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())}</td>
                         <td>${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())}</td>
                     </tr>
                     <tr>
                         <td>Bitrate</td>
-                        <td>${data['stream_audio_bitrate']} ${'kbps' if data['stream_audio_bitrate'] else ''}</td>
                         <td>${data['audio_bitrate']} ${'kbps' if data['audio_bitrate'] else ''}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_audio_bitrate']} ${'kbps' if data['stream_audio_bitrate'] else ''}</td>
                     </tr>
                     <tr>
                         <td>Channels</td>
-                        <td>${data['stream_audio_channels']}</td>
                         <td>${data['audio_channels']}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_audio_channels']}</td>
                     </tr>
                     <tr>
                         <td>Language</td>
-                        <td>-</td>
                         <td>${data['audio_language'] or 'Unknown'}</td>
+                        <td></td>
+                        <td>-</td>
                     </tr>
 
                 </tbody>
@@ -233,6 +259,8 @@ DOCUMENTATION :: END
                         <th>
                             Subtitles
                         </th>
+                        <th></th>
+                        <th></th>
                         <th>
                             ${'direct play' if data['stream_subtitle_decision'] not in ('transcode', 'copy', 'burn') else data['stream_subtitle_decision']}
                         </th>
@@ -241,19 +269,22 @@ DOCUMENTATION :: END
                 <tbody>
                     <tr>
                         <td>Codec</td>
-                        <td>${data['stream_subtitle_codec'].upper() or '-'}</td>
                         <td>${data['subtitle_codec'].upper()}</td>
+                        <td><i class="fa fa-long-arrow-right"></i></td>
+                        <td>${data['stream_subtitle_codec'].upper() or '-'}</td>
                     </tr>
                     <tr>
                         <td>Language</td>
-                        <td>-</td>
                         <td>${data['subtitle_language'] or 'Unknown'}</td>
+                        <td></td>
+                        <td>-</td>
                     </tr>
                     % if data['subtitle_forced']:
                     <tr>
                         <td>Forced</td>
-                        <td>-</td>
                         <td>${bool(data['subtitle_forced'])}</td>
+                        <td></td>
+                        <td>-</td>
                     </tr>
                     % endif
                 </tbody>

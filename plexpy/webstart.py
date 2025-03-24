@@ -21,6 +21,7 @@ import sys
 
 import cheroot.errors
 import cherrypy
+import cherrypy_cors
 
 import plexpy
 from plexpy import logger
@@ -62,6 +63,7 @@ def restart():
 
 
 def initialize(options):
+    cherrypy_cors.install()
 
     # HTTPS stuff stolen from sickbeard
     enable_https = options['enable_https']
@@ -91,7 +93,8 @@ def initialize(options):
         'server.socket_timeout': 60,
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
-        'tools.decode.on': True
+        'tools.decode.on': True,
+        'cors.expose.on': True,
     }
 
     if plexpy.DEV:
