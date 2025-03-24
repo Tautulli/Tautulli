@@ -176,7 +176,10 @@ def check_auth(*args, **kwargs):
                     raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         else:
-            redirect_uri = cherrypy.request.wsgi_environ['REQUEST_URI']
+            if cherrypy.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                raise cherrypy.HTTPError(401)
+            
+            redirect_uri = cherrypy.request.path_info
             if redirect_uri:
                 redirect_uri = '?redirect_uri=' + quote(redirect_uri)
 
