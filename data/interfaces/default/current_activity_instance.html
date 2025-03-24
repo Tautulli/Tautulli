@@ -74,7 +74,7 @@ DOCUMENTATION :: END
     parent_href = page('info', data['parent_rating_key'])
     grandparent_href = page('info', data['grandparent_rating_key'])
     user_href = page('user', data['user_id']) if data['user_id'] else '#'
-    library_href = page('library', data['section_id'])
+    library_href = page('library', data['section_id']) if data['section_id'] else '#'
     season = short_season(data['parent_title'])
 %>
 <div class="dashboard-activity-instance" id="activity-instance-${sk}" data-key="${sk}" data-id="${data['session_id']}"
