@@ -3391,8 +3391,11 @@ class PUSHOVER(Notifier):
 
             image = pretty_metadata.get_image()
             if image:
-                files = {'attachment': image}
-                headers = {}
+                if len(image[1]) <= 5242880:  # 5MB max attachment size
+                    files = {'attachment': image}
+                    headers = {}
+                else:
+                    logger.warn("Tautulli Notifiers :: Image size exceeds 5MB limit for {name}.".format(name=self.NAME))
 
         return self.make_request('https://api.pushover.net/1/messages.json', headers=headers, data=data, files=files)
 
