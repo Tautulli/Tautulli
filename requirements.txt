@@ -5,6 +5,7 @@ bleach==6.2.0
 certifi==2024.8.30
 cheroot==10.0.1
 cherrypy==18.10.0
+cherrypy-cors==1.7.0
 cloudinary==1.41.0
 distro==1.9.0
 dnspython==2.7.0
