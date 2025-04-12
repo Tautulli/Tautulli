@@ -301,6 +301,10 @@
             return obj;
         }, {});
 
+        if (!("Total" in chart_visibility)) {
+            chart_visibility["Total"] = false;
+        }
+
         return data_series.map(function(s) {
             var obj = Object.assign({}, s);
             obj.visible = (chart_visibility[s.name] !== false);
@@ -327,7 +331,8 @@
             'Direct Play': '#E5A00D',
             'Direct Stream': '#FFFFFF',
             'Transcode': '#F06464',
-            'Max. Concurrent Streams': '#96C83C'
+            'Max. Concurrent Streams': '#96C83C',
+            'Total': '#96C83C'
         };
         var series_colors = [];
         $.each(data_series, function(index, series) {
