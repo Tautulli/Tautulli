@@ -1,5 +1,28 @@
 # Changelog
 
+## v2.15.2 (2025-04-12)
+
+* Activity:
+  * New: Added link to library by clicking media type icon.
+  * New: Added stream count to tab title on homepage. (#2517)
+* History:
+  * Fix: Check stream watched status before stream stopped status. (#2506)
+* Notifications:
+  * Fix: ntfy notifications failing to send if provider link is blank.
+  * Fix: Check Pushover notification attachment is under 5MB limit. (#2396)
+  * Fix: Track URLs redirecting to the correct media page. (#2513)
+  * New: Added audio profile notification parameters.
+  * New: Added PATCH method for Webhook notifications.
+* Graphs:
+  * New: Added Total line to daily streams graph. (Thanks @zdimension) (#2497)
+* UI:
+  * Fix: Do not redirect API requests to the login page. (#2490)
+  * Change: Swap source and stream columns in stream info modal.
+* Other:
+  * Fix: Various typos. (Thanks @luzpaz) (#2520)
+  * Fix: CherryPy CORS response header not being set correctly. (#2279)
+
+
 ## v2.15.1 (2025-01-11)
 
 * Activity:
@@ -9,7 +32,7 @@
 * Exporter:
   * New: Added logos to season and episode exports.
 * Other:
-  * Fix Docker container https health check.
+  * Fix: Docker container https health check.
 
 
 ## v2.15.0 (2024-11-24)
