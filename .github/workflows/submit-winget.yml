@@ -11,6 +11,11 @@ jobs:
     runs-on: windows-latest
     if: ${{ !github.event.release.prerelease }}
     steps:
+      - name: Sync Winget Fork
+        run: gh repo sync ${{ secrets.WINGET_USERNAME }}/winget-pkgs -b master
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+
       - name: Submit package to Windows Package Manager Community Repository
         run: |
           $wingetPackage = "Tautulli.Tautulli"
