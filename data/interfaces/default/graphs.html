@@ -760,6 +760,7 @@
                     if (this.points.length > 1) {
                         var total = 0;
                         $.each(this.points, function(i, point) {
+                            if (point.series.name === 'Total') return;
                             s += '<br/>'+point.series.name+': '+point.y;
                             total += point.y;
                         });
@@ -786,6 +787,7 @@
                     if (this.points.length > 1) {
                         var total = 0;
                         $.each(this.points, function(i, point) {
+                            if (point.series.name === 'Total') return;
                             s += '<br/>'+point.series.name+': '+moment.duration(point.y, 'hours').format('D [days] H [hrs] m [mins]');
                             total += point.y;
                         });
