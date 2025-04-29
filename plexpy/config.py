@@ -487,12 +487,26 @@ class Config(object):
         """ Cast any value in the config to the right type or use the default """
         key, definition_type, section, ini_key, default = self._define(key)
         self.check_section(section)
+        my_val = self._from_env(key, definition_type)
+        if my_val:
+            self._config[section][ini_key] = my_val
+            return my_val
+
         try:
             my_val = definition_type(self._config[section][ini_key])
         except Exception:
             my_val = definition_type(default)
             self._config[section][ini_key] = my_val
         return my_val
+
+    def _from_env(self, key, definition_type):
+        """ Get key from environment variables, if it exists """
+        val = os.environ.get(key)
+        try:
+            if val:
+                return definition_type(val)
+        except Exception:
+            return None
 
     def write(self):
         """ Make a copy of the stored config and write it to the configured file """
