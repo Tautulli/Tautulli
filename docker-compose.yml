@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  tautulli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tautulli
+    ports:
+      - "8181:8181" # Map the Tautulli web interface to localhost:8181
+    volumes:
+      - ./config:/config # Persistent configuration storage
+      - ./logs:/logs     # Persistent log storage
+    restart: unless-stopped
