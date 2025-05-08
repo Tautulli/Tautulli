@@ -76,6 +76,25 @@ Read the [Installation Guides][Installation] for instructions on how to install 
 [badge-installer-beta-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-installers.yml?style=flat-square&branch=beta
 [badge-installer-nightly-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-installers.yml?style=flat-square&branch=nightly
 
+
+### Local Build Using Docker Compose
+
+You can build and run Tautulli using the provided `docker-compose.yml` file. Follow these steps:
+
+1. Ensure you have [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed on your system.
+2. Clone the repository:
+   ```bash
+   git clone https://github.com/Tautulli/Tautulli.git
+   cd Tautulli
+   ```
+3. Run the following command to start the application:
+   ```bash
+   docker-compose up -d
+   ```
+4. Access Tautulli in your browser at `http://localhost:8181`.
+
+For more details, refer to the [Docker Compose documentation](https://docs.docker.com/compose/).
+
 ## Support
 
 [![Wiki][badge-wiki]][Wiki]
