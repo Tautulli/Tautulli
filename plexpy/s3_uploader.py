@@ -74,13 +74,21 @@ def get_s3_client():
     region = plexpy.CONFIG.S3_REGION if plexpy.CONFIG.S3_REGION else None
     
     try:
+        # Create a custom config that disables checksum algorithms for compatibility with Backblaze B2
+        # and other S3-compatible services that don't support newer AWS features
+        s3_config = boto3.session.Config(
+            signature_version='s3v4',
+            s3={'payload_signing_enabled': False}
+        )
+        
         s3_client = session.client(
             service_name='s3',
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
             endpoint_url=endpoint_url,
             region_name=region,
-            use_ssl=bool(plexpy.CONFIG.S3_SECURE)
+            use_ssl=True, #bool(plexpy.CONFIG.S3_SECURE)
+            config=s3_config
         )
         return s3_client
     except Exception as e:
@@ -133,7 +141,8 @@ def upload_file_to_s3(file_path, object_name=None):
     except NoCredentialsError:
         logger.error("Tautulli S3 Uploader :: Credentials not available for S3 upload")
         return False
-    except EndpointConnectionError:
+    except EndpointConnectionError as e:
+        logger.error(f"Tautulli S3 Uploader :: Could not connect to S3 endpoint: {e}")
         logger.error(f"Tautulli S3 Uploader :: Could not connect to S3 endpoint: {plexpy.CONFIG.S3_ENDPOINT}")
         return False
     except ClientError as e:

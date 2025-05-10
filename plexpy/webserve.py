@@ -173,7 +173,7 @@ class WebInterface(object):
         try:
             # Create S3 client
             s3_config = {
-                'region_name': s3_region if s3_region else 'us-east-1'
+                'region_name': s3_region if s3_region else 'us-east-1',
             }
             
             # Add custom endpoint URL if provided
@@ -3337,7 +3337,31 @@ class WebInterface(object):
         # If we change the authentication settings, make sure we refresh the users lists.
         if kwargs.pop('auth_changed', None):
             refresh_users = True
-
+            
+        # Handle S3 backup parameter mappings
+        s3_field_maps = {
+            's3_bucket': 'S3_BUCKET_NAME',
+            's3_region': 'S3_REGION',
+            's3_access_key': 'S3_ACCESS_KEY',
+            's3_secret_key': 'S3_SECRET_KEY',
+            's3_endpoint': 'S3_ENDPOINT',
+            's3_prefix': 'S3_PREFIX',
+            's3_secure': 'S3_SECURE'
+        }
+        
+        for form_key, config_key in s3_field_maps.items():
+            if form_key in kwargs:
+                # Ensure string values for endpoints to prevent list nesting
+                if isinstance(kwargs[form_key], list) or (form_key == 's3_endpoint' and kwargs[form_key]):
+                    kwargs[form_key] = str(kwargs[form_key])
+                    # Remove any nested list formatting
+                    if form_key == 's3_endpoint':
+                        kwargs[form_key] = kwargs[form_key].replace('[', '').replace(']', '').replace("'", "")
+                        if ',' in kwargs[form_key]:
+                            kwargs[form_key] = kwargs[form_key].split(',')[0].strip()
+        
+                kwargs[config_key] = kwargs.pop(form_key)
+            
         all_settings = config.SETTINGS + config.CHECKED_SETTINGS
         kwargs = {k: v for k, v in kwargs.items() if k.upper() in all_settings}
 

@@ -1544,10 +1544,10 @@
 
                         <div id="s3_backup_options" style="overflow: hidden; display: ${'' if config.get('s3_backup_enabled', 0) else 'none'}">
                             <div class="form-group">
-                                <label for="s3_bucket">S3 Bucket Name</label>
+                                <label for="s3_bucket_name">S3 Bucket Name</label>
                                 <div class="row">
                                     <div class="col-md-5">
-                                        <input type="text" class="form-control" id="s3_bucket" name="s3_bucket" value="${config.get('s3_bucket', '')}" placeholder="mybucket">
+                                        <input type="text" class="form-control" id="s3_bucket_name" name="s3_bucket_name" value="${config.get('s3_bucket_name', '')}" placeholder="mybucket">
                                     </div>
                                 </div>
                                 <p class="help-block">The name of the S3 bucket to store backups.</p>
@@ -2521,7 +2521,7 @@ $(document).ready(function() {
     });
 
     $("#test_s3_connection").click(function() {
-        var s3_bucket = $("#s3_bucket").val();
+        var s3_bucket = $("#s3_bucket_name").val();
         var s3_region = $("#s3_region").val();
         var s3_access_key = $("#s3_access_key").val();
         var s3_secret_key = $("#s3_secret_key").val();
