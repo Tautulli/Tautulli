@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from encodings.aliases import aliases
 from hashlib import sha256
 from json import dumps
 from re import sub
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Union
+from typing import Any, Iterator, List, Tuple
 
 from .constant import RE_POSSIBLE_ENCODING_INDICATION, TOO_BIG_SEQUENCE
 from .utils import iana_name, is_multi_byte_encoding, unicode_range
@@ -15,9 +17,9 @@ class CharsetMatch:
         guessed_encoding: str,
         mean_mess_ratio: float,
         has_sig_or_bom: bool,
-        languages: "CoherenceMatches",
-        decoded_payload: Optional[str] = None,
-        preemptive_declaration: Optional[str] = None,
+        languages: CoherenceMatches,
+        decoded_payload: str | None = None,
+        preemptive_declaration: str | None = None,
     ):
         self._payload: bytes = payload
 
@@ -25,17 +27,17 @@ class CharsetMatch:
         self._mean_mess_ratio: float = mean_mess_ratio
         self._languages: CoherenceMatches = languages
         self._has_sig_or_bom: bool = has_sig_or_bom
-        self._unicode_ranges: Optional[List[str]] = None
+        self._unicode_ranges: list[str] | None = None
 
-        self._leaves: List[CharsetMatch] = []
+        self._leaves: list[CharsetMatch] = []
         self._mean_coherence_ratio: float = 0.0
 
-        self._output_payload: Optional[bytes] = None
-        self._output_encoding: Optional[str] = None
+        self._output_payload: bytes | None = None
+        self._output_encoding: str | None = None
 
-        self._string: Optional[str] = decoded_payload
+        self._string: str | None = decoded_payload
 
-        self._preemptive_declaration: Optional[str] = preemptive_declaration
+        self._preemptive_declaration: str | None = preemptive_declaration
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, CharsetMatch):
@@ -77,9 +79,9 @@ class CharsetMatch:
         return self._string
 
     def __repr__(self) -> str:
-        return "<CharsetMatch '{}' bytes({})>".format(self.encoding, self.fingerprint)
+        return f"<CharsetMatch '{self.encoding}' bytes({self.fingerprint})>"
 
-    def add_submatch(self, other: "CharsetMatch") -> None:
+    def add_submatch(self, other: CharsetMatch) -> None:
         if not isinstance(other, CharsetMatch) or other == self:
             raise ValueError(
                 "Unable to add instance <{}> as a submatch of a CharsetMatch".format(
@@ -95,11 +97,11 @@ class CharsetMatch:
         return self._encoding
 
     @property
-    def encoding_aliases(self) -> List[str]:
+    def encoding_aliases(self) -> list[str]:
         """
         Encoding name are known by many name, using this could help when searching for IBM855 when it's listed as CP855.
         """
-        also_known_as: List[str] = []
+        also_known_as: list[str] = []
         for u, p in aliases.items():
             if self.encoding == u:
                 also_known_as.append(p)
@@ -116,7 +118,7 @@ class CharsetMatch:
         return self._has_sig_or_bom
 
     @property
-    def languages(self) -> List[str]:
+    def languages(self) -> list[str]:
         """
         Return the complete list of possible languages found in decoded sequence.
         Usually not really useful. Returned list may be empty even if 'language' property return something != 'Unknown'.
@@ -177,7 +179,7 @@ class CharsetMatch:
         return self._payload
 
     @property
-    def submatch(self) -> List["CharsetMatch"]:
+    def submatch(self) -> list[CharsetMatch]:
         return self._leaves
 
     @property
@@ -185,19 +187,17 @@ class CharsetMatch:
         return len(self._leaves) > 0
 
     @property
-    def alphabets(self) -> List[str]:
+    def alphabets(self) -> list[str]:
         if self._unicode_ranges is not None:
             return self._unicode_ranges
         # list detected ranges
-        detected_ranges: List[Optional[str]] = [
-            unicode_range(char) for char in str(self)
-        ]
+        detected_ranges: list[str | None] = [unicode_range(char) for char in str(self)]
         # filter and sort
         self._unicode_ranges = sorted(list({r for r in detected_ranges if r}))
         return self._unicode_ranges
 
     @property
-    def could_be_from_charset(self) -> List[str]:
+    def could_be_from_charset(self) -> list[str]:
         """
         The complete list of encoding that output the exact SAME str result and therefore could be the originating
         encoding.
@@ -221,10 +221,11 @@ class CharsetMatch:
                 patched_header = sub(
                     RE_POSSIBLE_ENCODING_INDICATION,
                     lambda m: m.string[m.span()[0] : m.span()[1]].replace(
-                        m.groups()[0], iana_name(self._output_encoding)  # type: ignore[arg-type]
+                        m.groups()[0],
+                        iana_name(self._output_encoding).replace("_", "-"),  # type: ignore[arg-type]
                     ),
                     decoded_string[:8192],
-                    1,
+                    count=1,
                 )
 
                 decoded_string = patched_header + decoded_string[8192:]
@@ -247,13 +248,13 @@ class CharsetMatches:
     Act like a list(iterable) but does not implements all related methods.
     """
 
-    def __init__(self, results: Optional[List[CharsetMatch]] = None):
-        self._results: List[CharsetMatch] = sorted(results) if results else []
+    def __init__(self, results: list[CharsetMatch] | None = None):
+        self._results: list[CharsetMatch] = sorted(results) if results else []
 
     def __iter__(self) -> Iterator[CharsetMatch]:
         yield from self._results
 
-    def __getitem__(self, item: Union[int, str]) -> CharsetMatch:
+    def __getitem__(self, item: int | str) -> CharsetMatch:
         """
         Retrieve a single item either by its position or encoding name (alias may be used here).
         Raise KeyError upon invalid index or encoding not present in results.
@@ -293,7 +294,7 @@ class CharsetMatches:
         self._results.append(item)
         self._results = sorted(self._results)
 
-    def best(self) -> Optional["CharsetMatch"]:
+    def best(self) -> CharsetMatch | None:
         """
         Simply return the first match. Strict equivalent to matches[0].
         """
@@ -301,7 +302,7 @@ class CharsetMatches:
             return None
         return self._results[0]
 
-    def first(self) -> Optional["CharsetMatch"]:
+    def first(self) -> CharsetMatch | None:
         """
         Redundant method, call the method best(). Kept for BC reasons.
         """
@@ -316,31 +317,31 @@ class CliDetectionResult:
     def __init__(
         self,
         path: str,
-        encoding: Optional[str],
-        encoding_aliases: List[str],
-        alternative_encodings: List[str],
+        encoding: str | None,
+        encoding_aliases: list[str],
+        alternative_encodings: list[str],
         language: str,
-        alphabets: List[str],
+        alphabets: list[str],
         has_sig_or_bom: bool,
         chaos: float,
         coherence: float,
-        unicode_path: Optional[str],
+        unicode_path: str | None,
         is_preferred: bool,
     ):
         self.path: str = path
-        self.unicode_path: Optional[str] = unicode_path
-        self.encoding: Optional[str] = encoding
-        self.encoding_aliases: List[str] = encoding_aliases
-        self.alternative_encodings: List[str] = alternative_encodings
+        self.unicode_path: str | None = unicode_path
+        self.encoding: str | None = encoding
+        self.encoding_aliases: list[str] = encoding_aliases
+        self.alternative_encodings: list[str] = alternative_encodings
         self.language: str = language
-        self.alphabets: List[str] = alphabets
+        self.alphabets: list[str] = alphabets
         self.has_sig_or_bom: bool = has_sig_or_bom
         self.chaos: float = chaos
         self.coherence: float = coherence
         self.is_preferred: bool = is_preferred
 
     @property
-    def __dict__(self) -> Dict[str, Any]:  # type: ignore
+    def __dict__(self) -> dict[str, Any]:  # type: ignore
         return {
             "path": self.path,
             "encoding": self.encoding,

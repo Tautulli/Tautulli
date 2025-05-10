@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
-from functools import cached_property
 from urllib.parse import urlencode
-from xml.etree import ElementTree
 
 import requests
 
 from plexapi import BASE_HEADERS, CONFIG, TIMEOUT, log, logfilter
 from plexapi import utils
 from plexapi.alert import AlertListener
-from plexapi.base import PlexObject
+from plexapi.base import PlexObject, cached_data_property
 from plexapi.client import PlexClient
 from plexapi.collection import Collection
 from plexapi.exceptions import BadRequest, NotFound, Unauthorized
@@ -110,15 +108,11 @@ class PlexServer(PlexObject):
         self._showSecrets = CONFIG.get('log.show_secrets', '').lower() == 'true'
         self._session = session or requests.Session()
         self._timeout = timeout or TIMEOUT
-        self._myPlexAccount = None   # cached myPlexAccount
-        self._systemAccounts = None   # cached list of SystemAccount
-        self._systemDevices = None   # cached list of SystemDevice
         data = self.query(self.key, timeout=self._timeout)
         super(PlexServer, self).__init__(self, data, self.key)
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
-        self._data = data
         self.allowCameraUpload = utils.cast(bool, data.attrib.get('allowCameraUpload'))
         self.allowChannelAccess = utils.cast(bool, data.attrib.get('allowChannelAccess'))
         self.allowMediaDeletion = utils.cast(bool, data.attrib.get('allowMediaDeletion'))
@@ -172,7 +166,7 @@ class PlexServer(PlexObject):
     def _uriRoot(self):
         return f'server://{self.machineIdentifier}/com.plexapp.plugins.library'
 
-    @cached_property
+    @cached_data_property
     def library(self):
         """ Library to browse or search your media. """
         try:
@@ -183,7 +177,7 @@ class PlexServer(PlexObject):
             data = self.query('/library/sections/')
         return Library(self, data)
 
-    @cached_property
+    @cached_data_property
     def settings(self):
         """ Returns a list of all server settings. """
         data = self.query(Settings.key)
@@ -276,11 +270,14 @@ class PlexServer(PlexObject):
             timeout = self._timeout
         return PlexServer(self._baseurl, token=userToken, session=session, timeout=timeout)
 
+    @cached_data_property
+    def _systemAccounts(self):
+        """ Cache for systemAccounts. """
+        key = '/accounts'
+        return self.fetchItems(key, SystemAccount)
+
     def systemAccounts(self):
         """ Returns a list of :class:`~plexapi.server.SystemAccount` objects this server contains. """
-        if self._systemAccounts is None:
-            key = '/accounts'
-            self._systemAccounts = self.fetchItems(key, SystemAccount)
         return self._systemAccounts
 
     def systemAccount(self, accountID):
@@ -294,11 +291,14 @@ class PlexServer(PlexObject):
         except StopIteration:
             raise NotFound(f'Unknown account with accountID={accountID}') from None
 
+    @cached_data_property
+    def _systemDevices(self):
+        """ Cache for systemDevices. """
+        key = '/devices'
+        return self.fetchItems(key, SystemDevice)
+
     def systemDevices(self):
         """ Returns a list of :class:`~plexapi.server.SystemDevice` objects this server contains. """
-        if self._systemDevices is None:
-            key = '/devices'
-            self._systemDevices = self.fetchItems(key, SystemDevice)
         return self._systemDevices
 
     def systemDevice(self, deviceID):
@@ -312,21 +312,24 @@ class PlexServer(PlexObject):
         except StopIteration:
             raise NotFound(f'Unknown device with deviceID={deviceID}') from None
 
+    @cached_data_property
+    def _myPlexAccount(self):
+        """ Cache for myPlexAccount. """
+        from plexapi.myplex import MyPlexAccount
+        return MyPlexAccount(token=self._token, session=self._session)
+
     def myPlexAccount(self):
         """ Returns a :class:`~plexapi.myplex.MyPlexAccount` object using the same
             token to access this server. If you are not the owner of this PlexServer
             you're likely to receive an authentication error calling this.
         """
-        if self._myPlexAccount is None:
-            from plexapi.myplex import MyPlexAccount
-            self._myPlexAccount = MyPlexAccount(token=self._token, session=self._session)
         return self._myPlexAccount
 
     def _myPlexClientPorts(self):
         """ Sometimes the PlexServer does not properly advertise port numbers required
             to connect. This attempts to look up device port number from plex.tv.
             See issue #126: Make PlexServer.clients() more user friendly.
-              https://github.com/pkkid/python-plexapi/issues/126
+              https://github.com/pushingkarmaorg/python-plexapi/issues/126
         """
         try:
             ports = {}
@@ -768,8 +771,7 @@ class PlexServer(PlexObject):
                 raise NotFound(message)
             else:
                 raise BadRequest(message)
-        data = utils.cleanXMLString(response.text).encode('utf8')
-        return ElementTree.fromstring(data) if data.strip() else None
+        return utils.parseXMLString(response.text)
 
     def search(self, query, mediatype=None, limit=None, sectionId=None):
         """ Returns a list of media items or filter categories from the resulting
@@ -804,9 +806,9 @@ class PlexServer(PlexObject):
         for hub in self.fetchItems(key, Hub):
             if mediatype:
                 if hub.type == mediatype:
-                    return hub.items
+                    return hub._partialItems
             else:
-                results += hub.items
+                results += hub._partialItems
         return results
 
     def continueWatching(self):
@@ -1093,7 +1095,7 @@ class Account(PlexObject):
     key = '/myplex/account'
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.authToken = data.attrib.get('authToken')
         self.username = data.attrib.get('username')
         self.mappingState = data.attrib.get('mappingState')
@@ -1114,7 +1116,7 @@ class Activity(PlexObject):
     key = '/activities'
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.cancellable = utils.cast(bool, data.attrib.get('cancellable'))
         self.progress = utils.cast(int, data.attrib.get('progress'))
         self.title = data.attrib.get('title')
@@ -1129,6 +1131,7 @@ class Release(PlexObject):
     key = '/updater/status'
 
     def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
         self.download_key = data.attrib.get('key')
         self.version = data.attrib.get('version')
         self.added = data.attrib.get('added')
@@ -1154,7 +1157,7 @@ class SystemAccount(PlexObject):
     TAG = 'Account'
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.autoSelectAudio = utils.cast(bool, data.attrib.get('autoSelectAudio'))
         self.defaultAudioLanguage = data.attrib.get('defaultAudioLanguage')
         self.defaultSubtitleLanguage = data.attrib.get('defaultSubtitleLanguage')
@@ -1183,7 +1186,7 @@ class SystemDevice(PlexObject):
     TAG = 'Device'
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.clientIdentifier = data.attrib.get('clientIdentifier')
         self.createdAt = utils.toDatetime(data.attrib.get('createdAt'))
         self.id = utils.cast(int, data.attrib.get('id'))
@@ -1209,7 +1212,7 @@ class StatisticsBandwidth(PlexObject):
     TAG = 'StatisticsBandwidth'
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.accountID = utils.cast(int, data.attrib.get('accountID'))
         self.at = utils.toDatetime(data.attrib.get('at'))
         self.bytes = utils.cast(int, data.attrib.get('bytes'))
@@ -1251,7 +1254,7 @@ class StatisticsResources(PlexObject):
     TAG = 'StatisticsResources'
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.at = utils.toDatetime(data.attrib.get('at'))
         self.hostCpuUtilization = utils.cast(float, data.attrib.get('hostCpuUtilization'))
         self.hostMemoryUtilization = utils.cast(float, data.attrib.get('hostMemoryUtilization'))
@@ -1279,7 +1282,7 @@ class ButlerTask(PlexObject):
     TAG = 'ButlerTask'
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.description = data.attrib.get('description')
         self.enabled = utils.cast(bool, data.attrib.get('enabled'))
         self.interval = utils.cast(int, data.attrib.get('interval'))
@@ -1301,7 +1304,7 @@ class Identity(PlexObject):
         return f"<{self.__class__.__name__}:{self.machineIdentifier}>"
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.claimed = utils.cast(bool, data.attrib.get('claimed'))
         self.machineIdentifier = data.attrib.get('machineIdentifier')
         self.version = data.attrib.get('version')

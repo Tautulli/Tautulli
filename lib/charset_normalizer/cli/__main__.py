@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import argparse
 import sys
+import typing
 from json import dumps
 from os.path import abspath, basename, dirname, join, realpath
 from platform import python_version
-from typing import List, Optional
 from unicodedata import unidata_version
 
 import charset_normalizer.md as md_module
@@ -42,10 +44,69 @@ def query_yes_no(question: str, default: str = "yes") -> bool:
         elif choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
+            sys.stdout.write("Please respond with 'yes' or 'no' (or 'y' or 'n').\n")
 
 
-def cli_detect(argv: Optional[List[str]] = None) -> int:
+class FileType:
+    """Factory for creating file object types
+
+    Instances of FileType are typically passed as type= arguments to the
+    ArgumentParser add_argument() method.
+
+    Keyword Arguments:
+        - mode -- A string indicating how the file is to be opened. Accepts the
+            same values as the builtin open() function.
+        - bufsize -- The file's desired buffer size. Accepts the same values as
+            the builtin open() function.
+        - encoding -- The file's encoding. Accepts the same values as the
+            builtin open() function.
+        - errors -- A string indicating how encoding and decoding errors are to
+            be handled. Accepts the same value as the builtin open() function.
+
+    Backported from CPython 3.12
+    """
+
+    def __init__(
+        self,
+        mode: str = "r",
+        bufsize: int = -1,
+        encoding: str | None = None,
+        errors: str | None = None,
+    ):
+        self._mode = mode
+        self._bufsize = bufsize
+        self._encoding = encoding
+        self._errors = errors
+
+    def __call__(self, string: str) -> typing.IO:  # type: ignore[type-arg]
+        # the special argument "-" means sys.std{in,out}
+        if string == "-":
+            if "r" in self._mode:
+                return sys.stdin.buffer if "b" in self._mode else sys.stdin
+            elif any(c in self._mode for c in "wax"):
+                return sys.stdout.buffer if "b" in self._mode else sys.stdout
+            else:
+                msg = f'argument "-" with mode {self._mode}'
+                raise ValueError(msg)
+
+        # all other arguments are used as file names
+        try:
+            return open(string, self._mode, self._bufsize, self._encoding, self._errors)
+        except OSError as e:
+            message = f"can't open '{string}': {e}"
+            raise argparse.ArgumentTypeError(message)
+
+    def __repr__(self) -> str:
+        args = self._mode, self._bufsize
+        kwargs = [("encoding", self._encoding), ("errors", self._errors)]
+        args_str = ", ".join(
+            [repr(arg) for arg in args if arg != -1]
+            + [f"{kw}={arg!r}" for kw, arg in kwargs if arg is not None]
+        )
+        return f"{type(self).__name__}({args_str})"
+
+
+def cli_detect(argv: list[str] | None = None) -> int:
     """
     CLI assistant using ARGV and ArgumentParser
     :param argv:
@@ -58,7 +119,7 @@ def cli_detect(argv: Optional[List[str]] = None) -> int:
     )
 
     parser.add_argument(
-        "files", type=argparse.FileType("rb"), nargs="+", help="File(s) to be analysed"
+        "files", type=FileType("rb"), nargs="+", help="File(s) to be analysed"
     )
     parser.add_argument(
         "-v",
@@ -124,7 +185,7 @@ def cli_detect(argv: Optional[List[str]] = None) -> int:
         default=0.2,
         type=float,
         dest="threshold",
-        help="Define a custom maximum amount of chaos allowed in decoded content. 0. <= chaos <= 1.",
+        help="Define a custom maximum amount of noise allowed in decoded content. 0. <= noise <= 1.",
     )
     parser.add_argument(
         "--version",
@@ -259,7 +320,7 @@ def cli_detect(argv: Optional[List[str]] = None) -> int:
                 dir_path = dirname(realpath(my_file.name))
                 file_name = basename(realpath(my_file.name))
 
-                o_: List[str] = file_name.split(".")
+                o_: list[str] = file_name.split(".")
 
                 if args.replace is False:
                     o_.insert(-1, best_guess.encoding)
@@ -284,7 +345,7 @@ def cli_detect(argv: Optional[List[str]] = None) -> int:
 
                     with open(x_[0].unicode_path, "wb") as fp:
                         fp.write(best_guess.output())
-                except IOError as e:
+                except OSError as e:
                     print(str(e), file=sys.stderr)
                     if my_file.closed is False:
                         my_file.close()
