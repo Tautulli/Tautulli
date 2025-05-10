@@ -158,6 +158,56 @@ class WebInterface(object):
         self.interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/')
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def test_s3_connection(self, s3_bucket=None, s3_region=None, s3_access_key=None, s3_secret_key=None, s3_endpoint=None, **kwargs):
+        """
+        Test connection to an S3 bucket
+        """
+        if not s3_bucket:
+            return {'result': 'error', 'message': 'S3 bucket name cannot be blank.'}
+
+        import boto3
+        from botocore.exceptions import ClientError, NoCredentialsError
+
+        try:
+            # Create S3 client
+            s3_config = {
+                'region_name': s3_region if s3_region else 'us-east-1',
+            }
+            
+            # Add custom endpoint URL if provided
+            if s3_endpoint:
+                s3_config['endpoint_url'] = s3_endpoint
+
+            # Add credentials if provided
+            if s3_access_key and s3_secret_key:
+                s3_config['aws_access_key_id'] = s3_access_key
+                s3_config['aws_secret_access_key'] = s3_secret_key
+            
+            s3_client = boto3.client('s3', **s3_config)
+            
+            # Try to list objects to verify connection and permissions
+            response = s3_client.list_objects_v2(Bucket=s3_bucket, MaxKeys=1)
+            
+            return {'result': 'success', 'message': 'Successfully connected to S3 bucket.'}
+            
+        except NoCredentialsError:
+            return {'result': 'error', 'message': 'AWS credentials not found. Please provide access key and secret key.'}
+        except ClientError as e:
+            error_code = e.response.get('Error', {}).get('Code', '')
+            error_msg = e.response.get('Error', {}).get('Message', str(e))
+            
+            if error_code == 'AccessDenied':
+                return {'result': 'error', 'message': 'Access denied. Please verify your credentials and permissions.'}
+            elif error_code == 'NoSuchBucket':
+                return {'result': 'error', 'message': f"Bucket '{s3_bucket}' does not exist."}
+            else:
+                return {'result': 'error', 'message': f"S3 error: {error_msg}"}
+        except Exception as e:
+            return {'result': 'error', 'message': f"Error connecting to S3: {str(e)}"}
+
+    @cherrypy.expose
     @requireAuth()
     def index(self, **kwargs):
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
@@ -3287,7 +3337,31 @@ class WebInterface(object):
         # If we change the authentication settings, make sure we refresh the users lists.
         if kwargs.pop('auth_changed', None):
             refresh_users = True
-
+            
+        # Handle S3 backup parameter mappings
+        s3_field_maps = {
+            's3_bucket': 'S3_BUCKET_NAME',
+            's3_region': 'S3_REGION',
+            's3_access_key': 'S3_ACCESS_KEY',
+            's3_secret_key': 'S3_SECRET_KEY',
+            's3_endpoint': 'S3_ENDPOINT',
+            's3_prefix': 'S3_PREFIX',
+            's3_secure': 'S3_SECURE'
+        }
+        
+        for form_key, config_key in s3_field_maps.items():
+            if form_key in kwargs:
+                # Ensure string values for endpoints to prevent list nesting
+                if isinstance(kwargs[form_key], list) or (form_key == 's3_endpoint' and kwargs[form_key]):
+                    kwargs[form_key] = str(kwargs[form_key])
+                    # Remove any nested list formatting
+                    if form_key == 's3_endpoint':
+                        kwargs[form_key] = kwargs[form_key].replace('[', '').replace(']', '').replace("'", "")
+                        if ',' in kwargs[form_key]:
+                            kwargs[form_key] = kwargs[form_key].split(',')[0].strip()
+        
+                kwargs[config_key] = kwargs.pop(form_key)
+            
         all_settings = config.SETTINGS + config.CHECKED_SETTINGS
         kwargs = {k: v for k, v in kwargs.items() if k.upper() in all_settings}
 
