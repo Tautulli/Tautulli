@@ -4575,12 +4575,32 @@ a.donate-with-crypto::after {
     top: 0;
     left: 0;
 }
+#crypto-select {
+    width: 280px;
+    margin: 15px auto;
+}
+#crypto-qrcode {
+    width: 258px;
+    padding: 0;
+    margin: 15px auto;
+    line-height: 0;
+    text-align: center;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: none;
+}
+#crypto-address {
+    margin: 15px auto;
+    text-align: center;
+    display: none;
+}
 
 #api_qr_code {
     width: 100%;
     padding: 0;
     margin: 0 0 10px;
-    line-height: 1;
+    line-height: 0;
     text-align: center;
     background-color: #eee;
     border: 1px solid #ccc;
