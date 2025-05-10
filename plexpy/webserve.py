@@ -498,6 +498,9 @@ class WebInterface(object):
                           "section_type": "Show",
                           "server_id": "ds48g4r354a8v9byrrtr697g3g79w",
                           "thumb": "/library/metadata/153036/thumb/1462175062",
+                          "total_duration": 3048551210,
+                          "total_size": 62,
+                          "total_storage": 1866078986762,
                           "year": 2016
                           },
                          {...},
@@ -519,7 +522,9 @@ class WebInterface(object):
                           ("last_accessed", True, False),
                           ("last_played", True, True),
                           ("plays", True, False),
-                          ("duration", True, False)]
+                          ("duration", True, False),
+                          ("total_storage", True, False),
+                          ("total_duration", True, False)]
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "section_name")
 
         grouping = helpers.bool_true(grouping, return_none=True)
@@ -654,6 +659,40 @@ class WebInterface(object):
                 return "Failed to update library."
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_library_media_stats(self, section_id=None, refresh=''):
+        """ Get the media stats of a library section on Tautulli.
+
+            ```
+            Required parameters:
+                section_id (str):           The id of the Plex library section
+                refresh (str):              "true" to force a refresh of the stats
+
+            Optional parameters:
+                None
+
+            Returns:
+                {
+                    "total_duration": 3048551210,
+                    "total_size": 62,
+                    "total_storage": 1866078986762
+                }
+            ```
+        """
+
+        if helpers.bool_true(refresh):
+            refresh = True
+        else:
+            refresh = False
+        
+        logger.info("Getting library media stats for section %s.", section_id)
+        result = libraries.get_library_media_stats(section_id=section_id, refresh=refresh)
+
+        return result
+
+    @cherrypy.expose
     @requireAuth()
     def library_watch_time_stats(self, section_id=None, **kwargs):
         if not allow_session_library(section_id):
@@ -756,12 +795,14 @@ class WebInterface(object):
                      "recordsFiltered": 82,
                      "filtered_file_size": 2616760056742,
                      "total_file_size": 2616760056742,
+                     "total_media_duration": 7947375522,
                      "data":
                         [{"added_at": "1403553078",
                           "audio_channels": "",
                           "audio_codec": "",
                           "bitrate": "",
                           "container": "",
+                          "duration": "",
                           "file_size": 253660175293,
                           "grandparent_rating_key": "",
                           "last_played": 1462380698,
@@ -804,6 +845,7 @@ class WebInterface(object):
                           ("video_framerate", True, True),
                           ("audio_codec", True, True),
                           ("audio_channels", True, True),
+                          ("duration", True, False),
                           ("file_size", True, False),
                           ("last_played", True, False),
                           ("play_count", True, False)]
