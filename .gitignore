@@ -101,3 +101,5 @@ _ReSharper*/
 .snapcraft
 *_source.tar.bz2
 snap/.snapcraft
+
+/virtual
