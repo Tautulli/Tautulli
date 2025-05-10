@@ -158,6 +158,56 @@ class WebInterface(object):
         self.interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/')
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    def test_s3_connection(self, s3_bucket=None, s3_region=None, s3_access_key=None, s3_secret_key=None, s3_endpoint=None, **kwargs):
+        """
+        Test connection to an S3 bucket
+        """
+        if not s3_bucket:
+            return {'result': 'error', 'message': 'S3 bucket name cannot be blank.'}
+
+        import boto3
+        from botocore.exceptions import ClientError, NoCredentialsError
+
+        try:
+            # Create S3 client
+            s3_config = {
+                'region_name': s3_region if s3_region else 'us-east-1'
+            }
+            
+            # Add custom endpoint URL if provided
+            if s3_endpoint:
+                s3_config['endpoint_url'] = s3_endpoint
+
+            # Add credentials if provided
+            if s3_access_key and s3_secret_key:
+                s3_config['aws_access_key_id'] = s3_access_key
+                s3_config['aws_secret_access_key'] = s3_secret_key
+            
+            s3_client = boto3.client('s3', **s3_config)
+            
+            # Try to list objects to verify connection and permissions
+            response = s3_client.list_objects_v2(Bucket=s3_bucket, MaxKeys=1)
+            
+            return {'result': 'success', 'message': 'Successfully connected to S3 bucket.'}
+            
+        except NoCredentialsError:
+            return {'result': 'error', 'message': 'AWS credentials not found. Please provide access key and secret key.'}
+        except ClientError as e:
+            error_code = e.response.get('Error', {}).get('Code', '')
+            error_msg = e.response.get('Error', {}).get('Message', str(e))
+            
+            if error_code == 'AccessDenied':
+                return {'result': 'error', 'message': 'Access denied. Please verify your credentials and permissions.'}
+            elif error_code == 'NoSuchBucket':
+                return {'result': 'error', 'message': f"Bucket '{s3_bucket}' does not exist."}
+            else:
+                return {'result': 'error', 'message': f"S3 error: {error_msg}"}
+        except Exception as e:
+            return {'result': 'error', 'message': f"Error connecting to S3: {str(e)}"}
+
+    @cherrypy.expose
     @requireAuth()
     def index(self, **kwargs):
         if plexpy.CONFIG.FIRST_RUN_COMPLETE:
