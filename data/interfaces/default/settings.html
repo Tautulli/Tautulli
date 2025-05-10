@@ -1530,6 +1530,109 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="padded-header">
+                            <h3>S3 Backup</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="s3_backup_enabled" name="s3_backup_enabled" value="1" ${checked(config.get('s3_backup_enabled', 0))}> Enable S3 Backup
+                            </label>
+                            <p class="help-block">Enable backing up to Amazon S3 or compatible storage services.</p>
+                        </div>
+
+                        <div id="s3_backup_options" style="overflow: hidden; display: ${'' if config.get('s3_backup_enabled', 0) else 'none'}">
+                            <div class="form-group">
+                                <label for="s3_bucket">S3 Bucket Name</label>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" id="s3_bucket" name="s3_bucket" value="${config.get('s3_bucket', '')}" placeholder="mybucket">
+                                    </div>
+                                </div>
+                                <p class="help-block">The name of the S3 bucket to store backups.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="s3_region">S3 Region</label>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" id="s3_region" name="s3_region" value="${config.get('s3_region', 'us-east-1')}" placeholder="us-east-1">
+                                    </div>
+                                </div>
+                                <p class="help-block">The AWS region where your S3 bucket is located.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="s3_endpoint">S3 Endpoint</label>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" id="s3_endpoint" name="s3_endpoint" value="${config.get('s3_endpoint', '')}" placeholder="https://s3.region.backblazeb2.com">
+                                    </div>
+                                </div>
+                                <p class="help-block">Custom endpoint URL for S3-compatible services like Backblaze, MinIO, etc. Leave blank for AWS S3.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="s3_access_key">Access Key ID</label>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" id="s3_access_key" name="s3_access_key" value="${config.get('s3_access_key', '')}" placeholder="AKIAIOSFODNN7EXAMPLE">
+                                    </div>
+                                </div>
+                                <p class="help-block">Your AWS Access Key ID. Leave blank if using IAM roles.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="s3_secret_key">Secret Access Key</label>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <input type="password" class="form-control" id="s3_secret_key" name="s3_secret_key" value="${config.get('s3_secret_key', '')}" placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY">
+                                    </div>
+                                </div>
+                                <p class="help-block">Your AWS Secret Access Key. Leave blank if using IAM roles.</p>
+                            </div>
+
+                            <div class="form-group advanced-setting">
+                                <label for="s3_endpoint">S3 Endpoint</label>
+                                <div class="row">
+                                    <div class="col-md-7">
+                                        <input type="text" class="form-control" id="s3_endpoint" name="s3_endpoint" value="${config.get('s3_endpoint', '')}" placeholder="https://s3.amazonaws.com">
+                                    </div>
+                                </div>
+                                <p class="help-block">Custom S3 endpoint URL. Use this for S3-compatible services like MinIO, DigitalOcean Spaces, etc.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="s3_prefix">S3 Folder Prefix</label>
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <input type="text" class="form-control" id="s3_prefix" name="s3_prefix" value="${config.get('s3_prefix', 'tautulli-backups/')}" placeholder="tautulli-backups/">
+                                    </div>
+                                </div>
+                                <p class="help-block">Path prefix for backup storage (like a folder). Should end with a forward slash '/'.</p>
+                            </div>
+
+                            <div class="checkbox advanced-setting">
+                                <label>
+                                    <input type="checkbox" id="s3_backup_local_copy" name="s3_backup_local_copy" value="1" ${checked(config.get('s3_backup_local_copy', 1))}> Keep Local Copy
+                                </label>
+                                <p class="help-block">Keep a local copy of backups in addition to the S3 backup.</p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="test_s3_connection">Test S3 Connection</label>
+                                <p class="help-block">Test your S3 connection and credentials.</p>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="btn-group">
+                                            <button class="btn btn-form" type="button" id="test_s3_connection">Test Connection</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label for="cache_dir">Cache Directory</label> ${docker_msg | n}
                             <div class="row">
@@ -2405,6 +2508,64 @@ $(document).ready(function() {
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             window.location.href = 'restart';
+        });
+    });
+
+    // S3 Backup Options handling
+    $('#s3_backup_enabled').change(function() {
+        if ($(this).is(':checked')) {
+            $('#s3_backup_options').slideDown();
+        } else {
+            $('#s3_backup_options').slideUp();
+        }
+    });
+
+    $("#test_s3_connection").click(function() {
+        var s3_bucket = $("#s3_bucket").val();
+        var s3_region = $("#s3_region").val();
+        var s3_access_key = $("#s3_access_key").val();
+        var s3_secret_key = $("#s3_secret_key").val();
+        var s3_endpoint = $("#s3_endpoint").val();
+        
+        if (!s3_bucket) {
+            showMsg('<i class="fa fa-exclamation-circle"></i> S3 bucket name cannot be blank.', false, true, 5000, true);
+            return;
+        }
+
+        $(this).html('<i class="fa fa-refresh fa-spin"></i> Testing').prop('disabled', true);
+        showMsg('<i class="fa fa-refresh fa-spin"></i> Testing S3 connection...', true, false, 0, false);
+        
+        $.ajax({
+            url: 'test_s3_connection',
+            type: 'POST',
+            data: {
+                s3_bucket: s3_bucket,
+                s3_region: s3_region,
+                s3_access_key: s3_access_key,
+                s3_secret_key: s3_secret_key,
+                s3_endpoint: s3_endpoint
+            },
+            cache: false,
+            async: true,
+            timeout: 15000,
+            error: function(jqXHR, textStatus, errorThrown) {
+                $("#test_s3_connection").html('Test Connection').prop('disabled', false);
+                var msg = 'Failed to test S3 connection.';
+                if (textStatus === 'timeout') {
+                    msg += ' Connection timed out.';
+                } else {
+                    msg += ' Error: ' + jqXHR.status;
+                }
+                showMsg('<i class="fa fa-exclamation-circle"></i> ' + msg, false, true, 5000, true);
+            },
+            success: function(data) {
+                $("#test_s3_connection").html('Test Connection').prop('disabled', false);
+                if (data.result === 'success') {
+                    showMsg('<i class="fa fa-check"></i> ' + data.message, false, true, 5000);
+                } else {
+                    showMsg('<i class="fa fa-exclamation-circle"></i> ' + data.message, false, true, 5000, true);
+                }
+            }
         });
     });
 
