@@ -339,7 +339,8 @@ class Export(object):
                             'duration': None,
                             'profile': None,
                             'samplingRate': None,
-                            'streamIdentifier': None
+                            'streamIdentifier': None,
+                            'visualImpaired': None
                         },
                         'subtitleStreams': {
                             'canAutoSync': None,
@@ -362,6 +363,8 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
+                            'hearingImpaired': None,
+                            'perfectMatch': None,
                             'providerTitle': None,
                             'score': None,
                             'sourceKey': None,
@@ -761,7 +764,8 @@ class Export(object):
                             'duration': None,
                             'profile': None,
                             'samplingRate': None,
-                            'streamIdentifier': None
+                            'streamIdentifier': None,
+                            'visualImpaired': None
                         },
                         'subtitleStreams': {
                             'canAutoSync': None,
@@ -784,6 +788,8 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
+                            'hearingImpaired': None,
+                            'perfectMatch': None,
                             'providerTitle': None,
                             'score': None,
                             'sourceKey': None,
@@ -1098,7 +1104,9 @@ class Export(object):
                             'peak': None,
                             'profile': None,
                             'samplingRate': None,
-                            'startRamp': None
+                            'startRamp': None,
+                            'streamIdentifier': None,
+                            'visualImpaired': None
                         },
                         'lyricStreams': {
                             'codec': None,
