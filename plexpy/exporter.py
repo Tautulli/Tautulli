@@ -729,7 +729,7 @@ class Export(object):
                             'frameRate': None,
                             'frameRateMode': None,
                             'hasScalingMatrix': None,
-                            'hdr': lambda o: helpers.is_hdr(getattr(o, 'bitDepth', 0), getattr(o, 'colorSpace', '')),
+                            'hdr': lambda o: helpers.is_hdr(getattr(o, 'bitDepth', 0), getattr(o, 'colorTrc', '')),
                             'height': None,
                             'level': None,
                             'pixelAspectRatio': None,
