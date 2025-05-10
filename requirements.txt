@@ -43,7 +43,7 @@ tempora==5.7.0
 tokenize-rt==6.1.0
 tzdata==2024.2
 tzlocal==5.0.1
-urllib3<2
+urllib3<3
 webencodings==0.5.1
 websocket-client==1.8.0
 xmltodict==0.14.2
