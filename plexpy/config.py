@@ -501,7 +501,8 @@ class Config(object):
 
     def _from_env(self, key, definition_type):
         """ Get key from environment variables, if it exists """
-        val = os.environ.get(key)
+        env_key = "TAUTULLI_" + key
+        val = os.environ.get(env_key)
         try:
             if val:
                 return definition_type(val)
