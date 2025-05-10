@@ -80,6 +80,14 @@ _CONFIG_DEFINITIONS = {
     'BACKUP_DAYS': (int, 'General', 3),
     'BACKUP_DIR': (str, 'General', ''),
     'BACKUP_INTERVAL': (int, 'General', 6),
+    'S3_BACKUP_ENABLED': (int, 'S3 Backup', 0),
+    'S3_ENDPOINT': (str, 'S3 Backup', ''),
+    'S3_ACCESS_KEY': (str, 'S3 Backup', ''),
+    'S3_SECRET_KEY': (str, 'S3 Backup', ''),
+    'S3_BUCKET_NAME': (str, 'S3 Backup', ''),
+    'S3_REGION': (str, 'S3 Backup', 'us-east-1'),
+    'S3_PREFIX': (str, 'S3 Backup', ''),
+    'S3_SECURE': (bool_int, 'S3 Backup', 1),
     'CACHE_DIR': (str, 'General', ''),
     'CACHE_IMAGES': (int, 'General', 1),
     'CACHE_SIZEMB': (int, 'Advanced', 32),
@@ -292,6 +300,12 @@ SETTINGS = [
     'PMS_WEB_URL',
     'REFRESH_LIBRARIES_INTERVAL',
     'REFRESH_USERS_INTERVAL',
+    'S3_ACCESS_KEY',
+    'S3_BUCKET_NAME',
+    'S3_ENDPOINT',
+    'S3_PREFIX',
+    'S3_REGION',
+    'S3_SECRET_KEY',
     'SHOW_ADVANCED_SETTINGS',
     'TIME_FORMAT',
     'TV_WATCHED_PERCENT',
@@ -331,6 +345,8 @@ CHECKED_SETTINGS = [
     'PMS_URL_MANUAL',
     'REFRESH_LIBRARIES_ON_STARTUP',
     'REFRESH_USERS_ON_STARTUP',
+    'S3_BACKUP_ENABLED',
+    'S3_SECURE',
     'SYS_TRAY_ICON',
     'THEMOVIEDB_LOOKUP',
     'TVMAZE_LOOKUP',
@@ -425,7 +441,21 @@ def make_backup(cleanup=False, scheduler=False):
                     except OSError as e:
                         logger.error("Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
-    if backup_file in os.listdir(backup_folder):
+    backup_success = backup_file in os.listdir(backup_folder)
+    
+    # Upload to S3 if enabled
+    if backup_success and plexpy.CONFIG.S3_BACKUP_ENABLED:
+        try:
+            from plexpy import s3_uploader
+            s3_success = s3_uploader.upload_file_to_s3(backup_file_fp)
+            if s3_success:
+                logger.debug("Tautulli Config :: Successfully uploaded backup to S3")
+            else:
+                logger.error("Tautulli Config :: Failed to upload backup to S3")
+        except Exception as e:
+            logger.error("Tautulli Config :: Failed to upload backup to S3: %s" % e)
+    
+    if backup_success:
         logger.debug("Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return True
     else:

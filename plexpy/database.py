@@ -371,7 +371,21 @@ def make_backup(cleanup=False, scheduler=False):
                     except OSError as e:
                         logger.error("Tautulli Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
-    if backup_file in os.listdir(backup_folder):
+    backup_success = backup_file in os.listdir(backup_folder)
+    
+    # Upload to S3 if enabled
+    if backup_success and plexpy.CONFIG.S3_BACKUP_ENABLED:
+        try:
+            from plexpy import s3_uploader
+            s3_success = s3_uploader.upload_file_to_s3(backup_file_fp)
+            if s3_success:
+                logger.debug("Tautulli Database :: Successfully uploaded backup to S3")
+            else:
+                logger.error("Tautulli Database :: Failed to upload backup to S3")
+        except Exception as e:
+            logger.error("Tautulli Database :: Failed to upload backup to S3: %s" % e)
+            
+    if backup_success:
         logger.debug("Tautulli Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
         return True
     else:
