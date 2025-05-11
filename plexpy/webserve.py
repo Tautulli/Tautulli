@@ -1978,9 +1978,9 @@ class WebInterface(object):
                 pms_connect = pmsconnect.PmsConnect()
                 result = pms_connect.get_item_children(rating_key=kwargs.pop('rating_key'), media_type=kwargs.pop('media_type'))
                 rating_keys = [child['rating_key'] for child in result['children_list']]
-                custom_where.append(['session_history_metadata.rating_key OR', rating_keys])
-                custom_where.append(['session_history_metadata.parent_rating_key OR', rating_keys])
-                custom_where.append(['session_history_metadata.grandparent_rating_key OR', rating_keys])
+                custom_where.append(['session_history_metadata.rating_key IN OR', rating_keys])
+                custom_where.append(['session_history_metadata.parent_rating_key IN OR', rating_keys])
+                custom_where.append(['session_history_metadata.grandparent_rating_key IN OR', rating_keys])
             else:
                 rating_key = helpers.split_strip(kwargs.pop('rating_key', ''))
                 if rating_key:
@@ -2024,7 +2024,7 @@ class WebInterface(object):
         if 'guid' in kwargs:
             guid = helpers.split_strip(kwargs.pop('guid', '').split('?')[0])
             if guid:
-                custom_where.append(['session_history_metadata.guid', ['LIKE ' + g + '%' for g in guid]])
+                custom_where.append(['session_history_metadata.guid LIKE', [f"{g}%" for g in guid]])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,

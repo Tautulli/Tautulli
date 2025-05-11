@@ -3391,7 +3391,7 @@ class PmsConnect(object):
         color_trc = helpers.get_xml_attr(stream, 'colorTrc')
         DOVI_profile = helpers.get_xml_attr(stream, 'DOVIProfile')
 
-        HDR = bool(bit_depth > 8 and (color_trc == 'smpte2084' or color_trc == 'arib-std-b67'))
+        HDR = helpers.is_hdr(bit_depth, color_trc)
         DV = bool(DOVI_profile)
 
         if not HDR and not DV:

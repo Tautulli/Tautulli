@@ -234,7 +234,7 @@ ${next.modalIncludes()}
                     <li><a href="#patreon-donation" role="tab" data-toggle="tab">Patreon</a></li>
                     <li><a href="#stripe-donation" role="tab" data-toggle="tab">Stripe</a></li>
                     <li><a href="#paypal-donation" role="tab" data-toggle="tab">PayPal</a></li>
-                    <li><a href="#crypto-donation" role="tab" data-toggle="tab">Crypto</a></li>
+                    <li><a href="#crypto-donation" role="tab" data-toggle="tab" id="crypto-donation-tab">Crypto</a></li>
                 </ul>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane active" id="github-donation" style="text-align: center">
@@ -283,7 +283,16 @@ ${next.modalIncludes()}
                     </div>
                     <div role="tabpanel" class="tab-pane" id="crypto-donation" style="text-align: center">
                         <p>
-                            Click the button below to continue to Coinbase.
+                            Select a cryptocurrency.
+                        </p>
+                        <select class="form-control" id="crypto-select"></select>
+                        <div id="crypto-qrcode"></div>
+                        <div id="crypto-address" class="form-group">
+                            <label>Address:</label>
+                            <span class="inline-pre" id="crypto-address-value"></span>
+                        </div>
+                        <p>
+                            Or click the button below to continue to Coinbase.
                         </p>
                         <a href="${anon_url('https://commerce.coinbase.com/checkout/8a9fa08c-8a38-409e-9220-868124c4ba0c')}" target="_blank" rel="noreferrer" class="donate-with-crypto">
                             <span>Donate with Crypto</span>
@@ -331,6 +340,7 @@ ${next.modalIncludes()}
 <script src="${http_root}js/blurhash_pure_js_port.min.js"></script>
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/ajaxNotifications.js"></script>
+<script src="${http_root}js/kjua.min.js"></script>
 <script>
     % if _session['user_group'] == 'admin':
     $('body').on('click', '#updateDismiss', function() {
@@ -403,6 +413,42 @@ ${next.modalIncludes()}
         $(this).html('<i class="fa fa-fw fa-spin fa-refresh"></i> Checking');
         checkUpdate(function () { $('#nav-update').html('<i class="fa fa-fw fa-arrow-alt-circle-up"></i> Check for Updates'); });
     });
+
+    $('#crypto-donation-tab').one('shown.bs.tab', function (e) {
+        $.ajax({
+            url: 'https://tautulli.com/donate/crypto-addresses.json',
+            type: 'GET',
+            dataType: 'json',
+            cache: false,
+            async: true,
+            success: function (data) {
+                $('#crypto-select').empty().append('<option selected disabled>Select Cryptocurrency</option>');
+                $.each(data, function (index, crypto) {
+                    $('<option/>', {
+                        text: crypto.name + ' (' + crypto.symbol + ')',
+                        value: crypto.address
+                    }).appendTo('#crypto-select');
+                });
+            },
+            error: function () {
+                $('#crypto-select').empty().append('<option selected disabled>Error: Unable to load addresses</option>');
+            }
+        });
+    });
+
+    $('#crypto-select').change(function() {
+        var address = $(this).val();
+        $('#crypto-qrcode').empty().kjua({
+            text: address,
+            render: 'canvas',
+            ecLevel: 'H',
+            size: 256,
+            fill: '#000',
+            back: '#eee'
+        }).show();
+        $('#crypto-address-value').text(address);
+        $('#crypto-address').show();
+    })
 
     % endif
 
