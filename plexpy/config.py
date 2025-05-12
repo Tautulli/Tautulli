@@ -502,10 +502,13 @@ class Config(object):
         key, definition_type, section, ini_key, default = self._define(name)
         # Check if the key is in the environment variables
         env_value = self._from_env(key)
-        if not env_value:
-            # If not, set the value in the config file
-            self._config[section][ini_key] = self._cast_setting(definition_type, value, default)
-            return self._config[section][ini_key]
+        if env_value:
+            logger.warn("Tautulli Config :: '%s' set by environment variable. Setting not saved to config.", key)
+            return
+
+        # If not, set the value in the config file
+        self._config[section][ini_key] = self._cast_setting(definition_type, value, default)
+        return self._config[section][ini_key]
     
     def _from_env(self, key):
         """ Get key from environment variables, if it exists """
