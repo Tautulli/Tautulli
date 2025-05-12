@@ -479,20 +479,48 @@ class Config(object):
         """ Check if INI section exists, if not create it """
         if section not in self._config:
             self._config[section] = {}
-            return True
-        else:
-            return False
 
-    def check_setting(self, key):
-        """ Cast any value in the config to the right type or use the default """
-        key, definition_type, section, ini_key, default = self._define(key)
+    def check_setting(self, name):
+        """ Check if INI key exists, if not create it """
+        key, definition_type, section, ini_key, default = self._define(name)
         self.check_section(section)
+        value = self._config[section].get(ini_key, default)
+        self._config[section][ini_key] = self._cast_setting(definition_type, value, default)
+    
+    def get_setting(self, name):
+        """ Get the value of a setting, either from the config file or environment variable """
+        key, definition_type, section, ini_key, default = self._define(name)
+        # Check if the key is in the environment variables
+        value = self._from_env(key)
+        if not value:
+            # If not, check if the key is in the config file
+            value = self._config[section].get(ini_key, default)
+        return self._cast_setting(definition_type, value, default)
+    
+    def set_setting(self, name, value):
+        """ Set the value of a setting in the config file """
+        key, definition_type, section, ini_key, default = self._define(name)
+        # Check if the key is in the environment variables
+        env_value = self._from_env(key)
+        if env_value:
+            logger.warn("Tautulli Config :: '%s' set by environment variable. Setting not saved to config.", key)
+            return
+
+        # If not, set the value in the config file
+        self._config[section][ini_key] = self._cast_setting(definition_type, value, default)
+        return self._config[section][ini_key]
+    
+    def _from_env(self, key):
+        """ Get key from environment variables, if it exists """
+        env_key = f"TAUTULLI_{key}"
+        return os.environ.get(env_key)
+    
+    def _cast_setting(self, definition_type, value, default=None):
+        """ Cast the value to the correct type, or use the default if it fails """
         try:
-            my_val = definition_type(self._config[section][ini_key])
+            return definition_type(value)
         except Exception:
-            my_val = definition_type(default)
-            self._config[section][ini_key] = my_val
-        return my_val
+            return definition_type(default)
 
     def write(self):
         """ Make a copy of the stored config and write it to the configured file """
@@ -533,7 +561,7 @@ class Config(object):
         if not re.match(r'[A-Z0-9_]+$', name):
             return super(Config, self).__getattr__(name)
         else:
-            return self.check_setting(name)
+            return self.get_setting(name)
 
     def __setattr__(self, name, value):
         """
@@ -544,9 +572,7 @@ class Config(object):
             super(Config, self).__setattr__(name, value)
             return value
         else:
-            key, definition_type, section, ini_key, default = self._define(name)
-            self._config[section][ini_key] = definition_type(value)
-            return self._config[section][ini_key]
+            return self.set_setting(name, value)
 
     def __delattr__(self, name):
         """
@@ -563,8 +589,7 @@ class Config(object):
         Given a big bunch of key value pairs, apply them to the ini.
         """
         for name, value in kwargs.items():
-            key, definition_type, section, ini_key, default = self._define(name)
-            self._config[section][ini_key] = definition_type(value)
+            self.__setattr__(name.upper(), value)
 
     def _upgrade(self):
         """
