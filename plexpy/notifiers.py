@@ -89,7 +89,8 @@ AGENT_IDS = {'growl': 0,
              'lunasea': 27,
              'microsoftteams': 28,
              'gotify': 29,
-             'ntfy': 30
+             'ntfy': 30,
+             'icarus': 31
              }
 
 DEFAULT_CUSTOM_CONDITIONS = [{'parameter': '', 'operator': '', 'value': [], 'type': None}]
@@ -177,6 +178,12 @@ def available_notification_agents():
                'name': 'lunasea',
                'id': AGENT_IDS['lunasea'],
                'class': LUNASEA,
+               'action_types': ('all',)
+               },
+               {'label': 'Icarus',
+               'name': 'icarus',
+               'id': AGENT_IDS['icarus'],
+               'class': ICARUS,
                'action_types': ('all',)
                },
               {'label': 'Microsoft Teams',
@@ -2240,6 +2247,73 @@ class LUNASEA(Notifier):
 
         return config_option
 
+
+class ICARUS(Notifier):
+    """
+    Icarus Notifications
+    """
+    NAME = 'Icarus'
+    _DEFAULT_CONFIG = {'hook': '',
+                       'profile': '',
+                       'incl_subject': 1
+                       }
+
+    def agent_notify(self, subject='', body='', action='', **kwargs):
+        if self.config['incl_subject']:
+            text = subject + '\r\n' + body
+        else:
+            text = body
+
+        if self.config['profile']:
+            auth = HTTPBasicAuth(self.config['profile'], '')
+        else:
+            auth = None
+
+        pretty_metadata = PrettyMetadata(kwargs['parameters'])
+
+        payload = {
+            'action': action,
+            'data': {
+                'message': text,
+                'user': pretty_metadata.parameters.get('user'),
+                'user_id': pretty_metadata.parameters.get('user_id'),
+                'player': pretty_metadata.parameters.get('player'),
+                'title': pretty_metadata.get_title(),
+                'poster_url': pretty_metadata.get_poster_url(),
+                'session_key': pretty_metadata.parameters.get('session_key'),
+                'session_id': pretty_metadata.parameters.get('session_id'),
+                'user_streams': pretty_metadata.parameters.get('user_streams'),
+                'remote_access_reason': pretty_metadata.parameters.get('remote_access_reason'),
+                'update_version': pretty_metadata.parameters.get('update_version'),
+                'tautulli_update_version': pretty_metadata.parameters.get('tautulli_update_version')
+            }
+        }
+
+        return self.make_request(self.config['hook'], json=payload, auth=auth)
+
+    def _return_config_options(self):
+        config_option = [{'label': 'Icarus Webhook URL',
+                          'value': self.config['hook'],
+                          'name': 'icarus_hook',
+                          'description': 'Your Icarus notification webhook URL.',
+                          'input_type': 'token'
+                          },
+                         {'label': 'Icarus UUID',
+                          'value': self.config['profile'],
+                          'name': 'icarus_profile',
+                          'description': 'Your Icarus Tautulli UUID located in app. Used for notification deep linking. [Optional].',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Include Subject Line',
+                          'value': self.config['incl_subject'],
+                          'name': 'icarus_incl_subject',
+                          'description': 'Include the subject line with the notifications. [Required]',
+                          'input_type': 'checkbox'
+                          }
+                         ]
+
+        return config_option
+    
 
 class MICROSOFTTEAMS(Notifier):
     """
