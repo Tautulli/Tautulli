@@ -34,7 +34,7 @@ pyparsing==3.2.0
 python-dateutil==2.9.0.post0
 python-twitter==3.5
 pytz==2024.2
-requests==2.32.3
+requests==2.32.4
 requests-oauthlib==2.0.0
 rumps==0.4.0; platform_system == "Darwin"
 simplejson==3.19.3
