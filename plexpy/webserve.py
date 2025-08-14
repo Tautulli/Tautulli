@@ -4801,7 +4801,7 @@ class WebInterface(object):
         ffp = os.path.join(c_dir, fp)
 
         if not os.path.exists(c_dir):
-            os.mkdir(c_dir)
+            os.makedirs(c_dir, exist_ok=True)
 
         clip = helpers.bool_true(clip)
 
