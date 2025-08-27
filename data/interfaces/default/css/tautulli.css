@@ -1798,7 +1798,7 @@ a:hover .dashboard-recent-media-cover {
     text-align: center;
     display: block;
     position: absolute;
-    top: calc(50% - 34px);
+    top: calc(50% - 42px);
     width: 100%;
 }
 a:hover .summary-poster-face .summary-poster-face-overlay,
