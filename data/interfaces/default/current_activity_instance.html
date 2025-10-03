@@ -381,7 +381,7 @@ DOCUMENTATION :: END
                         <script>
                             $("#stream-view-offset-${sk}").html(millisecondsToActivityDuration(parseInt("${data['view_offset']}"), "${activity_time_format_type}"));
                         </script>
-                    </span> / <span class="progress_time_total" id="stream-duration-${sk}">
+                    </span> / <span class="progress_time_total" id="stream-duration-${sk}" data-activity-time-format-type="${activity_time_format_type}">
                         <script>
                             $("#stream-duration-${sk}").html(millisecondsToActivityDuration(parseInt("${data['stream_duration']}"), "${activity_time_format_type}"));
                         </script>
@@ -391,7 +391,7 @@ DOCUMENTATION :: END
                         <script>
                             $("#stream-view-offset-${sk}-placeholder").html(millisecondsToActivityDuration(0, "${activity_time_format_type}"));
                         </script>
-                    </span> / <span class="progress_time_total" id="stream-duration-${sk}">
+                    </span> / <span class="progress_time_total" id="stream-duration-${sk}" data-activity-time-format-type="${activity_time_format_type}">
                         <script>
                             $("#stream-duration-${sk}").html(millisecondsToActivityDuration(parseInt("${data['stream_duration']}"), "${activity_time_format_type}"));
                         </script>
