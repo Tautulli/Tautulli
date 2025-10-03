@@ -225,14 +225,40 @@
 <script>
     var date_format = 'YYYY-MM-DD';
     var time_format = 'hh:mm a';
+    var activity_time_format_type = 'MM:SS';
     $.ajax({
         url: 'get_date_formats',
         type: 'GET',
         success: function (data) {
             date_format = data.date_format;
             time_format = data.time_format;
+            activity_time_format_type = data.activity_time_format_type || 'MM:SS';
         }
     });
+
+    function millisecondsToActivityDuration(ms, formatType='MM:SS') {
+        if (ms <= 0) {
+            return formatType === 'MM:SS' ? '0:00' : '00:00:00';
+        }
+        
+        try {
+            ms = parseInt(ms);
+            var hours = Math.floor(ms / 3600000);
+            var minutes = Math.floor((ms % 3600000) / 60000);
+            var seconds = Math.floor((ms % 60000) / 1000);
+            
+            if (formatType === 'HH:MM:SS') {
+                return String(hours).padStart(2, '0') + ':' + 
+                       String(minutes).padStart(2, '0') + ':' + 
+                       String(seconds).padStart(2, '0');
+            } else { // MM:SS format
+                var totalMinutes = hours * 60 + minutes;
+                return totalMinutes + ':' + String(seconds).padStart(2, '0');
+            }
+        } catch (e) {
+            return formatType === 'MM:SS' ? '0:00' : '00:00:00';
+        }
+    }
 
     function lockScroll(elem) {
         $(elem).each(function (i, instance)  {
@@ -669,7 +695,7 @@
                 if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
                     var view_offset = parseInt($(this).data('view_offset'));
                     var stream_duration = parseInt($(this).data('stream_duration'));
-                    var timestamp = millisecondsToMinutes(Math.min(view_offset, stream_duration), false);
+                    var timestamp = millisecondsToActivityDuration(Math.min(view_offset, stream_duration), activity_time_format_type);
                     $(this).html(timestamp).data('view_offset', Math.min(view_offset + 1000, stream_duration))
                 }
             });

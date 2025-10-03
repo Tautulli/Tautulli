@@ -284,7 +284,8 @@ class WebInterface(object):
             time_format = 'HH:mm'
 
         formats = {'date_format': date_format,
-                   'time_format': time_format}
+                   'time_format': time_format,
+                   'activity_time_format_type': plexpy.CONFIG.ACTIVITY_TIME_FORMAT_TYPE}
 
         return formats
 
@@ -310,9 +311,13 @@ class WebInterface(object):
 
         if result:
             session = next((s for s in result['sessions'] if s['session_key'] == session_key), None)
-            return serve_template(template_name="current_activity_instance.html", session=session)
+            return serve_template(template_name="current_activity_instance.html", 
+                                session=session, 
+                                activity_time_format_type=plexpy.CONFIG.ACTIVITY_TIME_FORMAT_TYPE)
         else:
-            return serve_template(template_name="current_activity_instance.html", session=None)
+            return serve_template(template_name="current_activity_instance.html", 
+                                session=None, 
+                                activity_time_format_type=plexpy.CONFIG.ACTIVITY_TIME_FORMAT_TYPE)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

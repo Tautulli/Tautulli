@@ -126,6 +126,18 @@
                             </div>
                             <p class="help-block">Set your preferred time format. <a href="javascript:void(0)" data-target="#dateTimeOptionsModal" data-toggle="modal">Click here</a> to see the parameter list.</p>
                         </div>
+                        <div class="form-group">
+                            <label for="activity_time_format_type">Activity Duration Format</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <select class="form-control" id="activity_time_format_type" name="activity_time_format_type">
+                                        <option value="MM:SS" ${'selected' if config['activity_time_format_type'] == 'MM:SS' else ''}>MM:SS (e.g., 118:42)</option>
+                                        <option value="HH:MM:SS" ${'selected' if config['activity_time_format_type'] == 'HH:MM:SS' else ''}>HH:MM:SS (e.g., 01:58:42)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">Choose how elapsed and remaining playback times are displayed in the Activity screen.</p>
+                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" id="week_start_monday" name="week_start_monday" value="1" ${config['week_start_monday']}> Week Starting on Monday

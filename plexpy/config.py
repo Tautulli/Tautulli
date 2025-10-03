@@ -70,6 +70,7 @@ _CONFIG_DEFINITIONS = {
     'PMS_UPDATE_CHECK_INTERVAL': (int, 'Advanced', 24),
     'PMS_WEB_URL': (str, 'PMS', 'https://app.plex.tv/desktop'),
     'TIME_FORMAT': (str, 'General', 'HH:mm'),
+    'ACTIVITY_TIME_FORMAT_TYPE': (str, 'General', 'MM:SS'),
     'ANON_REDIRECT': (str, 'General', ''),
     'ANON_REDIRECT_DYNAMIC': (int, 'General', 1),
     'API_ENABLED': (int, 'General', 1),
@@ -227,6 +228,7 @@ IS_IMPORTING = False
 IMPORT_THREAD = None
 
 SETTINGS = [
+    'ACTIVITY_TIME_FORMAT_TYPE',
     'ANON_REDIRECT',
     'API_KEY',
     'BACKUP_DAYS',

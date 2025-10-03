@@ -379,17 +379,21 @@ DOCUMENTATION :: END
                         </script>
                     </span><br /><span class="progress_time_offset" id="stream-view-offset-${sk}" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-stream_duration="${data['stream_duration']}" data-state="${data['state']}">
                         <script>
-                            $("#stream-view-offset-${sk}").html(millisecondsToMinutes(parseInt("${data['view_offset']}"), false));
+                            $("#stream-view-offset-${sk}").html(millisecondsToActivityDuration(parseInt("${data['view_offset']}"), "${activity_time_format_type}"));
                         </script>
                     </span> / <span class="progress_time_total" id="stream-duration-${sk}">
                         <script>
-                            $("#stream-duration-${sk}").html(millisecondsToMinutes(parseInt("${data['stream_duration']}"), false));
+                            $("#stream-duration-${sk}").html(millisecondsToActivityDuration(parseInt("${data['stream_duration']}"), "${activity_time_format_type}"));
                         </script>
                     </span>
                     % else:
-                    ETA: Unknown<br />0:00 / <span class="progress_time_total" id="stream-duration-${sk}">
+                    ETA: Unknown<br /><span class="progress_time_offset" id="stream-view-offset-${sk}-placeholder" data-activity-time-format-type="${activity_time_format_type}">
                         <script>
-                            $("#stream-duration-${sk}").html(millisecondsToMinutes(parseInt("${data['stream_duration']}"), false));
+                            $("#stream-view-offset-${sk}-placeholder").html(millisecondsToActivityDuration(0, "${activity_time_format_type}"));
+                        </script>
+                    </span> / <span class="progress_time_total" id="stream-duration-${sk}">
+                        <script>
+                            $("#stream-duration-${sk}").html(millisecondsToActivityDuration(parseInt("${data['stream_duration']}"), "${activity_time_format_type}"));
                         </script>
                     </span>
                     % endif

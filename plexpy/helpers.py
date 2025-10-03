@@ -309,6 +309,34 @@ def format_timedelta_Hms(td):
     return '{:02d}:{:02d}:{:02d}'.format(int(hours), int(minutes), int(seconds))
 
 
+def format_activity_duration(ms, format_type='MM:SS'):
+    """Format milliseconds duration for activity display
+    
+    Args:
+        ms (int): Duration in milliseconds
+        format_type (str): Format type - 'MM:SS' or 'HH:MM:SS'
+    
+    Returns:
+        str: Formatted duration string
+    """
+    if ms <= 0:
+        return '0:00' if format_type == 'MM:SS' else '00:00:00'
+    
+    try:
+        ms = int(ms)
+        hours = ms // 3600000
+        minutes = (ms % 3600000) // 60000
+        seconds = (ms % 60000) // 1000
+        
+        if format_type == 'HH:MM:SS':
+            return '{:02d}:{:02d}:{:02d}'.format(hours, minutes, seconds)
+        else:  # MM:SS format
+            total_minutes = hours * 60 + minutes
+            return '{:d}:{:02d}'.format(total_minutes, seconds)
+    except (ValueError, TypeError):
+        return '0:00' if format_type == 'MM:SS' else '00:00:00'
+
+
 def get_age(date):
 
     try:
