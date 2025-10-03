@@ -377,7 +377,7 @@ DOCUMENTATION :: END
                         <script>
                             $("#stream-eta-${sk}").html(moment().add(parseInt("${data['stream_duration']}") - parseInt("${data['view_offset']}"), 'milliseconds').format(time_format));
                         </script>
-                    </span><br /><span class="progress_time_offset" id="stream-view-offset-${sk}" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-stream_duration="${data['stream_duration']}" data-state="${data['state']}">
+                    </span><br /><span class="progress_time_offset" id="stream-view-offset-${sk}" data-last_view_offset="${data['view_offset']}" data-view_offset="${data['view_offset']}" data-stream_duration="${data['stream_duration']}" data-state="${data['state']}" data-activity-time-format-type="${activity_time_format_type}">
                         <script>
                             $("#stream-view-offset-${sk}").html(millisecondsToActivityDuration(parseInt("${data['view_offset']}"), "${activity_time_format_type}"));
                         </script>

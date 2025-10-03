@@ -695,7 +695,8 @@
                 if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
                     var view_offset = parseInt($(this).data('view_offset'));
                     var stream_duration = parseInt($(this).data('stream_duration'));
-                    var timestamp = millisecondsToActivityDuration(Math.min(view_offset, stream_duration), activity_time_format_type);
+                    var format_type = $(this).data('activity-time-format-type') || 'MM:SS';
+                    var timestamp = millisecondsToActivityDuration(Math.min(view_offset, stream_duration), format_type);
                     $(this).html(timestamp).data('view_offset', Math.min(view_offset + 1000, stream_duration))
                 }
             });
