@@ -893,12 +893,6 @@
             async: true,
             complete: function (xhr, status) {
                 $('#newsletter-config-modal').html(xhr.responseText);
-                // Reinitialize the Ace editor after modal reload
-                setTimeout(function() {
-                    if ($('#message-editor').length) {
-                        initMessageEditor();
-                    }
-                }, 200);
             }
         });
     }
