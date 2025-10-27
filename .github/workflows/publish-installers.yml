@@ -99,7 +99,7 @@ jobs:
             Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
 
       - name: Upload Installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: Tautulli-${{ matrix.os }}-installer
           path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
