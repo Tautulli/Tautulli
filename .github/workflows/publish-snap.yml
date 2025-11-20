@@ -20,7 +20,7 @@ jobs:
           - armhf
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Prepare
         id: prepare
