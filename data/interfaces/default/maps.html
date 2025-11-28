@@ -1,0 +1,155 @@
+<%inherit file="base.html"/>
+
+<%def name="headIncludes()">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+</%def>
+
+<%def name="body()">
+<div class="container-fluid">
+    <div class="table-card-header">
+        <div class="header-bar">
+            <span><i class="fa fa-map-marker"></i> Stream Map</span>
+        </div>
+        <div class="button-bar">
+            <div class="btn-group">
+                <label>
+                    <select name="time-range" id="time-range" class="form-control">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                        <option value="365">Last year</option>
+                    </select>
+                </label>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-dark" id="refresh-map"><i class="fa fa-refresh"></i> Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    % if not config['geolocation_enabled']:
+    <div class="alert alert-warning">
+        <i class="fa fa-exclamation-triangle"></i> Geolocation is not enabled.
+        Enable it in Settings > Security to start collecting location data.
+    </div>
+    % endif
+
+    <div class="table-card-back">
+        <div id="stream-map"></div>
+    </div>
+
+    <div class="table-card-back" style="margin-top: 20px;">
+        <h4>Location Summary</h4>
+        <table class="table security-table" id="location-table">
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>IP Address</th>
+                    <th>User</th>
+                    <th>Stream Count</th>
+                </tr>
+            </thead>
+            <tbody id="location-table-body">
+            </tbody>
+        </table>
+    </div>
+</div>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+$(document).ready(function() {
+    var map = L.map('stream-map', {
+        center: [30, 0],
+        zoom: 2,
+        minZoom: 2,
+        maxZoom: 18
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 18
+    }).addTo(map);
+
+    var markers = [];
+
+    function loadLocations() {
+        var timeRange = $('#time-range').val();
+
+        $.ajax({
+            url: 'get_stream_locations',
+            type: 'GET',
+            data: { time_range: timeRange },
+            dataType: 'json',
+            success: function(data) {
+                // Clear existing markers
+                markers.forEach(function(marker) {
+                    map.removeLayer(marker);
+                });
+                markers = [];
+
+                // Clear table
+                $('#location-table-body').empty();
+
+                if (data.locations && data.locations.length > 0) {
+                    var bounds = [];
+
+                    data.locations.forEach(function(loc) {
+                        if (loc.latitude && loc.longitude) {
+                            var marker = L.circleMarker([loc.latitude, loc.longitude], {
+                                radius: Math.min(8 + Math.log(loc.count) * 3, 20),
+                                fillColor: '#e9a049',
+                                color: '#fff',
+                                weight: 1,
+                                opacity: 1,
+                                fillOpacity: 0.8
+                            }).addTo(map);
+
+                            var popupContent = '<div class="location-popup">' +
+                                '<div class="popup-title">' + (loc.city || 'Unknown') + ', ' + (loc.country || 'Unknown') + '</div>' +
+                                '<div class="popup-info"><strong>IP:</strong> ' + loc.ip_address + '</div>' +
+                                '<div class="popup-info"><strong>User:</strong> ' + (loc.friendly_name || 'Unknown') + '</div>' +
+                                '<div class="popup-info"><strong>Streams:</strong> ' + loc.count + '</div>' +
+                                '</div>';
+
+                            marker.bindPopup(popupContent);
+                            markers.push(marker);
+                            bounds.push([loc.latitude, loc.longitude]);
+
+                            // Add to table
+                            var locationStr = (loc.city || '') + (loc.region ? ', ' + loc.region : '') + (loc.country ? ', ' + loc.country : '');
+                            $('#location-table-body').append(
+                                '<tr>' +
+                                '<td>' + (locationStr || 'Unknown') + '</td>' +
+                                '<td>' + loc.ip_address + '</td>' +
+                                '<td>' + (loc.friendly_name || 'Unknown') + '</td>' +
+                                '<td>' + loc.count + '</td>' +
+                                '</tr>'
+                            );
+                        }
+                    });
+
+                    if (bounds.length > 0) {
+                        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
+                    }
+                } else {
+                    $('#location-table-body').append(
+                        '<tr><td colspan="4" class="text-center">No location data available</td></tr>'
+                    );
+                }
+            },
+            error: function() {
+                showMsg('Failed to load stream locations', 'error');
+            }
+        });
+    }
+
+    loadLocations();
+
+    $('#time-range').on('change', loadLocations);
+    $('#refresh-map').on('click', loadLocations);
+});
+</script>
+</%def>
