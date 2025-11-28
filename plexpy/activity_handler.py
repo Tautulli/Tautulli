@@ -22,12 +22,14 @@ import pytz
 
 import plexpy
 from plexpy import activity_processor
+from plexpy import blacklist
 from plexpy import common
 from plexpy import datafactory
 from plexpy import helpers
 from plexpy import logger
 from plexpy import notification_handler
 from plexpy import pmsconnect
+from plexpy import sharing_detector
 
 
 ACTIVITY_SCHED = None
@@ -124,12 +126,39 @@ class ActivityHandler(object):
             if not self.session:
                 return
 
+        # Check if IP is blacklisted
+        if plexpy.CONFIG.SECURITY_BLACKLIST_ENABLED:
+            ip_blacklist = blacklist.IPBlacklist()
+            blacklist_result = ip_blacklist.is_blacklisted(self.session.get('ip_address'))
+            if blacklist_result:
+                logger.warn("Tautulli ActivityHandler :: Blocking session %s from blacklisted IP %s. Reason: %s"
+                            % (str(self.session_key), self.session.get('ip_address'), blacklist_result.get('reason')))
+                ip_blacklist.log_blocked_stream(
+                    session_key=str(self.session_key),
+                    user_id=self.session.get('user_id'),
+                    ip_addr=self.session.get('ip_address'),
+                    reason=blacklist_result.get('reason'),
+                    block_type='blacklist'
+                )
+                if plexpy.CONFIG.SECURITY_STREAM_BLOCKING:
+                    return
+
         logger.debug("Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
                         % (str(self.session['session_key']), str(self.session['user_id']), self.session['username'],
                         str(self.session['rating_key']), self.session['full_title'], ' [Live TV]' if self.session['live'] else ''))
 
         # Write the new session to our temp session table
         self.update_db_session(notify=True)
+
+        # Check sharing detection rules after session is written (so we have geolocation data)
+        if plexpy.CONFIG.SECURITY_SHARING_DETECTION:
+            self.get_db_session()
+            if self.db_session:
+                detector = sharing_detector.SharingDetector()
+                violations = detector.check_all_rules(self.db_session)
+                for violation in violations:
+                    logger.warn("Tautulli ActivityHandler :: Sharing violation detected for session %s: %s"
+                                % (str(self.session_key), violation.get('rule_type')))
 
         # Schedule a callback to force stop a stale stream 5 minutes later
         schedule_callback('session_key-{}'.format(self.session_key),

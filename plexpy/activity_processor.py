@@ -24,6 +24,8 @@ from plexpy import logger
 from plexpy import pmsconnect
 from plexpy import users
 
+_GEO_CACHE = {}
+
 
 class ActivityProcessor(object):
 
@@ -144,6 +146,15 @@ class ActivityProcessor(object):
                       'channel_vcn': session.get('channel_vcn', ''),
                       'stopped': helpers.timestamp()
                       }
+
+            # Add geolocation data if enabled
+            if plexpy.CONFIG.SECURITY_GEOLOCATION_ENABLED:
+                geo_data = self._get_geolocation(session.get('ip_address', ''))
+                values['geo_city'] = geo_data.get('city')
+                values['geo_region'] = geo_data.get('region')
+                values['geo_country'] = geo_data.get('country')
+                values['geo_latitude'] = geo_data.get('latitude')
+                values['geo_longitude'] = geo_data.get('longitude')
 
             keys = {'session_key': session.get('session_key', ''),
                     'rating_key': session.get('rating_key', '')}
@@ -314,6 +325,15 @@ class ActivityProcessor(object):
                           'secure': session['secure'],
                           'relayed': session['relayed']
                           }
+
+                # Add geolocation data if enabled
+                if plexpy.CONFIG.SECURITY_GEOLOCATION_ENABLED:
+                    geo_data = self._get_geolocation(session['ip_address'])
+                    values['geo_city'] = geo_data.get('city')
+                    values['geo_region'] = geo_data.get('region')
+                    values['geo_country'] = geo_data.get('country')
+                    values['geo_latitude'] = geo_data.get('latitude')
+                    values['geo_longitude'] = geo_data.get('longitude')
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."
                 #              % session['session_key'])
@@ -728,6 +748,26 @@ class ActivityProcessor(object):
                                              "ORDER BY stopped DESC",
                                              [user_id, machine_id, media_type])
         return int(started - last_session.get('stopped', 0) >= plexpy.CONFIG.NOTIFY_CONTINUED_SESSION_THRESHOLD)
+
+    def _get_geolocation(self, ip_addr):
+        """Get geolocation data for an IP address with caching."""
+        global _GEO_CACHE
+
+        if not ip_addr:
+            return {}
+
+        if ip_addr in _GEO_CACHE:
+            return _GEO_CACHE[ip_addr]
+
+        geo_data = helpers.geoip_lookup(ip_addr)
+
+        if not geo_data.get('error'):
+            _GEO_CACHE[ip_addr] = geo_data
+            # Limit cache size
+            if len(_GEO_CACHE) > 1000:
+                _GEO_CACHE.pop(next(iter(_GEO_CACHE)))
+
+        return geo_data
 
     def regroup_history(self):
         logger.info("Tautulli ActivityProcessor :: Creating database backup...")
