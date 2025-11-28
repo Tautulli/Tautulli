@@ -51,6 +51,7 @@ from plexpy import notification_handler
 from plexpy import notifiers
 from plexpy import plex
 from plexpy import plextv
+from plexpy import sharing_detector
 from plexpy import users
 from plexpy import versioncheck
 from plexpy import web_socket
@@ -444,6 +445,13 @@ def initialize_scheduler():
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
         schedule_job(config.make_backup, 'Backup Tautulli config',
                      hours=backup_hours, minutes=0, seconds=0, args=(True, True))
+
+        # Sharing detection scan
+        sharing_interval = CONFIG.SECURITY_SHARING_CHECK_INTERVAL if CONFIG.SECURITY_ENABLED and CONFIG.SECURITY_SHARING_DETECTION else 0
+        sharing_minutes = sharing_interval // 60 if sharing_interval else 0
+        sharing_seconds = sharing_interval % 60 if sharing_interval else 0
+        schedule_job(sharing_detector.run_scheduled_scan, 'Sharing detection scan',
+                     hours=0, minutes=sharing_minutes, seconds=sharing_seconds)
 
         if WS_CONNECTED and CONFIG.PMS_IP and CONFIG.PMS_TOKEN:
             schedule_job(plextv.get_server_resources, 'Refresh Plex server URLs',
@@ -2735,6 +2743,105 @@ def dbcheck():
     c_db.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_continued "
         "ON sessions_continued (user_id, machine_id, media_type)"
+    )
+
+    # ip_blacklist table :: This table keeps record of blacklisted IPs
+    c_db.execute(
+        "CREATE TABLE IF NOT EXISTS ip_blacklist (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "ip_address TEXT NOT NULL, ip_type TEXT DEFAULT 'single', "
+        "reason TEXT, created_at INTEGER, created_by TEXT, "
+        "expires_at INTEGER, is_active INTEGER DEFAULT 1, "
+        "UNIQUE(ip_address))"
+    )
+
+    # sharing_rules table :: This table keeps record of sharing detection rules
+    c_db.execute(
+        "CREATE TABLE IF NOT EXISTS sharing_rules (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "name TEXT NOT NULL, rule_type TEXT NOT NULL, "
+        "params TEXT, user_id INTEGER, is_active INTEGER DEFAULT 1, "
+        "created_at INTEGER, updated_at INTEGER)"
+    )
+
+    # sharing_violations table :: This table logs sharing rule violations
+    c_db.execute(
+        "CREATE TABLE IF NOT EXISTS sharing_violations (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "rule_id INTEGER, rule_type TEXT, user_id INTEGER, "
+        "session_key TEXT, violation_data TEXT, "
+        "severity TEXT DEFAULT 'warning', "
+        "action_taken TEXT, created_at INTEGER, "
+        "FOREIGN KEY(rule_id) REFERENCES sharing_rules(id))"
+    )
+
+    # blocked_streams table :: This table keeps record of blocked stream attempts
+    c_db.execute(
+        "CREATE TABLE IF NOT EXISTS blocked_streams (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "session_key TEXT, user_id INTEGER, ip_address TEXT, "
+        "reason TEXT, block_type TEXT, "
+        "violation_id INTEGER, created_at INTEGER)"
+    )
+
+    # Upgrade session_history table to add geolocation columns
+    try:
+        c_db.execute("SELECT geo_city FROM session_history")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table session_history.")
+        c_db.execute(
+            "ALTER TABLE session_history ADD COLUMN geo_city TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE session_history ADD COLUMN geo_region TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE session_history ADD COLUMN geo_country TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE session_history ADD COLUMN geo_latitude REAL"
+        )
+        c_db.execute(
+            "ALTER TABLE session_history ADD COLUMN geo_longitude REAL"
+        )
+
+    # Upgrade sessions table to add geolocation columns
+    try:
+        c_db.execute("SELECT geo_city FROM sessions")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table sessions.")
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN geo_city TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN geo_region TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN geo_country TEXT"
+        )
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN geo_latitude REAL"
+        )
+        c_db.execute(
+            "ALTER TABLE sessions ADD COLUMN geo_longitude REAL"
+        )
+
+    # Create indexes for security tables
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_ip_blacklist_ip_address "
+        "ON ip_blacklist (ip_address)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sharing_violations_user_id "
+        "ON sharing_violations (user_id)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_sharing_violations_created_at "
+        "ON sharing_violations (created_at)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_blocked_streams_user_id "
+        "ON blocked_streams (user_id)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_geo "
+        "ON session_history (geo_latitude, geo_longitude)"
     )
 
     # Set database version
