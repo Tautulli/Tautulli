@@ -1,0 +1,616 @@
+<%inherit file="base.html"/>
+
+<%def name="headIncludes()">
+<link rel="stylesheet" href="${http_root}css/dataTables.bootstrap.min.css${cache_param}">
+<link rel="stylesheet" href="${http_root}css/tautulli-dataTables.css${cache_param}">
+</%def>
+
+<%def name="body()">
+<div class="container-fluid">
+    <div class="table-card-header">
+        <div class="header-bar">
+            <span><i class="fa fa-shield"></i> Security Dashboard</span>
+        </div>
+    </div>
+
+    <div class="table-card-back">
+        <div class="security-stats">
+            <div class="security-stat-card">
+                <h3 id="stat-violations">-</h3>
+                <p>Violations (30 days)</p>
+            </div>
+            <div class="security-stat-card">
+                <h3 id="stat-blocked">-</h3>
+                <p>Blocked Streams</p>
+            </div>
+            <div class="security-stat-card">
+                <h3 id="stat-blacklist">-</h3>
+                <p>Blacklisted IPs</p>
+            </div>
+            <div class="security-stat-card">
+                <h3 id="stat-rules">-</h3>
+                <p>Active Rules</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card-header">
+        <ul class="nav nav-tabs" role="tablist" style="border-bottom: none; margin-bottom: 0;">
+            <li role="presentation" class="active">
+                <a href="#violations-tab" role="tab" data-toggle="tab">Violations</a>
+            </li>
+            <li role="presentation">
+                <a href="#blacklist-tab" role="tab" data-toggle="tab">IP Blacklist</a>
+            </li>
+            <li role="presentation">
+                <a href="#rules-tab" role="tab" data-toggle="tab">Detection Rules</a>
+            </li>
+            <li role="presentation">
+                <a href="#blocked-tab" role="tab" data-toggle="tab">Blocked Streams</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="violations-tab">
+            <div class="table-card-back">
+                <div class="button-bar" style="margin-bottom: 15px;">
+                    <button class="btn btn-dark" id="refresh-violations">
+                        <i class="fa fa-refresh"></i> Refresh
+                    </button>
+                </div>
+                <table class="table security-table" id="violations-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>User</th>
+                            <th>Rule Type</th>
+                            <th>Severity</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="violations-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="blacklist-tab">
+            <div class="table-card-back">
+                <div class="button-bar" style="margin-bottom: 15px;">
+                    <button class="btn btn-dark" id="add-blacklist-btn" data-toggle="modal" data-target="#add-blacklist-modal">
+                        <i class="fa fa-plus"></i> Add IP
+                    </button>
+                    <button class="btn btn-dark" id="refresh-blacklist">
+                        <i class="fa fa-refresh"></i> Refresh
+                    </button>
+                </div>
+                <table class="table security-table" id="blacklist-table">
+                    <thead>
+                        <tr>
+                            <th>IP Address</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                            <th>Created</th>
+                            <th>Expires</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blacklist-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="rules-tab">
+            <div class="table-card-back">
+                <div class="button-bar" style="margin-bottom: 15px;">
+                    <button class="btn btn-dark" id="add-rule-btn" data-toggle="modal" data-target="#add-rule-modal">
+                        <i class="fa fa-plus"></i> Add Rule
+                    </button>
+                    <button class="btn btn-dark" id="refresh-rules">
+                        <i class="fa fa-refresh"></i> Refresh
+                    </button>
+                </div>
+                <table class="table security-table" id="rules-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Parameters</th>
+                            <th>User</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rules-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="blocked-tab">
+            <div class="table-card-back">
+                <div class="button-bar" style="margin-bottom: 15px;">
+                    <button class="btn btn-dark" id="refresh-blocked">
+                        <i class="fa fa-refresh"></i> Refresh
+                    </button>
+                </div>
+                <table class="table security-table" id="blocked-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>User</th>
+                            <th>IP Address</th>
+                            <th>Reason</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="blocked-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</%def>
+
+<%def name="modalIncludes()">
+<div class="modal fade" id="add-blacklist-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Add IP to Blacklist</h4>
+            </div>
+            <div class="modal-body">
+                <form id="add-blacklist-form">
+                    <div class="form-group">
+                        <label for="blacklist-ip">IP Address</label>
+                        <input type="text" class="form-control" id="blacklist-ip" placeholder="192.168.1.1 or 192.168.1.0/24" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="blacklist-type">Type</label>
+                        <select class="form-control" id="blacklist-type">
+                            <option value="single">Single IP</option>
+                            <option value="range">CIDR Range</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="blacklist-reason">Reason</label>
+                        <input type="text" class="form-control" id="blacklist-reason" placeholder="Optional">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="save-blacklist">Add to Blacklist</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add-rule-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><i class="fa fa-remove"></i></button>
+                <h4 class="modal-title">Add Detection Rule</h4>
+            </div>
+            <div class="modal-body">
+                <form id="add-rule-form">
+                    <div class="form-group">
+                        <label for="rule-name">Rule Name</label>
+                        <input type="text" class="form-control" id="rule-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rule-type">Rule Type</label>
+                        <select class="form-control" id="rule-type">
+                            <option value="simultaneous_locations">Simultaneous Locations</option>
+                            <option value="impossible_travel">Impossible Travel</option>
+                            <option value="device_velocity">Device Velocity</option>
+                            <option value="concurrent_streams">Concurrent Streams</option>
+                            <option value="geo_restriction">Geo Restriction</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="rule-params-group">
+                        <label>Parameters</label>
+                        <div id="rule-params-container">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-rule">Add Rule</button>
+            </div>
+        </div>
+    </div>
+</div>
+</%def>
+
+<%def name="javascriptIncludes()">
+<script>
+$(document).ready(function() {
+    function formatTimestamp(ts) {
+        if (!ts) return '-';
+        var date = new Date(ts * 1000);
+        return date.toLocaleString();
+    }
+
+    function loadStats() {
+        $.ajax({
+            url: 'get_violation_stats',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                $('#stat-violations').text(data.total || 0);
+            }
+        });
+
+        $.ajax({
+            url: 'get_blocked_streams',
+            type: 'GET',
+            data: { limit: 1000 },
+            dataType: 'json',
+            success: function(data) {
+                $('#stat-blocked').text(data.length || 0);
+            }
+        });
+
+        $.ajax({
+            url: 'get_ip_blacklist',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                $('#stat-blacklist').text(data.length || 0);
+            }
+        });
+
+        $.ajax({
+            url: 'get_sharing_rules',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                $('#stat-rules').text(data.length || 0);
+            }
+        });
+    }
+
+    function loadViolations() {
+        $.ajax({
+            url: 'get_sharing_violations',
+            type: 'GET',
+            data: { limit: 100 },
+            dataType: 'json',
+            success: function(data) {
+                var tbody = $('#violations-body');
+                tbody.empty();
+
+                if (data && data.length > 0) {
+                    data.forEach(function(v) {
+                        var severityClass = v.severity === 'high' ? 'text-danger' : 'text-warning';
+                        var details = '';
+                        try {
+                            var vData = JSON.parse(v.violation_data || '{}');
+                            details = Object.keys(vData).map(function(k) {
+                                return k + ': ' + vData[k];
+                            }).join(', ');
+                        } catch(e) {}
+
+                        tbody.append(
+                            '<tr>' +
+                            '<td>' + formatTimestamp(v.created_at) + '</td>' +
+                            '<td>' + (v.user_id || '-') + '</td>' +
+                            '<td>' + v.rule_type + '</td>' +
+                            '<td class="' + severityClass + '">' + v.severity + '</td>' +
+                            '<td>' + details + '</td>' +
+                            '</tr>'
+                        );
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="5" class="text-center">No violations found</td></tr>');
+                }
+            }
+        });
+    }
+
+    function loadBlacklist() {
+        $.ajax({
+            url: 'get_ip_blacklist',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var tbody = $('#blacklist-body');
+                tbody.empty();
+
+                if (data && data.length > 0) {
+                    data.forEach(function(b) {
+                        tbody.append(
+                            '<tr data-id="' + b.id + '">' +
+                            '<td>' + b.ip_address + '</td>' +
+                            '<td>' + b.ip_type + '</td>' +
+                            '<td>' + (b.reason || '-') + '</td>' +
+                            '<td>' + formatTimestamp(b.created_at) + '</td>' +
+                            '<td>' + (b.expires_at ? formatTimestamp(b.expires_at) : 'Never') + '</td>' +
+                            '<td><button class="btn btn-xs btn-danger remove-blacklist" data-id="' + b.id + '"><i class="fa fa-trash"></i></button></td>' +
+                            '</tr>'
+                        );
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="6" class="text-center">No blacklisted IPs</td></tr>');
+                }
+            }
+        });
+    }
+
+    function loadRules() {
+        $.ajax({
+            url: 'get_sharing_rules',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var tbody = $('#rules-body');
+                tbody.empty();
+
+                if (data && data.length > 0) {
+                    data.forEach(function(r) {
+                        var statusClass = r.is_active ? 'text-success' : 'text-muted';
+                        tbody.append(
+                            '<tr data-id="' + r.id + '">' +
+                            '<td>' + r.name + '</td>' +
+                            '<td>' + r.rule_type + '</td>' +
+                            '<td><code>' + (r.params || '{}') + '</code></td>' +
+                            '<td>' + (r.user_id || 'All') + '</td>' +
+                            '<td class="' + statusClass + '">' + (r.is_active ? 'Active' : 'Inactive') + '</td>' +
+                            '<td><button class="btn btn-xs btn-danger delete-rule" data-id="' + r.id + '"><i class="fa fa-trash"></i></button></td>' +
+                            '</tr>'
+                        );
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="6" class="text-center">No rules configured</td></tr>');
+                }
+            }
+        });
+    }
+
+    function loadBlocked() {
+        $.ajax({
+            url: 'get_blocked_streams',
+            type: 'GET',
+            data: { limit: 100 },
+            dataType: 'json',
+            success: function(data) {
+                var tbody = $('#blocked-body');
+                tbody.empty();
+
+                if (data && data.length > 0) {
+                    data.forEach(function(b) {
+                        tbody.append(
+                            '<tr>' +
+                            '<td>' + formatTimestamp(b.created_at) + '</td>' +
+                            '<td>' + (b.user_id || '-') + '</td>' +
+                            '<td>' + b.ip_address + '</td>' +
+                            '<td>' + (b.reason || '-') + '</td>' +
+                            '<td>' + b.block_type + '</td>' +
+                            '</tr>'
+                        );
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="5" class="text-center">No blocked streams</td></tr>');
+                }
+            }
+        });
+    }
+
+    function updateRuleParams() {
+        var ruleType = $('#rule-type').val();
+        var container = $('#rule-params-container');
+        container.empty();
+
+        switch(ruleType) {
+            case 'simultaneous_locations':
+                container.html(
+                    '<div class="form-group">' +
+                    '<label>Minimum Distance (km)</label>' +
+                    '<input type="number" class="form-control" id="param-min-distance" value="100">' +
+                    '</div>'
+                );
+                break;
+            case 'impossible_travel':
+                container.html(
+                    '<div class="form-group">' +
+                    '<label>Max Travel Speed (km/h)</label>' +
+                    '<input type="number" class="form-control" id="param-max-speed" value="500">' +
+                    '</div>'
+                );
+                break;
+            case 'device_velocity':
+                container.html(
+                    '<div class="form-group">' +
+                    '<label>Max Unique IPs</label>' +
+                    '<input type="number" class="form-control" id="param-max-ips" value="5">' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                    '<label>Time Window (hours)</label>' +
+                    '<input type="number" class="form-control" id="param-time-window" value="24">' +
+                    '</div>'
+                );
+                break;
+            case 'concurrent_streams':
+                container.html(
+                    '<div class="form-group">' +
+                    '<label>Max Concurrent Streams</label>' +
+                    '<input type="number" class="form-control" id="param-max-streams" value="3">' +
+                    '</div>'
+                );
+                break;
+            case 'geo_restriction':
+                container.html(
+                    '<div class="form-group">' +
+                    '<label>Allowed Countries (comma-separated)</label>' +
+                    '<input type="text" class="form-control" id="param-allowed-countries" placeholder="United States, Canada">' +
+                    '</div>' +
+                    '<div class="form-group">' +
+                    '<label>Blocked Countries (comma-separated)</label>' +
+                    '<input type="text" class="form-control" id="param-blocked-countries" placeholder="">' +
+                    '</div>'
+                );
+                break;
+        }
+    }
+
+    // Initial load
+    loadStats();
+    loadViolations();
+    loadBlacklist();
+    loadRules();
+    loadBlocked();
+
+    // Refresh buttons
+    $('#refresh-violations').on('click', loadViolations);
+    $('#refresh-blacklist').on('click', loadBlacklist);
+    $('#refresh-rules').on('click', loadRules);
+    $('#refresh-blocked').on('click', loadBlocked);
+
+    // Rule type change
+    $('#rule-type').on('change', updateRuleParams);
+    updateRuleParams();
+
+    // Save blacklist
+    $('#save-blacklist').on('click', function() {
+        var ip = $('#blacklist-ip').val();
+        var ipType = $('#blacklist-type').val();
+        var reason = $('#blacklist-reason').val();
+
+        if (!ip) {
+            showMsg('Please enter an IP address', 'error');
+            return;
+        }
+
+        $.ajax({
+            url: 'add_to_blacklist',
+            type: 'POST',
+            data: {
+                ip_address: ip,
+                ip_type: ipType,
+                reason: reason
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.result === 'success') {
+                    showMsg('IP added to blacklist', 'success');
+                    $('#add-blacklist-modal').modal('hide');
+                    $('#add-blacklist-form')[0].reset();
+                    loadBlacklist();
+                    loadStats();
+                } else {
+                    showMsg(data.message || 'Failed to add IP', 'error');
+                }
+            }
+        });
+    });
+
+    // Remove from blacklist
+    $(document).on('click', '.remove-blacklist', function() {
+        var id = $(this).data('id');
+        if (confirm('Remove this IP from the blacklist?')) {
+            $.ajax({
+                url: 'remove_from_blacklist',
+                type: 'POST',
+                data: { blacklist_id: id },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.result === 'success') {
+                        showMsg('IP removed from blacklist', 'success');
+                        loadBlacklist();
+                        loadStats();
+                    } else {
+                        showMsg(data.message || 'Failed to remove IP', 'error');
+                    }
+                }
+            });
+        }
+    });
+
+    // Save rule
+    $('#save-rule').on('click', function() {
+        var name = $('#rule-name').val();
+        var ruleType = $('#rule-type').val();
+
+        if (!name) {
+            showMsg('Please enter a rule name', 'error');
+            return;
+        }
+
+        var params = {};
+        switch(ruleType) {
+            case 'simultaneous_locations':
+                params.min_distance_km = parseInt($('#param-min-distance').val()) || 100;
+                break;
+            case 'impossible_travel':
+                params.max_speed_kmh = parseInt($('#param-max-speed').val()) || 500;
+                break;
+            case 'device_velocity':
+                params.max_unique_ips = parseInt($('#param-max-ips').val()) || 5;
+                params.time_window_hours = parseInt($('#param-time-window').val()) || 24;
+                break;
+            case 'concurrent_streams':
+                params.max_streams = parseInt($('#param-max-streams').val()) || 3;
+                break;
+            case 'geo_restriction':
+                var allowed = $('#param-allowed-countries').val();
+                var blocked = $('#param-blocked-countries').val();
+                if (allowed) params.allowed_countries = allowed.split(',').map(function(s) { return s.trim(); });
+                if (blocked) params.blocked_countries = blocked.split(',').map(function(s) { return s.trim(); });
+                break;
+        }
+
+        $.ajax({
+            url: 'add_sharing_rule',
+            type: 'POST',
+            data: {
+                name: name,
+                rule_type: ruleType,
+                params: JSON.stringify(params)
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.result === 'success') {
+                    showMsg('Rule added', 'success');
+                    $('#add-rule-modal').modal('hide');
+                    $('#add-rule-form')[0].reset();
+                    updateRuleParams();
+                    loadRules();
+                    loadStats();
+                } else {
+                    showMsg(data.message || 'Failed to add rule', 'error');
+                }
+            }
+        });
+    });
+
+    // Delete rule
+    $(document).on('click', '.delete-rule', function() {
+        var id = $(this).data('id');
+        if (confirm('Delete this rule?')) {
+            $.ajax({
+                url: 'delete_sharing_rule',
+                type: 'POST',
+                data: { rule_id: id },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.result === 'success') {
+                        showMsg('Rule deleted', 'success');
+                        loadRules();
+                        loadStats();
+                    } else {
+                        showMsg(data.message || 'Failed to delete rule', 'error');
+                    }
+                }
+            });
+        }
+    });
+});
+</script>
+</%def>
