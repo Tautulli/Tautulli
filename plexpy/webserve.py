@@ -67,6 +67,8 @@ from plexpy import plexivity_import
 from plexpy import plexwatch_import
 from plexpy import pmsconnect
 from plexpy import users
+from plexpy import blacklist
+from plexpy import sharing_detector
 from plexpy import versioncheck
 from plexpy import web_socket
 from plexpy import webstart
@@ -3241,7 +3243,10 @@ class WebInterface(object):
                 kwargs.get('pms_update_check_interval') != str(plexpy.CONFIG.PMS_UPDATE_CHECK_INTERVAL) or \
                 kwargs.get('monitor_pms_updates') != plexpy.CONFIG.MONITOR_PMS_UPDATES or \
                 kwargs.get('pms_url_manual') != plexpy.CONFIG.PMS_URL_MANUAL or \
-                kwargs.get('backup_interval') != str(plexpy.CONFIG.BACKUP_INTERVAL):
+                kwargs.get('backup_interval') != str(plexpy.CONFIG.BACKUP_INTERVAL) or \
+                kwargs.get('security_enabled') != plexpy.CONFIG.SECURITY_ENABLED or \
+                kwargs.get('security_sharing_detection') != plexpy.CONFIG.SECURITY_SHARING_DETECTION or \
+                kwargs.get('security_sharing_check_interval') != str(plexpy.CONFIG.SECURITY_SHARING_CHECK_INTERVAL):
             reschedule = True
 
         # If we change the SSL setting for PMS or PMS remote setting, make sure we grab the new url.
@@ -7272,3 +7277,363 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def exporter_docs(self, **kwargs):
         return '<pre>' + exporter.build_export_docs() + '</pre>'
+
+
+    ##### Security #####
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def security(self, **kwargs):
+        config = {
+            "security_enabled": plexpy.CONFIG.SECURITY_ENABLED,
+            "blacklist_enabled": plexpy.CONFIG.SECURITY_BLACKLIST_ENABLED,
+            "sharing_detection": plexpy.CONFIG.SECURITY_SHARING_DETECTION,
+            "geolocation_enabled": plexpy.CONFIG.SECURITY_GEOLOCATION_ENABLED,
+            "stream_blocking": plexpy.CONFIG.SECURITY_STREAM_BLOCKING
+        }
+        return serve_template(template_name="security.html", title="Security", config=config)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def maps(self, **kwargs):
+        config = {
+            "geolocation_enabled": plexpy.CONFIG.SECURITY_GEOLOCATION_ENABLED
+        }
+        return serve_template(template_name="maps.html", title="Stream Map", config=config)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_stream_locations(self, time_range='30', **kwargs):
+        """ Get geolocation data for streams.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range (str):       Number of days to include
+
+            Returns:
+                json:
+                    {"locations": [
+                        {"ip_address": "1.2.3.4",
+                         "city": "New York",
+                         "region": "NY",
+                         "country": "United States",
+                         "latitude": 40.7128,
+                         "longitude": -74.0060,
+                         "user_id": 12345,
+                         "friendly_name": "User1",
+                         "count": 5}
+                    ]}
+            ```
+        """
+        db = database.MonitorDatabase()
+        cutoff = helpers.timestamp() - (int(time_range) * 24 * 3600)
+
+        query = """
+            SELECT sh.ip_address, sh.geo_city, sh.geo_region, sh.geo_country,
+                   sh.geo_latitude, sh.geo_longitude, sh.user_id,
+                   COALESCE(u.friendly_name, sh.user) as friendly_name,
+                   COUNT(*) as stream_count
+            FROM session_history sh
+            LEFT JOIN users u ON sh.user_id = u.user_id
+            WHERE sh.started > ? AND sh.geo_latitude IS NOT NULL
+            GROUP BY sh.ip_address
+            ORDER BY stream_count DESC
+        """
+        results = db.select(query, [cutoff])
+
+        locations = []
+        for row in results:
+            locations.append({
+                'ip_address': row['ip_address'],
+                'city': row['geo_city'],
+                'region': row['geo_region'],
+                'country': row['geo_country'],
+                'latitude': row['geo_latitude'],
+                'longitude': row['geo_longitude'],
+                'user_id': row['user_id'],
+                'friendly_name': row['friendly_name'],
+                'count': row['stream_count']
+            })
+
+        return {'locations': locations}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_ip_blacklist(self, include_expired=False, **kwargs):
+        """ Get the IP blacklist.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                include_expired (bool):     Include expired entries
+
+            Returns:
+                json:
+                    [{"id": 1, "ip_address": "1.2.3.4", "ip_type": "single",
+                      "reason": "Suspicious activity", "created_at": 1234567890,
+                      "expires_at": null, "is_active": 1}]
+            ```
+        """
+        ip_bl = blacklist.IPBlacklist()
+        include_expired = helpers.bool_true(include_expired)
+        return ip_bl.get_blacklist(include_expired=include_expired)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def add_to_blacklist(self, ip_address=None, reason=None, ip_type='single',
+                         expires_at=None, **kwargs):
+        """ Add an IP address to the blacklist.
+
+            ```
+            Required parameters:
+                ip_address (str):       IP address or CIDR range to blacklist
+
+            Optional parameters:
+                reason (str):           Reason for blacklisting
+                ip_type (str):          'single' or 'range'
+                expires_at (int):       Unix timestamp for expiration
+
+            Returns:
+                json:
+                    {"result": "success", "message": "IP added to blacklist."}
+            ```
+        """
+        if not ip_address:
+            return {'result': 'error', 'message': 'No IP address provided.'}
+
+        ip_bl = blacklist.IPBlacklist()
+        result = ip_bl.add_to_blacklist(
+            ip_addr=ip_address,
+            reason=reason,
+            ip_type=ip_type,
+            expires_at=int(expires_at) if expires_at else None,
+            created_by='admin'
+        )
+
+        if result:
+            return {'result': 'success', 'message': 'IP added to blacklist.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to add IP to blacklist.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def remove_from_blacklist(self, blacklist_id=None, ip_address=None, **kwargs):
+        """ Remove an IP from the blacklist.
+
+            ```
+            Required parameters:
+                blacklist_id (int):     The row ID to remove
+                OR
+                ip_address (str):       The IP address to remove
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success", "message": "IP removed from blacklist."}
+            ```
+        """
+        if not blacklist_id and not ip_address:
+            return {'result': 'error', 'message': 'No blacklist_id or ip_address provided.'}
+
+        ip_bl = blacklist.IPBlacklist()
+        result = ip_bl.remove_from_blacklist(
+            blacklist_id=int(blacklist_id) if blacklist_id else None,
+            ip_addr=ip_address
+        )
+
+        if result:
+            return {'result': 'success', 'message': 'IP removed from blacklist.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to remove IP from blacklist.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_sharing_rules(self, **kwargs):
+        """ Get sharing detection rules.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"id": 1, "name": "Multi-location check", "rule_type": "simultaneous_locations",
+                      "params": "{}", "user_id": null, "is_active": 1}]
+            ```
+        """
+        detector = sharing_detector.SharingDetector()
+        return detector.get_active_rules()
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def add_sharing_rule(self, name=None, rule_type=None, params=None, user_id=None, **kwargs):
+        """ Add a sharing detection rule.
+
+            ```
+            Required parameters:
+                name (str):             Rule name
+                rule_type (str):        Rule type (simultaneous_locations, impossible_travel,
+                                        device_velocity, concurrent_streams, geo_restriction)
+
+            Optional parameters:
+                params (str):           JSON string of rule parameters
+                user_id (int):          User ID to apply rule to (null for all users)
+
+            Returns:
+                json:
+                    {"result": "success", "rule_id": 1}
+            ```
+        """
+        if not name or not rule_type:
+            return {'result': 'error', 'message': 'Name and rule_type are required.'}
+
+        detector = sharing_detector.SharingDetector()
+        params_dict = json.loads(params) if params else None
+        rule_id = detector.add_rule(
+            name=name,
+            rule_type=rule_type,
+            params=params_dict,
+            user_id=int(user_id) if user_id else None
+        )
+
+        if rule_id:
+            return {'result': 'success', 'rule_id': rule_id}
+        else:
+            return {'result': 'error', 'message': 'Failed to add rule.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def delete_sharing_rule(self, rule_id=None, **kwargs):
+        """ Delete a sharing detection rule.
+
+            ```
+            Required parameters:
+                rule_id (int):          The rule ID to delete
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    {"result": "success", "message": "Rule deleted."}
+            ```
+        """
+        if not rule_id:
+            return {'result': 'error', 'message': 'No rule_id provided.'}
+
+        detector = sharing_detector.SharingDetector()
+        result = detector.delete_rule(int(rule_id))
+
+        if result:
+            return {'result': 'success', 'message': 'Rule deleted.'}
+        else:
+            return {'result': 'error', 'message': 'Failed to delete rule.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_sharing_violations(self, user_id=None, rule_type=None, severity=None,
+                                limit=100, **kwargs):
+        """ Get sharing violations.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                user_id (int):          Filter by user ID
+                rule_type (str):        Filter by rule type
+                severity (str):         Filter by severity (warning, high)
+                limit (int):            Maximum number of results
+
+            Returns:
+                json:
+                    [{"id": 1, "rule_id": 1, "rule_type": "impossible_travel",
+                      "user_id": 12345, "session_key": "abc123",
+                      "violation_data": "{}", "severity": "high",
+                      "created_at": 1234567890}]
+            ```
+        """
+        detector = sharing_detector.SharingDetector()
+        return detector.get_violations(
+            user_id=int(user_id) if user_id else None,
+            rule_type=rule_type,
+            severity=severity,
+            limit=int(limit)
+        )
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_violation_stats(self, time_range_days=30, **kwargs):
+        """ Get sharing violation statistics.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                time_range_days (int):  Number of days to include
+
+            Returns:
+                json:
+                    {"total": 10, "by_type": {"impossible_travel": 5},
+                     "by_severity": {"high": 3}, "by_user": {"12345": 2}}
+            ```
+        """
+        detector = sharing_detector.SharingDetector()
+        return detector.get_violation_stats(time_range_days=int(time_range_days))
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_blocked_streams(self, user_id=None, limit=100, **kwargs):
+        """ Get blocked stream log.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                user_id (int):          Filter by user ID
+                limit (int):            Maximum number of results
+
+            Returns:
+                json:
+                    [{"id": 1, "session_key": "abc123", "user_id": 12345,
+                      "ip_address": "1.2.3.4", "reason": "Blacklisted IP",
+                      "block_type": "blacklist", "created_at": 1234567890}]
+            ```
+        """
+        ip_bl = blacklist.IPBlacklist()
+        return ip_bl.get_blocked_streams(
+            user_id=int(user_id) if user_id else None,
+            limit=int(limit)
+        )
