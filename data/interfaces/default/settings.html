@@ -65,6 +65,7 @@
                 <li role="presentation"><a id="nav-tabs-notification_agents" href="#tabs-notification_agents" aria-controls="tabs-notification_agents" role="tab" data-toggle="tab">Notification Agents</a></li>
                 <li role="presentation"><a id="nav-tabs-newsletter_agents" href="#tabs-newsletter_agents" aria-controls="tabs-newsletter_agents" role="tab" data-toggle="tab">Newsletter Agents</a></li>
                 <li role="presentation"><a id="nav-tabs-3rd_party_apis" href="#tabs-3rd_party_apis" aria-controls="tabs-3rd_party_apis" role="tab" data-toggle="tab">3rd Party APIs</a></li>
+                <li role="presentation"><a id="nav-tabs-security" href="#tabs-security" aria-controls="tabs-security" role="tab" data-toggle="tab">Security</a></li>
                 <li role="presentation"><a id="nav-tabs-import_backups" href="#tabs-import_backups" aria-controls="tabs-import_backups" role="tab" data-toggle="tab">Import & Backups</a></li>
                 <li role="presentation"><a id="nav-tabs-remote_app" href="#tabs-remote_app" aria-controls="tabs-remote_app" role="tab" data-toggle="tab">Tautulli Remote App <span class="pull-right"><i class="fa fa-fw fa-android"></i><i class="fa fa-fw fa-apple"></i></span></a></li>
             </ul>
@@ -1431,6 +1432,101 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
+
+                    </div>
+
+                    <div role="tabpanel" class="tab-pane" id="tabs-security">
+
+                        <div class="padded-header">
+                            <h3>Security Features</h3>
+                        </div>
+
+                        <p class="help-block">Configure security monitoring and account sharing detection. View the <a href="security">Security Dashboard</a> to manage violations and blocked streams.</p>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="security_enabled" id="security_enabled" value="1" ${config['security_enabled']}> Enable Security Features
+                            </label>
+                            <p class="help-block">Master switch for all security features below.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Geolocation</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="security_geolocation_enabled" id="security_geolocation_enabled" value="1" ${config['security_geolocation_enabled']}> Enable Geolocation Lookup
+                            </label>
+                            <p class="help-block">Look up geographic location data for streams. Required for stream mapping and location-based sharing detection. Uses ip-api.com (free tier, no API key required).</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>IP Blacklist</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="security_blacklist_enabled" id="security_blacklist_enabled" value="1" ${config['security_blacklist_enabled']}> Enable IP Blacklist
+                            </label>
+                            <p class="help-block">Block streams from blacklisted IP addresses and CIDR ranges. Manage the blacklist from the <a href="security">Security Dashboard</a>.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="security_stream_blocking" id="security_stream_blocking" value="1" ${config['security_stream_blocking']}> Terminate Blocked Streams
+                            </label>
+                            <p class="help-block">Automatically terminate streams from blacklisted IPs. If disabled, blocked streams are only logged.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Account Sharing Detection</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="security_sharing_detection" id="security_sharing_detection" value="1" ${config['security_sharing_detection']}> Enable Sharing Detection
+                            </label>
+                            <p class="help-block">Detect potential account sharing using configurable rules. Manage rules from the <a href="security">Security Dashboard</a>.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="security_sharing_check_interval">Check Interval</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="security_sharing_check_interval" name="security_sharing_check_interval" value="${config['security_sharing_check_interval']}" data-parsley-range="[60,3600]" data-parsley-trigger="change" data-parsley-errors-container="#security_sharing_check_interval_error">
+                                </div>
+                                <div id="security_sharing_check_interval_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">How often to check for sharing violations (in seconds). Default: 300 (5 minutes).</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="security_impossible_travel_speed">Impossible Travel Speed</label>
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <input type="text" class="form-control" data-parsley-type="integer" id="security_impossible_travel_speed" name="security_impossible_travel_speed" value="${config['security_impossible_travel_speed']}" data-parsley-range="[100,2000]" data-parsley-trigger="change" data-parsley-errors-container="#security_impossible_travel_speed_error">
+                                </div>
+                                <div id="security_impossible_travel_speed_error" class="alert alert-danger settings-alert" role="alert"></div>
+                            </div>
+                            <p class="help-block">Maximum plausible travel speed in km/h. Streams from locations requiring faster travel will be flagged. Default: 500.</p>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Notifications & Logging</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="security_notify_violations" id="security_notify_violations" value="1" ${config['security_notify_violations']}> Send Notifications for Violations
+                            </label>
+                            <p class="help-block">Send notifications when sharing violations or blocked streams are detected.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="security_log_violations" id="security_log_violations" value="1" ${config['security_log_violations']}> Log Violations
+                            </label>
+                            <p class="help-block">Log all security violations to the Tautulli log file.</p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>

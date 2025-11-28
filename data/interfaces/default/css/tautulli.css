@@ -4624,7 +4624,7 @@ a.donate-with-crypto::after {
 }
 .editor-controls {
     padding: 3px;
-    border-bottom: 1px solid #444; 
+    border-bottom: 1px solid #444;
 }
 .editor-container {
     background-color: #282828;
@@ -4651,4 +4651,76 @@ a.donate-with-crypto::after {
         width: 32px;
         height: 32px;
     }
+}
+
+/* Security Dashboard */
+.security-stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -10px 10px -10px;
+}
+.security-stat-card {
+    flex: 1;
+    min-width: 150px;
+    margin: 0 10px 10px 10px;
+    padding: 15px;
+    background: rgba(255,255,255,0.035);
+    border-radius: 4px;
+    text-align: center;
+}
+.security-stat-card h3 {
+    margin: 0 0 5px 0;
+    color: #e9a049;
+    font-size: 28px;
+}
+.security-stat-card p {
+    margin: 0;
+    color: #999;
+    font-size: 12px;
+}
+.security-table {
+    width: 100%;
+    background-color: #282828;
+}
+.security-table th {
+    padding: 10px;
+    border-bottom: 1px solid #3d3d3d;
+    font-weight: normal;
+    color: #999;
+}
+.security-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+}
+.security-table tbody tr:nth-child(odd) td {
+    background-color: rgba(255,255,255,0.035);
+}
+.security-table tbody tr:nth-child(even) td {
+    background-color: rgba(255,255,255,0.010);
+}
+
+/* Stream Map */
+#stream-map {
+    height: 600px;
+    width: 100%;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+}
+.location-popup {
+    font-size: 12px;
+}
+.location-popup .popup-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.location-popup .popup-info {
+    margin: 2px 0;
+}
+.leaflet-popup-content-wrapper {
+    background: #282828;
+    color: #eee;
+    border-radius: 4px;
+}
+.leaflet-popup-tip {
+    background: #282828;
 }

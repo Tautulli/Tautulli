@@ -124,6 +124,18 @@
                     % else:
                     <li><a href="graphs">Graphs</a></li>
                     % endif
+                    % if _session['user_group'] == 'admin':
+                    % if title == "Stream Map":
+                    <li class="active"><a href="maps">Maps</a></li>
+                    % else:
+                    <li><a href="maps">Maps</a></li>
+                    % endif
+                    % if title == "Security":
+                    <li class="active"><a href="security">Security</a></li>
+                    % else:
+                    <li><a href="security">Security</a></li>
+                    % endif
+                    % endif
                     % if title == "Settings":
                     <li class="dropdown active">
                     % else:
