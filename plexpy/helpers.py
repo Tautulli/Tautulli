@@ -771,6 +771,71 @@ def whois_lookup(ip_address):
     return whois_info
 
 
+def geoip_lookup(ip_addr):
+    """Lookup geolocation data for an IP address.
+
+    Uses ip-api.com (free tier, 45 requests/minute limit).
+    For production use, consider MaxMind GeoLite2 local database.
+    """
+    geo_info = {
+        'city': None,
+        'region': None,
+        'country': None,
+        'latitude': None,
+        'longitude': None,
+        'error': None
+    }
+
+    if not ip_addr or is_private_ip(ip_addr):
+        geo_info['error'] = 'Private or invalid IP address'
+        return geo_info
+
+    try:
+        response = request.request_json(
+            'http://ip-api.com/json/%s?fields=status,message,country,regionName,city,lat,lon' % ip_addr,
+            timeout=5
+        )
+        if response and response.get('status') == 'success':
+            geo_info['city'] = response.get('city')
+            geo_info['region'] = response.get('regionName')
+            geo_info['country'] = response.get('country')
+            geo_info['latitude'] = response.get('lat')
+            geo_info['longitude'] = response.get('lon')
+        elif response:
+            geo_info['error'] = response.get('message', 'Unknown error')
+    except Exception as e:
+        geo_info['error'] = str(e)
+
+    return geo_info
+
+
+def is_private_ip(ip_addr):
+    """Check if an IP address is private/internal."""
+    try:
+        ip_obj = ip_address(ip_addr)
+        return ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_reserved
+    except (ValueError, TypeError):
+        return True
+
+
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """Calculate distance between two coordinates in kilometers using Haversine formula."""
+    from math import radians, cos, sin, asin, sqrt
+
+    if None in (lat1, lon1, lat2, lon2):
+        return None
+
+    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a))
+    r = 6371  # Earth radius in kilometers
+
+    return c * r
+
+
 def anon_url(*url):
     # Removed anonymous redirect and just return the URL
     return '' if None in url else ''.join(str(s) for s in url)
