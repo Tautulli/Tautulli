@@ -75,7 +75,7 @@ jobs:
           images: ${{ steps.prepare.outputs.docker_image }}
 
       - name: Docker Build and Push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         if: success()
         with:
           context: .
