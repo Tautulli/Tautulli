@@ -263,8 +263,8 @@ th {
 @font-face {
   font-family: 'Glyphicons Halflings';
 
-  src: url('../../fonts/bootstrap3/glyphicons-halflings-regular.eot');
-  src: url('../../fonts/bootstrap3/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../../fonts/bootstrap3/glyphicons-halflings-regular.woff2') format('woff2'), url('../../fonts/bootstrap3/glyphicons-halflings-regular.woff') format('woff'), url('../../fonts/bootstrap3/glyphicons-halflings-regular.ttf') format('truetype'), url('../../fonts/bootstrap3/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
+  src: url('../fonts/glyphicons-halflings-regular.eot');
+  src: url('../fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../fonts/glyphicons-halflings-regular.woff2') format('woff2'), url('../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -1082,11 +1082,11 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 body {
-  font-family: 'Open Sans', sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.42857143;
-  color: #fff;
-  background-color: #1f1f1f;
+  color: #333;
+  background-color: #fff;
 }
 input,
 button,
@@ -1096,56 +1096,8 @@ textarea {
   font-size: inherit;
   line-height: inherit;
 }
-textarea,
-input[type="text"],
-input[type="password"],
-input[type="datetime"],
-input[type="datetime-local"],
-input[type="date"],
-input[type="month"],
-input[type="time"],
-input[type="week"],
-input[type="number"],
-input[type="email"],
-input[type="url"],
-input[type="search"],
-input[type="tel"],
-input[type="color"],
-.uneditable-input {
-	margin-top: 5px;
-	color: #fff;
-	border: 0px solid #444;
-	background: #333;
-	height: 30px;
-	padding: 2px 5px 2px 12px;
-	background-color: #3a3a3a;
-	border-radius: 14.5px;
-	transition: background-color .3s;
-}
-textarea:focus,
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="datetime"]:focus,
-input[type="datetime-local"]:focus,
-input[type="date"]:focus,
-input[type="month"]:focus,
-input[type="time"]:focus,
-input[type="week"]:focus,
-input[type="number"]:focus,
-input[type="email"]:focus,
-input[type="url"]:focus,
-input[type="search"]:focus,
-input[type="tel"]:focus,
-input[type="color"]:focus,
-.uneditable-input:focus {
-	outline: 0;
-	outline: thin dotted \9;
-	color: #555;
-	background-color: #fff;
-	transition: background-color .3s;
-	/* IE6-9 */
-}
 a {
+  color: #337ab7;
   text-decoration: none;
 }
 a:hover,
