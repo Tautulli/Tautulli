@@ -6304,6 +6304,7 @@ class WebInterface(object):
                           "last_play": 1462380698,
                           "live": 0,
                           "media_type": "episode",
+                          "rating": 8.5,
                           "platform": "",
                           "rating_key": 1219,
                           "row_id": 1116,
