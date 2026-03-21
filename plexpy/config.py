@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -75,6 +75,7 @@ _CONFIG_DEFINITIONS = {
     'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
     'API_SQL': (int, 'General', 0),
+    'PROMETHEUS_ENABLED': (int, 'General', 0),
     'BUFFER_THRESHOLD': (int, 'Monitoring', 10),
     'BUFFER_WAIT': (int, 'Monitoring', 900),
     'BACKUP_DAYS': (int, 'General', 3),
@@ -302,6 +303,7 @@ CHECKED_SETTINGS = [
     'ALLOW_GUEST_ACCESS',
     'ANON_REDIRECT_DYNAMIC',
     'API_ENABLED',
+    'PROMETHEUS_ENABLED',
     'CACHE_IMAGES',
     'CHECK_GITHUB',
     'ENABLE_HTTPS',

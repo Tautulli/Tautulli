@@ -174,6 +174,10 @@ def initialize(options):
         '/status': {
             'tools.auth_basic.on': False
         },
+        '/metrics': {
+            'tools.auth.on': False,
+            'tools.auth_basic.on': False
+        },
         '/newsletter': {
             'tools.auth_basic.on': False
         },

@@ -727,6 +727,15 @@
                             </label>
                             <p class="help-block">Allow external applications to interface with Tautulli.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="prometheus_enabled" name="prometheus_enabled" value="1" ${config['prometheus_enabled']}> Enable Prometheus metrics endpoint
+                            </label>
+                            <p class="help-block">Exposes <code>${http_root}metrics</code> for Prometheus
+                                scraping without web login (aggregate stats similar to graphs/history/API
+                                summaries; not a full API dump). Restrict network access or use a reverse
+                                proxy; anyone who can reach this URL can read metrics. Disabled by default.</p>
+                        </div>
                         <div id="apioptions">
                             <div class="form-group">
                                 <label for="api_key">API key</label>
@@ -2385,6 +2394,7 @@ $(document).ready(function() {
     });
 
     initConfigCheckbox('#api_enabled');
+    initConfigCheckbox('#prometheus_enabled');
     initConfigCheckbox('#enable_https');
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');

@@ -67,6 +67,7 @@ from plexpy import plexivity_import
 from plexpy import plexwatch_import
 from plexpy import pmsconnect
 from plexpy import users
+from plexpy import prometheus_metrics
 from plexpy import versioncheck
 from plexpy import web_socket
 from plexpy import webstart
@@ -6420,6 +6421,17 @@ class WebInterface(object):
                       ]
 
         return random.choice(quote_list)
+
+    ### Prometheus metrics ###
+
+    @cherrypy.expose
+    def metrics(self, **kwargs):
+        """Expose Prometheus metrics when ``PROMETHEUS_ENABLED`` is set."""
+        if not plexpy.CONFIG.PROMETHEUS_ENABLED:
+            raise NotFound
+        ctype = prometheus_metrics.metrics_content_type()
+        cherrypy.response.headers['Content-Type'] = ctype
+        return prometheus_metrics.render_metrics()
 
     ### API ###
 
