@@ -64,7 +64,6 @@ def get_server_resources(return_presence=False, return_server=False, return_info
                                                          port=server['pms_port'])
 
     plex_tv = PlexTV()
-    plex_tv.ping()
     result = plex_tv.get_server_connections(pms_identifier=server['pms_identifier'],
                                             pms_ip=server['pms_ip'],
                                             pms_port=server['pms_port'],
@@ -116,6 +115,11 @@ def get_server_resources(return_presence=False, return_server=False, return_info
 
     plexpy.CONFIG.process_kwargs(server)
     plexpy.CONFIG.write()
+
+
+def notify_token_expired():
+    if not PlexTV().check_token():
+        plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_tokenexpired'})
 
 
 class PlexTV(object):
@@ -256,14 +260,13 @@ class PlexTV(object):
 
         return request
 
-    def get_plextv_resources(self, include_https=False, return_response=False, output_format=''):
+    def get_plextv_resources(self, include_https=False, output_format=''):
         if include_https:
             uri = '/api/resources?includeHttps=1'
         else:
             uri = '/api/resources'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
-                                                    return_response=return_response,
                                                     output_format=output_format)
 
         return request
@@ -327,10 +330,11 @@ class PlexTV(object):
 
         return request
 
-    def ping_plextv(self, output_format=''):
+    def ping_plextv(self, return_response=False, output_format=''):
         uri = '/api/v2/ping'
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
+                                                    return_response=return_response,
                                                     output_format=output_format)
         return request
 
@@ -952,3 +956,7 @@ class PlexTV(object):
         if xml_head:
             return helpers.bool_true(xml_head[0].firstChild.nodeValue)
         return False
+
+    def check_token(self):
+        response = self.ping_plextv(return_response=True)
+        return response.status_code != 401

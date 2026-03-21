@@ -445,6 +445,14 @@ def available_notification_actions(agent_id=None):
                 'body': 'Tautulli database corruption detected. Automatic cleanup of database backups is suspended.',
                 'icon': 'fa-database',
                 'media_types': ('server',)
+                },
+               {'label': 'Tautulli Plex Token Expired',
+                'name': 'on_tokenexpired',
+                'description': 'Trigger a notification when the Tautulli Plex account token has expired.',
+                'subject': 'Tautulli ({server_name})',
+                'body': 'The Tautulli Plex account token has expired.',
+                'icon': 'fa-key',
+                'media_types': ('server',)
                 }
                ]
 

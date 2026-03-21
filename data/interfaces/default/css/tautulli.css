@@ -559,6 +559,44 @@ fieldset[disabled] .btn-bright.active {
     border-radius: 0 0 3px 3px;
     border-top: 1px solid #1C1C1C;
 }
+#donation_type {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+.donate-btn {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+.donate-btn-github {
+    border: none;
+    padding: 0 16px;
+    font-weight: 600;
+    height: 52px;
+    font-size: 16px;
+}
+.donate-btn-github img {
+    margin-right: 8px;
+}
+.donate-btn-patreon {
+    background-color: #fff;
+}
+.donate-btn-stripe {
+    background-color: #533AFD;
+}
+.donate-btn-paypal {
+    background-color: #60cdff;
+    padding: 10px 12px;
+}
+.donate-btn-paypal img {
+    margin-bottom: -4px;
+}
 textarea,
 input[type="text"],
 input[type="password"],

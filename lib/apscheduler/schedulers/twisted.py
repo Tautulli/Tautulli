@@ -1,20 +1,20 @@
-from __future__ import absolute_import
-
 from functools import wraps
 
+from apscheduler.schedulers import SchedulerNotRunningError
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.util import maybe_ref
 
 try:
     from twisted.internet import reactor as default_reactor
-except ImportError:  # pragma: nocover
-    raise ImportError('TwistedScheduler requires Twisted installed')
+except ImportError as exc:  # pragma: nocover
+    raise ImportError("TwistedScheduler requires Twisted installed") from exc
 
 
 def run_in_reactor(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         self._reactor.callFromThread(func, self, *args, **kwargs)
+
     return wrapper
 
 
@@ -33,13 +33,19 @@ class TwistedScheduler(BaseScheduler):
     _delayedcall = None
 
     def _configure(self, config):
-        self._reactor = maybe_ref(config.pop('reactor', default_reactor))
-        super(TwistedScheduler, self)._configure(config)
+        self._reactor = maybe_ref(config.pop("reactor", default_reactor))
+        super()._configure(config)
 
     @run_in_reactor
-    def shutdown(self, wait=True):
-        super(TwistedScheduler, self).shutdown(wait)
+    def _shutdown(self, wait=True):
+        super().shutdown(wait)
         self._stop_timer()
+
+    def shutdown(self, wait=True):
+        if not self.running:
+            raise SchedulerNotRunningError
+
+        self._shutdown(wait)
 
     def _start_timer(self, wait_seconds):
         self._stop_timer()
@@ -59,4 +65,5 @@ class TwistedScheduler(BaseScheduler):
 
     def _create_default_executor(self):
         from apscheduler.executors.twisted import TwistedExecutor
+
         return TwistedExecutor()

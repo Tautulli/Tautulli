@@ -128,6 +128,8 @@
 <script src="${http_root}js/tables/history_table.js${cache_param}"></script>
 <script>
     $(document).ready(function () {
+        var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
+
         // Load user ids and names (for the selector)
         $.ajax({
             url: 'get_user_names',
@@ -223,8 +225,6 @@
                 history_table.draw();
             });
         }
-
-        var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
 
         var media_type = getLocalStorage('history_media_type', 'all');
         $.each(media_type.split(','), function (i, item) {

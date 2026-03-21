@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.16.1 (2026-12-15)
+
+* Notifications:
+  * New: Add Tautulli Plex token expired notification trigger.
+* Newsletters:
+  * New: Add Ace editor for syntax highlighting and code formatting for newsletter message text (#2585) (Thanks @mcclown)
+* Graphs:
+  * Change: Restrict graphs to guest user.
+* UI:
+  * New: Add DD:HH:MM time format for home stats.
+  * New: Add HH:MM:SS time format for activity cards.
+  * Removed: Timezone from IP address modal.
+* Other:
+  * Change: Zip backup files to reduce file size.
+
+
 ## v2.16.0 (2025-09-08)
 
 * Important Note!

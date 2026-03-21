@@ -3340,8 +3340,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def check_pms_token(self, **kwargs):
         plex_tv = plextv.PlexTV()
-        response = plex_tv.get_plextv_resources(return_response=True)
-        if not response.ok:
+        if not plex_tv.check_token():
             cherrypy.response.status = 401
 
     @cherrypy.expose
@@ -4711,6 +4710,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Notification failed.'}
 
     @cherrypy.expose
+    @requireAuth()
     def pms_image_proxy(self, **kwargs):
         """ See real_pms_image_proxy docs string"""
 
@@ -5001,7 +5001,7 @@ class WebInterface(object):
         log_file = (logfile or 'Plex Media Server') + '.log'
         log_file_path = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
 
-        if log_file and os.path.isfile(log_file_path):
+        if log_file and helpers.is_subdir(log_file_path, plexpy.CONFIG.PMS_LOGS_FOLDER) and os.path.isfile(log_file_path):
             log_file_name = os.path.basename(log_file_path)
             return serve_download(log_file_path, name=log_file_name)
         else:
@@ -6816,9 +6816,13 @@ class WebInterface(object):
             # Keep this for backwards compatibility for images through /newsletter/image
             if len(args) >= 2 and args[0] == 'image':
                 if args[1] == 'images':
-                    resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
+                    resource_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/default')
+                    img_path = os.path.join(resource_dir, *args[1:])
+                    if not helpers.is_subdir(img_path, resource_dir):
+                        return
+
                     try:
-                        return serve_file(path=os.path.join(resource_dir, *args[1:]), content_type='image/png')
+                        return serve_file(path=img_path, content_type='image/png')
                     except NotFound:
                         return
 

@@ -122,7 +122,7 @@ class API2(object):
         if 'app' in kwargs and helpers.bool_true(kwargs.pop('app')):
             self._api_app = True
 
-        if plexpy.CONFIG.API_ENABLED and not self._api_msg or self._api_cmd in ('get_apikey', 'docs', 'docs_md'):
+        if plexpy.CONFIG.API_ENABLED and not self._api_msg or self._api_cmd in ('docs', 'docs_md'):
             if not self._api_app and self._api_apikey == plexpy.CONFIG.API_KEY:
                 self._api_authenticated = True
 
@@ -142,7 +142,7 @@ class API2(object):
                 self._api_msg = None
                 self._api_kwargs = kwargs
 
-            elif not self._api_authenticated and self._api_cmd in ('get_apikey', 'docs', 'docs_md'):
+            elif not self._api_authenticated and self._api_cmd in ('docs', 'docs_md'):
                 self._api_authenticated = True
                 # Remove the old error msg
                 self._api_msg = None
@@ -615,47 +615,6 @@ General optional parameters:
         result = head + '\n\n' + body
         return '<pre>' + result + '</pre>'
 
-    def get_apikey(self, username='', password=''):
-        """ Get the apikey. Username and password are required
-            if auth is enabled. Makes and saves the apikey if it does not exist.
-
-            ```
-            Required parameters:
-                None
-
-            Optional parameters:
-                username (str):     Your Tautulli username
-                password (str):     Your Tautulli password
-
-            Returns:
-                string:             "apikey"
-            ```
-         """
-        data = None
-        apikey = hashlib.sha224(str(random.getrandbits(256)).encode('utf-8')).hexdigest()[0:32]
-        if plexpy.CONFIG.HTTP_USERNAME and plexpy.CONFIG.HTTP_PASSWORD:
-            authenticated = username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD)
-
-            if authenticated:
-                if plexpy.CONFIG.API_KEY:
-                    data = plexpy.CONFIG.API_KEY
-                else:
-                    data = apikey
-                    plexpy.CONFIG.API_KEY = apikey
-                    plexpy.CONFIG.write()
-            else:
-                self._api_msg = 'Authentication is enabled, please add the correct username and password to the parameters'
-        else:
-            if plexpy.CONFIG.API_KEY:
-                data = plexpy.CONFIG.API_KEY
-            else:
-                # Make a apikey if the doesn't exist
-                data = apikey
-                plexpy.CONFIG.API_KEY = apikey
-                plexpy.CONFIG.write()
-
-        return data
-
     def _api_responds(self, result_type='error', data=None, msg=''):
         """ Formats the result to a predefined dict so we can change it the to
             the desired output by _api_out_as """
@@ -691,6 +650,8 @@ General optional parameters:
                 else:
                     out = json.dumps(out, ensure_ascii=False)
                 if self._api_callback is not None:
+                    if not re.match(r'^[a-zA-Z_$][a-zA-Z0-9_$.]*$', self._api_callback):
+                        raise cherrypy.HTTPError(400, 'Invalid callback identifier')
                     cherrypy.response.headers['Content-Type'] = 'application/javascript'
                     # wrap with JSONP call if requested
                     out = self._api_callback + '(' + out + ');'
@@ -734,10 +695,6 @@ General optional parameters:
                 logger._BLACKLIST_WORDS.add(kwargs['device_id'])
             if kwargs.get('onesignal_id'):
                 logger._BLACKLIST_WORDS.add(kwargs['onesignal_id'])
-
-        elif kwargs.get('cmd') == 'get_apikey':
-            if kwargs.get('password'):
-                logger._BLACKLIST_WORDS.add(kwargs['password'])
 
         result = None
         logger.api_debug('Tautulli APIv2 :: API called with kwargs: %s' % kwargs)

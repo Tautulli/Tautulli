@@ -16,14 +16,18 @@ from .api_jwk import PyJWK
 from .exceptions import (
     DecodeError,
     InvalidAlgorithmError,
+    InvalidKeyError,
     InvalidSignatureError,
     InvalidTokenError,
 )
 from .utils import base64url_decode, base64url_encode
-from .warnings import RemovedInPyjwt3Warning
+from .warnings import InsecureKeyLengthWarning, RemovedInPyjwt3Warning
 
 if TYPE_CHECKING:
     from .algorithms import AllowedPrivateKeys, AllowedPublicKeys
+    from .types import SigOptions
+
+_ALGORITHM_UNSET = object()
 
 
 class PyJWS:
@@ -32,7 +36,7 @@ class PyJWS:
     def __init__(
         self,
         algorithms: Sequence[str] | None = None,
-        options: dict[str, Any] | None = None,
+        options: SigOptions | None = None,
     ) -> None:
         self._algorithms = get_default_algorithms()
         self._valid_algs = (
@@ -44,17 +48,21 @@ class PyJWS:
             if key not in self._valid_algs:
                 del self._algorithms[key]
 
-        if options is None:
-            options = {}
-        self.options = {**self._get_default_options(), **options}
+        self.options: SigOptions = self._get_default_options()
+        if options is not None:
+            self.options = {**self.options, **options}
 
     @staticmethod
-    def _get_default_options() -> dict[str, bool]:
-        return {"verify_signature": True}
+    def _get_default_options() -> SigOptions:
+        return {"verify_signature": True, "enforce_minimum_key_length": False}
 
     def register_algorithm(self, alg_id: str, alg_obj: Algorithm) -> None:
         """
         Registers a new Algorithm for use when creating and verifying tokens.
+
+        :param str alg_id: the ID of the Algorithm
+        :param alg_obj: the Algorithm object
+        :type alg_obj: Algorithm
         """
         if alg_id in self._algorithms:
             raise ValueError("Algorithm already has a handler.")
@@ -68,7 +76,8 @@ class PyJWS:
     def unregister_algorithm(self, alg_id: str) -> None:
         """
         Unregisters an Algorithm for use when creating and verifying tokens
-        Throws KeyError if algorithm is not registered.
+        :param str alg_id: the ID of the Algorithm
+        :raises KeyError: if algorithm is not registered.
         """
         if alg_id not in self._algorithms:
             raise KeyError(
@@ -81,7 +90,9 @@ class PyJWS:
 
     def get_algorithms(self) -> list[str]:
         """
-        Returns a list of supported values for the 'alg' parameter.
+        Returns a list of supported values for the `alg` parameter.
+
+        :rtype: list[str]
         """
         return list(self._valid_algs)
 
@@ -90,8 +101,12 @@ class PyJWS:
         For a given string name, return the matching Algorithm object.
 
         Example usage:
-
+        >>> jws_obj = PyJWS()
         >>> jws_obj.get_algorithm_by_name("RS256")
+
+        :param alg_name: The name of the algorithm to retrieve
+        :type alg_name: str
+        :rtype: Algorithm
         """
         try:
             return self._algorithms[alg_name]
@@ -106,20 +121,25 @@ class PyJWS:
         self,
         payload: bytes,
         key: AllowedPrivateKeys | PyJWK | str | bytes,
-        algorithm: str | None = None,
+        algorithm: str | None = _ALGORITHM_UNSET,  # type: ignore[assignment]
         headers: dict[str, Any] | None = None,
         json_encoder: type[json.JSONEncoder] | None = None,
         is_payload_detached: bool = False,
         sort_headers: bool = True,
     ) -> str:
-        segments = []
+        segments: list[bytes] = []
 
         # declare a new var to narrow the type for type checkers
-        if algorithm is None:
+        if algorithm is _ALGORITHM_UNSET:
             if isinstance(key, PyJWK):
                 algorithm_ = key.algorithm_name
             else:
                 algorithm_ = "HS256"
+        elif algorithm is None:
+            if isinstance(key, PyJWK):
+                algorithm_ = key.algorithm_name
+            else:
+                algorithm_ = "none"
         else:
             algorithm_ = algorithm
 
@@ -137,7 +157,7 @@ class PyJWS:
         header: dict[str, Any] = {"typ": self.header_typ, "alg": algorithm_}
 
         if headers:
-            self._validate_headers(headers)
+            self._validate_headers(headers, encoding=True)
             header.update(headers)
 
         if not header["typ"]:
@@ -168,6 +188,14 @@ class PyJWS:
         if isinstance(key, PyJWK):
             key = key.key
         key = alg_obj.prepare_key(key)
+
+        key_length_msg = alg_obj.check_key_length(key)
+        if key_length_msg:
+            if self.options.get("enforce_minimum_key_length", False):
+                raise InvalidKeyError(key_length_msg)
+            else:
+                warnings.warn(key_length_msg, InsecureKeyLengthWarning, stacklevel=2)
+
         signature = alg_obj.sign(signing_input, key)
 
         segments.append(base64url_encode(signature))
@@ -184,9 +212,9 @@ class PyJWS:
         jwt: str | bytes,
         key: AllowedPublicKeys | PyJWK | str | bytes = "",
         algorithms: Sequence[str] | None = None,
-        options: dict[str, Any] | None = None,
+        options: SigOptions | None = None,
         detached_payload: bytes | None = None,
-        **kwargs,
+        **kwargs: dict[str, Any],
     ) -> dict[str, Any]:
         if kwargs:
             warnings.warn(
@@ -196,9 +224,12 @@ class PyJWS:
                 RemovedInPyjwt3Warning,
                 stacklevel=2,
             )
+        merged_options: SigOptions
         if options is None:
-            options = {}
-        merged_options = {**self.options, **options}
+            merged_options = self.options
+        else:
+            merged_options = {**self.options, **options}
+
         verify_signature = merged_options["verify_signature"]
 
         if verify_signature and not algorithms and not isinstance(key, PyJWK):
@@ -207,6 +238,8 @@ class PyJWS:
             )
 
         payload, signing_input, header, signature = self._load(jwt)
+
+        self._validate_headers(header)
 
         if header.get("b64", True) is False:
             if detached_payload is None:
@@ -230,9 +263,9 @@ class PyJWS:
         jwt: str | bytes,
         key: AllowedPublicKeys | PyJWK | str | bytes = "",
         algorithms: Sequence[str] | None = None,
-        options: dict[str, Any] | None = None,
+        options: SigOptions | None = None,
         detached_payload: bytes | None = None,
-        **kwargs,
+        **kwargs: dict[str, Any],
     ) -> Any:
         if kwargs:
             warnings.warn(
@@ -248,7 +281,7 @@ class PyJWS:
         return decoded["payload"]
 
     def get_unverified_header(self, jwt: str | bytes) -> dict[str, Any]:
-        """Returns back the JWT header parameters as a dict()
+        """Returns back the JWT header parameters as a `dict`
 
         Note: The signature is not verified so the header parameters
         should not be fully trusted until signature verification is complete
@@ -277,7 +310,7 @@ class PyJWS:
             raise DecodeError("Invalid header padding") from err
 
         try:
-            header = json.loads(header_data)
+            header: dict[str, Any] = json.loads(header_data)
         except ValueError as e:
             raise DecodeError(f"Invalid header string: {e}") from e
 
@@ -324,16 +357,44 @@ class PyJWS:
                 raise InvalidAlgorithmError("Algorithm not supported") from e
             prepared_key = alg_obj.prepare_key(key)
 
+        key_length_msg = alg_obj.check_key_length(prepared_key)
+        if key_length_msg:
+            if self.options.get("enforce_minimum_key_length", False):
+                raise InvalidKeyError(key_length_msg)
+            else:
+                warnings.warn(key_length_msg, InsecureKeyLengthWarning, stacklevel=4)
+
         if not alg_obj.verify(signing_input, prepared_key, signature):
             raise InvalidSignatureError("Signature verification failed")
 
-    def _validate_headers(self, headers: dict[str, Any]) -> None:
+    # Extensions that PyJWT actually understands and supports
+    _supported_crit: set[str] = {"b64"}
+
+    def _validate_headers(
+        self, headers: dict[str, Any], *, encoding: bool = False
+    ) -> None:
         if "kid" in headers:
             self._validate_kid(headers["kid"])
+        if not encoding and "crit" in headers:
+            self._validate_crit(headers)
 
     def _validate_kid(self, kid: Any) -> None:
         if not isinstance(kid, str):
             raise InvalidTokenError("Key ID header parameter must be a string")
+
+    def _validate_crit(self, headers: dict[str, Any]) -> None:
+        crit = headers["crit"]
+        if not isinstance(crit, list) or len(crit) == 0:
+            raise InvalidTokenError("Invalid 'crit' header: must be a non-empty list")
+        for ext in crit:
+            if not isinstance(ext, str):
+                raise InvalidTokenError("Invalid 'crit' header: values must be strings")
+            if ext not in self._supported_crit:
+                raise InvalidTokenError(f"Unsupported critical extension: {ext}")
+            if ext not in headers:
+                raise InvalidTokenError(
+                    f"Critical extension '{ext}' is missing from headers"
+                )
 
 
 _jws_global_obj = PyJWS()

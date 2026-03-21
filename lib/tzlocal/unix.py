@@ -7,15 +7,13 @@ from datetime import timezone
 
 from tzlocal import utils
 
-if sys.version_info >= (3, 9):
-    import zoneinfo  # pragma: no cover
-else:
-    from backports import zoneinfo  # pragma: no cover
+import zoneinfo
 
 _cache_tz = None
 _cache_tz_name = None
 
 log = logging.getLogger("tzlocal")
+
 
 def _get_localzone_name(_root="/"):
     """Tries to find the local timezone configuration.
@@ -136,19 +134,21 @@ def _get_localzone_name(_root="/"):
 
     if len(found_configs) > 0:
         log.debug(f"{len(found_configs)} found:\n {found_configs}")
+
         # We found some explicit config of some sort!
         if len(found_configs) > 1:
             # Uh-oh, multiple configs. See if they match:
-            unique_tzs = set()
-            zoneinfopath = os.path.join(_root, "usr", "share", "zoneinfo")
-            directory_depth = len(zoneinfopath.split(os.path.sep))
+            unique_tzs = _get_unique_tzs(found_configs, _root)
 
-            for tzname in found_configs.values():
-                # Look them up in /usr/share/zoneinfo, and find what they
-                # really point to:
-                path = os.path.realpath(os.path.join(zoneinfopath, *tzname.split("/")))
-                real_zone_name = "/".join(path.split(os.path.sep)[directory_depth:])
-                unique_tzs.add(real_zone_name)
+            if len(unique_tzs) != 1 and "etc/timezone" in str(found_configs.keys()):
+                # For some reason some distros are removing support for /etc/timezone, 
+                # which is bad, because that's the only place where the timezone is stated 
+                # in plain text, and what's worse, they don't delete it. So we can't trust 
+                # it now, so when we have conflicting configs, we just ignore it, with a warning.
+                log.warning("/etc/timezone is deprecated in some distros, and no longer reliable. "
+                            "tzlocal is ignoring it, and you can likely delete it.")
+                found_configs = {k: v for k, v in found_configs.items() if "etc/timezone" not in k}
+                unique_tzs = _get_unique_tzs(found_configs, _root)
 
             if len(unique_tzs) != 1:
                 message = "Multiple conflicting time zone configurations found:\n"
@@ -159,6 +159,21 @@ def _get_localzone_name(_root="/"):
 
         # We found exactly one config! Use it.
         return list(found_configs.values())[0]
+
+
+def _get_unique_tzs(found_configs, _root):
+    unique_tzs = set()
+    zoneinfopath = os.path.join(_root, "usr", "share", "zoneinfo")
+    directory_depth = len(zoneinfopath.split(os.path.sep))
+
+    for tzname in found_configs.values():
+        # Look them up in /usr/share/zoneinfo, and find what they
+        # really point to:
+        path = os.path.realpath(os.path.join(zoneinfopath, *tzname.split("/")))
+        real_zone_name = "/".join(path.split(os.path.sep)[directory_depth:])
+        unique_tzs.add(real_zone_name)
+
+    return unique_tzs
 
 
 def _get_localzone(_root="/"):
@@ -190,7 +205,11 @@ def _get_localzone(_root="/"):
                 break
         else:
             warnings.warn("Can not find any timezone configuration, defaulting to UTC.")
-            tz = timezone.utc
+            utcname = [x for x in zoneinfo.available_timezones() if "UTC" in x]
+            if utcname:
+                tz = zoneinfo.ZoneInfo(utcname[0])
+            else:
+                tz = timezone.utc
     else:
         tz = zoneinfo.ZoneInfo(tzname)
 
@@ -201,7 +220,7 @@ def _get_localzone(_root="/"):
     return tz
 
 
-def get_localzone_name():
+def get_localzone_name() -> str:
     """Get the computers configured local timezone name, if any."""
     global _cache_tz_name
     if _cache_tz_name is None:
@@ -210,7 +229,7 @@ def get_localzone_name():
     return _cache_tz_name
 
 
-def get_localzone():
+def get_localzone() -> zoneinfo.ZoneInfo:
     """Get the computers configured local timezone, if any."""
 
     global _cache_tz
@@ -220,7 +239,7 @@ def get_localzone():
     return _cache_tz
 
 
-def reload_localzone():
+def reload_localzone() -> zoneinfo.ZoneInfo:
     """Reload the cached localzone. You need to call this if the timezone has changed."""
     global _cache_tz_name
     global _cache_tz

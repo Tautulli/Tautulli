@@ -15,9 +15,9 @@
 
 import os
 import re
-import shutil
 import time
 import threading
+import zipfile
 
 from configobj import ConfigObj, ParseError
 from hashing_passwords import make_hash
@@ -400,9 +400,9 @@ def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of config file, removes all but the last 5 backups """
 
     if scheduler:
-        backup_file = 'config.backup-{}.sched.ini'.format(helpers.now())
+        backup_file = 'config.backup-{}.sched.ini.zip'.format(helpers.now())
     else:
-        backup_file = 'config.backup-{}.ini'.format(helpers.now())
+        backup_file = 'config.backup-{}.ini.zip'.format(helpers.now())
     backup_folder = plexpy.CONFIG.BACKUP_DIR
     backup_file_fp = os.path.join(backup_folder, backup_file)
 
@@ -411,13 +411,14 @@ def make_backup(cleanup=False, scheduler=False):
         os.makedirs(backup_folder)
 
     plexpy.CONFIG.write()
-    shutil.copyfile(plexpy.CONFIG_FILE, backup_file_fp)
+    with zipfile.ZipFile(backup_file_fp, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        zipf.write(plexpy.CONFIG_FILE, arcname=FILENAME)
 
     if cleanup:
         now = time.time()
         # Delete all scheduled backup older than BACKUP_DAYS.
         for root, dirs, files in os.walk(backup_folder):
-            ini_files = [os.path.join(root, f) for f in files if f.endswith('.sched.ini')]
+            ini_files = [os.path.join(root, f) for f in files if '.sched.ini' in f]
             for file_ in ini_files:
                 if os.stat(file_).st_mtime < now - plexpy.CONFIG.BACKUP_DAYS * 86400:
                     try:

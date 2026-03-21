@@ -312,21 +312,17 @@ function getPercent(value1, value2) {
     return Math.round(percent)
 }
 
-function millisecondsToMinutes(ms, roundToMinute) {
+function millisecondsToHoursMinutes(ms) {
     if (ms > 0) {
-      var minutes = Math.floor(ms / 60000);
-      var seconds = ((ms % 60000) / 1000).toFixed(0);
-      if (roundToMinute) {
-          return (seconds >= 30 ? (minutes + 1) : minutes);
-      } else {
-          return (seconds == 60 ? (minutes + 1) + ":00" : minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
-      }
-    } else {
-        if (roundToMinute) {
-            return '0';
-        } else {
-            return '0:00';
+        var hours = Math.floor(ms / 3600000);
+        var minutes = Math.floor((ms % 3600000) / 60000);
+        var seconds = Math.floor(((ms % 3600000) % 60000) / 1000);
+        if (hours > 0) {
+            return hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
         }
+        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    } else {
+        return '0:00';
     }
 }
 

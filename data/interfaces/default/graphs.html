@@ -13,12 +13,14 @@
             <span><i class="fa fa-bar-chart"></i> Graphs</span>
         </div>
         <div class="button-bar">
+            % if _session['user_group'] == 'admin':
             <div class="btn-group" id="user-selection">
                 <label>
                     <select name="graph-user" id="graph-user" multiple>
                     </select>
                 </label>
             </div>
+            % endif
             <div class="btn-group" style="margin-right: 2px;" data-toggle="buttons" id="yaxis-selection">
                 <label class="btn btn-dark btn-filter">
                     <input type="radio" name="yaxis-options" id="yaxis-plays" value="plays" autocomplete="off"> Play Count
@@ -245,7 +247,7 @@
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 
 <script>
-    var selected_user_id = null;
+    var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
 
     // Modal popup dialog
     function selectHandler(selectedDate, selectedSeries) {
@@ -355,7 +357,6 @@
 <script src="${http_root}js/graphs/plays_by_month.js${cache_param}"></script>
 <script>
     $(document).ready(function () {
-
         // Initial values for graph from local storage
         var yaxis = getLocalStorage('graph_type', 'plays');
         var current_day_range = getLocalStorage('graph_days', 30);
@@ -395,15 +396,15 @@
         // Load user ids and names (for the selector)
         $.ajax({
             url: 'get_user_names',
-            type: 'get',
-            dataType: "json",
+            type: 'GET',
+            dataType: 'json',
             success: function (data) {
                 let select = $('#graph-user');
                 let by_id = {};
-                data.sort(function(a, b) {
+                data.sort(function (a, b) {
                     return a.friendly_name.localeCompare(b.friendly_name);
                 });
-                data.forEach(function(item) {
+                data.forEach(function (item) {
                     select.append('<option value="' + item.user_id + '">' +
                         item.friendly_name + '</option>');
                     by_id[item.user_id] = item.friendly_name;
@@ -837,6 +838,11 @@
             hc_plays_by_month_options.tooltip.formatter = tooltip_format;
             hc_plays_by_month_options.yAxis.stackLabels.formatter = stack_labels_format;
         }
+
+
+        if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
+        if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
+        if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
     });
 </script>
 </%def>

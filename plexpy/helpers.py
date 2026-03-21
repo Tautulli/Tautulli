@@ -35,6 +35,7 @@ import json
 import math
 import operator
 import os
+from pathlib import Path
 import re
 import shlex
 import socket
@@ -1738,6 +1739,6 @@ def get_ipv6_network_address(ip: str) -> str:
 
 
 def is_subdir(child: str, parent: str) -> bool:
-    child = os.path.abspath(child)
-    parent = os.path.abspath(parent)
-    return os.path.commonpath([parent]) == os.path.commonpath([parent, child])
+    child = Path(child).resolve()
+    parent = Path(parent).resolve()
+    return child.is_relative_to(parent)

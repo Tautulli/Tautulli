@@ -15,9 +15,9 @@
 
 import os
 import sqlite3
-import shutil
 import threading
 import time
+import zipfile
 
 import plexpy
 from plexpy import helpers
@@ -343,9 +343,9 @@ def make_backup(cleanup=False, scheduler=False):
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpydbcorrupt'})
 
     if scheduler:
-        backup_file = 'tautulli.backup-{}{}.sched.db'.format(helpers.now(), corrupt)
+        backup_file = 'tautulli.backup-{}{}.sched.db.zip'.format(helpers.now(), corrupt)
     else:
-        backup_file = 'tautulli.backup-{}{}.db'.format(helpers.now(), corrupt)
+        backup_file = 'tautulli.backup-{}{}.db.zip'.format(helpers.now(), corrupt)
     backup_folder = plexpy.CONFIG.BACKUP_DIR
     backup_file_fp = os.path.join(backup_folder, backup_file)
 
@@ -355,7 +355,8 @@ def make_backup(cleanup=False, scheduler=False):
 
     db = MonitorDatabase()
     db.connection.execute("BEGIN IMMEDIATE")
-    shutil.copyfile(db_filename(), backup_file_fp)
+    with zipfile.ZipFile(backup_file_fp, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        zipf.write(db_filename(), arcname=FILENAME)
     db.connection.rollback()
 
     # Only cleanup if the database integrity is okay
@@ -363,7 +364,7 @@ def make_backup(cleanup=False, scheduler=False):
         now = time.time()
         # Delete all scheduled backup older than BACKUP_DAYS.
         for root, dirs, files in os.walk(backup_folder):
-            db_files = [os.path.join(root, f) for f in files if f.endswith('.sched.db')]
+            db_files = [os.path.join(root, f) for f in files if '.sched.db' in f]
             for file_ in db_files:
                 if os.stat(file_).st_mtime < now - plexpy.CONFIG.BACKUP_DAYS * 86400:
                     try:
