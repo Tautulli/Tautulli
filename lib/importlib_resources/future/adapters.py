@@ -3,7 +3,7 @@ import pathlib
 from contextlib import suppress
 from types import SimpleNamespace
 
-from .. import readers, _adapters
+from .. import _adapters, readers
 
 
 def _block_standard(reader_getter):
@@ -22,6 +22,13 @@ def _block_standard(reader_getter):
             reader = reader_getter(*args, **kwargs)
         except NotADirectoryError:
             # MultiplexedPath may fail on zip subdirectory
+            return
+        except ValueError as exc:
+            # NamespaceReader in stdlib may fail for editable installs
+            # (python/importlib_resources#311, python/importlib_resources#318)
+            # Remove after bugfix applied to Python 3.13.
+            if "not enough values to unpack" not in str(exc):
+                raise
             return
         # Python 3.10+
         mod_name = reader.__class__.__module__

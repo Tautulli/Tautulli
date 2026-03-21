@@ -3,6 +3,7 @@ import pathlib
 import unittest
 
 import importlib_resources as resources
+
 from . import util
 
 
