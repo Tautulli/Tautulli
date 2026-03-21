@@ -8,7 +8,7 @@ def save_method_args(method):
     Wrap a method such that when it is called, the args and kwargs are
     saved on the method.
     """
-    args_and_kwargs = collections.namedtuple('args_and_kwargs', 'args kwargs')
+    args_and_kwargs = collections.namedtuple('args_and_kwargs', 'args kwargs')  # noqa: PYI024
 
     @functools.wraps(method)
     def wrapper(self, /, *args, **kwargs):
