@@ -129,7 +129,7 @@ This is free software under the GPL v3 open source license. Feel free to do with
 but any modification must be open sourced. A copy of the license is included.
 
 This software includes Highsoft software libraries which you may freely distribute for 
-non-commercial use. Commerical users must licence this software, for more information visit
+non-commercial use. Commercial users must licence this software, for more information visit
 https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
 
 

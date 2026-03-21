@@ -1,5 +1,86 @@
 # Changelog
 
+## v2.16.1 (2026-12-15)
+
+* Notifications:
+  * New: Add Tautulli Plex token expired notification trigger.
+* Newsletters:
+  * New: Add Ace editor for syntax highlighting and code formatting for newsletter message text (#2585) (Thanks @mcclown)
+* Graphs:
+  * Change: Restrict graphs to guest user.
+* UI:
+  * New: Add DD:HH:MM time format for home stats.
+  * New: Add HH:MM:SS time format for activity cards.
+  * Removed: Timezone from IP address modal.
+* Other:
+  * Change: Zip backup files to reduce file size.
+
+
+## v2.16.0 (2025-09-08)
+
+* Important Note!
+  * Several security vulnerabilities have been identified in Tautulli versions <=2.15.3 (CVE-2025-58760, CVE-2025-58761, CVE-2025-58762, CVE-2025-58763). Users are strongly encouraged to update to the latest Tautulli version 2.16.x. (Thanks @d-xuan)
+* UI:
+  * Fix: Update poster click-through overlay to new Plex logo. (#2584) (Thanks @TheMeanCanEHdian)
+* Other:
+  * Fix: Race condition in image cache directory creation (#2580) (Thanks @keithah)
+  * Fix: Validate image path in /image and /pms_image_proxy endpoints.
+  * Fix: Validate image format in /pms_image_proxy endpoint.
+  * Fix: Don't run git command with shell.
+
+
+## v2.15.3 (2025-08-03)
+
+* Exporter:
+  * New: Added hearingImpaired for subtitles and visualImpaired for audio attributes to exporter fields.
+* Graphs:
+  * Fix: Remove duplicate "Total" entry in graph tooltips. (Thanks @zdimension) (#2534)
+* UI:
+  * Fix: Failing to retrieve collections / playlists with over 1000 items.
+  * Fix: Scrollbar not showing on macosx and webkit browsers. (#2221)
+  * Fix: Incorrect rounding of minutes in global stats play duration.
+  * Fix: Disable browser autocomplete for notification agent and newsletter agent configurations. (#2557)
+* API:
+  * New: Added ability to return svg files using pms_image_proxy API command.
+* Other:
+  * New: Added ability to set config values using environment variables. (Thanks @komuw) (#2309, #2543)
+
+
+## v2.15.2 (2025-04-12)
+
+* Activity:
+  * New: Added link to library by clicking media type icon.
+  * New: Added stream count to tab title on homepage. (#2517)
+* History:
+  * Fix: Check stream watched status before stream stopped status. (#2506)
+* Notifications:
+  * Fix: ntfy notifications failing to send if provider link is blank.
+  * Fix: Check Pushover notification attachment is under 5MB limit. (#2396)
+  * Fix: Track URLs redirecting to the correct media page. (#2513)
+  * New: Added audio profile notification parameters.
+  * New: Added PATCH method for Webhook notifications.
+* Graphs:
+  * New: Added Total line to daily streams graph. (Thanks @zdimension) (#2497)
+* UI:
+  * Fix: Do not redirect API requests to the login page. (#2490)
+  * Change: Swap source and stream columns in stream info modal.
+* Other:
+  * Fix: Various typos. (Thanks @luzpaz) (#2520)
+  * Fix: CherryPy CORS response header not being set correctly. (#2279)
+
+
+## v2.15.1 (2025-01-11)
+
+* Activity:
+  * Fix: Detection of HDR transcodes. (Thanks @cdecker08) (#2412, #2466)
+* Newsletters:
+  * Fix: Disable basic authentication for /newsletter and /image endpoints. (#2472)
+* Exporter:
+  * New: Added logos to season and episode exports.
+* Other:
+  * Fix: Docker container https health check.
+
+
 ## v2.15.0 (2024-11-24)
 
 * Notes:

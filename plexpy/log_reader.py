@@ -50,6 +50,9 @@ def get_log_tail(window=20, parsed=True, log_file=''):
     log_file = (log_file or 'Plex Media Server') + '.log'
     log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
 
+    if not helpers.is_subdir(log_file, plexpy.CONFIG.PMS_LOGS_FOLDER):
+        return
+
     try:
         logfile = open(log_file, 'r', encoding='utf-8')
     except IOError as e:

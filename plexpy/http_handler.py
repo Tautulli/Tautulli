@@ -184,7 +184,7 @@ class HTTPHandler(object):
             if not self._silent:
                 logger.error(error_msg + "Uncaught exception: %s", e)
 
-        if self.return_response:
+        if not err and self.return_response:
             return r
         elif err:
             return None

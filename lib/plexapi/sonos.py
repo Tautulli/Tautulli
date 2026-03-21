@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import requests
 
-from plexapi import CONFIG, X_PLEX_IDENTIFIER
+from plexapi import CONFIG, X_PLEX_IDENTIFIER, TIMEOUT
 from plexapi.client import PlexClient
 from plexapi.exceptions import BadRequest
 from plexapi.playqueue import PlayQueue
@@ -46,8 +46,7 @@ class PlexSonosClient(PlexClient):
             _session (obj): Requests session object used to access this client.
     """
 
-    def __init__(self, account, data):
-        self._data = data
+    def __init__(self, account, data, timeout=None):
         self.deviceClass = data.attrib.get("deviceClass")
         self.machineIdentifier = data.attrib.get("machineIdentifier")
         self.product = data.attrib.get("product")
@@ -66,6 +65,7 @@ class PlexSonosClient(PlexClient):
         self._last_call = 0
         self._proxyThroughServer = False
         self._showSecrets = CONFIG.get("log.show_secrets", "").lower() == "true"
+        self._timeout = timeout or TIMEOUT
 
     def playMedia(self, media, offset=0, **params):
 

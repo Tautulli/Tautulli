@@ -5,7 +5,7 @@ from pathlib import Path
 from urllib.parse import quote_plus, unquote
 
 from plexapi import media, utils
-from plexapi.base import Playable, PlexPartialObject
+from plexapi.base import Playable, PlexPartialObject, cached_data_property
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
 from plexapi.library import LibrarySection, MusicSection
 from plexapi.mixins import SmartFilterMixin, ArtMixin, PosterMixin, PlaylistEditMixins
@@ -60,7 +60,6 @@ class Playlist(
         self.content = data.attrib.get('content')
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.durationInSeconds = utils.cast(int, data.attrib.get('durationInSeconds'))
-        self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
         self.icon = data.attrib.get('icon')
         self.key = data.attrib.get('key', '').replace('/items', '')  # FIX_BUG_50
@@ -77,9 +76,10 @@ class Playlist(
         self.titleSort = data.attrib.get('titleSort', self.title)
         self.type = data.attrib.get('type')
         self.updatedAt = utils.toDatetime(data.attrib.get('updatedAt'))
-        self._items = None  # cache for self.items
-        self._section = None  # cache for self.section
-        self._filters = None  # cache for self.filters
+
+    @cached_data_property
+    def fields(self):
+        return self.findItems(self._data, media.Field)
 
     def __len__(self):  # pragma: no cover
         return len(self.items())
@@ -133,14 +133,35 @@ class Playlist(
                 return _item.playlistItemID
         raise NotFound(f'Item with title "{item.title}" not found in the playlist')
 
+    @cached_data_property
+    def _filters(self):
+        """ Cache for filters. """
+        return self._parseFilters(self.content)
+
     def filters(self):
         """ Returns the search filter dict for smart playlist.
             The filter dict be passed back into :func:`~plexapi.library.LibrarySection.search`
             to get the list of items.
         """
-        if self.smart and self._filters is None:
-            self._filters = self._parseFilters(self.content)
         return self._filters
+
+    @cached_data_property
+    def _section(self):
+        """ Cache for section. """
+        if not self.smart:
+            raise BadRequest('Regular playlists are not associated with a library.')
+
+        # Try to parse the library section from the content URI string
+        match = re.search(r'/library/sections/(\d+)/all', unquote(self.content or ''))
+        if match:
+            sectionKey = int(match.group(1))
+            return self._server.library.sectionByID(sectionKey)
+
+        # Try to get the library section from the first item in the playlist
+        if self.items():
+            return self.items()[0].section()
+
+        raise Unsupported('Unable to determine the library section')
 
     def section(self):
         """ Returns the :class:`~plexapi.library.LibrarySection` this smart playlist belongs to.
@@ -149,24 +170,6 @@ class Playlist(
                 :class:`plexapi.exceptions.BadRequest`: When trying to get the section for a regular playlist.
                 :class:`plexapi.exceptions.Unsupported`: When unable to determine the library section.
         """
-        if not self.smart:
-            raise BadRequest('Regular playlists are not associated with a library.')
-
-        if self._section is None:
-            # Try to parse the library section from the content URI string
-            match = re.search(r'/library/sections/(\d+)/all', unquote(self.content or ''))
-            if match:
-                sectionKey = int(match.group(1))
-                self._section = self._server.library.sectionByID(sectionKey)
-                return self._section
-
-            # Try to get the library section from the first item in the playlist
-            if self.items():
-                self._section = self.items()[0].section()
-                return self._section
-
-            raise Unsupported('Unable to determine the library section')
-
         return self._section
 
     def item(self, title):
@@ -183,28 +186,32 @@ class Playlist(
                 return item
         raise NotFound(f'Item with title "{title}" not found in the playlist')
 
-    def items(self):
-        """ Returns a list of all items in the playlist. """
+    @cached_data_property
+    def _items(self):
+        """ Cache for items. """
         if self.radio:
             return []
-        if self._items is None:
-            key = f'{self.key}/items'
-            items = self.fetchItems(key)
 
-            # Cache server connections to avoid reconnecting for each item
-            _servers = {}
-            for item in items:
-                if item.sourceURI:
-                    serverID = item.sourceURI.split('/')[2]
-                    if serverID not in _servers:
-                        try:
-                            _servers[serverID] = self._server.myPlexAccount().resource(serverID).connect()
-                        except NotFound:
-                            # Override the server connection with None if the server is not found
-                            _servers[serverID] = None
-                    item._server = _servers[serverID]
+        key = f'{self.key}/items'
+        items = self.fetchItems(key)
 
-            self._items = items
+        # Cache server connections to avoid reconnecting for each item
+        _servers = {}
+        for item in items:
+            if item.sourceURI:
+                serverID = item.sourceURI.split('/')[2]
+                if serverID not in _servers:
+                    try:
+                        _servers[serverID] = self._server.myPlexAccount().resource(serverID).connect()
+                    except NotFound:
+                        # Override the server connection with None if the server is not found
+                        _servers[serverID] = None
+                item._server = _servers[serverID]
+
+        return items
+
+    def items(self):
+        """ Returns a list of all items in the playlist. """
         return self._items
 
     def get(self, title):

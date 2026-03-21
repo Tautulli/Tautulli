@@ -519,7 +519,10 @@ $(document).ready(function() {
     });
 
     function OAuthPreFunction() {
-        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication...').fadeIn('fast');
+        $("#pms-token-status").html('<i class="fa fa-refresh fa-spin"></i>&nbsp; Waiting for authentication... <span id="pms-token-timer"></span>').fadeIn('fast');
+    }
+    function OAuthPollCallback(counter) {
+        $("#pms-token-timer").html(moment.duration(counter, 'seconds').format('*mm:ss'));
     }
     function OAuthSuccessCallback(authToken) {
         $.post('save_pms_token', { token: authToken, client_id: $('#pms_client_id').val() }, function () {
@@ -532,9 +535,12 @@ $(document).ready(function() {
     function OAuthErrorCallback() {
         $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Error communicating with Plex.tv.').fadeIn('fast');
     }
+    function OAuthMaxRetryCallback() {
+        $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i>&nbsp; Authentication timed out. Please try again.').fadeIn('fast');
+    }
 
     $('#sign-in-plex').click(function() {
-        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthPreFunction, $('#pms_client_id').val(uuidv4()).val());
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthMaxRetryCallback, OAuthPollCallback, OAuthPreFunction, $('#pms_client_id').val(uuidv4()).val());
     });
 });
 </script>

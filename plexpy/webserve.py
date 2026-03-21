@@ -608,7 +608,7 @@ class WebInterface(object):
             status_message = ''
         else:
             result = None
-            status_message = 'An error occured.'
+            status_message = 'An error occurred.'
 
         return serve_template(template_name="edit_library.html", title="Edit Library",
                               data=result, server_id=plexpy.CONFIG.PMS_IDENTIFIER, status_message=status_message)
@@ -1347,7 +1347,7 @@ class WebInterface(object):
             status_message = ''
         else:
             result = None
-            status_message = 'An error occured.'
+            status_message = 'An error occurred.'
 
         return serve_template(template_name="edit_user.html", title="Edit User", data=result, status_message=status_message)
 
@@ -1365,7 +1365,7 @@ class WebInterface(object):
                 keep_history (int):         0 or 1
                 allow_guest (int):          0 or 1
 
-            Optional paramters:
+            Optional parameters:
                 None
 
             Returns:
@@ -1978,9 +1978,9 @@ class WebInterface(object):
                 pms_connect = pmsconnect.PmsConnect()
                 result = pms_connect.get_item_children(rating_key=kwargs.pop('rating_key'), media_type=kwargs.pop('media_type'))
                 rating_keys = [child['rating_key'] for child in result['children_list']]
-                custom_where.append(['session_history_metadata.rating_key OR', rating_keys])
-                custom_where.append(['session_history_metadata.parent_rating_key OR', rating_keys])
-                custom_where.append(['session_history_metadata.grandparent_rating_key OR', rating_keys])
+                custom_where.append(['session_history_metadata.rating_key IN OR', rating_keys])
+                custom_where.append(['session_history_metadata.parent_rating_key IN OR', rating_keys])
+                custom_where.append(['session_history_metadata.grandparent_rating_key IN OR', rating_keys])
             else:
                 rating_key = helpers.split_strip(kwargs.pop('rating_key', ''))
                 if rating_key:
@@ -2024,7 +2024,7 @@ class WebInterface(object):
         if 'guid' in kwargs:
             guid = helpers.split_strip(kwargs.pop('guid', '').split('?')[0])
             if guid:
-                custom_where.append(['session_history_metadata.guid', ['LIKE ' + g + '%' for g in guid]])
+                custom_where.append(['session_history_metadata.guid LIKE', [f"{g}%" for g in guid]])
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
@@ -3031,7 +3031,7 @@ class WebInterface(object):
         """ Delete the Tautulli notification logs.
 
             ```
-            Required paramters:
+            Required parameters:
                 None
 
             Optional parameters:
@@ -3056,7 +3056,7 @@ class WebInterface(object):
         """ Delete the Tautulli newsletter logs.
 
             ```
-            Required paramters:
+            Required parameters:
                 None
 
             Optional parameters:
@@ -3081,7 +3081,7 @@ class WebInterface(object):
         """ Delete the Tautulli login logs.
 
             ```
-            Required paramters:
+            Required parameters:
                 None
 
             Optional parameters:
@@ -3340,8 +3340,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def check_pms_token(self, **kwargs):
         plex_tv = plextv.PlexTV()
-        response = plex_tv.get_plextv_resources(return_response=True)
-        if not response.ok:
+        if not plex_tv.check_token():
             cherrypy.response.status = 401
 
     @cherrypy.expose
@@ -4711,6 +4710,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Notification failed.'}
 
     @cherrypy.expose
+    @requireAuth()
     def pms_image_proxy(self, **kwargs):
         """ See real_pms_image_proxy docs string"""
 
@@ -4740,7 +4740,7 @@ class WebInterface(object):
                 opacity (str):          25
                 background (str):       Hex color, e.g. 282828
                 blur (str):             3
-                img_format (str):       png
+                img_format (str):       png or jpg
                 fallback (str):         "poster", "cover", "art", "poster-live", "art-live", "art-live-full", "user"
                 refresh (bool):         True or False whether to refresh the image cache
                 return_hash (bool):     True or False to return the self-hosted image hash instead of the image
@@ -4752,8 +4752,17 @@ class WebInterface(object):
         cherrypy.response.headers['Cache-Control'] = 'max-age=2592000'  # 30 days
 
         if isinstance(img, str) and img.startswith('interfaces/default/images'):
-            fp = os.path.join(plexpy.PROG_DIR, 'data', img)
-            return serve_file(path=fp, content_type='image/png')
+            resource_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/default/images')
+            img_path = os.path.join(plexpy.PROG_DIR, 'data', img)
+            if not helpers.is_subdir(img_path, resource_dir):
+                return
+
+            ext = img.rsplit(".", 1)[-1]
+            if ext == 'svg':
+                content_type = 'image/svg+xml'
+            else:
+                content_type = 'image/{}'.format(ext)
+            return serve_file(path=img_path, content_type=content_type)
 
         if not img and not rating_key:
             if fallback in common.DEFAULT_IMAGES:
@@ -4791,12 +4800,15 @@ class WebInterface(object):
         if return_hash:
             return {'img_hash': img_hash}
 
+        if img_format not in ('png', 'jpg'):
+            img_format = 'png'
+
         fp = '{}.{}'.format(img_hash, img_format)  # we want to be able to preview the thumbs
         c_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, 'images')
         ffp = os.path.join(c_dir, fp)
 
         if not os.path.exists(c_dir):
-            os.mkdir(c_dir)
+            os.makedirs(c_dir, exist_ok=True)
 
         clip = helpers.bool_true(clip)
 
@@ -4850,9 +4862,13 @@ class WebInterface(object):
             cherrypy.response.headers['Cache-Control'] = 'max-age=3600'  # 1 hour
 
             if len(args) >= 2 and args[0] == 'images':
-                resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
+                resource_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/default')
+                img_path = os.path.join(resource_dir, *args)
+                if not helpers.is_subdir(img_path, resource_dir):
+                    return
+
                 try:
-                    return serve_file(path=os.path.join(resource_dir, *args), content_type='image/png')
+                    return serve_file(path=img_path, content_type='image/png')
                 except NotFound:
                     return
 
@@ -4985,7 +5001,7 @@ class WebInterface(object):
         log_file = (logfile or 'Plex Media Server') + '.log'
         log_file_path = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
 
-        if log_file and os.path.isfile(log_file_path):
+        if log_file and helpers.is_subdir(log_file_path, plexpy.CONFIG.PMS_LOGS_FOLDER) and os.path.isfile(log_file_path):
             log_file_name = os.path.basename(log_file_path)
             return serve_download(log_file_path, name=log_file_name)
         else:
@@ -5921,6 +5937,7 @@ class WebInterface(object):
                              "stream_audio_decision": "direct play",
                              "stream_audio_language": "",
                              "stream_audio_language_code": "",
+                             "stream_audio_profile": "",
                              "stream_audio_sample_rate": "48000",
                              "stream_bitrate": "10617",
                              "stream_container": "mkv",
@@ -6799,9 +6816,13 @@ class WebInterface(object):
             # Keep this for backwards compatibility for images through /newsletter/image
             if len(args) >= 2 and args[0] == 'image':
                 if args[1] == 'images':
-                    resource_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/default/')
+                    resource_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/default')
+                    img_path = os.path.join(resource_dir, *args[1:])
+                    if not helpers.is_subdir(img_path, resource_dir):
+                        return
+
                     try:
-                        return serve_file(path=os.path.join(resource_dir, *args[1:]), content_type='image/png')
+                        return serve_file(path=img_path, content_type='image/png')
                     except NotFound:
                         return
 

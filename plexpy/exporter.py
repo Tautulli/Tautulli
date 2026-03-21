@@ -40,8 +40,8 @@ class Export(object):
     MEDIA_TYPES = {
         'movie': (True, True, True),
         'show': (True, True, True),
-        'season': (True, True, False),
-        'episode': (False, False, False),
+        'season': (True, True, True),
+        'episode': (False, False, True),
         'artist': (True, True, False),
         'album': (True, True, False),
         'track': (False, False, False),
@@ -339,7 +339,8 @@ class Export(object):
                             'duration': None,
                             'profile': None,
                             'samplingRate': None,
-                            'streamIdentifier': None
+                            'streamIdentifier': None,
+                            'visualImpaired': None
                         },
                         'subtitleStreams': {
                             'canAutoSync': None,
@@ -362,6 +363,8 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
+                            'hearingImpaired': None,
+                            'perfectMatch': None,
                             'providerTitle': None,
                             'score': None,
                             'sourceKey': None,
@@ -533,6 +536,9 @@ class Export(object):
                 'librarySectionID': None,
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
+                'logo': lambda o: next((i.url for i in o.images if i.type == 'clearLogo'), None),
+                'logoFile': lambda o: self.get_image(o, 'logo'),
+                'logoProvider': lambda o: self.get_image_provider(o, 'logo'),
                 'metadataDirectory': None,
                 'parentGuid': None,
                 'parentIndex': None,
@@ -626,6 +632,9 @@ class Export(object):
                 'librarySectionKey': None,
                 'librarySectionTitle': None,
                 'locations': None,
+                'logo': lambda o: next((i.url for i in o.images if i.type == 'clearLogo'), None),
+                'logoFile': lambda o: self.get_image(o, 'logo'),
+                'logoProvider': lambda o: self.get_image_provider(o, 'logo'),
                 'markers': {
                     'end': None,
                     'final': None,
@@ -720,7 +729,7 @@ class Export(object):
                             'frameRate': None,
                             'frameRateMode': None,
                             'hasScalingMatrix': None,
-                            'hdr': lambda o: helpers.is_hdr(getattr(o, 'bitDepth', 0), getattr(o, 'colorSpace', '')),
+                            'hdr': lambda o: helpers.is_hdr(getattr(o, 'bitDepth', 0), getattr(o, 'colorTrc', '')),
                             'height': None,
                             'level': None,
                             'pixelAspectRatio': None,
@@ -755,7 +764,8 @@ class Export(object):
                             'duration': None,
                             'profile': None,
                             'samplingRate': None,
-                            'streamIdentifier': None
+                            'streamIdentifier': None,
+                            'visualImpaired': None
                         },
                         'subtitleStreams': {
                             'canAutoSync': None,
@@ -778,6 +788,8 @@ class Export(object):
                             'forced': None,
                             'format': None,
                             'headerCompression': None,
+                            'hearingImpaired': None,
+                            'perfectMatch': None,
                             'providerTitle': None,
                             'score': None,
                             'sourceKey': None,
@@ -1092,7 +1104,9 @@ class Export(object):
                             'peak': None,
                             'profile': None,
                             'samplingRate': None,
-                            'startRamp': None
+                            'startRamp': None,
+                            'streamIdentifier': None,
+                            'visualImpaired': None
                         },
                         'lyricStreams': {
                             'codec': None,

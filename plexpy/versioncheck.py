@@ -46,8 +46,8 @@ def runGit(args):
         cmd = cur_git + ' ' + args
 
         try:
-            logger.debug('Trying to execute: "' + cmd + '" with shell in ' + plexpy.PROG_DIR)
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, cwd=plexpy.PROG_DIR)
+            logger.debug('Trying to execute: "' + cmd + '" in ' + plexpy.PROG_DIR)
+            p = subprocess.Popen(helpers.split_args(cmd), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=plexpy.PROG_DIR)
             output, err = p.communicate()
             output = output.strip().decode()
 

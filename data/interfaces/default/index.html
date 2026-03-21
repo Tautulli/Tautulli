@@ -298,6 +298,8 @@
 
     $('#currentActivityHeader-bandwidth-tooltip').tooltip({ container: 'body', placement: 'right', delay: 50 });
 
+    var title = document.title;
+
     function getCurrentActivity() {
         activity_ready = false;
 
@@ -367,6 +369,8 @@
                     $('#currentActivityHeader-bandwidth').text(bandwidth_header);
 
                     $('#currentActivityHeader').show();
+
+                    document.title = stream_count + ' stream' + (stream_count > 1 ? 's' : '') + ' | ' + title;
 
                     sessions.forEach(function (session) {
                         var s = (typeof Proxy === "function") ? new Proxy(session, defaultHandler) : session;
@@ -562,7 +566,7 @@
 
                         // Update the stream progress times
                         $('#stream-eta-' + key).html(moment().add(parseInt(s.duration) - parseInt(s.view_offset), 'milliseconds').format(time_format));
-                        $('#stream-duration-' + key).html(millisecondsToMinutes(parseInt(s.stream_duration), false));
+                        $('#stream-duration-' + key).html(millisecondsToHoursMinutes(parseInt(s.stream_duration)));
                         var stream_view_offset = $('#stream-view-offset-' + key);
                         stream_view_offset.data('state', s.state);
                         if (stream_view_offset.data('last_view_offset') !== s.view_offset) {
@@ -600,6 +604,8 @@
                 } else {
                     $('#currentActivityHeader').hide();
                     $('#currentActivity').html('<div id="dashboard-no-activity" class="text-muted">Nothing is currently being played.</div>');
+
+                    document.title = title;
                 }
 
                 activity_ready = true;
@@ -663,7 +669,7 @@
                 if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
                     var view_offset = parseInt($(this).data('view_offset'));
                     var stream_duration = parseInt($(this).data('stream_duration'));
-                    var timestamp = millisecondsToMinutes(Math.min(view_offset, stream_duration), false);
+                    var timestamp = millisecondsToHoursMinutes(Math.min(view_offset, stream_duration));
                     $(this).html(timestamp).data('view_offset', Math.min(view_offset + 1000, stream_duration))
                 }
             });

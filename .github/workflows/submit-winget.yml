@@ -11,6 +11,11 @@ jobs:
     runs-on: windows-latest
     if: ${{ !github.event.release.prerelease }}
     steps:
+      - name: Sync Winget Fork
+        run: gh repo sync ${{ secrets.WINGET_USERNAME }}/winget-pkgs -b master
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+
       - name: Submit package to Windows Package Manager Community Repository
         run: |
           $wingetPackage = "Tautulli.Tautulli"
@@ -23,3 +28,17 @@ jobs:
           # getting latest wingetcreate file
           iwr https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
           .\wingetcreate.exe update $wingetPackage -s -v $version -u $installerUrl -t $gitToken
+
+  virus-total:
+    name: VirusTotal Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload to VirusTotal
+        uses: crazy-max/ghaction-virustotal@v5
+        with:
+          vt_api_key: ${{ secrets.VT_API_KEY }}
+          github_token: ${{ secrets.GHACTIONS_TOKEN }}
+          update_release_body: true
+          files: |
+            .exe$
+            .pkg$

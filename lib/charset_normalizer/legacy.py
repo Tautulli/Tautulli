@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 from warnings import warn
 
 from .api import from_bytes
@@ -11,9 +11,9 @@ if TYPE_CHECKING:
     from typing_extensions import TypedDict
 
     class ResultDict(TypedDict):
-        encoding: Optional[str]
+        encoding: str | None
         language: str
-        confidence: Optional[float]
+        confidence: float | None
 
 
 def detect(
@@ -37,8 +37,7 @@ def detect(
 
     if not isinstance(byte_str, (bytearray, bytes)):
         raise TypeError(  # pragma: nocover
-            "Expected object of type bytes or bytearray, got: "
-            "{0}".format(type(byte_str))
+            f"Expected object of type bytes or bytearray, got: {type(byte_str)}"
         )
 
     if isinstance(byte_str, bytearray):

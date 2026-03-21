@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
-from functools import cached_property
 from pathlib import Path
 from urllib.parse import quote_plus
 
 from plexapi import media, utils
-from plexapi.base import Playable, PlexPartialObject, PlexHistory, PlexSession
+from plexapi.base import Playable, PlexPartialObject, PlexHistory, PlexSession, cached_data_property
 from plexapi.exceptions import BadRequest
 from plexapi.mixins import (
     AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, PlayedUnplayedMixin, RatingMixin,
@@ -48,13 +47,10 @@ class Video(PlexPartialObject, PlayedUnplayedMixin):
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
-        self._data = data
         self.addedAt = utils.toDatetime(data.attrib.get('addedAt'))
         self.art = data.attrib.get('art')
         self.artBlurHash = data.attrib.get('artBlurHash')
-        self.fields = self.findItems(data, media.Field)
         self.guid = data.attrib.get('guid')
-        self.images = self.findItems(data, media.Image)
         self.key = data.attrib.get('key', '')
         self.lastRatedAt = utils.toDatetime(data.attrib.get('lastRatedAt'))
         self.lastViewedAt = utils.toDatetime(data.attrib.get('lastViewedAt'))
@@ -72,6 +68,14 @@ class Video(PlexPartialObject, PlayedUnplayedMixin):
         self.updatedAt = utils.toDatetime(data.attrib.get('updatedAt'))
         self.userRating = utils.cast(float, data.attrib.get('userRating'))
         self.viewCount = utils.cast(int, data.attrib.get('viewCount', 0))
+
+    @cached_data_property
+    def fields(self):
+        return self.findItems(self._data, media.Field)
+
+    @cached_data_property
+    def images(self):
+        return self.findItems(self._data, media.Image)
 
     def url(self, part):
         """ Returns the full url for something. Typically used for getting a specific image. """
@@ -394,40 +398,85 @@ class Movie(
         Playable._loadData(self, data)
         self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.audienceRatingImage = data.attrib.get('audienceRatingImage')
-        self.chapters = self.findItems(data, media.Chapter)
         self.chapterSource = data.attrib.get('chapterSource')
-        self.collections = self.findItems(data, media.Collection)
         self.contentRating = data.attrib.get('contentRating')
-        self.countries = self.findItems(data, media.Country)
-        self.directors = self.findItems(data, media.Director)
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.editionTitle = data.attrib.get('editionTitle')
         self.enableCreditsMarkerGeneration = utils.cast(int, data.attrib.get('enableCreditsMarkerGeneration', '-1'))
-        self.genres = self.findItems(data, media.Genre)
-        self.guids = self.findItems(data, media.Guid)
-        self.labels = self.findItems(data, media.Label)
         self.languageOverride = data.attrib.get('languageOverride')
-        self.markers = self.findItems(data, media.Marker)
-        self.media = self.findItems(data, media.Media)
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.originalTitle = data.attrib.get('originalTitle')
         self.primaryExtraKey = data.attrib.get('primaryExtraKey')
-        self.producers = self.findItems(data, media.Producer)
         self.rating = utils.cast(float, data.attrib.get('rating'))
         self.ratingImage = data.attrib.get('ratingImage')
-        self.ratings = self.findItems(data, media.Rating)
-        self.roles = self.findItems(data, media.Role)
         self.slug = data.attrib.get('slug')
-        self.similar = self.findItems(data, media.Similar)
         self.sourceURI = data.attrib.get('source')  # remote playlist item
         self.studio = data.attrib.get('studio')
         self.tagline = data.attrib.get('tagline')
         self.theme = data.attrib.get('theme')
-        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.useOriginalTitle = utils.cast(int, data.attrib.get('useOriginalTitle', '-1'))
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
-        self.writers = self.findItems(data, media.Writer)
         self.year = utils.cast(int, data.attrib.get('year'))
+
+    @cached_data_property
+    def chapters(self):
+        return self.findItems(self._data, media.Chapter)
+
+    @cached_data_property
+    def collections(self):
+        return self.findItems(self._data, media.Collection)
+
+    @cached_data_property
+    def countries(self):
+        return self.findItems(self._data, media.Country)
+
+    @cached_data_property
+    def directors(self):
+        return self.findItems(self._data, media.Director)
+
+    @cached_data_property
+    def genres(self):
+        return self.findItems(self._data, media.Genre)
+
+    @cached_data_property
+    def guids(self):
+        return self.findItems(self._data, media.Guid)
+
+    @cached_data_property
+    def labels(self):
+        return self.findItems(self._data, media.Label)
+
+    @cached_data_property
+    def markers(self):
+        return self.findItems(self._data, media.Marker)
+
+    @cached_data_property
+    def media(self):
+        return self.findItems(self._data, media.Media)
+
+    @cached_data_property
+    def producers(self):
+        return self.findItems(self._data, media.Producer)
+
+    @cached_data_property
+    def ratings(self):
+        return self.findItems(self._data, media.Rating)
+
+    @cached_data_property
+    def roles(self):
+        return self.findItems(self._data, media.Role)
+
+    @cached_data_property
+    def similar(self):
+        return self.findItems(self._data, media.Similar)
+
+    @cached_data_property
+    def ultraBlurColors(self):
+        return self.findItem(self._data, media.UltraBlurColors)
+
+    @cached_data_property
+    def writers(self):
+        return self.findItems(self._data, media.Writer)
 
     @property
     def actors(self):
@@ -573,39 +622,66 @@ class Show(
         self.autoDeletionItemPolicyWatchedLibrary = utils.cast(
             int, data.attrib.get('autoDeletionItemPolicyWatchedLibrary', '0'))
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
-        self.collections = self.findItems(data, media.Collection)
         self.contentRating = data.attrib.get('contentRating')
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.enableCreditsMarkerGeneration = utils.cast(int, data.attrib.get('enableCreditsMarkerGeneration', '-1'))
         self.episodeSort = utils.cast(int, data.attrib.get('episodeSort', '-1'))
         self.flattenSeasons = utils.cast(int, data.attrib.get('flattenSeasons', '-1'))
-        self.genres = self.findItems(data, media.Genre)
-        self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
-        self.labels = self.findItems(data, media.Label)
         self.languageOverride = data.attrib.get('languageOverride')
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
-        self.locations = self.listAttrs(data, 'path', etag='Location')
         self.network = data.attrib.get('network')
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.originalTitle = data.attrib.get('originalTitle')
         self.rating = utils.cast(float, data.attrib.get('rating'))
-        self.ratings = self.findItems(data, media.Rating)
-        self.roles = self.findItems(data, media.Role)
         self.seasonCount = utils.cast(int, data.attrib.get('seasonCount', self.childCount))
         self.showOrdering = data.attrib.get('showOrdering')
-        self.similar = self.findItems(data, media.Similar)
         self.slug = data.attrib.get('slug')
         self.studio = data.attrib.get('studio')
         self.subtitleLanguage = data.attrib.get('subtitleLanguage', '')
         self.subtitleMode = utils.cast(int, data.attrib.get('subtitleMode', '-1'))
         self.tagline = data.attrib.get('tagline')
         self.theme = data.attrib.get('theme')
-        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.useOriginalTitle = utils.cast(int, data.attrib.get('useOriginalTitle', '-1'))
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
+
+    @cached_data_property
+    def collections(self):
+        return self.findItems(self._data, media.Collection)
+
+    @cached_data_property
+    def genres(self):
+        return self.findItems(self._data, media.Genre)
+
+    @cached_data_property
+    def guids(self):
+        return self.findItems(self._data, media.Guid)
+
+    @cached_data_property
+    def labels(self):
+        return self.findItems(self._data, media.Label)
+
+    @cached_data_property
+    def locations(self):
+        return self.listAttrs(self._data, 'path', etag='Location')
+
+    @cached_data_property
+    def ratings(self):
+        return self.findItems(self._data, media.Rating)
+
+    @cached_data_property
+    def roles(self):
+        return self.findItems(self._data, media.Role)
+
+    @cached_data_property
+    def similar(self):
+        return self.findItems(self._data, media.Similar)
+
+    @cached_data_property
+    def ultraBlurColors(self):
+        return self.findItem(self._data, media.UltraBlurColors)
 
     def __iter__(self):
         for season in self.seasons():
@@ -716,7 +792,7 @@ class Show(
 class Season(
     Video,
     AdvancedSettingsMixin, ExtrasMixin, RatingMixin,
-    ArtMixin, PosterMixin, ThemeUrlMixin,
+    ArtMixin, LogoMixin, PosterMixin, ThemeUrlMixin,
     SeasonEditMixins
 ):
     """ Represents a single Season.
@@ -759,11 +835,8 @@ class Season(
         Video._loadData(self, data)
         self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.audioLanguage = data.attrib.get('audioLanguage', '')
-        self.collections = self.findItems(data, media.Collection)
-        self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
-        self.labels = self.findItems(data, media.Label)
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
         self.parentGuid = data.attrib.get('parentGuid')
         self.parentIndex = utils.cast(int, data.attrib.get('parentIndex'))
@@ -775,12 +848,30 @@ class Season(
         self.parentThumb = data.attrib.get('parentThumb')
         self.parentTitle = data.attrib.get('parentTitle')
         self.rating = utils.cast(float, data.attrib.get('rating'))
-        self.ratings = self.findItems(data, media.Rating)
         self.subtitleLanguage = data.attrib.get('subtitleLanguage', '')
         self.subtitleMode = utils.cast(int, data.attrib.get('subtitleMode', '-1'))
-        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.viewedLeafCount = utils.cast(int, data.attrib.get('viewedLeafCount'))
         self.year = utils.cast(int, data.attrib.get('year'))
+
+    @cached_data_property
+    def collections(self):
+        return self.findItems(self._data, media.Collection)
+
+    @cached_data_property
+    def guids(self):
+        return self.findItems(self._data, media.Guid)
+
+    @cached_data_property
+    def labels(self):
+        return self.findItems(self._data, media.Label)
+
+    @cached_data_property
+    def ratings(self):
+        return self.findItems(self._data, media.Rating)
+
+    @cached_data_property
+    def ultraBlurColors(self):
+        return self.findItem(self._data, media.UltraBlurColors)
 
     def __iter__(self):
         for episode in self.episodes():
@@ -883,7 +974,7 @@ class Season(
 class Episode(
     Video, Playable,
     ExtrasMixin, RatingMixin,
-    ArtMixin, PosterMixin, ThemeUrlMixin,
+    ArtMixin, LogoMixin, PosterMixin, ThemeUrlMixin,
     EpisodeEditMixins
 ):
     """ Represents a single Episode.
@@ -942,11 +1033,8 @@ class Episode(
         Playable._loadData(self, data)
         self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.audienceRatingImage = data.attrib.get('audienceRatingImage')
-        self.chapters = self.findItems(data, media.Chapter)
         self.chapterSource = data.attrib.get('chapterSource')
-        self.collections = self.findItems(data, media.Collection)
         self.contentRating = data.attrib.get('contentRating')
-        self.directors = self.findItems(data, media.Director)
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.grandparentArt = data.attrib.get('grandparentArt')
         self.grandparentGuid = data.attrib.get('grandparentGuid')
@@ -956,25 +1044,16 @@ class Episode(
         self.grandparentTheme = data.attrib.get('grandparentTheme')
         self.grandparentThumb = data.attrib.get('grandparentThumb')
         self.grandparentTitle = data.attrib.get('grandparentTitle')
-        self.guids = self.findItems(data, media.Guid)
         self.index = utils.cast(int, data.attrib.get('index'))
-        self.labels = self.findItems(data, media.Label)
-        self.markers = self.findItems(data, media.Marker)
-        self.media = self.findItems(data, media.Media)
         self.originallyAvailableAt = utils.toDatetime(data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.parentGuid = data.attrib.get('parentGuid')
         self.parentIndex = utils.cast(int, data.attrib.get('parentIndex'))
         self.parentTitle = data.attrib.get('parentTitle')
         self.parentYear = utils.cast(int, data.attrib.get('parentYear'))
-        self.producers = self.findItems(data, media.Producer)
         self.rating = utils.cast(float, data.attrib.get('rating'))
-        self.ratings = self.findItems(data, media.Rating)
-        self.roles = self.findItems(data, media.Role)
         self.skipParent = utils.cast(bool, data.attrib.get('skipParent', '0'))
         self.sourceURI = data.attrib.get('source')  # remote playlist item
-        self.ultraBlurColors = self.findItem(data, media.UltraBlurColors)
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
-        self.writers = self.findItems(data, media.Writer)
         self.year = utils.cast(int, data.attrib.get('year'))
 
         # If seasons are hidden, parentKey and parentRatingKey are missing from the XML response.
@@ -984,7 +1063,55 @@ class Episode(
         self._parentRatingKey = utils.cast(int, data.attrib.get('parentRatingKey'))
         self._parentThumb = data.attrib.get('parentThumb')
 
-    @cached_property
+    @cached_data_property
+    def chapters(self):
+        return self.findItems(self._data, media.Chapter)
+
+    @cached_data_property
+    def collections(self):
+        return self.findItems(self._data, media.Collection)
+
+    @cached_data_property
+    def directors(self):
+        return self.findItems(self._data, media.Director)
+
+    @cached_data_property
+    def guids(self):
+        return self.findItems(self._data, media.Guid)
+
+    @cached_data_property
+    def labels(self):
+        return self.findItems(self._data, media.Label)
+
+    @cached_data_property
+    def markers(self):
+        return self.findItems(self._data, media.Marker)
+
+    @cached_data_property
+    def media(self):
+        return self.findItems(self._data, media.Media)
+
+    @cached_data_property
+    def producers(self):
+        return self.findItems(self._data, media.Producer)
+
+    @cached_data_property
+    def ratings(self):
+        return self.findItems(self._data, media.Rating)
+
+    @cached_data_property
+    def roles(self):
+        return self.findItems(self._data, media.Role)
+
+    @cached_data_property
+    def writers(self):
+        return self.findItems(self._data, media.Writer)
+
+    @cached_data_property
+    def ultraBlurColors(self):
+        return self.findItem(self._data, media.UltraBlurColors)
+
+    @cached_data_property
     def parentKey(self):
         """ Returns the parentKey. Refer to the Episode attributes. """
         if self._parentKey:
@@ -993,7 +1120,7 @@ class Episode(
             return f'/library/metadata/{self.parentRatingKey}'
         return None
 
-    @cached_property
+    @cached_data_property
     def parentRatingKey(self):
         """ Returns the parentRatingKey. Refer to the Episode attributes. """
         if self._parentRatingKey is not None:
@@ -1006,7 +1133,7 @@ class Episode(
             return self._season.ratingKey
         return None
 
-    @cached_property
+    @cached_data_property
     def parentThumb(self):
         """ Returns the parentThumb. Refer to the Episode attributes. """
         if self._parentThumb:
@@ -1015,7 +1142,7 @@ class Episode(
             return self._season.thumb
         return None
 
-    @cached_property
+    @cached_data_property
     def _season(self):
         """ Returns the :class:`~plexapi.video.Season` object by querying for the show's children. """
         if self.grandparentKey and self.parentIndex is not None:
@@ -1055,7 +1182,7 @@ class Episode(
         """ Returns the episode number. """
         return self.index
 
-    @cached_property
+    @cached_data_property
     def seasonNumber(self):
         """ Returns the episode's season number. """
         if isinstance(self.parentIndex, int):
@@ -1149,12 +1276,10 @@ class Clip(
         """ Load attribute values from Plex XML response. """
         Video._loadData(self, data)
         Playable._loadData(self, data)
-        self._data = data
         self.addedAt = utils.toDatetime(data.attrib.get('addedAt'))
         self.duration = utils.cast(int, data.attrib.get('duration'))
         self.extraType = utils.cast(int, data.attrib.get('extraType'))
         self.index = utils.cast(int, data.attrib.get('index'))
-        self.media = self.findItems(data, media.Media)
         self.originallyAvailableAt = utils.toDatetime(
             data.attrib.get('originallyAvailableAt'), '%Y-%m-%d')
         self.skipDetails = utils.cast(int, data.attrib.get('skipDetails'))
@@ -1162,6 +1287,10 @@ class Clip(
         self.thumbAspectRatio = data.attrib.get('thumbAspectRatio')
         self.viewOffset = utils.cast(int, data.attrib.get('viewOffset', 0))
         self.year = utils.cast(int, data.attrib.get('year'))
+
+    @cached_data_property
+    def media(self):
+        return self.findItems(self._data, media.Media)
 
     @property
     def locations(self):

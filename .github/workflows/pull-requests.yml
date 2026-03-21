@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Comment on Pull Request
-        uses: mshick/add-pr-comment@v2
+        uses: mshick/add-pr-comment@v3
         if: github.base_ref != 'nightly'
         with:
           message: Pull requests must be made to the `nightly` branch. Thanks.

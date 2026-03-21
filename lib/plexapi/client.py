@@ -115,7 +115,7 @@ class PlexClient(PlexObject):
                 )
         else:
             client = data[0]
-        self._loadData(client)
+        self._invalidateCacheAndLoadData(client)
         return self
 
     def reload(self):
@@ -124,7 +124,6 @@ class PlexClient(PlexObject):
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
-        self._data = data
         self.deviceClass = data.attrib.get('deviceClass')
         self.machineIdentifier = data.attrib.get('machineIdentifier')
         self.product = data.attrib.get('product')
@@ -197,8 +196,7 @@ class PlexClient(PlexObject):
                 raise NotFound(message)
             else:
                 raise BadRequest(message)
-        data = utils.cleanXMLString(response.text).encode('utf8')
-        return ElementTree.fromstring(data) if data.strip() else None
+        return utils.parseXMLString(response.text)
 
     def sendCommand(self, command, proxy=None, **params):
         """ Convenience wrapper around :func:`~plexapi.client.PlexClient.query` to more easily
@@ -222,7 +220,7 @@ class PlexClient(PlexObject):
         proxy = self._proxyThroughServer if proxy is None else proxy
         query = self._server.query if proxy else self.query
 
-        # Workaround for ptp. See https://github.com/pkkid/python-plexapi/issues/244
+        # Workaround for ptp. See https://github.com/pushingkarmaorg/python-plexapi/issues/244
         t = time.time()
         if command == 'timeline/poll':
             self._last_call = t
@@ -606,7 +604,7 @@ class ClientTimeline(PlexObject):
     key = 'timeline/poll'
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.address = data.attrib.get('address')
         self.audioStreamId = utils.cast(int, data.attrib.get('audioStreamId'))
         self.autoPlay = utils.cast(bool, data.attrib.get('autoPlay'))

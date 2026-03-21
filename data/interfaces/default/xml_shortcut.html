@@ -48,6 +48,9 @@
 <script src="${http_root}js/platform.min.js"></script>
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script>
+    function OAuthPreFunction() {
+        $('#sign-in-alert').hide();
+    }
     function OAuthSuccessCallback(authToken) {
         var url = new URL($('#xml_url').val());
         url.searchParams.append('X-Plex-Token', authToken);
@@ -56,9 +59,12 @@
     function OAuthErrorCallback() {
         $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
     }
+    function OAuthMaxRetryCallback() {
+        $('#sign-in-alert').text('Authentication timed out. Please try again.').show();
+    }
 
     $('#sign-in-plex').click(function() {
-        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback);
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthMaxRetryCallback, null, OAuthPreFunction);
     });
 </script>
 </body>

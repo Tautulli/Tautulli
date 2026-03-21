@@ -61,6 +61,9 @@ DOCUMENTATION :: END
         if s > 30:
             m += 1
         h, m = divmod(m, 60)
+        d, h = divmod(h, 24)
+        if d > 0:
+            return str(d).zfill(1) + ':' + str(h).zfill(2) + ':' + str(m).zfill(2)
         return str(h).zfill(1) + ':' + str(m).zfill(2)
 %>
 
@@ -131,7 +134,7 @@ DOCUMENTATION :: END
                     % if stat_id.startswith('top') and top_stat.get('stat_type') == 'total_plays':
                     <span class="dashboard-stats-stats-units">plays</span>
                     % elif stat_id.startswith('top') and top_stat.get('stat_type') == 'total_duration':
-                    <span class="dashboard-stats-stats-units">hh:mm</span>
+                    <span class="dashboard-stats-stats-units">${'dd:hh:mm' if any(cast_to_int(row['total_duration']) >= 86400 for row in top_stat['rows']) else 'hh:mm'}</span>
                     % elif stat_id.startswith('popular'):
                     <span class="dashboard-stats-stats-units">users</span>
                     % elif stat_id == 'last_watched':

@@ -21,6 +21,7 @@ import sys
 
 import cheroot.errors
 import cherrypy
+import cherrypy_cors
 
 import plexpy
 from plexpy import logger
@@ -62,6 +63,7 @@ def restart():
 
 
 def initialize(options):
+    cherrypy_cors.install()
 
     # HTTPS stuff stolen from sickbeard
     enable_https = options['enable_https']
@@ -91,7 +93,8 @@ def initialize(options):
         'server.socket_timeout': 60,
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
-        'tools.decode.on': True
+        'tools.decode.on': True,
+        'cors.expose.on': True,
     }
 
     if plexpy.DEV:
@@ -171,6 +174,12 @@ def initialize(options):
         '/status': {
             'tools.auth_basic.on': False
         },
+        '/newsletter': {
+            'tools.auth_basic.on': False
+        },
+        '/image': {
+            'tools.auth_basic.on': False
+        },
         '/interfaces': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces",
@@ -226,26 +235,6 @@ def initialize(options):
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
             'tools.auth.on': False
-        },
-        '/cache': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR,
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
-            'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.sessions.on': False,
-            'tools.auth.on': False
-        },
-        '/pms_image_proxy': {
-           'tools.caching.on': True,
-           'tools.caching.force': True,
-           'tools.caching.delay': 0,
-           'tools.expires.on': True,
-           'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-           'tools.auth.on': False,
-           'tools.sessions.on': False
         },
         '/favicon.ico': {
             'tools.staticfile.on': True,

@@ -26,7 +26,8 @@ import os
 import re
 from string import Formatter
 import threading
-from typing import Optional
+import types
+from typing import Any, Callable, Optional
 
 import arrow
 import musicbrainzngs
@@ -230,6 +231,10 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
         if not plexpy.CONFIG.NOTIFY_PLEXPY_UPDATE_REPEAT:
             evaluated = not check_nofity_tag(notify_action=notify_action,
                                              tag=kwargs['plexpy_download_info']['tag_name'])
+
+    elif notify_action == 'on_tokenexpired':
+        evaluated = not check_nofity_tag(notify_action=notify_action,
+                                         tag=hashlib.sha256(plexpy.CONFIG.PMS_TOKEN.encode('utf-8')).hexdigest()[:10])
 
     # Server notifications
     else:
@@ -499,6 +504,8 @@ def set_notify_state(notifier, notify_action, subject='', body='', script_args='
             values['tag'] = parameters['update_version']
         elif notify_action == 'on_plexpyupdate':
             values['tag'] = parameters['tautulli_update_version']
+        elif notify_action == 'on_tokenexpired':
+            values['tag'] = hashlib.sha256(plexpy.CONFIG.PMS_TOKEN.encode('utf-8')).hexdigest()[:10]
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
         return monitor_db.last_insert_id()
@@ -684,23 +691,23 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         thetvdb_media_type = 'movie' if notify_params['media_type'] == 'movie' else 'series'
         notify_params['thetvdb_id'] = notify_params['thetvdb_id'] or notify_params['guid'].split('thetvdb://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/{thetvdb_media_type}/{notify_params["thetvdb_id"]}'
-        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
+        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
     elif 'thetvdbdvdorder://' in notify_params['guid']:
         notify_params['thetvdb_id'] = notify_params['guid'].split('thetvdbdvdorder://')[1].split('/')[0].split('?')[0]
         notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/series/{notify_params["thetvdb_id"]}'
-        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?type=show'
+        notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/' + notify_params['thetvdb_id'] + '?id_type=show'
 
     if 'themoviedb://' in notify_params['guid'] or notify_params['themoviedb_id']:
         if notify_params['media_type'] == 'movie':
             notify_params['themoviedb_id'] = notify_params['themoviedb_id'] or notify_params['guid'].split('themoviedb://')[1].split('?')[0]
             notify_params['themoviedb_url'] = 'https://www.themoviedb.org/movie/' + notify_params['themoviedb_id']
-            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?type=movie'
+            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=movie'
 
         elif notify_params['media_type'] in ('show', 'season', 'episode'):
             notify_params['themoviedb_id'] = notify_params['themoviedb_id'] or notify_params['guid'].split('themoviedb://')[1].split('/')[0].split('?')[0]
             notify_params['themoviedb_url'] = 'https://www.themoviedb.org/tv/' + notify_params['themoviedb_id']
-            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?type=show'
+            notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/' + notify_params['themoviedb_id'] + '?id_type=show'
 
     if 'lastfm://' in notify_params['guid']:
         notify_params['lastfm_id'] = '/'.join(notify_params['guid'].split('lastfm://')[1].split('?')[0].split('/')[:2])
@@ -765,7 +772,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             if themoviedb_info.get('imdb_id'):
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + themoviedb_info['imdb_id']
             if themoviedb_info.get('themoviedb_id'):
-                notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/{}?type={}'.format(
+                notify_params['trakt_url'] = 'https://trakt.tv/search/tmdb/{}?id_type={}'.format(
                     notify_params['themoviedb_id'], 'show' if lookup_media_type == 'tv' else 'movie')
 
     # Get TVmaze info (for tv shows only)
@@ -790,7 +797,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
             if tvmaze_info.get('thetvdb_id'):
                 notify_params['thetvdb_url'] = f'https://thetvdb.com/dereferrer/series/{tvmaze_info["thetvdb_id"]}'
-                notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/{}' + str(notify_params['thetvdb_id']) + '?type=show'
+                notify_params['trakt_url'] = 'https://trakt.tv/search/tvdb/{}' + str(notify_params['thetvdb_id']) + '?id_type=show'
             if tvmaze_info.get('imdb_id'):
                 notify_params['imdb_url'] = 'https://www.imdb.com/title/' + tvmaze_info['imdb_id']
                 notify_params['trakt_url'] = 'https://trakt.tv/search/imdb/' + notify_params['imdb_id']
@@ -955,7 +962,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     now_iso = now.isocalendar()
 
     available_params = {
-        # Global paramaters
+        # Global parameters
         'tautulli_version': common.RELEASE,
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
@@ -1082,6 +1089,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'stream_audio_sample_rate': notify_params['stream_audio_sample_rate'],
         'stream_audio_language': notify_params['stream_audio_language'],
         'stream_audio_language_code': notify_params['stream_audio_language_code'],
+        'stream_audio_profile': notify_params['stream_audio_profile'],
         'stream_subtitle_codec': notify_params['stream_subtitle_codec'],
         'stream_subtitle_container': notify_params['stream_subtitle_container'],
         'stream_subtitle_format': notify_params['stream_subtitle_format'],
@@ -1215,6 +1223,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'audio_sample_rate': notify_params['audio_sample_rate'],
         'audio_language': notify_params['audio_language'],
         'audio_language_code': notify_params['audio_language_code'],
+        'audio_profile': notify_params['audio_profile'],
         'subtitle_codec': notify_params['subtitle_codec'],
         'subtitle_container': notify_params['subtitle_container'],
         'subtitle_format': notify_params['subtitle_format'],
@@ -1267,7 +1276,7 @@ def build_server_notify_params(notify_action=None, **kwargs):
     now_iso = now.isocalendar()
 
     available_params = {
-        # Global paramaters
+        # Global parameters
         'tautulli_version': common.RELEASE,
         'tautulli_remote': plexpy.CONFIG.GIT_REMOTE,
         'tautulli_branch': plexpy.CONFIG.GIT_BRANCH,
@@ -1917,7 +1926,7 @@ def str_format(s, parameters):
     return s
 
 
-def str_eval(field_name, kwargs):
+def str_eval(field_name: str, kwargs: dict[str, Callable]) -> Any:
     field_name = field_name.strip('`')
     allowed_names = {
         'bool': bool,
@@ -1930,10 +1939,17 @@ def str_eval(field_name, kwargs):
     }
     allowed_names.update(kwargs)
     code = compile(field_name, '<string>', 'eval')
+    _check_names(code, allowed_names)
+    return eval(code, {'__builtins__': {}}, allowed_names)
+
+
+def _check_names(code: types.CodeType, allowed_names: dict[str, Callable]):
     for name in code.co_names:
         if name not in allowed_names:
-            raise NameError('Use of {name} not allowed'.format(name=name))
-    return eval(code, {'__builtins__': {}}, allowed_names)
+            raise NameError(f'Use of {name} not allowed')
+    for const in code.co_consts:
+        if isinstance(const, types.CodeType):
+            _check_names(const, allowed_names)
 
 
 class CustomFormatter(Formatter):

@@ -2096,6 +2096,7 @@ class PmsConnect(object):
                              'stream_audio_channel_layout_': stream_audio_channel_layouts_,
                              'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
+                             'stream_audio_profile': helpers.get_xml_attr(audio_stream_info, 'profile'),
                              'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision') or 'direct play'
                              }
         else:
@@ -2108,6 +2109,7 @@ class PmsConnect(object):
                              'stream_audio_channel_layout_': '',
                              'stream_audio_language': '',
                              'stream_audio_language_code': '',
+                             'stream_audio_profile': '',
                              'stream_audio_decision': ''
                              }
 
@@ -3389,7 +3391,7 @@ class PmsConnect(object):
         color_trc = helpers.get_xml_attr(stream, 'colorTrc')
         DOVI_profile = helpers.get_xml_attr(stream, 'DOVIProfile')
 
-        HDR = bool(bit_depth > 8 and (color_trc == 'smpte2084' or color_trc == 'arib-std-b67'))
+        HDR = helpers.is_hdr(bit_depth, color_trc)
         DV = bool(DOVI_profile)
 
         if not HDR and not DV:

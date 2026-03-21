@@ -5,7 +5,7 @@ from .api_jwk import PyJWKSet, PyJWTSetWithTimestamp
 
 
 class JWKSetCache:
-    def __init__(self, lifespan: int) -> None:
+    def __init__(self, lifespan: float) -> None:
         self.jwk_set_with_timestamp: Optional[PyJWTSetWithTimestamp] = None
         self.lifespan = lifespan
 

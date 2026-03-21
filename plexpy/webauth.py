@@ -50,7 +50,7 @@ def plex_user_login(token=None, headers=None):
     user_token = None
     user_id = None
 
-    # Try to login to Plex.tv to check if the user has a vaild account
+    # Try to login to Plex.tv to check if the user has a valid account
     if token:
         plex_tv = PlexTV(token=token, headers=headers)
         plex_user = plex_tv.get_plex_account_details()
@@ -176,7 +176,10 @@ def check_auth(*args, **kwargs):
                     raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
         else:
-            redirect_uri = cherrypy.request.wsgi_environ['REQUEST_URI']
+            if cherrypy.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                raise cherrypy.HTTPError(401)
+            
+            redirect_uri = cherrypy.request.path_info
             if redirect_uri:
                 redirect_uri = '?redirect_uri=' + quote(redirect_uri)
 

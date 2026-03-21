@@ -288,23 +288,10 @@ function isPrivateIP(ip_address) {
 }
 
 function humanTime(seconds) {
-    var d = Math.floor(moment.duration(seconds, 'seconds').asDays());
-    var h = Math.floor(moment.duration((seconds % 86400), 'seconds').asHours());
-    var m = Math.round(moment.duration(((seconds % 86400) % 3600), 'seconds').asMinutes());
-
-    var text = '';
-    if (d > 0) {
-        text = '<h3>' + d + '</h3><p> day' + ((d > 1) ? 's' : '') + '</p>'
-             + '<h3>' + h + '</h3><p> hr' + ((h > 1) ? 's' : '') + '</p>'
-             + '<h3>' + m + '</h3><p> min' + ((m > 1) ? 's' : '') + '</p>';
-    } else if (h > 0) {
-        text = '<h3>' + h + '</h3><p> hr' + ((h > 1) ? 's' : '') + '</p>'
-             + '<h3>' + m + '</h3><p> min' + ((m > 1) ? 's' : '') + '</p>';
-    } else {
-        text = '<h3>' + m + '</h3><p> min' + ((m > 1) ? 's' : '') + '</p>';
+    if (seconds > 0) {
+        return humanDuration(seconds * 1000).replaceAll(/(\d+) (\w+)/g, '<h3>$1</h3><p>$2</p>')
     }
-
-    return text
+    return "<h3>0</h3><p>mins</p>";
 }
 
 String.prototype.toProperCase = function () {
@@ -325,21 +312,17 @@ function getPercent(value1, value2) {
     return Math.round(percent)
 }
 
-function millisecondsToMinutes(ms, roundToMinute) {
+function millisecondsToHoursMinutes(ms) {
     if (ms > 0) {
-      var minutes = Math.floor(ms / 60000);
-      var seconds = ((ms % 60000) / 1000).toFixed(0);
-      if (roundToMinute) {
-          return (seconds >= 30 ? (minutes + 1) : minutes);
-      } else {
-          return (seconds == 60 ? (minutes + 1) + ":00" : minutes + ":" + (seconds < 10 ? "0" : "") + seconds);
-      }
-    } else {
-        if (roundToMinute) {
-            return '0';
-        } else {
-            return '0:00';
+        var hours = Math.floor(ms / 3600000);
+        var minutes = Math.floor((ms % 3600000) / 60000);
+        var seconds = Math.floor(((ms % 3600000) % 60000) / 1000);
+        if (hours > 0) {
+            return hours + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
         }
+        return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+    } else {
+        return '0:00';
     }
 }
 
@@ -695,9 +678,9 @@ getPlexOAuthPin = function (clientID) {
 
 var polling = null;
 
-function PlexOAuth(success, error, pre, clientID) {
-    if (typeof pre === "function") {
-        pre()
+function PlexOAuth(successCallback, errorCallback, maxRetryCallback, pollingCallback, preFunction, clientID) {
+    if (typeof preFunction === "function") {
+        preFunction()
     }
     closePlexOAuthWindow();
     plex_oauth_window = PopupCenter('', 'Plex-OAuth', 600, 700);
@@ -723,41 +706,46 @@ function PlexOAuth(success, error, pre, clientID) {
         }
 
         plex_oauth_window.location = 'https://app.plex.tv/auth/#!?' + encodeData(oauth_params);
-        polling = pin;
+        polling = pin;  // Set pin to prevent polling from multiple popups
+
+        let maxPollCount = 120;  // 2 minutes at 1-second intervals
 
         (function poll() {
+            maxPollCount--;
+
             $.ajax({
                 url: 'https://plex.tv/api/v2/pins/' + pin,
                 type: 'GET',
                 headers: x_plex_headers,
                 success: function (data) {
                     if (data.authToken){
+                        polling = null;
                         closePlexOAuthWindow();
-                        if (typeof success === "function") {
-                            success(data.authToken)
-                        }
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    if (textStatus !== "timeout") {
-                        closePlexOAuthWindow();
-                        if (typeof error === "function") {
-                            error()
+                        if (typeof successCallback === "function") {
+                            successCallback(data.authToken)
                         }
                     }
                 },
                 complete: function () {
-                    if (!plex_oauth_window.closed && polling === pin){
+                    if (maxPollCount <= 0) {
+                        closePlexOAuthWindow();
+                        if (typeof maxRetryCallback === "function") {
+                            maxRetryCallback()
+                        }
+                    } else if (polling === pin) {
                         setTimeout(function() {poll()}, 1000);
+                        if (typeof pollingCallback === "function") {
+                            pollingCallback(maxPollCount);
+                        }
                     }
                 },
-                timeout: 10000
+                timeout: 1000
             });
         })();
     }, function () {
         closePlexOAuthWindow();
-        if (typeof error === "function") {
-            error()
+        if (typeof errorCallback === "function") {
+            errorCallback()
         }
     });
 }

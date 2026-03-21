@@ -31,6 +31,7 @@ from plexpy import activity_pinger
 from plexpy import activity_processor
 from plexpy import database
 from plexpy import logger
+from plexpy import plextv
 
 
 name = 'websocket'
@@ -92,6 +93,7 @@ def on_disconnect():
 
 
 def on_intdown():
+    plextv.notify_token_expired()
     plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_intdown'})
 
 

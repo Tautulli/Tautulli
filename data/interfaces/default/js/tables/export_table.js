@@ -162,7 +162,7 @@ export_table_options = {
                     var tooltip_title = '';
                     var icon = '';
                     if (rowData['thumb_level'] || rowData['art_level'] || rowData['logo_level'] || rowData['individual_files']) {
-                        tooltip_title = 'Zip Archive';
+                        tooltip_title = 'ZIP Archive';
                         icon = 'fa-file-archive';
                     } else {
                         tooltip_title = rowData['file_format'].toUpperCase() + ' File';
