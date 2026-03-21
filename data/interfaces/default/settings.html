@@ -736,6 +736,25 @@
                                 summaries; not a full API dump). Restrict network access or use a reverse
                                 proxy; anyone who can reach this URL can read metrics. Disabled by default.</p>
                         </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="prometheus_http_auth" name="prometheus_http_auth" value="1" ${config['prometheus_http_auth']}> Require HTTP Basic authentication for /metrics
+                            </label>
+                            <p class="help-block">Separate from the main Tautulli login. Use Prometheus
+                                <code>basic_auth</code> in the scrape job. If enabled, set username and
+                                password below or scrapes will get 401.</p>
+                        </div>
+                        <div id="prometheus_metrics_auth_options" style="display: none;">
+                            <div class="form-group">
+                                <label for="prometheus_http_username">Prometheus metrics username</label>
+                                <input type="text" class="form-control" name="prometheus_http_username" id="prometheus_http_username" value="${config['prometheus_http_username']}" size="30" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="prometheus_http_password">Prometheus metrics password</label>
+                                <input type="password" class="form-control" name="prometheus_http_password" id="prometheus_http_password" value="${config['prometheus_http_password']}" size="30" autocomplete="new-password">
+                                <p class="help-block">Leave unchanged to keep the current password.</p>
+                            </div>
+                        </div>
                         <div id="apioptions">
                             <div class="form-group">
                                 <label for="api_key">API key</label>
@@ -2395,6 +2414,7 @@ $(document).ready(function() {
 
     initConfigCheckbox('#api_enabled');
     initConfigCheckbox('#prometheus_enabled');
+    initConfigCheckbox('#prometheus_http_auth');
     initConfigCheckbox('#enable_https');
     initConfigCheckbox('#https_create_cert');
     initConfigCheckbox('#check_github');
@@ -3074,6 +3094,18 @@ $(document).ready(function() {
     apiEnabled();
     $('#api_enabled').click(function () {
         apiEnabled();
+    });
+
+    function prometheusMetricsAuthOptions() {
+        if ($('#prometheus_http_auth').prop('checked')) {
+            $('#prometheus_metrics_auth_options').slideDown();
+        } else {
+            $('#prometheus_metrics_auth_options').slideUp();
+        }
+    }
+    prometheusMetricsAuthOptions();
+    $('#prometheus_http_auth').click(function () {
+        prometheusMetricsAuthOptions();
     });
 
     function imageUpload() {

@@ -16,6 +16,7 @@
   * Change: Zip backup files to reduce file size.
   * New: Optional Prometheus metrics endpoint at <code>/metrics</code> (disabled by default; enable under Settings &gt; Web Interface).
   * Change: Prometheus <code>/metrics</code> includes aggregate history, libraries, users, notifications, and live PMS stream stats (no per-title or per-user series).
+  * New: Optional HTTP Basic authentication for <code>/metrics</code> (separate credentials; Settings &gt; Web Interface).
 
 
 ## v2.16.0 (2025-09-08)

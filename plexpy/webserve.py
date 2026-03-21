@@ -32,7 +32,7 @@ import cherrypy
 from cherrypy.lib.static import serve_file, serve_fileobj, serve_download
 from cherrypy._cperror import NotFound
 
-from hashing_passwords import make_hash
+from hashing_passwords import check_hash, make_hash
 from mako.lookup import TemplateLookup
 import mako.template
 import mako.exceptions
@@ -137,6 +137,39 @@ def mako_error_handler(context, error):
     # Don't return False -- that will lose the actual Mako frame.  Instead
     # re-raise.
     raise
+
+
+def _prometheus_metrics_basic_auth_authorized():
+    """True if Basic auth is disabled or request credentials are valid."""
+    if not plexpy.CONFIG.PROMETHEUS_HTTP_AUTH:
+        return True
+
+    username_cfg = (plexpy.CONFIG.PROMETHEUS_HTTP_USERNAME or '').strip()
+    pwd_hash = plexpy.CONFIG.PROMETHEUS_HTTP_PASSWORD or ''
+    if not username_cfg or not pwd_hash:
+        logger.warn(
+            'WebUI :: /metrics HTTP auth is enabled but username or password '
+            'is not set; denying access.')
+        return False
+
+    header = cherrypy.request.headers.get('Authorization', '')
+    if not header.startswith('Basic '):
+        return False
+    try:
+        raw = base64.b64decode(header[6:].strip(), validate=True)
+        decoded = raw.decode('utf-8')
+    except (TypeError, ValueError, UnicodeDecodeError):
+        return False
+
+    user, sep, password = decoded.partition(':')
+    if not sep:
+        return False
+
+    if user != username_cfg:
+        return False
+    if not check_hash(password, pwd_hash):
+        return False
+    return True
 
 
 class BaseRedirect(object):
@@ -3182,6 +3215,11 @@ class WebInterface(object):
         else:
             settings_dict['http_password'] = ''
 
+        if plexpy.CONFIG.PROMETHEUS_HTTP_PASSWORD != '':
+            settings_dict['prometheus_http_password'] = '    '
+        else:
+            settings_dict['prometheus_http_password'] = ''
+
         for key in ('home_sections', 'home_stats_cards', 'home_library_cards'):
             settings_dict[key] = json.dumps(settings_dict[key])
 
@@ -3224,6 +3262,12 @@ class WebInterface(object):
                 kwargs['http_password'] = make_hash(kwargs['http_password'])
             # Flag to refresh JWT uuid to log out clients
             kwargs['jwt_update_secret'] = True and not first_run
+
+        if kwargs.get('prometheus_http_password') == '    ':
+            del kwargs['prometheus_http_password']
+        elif kwargs.get('prometheus_http_password', '') != '':
+            kwargs['prometheus_http_password'] = make_hash(
+                kwargs['prometheus_http_password'])
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
             # the use prefix is fairly nice in the html, but does not match the actual config
@@ -6426,9 +6470,13 @@ class WebInterface(object):
 
     @cherrypy.expose
     def metrics(self, **kwargs):
-        """Expose Prometheus metrics when ``PROMETHEUS_ENABLED`` is set."""
+        """Expose Prometheus metrics when enabled; optional HTTP Basic auth."""
         if not plexpy.CONFIG.PROMETHEUS_ENABLED:
             raise NotFound
+        if not _prometheus_metrics_basic_auth_authorized():
+            cherrypy.response.headers['WWW-Authenticate'] = (
+                'Basic realm="Tautulli metrics"')
+            raise cherrypy.HTTPError(401, 'Unauthorized')
         ctype = prometheus_metrics.metrics_content_type()
         cherrypy.response.headers['Content-Type'] = ctype
         return prometheus_metrics.render_metrics()
