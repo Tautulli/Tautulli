@@ -2,7 +2,7 @@
 from urllib.parse import quote_plus
 
 from plexapi import utils
-from plexapi.base import PlexObject
+from plexapi.base import PlexObject, cached_data_property
 from plexapi.exceptions import BadRequest
 
 
@@ -36,7 +36,7 @@ class PlayQueue(PlexObject):
     TYPE = "playqueue"
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.identifier = data.attrib.get("identifier")
         self.mediaTagPrefix = data.attrib.get("mediaTagPrefix")
         self.mediaTagVersion = utils.cast(int, data.attrib.get("mediaTagVersion"))
@@ -62,8 +62,11 @@ class PlayQueue(PlexObject):
         )
         self.playQueueVersion = utils.cast(int, data.attrib.get("playQueueVersion"))
         self.size = utils.cast(int, data.attrib.get("size", 0))
-        self.items = self.findItems(data)
         self.selectedItem = self[self.playQueueSelectedItemOffset]
+
+    @cached_data_property
+    def items(self):
+        return self.findItems(self._data)
 
     def __getitem__(self, key):
         if not self.items:
@@ -254,7 +257,7 @@ class PlayQueue(PlexObject):
 
         path = f"/playQueues/{self.playQueueID}{utils.joinArgs(args)}"
         data = self._server.query(path, method=self._server._session.put)
-        self._loadData(data)
+        self._invalidateCacheAndLoadData(data)
         return self
 
     def moveItem(self, item, after=None, refresh=True):
@@ -283,7 +286,7 @@ class PlayQueue(PlexObject):
 
         path = f"/playQueues/{self.playQueueID}/items/{item.playQueueItemID}/move{utils.joinArgs(args)}"
         data = self._server.query(path, method=self._server._session.put)
-        self._loadData(data)
+        self._invalidateCacheAndLoadData(data)
         return self
 
     def removeItem(self, item, refresh=True):
@@ -301,19 +304,19 @@ class PlayQueue(PlexObject):
 
         path = f"/playQueues/{self.playQueueID}/items/{item.playQueueItemID}"
         data = self._server.query(path, method=self._server._session.delete)
-        self._loadData(data)
+        self._invalidateCacheAndLoadData(data)
         return self
 
     def clear(self):
         """Remove all items from the PlayQueue."""
         path = f"/playQueues/{self.playQueueID}/items"
         data = self._server.query(path, method=self._server._session.delete)
-        self._loadData(data)
+        self._invalidateCacheAndLoadData(data)
         return self
 
     def refresh(self):
         """Refresh the PlayQueue from the Plex server."""
         path = f"/playQueues/{self.playQueueID}"
         data = self._server.query(path, method=self._server._session.get)
-        self._loadData(data)
+        self._invalidateCacheAndLoadData(data)
         return self

@@ -236,26 +236,6 @@ def initialize(options):
             'tools.sessions.on': False,
             'tools.auth.on': False
         },
-        '/cache': {
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': plexpy.CONFIG.CACHE_DIR,
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
-            'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.sessions.on': False,
-            'tools.auth.on': False
-        },
-        '/pms_image_proxy': {
-           'tools.caching.on': True,
-           'tools.caching.force': True,
-           'tools.caching.delay': 0,
-           'tools.expires.on': True,
-           'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-           'tools.auth.on': False,
-           'tools.sessions.on': False
-        },
         '/favicon.ico': {
             'tools.staticfile.on': True,
             'tools.staticfile.filename': os.path.abspath(os.path.join(

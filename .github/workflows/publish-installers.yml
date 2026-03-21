@@ -31,7 +31,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set Release Version
         id: get_version
@@ -59,7 +59,7 @@ jobs:
           echo $GITHUB_SHA > version.txt
 
       - name: Set Up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
@@ -74,8 +74,12 @@ jobs:
         run: |
           pyinstaller -y ./package/Tautulli-${{ matrix.os }}.spec
 
+      - name: Install makensis (choco)
+        if: matrix.os == 'windows'
+        run: choco install nsis
+      
       - name: Create Windows Installer
-        uses: joncloud/makensis-action@v4.1
+        uses: joncloud/makensis-action@v5.0
         if: matrix.os == 'windows'
         with:
           script-file: ./package/Tautulli.nsi
@@ -95,7 +99,7 @@ jobs:
             Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
 
       - name: Upload Installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: Tautulli-${{ matrix.os }}-installer
           path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
@@ -108,10 +112,10 @@ jobs:
     steps:
       - name: Download Installers
         if: needs.build-installer.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Upload to VirusTotal
-        uses: crazy-max/ghaction-virustotal@v4
+        uses: crazy-max/ghaction-virustotal@v5
         with:
           vt_api_key: ${{ secrets.VT_API_KEY }}
           files: |
@@ -125,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set Release Version
         id: get_version
@@ -134,7 +138,7 @@ jobs:
 
       - name: Download Installers
         if: needs.build-installer.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
 
       - name: Get Changelog
         id: get_changelog

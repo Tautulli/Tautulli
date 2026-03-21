@@ -35,6 +35,7 @@ import json
 import math
 import operator
 import os
+from pathlib import Path
 import re
 import shlex
 import socket
@@ -1483,9 +1484,9 @@ def move_to_front(l, value):
     return l
 
 
-def is_hdr(bit_depth, color_space):
+def is_hdr(bit_depth, color_trc):
     bit_depth = cast_to_int(bit_depth)
-    return bit_depth > 8 and color_space == 'bt2020nc'
+    return bit_depth > 8 and (color_trc == 'smpte2084' or color_trc == 'arib-std-b67')
 
 
 def version_to_tuple(version):
@@ -1735,3 +1736,9 @@ def get_ipv6_network_address(ip: str) -> str:
     if cidr_pattern.match(plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR):
         cidr = plexpy.CONFIG.NOTIFY_CONCURRENT_IPV6_CIDR
     return str(ip_network(ip+cidr, strict=False).network_address)
+
+
+def is_subdir(child: str, parent: str) -> bool:
+    child = Path(child).resolve()
+    parent = Path(parent).resolve()
+    return child.is_relative_to(parent)

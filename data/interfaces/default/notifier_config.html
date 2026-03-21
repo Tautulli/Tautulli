@@ -51,13 +51,13 @@
                                             <div class="col-md-12">
                                                 % if notifier['agent_name'] == 'scripts' and item['name'] == 'scripts_script_folder':
                                                 <div class="input-group">
-                                                    <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
+                                                    <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" autocomplete="off" ${'readonly' if item.get('readonly') else ''}>
                                                     <span class="input-group-btn">
                                                         <button class="btn btn-form" type="button" id="${item['name']}_browse" data-toggle="browse" data-filter=".folderonly" data-target="#${item['name']}">Browse</button>
                                                     </span>
                                                 </div>
                                                 % else:
-                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
+                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" autocomplete="off" ${'readonly' if item.get('readonly') else ''}>
                                                 % endif
                                             </div>
                                         </div>
@@ -72,7 +72,7 @@
                                                     <span class="input-group-btn">
                                                         <button class="btn btn-form reveal-token" type="button"><i class="fa fa-eye-slash"></i></button>
                                                     </span>
-                                                    <input type="password" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" ${'readonly' if item.get('readonly') else ''}>
+                                                    <input type="password" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" autocomplete="off" ${'readonly' if item.get('readonly') else ''}>
                                                 </div>
                                             </div>
                                         </div>
@@ -83,7 +83,7 @@
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30">
+                                                <input type="${item['input_type']}" class="form-control" id="${item['name']}" name="${item['name']}" value="${item['value']}" size="30" autocomplete="off">
                                             </div>
                                         </div>
                                         <p class="help-block">${item['description'] | n}</p>
@@ -101,7 +101,7 @@
                                     % elif item['input_type'] == 'checkbox':
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" ${checked(item['value'])}> ${item['label']}
+                                            <input type="checkbox" data-id="${item['name']}" class="checkboxes" value="1" autocomplete="off" ${checked(item['value'])}> ${item['label']}
                                         </label>
                                         <p class="help-block">${item['description'] | n}</p>
                                         <input type="hidden" id="${item['name']}" name="${item['name']}" value="${item['value']}">
@@ -111,7 +111,7 @@
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                <select class="form-control" id="${item['name']}" name="${item['name']}" autocomplete="off">
                                                     % for key, value in sorted(item['select_options'].items()):
                                                     % if isinstance(value, list):
                                                     <optgroup label="${key}">
@@ -133,7 +133,7 @@
                                         <label for="${item['name']}">${item['label']}</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <select class="form-control" id="${item['name']}" name="${item['name']}">
+                                                <select class="form-control" id="${item['name']}" name="${item['name']}" autocomplete="off">
                                                     % if item['select_all']:
                                                     <option value="select-all">Select All</option>
                                                     <option value="remove-all">Remove All</option>
@@ -167,7 +167,7 @@
                                         <label for="friendly_name">Description</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${notifier['friendly_name']}" size="30">
+                                                <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${notifier['friendly_name']}" size="30" autocomplete="off">
                                             </div>
                                         </div>
                                         <p class="help-block">Optional: Enter a description to help identify this agent in the notification agents list.</p>
@@ -185,7 +185,7 @@
                                     % for action in available_notification_actions:
                                     <div class="checkbox">
                                         <label>
-                                            <input type="checkbox" data-id="${action['name']}" class="checkboxes" value="1" ${checked(notifier['actions'][action['name']])}> ${action['label']}
+                                            <input type="checkbox" data-id="${action['name']}" class="checkboxes" value="1" autocomplete="off" ${checked(notifier['actions'][action['name']])}> ${action['label']}
                                         </label>
                                         <p class="help-block">${action['description'] | n}</p>
                                         <input type="hidden" id="${action['name']}" name="${action['name']}" value="${notifier['actions'][action['name']]}">
@@ -208,7 +208,7 @@
 
                             <div class="form-group">
                                 <label for="custom_conditions_logic">Condition Logic</label>
-                                <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" />
+                                <input type="text" class="form-control" name="custom_conditions_logic" id="custom_conditions_logic" value="${notifier['custom_conditions_logic']}" autocomplete="off" />
                                 <div id="custom_conditions_logic_error" class="alert alert-danger" role="alert" style="padding-top: 5px; padding-bottom: 5px; margin: 0; display: none;"><i class="fa fa-exclamation-triangle" style="color: #a94442;"></i> <span></span></div>
                                 <p class="help-block">
                                     Optional: Enter custom logic to use when evaluating the conditions (e.g. <span class="inline-pre">{1} and ({2} or {3})</span>).
@@ -254,7 +254,7 @@
                                         <li>
                                             <div class="form-group">
                                                 <label for="${action['name']}_subject">Script Arguments</label>
-                                                <input class="form-control" type="text" id="${action['name']}_subject" name="${action['name']}_subject" value="${notifier['notify_text'][action['name']]['subject']}" data-parsley-trigger="change" required>
+                                                <input class="form-control" type="text" id="${action['name']}_subject" name="${action['name']}_subject" value="${notifier['notify_text'][action['name']]['subject']}" autocomplete="off" data-parsley-trigger="change" required>
                                                 <p class="help-block">Set custom arguments passed to the script.</p>
                                             </div>
                                             <div class="form-group">
@@ -280,12 +280,12 @@
                                         <li>
                                             <div class="form-group">
                                                 <label for="${action['name']}_subject">JSON Headers</label>
-                                                <textarea class="form-control" id="${action['name']}_subject" name="${action['name']}_subject" data-parsley-trigger="change" data-autoresize required>${notifier['notify_text'][action['name']]['subject']}</textarea>
+                                                <textarea class="form-control" id="${action['name']}_subject" name="${action['name']}_subject" data-parsley-trigger="change" autocomplete="off" data-autoresize required>${notifier['notify_text'][action['name']]['subject']}</textarea>
                                                 <p class="help-block">Set custom JSON headers.</p>
                                             </div>
                                             <div class="form-group">
                                                 <label for="${action['name']}_body">JSON Data</label>
-                                                <textarea class="form-control" id="${action['name']}_body" name="${action['name']}_body" data-parsley-trigger="change" data-autoresize required>${notifier['notify_text'][action['name']]['body']}</textarea>
+                                                <textarea class="form-control" id="${action['name']}_body" name="${action['name']}_body" data-parsley-trigger="change" autocomplete="off" data-autoresize required>${notifier['notify_text'][action['name']]['body']}</textarea>
                                                 <p class="help-block">Set custom JSON data.</p>
                                             </div>
                                             <div class="form-group">
@@ -311,12 +311,12 @@
                                         <li>
                                             <div class="form-group">
                                                 <label for="${action['name']}_subject">Subject Line</label>
-                                                <input class="form-control" type="text" id="${action['name']}_subject" name="${action['name']}_subject" value="${notifier['notify_text'][action['name']]['subject']}" data-parsley-trigger="change" required>
+                                                <input class="form-control" type="text" id="${action['name']}_subject" name="${action['name']}_subject" value="${notifier['notify_text'][action['name']]['subject']}" autocomplete="off" data-parsley-trigger="change" required>
                                                 <p class="help-block">Set a custom subject line.</p>
                                             </div>
                                             <div class="form-group">
                                                 <label for="${action['name']}_body">Message Body</label>
-                                                <textarea class="form-control" id="${action['name']}_body" name="${action['name']}_body" data-parsley-trigger="change" data-autoresize required>${notifier['notify_text'][action['name']]['body']}</textarea>
+                                                <textarea class="form-control" id="${action['name']}_body" name="${action['name']}_body" data-parsley-trigger="change" autocomplete="off" data-autoresize required>${notifier['notify_text'][action['name']]['body']}</textarea>
                                                 <p class="help-block">Set a custom body.</p>
                                             </div>
                                             <div class="form-group">
@@ -347,7 +347,7 @@
                                 <label for="test_script">Script</label>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <select class="form-control" id="test_script" name="test_script">
+                                        <select class="form-control" id="test_script" name="test_script" autocomplete="off">
                                             % for key, value in sorted(notifier['config_options'][2]['select_options'].items()):
                                             <option value="${key}">${value}</option>
                                             % endfor
@@ -360,7 +360,7 @@
                                 <label for="test_script_args">Script Arguments</label>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="">
+                                        <input class="form-control" type="text" id="test_script_args" name="test_script_args" value="" autocomplete="off">
                                     </div>
                                 </div>
                                 <p class="help-block">Set custom arguments passed to the script.</p>
@@ -370,7 +370,7 @@
                                 <label for="test_subject">JSON Headers</label>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <textarea class="form-control" id="test_subject" name="test_subject" data-autoresize></textarea>
+                                        <textarea class="form-control" id="test_subject" name="test_subject" autocomplete="off" data-autoresize></textarea>
                                     </div>
                                 </div>
                                 <p class="help-block">Set custom JSON headers sent to the webhook.</p>
@@ -379,7 +379,7 @@
                                 <label for="test_body">JSON Data</label>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <textarea class="form-control" id="test_body" name="test_body" data-autoresize></textarea>
+                                        <textarea class="form-control" id="test_body" name="test_body" autocomplete="off" data-autoresize></textarea>
                                     </div>
                                 </div>
                                 <p class="help-block">Set custom JSON data sent to the webhook.</p>
@@ -389,7 +389,7 @@
                                 <label for="test_subject">Subject Line</label>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <input class="form-control" type="text" id="test_subject" name="test_subject" value="Tautulli">
+                                        <input class="form-control" type="text" id="test_subject" name="test_subject" value="Tautulli" autocomplete="off">
                                     </div>
                                 </div>
                                 <p class="help-block">Set a custom subject line.</p>
@@ -398,7 +398,7 @@
                                 <label for="test_body">Message Body</label>
                                 <div class="row">
                                     <div class="col-md-12">
-                                        <textarea class="form-control" id="test_body" name="test_body" data-autoresize>Test Notification</textarea>
+                                        <textarea class="form-control" id="test_body" name="test_body" autocomplete="off" data-autoresize>Test Notification</textarea>
                                     </div>
                                 </div>
                                 <p class="help-block">Set a custom body.</p>

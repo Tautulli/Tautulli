@@ -116,15 +116,21 @@
 <script>
     var login_accordion = new Accordion($('#login-methods'), false, false);
 
+    function OAuthPreFunction() {
+        $('#sign-in-alert').hide();
+    }
     function OAuthSuccessCallback(authToken) {
         signIn(true, authToken);
     }
     function OAuthErrorCallback() {
         $('#sign-in-alert').text('Error communicating with Plex.tv.').show();
     }
+    function OAuthMaxRetryCallback() {
+        $('#sign-in-alert').text('Authentication timed out. Please try again.').show();
+    }
 
     $('#sign-in-plex').click(function() {
-        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback);
+        PlexOAuth(OAuthSuccessCallback, OAuthErrorCallback, OAuthMaxRetryCallback, null, OAuthPreFunction);
     });
 
     $('#login-form').submit(function(event) {

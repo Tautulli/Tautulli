@@ -1,7 +1,6 @@
 import json
 import platform
 import sys
-from typing import Dict
 
 from . import __version__ as pyjwt_version
 
@@ -13,7 +12,7 @@ except ModuleNotFoundError:
     cryptography_version = ""
 
 
-def info() -> Dict[str, Dict[str, str]]:
+def info() -> dict[str, dict[str, str]]:
     """
     Generate information for a bug report.
     Based on the requests package help utility module.

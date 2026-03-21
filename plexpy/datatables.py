@@ -144,14 +144,17 @@ def build_custom_where(custom_where=[]):
         and_or = ' OR ' if w[0].endswith('OR') else ' AND '
         w[0] = w[0].rstrip(' OR')
 
-        if isinstance(w[1], (list, tuple)) and len(w[1]):
+        if w[0].endswith(' IN') and isinstance(w[1], (list, tuple)) and len(w[1]):
+            c_where += w[0] + '(' + ','.join(['?'] * len(w[1])) + ')' + and_or
+            args += w[1]
+        elif isinstance(w[1], (list, tuple)) and len(w[1]):
             c_where += '('
             for w_ in w[1]:
                 if w_ is None:
                     c_where += w[0] + ' IS NULL'
-                elif str(w_).startswith('LIKE '):
-                    c_where += w[0] + ' LIKE ?'
-                    args.append(w_[5:])
+                elif w[0].endswith(' LIKE'):
+                    c_where += w[0] + ' ?'
+                    args.append(w_)
                 elif w[0].endswith('<') or w[0].endswith('>'):
                     c_where += w[0] + '= ?'
                     args.append(w_)
@@ -163,9 +166,9 @@ def build_custom_where(custom_where=[]):
         else:
             if w[1] is None:
                 c_where += w[0] + ' IS NULL'
-            elif str(w[1]).startswith('LIKE '):
-                c_where += w[0] + ' LIKE ?'
-                args.append(w[1][5:])
+            elif w[0].endswith(' LIKE'):
+                c_where += w[0] + ' ?'
+                args.append(w[1])
             elif w[0].endswith('<') or w[0].endswith('>'):
                 c_where += w[0] + '= ?'
                 args.append(w[1])

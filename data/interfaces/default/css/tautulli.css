@@ -559,6 +559,44 @@ fieldset[disabled] .btn-bright.active {
     border-radius: 0 0 3px 3px;
     border-top: 1px solid #1C1C1C;
 }
+#donation_type {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    margin: 10px 0;
+}
+.donate-btn {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+.donate-btn-github {
+    border: none;
+    padding: 0 16px;
+    font-weight: 600;
+    height: 52px;
+    font-size: 16px;
+}
+.donate-btn-github img {
+    margin-right: 8px;
+}
+.donate-btn-patreon {
+    background-color: #fff;
+}
+.donate-btn-stripe {
+    background-color: #533AFD;
+}
+.donate-btn-paypal {
+    background-color: #60cdff;
+    padding: 10px 12px;
+}
+.donate-btn-paypal img {
+    margin-bottom: -4px;
+}
 textarea,
 input[type="text"],
 input[type="password"],
@@ -1798,7 +1836,7 @@ a:hover .dashboard-recent-media-cover {
     text-align: center;
     display: block;
     position: absolute;
-    top: calc(50% - 34px);
+    top: calc(50% - 42px);
     width: 100%;
 }
 a:hover .summary-poster-face .summary-poster-face-overlay,
@@ -4575,12 +4613,32 @@ a.donate-with-crypto::after {
     top: 0;
     left: 0;
 }
+#crypto-select {
+    width: 280px;
+    margin: 15px auto;
+}
+#crypto-qrcode {
+    width: 258px;
+    padding: 0;
+    margin: 15px auto;
+    line-height: 0;
+    text-align: center;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: none;
+}
+#crypto-address {
+    margin: 15px auto;
+    text-align: center;
+    display: none;
+}
 
 #api_qr_code {
     width: 100%;
     padding: 0;
     margin: 0 0 10px;
-    line-height: 1;
+    line-height: 0;
     text-align: center;
     background-color: #eee;
     border: 1px solid #ccc;
@@ -4590,4 +4648,45 @@ a.donate-with-crypto::after {
 .docker-mount {
     margin: 20px auto 0 auto;
     position: relative;
+}
+
+/* Ace Editor Styles */
+#message-editor {
+    width: 100%;
+    height: 300px;
+}
+/* Custom CSS to reduce Ace editor gutter width */
+#message-editor .ace_gutter-cell {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+.editor-controls {
+    padding: 3px;
+    border-bottom: 1px solid #444; 
+}
+.editor-container {
+    background-color: #282828;
+    border: 1px solid #444;
+    border-radius: 3px;
+}
+.editor-control-btn {
+    margin-right: 1px;
+    width: 32px;
+    height: 32px;
+    padding: 6px;
+}
+.editor-control-btn:hover {
+    background-color: #555;
+    border-color: #777;
+}
+/* Responsive design for editor controls */
+@media (max-width: 768px) {
+    .editor-controls .text-left {
+        text-align: left !important;
+    }
+    .editor-control-btn {
+        margin-right: 6px;
+        width: 32px;
+        height: 32px;
+    }
 }

@@ -26,7 +26,8 @@ import os
 import re
 from string import Formatter
 import threading
-from typing import Optional
+import types
+from typing import Any, Callable, Optional
 
 import arrow
 import musicbrainzngs
@@ -230,6 +231,10 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
         if not plexpy.CONFIG.NOTIFY_PLEXPY_UPDATE_REPEAT:
             evaluated = not check_nofity_tag(notify_action=notify_action,
                                              tag=kwargs['plexpy_download_info']['tag_name'])
+
+    elif notify_action == 'on_tokenexpired':
+        evaluated = not check_nofity_tag(notify_action=notify_action,
+                                         tag=hashlib.sha256(plexpy.CONFIG.PMS_TOKEN.encode('utf-8')).hexdigest()[:10])
 
     # Server notifications
     else:
@@ -499,6 +504,8 @@ def set_notify_state(notifier, notify_action, subject='', body='', script_args='
             values['tag'] = parameters['update_version']
         elif notify_action == 'on_plexpyupdate':
             values['tag'] = parameters['tautulli_update_version']
+        elif notify_action == 'on_tokenexpired':
+            values['tag'] = hashlib.sha256(plexpy.CONFIG.PMS_TOKEN.encode('utf-8')).hexdigest()[:10]
 
         monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
         return monitor_db.last_insert_id()
@@ -1919,7 +1926,7 @@ def str_format(s, parameters):
     return s
 
 
-def str_eval(field_name, kwargs):
+def str_eval(field_name: str, kwargs: dict[str, Callable]) -> Any:
     field_name = field_name.strip('`')
     allowed_names = {
         'bool': bool,
@@ -1932,10 +1939,17 @@ def str_eval(field_name, kwargs):
     }
     allowed_names.update(kwargs)
     code = compile(field_name, '<string>', 'eval')
+    _check_names(code, allowed_names)
+    return eval(code, {'__builtins__': {}}, allowed_names)
+
+
+def _check_names(code: types.CodeType, allowed_names: dict[str, Callable]):
     for name in code.co_names:
         if name not in allowed_names:
-            raise NameError('Use of {name} not allowed'.format(name=name))
-    return eval(code, {'__builtins__': {}}, allowed_names)
+            raise NameError(f'Use of {name} not allowed')
+    for const in code.co_consts:
+        if isinstance(const, types.CodeType):
+            _check_names(const, allowed_names)
 
 
 class CustomFormatter(Formatter):

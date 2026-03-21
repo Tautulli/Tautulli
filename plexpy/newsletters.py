@@ -838,7 +838,7 @@ class RecentlyAdded(Newsletter):
         media_types = set()
         for s in self._get_sections():
             if str(s['section_id']) in self.config['incl_libraries']:
-                if s['section_type'] == 'movie' and s['agent'] == 'com.plexapp.agents.none':
+                if s['section_type'] == 'movie' and s['agent'] in ('com.plexapp.agents.none', 'tv.plex.agents.none'):
                     media_types.add('other_video')
                 else:
                     media_types.add(s['section_type'])
@@ -933,7 +933,7 @@ class RecentlyAdded(Newsletter):
         sections = {}
         for s in self._get_sections():
             if s['section_type'] != 'photo':
-                if s['section_type'] == 'movie' and s['agent'] == 'com.plexapp.agents.none':
+                if s['section_type'] == 'movie' and s['agent'] in ('com.plexapp.agents.none', 'tv.plex.agents.none'):
                     library_type = 'other_video'
                 else:
                     library_type = s['section_type']

@@ -39,7 +39,42 @@ OPERATORS = {
 }
 
 
-class PlexObject:
+class cached_data_property(cached_property):
+    """Caching for PlexObject data properties.
+
+    This decorator creates properties that cache their values with
+    automatic invalidation on data changes.
+    """
+
+    def __set_name__(self, owner, name):
+        """Register the annotated property in the parent class's _cached_data_properties set."""
+        super().__set_name__(owner, name)
+        if not hasattr(owner, '_cached_data_properties'):
+            owner._cached_data_properties = set()
+        owner._cached_data_properties.add(name)
+
+
+class PlexObjectMeta(type):
+    """Metaclass for PlexObject to handle cached_data_properties."""
+    def __new__(mcs, name, bases, attrs):
+        cached_data_props = set()
+
+        # Merge all _cached_data_properties from parent classes
+        for base in bases:
+            if hasattr(base, '_cached_data_properties'):
+                cached_data_props.update(base._cached_data_properties)
+
+        # Find all properties annotated with cached_data_property in the current class
+        for attr_name, attr_value in attrs.items():
+            if isinstance(attr_value, cached_data_property):
+                cached_data_props.add(attr_name)
+
+        attrs['_cached_data_properties'] = cached_data_props
+
+        return super().__new__(mcs, name, bases, attrs)
+
+
+class PlexObject(metaclass=PlexObjectMeta):
     """ Base class for all Plex objects.
 
         Parameters:
@@ -387,7 +422,7 @@ class PlexObject:
         return results
 
     def reload(self, key=None, **kwargs):
-        """ Reload the data for this object from self.key.
+        """ Reload the data for this object.
 
             Parameters:
                 key (string, optional): Override the key to reload.
@@ -435,7 +470,7 @@ class PlexObject:
         self._initpath = key
         data = self._server.query(key)
         self._overwriteNone = _overwriteNone
-        self._loadData(data[0])
+        self._invalidateCacheAndLoadData(data[0])
         self._overwriteNone = True
         return self
 
@@ -497,8 +532,34 @@ class PlexObject:
             return float(value)
         return value
 
+    def _invalidateCacheAndLoadData(self, data):
+        """Load attribute values from Plex XML response and invalidate cached properties."""
+        old_data_id = id(getattr(self, '_data', None))
+        self._data = data
+
+        # If the data's object ID has changed, invalidate cached properties
+        if id(data) != old_data_id:
+            self._invalidateCachedProperties()
+
+        self._loadData(data)
+
+    def _invalidateCachedProperties(self):
+        """Invalidate all cached data property values."""
+        cached_props = getattr(self.__class__, '_cached_data_properties', set())
+
+        for prop_name in cached_props:
+            if prop_name in self.__dict__:
+                del self.__dict__[prop_name]
+
     def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
         raise NotImplementedError('Abstract method not implemented.')
+
+    def _findAndLoadElem(self, data, **kwargs):
+        """ Find and load the first element in the data that matches the specified attributes. """
+        for elem in data:
+            if self._checkAttrs(elem, **kwargs):
+                self._invalidateCacheAndLoadData(elem)
 
     @property
     def _searchType(self):
@@ -754,7 +815,7 @@ class PlexPartialObject(PlexObject):
 
 
 class Playable:
-    """ This is a general place to store functions specific to media that is Playable.
+    """ This is a mixin to store functions specific to media that is Playable.
         Things were getting mixed up a bit when dealing with Shows, Season, Artists,
         Albums which are all not playable.
 
@@ -764,6 +825,7 @@ class Playable:
     """
 
     def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
         self.playlistItemID = utils.cast(int, data.attrib.get('playlistItemID'))    # playlist
         self.playQueueItemID = utils.cast(int, data.attrib.get('playQueueItemID'))  # playqueue
 
@@ -931,8 +993,8 @@ class Playable:
         return self
 
 
-class PlexSession(object):
-    """ This is a general place to store functions specific to media that is a Plex Session.
+class PlexSession:
+    """ This is a mixin to store functions specific to media that is a Plex Session.
 
         Attributes:
             live (bool): True if this is a live tv session.
@@ -945,23 +1007,44 @@ class PlexSession(object):
     """
 
     def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
         self.live = utils.cast(bool, data.attrib.get('live', '0'))
-        self.player = self.findItem(data, etag='Player')
-        self.session = self.findItem(data, etag='Session')
         self.sessionKey = utils.cast(int, data.attrib.get('sessionKey'))
-        self.transcodeSession = self.findItem(data, etag='TranscodeSession')
 
         user = data.find('User')
         self._username = user.attrib.get('title')
         self._userId = utils.cast(int, user.attrib.get('id'))
 
         # For backwards compatibility
-        self.players = [self.player] if self.player else []
-        self.sessions = [self.session] if self.session else []
-        self.transcodeSessions = [self.transcodeSession] if self.transcodeSession else []
         self.usernames = [self._username] if self._username else []
+        # `players`, `sessions`, and `transcodeSessions` are returned with properties
+        # to support lazy loading. See PR #1510
 
-    @cached_property
+    @cached_data_property
+    def player(self):
+        return self.findItem(self._data, etag='Player')
+
+    @cached_data_property
+    def session(self):
+        return self.findItem(self._data, etag='Session')
+
+    @cached_data_property
+    def transcodeSession(self):
+        return self.findItem(self._data, etag='TranscodeSession')
+
+    @property
+    def players(self):
+        return [self.player] if self.player else []
+
+    @property
+    def sessions(self):
+        return [self.session] if self.session else []
+
+    @property
+    def transcodeSessions(self):
+        return [self.transcodeSession] if self.transcodeSession else []
+
+    @cached_data_property
     def user(self):
         """ Returns the :class:`~plexapi.myplex.MyPlexAccount` object (for admin)
             or :class:`~plexapi.myplex.MyPlexUser` object (for users) for this session.
@@ -978,18 +1061,11 @@ class PlexSession(object):
         """
         return self._reload()
 
-    def _reload(self, _autoReload=False, **kwargs):
-        """ Perform the actual reload. """
-        # Do not auto reload sessions
-        if _autoReload:
-            return self
-
+    def _reload(self, **kwargs):
+        """ Reload the data for the session. """
         key = self._initpath
         data = self._server.query(key)
-        for elem in data:
-            if elem.attrib.get('sessionKey') == str(self.sessionKey):
-                self._loadData(elem)
-                break
+        self._findAndLoadElem(data, sessionKey=str(self.sessionKey))
         return self
 
     def source(self):
@@ -1010,8 +1086,8 @@ class PlexSession(object):
         return self._server.query(key, params=params)
 
 
-class PlexHistory(object):
-    """ This is a general place to store functions specific to media that is a Plex history item.
+class PlexHistory:
+    """ This is a mixin to store functions specific to media that is a Plex history item.
 
         Attributes:
             accountID (int): The associated :class:`~plexapi.server.SystemAccount` ID.
@@ -1021,6 +1097,7 @@ class PlexHistory(object):
     """
 
     def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
         self.accountID = utils.cast(int, data.attrib.get('accountID'))
         self.deviceID = utils.cast(int, data.attrib.get('deviceID'))
         self.historyKey = data.attrib.get('historyKey')
@@ -1124,7 +1201,7 @@ class MediaContainer(
                 setattr(self, key, getattr(__iterable, key))
 
     def _loadData(self, data):
-        self._data = data
+        """ Load attribute values from Plex XML response. """
         self.allowSync = utils.cast(int, data.attrib.get('allowSync'))
         self.augmentationKey = data.attrib.get('augmentationKey')
         self.identifier = data.attrib.get('identifier')
