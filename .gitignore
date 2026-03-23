@@ -18,6 +18,7 @@ version.lock
 lib/*.dist-info
 lib/*.egg-info
 lib/*.pth
+lib/*.pyd
 lib/*/*.pyd
 lib/_distutils_hack
 lib/pkg_resources

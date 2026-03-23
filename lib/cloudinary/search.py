@@ -1,4 +1,3 @@
-import base64
 import json
 
 import cloudinary
@@ -14,7 +13,7 @@ class Search(object):
 
     _KEYS_WITH_UNIQUE_VALUES = {
         'sort_by': lambda x: next(iter(x)),
-        'aggregate': None,
+        'aggregate': lambda agg: agg["type"] if isinstance(agg, dict) and "type" in agg else agg,
         'with_field': None,
         'fields': None,
     }

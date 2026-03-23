@@ -69,12 +69,10 @@ class BaseEndpoint:
     def _create_request(self, uri, http_method, body, headers):
         # Only include body data from x-www-form-urlencoded requests
         headers = CaseInsensitiveDict(headers or {})
-        if ("Content-Type" in headers and
-                CONTENT_TYPE_FORM_URLENCODED in headers["Content-Type"]):
+        if "Content-Type" in headers and CONTENT_TYPE_FORM_URLENCODED in headers["Content-Type"]:  # noqa: SIM108
             request = Request(uri, http_method, body, headers)
         else:
             request = Request(uri, http_method, '', headers)
-
         signature_type, params, oauth_params = (
             self._get_signature_type_and_params(request))
 
@@ -129,8 +127,7 @@ class BaseEndpoint:
         # Considerations section (`Section 4`_) before deciding on which
         # method to support.
         # .. _`Section 4`: https://tools.ietf.org/html/rfc5849#section-4
-        if (not request.signature_method in
-                self.request_validator.allowed_signature_methods):
+        if (request.signature_method not in self.request_validator.allowed_signature_methods):
             raise errors.InvalidSignatureMethodError(
                 description="Invalid signature, {} not in {!r}.".format(
                     request.signature_method,
@@ -180,9 +177,7 @@ class BaseEndpoint:
 
     def _check_signature(self, request, is_token_request=False):
         # ---- RSA Signature verification ----
-        if request.signature_method == SIGNATURE_RSA_SHA1 or \
-           request.signature_method == SIGNATURE_RSA_SHA256 or \
-           request.signature_method == SIGNATURE_RSA_SHA512:
+        if request.signature_method in {SIGNATURE_RSA_SHA1, SIGNATURE_RSA_SHA256, SIGNATURE_RSA_SHA512}:
             # RSA-based signature method
 
             # The server verifies the signature per `[RFC3447] section 8.2.2`_

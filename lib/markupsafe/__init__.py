@@ -214,14 +214,14 @@ class Markup(str):
             if (end := value.find("-->", start)) == -1:
                 break
 
-            value = f"{value[:start]}{value[end + 3:]}"
+            value = f"{value[:start]}{value[end + 3 :]}"
 
         # remove tags using the same method
         while (start := value.find("<")) != -1:
             if (end := value.find(">", start)) == -1:
                 break
 
-            value = f"{value[:start]}{value[end + 1:]}"
+            value = f"{value[:start]}{value[end + 1 :]}"
 
         # collapse spaces
         value = " ".join(value.split())
@@ -388,6 +388,7 @@ def __getattr__(name: str) -> t.Any:
             "The '__version__' attribute is deprecated and will be removed in"
             " MarkupSafe 3.1. Use feature detection, or"
             ' `importlib.metadata.version("markupsafe")`, instead.',
+            DeprecationWarning,
             stacklevel=2,
         )
         return importlib.metadata.version("markupsafe")

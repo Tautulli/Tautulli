@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import base64
 import functools
 import json
@@ -9,6 +8,7 @@ import string
 import sys
 import time
 import unicodedata
+import uuid
 import warnings
 import zipfile
 from collections import deque
@@ -80,6 +80,7 @@ TAGTYPES = {
     'mood': 300,
     'style': 301,
     'format': 302,
+    'subformat': 303,
     'similar': 305,
     'concert': 306,
     'banner': 311,
@@ -92,7 +93,10 @@ TAGTYPES = {
     'network': 319,
     'showOrdering': 322,
     'clearLogo': 323,
+    'commonSenseMedia': 324,
+    'squareArt': 325,
     'place': 400,
+    'sharedWidth': 500,
 }
 REVERSETAGTYPES = {v: k for k, v in TAGTYPES.items()}
 
@@ -532,18 +536,22 @@ def getMyPlexAccount(opts=None):  # pragma: no cover
     return MyPlexAccount(username, password)
 
 
-def createMyPlexDevice(headers, account, timeout=10):  # pragma: no cover
+def createMyPlexDevice(headers=None, account=None, timeout=10):  # pragma: no cover
     """ Helper function to create a new MyPlexDevice. Returns a new MyPlexDevice instance.
 
         Parameters:
             headers (dict): Provide the X-Plex- headers for the new device.
-                A unique X-Plex-Client-Identifier is required.
+                A unique X-Plex-Client-Identifier is required or one will be generated if not provided.
             account (MyPlexAccount): The Plex account to create the device on.
             timeout (int): Timeout in seconds to wait for device login.
     """
     from plexapi.myplex import MyPlexPinLogin
 
-    if 'X-Plex-Client-Identifier' not in headers:
+    if not headers:
+        client_identifier = generateUUID()
+        headers = {'X-Plex-Client-Identifier': client_identifier}
+        print(f'No X-Plex-Client-Identifier provided, generated: {client_identifier}')
+    elif 'X-Plex-Client-Identifier' not in headers:
         raise BadRequest('The X-Plex-Client-Identifier header is required.')
 
     clientIdentifier = headers['X-Plex-Client-Identifier']
@@ -561,19 +569,22 @@ def plexOAuth(headers, forwardUrl=None, timeout=120):  # pragma: no cover
 
         Parameters:
             headers (dict): Provide the X-Plex- headers for the new device.
-                A unique X-Plex-Client-Identifier is required.
+                A unique X-Plex-Client-Identifier is required or one will be generated if not provided.
             forwardUrl (str, optional): The url to redirect the client to after login.
-            timeout (int, optional): Timeout in seconds to wait for device login. Default 120 seconds.
+            timeout (int, optional): Timeout in seconds to wait for user login. Default 120 seconds.
     """
     from plexapi.myplex import MyPlexAccount, MyPlexPinLogin
 
-    if 'X-Plex-Client-Identifier' not in headers:
+    if not headers:
+        client_identifier = generateUUID()
+        headers = {'X-Plex-Client-Identifier': client_identifier}
+        print(f'No X-Plex-Client-Identifier provided, generated: {client_identifier}')
+    elif 'X-Plex-Client-Identifier' not in headers:
         raise BadRequest('The X-Plex-Client-Identifier header is required.')
 
     pinlogin = MyPlexPinLogin(headers=headers, oauth=True)
-    print('Login to Plex at the following url:')
-    print(pinlogin.oauthUrl(forwardUrl))
     pinlogin.run(timeout=timeout)
+    print(f'Login to Plex at the following url:\n{pinlogin.oauthUrl(forwardUrl=forwardUrl)}')
     pinlogin.waitForLogin()
 
     if pinlogin.token:
@@ -581,6 +592,44 @@ def plexOAuth(headers, forwardUrl=None, timeout=120):  # pragma: no cover
         return MyPlexAccount(token=pinlogin.token)
     else:
         print('Login failed.')
+
+
+def plexJWTAuth(headers=None, forwardUrl=None, timeout=120, keypair=(None, None), scopes=None):  # pragma: no cover
+    """ Helper function for Plex JWT authentication using Plex OAuth. Returns a new MyPlexAccount instance.
+
+        Parameters:
+            headers (dict, optional): Provide the X-Plex- headers for the new device.
+                A unique X-Plex-Client-Identifier is required or one will be generated if not provided.
+            forwardUrl (str, optional): The url to redirect the client to after login.
+            timeout (int, optional): Timeout in seconds to wait for user login. Default 120 seconds.
+            keypair (tuple, optional): A tuple of the ED25519 (privateKey, publicKey) to use for signing the JWT.
+                If not provided, a new keypair will be generated and saved to 'private.key' and 'public.key'.
+            scopes (list[str], optional): List of scopes to request in the JWT.
+    """
+    from plexapi.myplex import MyPlexAccount, MyPlexJWTLogin
+
+    if not headers:
+        client_identifier = generateUUID()
+        headers = {'X-Plex-Client-Identifier': client_identifier}
+        print(f'No X-Plex-Client-Identifier provided, generated: {client_identifier}')
+    elif 'X-Plex-Client-Identifier' not in headers:
+        raise BadRequest('The X-Plex-Client-Identifier header is required.')
+
+    jwtlogin = MyPlexJWTLogin(headers=headers, oauth=True, keypair=keypair, scopes=scopes)
+
+    if not keypair[0] or not keypair[1]:
+        jwtlogin.generateKeypair(keyfiles=('private.key', 'public.key'))
+        print('Generated new ED25519 keypair and saved to "private.key" and "public.key".')
+
+    jwtlogin.run(timeout=timeout)
+    print(f'Login to Plex at the following url:\n{jwtlogin.oauthUrl(forwardUrl=forwardUrl)}')
+    jwtlogin.waitForLogin()
+
+    if jwtlogin.jwtToken:
+        print('JWT authentication successful!')
+        return MyPlexAccount(token=jwtlogin.jwtToken)
+    else:
+        print('JWT authentication failed.')
 
 
 def choose(msg, items, attr):  # pragma: no cover
@@ -625,6 +674,10 @@ def base64str(text):
     return base64.b64encode(text.encode('utf-8')).decode('utf-8')
 
 
+def base64urlEncode(data: bytes) -> str:
+    return base64.urlsafe_b64encode(data).rstrip(b'=').decode('utf-8')
+
+
 def deprecated(message, stacklevel=2):
     def decorator(func):
         """This is a decorator which can be used to mark functions
@@ -667,6 +720,8 @@ def toJson(obj, **kwargs):
 
 
 def openOrRead(file):
+    if isinstance(file, bytes):
+        return file
     if hasattr(file, 'read'):
         return file.read()
     with open(file, 'rb') as f:
@@ -729,3 +784,7 @@ def parseXMLString(s: str):
     except ElementTree.ParseError:  # If it fails, clean the string and try again
         cleaned_s = cleanXMLString(s).encode('utf-8')
         return ElementTree.fromstring(cleaned_s) if cleaned_s.strip() else None
+
+
+def generateUUID() -> str:
+    return str(uuid.uuid4())

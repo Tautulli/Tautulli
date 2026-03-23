@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2020 Philip Hane
+# Copyright (c) 2013-2024 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,28 +32,28 @@ from collections import namedtuple
 
 log = logging.getLogger(__name__)
 
-BOOTSTRAP_URL = 'http://rdap.arin.net/bootstrap'
+BOOTSTRAP_URL = 'https://rdap-bootstrap.arin.net/bootstrap'
 
 RIR_RDAP = {
     'arin': {
-        'ip_url': 'http://rdap.arin.net/registry/ip/{0}',
-        'entity_url': 'http://rdap.arin.net/registry/entity/{0}'
+        'ip_url': 'https://rdap.arin.net/registry/ip/{0}',
+        'entity_url': 'https://rdap.arin.net/registry/entity/{0}'
     },
     'ripencc': {
-        'ip_url': 'http://rdap.db.ripe.net/ip/{0}',
-        'entity_url': 'http://rdap.db.ripe.net/entity/{0}'
+        'ip_url': 'https://rdap.db.ripe.net/ip/{0}',
+        'entity_url': 'https://rdap.db.ripe.net/entity/{0}'
     },
     'apnic': {
-        'ip_url': 'http://rdap.apnic.net/ip/{0}',
-        'entity_url': 'http://rdap.apnic.net/entity/{0}'
+        'ip_url': 'https://rdap.apnic.net/ip/{0}',
+        'entity_url': 'https://rdap.apnic.net/entity/{0}'
     },
     'lacnic': {
-        'ip_url': 'http://rdap.lacnic.net/rdap/ip/{0}',
-        'entity_url': 'http://rdap.lacnic.net/rdap/entity/{0}'
+        'ip_url': 'https://rdap.lacnic.net/rdap/ip/{0}',
+        'entity_url': 'https://rdap.lacnic.net/rdap/entity/{0}'
     },
     'afrinic': {
-        'ip_url': 'http://rdap.afrinic.net/rdap/ip/{0}',
-        'entity_url': 'http://rdap.afrinic.net/rdap/entity/{0}'
+        'ip_url': 'https://rdap.afrinic.net/rdap/ip/{0}',
+        'entity_url': 'https://rdap.afrinic.net/rdap/entity/{0}'
     }
 }
 

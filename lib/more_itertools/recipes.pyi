@@ -2,22 +2,75 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Iterator, Sequence
+from decimal import Decimal
+from fractions import Fraction
 from typing import (
     Any,
     Callable,
-    Iterable,
-    Iterator,
-    overload,
-    Sequence,
-    Type,
     TypeVar,
+    overload,
 )
+
+__all__ = [
+    'all_equal',
+    'batched',
+    'before_and_after',
+    'consume',
+    'convolve',
+    'dotproduct',
+    'first_true',
+    'factor',
+    'flatten',
+    'grouper',
+    'is_prime',
+    'iter_except',
+    'iter_index',
+    'loops',
+    'matmul',
+    'multinomial',
+    'ncycles',
+    'nth',
+    'nth_combination',
+    'padnone',
+    'pad_none',
+    'pairwise',
+    'partition',
+    'polynomial_eval',
+    'polynomial_from_roots',
+    'polynomial_derivative',
+    'powerset',
+    'prepend',
+    'quantify',
+    'reshape',
+    'random_combination_with_replacement',
+    'random_combination',
+    'random_permutation',
+    'random_product',
+    'repeatfunc',
+    'roundrobin',
+    'running_median',
+    'sieve',
+    'sliding_window',
+    'subslices',
+    'sum_of_squares',
+    'tabulate',
+    'tail',
+    'take',
+    'totient',
+    'transpose',
+    'triplewise',
+    'unique',
+    'unique_everseen',
+    'unique_justseen',
+]
 
 # Type and type variable definitions
 _T = TypeVar('_T')
 _T1 = TypeVar('_T1')
 _T2 = TypeVar('_T2')
 _U = TypeVar('_U')
+_NumberT = TypeVar("_NumberT", float, Decimal, Fraction)
 
 def take(n: int, iterable: Iterable[_T]) -> list[_T]: ...
 def tabulate(
@@ -69,13 +122,13 @@ def unique(
 @overload
 def iter_except(
     func: Callable[[], _T],
-    exception: Type[BaseException] | tuple[Type[BaseException], ...],
+    exception: type[BaseException] | tuple[type[BaseException], ...],
     first: None = ...,
 ) -> Iterator[_T]: ...
 @overload
 def iter_except(
     func: Callable[[], _T],
-    exception: Type[BaseException] | tuple[Type[BaseException], ...],
+    exception: type[BaseException] | tuple[type[BaseException], ...],
     first: Callable[[], _U],
 ) -> Iterator[_T | _U]: ...
 @overload
@@ -119,18 +172,34 @@ def iter_index(
     stop: int | None = ...,
 ) -> Iterator[int]: ...
 def sieve(n: int) -> Iterator[int]: ...
-def batched(
+def _batched(
     iterable: Iterable[_T], n: int, *, strict: bool = False
-) -> Iterator[tuple[_T]]: ...
+) -> Iterator[tuple[_T, ...]]: ...
+
+batched = _batched
+
 def transpose(
     it: Iterable[Iterable[_T]],
 ) -> Iterator[tuple[_T, ...]]: ...
+@overload
 def reshape(
-    matrix: Iterable[Iterable[_T]], cols: int
+    matrix: Iterable[Iterable[_T]], shape: int
 ) -> Iterator[tuple[_T, ...]]: ...
+@overload
+def reshape(matrix: Iterable[Any], shape: Iterable[int]) -> Iterator[Any]: ...
 def matmul(m1: Sequence[_T], m2: Sequence[_T]) -> Iterator[tuple[_T]]: ...
+def _factor_trial(n: int) -> Iterator[int]: ...
+def _factor_pollard(n: int) -> int: ...
 def factor(n: int) -> Iterator[int]: ...
 def polynomial_eval(coefficients: Sequence[_T], x: _U) -> _U: ...
 def sum_of_squares(it: Iterable[_T]) -> _T: ...
 def polynomial_derivative(coefficients: Sequence[_T]) -> list[_T]: ...
 def totient(n: int) -> int: ...
+def _shift_to_odd(n: int) -> tuple[int, int]: ...
+def _strong_probable_prime(n: int, base: int) -> bool: ...
+def is_prime(n: int) -> bool: ...
+def loops(n: int) -> Iterator[None]: ...
+def multinomial(*counts: int) -> int: ...
+def running_median(
+    iterable: Iterable[_NumberT], *, maxlen: int | None = ...
+) -> Iterator[_NumberT]: ...

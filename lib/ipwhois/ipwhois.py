@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2020 Philip Hane
+# Copyright (c) 2013-2024 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ class IPWhois:
                      extra_blacklist=None, ignore_referral_errors=False,
                      field_list=None, extra_org_map=None,
                      inc_nir=True, nir_field_list=None, asn_methods=None,
-                     get_asn_description=True):
+                     get_asn_description=True, get_recursive=True):
         """
         The function for retrieving and parsing whois information for an IP
         address via port 43 (WHOIS).
@@ -113,6 +113,10 @@ class IPWhois:
             get_asn_description (:obj:`bool`): Whether to run an additional
                 query when pulling ASN information via dns, in order to get
                 the ASN description. Defaults to True.
+            get_recursive (:obj:`bool`): Whether to ask the server to perform
+                recursive queries to get related objects. If False, passes
+                the '-r' flag to RIPE WHOIS servers. Has no effect for other
+                RIRs. Defaults to True.
 
         Returns:
             dict: The IP whois lookup results
@@ -167,7 +171,7 @@ class IPWhois:
             inc_raw=inc_raw, retry_count=retry_count, response=None,
             get_referral=get_referral, extra_blacklist=extra_blacklist,
             ignore_referral_errors=ignore_referral_errors, asn_data=asn_data,
-            field_list=field_list
+            field_list=field_list, get_recursive=get_recursive,
         )
 
         # Add the WHOIS information to the return dictionary.

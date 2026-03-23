@@ -41,7 +41,7 @@ def _immutable_init(f):
         finally:
             _in__init__.reset(previous)
 
-    nf.__signature__ = inspect.signature(f)
+    nf.__signature__ = inspect.signature(f)  # pyright: ignore
     return nf
 
 

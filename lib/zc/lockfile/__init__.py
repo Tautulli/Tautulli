@@ -25,10 +25,10 @@ class LockError(Exception):
 
 try:
     import fcntl
-except ImportError:
+except ModuleNotFoundError:  # pragma: no cover
     try:
         import msvcrt
-    except ImportError:
+    except ModuleNotFoundError:  # pragma: no cover
         def _lock_file(file):
             raise TypeError('No file-locking support on this platform')
 
@@ -101,7 +101,9 @@ class SimpleLockFile:
         fp.flush()
 
     def close(self):
-        if self._fp is not None:
+        if self._fp is None:
+            pass  # pragma: no cover
+        else:
             _unlock_file(self._fp)
             self._fp.close()
             self._fp = None

@@ -5,7 +5,7 @@ from typing import Optional
 _cookiejar.py
 websocket - WebSocket client library for Python
 
-Copyright 2024 engn33r
+Copyright 2025 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,11 +33,9 @@ class SimpleCookieJar:
                 if domain := v.get("domain"):
                     if not domain.startswith("."):
                         domain = f".{domain}"
-                    cookie = (
-                        self.jar.get(domain)
-                        if self.jar.get(domain)
-                        else http.cookies.SimpleCookie()
-                    )
+                    cookie = self.jar.get(domain)
+                    if cookie is None:
+                        cookie = http.cookies.SimpleCookie()
                     cookie.update(simple_cookie)
                     self.jar[domain.lower()] = cookie
 

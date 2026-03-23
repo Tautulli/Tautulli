@@ -84,12 +84,9 @@ class CERT(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         certificate_type = _ctype_to_text(self.certificate_type)
-        return "%s %d %s %s" % (
-            certificate_type,
-            self.key_tag,
-            dns.dnssectypes.Algorithm.to_text(self.algorithm),
-            dns.rdata._base64ify(self.certificate, **kw),
-        )
+        algorithm = dns.dnssectypes.Algorithm.to_text(self.algorithm)
+        certificate = dns.rdata._base64ify(self.certificate, **kw)  # pyright: ignore
+        return f"{certificate_type} {self.key_tag} {algorithm} {certificate}"
 
     @classmethod
     def from_text(

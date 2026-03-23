@@ -33,7 +33,7 @@ class WebApplicationClient(Client):
     browser) and capable of receiving incoming requests (via redirection)
     from the authorization server.
     """
-    
+
     grant_type = 'authorization_code'
 
     def __init__(self, client_id, code=None, **kwargs):
@@ -62,8 +62,8 @@ class WebApplicationClient(Client):
                         to the client.  The parameter SHOULD be used for preventing
                         cross-site request forgery as described in `Section 10.12`_.
 
-        :param code_challenge: OPTIONAL. PKCE parameter. REQUIRED if PKCE is enforced. 
-                        A challenge derived from the code_verifier that is sent in the 
+        :param code_challenge: OPTIONAL. PKCE parameter. REQUIRED if PKCE is enforced.
+                        A challenge derived from the code_verifier that is sent in the
                         authorization request, to be verified against later.
 
         :param code_challenge_method: OPTIONAL. PKCE parameter. A method that was used to derive code challenge.

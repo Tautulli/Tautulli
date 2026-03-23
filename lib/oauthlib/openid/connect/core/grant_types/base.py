@@ -310,11 +310,15 @@ class GrantTypeBase:
             msg = "Session user does not match client supplied user."
             raise LoginRequired(request=request, description=msg)
 
+        ui_locales = request.ui_locales if request.ui_locales else []
+        if hasattr(ui_locales, 'split'):
+            ui_locales = ui_locales.strip().split()
+
         request_info = {
             'display': request.display,
             'nonce': request.nonce,
             'prompt': prompt,
-            'ui_locales': request.ui_locales.split() if request.ui_locales else [],
+            'ui_locales': ui_locales,
             'id_token_hint': request.id_token_hint,
             'login_hint': request.login_hint,
             'claims': request.claims

@@ -41,7 +41,7 @@ class SRV(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         target = self.target.choose_relativity(origin, relativize)
-        return "%d %d %d %s" % (self.priority, self.weight, self.port, target)
+        return f"{self.priority} {self.weight} {self.port} {target}"
 
     @classmethod
     def from_text(

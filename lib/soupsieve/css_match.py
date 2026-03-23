@@ -5,8 +5,8 @@ from . import util
 import re
 from . import css_types as ct
 import unicodedata
-import bs4  # type: ignore[import]
-from typing import Iterator, Iterable, Any, Callable, Sequence, cast  # noqa: F401
+import bs4
+from typing import Iterator, Iterable, Any, Callable, Sequence, Any, cast  # noqa: F401, F811
 
 # Empty tag pattern (whitespace okay)
 RE_NOT_EMPTY = re.compile('[^ \t\r\n\f]')
@@ -70,7 +70,7 @@ class _FakeParent:
 
         self.contents = [element]
 
-    def __len__(self) -> bs4.PageElement:
+    def __len__(self) -> int:
         """Length."""
 
         return len(self.contents)
@@ -88,42 +88,42 @@ class _DocumentNav:
             raise TypeError(f"Expected a BeautifulSoup 'Tag', but instead received type {type(tag)}")
 
     @staticmethod
-    def is_doc(obj: bs4.Tag) -> bool:
+    def is_doc(obj: bs4.element.PageElement | None) -> bool:
         """Is `BeautifulSoup` object."""
         return isinstance(obj, bs4.BeautifulSoup)
 
     @staticmethod
-    def is_tag(obj: bs4.PageElement) -> bool:
+    def is_tag(obj: bs4.element.PageElement | None) -> bool:
         """Is tag."""
         return isinstance(obj, bs4.Tag)
 
     @staticmethod
-    def is_declaration(obj: bs4.PageElement) -> bool:  # pragma: no cover
+    def is_declaration(obj: bs4.element.PageElement | None) -> bool:  # pragma: no cover
         """Is declaration."""
         return isinstance(obj, bs4.Declaration)
 
     @staticmethod
-    def is_cdata(obj: bs4.PageElement) -> bool:
+    def is_cdata(obj: bs4.element.PageElement | None) -> bool:
         """Is CDATA."""
         return isinstance(obj, bs4.CData)
 
     @staticmethod
-    def is_processing_instruction(obj: bs4.PageElement) -> bool:  # pragma: no cover
+    def is_processing_instruction(obj: bs4.element.PageElement | None) -> bool:  # pragma: no cover
         """Is processing instruction."""
         return isinstance(obj, bs4.ProcessingInstruction)
 
     @staticmethod
-    def is_navigable_string(obj: bs4.PageElement) -> bool:
+    def is_navigable_string(obj: bs4.element.PageElement | None) -> bool:
         """Is navigable string."""
-        return isinstance(obj, bs4.NavigableString)
+        return isinstance(obj, bs4.element.NavigableString)
 
     @staticmethod
-    def is_special_string(obj: bs4.PageElement) -> bool:
+    def is_special_string(obj: bs4.element.PageElement | None) -> bool:
         """Is special string."""
         return isinstance(obj, (bs4.Comment, bs4.Declaration, bs4.CData, bs4.ProcessingInstruction, bs4.Doctype))
 
     @classmethod
-    def is_content_string(cls, obj: bs4.PageElement) -> bool:
+    def is_content_string(cls, obj: bs4.element.PageElement | None) -> bool:
         """Check if node is content string."""
 
         return cls.is_navigable_string(obj) and not cls.is_special_string(obj)
@@ -135,13 +135,16 @@ class _DocumentNav:
         return _FakeParent(el)
 
     @staticmethod
-    def is_xml_tree(el: bs4.Tag) -> bool:
+    def is_xml_tree(el: bs4.Tag | None) -> bool:
         """Check if element (or document) is from a XML tree."""
 
-        return bool(el._is_xml)
+        return el is not None and bool(el._is_xml)
 
-    def is_iframe(self, el: bs4.Tag) -> bool:
+    def is_iframe(self, el: bs4.Tag | None) -> bool:
         """Check if element is an `iframe`."""
+
+        if el is None:  # pragma: no cover
+            return False
 
         return bool(
             ((el.name if self.is_xml_tree(el) else util.lower(el.name)) == 'iframe') and
@@ -162,22 +165,35 @@ class _DocumentNav:
             root = parent is not None and self.is_html and self.is_iframe(parent)  # type: ignore[attr-defined]
         return root
 
-    def get_contents(self, el: bs4.Tag, no_iframe: bool = False) -> Iterator[bs4.PageElement]:
+    def get_contents(self, el: bs4.Tag | None, no_iframe: bool = False) -> Iterator[bs4.element.PageElement]:
         """Get contents or contents in reverse."""
-        if not no_iframe or not self.is_iframe(el):
-            yield from el.contents
+
+        if el is not None:
+            if not no_iframe or not self.is_iframe(el):
+                yield from el.contents
+
+    def get_tag_children(
+        self,
+        el: bs4.Tag | None,
+        start: int | None = None,
+        reverse: bool = False,
+        no_iframe: bool = False
+    ) -> Iterator[bs4.Tag]:
+        """Get tag children."""
+
+        return self.get_children(el, start, reverse, True, no_iframe)  # type: ignore[return-value]
 
     def get_children(
         self,
-        el: bs4.Tag,
+        el: bs4.Tag | None,
         start: int | None = None,
         reverse: bool = False,
-        tags: bool = True,
+        tags: bool = False,
         no_iframe: bool = False
-    ) -> Iterator[bs4.PageElement]:
+    ) -> Iterator[bs4.element.PageElement]:
         """Get children."""
 
-        if not no_iframe or not self.is_iframe(el):
+        if el is not None and (not no_iframe or not self.is_iframe(el)):
             last = len(el.contents) - 1
             if start is None:
                 index = last if reverse else 0
@@ -193,15 +209,24 @@ class _DocumentNav:
                     if not tags or self.is_tag(node):
                         yield node
 
+    def get_tag_descendants(
+        self,
+        el: bs4.Tag | None,
+        no_iframe: bool = False
+    ) -> Iterator[bs4.Tag]:
+        """Specifically get tag descendants."""
+
+        yield from self.get_descendants(el, tags=True, no_iframe=no_iframe)  # type: ignore[misc]
+
     def get_descendants(
         self,
-        el: bs4.Tag,
-        tags: bool = True,
+        el: bs4.Tag | None,
+        tags: bool = False,
         no_iframe: bool = False
-    ) -> Iterator[bs4.PageElement]:
+    ) -> Iterator[bs4.element.PageElement]:
         """Get descendants."""
 
-        if not no_iframe or not self.is_iframe(el):
+        if el is not None and (not no_iframe or not self.is_iframe(el)):
             next_good = None
             for child in el.descendants:
 
@@ -210,71 +235,91 @@ class _DocumentNav:
                         continue
                     next_good = None
 
-                is_tag = self.is_tag(child)
-
-                if no_iframe and is_tag and self.is_iframe(child):
-                    if child.next_sibling is not None:
-                        next_good = child.next_sibling
-                    else:
-                        last_child = child
-                        while self.is_tag(last_child) and last_child.contents:
-                            last_child = last_child.contents[-1]
-                        next_good = last_child.next_element
-                    yield child
-                    if next_good is None:
-                        break
-                    # Coverage isn't seeing this even though it's executed
-                    continue  # pragma: no cover
-
-                if not tags or is_tag:
+                if isinstance(child, bs4.Tag):
+                    if no_iframe and self.is_iframe(child):
+                        if child.next_sibling is not None:
+                            next_good = child.next_sibling
+                        else:
+                            last_child = child  # type: bs4.element.PageElement
+                            while isinstance(last_child, bs4.Tag) and last_child.contents:
+                                last_child = last_child.contents[-1]
+                            next_good = last_child.next_element
+                        yield child
+                        if next_good is None:
+                            break
+                        # Coverage isn't seeing this even though it's executed
+                        continue  # pragma: no cover
                     yield child
 
-    def get_parent(self, el: bs4.Tag, no_iframe: bool = False) -> bs4.Tag:
+                elif not tags:
+                    yield child
+
+    def get_parent(self, el: bs4.Tag | None, no_iframe: bool = False) -> bs4.Tag | None:
         """Get parent."""
 
-        parent = el.parent
-        if no_iframe and parent is not None and self.is_iframe(parent):
+        parent = el.parent if el is not None else None
+        if no_iframe and parent is not None and self.is_iframe(parent):  # pragma: no cover
             parent = None
         return parent
 
     @staticmethod
-    def get_tag_name(el: bs4.Tag) -> str | None:
+    def get_tag_name(el: bs4.Tag | None) -> str | None:
         """Get tag."""
 
-        return cast('str | None', el.name)
+        return el.name if el is not None else None
 
     @staticmethod
     def get_prefix_name(el: bs4.Tag) -> str | None:
         """Get prefix."""
 
-        return cast('str | None', el.prefix)
+        return el.prefix
 
     @staticmethod
-    def get_uri(el: bs4.Tag) -> str | None:
+    def get_uri(el: bs4.Tag | None) -> str | None:
         """Get namespace `URI`."""
 
-        return cast('str | None', el.namespace)
+        return el.namespace if el is not None else None
 
     @classmethod
-    def get_next(cls, el: bs4.Tag, tags: bool = True) -> bs4.PageElement:
+    def get_next_tag(cls, el: bs4.Tag) -> bs4.Tag | None:
+        """Get next sibling tag."""
+
+        return cls.get_next(el, tags=True)  # type: ignore[return-value]
+
+    @classmethod
+    def get_next(cls, el: bs4.Tag, tags: bool = False) -> bs4.element.PageElement | None:
         """Get next sibling tag."""
 
         sibling = el.next_sibling
-        while tags and not cls.is_tag(sibling) and sibling is not None:
+        while tags and not isinstance(sibling, bs4.Tag) and sibling is not None:
             sibling = sibling.next_sibling
+
+        if tags and not isinstance(sibling, bs4.Tag):
+            sibling = None
+
         return sibling
 
     @classmethod
-    def get_previous(cls, el: bs4.Tag, tags: bool = True) -> bs4.PageElement:
+    def get_previous_tag(cls, el: bs4.Tag, tags: bool = True) -> bs4.Tag | None:
+        """Get previous sibling tag."""
+
+        return cls.get_previous(el, True)  # type: ignore[return-value]
+
+    @classmethod
+    def get_previous(cls, el: bs4.Tag, tags: bool = False) -> bs4.element.PageElement | None:
         """Get previous sibling tag."""
 
         sibling = el.previous_sibling
-        while tags and not cls.is_tag(sibling) and sibling is not None:
+        while tags and not isinstance(sibling, bs4.Tag) and sibling is not None:
             sibling = sibling.previous_sibling
+
+        if tags and not isinstance(sibling, bs4.Tag):
+            sibling = None
+
         return sibling
 
     @staticmethod
-    def has_html_ns(el: bs4.Tag) -> bool:
+    def has_html_ns(el: bs4.Tag | None) -> bool:
         """
         Check if element has an HTML namespace.
 
@@ -282,12 +327,15 @@ class _DocumentNav:
         like we do in the case of `is_html_tag`.
         """
 
-        ns = getattr(el, 'namespace') if el else None  # noqa: B009
+        ns = getattr(el, 'namespace') if el is not None else None  # noqa: B009
         return bool(ns and ns == NS_XHTML)
 
     @staticmethod
-    def split_namespace(el: bs4.Tag, attr_name: str) -> tuple[str | None, str | None]:
+    def split_namespace(el: bs4.Tag | None, attr_name: str) -> tuple[str | None, str | None]:
         """Return namespace and attribute name without the prefix."""
+
+        if el is None:  # pragma: no cover
+            return None, None
 
         return getattr(attr_name, 'namespace', None), getattr(attr_name, 'name', None)
 
@@ -347,11 +395,12 @@ class _DocumentNav:
         return value
 
     @classmethod
-    def iter_attributes(cls, el: bs4.Tag) -> Iterator[tuple[str, str | Sequence[str] | None]]:
+    def iter_attributes(cls, el: bs4.Tag | None) -> Iterator[tuple[str, str | Sequence[str] | None]]:
         """Iterate attributes."""
 
-        for k, v in el.attrs.items():
-            yield k, cls.normalize_value(v)
+        if el is not None:
+            for k, v in el.attrs.items():
+                yield k, cls.normalize_value(v)
 
     @classmethod
     def get_classes(cls, el: bs4.Tag) -> Sequence[str]:
@@ -366,13 +415,18 @@ class _DocumentNav:
         """Get text."""
 
         return ''.join(
-            [node for node in self.get_descendants(el, tags=False, no_iframe=no_iframe) if self.is_content_string(node)]
+            [
+                node for node in self.get_descendants(el, no_iframe=no_iframe)  # type: ignore[misc]
+                if self.is_content_string(node)
+            ]
         )
 
     def get_own_text(self, el: bs4.Tag, no_iframe: bool = False) -> list[str]:
         """Get Own Text."""
 
-        return [node for node in self.get_contents(el, no_iframe=no_iframe) if self.is_content_string(node)]
+        return [
+            node for node in self.get_contents(el, no_iframe=no_iframe) if self.is_content_string(node)  # type: ignore[misc]
+        ]
 
 
 class Inputs:
@@ -393,9 +447,18 @@ class Inputs:
     def validate_week(year: int, week: int) -> bool:
         """Validate week."""
 
-        max_week = datetime.strptime(f"{12}-{31}-{year}", "%m-%d-%Y").isocalendar()[1]
-        if max_week == 1:
-            max_week = 53
+        # Validate an ISO week number for `year`.
+        #
+        # Per ISO 8601 rules, the last ISO week of a year is the week
+        # containing Dec 28. Using Dec 28 guarantees we obtain the
+        # correct ISO week-number for the final week of `year`, even in
+        # years where Dec 31 falls in ISO week 01 of the following year.
+        #
+        # Example: if Dec 31 is a Thursday the year's last ISO week will
+        # be week 53; if Dec 31 is a Monday and that week is counted as
+        # week 1 of the next year, Dec 28 still belongs to the final
+        # week of the current ISO year and yields the correct max week.
+        max_week = datetime(year, 12, 28).isocalendar()[1]
         return 1 <= week <= max_week
 
     @staticmethod
@@ -484,7 +547,7 @@ class CSSMatch(_DocumentNav):
     def __init__(
         self,
         selectors: ct.SelectorList,
-        scope: bs4.Tag,
+        scope: bs4.Tag | None,
         namespaces: ct.Namespaces | None,
         flags: int
     ) -> None:
@@ -506,11 +569,11 @@ class CSSMatch(_DocumentNav):
         while parent:
             doc = parent
             parent = self.get_parent(doc)
-        root = None
+        root = None  # type: bs4.Tag | None
         if not self.is_doc(doc):
             root = doc
         else:
-            for child in self.get_children(doc):
+            for child in self.get_tag_children(doc):
                 root = child
                 break
 
@@ -527,11 +590,14 @@ class CSSMatch(_DocumentNav):
 
         return self.is_xml or self.has_html_namespace
 
-    def get_tag_ns(self, el: bs4.Tag) -> str:
+    def get_tag_ns(self, el: bs4.Tag | None) -> str:
         """Get tag namespace."""
 
+        namespace = ''
+        if el is None:  # pragma: no cover
+            return namespace
+
         if self.supports_namespaces():
-            namespace = ''
             ns = self.get_uri(el)
             if ns:
                 namespace = ns
@@ -539,12 +605,12 @@ class CSSMatch(_DocumentNav):
             namespace = NS_XHTML
         return namespace
 
-    def is_html_tag(self, el: bs4.Tag) -> bool:
+    def is_html_tag(self, el: bs4.Tag | None) -> bool:
         """Check if tag is in HTML namespace."""
 
         return self.get_tag_ns(el) == NS_XHTML
 
-    def get_tag(self, el: bs4.Tag) -> str | None:
+    def get_tag(self, el: bs4.Tag | None) -> str | None:
         """Get tag."""
 
         name = self.get_tag_name(el)
@@ -559,22 +625,23 @@ class CSSMatch(_DocumentNav):
     def find_bidi(self, el: bs4.Tag) -> int | None:
         """Get directionality from element text."""
 
-        for node in self.get_children(el, tags=False):
+        for node in self.get_children(el):
 
             # Analyze child text nodes
             if self.is_tag(node):
 
                 # Avoid analyzing certain elements specified in the specification.
-                direction = DIR_MAP.get(util.lower(self.get_attribute_by_name(node, 'dir', '')), None)
+                direction = DIR_MAP.get(util.lower(self.get_attribute_by_name(node, 'dir', '')), None)  # type: ignore[arg-type]
+                name = self.get_tag(node)  # type: ignore[arg-type]
                 if (
-                    self.get_tag(node) in ('bdi', 'script', 'style', 'textarea', 'iframe') or
-                    not self.is_html_tag(node) or
+                    (name and name in ('bdi', 'script', 'style', 'textarea', 'iframe')) or
+                    not self.is_html_tag(node) or  # type: ignore[arg-type]
                     direction is not None
                 ):
                     continue  # pragma: no cover
 
                 # Check directionality of this node's text
-                value = self.find_bidi(node)
+                value = self.find_bidi(node)  # type: ignore[arg-type]
                 if value is not None:
                     return value
 
@@ -586,7 +653,7 @@ class CSSMatch(_DocumentNav):
                 continue
 
             # Analyze text nodes for directionality.
-            for c in node:
+            for c in node:  # type: ignore[attr-defined]
                 bidi = unicodedata.bidirectional(c)
                 if bidi in ('AL', 'R', 'L'):
                     return ct.SEL_DIR_LTR if bidi == 'L' else ct.SEL_DIR_RTL
@@ -684,7 +751,7 @@ class CSSMatch(_DocumentNav):
                     continue  # pragma: no cover
 
                 # We can't match our desired prefix attribute as the attribute doesn't have a prefix
-                if namespace is None or ns != namespace and prefix != '*':
+                if namespace is None or (ns != namespace and prefix != '*'):
                     continue
 
                 # The attribute doesn't match.
@@ -780,12 +847,12 @@ class CSSMatch(_DocumentNav):
             if parent:
                 found = self.match_selectors(parent, relation)
         elif relation[0].rel_type == REL_SIBLING:
-            sibling = self.get_previous(el)
+            sibling = self.get_previous_tag(el)
             while not found and sibling:
                 found = self.match_selectors(sibling, relation)
-                sibling = self.get_previous(sibling)
+                sibling = self.get_previous_tag(sibling)
         elif relation[0].rel_type == REL_CLOSE_SIBLING:
-            sibling = self.get_previous(el)
+            sibling = self.get_previous_tag(el)
             if sibling and self.is_tag(sibling):
                 found = self.match_selectors(sibling, relation)
         return found
@@ -795,9 +862,9 @@ class CSSMatch(_DocumentNav):
 
         match = False
         if recursive:
-            children = self.get_descendants  # type: Callable[..., Iterator[bs4.Tag]]
+            children = self.get_tag_descendants  # type: Callable[..., Iterator[bs4.Tag]]
         else:
-            children = self.get_children
+            children = self.get_tag_children
         for child in children(parent, no_iframe=self.iframe_restrict):
             match = self.match_selectors(child, relation)
             if match:
@@ -817,12 +884,12 @@ class CSSMatch(_DocumentNav):
         elif relation[0].rel_type == REL_HAS_CLOSE_PARENT:
             found = self.match_future_child(el, relation)
         elif relation[0].rel_type == REL_HAS_SIBLING:
-            sibling = self.get_next(el)
+            sibling = self.get_next_tag(el)
             while not found and sibling:
                 found = self.match_selectors(sibling, relation)
-                sibling = self.get_next(sibling)
+                sibling = self.get_next_tag(sibling)
         elif relation[0].rel_type == REL_HAS_CLOSE_SIBLING:
-            sibling = self.get_next(el)
+            sibling = self.get_next_tag(el)
             if sibling and self.is_tag(sibling):
                 found = self.match_selectors(sibling, relation)
         return found
@@ -868,7 +935,7 @@ class CSSMatch(_DocumentNav):
 
         is_root = self.is_root(el)
         if is_root:
-            sibling = self.get_previous(el, tags=False)
+            sibling = self.get_previous(el)  # type: Any
             while is_root and sibling is not None:
                 if (
                     self.is_tag(sibling) or (self.is_content_string(sibling) and sibling.strip()) or
@@ -876,9 +943,9 @@ class CSSMatch(_DocumentNav):
                 ):
                     is_root = False
                 else:
-                    sibling = self.get_previous(sibling, tags=False)
+                    sibling = self.get_previous(sibling)
         if is_root:
-            sibling = self.get_next(el, tags=False)
+            sibling = self.get_next(el)
             while is_root and sibling is not None:
                 if (
                     self.is_tag(sibling) or (self.is_content_string(sibling) and sibling.strip()) or
@@ -886,7 +953,7 @@ class CSSMatch(_DocumentNav):
                 ):
                     is_root = False
                 else:
-                    sibling = self.get_next(sibling, tags=False)
+                    sibling = self.get_next(sibling)
         return is_root
 
     def match_scope(self, el: bs4.Tag) -> bool:
@@ -902,7 +969,7 @@ class CSSMatch(_DocumentNav):
             (self.get_tag_ns(child) == self.get_tag_ns(el))
         )
 
-    def match_nth(self, el: bs4.Tag, nth: bs4.Tag) -> bool:
+    def match_nth(self, el: bs4.Tag, nth: tuple[ct.SelectorNth, ...]) -> bool:
         """Match `nth` elements."""
 
         matched = True
@@ -911,9 +978,9 @@ class CSSMatch(_DocumentNav):
             matched = False
             if n.selectors and not self.match_selectors(el, n.selectors):
                 break
-            parent = self.get_parent(el)
+            parent = self.get_parent(el)  # type: bs4.Tag | None
             if parent is None:
-                parent = self.create_fake_parent(el)
+                parent = cast('bs4.Tag', self.create_fake_parent(el))
             last = n.last
             last_index = len(parent) - 1
             index = last_index if last else 0
@@ -969,11 +1036,11 @@ class CSSMatch(_DocumentNav):
 
             # Evaluate elements while our calculated nth index is still in range
             while 1 <= idx <= last_index + 1:
-                child = None
+                child = None  # type: bs4.element.PageElement | None
                 # Evaluate while our child index is still in range.
-                for child in self.get_children(parent, start=index, reverse=factor < 0, tags=False):
+                for child in self.get_children(parent, start=index, reverse=factor < 0):
                     index += factor
-                    if not self.is_tag(child):
+                    if not isinstance(child, bs4.Tag):
                         continue
                     # Handle `of S` in `nth-child`
                     if n.selectors and not self.match_selectors(child, n.selectors):
@@ -1007,11 +1074,11 @@ class CSSMatch(_DocumentNav):
         """Check if element is empty (if requested)."""
 
         is_empty = True
-        for child in self.get_children(el, tags=False):
+        for child in self.get_children(el):
             if self.is_tag(child):
                 is_empty = False
                 break
-            elif self.is_content_string(child) and RE_NOT_EMPTY.search(child):
+            elif self.is_content_string(child) and RE_NOT_EMPTY.search(child):  # type: ignore[call-overload]
                 is_empty = False
                 break
         return is_empty
@@ -1059,7 +1126,7 @@ class CSSMatch(_DocumentNav):
         match = False
 
         # Find this input's form
-        form = None
+        form = None  # type: bs4.Tag | None
         parent = self.get_parent(el, no_iframe=True)
         while parent and form is None:
             if self.get_tag(parent) == 'form' and self.is_html_tag(parent):
@@ -1067,29 +1134,30 @@ class CSSMatch(_DocumentNav):
             else:
                 parent = self.get_parent(parent, no_iframe=True)
 
-        # Look in form cache to see if we've already located its default button
-        found_form = False
-        for f, t in self.cached_default_forms:
-            if f is form:
-                found_form = True
-                if t is el:
-                    match = True
-                break
-
-        # We didn't have the form cached, so look for its default button
-        if not found_form:
-            for child in self.get_descendants(form, no_iframe=True):
-                name = self.get_tag(child)
-                # Can't do nested forms (haven't figured out why we never hit this)
-                if name == 'form':  # pragma: no cover
+        if form is not None:
+            # Look in form cache to see if we've already located its default button
+            found_form = False
+            for f, t in self.cached_default_forms:
+                if f is form:
+                    found_form = True
+                    if t is el:
+                        match = True
                     break
-                if name in ('input', 'button'):
-                    v = self.get_attribute_by_name(child, 'type', '')
-                    if v and util.lower(v) == 'submit':
-                        self.cached_default_forms.append((form, child))
-                        if el is child:
-                            match = True
+
+            # We didn't have the form cached, so look for its default button
+            if not found_form:
+                for child in self.get_tag_descendants(form, no_iframe=True):
+                    name = self.get_tag(child)
+                    # Can't do nested forms (haven't figured out why we never hit this)
+                    if name == 'form':  # pragma: no cover
                         break
+                    if name in ('input', 'button'):
+                        v = self.get_attribute_by_name(child, 'type', '')
+                        if v and util.lower(v) == 'submit':
+                            self.cached_default_forms.append((form, child))
+                            if el is child:
+                                match = True
+                            break
         return match
 
     def match_indeterminate(self, el: bs4.Tag) -> bool:
@@ -1116,40 +1184,41 @@ class CSSMatch(_DocumentNav):
         form = get_parent_form(el)
 
         # Look in form cache to see if we've already evaluated that its fellow radio buttons are indeterminate
-        found_form = False
-        for f, n, i in self.cached_indeterminate_forms:
-            if f is form and n == name:
-                found_form = True
-                if i is True:
-                    match = True
-                break
-
-        # We didn't have the form cached, so validate that the radio button is indeterminate
-        if not found_form:
-            checked = False
-            for child in self.get_descendants(form, no_iframe=True):
-                if child is el:
-                    continue
-                tag_name = self.get_tag(child)
-                if tag_name == 'input':
-                    is_radio = False
-                    check = False
-                    has_name = False
-                    for k, v in self.iter_attributes(child):
-                        if util.lower(k) == 'type' and util.lower(v) == 'radio':
-                            is_radio = True
-                        elif util.lower(k) == 'name' and v == name:
-                            has_name = True
-                        elif util.lower(k) == 'checked':
-                            check = True
-                        if is_radio and check and has_name and get_parent_form(child) is form:
-                            checked = True
-                            break
-                if checked:
+        if form is not None:
+            found_form = False
+            for f, n, i in self.cached_indeterminate_forms:
+                if f is form and n == name:
+                    found_form = True
+                    if i is True:
+                        match = True
                     break
-            if not checked:
-                match = True
-            self.cached_indeterminate_forms.append((form, name, match))
+
+            # We didn't have the form cached, so validate that the radio button is indeterminate
+            if not found_form:
+                checked = False
+                for child in self.get_tag_descendants(form, no_iframe=True):
+                    if child is el:
+                        continue
+                    tag_name = self.get_tag(child)
+                    if tag_name == 'input':
+                        is_radio = False
+                        check = False
+                        has_name = False
+                        for k, v in self.iter_attributes(child):
+                            if util.lower(k) == 'type' and util.lower(v) == 'radio':
+                                is_radio = True
+                            elif util.lower(k) == 'name' and v == name:
+                                has_name = True
+                            elif util.lower(k) == 'checked':
+                                check = True
+                            if is_radio and check and has_name and get_parent_form(child) is form:
+                                checked = True
+                                break
+                    if checked:
+                        break
+                if not checked:
+                    match = True
+                self.cached_indeterminate_forms.append((form, name, match))
 
         return match
 
@@ -1162,7 +1231,7 @@ class CSSMatch(_DocumentNav):
         has_html_namespace = self.has_html_namespace
 
         # Walk parents looking for `lang` (HTML) or `xml:lang` XML property.
-        parent = el
+        parent = el  # type: bs4.Tag | None
         found_lang = None
         last = None
         while not found_lang:
@@ -1190,16 +1259,16 @@ class CSSMatch(_DocumentNav):
         # Use cached meta language.
         if found_lang is None and self.cached_meta_lang:
             for cache in self.cached_meta_lang:
-                if root is cache[0]:
+                if root is not None and cast(str, root) is cache[0]:
                     found_lang = cache[1]
 
         # If we couldn't find a language, and the document is HTML, look to meta to determine language.
-        if found_lang is None and (not self.is_xml or (has_html_namespace and root.name == 'html')):
+        if found_lang is None and (not self.is_xml or (has_html_namespace and root and root.name == 'html')):
             # Find head
             found = False
             for tag in ('html', 'head'):
                 found = False
-                for child in self.get_children(parent, no_iframe=self.is_html):
+                for child in self.get_tag_children(parent, no_iframe=self.is_html):
                     if self.get_tag(child) == tag and self.is_html_tag(child):
                         found = True
                         parent = child
@@ -1208,12 +1277,12 @@ class CSSMatch(_DocumentNav):
                     break
 
             # Search meta tags
-            if found:
-                for child in parent:
-                    if self.is_tag(child) and self.get_tag(child) == 'meta' and self.is_html_tag(parent):
+            if found and parent is not None:
+                for child2 in parent:
+                    if isinstance(child2, bs4.Tag) and self.get_tag(child2) == 'meta' and self.is_html_tag(parent):
                         c_lang = False
                         content = None
-                        for k, v in self.iter_attributes(child):
+                        for k, v in self.iter_attributes(child2):
                             if util.lower(k) == 'http-equiv' and util.lower(v) == 'content-language':
                                 c_lang = True
                             if util.lower(k) == 'content':
@@ -1239,7 +1308,7 @@ class CSSMatch(_DocumentNav):
 
         return match
 
-    def match_dir(self, el: bs4.Tag, directionality: int) -> bool:
+    def match_dir(self, el: bs4.Tag | None, directionality: int) -> bool:
         """Check directionality."""
 
         # If we have to match both left and right, we can't match either.
@@ -1271,7 +1340,7 @@ class CSSMatch(_DocumentNav):
         # Auto handling for text inputs
         if ((is_input and itype in ('text', 'search', 'tel', 'url', 'email')) or is_textarea) and direction == 0:
             if is_textarea:
-                value = ''.join(node for node in self.get_contents(el, no_iframe=True) if self.is_content_string(node))
+                value = ''.join(node for node in self.get_contents(el, no_iframe=True) if self.is_content_string(node))  # type: ignore[misc]
             else:
                 value = cast(str, self.get_attribute_by_name(el, 'value', ''))
             if value:
@@ -1465,7 +1534,7 @@ class CSSMatch(_DocumentNav):
 
         lim = None if limit < 1 else limit
 
-        for child in self.get_descendants(self.tag):
+        for child in self.get_tag_descendants(self.tag):
             if self.match(child):
                 yield child
                 if lim is not None:
@@ -1476,7 +1545,7 @@ class CSSMatch(_DocumentNav):
     def closest(self) -> bs4.Tag | None:
         """Match closest ancestor."""
 
-        current = self.tag
+        current = self.tag  # type: bs4.Tag | None
         closest = None
         while closest is None and current is not None:
             if self.match(current):
@@ -1488,7 +1557,10 @@ class CSSMatch(_DocumentNav):
     def filter(self) -> list[bs4.Tag]:  # noqa A001
         """Filter tag's children."""
 
-        return [tag for tag in self.get_contents(self.tag) if not self.is_navigable_string(tag) and self.match(tag)]
+        return [
+            tag for tag in self.get_contents(self.tag)
+            if isinstance(tag, bs4.Tag) and self.match(tag)
+        ]
 
     def match(self, el: bs4.Tag) -> bool:
         """Match."""
@@ -1530,7 +1602,7 @@ class SoupSieve(ct.Immutable):
 
         return CSSMatch(self.selectors, tag, self.namespaces, self.flags).match(tag)
 
-    def closest(self, tag: bs4.Tag) -> bs4.Tag:
+    def closest(self, tag: bs4.Tag) -> bs4.Tag | None:
         """Match closest ancestor."""
 
         return CSSMatch(self.selectors, tag, self.namespaces, self.flags).closest()
@@ -1547,12 +1619,12 @@ class SoupSieve(ct.Immutable):
         so for those, we use a new `CSSMatch` for each item in the iterable.
         """
 
-        if CSSMatch.is_tag(iterable):
+        if isinstance(iterable, bs4.Tag):
             return CSSMatch(self.selectors, iterable, self.namespaces, self.flags).filter()
         else:
             return [node for node in iterable if not CSSMatch.is_navigable_string(node) and self.match(node)]
 
-    def select_one(self, tag: bs4.Tag) -> bs4.Tag:
+    def select_one(self, tag: bs4.Tag) -> bs4.Tag | None:
         """Select a single tag."""
 
         tags = self.select(tag, limit=1)

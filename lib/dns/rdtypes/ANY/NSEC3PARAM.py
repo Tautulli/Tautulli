@@ -41,7 +41,7 @@ class NSEC3PARAM(dns.rdata.Rdata):
             salt = "-"
         else:
             salt = binascii.hexlify(self.salt).decode()
-        return "%u %u %u %s" % (self.algorithm, self.flags, self.iterations, salt)
+        return f"{self.algorithm} {self.flags} {self.iterations} {salt}"
 
     @classmethod
     def from_text(

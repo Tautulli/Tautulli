@@ -22,28 +22,32 @@ import contextlib
 import enum
 import errno
 import os
-import os.path
 import random
 import selectors
 import socket
 import struct
 import time
 import urllib.parse
-from typing import Any, Dict, Optional, Tuple, Union, cast
+from typing import Any, Callable, Dict, Optional, Tuple, cast
 
 import dns._features
+import dns._tls_util
 import dns.exception
 import dns.inet
 import dns.message
 import dns.name
 import dns.quic
-import dns.rcode
+import dns.rdata
 import dns.rdataclass
 import dns.rdatatype
-import dns.serial
 import dns.transaction
 import dns.tsig
 import dns.xfr
+
+try:
+    import ssl
+except ImportError:
+    import dns._no_ssl as ssl  # type: ignore
 
 
 def _remaining(expiration):
@@ -78,7 +82,7 @@ if _have_httpx:
             self._family = family
 
         def connect_tcp(
-            self, host, port, timeout, local_address, socket_options=None
+            self, host, port, timeout=None, local_address=None, socket_options=None
         ):  # pylint: disable=signature-differs
             addresses = []
             _, expiration = _compute_times(timeout)
@@ -98,14 +102,16 @@ if _have_httpx:
             for address in addresses:
                 af = dns.inet.af_for_address(address)
                 if local_address is not None or self._local_port != 0:
+                    if local_address is None:
+                        local_address = "0.0.0.0"
                     source = dns.inet.low_level_address_tuple(
                         (local_address, self._local_port), af
                     )
                 else:
                     source = None
-                sock = _make_socket(af, socket.SOCK_STREAM, source)
-                attempt_expiration = _expiration_for_this_attempt(2.0, expiration)
                 try:
+                    sock = make_socket(af, socket.SOCK_STREAM, source)
+                    attempt_expiration = _expiration_for_this_attempt(2.0, expiration)
                     _connect(
                         sock,
                         dns.inet.low_level_address_tuple((address, port), af),
@@ -117,11 +123,11 @@ if _have_httpx:
             raise httpcore.ConnectError
 
         def connect_unix_socket(
-            self, path, timeout, socket_options=None
+            self, path, timeout=None, socket_options=None
         ):  # pylint: disable=signature-differs
             raise NotImplementedError
 
-    class _HTTPTransport(httpx.HTTPTransport):
+    class _HTTPTransport(httpx.HTTPTransport):  # pyright: ignore
         def __init__(
             self,
             *args,
@@ -144,39 +150,37 @@ if _have_httpx:
 else:
 
     class _HTTPTransport:  # type: ignore
+        def __init__(
+            self,
+            *args,
+            local_port=0,
+            bootstrap_address=None,
+            resolver=None,
+            family=socket.AF_UNSPEC,
+            **kwargs,
+        ):
+            pass
+
         def connect_tcp(self, host, port, timeout, local_address):
             raise NotImplementedError
 
 
 have_doh = _have_httpx
 
-try:
-    import ssl
-except ImportError:  # pragma: no cover
 
-    class ssl:  # type: ignore
-        CERT_NONE = 0
-
-        class WantReadException(Exception):
-            pass
-
-        class WantWriteException(Exception):
-            pass
-
-        class SSLContext:
-            pass
-
-        class SSLSocket:
-            pass
-
-        @classmethod
-        def create_default_context(cls, *args, **kwargs):
-            raise Exception("no ssl support")  # pylint: disable=broad-exception-raised
+def default_socket_factory(
+    af: socket.AddressFamily | int,
+    kind: socket.SocketKind,
+    proto: int,
+) -> socket.socket:
+    return socket.socket(af, kind, proto)
 
 
 # Function used to create a socket.  Can be overridden if needed in special
 # situations.
-socket_factory = socket.socket
+socket_factory: Callable[
+    [socket.AddressFamily | int, socket.SocketKind, int], socket.socket
+] = default_socket_factory
 
 
 class UnexpectedSource(dns.exception.DNSException):
@@ -219,22 +223,22 @@ def _wait_for(fd, readable, writable, _, expiration):
 
     if readable and isinstance(fd, ssl.SSLSocket) and fd.pending() > 0:
         return True
-    sel = selectors.DefaultSelector()
-    events = 0
-    if readable:
-        events |= selectors.EVENT_READ
-    if writable:
-        events |= selectors.EVENT_WRITE
-    if events:
-        sel.register(fd, events)
-    if expiration is None:
-        timeout = None
-    else:
-        timeout = expiration - time.time()
-        if timeout <= 0.0:
+    with selectors.DefaultSelector() as sel:
+        events = 0
+        if readable:
+            events |= selectors.EVENT_READ
+        if writable:
+            events |= selectors.EVENT_WRITE
+        if events:
+            sel.register(fd, events)  # pyright: ignore
+        if expiration is None:
+            timeout = None
+        else:
+            timeout = expiration - time.time()
+            if timeout <= 0.0:
+                raise dns.exception.Timeout
+        if not sel.select(timeout):
             raise dns.exception.Timeout
-    if not sel.select(timeout):
-        raise dns.exception.Timeout
 
 
 def _wait_for_readable(s, expiration):
@@ -317,29 +321,98 @@ def _destination_and_source(
     return (af, destination, source)
 
 
-def _make_socket(af, type, source, ssl_context=None, server_hostname=None):
-    s = socket_factory(af, type)
+def make_socket(
+    af: socket.AddressFamily | int,
+    type: socket.SocketKind,
+    source: Any | None = None,
+) -> socket.socket:
+    """Make a socket.
+
+    This function uses the module's ``socket_factory`` to make a socket of the
+    specified address family and type.
+
+    *af*, a ``socket.AddressFamily`` or ``int`` is the address family, either
+    ``socket.AF_INET`` or ``socket.AF_INET6``.
+
+    *type*, a ``socket.SocketKind`` is the type of socket, e.g. ``socket.SOCK_DGRAM``,
+    a datagram socket, or ``socket.SOCK_STREAM``, a stream socket.  Note that the
+    ``proto`` attribute of a socket is always zero with this API, so a datagram socket
+    will always be a UDP socket, and a stream socket will always be a TCP socket.
+
+    *source* is the source address and port to bind to, if any.  The default is
+    ``None`` which will bind to the wildcard address and a randomly chosen port.
+    If not ``None``, it should be a (low-level) address tuple appropriate for *af*.
+    """
+    s = socket_factory(af, type, 0)
     try:
         s.setblocking(False)
         if source is not None:
             s.bind(source)
-        if ssl_context:
-            # LGTM gets a false positive here, as our default context is OK
-            return ssl_context.wrap_socket(
-                s,
-                do_handshake_on_connect=False,  # lgtm[py/insecure-protocol]
-                server_hostname=server_hostname,
-            )
-        else:
-            return s
+        return s
     except Exception:
         s.close()
         raise
 
 
+def make_ssl_socket(
+    af: socket.AddressFamily | int,
+    type: socket.SocketKind,
+    ssl_context: ssl.SSLContext,
+    server_hostname: dns.name.Name | str | None = None,
+    source: Any | None = None,
+) -> ssl.SSLSocket:
+    """Make a socket.
+
+    This function uses the module's ``socket_factory`` to make a socket of the
+    specified address family and type.
+
+    *af*, a ``socket.AddressFamily`` or ``int`` is the address family, either
+    ``socket.AF_INET`` or ``socket.AF_INET6``.
+
+    *type*, a ``socket.SocketKind`` is the type of socket, e.g. ``socket.SOCK_DGRAM``,
+    a datagram socket, or ``socket.SOCK_STREAM``, a stream socket.  Note that the
+    ``proto`` attribute of a socket is always zero with this API, so a datagram socket
+    will always be a UDP socket, and a stream socket will always be a TCP socket.
+
+    If *ssl_context* is not ``None``, then it specifies the SSL context to use,
+    typically created with ``make_ssl_context()``.
+
+    If *server_hostname* is not ``None``, then it is the hostname to use for server
+    certificate validation.  A valid hostname must be supplied if *ssl_context*
+    requires hostname checking.
+
+    *source* is the source address and port to bind to, if any.  The default is
+    ``None`` which will bind to the wildcard address and a randomly chosen port.
+    If not ``None``, it should be a (low-level) address tuple appropriate for *af*.
+    """
+    sock = make_socket(af, type, source)
+    if isinstance(server_hostname, dns.name.Name):
+        server_hostname = server_hostname.to_text()
+    # LGTM gets a false positive here, as our default context is OK
+    return ssl_context.wrap_socket(
+        sock,
+        do_handshake_on_connect=False,  # lgtm[py/insecure-protocol]
+        server_hostname=server_hostname,
+    )
+
+
+# for backwards compatibility
+def _make_socket(
+    af,
+    type,
+    source,
+    ssl_context,
+    server_hostname,
+):
+    if ssl_context is not None:
+        return make_ssl_socket(af, type, ssl_context, server_hostname, source)
+    else:
+        return make_socket(af, type, source)
+
+
 def _maybe_get_resolver(
-    resolver: Optional["dns.resolver.Resolver"],
-) -> "dns.resolver.Resolver":
+    resolver: Optional["dns.resolver.Resolver"],  # pyright: ignore
+) -> "dns.resolver.Resolver":  # pyright: ignore
     # We need a separate method for this to avoid overriding the global
     # variable "dns" with the as-yet undefined local variable "dns"
     # in https().
@@ -370,18 +443,18 @@ class HTTPVersion(enum.IntEnum):
 def https(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 443,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    session: Optional[Any] = None,
+    session: Any | None = None,
     path: str = "/dns-query",
     post: bool = True,
-    bootstrap_address: Optional[str] = None,
-    verify: Union[bool, str] = True,
-    resolver: Optional["dns.resolver.Resolver"] = None,
+    bootstrap_address: str | None = None,
+    verify: bool | str | ssl.SSLContext = True,
+    resolver: Optional["dns.resolver.Resolver"] = None,  # pyright: ignore
     family: int = socket.AF_UNSPEC,
     http_version: HTTPVersion = HTTPVersion.DEFAULT,
 ) -> dns.message.Message:
@@ -441,13 +514,13 @@ def https(
     (af, _, the_source) = _destination_and_source(
         where, port, source, source_port, False
     )
+    # we bind url and then override as pyright can't figure out all paths bind.
+    url = where
     if af is not None and dns.inet.is_address(where):
         if af == socket.AF_INET:
             url = f"https://{where}:{port}{path}"
         elif af == socket.AF_INET6:
             url = f"https://[{where}]:{port}{path}"
-    else:
-        url = where
 
     extensions = {}
     if bootstrap_address is None:
@@ -466,13 +539,17 @@ def https(
     ):
         if bootstrap_address is None:
             resolver = _maybe_get_resolver(resolver)
-            assert parsed.hostname is not None  # for mypy
-            answers = resolver.resolve_name(parsed.hostname, family)
+            assert parsed.hostname is not None  # pyright: ignore
+            answers = resolver.resolve_name(parsed.hostname, family)  # pyright: ignore
             bootstrap_address = random.choice(list(answers.addresses()))
+        if session and not isinstance(
+            session, dns.quic.SyncQuicConnection
+        ):  # pyright: ignore
+            raise ValueError("session parameter must be a dns.quic.SyncQuicConnection.")
         return _http3(
             q,
             bootstrap_address,
-            url,
+            url,  # pyright: ignore
             timeout,
             port,
             source,
@@ -481,11 +558,12 @@ def https(
             ignore_trailing,
             verify=verify,
             post=post,
+            connection=session,
         )
 
     if not have_doh:
         raise NoDOH  # pragma: no cover
-    if session and not isinstance(session, httpx.Client):
+    if session and not isinstance(session, httpx.Client):  # pyright: ignore
         raise ValueError("session parameter must be an httpx.Client")
 
     wire = q.to_wire()
@@ -514,13 +592,16 @@ def https(
             local_port=local_port,
             bootstrap_address=bootstrap_address,
             resolver=resolver,
-            family=family,
+            family=family,  # pyright: ignore
         )
 
-        cm = httpx.Client(http1=h1, http2=h2, verify=verify, transport=transport)
+        cm = httpx.Client(  # type: ignore
+            http1=h1, http2=h2, verify=verify, transport=transport  # type: ignore
+        )
     with cm as session:
         # see https://tools.ietf.org/html/rfc8484#section-4.1.1 for DoH
         # GET and POST examples
+        assert session is not None
         if post:
             headers.update(
                 {
@@ -596,34 +677,46 @@ def _http3(
     q: dns.message.Message,
     where: str,
     url: str,
-    timeout: Optional[float] = None,
-    port: int = 853,
-    source: Optional[str] = None,
+    timeout: float | None = None,
+    port: int = 443,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    verify: Union[bool, str] = True,
-    hostname: Optional[str] = None,
+    verify: bool | str | ssl.SSLContext = True,
     post: bool = True,
+    connection: dns.quic.SyncQuicConnection | None = None,
 ) -> dns.message.Message:
     if not dns.quic.have_quic:
         raise NoDOH("DNS-over-HTTP3 is not available.")  # pragma: no cover
 
     url_parts = urllib.parse.urlparse(url)
     hostname = url_parts.hostname
+    assert hostname is not None
     if url_parts.port is not None:
         port = url_parts.port
 
     q.id = 0
     wire = q.to_wire()
-    manager = dns.quic.SyncQuicManager(
-        verify_mode=verify, server_name=hostname, h3=True
-    )
+    the_connection: dns.quic.SyncQuicConnection
+    the_manager: dns.quic.SyncQuicManager
+    if connection:
+        manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
+    else:
+        manager = dns.quic.SyncQuicManager(
+            verify_mode=verify, server_name=hostname, h3=True  # pyright: ignore
+        )
+        the_manager = manager  # for type checking happiness
 
     with manager:
-        connection = manager.connect(where, port, source, source_port)
+        if connection:
+            the_connection = connection
+        else:
+            the_connection = the_manager.connect(  # pyright: ignore
+                where, port, source, source_port
+            )
         (start, expiration) = _compute_times(timeout)
-        with connection.make_stream(timeout) as stream:
+        with the_connection.make_stream(timeout) as stream:  # pyright: ignore
             stream.send_h3(url, wire, post)
             wire = stream.receive(_remaining(expiration))
             _check_status(stream.headers(), where, wire)
@@ -670,9 +763,9 @@ def _udp_send(sock, data, destination, expiration):
 
 def send_udp(
     sock: Any,
-    what: Union[dns.message.Message, bytes],
+    what: dns.message.Message | bytes,
     destination: Any,
-    expiration: Optional[float] = None,
+    expiration: float | None = None,
 ) -> Tuple[int, float]:
     """Send a DNS message to the specified UDP socket.
 
@@ -699,16 +792,16 @@ def send_udp(
 
 def receive_udp(
     sock: Any,
-    destination: Optional[Any] = None,
-    expiration: Optional[float] = None,
+    destination: Any | None = None,
+    expiration: float | None = None,
     ignore_unexpected: bool = False,
     one_rr_per_rrset: bool = False,
-    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
-    request_mac: Optional[bytes] = b"",
+    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
     raise_on_truncation: bool = False,
     ignore_errors: bool = False,
-    query: Optional[dns.message.Message] = None,
+    query: dns.message.Message | None = None,
 ) -> Any:
     """Read a DNS message from a UDP socket.
 
@@ -806,15 +899,15 @@ def receive_udp(
 def udp(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 53,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     ignore_unexpected: bool = False,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
     raise_on_truncation: bool = False,
-    sock: Optional[Any] = None,
+    sock: Any | None = None,
     ignore_errors: bool = False,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via UDP.
@@ -861,13 +954,14 @@ def udp(
 
     wire = q.to_wire()
     (af, destination, source) = _destination_and_source(
-        where, port, source, source_port
+        where, port, source, source_port, True
     )
     (begin_time, expiration) = _compute_times(timeout)
     if sock:
         cm: contextlib.AbstractContextManager = contextlib.nullcontext(sock)
     else:
-        cm = _make_socket(af, socket.SOCK_DGRAM, source)
+        assert af is not None
+        cm = make_socket(af, socket.SOCK_DGRAM, source)
     with cm as s:
         send_udp(s, wire, destination, expiration)
         (r, received_time) = receive_udp(
@@ -897,15 +991,15 @@ def udp(
 def udp_with_fallback(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 53,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     ignore_unexpected: bool = False,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    udp_sock: Optional[Any] = None,
-    tcp_sock: Optional[Any] = None,
+    udp_sock: Any | None = None,
+    tcp_sock: Any | None = None,
     ignore_errors: bool = False,
 ) -> Tuple[dns.message.Message, bool]:
     """Return the response to the query, trying UDP first and falling back
@@ -1021,8 +1115,8 @@ def _net_write(sock, data, expiration):
 
 def send_tcp(
     sock: Any,
-    what: Union[dns.message.Message, bytes],
-    expiration: Optional[float] = None,
+    what: dns.message.Message | bytes,
+    expiration: float | None = None,
 ) -> Tuple[int, float]:
     """Send a DNS message to the specified TCP socket.
 
@@ -1051,10 +1145,10 @@ def send_tcp(
 
 def receive_tcp(
     sock: Any,
-    expiration: Optional[float] = None,
+    expiration: float | None = None,
     one_rr_per_rrset: bool = False,
-    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
-    request_mac: Optional[bytes] = b"",
+    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    request_mac: bytes | None = b"",
     ignore_trailing: bool = False,
 ) -> Tuple[dns.message.Message, float]:
     """Read a DNS message from a TCP socket.
@@ -1110,13 +1204,13 @@ def _connect(s, address, expiration):
 def tcp(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 53,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    sock: Optional[Any] = None,
+    sock: Any | None = None,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TCP.
 
@@ -1156,13 +1250,14 @@ def tcp(
         cm: contextlib.AbstractContextManager = contextlib.nullcontext(sock)
     else:
         (af, destination, source) = _destination_and_source(
-            where, port, source, source_port
+            where, port, source, source_port, True
         )
-        cm = _make_socket(af, socket.SOCK_STREAM, source)
+        assert af is not None
+        cm = make_socket(af, socket.SOCK_STREAM, source)
     with cm as s:
         if not sock:
             # pylint: disable=possibly-used-before-assignment
-            _connect(s, destination, expiration)
+            _connect(s, destination, expiration)  # pyright: ignore
         send_tcp(s, wire, expiration)
         (r, received_time) = receive_tcp(
             s, expiration, one_rr_per_rrset, q.keyring, q.mac, ignore_trailing
@@ -1187,41 +1282,59 @@ def _tls_handshake(s, expiration):
             _wait_for_writable(s, expiration)
 
 
-def _make_dot_ssl_context(
-    server_hostname: Optional[str], verify: Union[bool, str]
+def make_ssl_context(
+    verify: bool | str = True,
+    check_hostname: bool = True,
+    alpns: list[str] | None = None,
 ) -> ssl.SSLContext:
-    cafile: Optional[str] = None
-    capath: Optional[str] = None
-    if isinstance(verify, str):
-        if os.path.isfile(verify):
-            cafile = verify
-        elif os.path.isdir(verify):
-            capath = verify
-        else:
-            raise ValueError("invalid verify string")
+    """Make an SSL context
+
+    If *verify* is ``True``, the default, then certificate verification will occur using
+    the standard CA roots.  If *verify* is ``False``, then certificate verification will
+    be disabled.  If *verify* is a string which is a valid pathname, then if the
+    pathname is a regular file, the CA roots will be taken from the file, otherwise if
+    the pathname is a directory roots will be taken from the directory.
+
+    If *check_hostname* is ``True``, the default, then the hostname of the server must
+    be specified when connecting and the server's certificate must authorize the
+    hostname.  If ``False``, then hostname checking is disabled.
+
+    *aplns* is ``None`` or a list of TLS ALPN (Application Layer Protocol Negotiation)
+    strings to use in negotiation.  For DNS-over-TLS, the right value is `["dot"]`.
+    """
+    cafile, capath = dns._tls_util.convert_verify_to_cafile_and_capath(verify)
     ssl_context = ssl.create_default_context(cafile=cafile, capath=capath)
-    ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
-    if server_hostname is None:
-        ssl_context.check_hostname = False
-    ssl_context.set_alpn_protocols(["dot"])
+    # the pyright ignores below are because it gets confused between the
+    # _no_ssl compatibility types and the real ones.
+    ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2  # type: ignore
+    ssl_context.check_hostname = check_hostname
     if verify is False:
-        ssl_context.verify_mode = ssl.CERT_NONE
-    return ssl_context
+        ssl_context.verify_mode = ssl.CERT_NONE  # type: ignore
+    if alpns is not None:
+        ssl_context.set_alpn_protocols(alpns)
+    return ssl_context  # type: ignore
+
+
+# for backwards compatibility
+def _make_dot_ssl_context(
+    server_hostname: str | None, verify: bool | str
+) -> ssl.SSLContext:
+    return make_ssl_context(verify, server_hostname is not None, ["dot"])
 
 
 def tls(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 853,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    sock: Optional[ssl.SSLSocket] = None,
-    ssl_context: Optional[ssl.SSLContext] = None,
-    server_hostname: Optional[str] = None,
-    verify: Union[bool, str] = True,
+    sock: ssl.SSLSocket | None = None,
+    ssl_context: ssl.SSLContext | None = None,
+    server_hostname: str | None = None,
+    verify: bool | str = True,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via TLS.
 
@@ -1289,17 +1402,18 @@ def tls(
     wire = q.to_wire()
     (begin_time, expiration) = _compute_times(timeout)
     (af, destination, source) = _destination_and_source(
-        where, port, source, source_port
+        where, port, source, source_port, True
     )
-    if ssl_context is None and not sock:
-        ssl_context = _make_dot_ssl_context(server_hostname, verify)
+    assert af is not None  # where must be an address
+    if ssl_context is None:
+        ssl_context = make_ssl_context(verify, server_hostname is not None, ["dot"])
 
-    with _make_socket(
+    with make_ssl_socket(
         af,
         socket.SOCK_STREAM,
-        source,
         ssl_context=ssl_context,
         server_hostname=server_hostname,
+        source=source,
     ) as s:
         _connect(s, destination, expiration)
         _tls_handshake(s, expiration)
@@ -1319,16 +1433,16 @@ def tls(
 def quic(
     q: dns.message.Message,
     where: str,
-    timeout: Optional[float] = None,
+    timeout: float | None = None,
     port: int = 853,
-    source: Optional[str] = None,
+    source: str | None = None,
     source_port: int = 0,
     one_rr_per_rrset: bool = False,
     ignore_trailing: bool = False,
-    connection: Optional[dns.quic.SyncQuicConnection] = None,
-    verify: Union[bool, str] = True,
-    hostname: Optional[str] = None,
-    server_hostname: Optional[str] = None,
+    connection: dns.quic.SyncQuicConnection | None = None,
+    verify: bool | str = True,
+    hostname: str | None = None,
+    server_hostname: str | None = None,
 ) -> dns.message.Message:
     """Return the response obtained after sending a query via DNS-over-QUIC.
 
@@ -1385,14 +1499,18 @@ def quic(
         manager: contextlib.AbstractContextManager = contextlib.nullcontext(None)
         the_connection = connection
     else:
-        manager = dns.quic.SyncQuicManager(verify_mode=verify, server_name=hostname)
+        manager = dns.quic.SyncQuicManager(
+            verify_mode=verify, server_name=hostname  # pyright: ignore
+        )
         the_manager = manager  # for type checking happiness
 
     with manager:
         if not connection:
-            the_connection = the_manager.connect(where, port, source, source_port)
+            the_connection = the_manager.connect(  # pyright: ignore
+                where, port, source, source_port
+            )
         (start, expiration) = _compute_times(timeout)
-        with the_connection.make_stream(timeout) as stream:
+        with the_connection.make_stream(timeout) as stream:  # pyright: ignore
             stream.send(wire, True)
             wire = stream.receive(_remaining(expiration))
         finish = time.time()
@@ -1424,18 +1542,18 @@ class UDPMode(enum.IntEnum):
 
 def _inbound_xfr(
     txn_manager: dns.transaction.TransactionManager,
-    s: socket.socket,
+    s: socket.socket | ssl.SSLSocket,
     query: dns.message.Message,
-    serial: Optional[int],
-    timeout: Optional[float],
-    expiration: float,
+    serial: int | None,
+    timeout: float | None,
+    expiration: float | None,
 ) -> Any:
     """Given a socket, does the zone transfer."""
     rdtype = query.question[0].rdtype
     is_ixfr = rdtype == dns.rdatatype.IXFR
     origin = txn_manager.from_wire_origin()
     wire = query.to_wire()
-    is_udp = s.type == socket.SOCK_DGRAM
+    is_udp = isinstance(s, socket.socket) and s.type == socket.SOCK_DGRAM
     if is_udp:
         _udp_send(s, wire, None, expiration)
     else:
@@ -1444,6 +1562,7 @@ def _inbound_xfr(
     with dns.xfr.Inbound(txn_manager, rdtype, serial, is_udp) as inbound:
         done = False
         tsig_ctx = None
+        r: dns.message.Message | None = None
         while not done:
             (_, mexpiration) = _compute_times(timeout)
             if mexpiration is None or (
@@ -1469,26 +1588,26 @@ def _inbound_xfr(
             done = inbound.process_message(r)
             yield r
             tsig_ctx = r.tsig_ctx
-        if query.keyring and not r.had_tsig:
+        if query.keyring and r is not None and not r.had_tsig:
             raise dns.exception.FormError("missing TSIG")
 
 
 def xfr(
     where: str,
-    zone: Union[dns.name.Name, str],
-    rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.AXFR,
-    rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
-    timeout: Optional[float] = None,
+    zone: dns.name.Name | str,
+    rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.AXFR,
+    rdclass: dns.rdataclass.RdataClass | str = dns.rdataclass.IN,
+    timeout: float | None = None,
     port: int = 53,
-    keyring: Optional[Dict[dns.name.Name, dns.tsig.Key]] = None,
-    keyname: Optional[Union[dns.name.Name, str]] = None,
+    keyring: Dict[dns.name.Name, dns.tsig.Key] | None = None,
+    keyname: dns.name.Name | str | None = None,
     relativize: bool = True,
-    lifetime: Optional[float] = None,
-    source: Optional[str] = None,
+    lifetime: float | None = None,
+    source: str | None = None,
     source_port: int = 0,
     serial: int = 0,
     use_udp: bool = False,
-    keyalgorithm: Union[dns.name.Name, str] = dns.tsig.default_algorithm,
+    keyalgorithm: dns.name.Name | str = dns.tsig.default_algorithm,
 ) -> Any:
     """Return a generator for the responses to a zone transfer.
 
@@ -1573,19 +1692,20 @@ def xfr(
         rrset = q.find_rrset(
             q.authority, zone, dns.rdataclass.IN, dns.rdatatype.SOA, create=True
         )
-        soa = dns.rdata.from_text("IN", "SOA", ". . %u 0 0 0 0" % serial)
+        soa = dns.rdata.from_text("IN", "SOA", f". . {serial} 0 0 0 0")
         rrset.add(soa, 0)
     if keyring is not None:
         q.use_tsig(keyring, keyname, algorithm=keyalgorithm)
     (af, destination, source) = _destination_and_source(
-        where, port, source, source_port
+        where, port, source, source_port, True
     )
+    assert af is not None
     (_, expiration) = _compute_times(lifetime)
     tm = DummyTransactionManager(zone, relativize)
     if use_udp and rdtype != dns.rdatatype.IXFR:
         raise ValueError("cannot do a UDP AXFR")
     sock_type = socket.SOCK_DGRAM if use_udp else socket.SOCK_STREAM
-    with _make_socket(af, sock_type, source) as s:
+    with make_socket(af, sock_type, source) as s:
         _connect(s, destination, expiration)
         yield from _inbound_xfr(tm, s, q, serial, timeout, expiration)
 
@@ -1593,11 +1713,11 @@ def xfr(
 def inbound_xfr(
     where: str,
     txn_manager: dns.transaction.TransactionManager,
-    query: Optional[dns.message.Message] = None,
+    query: dns.message.Message | None = None,
     port: int = 53,
-    timeout: Optional[float] = None,
-    lifetime: Optional[float] = None,
-    source: Optional[str] = None,
+    timeout: float | None = None,
+    lifetime: float | None = None,
+    source: str | None = None,
     source_port: int = 0,
     udp_mode: UDPMode = UDPMode.NEVER,
 ) -> None:
@@ -1629,10 +1749,10 @@ def inbound_xfr(
     The default is 0.
 
     *udp_mode*, a ``dns.query.UDPMode``, determines how UDP is used
-    for IXFRs.  The default is ``dns.UDPMode.NEVER``, i.e. only use
-    TCP.  Other possibilities are ``dns.UDPMode.TRY_FIRST``, which
+    for IXFRs.  The default is ``dns.query.UDPMode.NEVER``, i.e. only use
+    TCP.  Other possibilities are ``dns.query.UDPMode.TRY_FIRST``, which
     means "try UDP but fallback to TCP if needed", and
-    ``dns.UDPMode.ONLY``, which means "try UDP and raise
+    ``dns.query.UDPMode.ONLY``, which means "try UDP and raise
     ``dns.xfr.UseTCP`` if it does not succeed.
 
     Raises on errors.
@@ -1643,11 +1763,12 @@ def inbound_xfr(
         serial = dns.xfr.extract_serial_from_query(query)
 
     (af, destination, source) = _destination_and_source(
-        where, port, source, source_port
+        where, port, source, source_port, True
     )
+    assert af is not None
     (_, expiration) = _compute_times(lifetime)
     if query.question[0].rdtype == dns.rdatatype.IXFR and udp_mode != UDPMode.NEVER:
-        with _make_socket(af, socket.SOCK_DGRAM, source) as s:
+        with make_socket(af, socket.SOCK_DGRAM, source) as s:
             _connect(s, destination, expiration)
             try:
                 for _ in _inbound_xfr(
@@ -1659,7 +1780,7 @@ def inbound_xfr(
                 if udp_mode == UDPMode.ONLY:
                     raise
 
-    with _make_socket(af, socket.SOCK_STREAM, source) as s:
+    with make_socket(af, socket.SOCK_STREAM, source) as s:
         _connect(s, destination, expiration)
         for _ in _inbound_xfr(txn_manager, s, query, serial, timeout, expiration):
             pass

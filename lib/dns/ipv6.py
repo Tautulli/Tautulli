@@ -19,7 +19,7 @@
 
 import binascii
 import re
-from typing import List, Union
+from typing import List
 
 import dns.exception
 import dns.ipv4
@@ -101,7 +101,7 @@ _colon_colon_start = re.compile(rb"::.*")
 _colon_colon_end = re.compile(rb".*::$")
 
 
-def inet_aton(text: Union[str, bytes], ignore_scope: bool = False) -> bytes:
+def inet_aton(text: str | bytes, ignore_scope: bool = False) -> bytes:
     """Convert an IPv6 address in text form to binary form.
 
     *text*, a ``str`` or ``bytes``, the IPv6 address in textual form.
@@ -206,7 +206,7 @@ def is_mapped(address: bytes) -> bool:
     return address.startswith(_mapped_prefix)
 
 
-def canonicalize(text: Union[str, bytes]) -> str:
+def canonicalize(text: str | bytes) -> str:
     """Verify that *address* is a valid text form IPv6 address and return its
     canonical text form.  Addresses with scopes are rejected.
 
@@ -214,4 +214,4 @@ def canonicalize(text: Union[str, bytes]) -> str:
 
     Raises ``dns.exception.SyntaxError`` if the text is not valid.
     """
-    return dns.ipv6.inet_ntoa(dns.ipv6.inet_aton(text))
+    return inet_ntoa(inet_aton(text))

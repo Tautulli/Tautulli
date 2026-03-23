@@ -40,11 +40,7 @@ class CAA(dns.rdata.Rdata):
         self.value = self._as_bytes(value)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return '%u %s "%s"' % (
-            self.flags,
-            dns.rdata._escapify(self.tag),
-            dns.rdata._escapify(self.value),
-        )
+        return f'{self.flags} {dns.rdata._escapify(self.tag)} "{dns.rdata._escapify(self.value)}"'
 
     @classmethod
     def from_text(

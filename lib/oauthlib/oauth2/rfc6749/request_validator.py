@@ -48,12 +48,12 @@ class RequestValidator:
         Headers may be accesses through request.headers and parameters found in
         both body and query can be obtained by direct attribute access, i.e.
         request.client_id for client_id in the URL query.
-		
+
         The authentication process is required to contain the identification of
         the client (i.e. search the database based on the client_id). In case the
         client doesn't exist based on the received client_id, this method has to
         return False and the HTTP response created by the library will contain
-        'invalid_client' message. 
+        'invalid_client' message.
 
         After the client identification succeeds, this method needs to set the
         client on the request, i.e. request.client = client. A client object's

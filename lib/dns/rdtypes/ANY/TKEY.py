@@ -60,18 +60,11 @@ class TKEY(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         _algorithm = self.algorithm.choose_relativity(origin, relativize)
-        text = "%s %u %u %u %u %s" % (
-            str(_algorithm),
-            self.inception,
-            self.expiration,
-            self.mode,
-            self.error,
-            dns.rdata._base64ify(self.key, 0),
-        )
+        key = dns.rdata._base64ify(self.key, 0)
+        other = ""
         if len(self.other) > 0:
-            text += f" {dns.rdata._base64ify(self.other, 0)}"
-
-        return text
+            other = " " + dns.rdata._base64ify(self.other, 0)
+        return f"{_algorithm} {self.inception} {self.expiration} {self.mode} {self.error} {key}{other}"
 
     @classmethod
     def from_text(

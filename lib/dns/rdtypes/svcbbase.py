@@ -3,6 +3,7 @@
 import base64
 import enum
 import struct
+from typing import Any, Dict
 
 import dns.enum
 import dns.exception
@@ -93,13 +94,13 @@ def _escapify(qstring):
         elif c >= 0x20 and c < 0x7F:
             text += chr(c)
         else:
-            text += "\\%03d" % c
+            text += f"\\{c:03d}"
     return text
 
 
-def _unescape(value):
+def _unescape(value: str) -> bytes:
     if value == "":
-        return value
+        return b""
     unescaped = b""
     l = len(value)
     i = 0
@@ -159,7 +160,7 @@ class Param:
     """Abstract base class for SVCB parameters"""
 
     @classmethod
-    def emptiness(cls):
+    def emptiness(cls) -> Emptiness:
         return Emptiness.NEVER
 
 
@@ -427,7 +428,7 @@ class OHTTPParam(Param):
         raise NotImplementedError  # pragma: no cover
 
 
-_class_for_key = {
+_class_for_key: Dict[ParamKey, Any] = {
     ParamKey.MANDATORY: MandatoryParam,
     ParamKey.ALPN: ALPNParam,
     ParamKey.NO_DEFAULT_ALPN: NoDefaultALPNParam,
@@ -502,7 +503,7 @@ class SVCBBase(dns.rdata.Rdata):
             space = " "
         else:
             space = ""
-        return "%d %s%s%s" % (self.priority, target, space, " ".join(params))
+        return f"{self.priority} {target}{space}{' '.join(params)}"
 
     @classmethod
     def from_text(
@@ -571,10 +572,11 @@ class SVCBBase(dns.rdata.Rdata):
                 raise dns.exception.FormError("keys not in order")
             prior_key = key
             vlen = parser.get_uint16()
-            pcls = _class_for_key.get(key, GenericParam)
+            pkey = ParamKey.make(key)
+            pcls = _class_for_key.get(pkey, GenericParam)
             with parser.restrict_to(vlen):
                 value = pcls.from_wire_parser(parser, origin)
-            params[key] = value
+            params[pkey] = value
         return cls(rdclass, rdtype, priority, target, params)
 
     def _processing_priority(self):

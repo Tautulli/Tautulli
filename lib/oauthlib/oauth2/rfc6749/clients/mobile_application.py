@@ -43,7 +43,7 @@ class MobileApplicationClient(Client):
     redirection URI, it may be exposed to the resource owner and other
     applications residing on the same device.
     """
-    
+
     response_type = 'token'
 
     def prepare_request_uri(self, uri, redirect_uri=None, scope=None,

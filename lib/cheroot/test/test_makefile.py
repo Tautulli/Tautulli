@@ -30,6 +30,10 @@ class MockSocket:
         """Simulate a send."""
         return len(val)
 
+    def _decref_socketios(self):
+        """Emulate socket I/O reference decrement."""
+        # Ref: https://github.com/cherrypy/cheroot/issues/734
+
 
 def test_bytes_read():
     """Reader should capture bytes read."""

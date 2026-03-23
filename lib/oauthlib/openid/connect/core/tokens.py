@@ -27,10 +27,7 @@ class JWTToken(TokenBase):
     def create_token(self, request, refresh_token=False):
         """Create a JWT Token, using requestvalidator method."""
 
-        if callable(self.expires_in):
-            expires_in = self.expires_in(request)
-        else:
-            expires_in = self.expires_in
+        expires_in = self.expires_in(request) if callable(self.expires_in) else self.expires_in
 
         request.expires_in = expires_in
 

@@ -2,15 +2,15 @@
 A simple library for managing the availability of ports.
 """
 
-import time
-import socket
 import argparse
-import sys
-import itertools
 import contextlib
+import itertools
 import platform
-from collections import abc
+import socket
+import sys
+import time
 import urllib.parse
+from collections import abc
 
 from tempora import timing
 
@@ -37,7 +37,7 @@ def client_host(server_host):
     return server_host
 
 
-class Checker(object):
+class Checker:
     def __init__(self, timeout=1.0):
         self.timeout = timeout
 
@@ -78,7 +78,7 @@ class Checker(object):
         with contextlib.closing(s):
             try:
                 s.connect(sa)
-            except socket.error:
+            except OSError:
                 return
 
         # the connect succeeded, so the port isn't free
@@ -123,7 +123,9 @@ def free(host, port, timeout=float('Inf')):
             return
         except PortNotFree:
             if timer.expired():
-                raise Timeout("Port {port} not free on {host}.".format(**locals()))
+                raise Timeout(
+                    "Port {port} not free on {host}.".format(**locals())
+                ) from None
             # Politely wait.
             time.sleep(0.1)
 
@@ -234,7 +236,7 @@ def _main(args=None):
         args.func(args.target.host, args.target.port, timeout=args.timeout)
     except Timeout as timeout:
         print(timeout, file=sys.stderr)
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 __name__ == '__main__' and _main()

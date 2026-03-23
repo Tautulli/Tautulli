@@ -18,7 +18,7 @@
 """Generic Internet address helper functions."""
 
 import socket
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 
 import dns.ipv4
 import dns.ipv6
@@ -135,9 +135,7 @@ def is_address(text: str) -> bool:
             return False
 
 
-def low_level_address_tuple(
-    high_tuple: Tuple[str, int], af: Optional[int] = None
-) -> Any:
+def low_level_address_tuple(high_tuple: Tuple[str, int], af: int | None = None) -> Any:
     """Given a "high-level" address tuple, i.e.
     an (address, port) return the appropriate "low-level" address tuple
     suitable for use in socket calls.

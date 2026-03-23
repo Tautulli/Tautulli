@@ -5,6 +5,8 @@ import ssl
 import struct
 import time
 
+import aioquic.h3.connection  # type: ignore
+import aioquic.h3.events  # type: ignore
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
@@ -110,7 +112,7 @@ class TrioQuicConnection(AsyncQuicConnection):
                     # race.
                     interval = 0.0
                 with trio.CancelScope(
-                    deadline=trio.current_time() + interval
+                    deadline=trio.current_time() + interval  # pyright: ignore
                 ) as self._worker_scope:
                     datagram = await self._socket.recv(QUIC_MAX_DATAGRAM)
                     self._connection.receive_datagram(datagram, self._peer, time.time())
@@ -137,6 +139,7 @@ class TrioQuicConnection(AsyncQuicConnection):
                 return
             if isinstance(event, aioquic.quic.events.StreamDataReceived):
                 if self.is_h3():
+                    assert self._h3_conn is not None
                     h3_events = self._h3_conn.handle_event(event)
                     for h3_event in h3_events:
                         if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
@@ -203,7 +206,8 @@ class TrioQuicConnection(AsyncQuicConnection):
 
     async def close(self):
         if not self._closed:
-            self._manager.closed(self._peer[0], self._peer[1])
+            if self._manager is not None:
+                self._manager.closed(self._peer[0], self._peer[1])
             self._closed = True
             self._connection.close()
             self._send_pending = True

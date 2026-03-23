@@ -16,7 +16,7 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 import enum
-from typing import Type, TypeVar, Union
+from typing import Any, Type, TypeVar
 
 TIntEnum = TypeVar("TIntEnum", bound="IntEnum")
 
@@ -25,9 +25,9 @@ class IntEnum(enum.IntEnum):
     @classmethod
     def _missing_(cls, value):
         cls._check_value(value)
-        val = int.__new__(cls, value)
+        val = int.__new__(cls, value)  # pyright: ignore
         val._name_ = cls._extra_to_text(value, None) or f"{cls._prefix()}{value}"
-        val._value_ = value
+        val._value_ = value  # pyright: ignore
         return val
 
     @classmethod
@@ -53,10 +53,7 @@ class IntEnum(enum.IntEnum):
         if text.startswith(prefix) and text[len(prefix) :].isdigit():
             value = int(text[len(prefix) :])
             cls._check_value(value)
-            try:
-                return cls(value)
-            except ValueError:
-                return value
+            return cls(value)
         raise cls._unknown_exception_class()
 
     @classmethod
@@ -72,7 +69,7 @@ class IntEnum(enum.IntEnum):
         return text
 
     @classmethod
-    def make(cls: Type[TIntEnum], value: Union[int, str]) -> TIntEnum:
+    def make(cls: Type[TIntEnum], value: int | str) -> TIntEnum:
         """Convert text or a value into an enumerated type, if possible.
 
         *value*, the ``int`` or ``str`` to convert.
@@ -100,11 +97,11 @@ class IntEnum(enum.IntEnum):
         return cls.__name__.lower()
 
     @classmethod
-    def _prefix(cls):
+    def _prefix(cls) -> str:
         return ""
 
     @classmethod
-    def _extra_from_text(cls, text):  # pylint: disable=W0613
+    def _extra_from_text(cls, text: str) -> Any | None:  # pylint: disable=W0613
         return None
 
     @classmethod
@@ -112,5 +109,5 @@ class IntEnum(enum.IntEnum):
         return current_text
 
     @classmethod
-    def _unknown_exception_class(cls):
+    def _unknown_exception_class(cls) -> Type[Exception]:
         return ValueError

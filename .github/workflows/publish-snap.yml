@@ -35,7 +35,7 @@ jobs:
           fi
 
       - name: Set Up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Build Snap Package
         uses: diddlesnaps/snapcraft-multiarch-action@master
@@ -44,7 +44,7 @@ jobs:
           architecture: ${{ matrix.architecture }}
 
       - name: Upload Snap Package
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: Tautulli-snap-package-${{ matrix.architecture }}
           path: ${{ steps.build.outputs.snap }}

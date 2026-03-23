@@ -1,5 +1,5 @@
 # mako/template.py
-# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -119,11 +119,7 @@ class Template:
     :param future_imports: String list of names to import from `__future__`.
      These will be concatenated into a comma-separated string and inserted
      into the beginning of the template, e.g. ``futures_imports=['FOO',
-     'BAR']`` results in ``from __future__ import FOO, BAR``.  If you're
-     interested in using features like the new division operator, you must
-     use future_imports to convey that to the renderer, as otherwise the
-     import will not appear as the first executed statement in the generated
-     code and will therefore not have the desired effect.
+     'BAR']`` results in ``from __future__ import FOO, BAR``.
 
     :param include_error_handler: An error handler that runs when this template
      is included within another one via the ``<%include>`` tag, and raises an

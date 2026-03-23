@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 You can work with Mobile Sync on other devices straight away, but if you'd like to use your app as a `sync-target` (when
 you can set items to be synced to your app) you need to init some variables.

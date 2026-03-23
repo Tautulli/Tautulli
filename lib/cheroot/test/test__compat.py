@@ -2,14 +2,14 @@
 
 import pytest
 
-from cheroot._compat import extract_bytes, ntob, ntou, bton
+from cheroot._compat import bton, extract_bytes, ntob, ntou
 
 
 @pytest.mark.parametrize(
     ('func', 'inp', 'out'),
     (
         (ntob, 'bar', b'bar'),
-        (ntou, 'bar', u'bar'),
+        (ntou, 'bar', 'bar'),
         (bton, b'bar', 'bar'),
     ),
 )
@@ -34,7 +34,7 @@ def test_compat_functions_negative_nonnative(func):
 
 def test_ntou_escape():
     """Check that ``ntou`` supports escape-encoding under Python 2."""
-    expected = u'hišřії'
+    expected = 'hišřії'  # noqa: RUF001  # This is intended
     actual = ntou('hi\u0161\u0159\u0456\u0457', encoding='escape')
     assert actual == expected
 
@@ -54,8 +54,8 @@ def test_extract_bytes(input_argument, expected_result):
 def test_extract_bytes_invalid():
     """Ensure that invalid input causes exception to be raised."""
     with pytest.raises(
-            ValueError,
-            match=r'^extract_bytes\(\) only accepts bytes '
-            'and memoryview/buffer$',
+        ValueError,
+        match=r'^extract_bytes\(\) only accepts bytes '
+        'and memoryview/buffer$',
     ):
-        extract_bytes(u'some юнікод їїї')
+        extract_bytes('some юнікод їїї')

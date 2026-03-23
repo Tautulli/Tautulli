@@ -15,14 +15,13 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""DNS Names.
-"""
+"""DNS Names."""
 
 import copy
 import encodings.idna  # type: ignore
 import functools
 import struct
-from typing import Any, Callable, Dict, Iterable, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, Optional, Tuple
 
 import dns._features
 import dns.enum
@@ -30,12 +29,18 @@ import dns.exception
 import dns.immutable
 import dns.wire
 
+# Dnspython will never access idna if the import fails, but pyright can't figure
+# that out, so...
+#
+# pyright: reportAttributeAccessIssue = false, reportPossiblyUnboundVariable = false
+
 if dns._features.have("idna"):
     import idna  # type: ignore
 
     have_idna_2008 = True
 else:  # pragma: no cover
     have_idna_2008 = False
+
 
 CompressType = Dict["Name", int]
 
@@ -138,7 +143,7 @@ _escaped = b'"().;\\@$'
 _escaped_text = '"().;\\@$'
 
 
-def _escapify(label: Union[bytes, str]) -> str:
+def _escapify(label: bytes | str) -> str:
     """Escape the characters in label which need it.
     @returns: the escaped string
     @rtype: string"""
@@ -152,7 +157,7 @@ def _escapify(label: Union[bytes, str]) -> str:
             elif c > 0x20 and c < 0x7F:
                 text += chr(c)
             else:
-                text += "\\%03d" % c
+                text += f"\\{c:03d}"
         return text
 
     # Unicode label mode.  Escape only special characters and values < 0x20
@@ -161,7 +166,7 @@ def _escapify(label: Union[bytes, str]) -> str:
         if uc in _escaped_text:
             text += "\\" + uc
         elif uc <= "\x20":
-            text += "\\%03d" % ord(uc)
+            text += f"\\{ord(uc):03d}"
         else:
             text += uc
     return text
@@ -342,7 +347,7 @@ def _validate_labels(labels: Tuple[bytes, ...]) -> None:
         raise EmptyLabel
 
 
-def _maybe_convert_to_binary(label: Union[bytes, str]) -> bytes:
+def _maybe_convert_to_binary(label: bytes | str) -> bytes:
     """If label is ``str``, convert it to ``bytes``.  If it is already
     ``bytes`` just return it.
 
@@ -366,7 +371,7 @@ class Name:
 
     __slots__ = ["labels"]
 
-    def __init__(self, labels: Iterable[Union[bytes, str]]):
+    def __init__(self, labels: Iterable[bytes | str]):
         """*labels* is any iterable whose values are ``str`` or ``bytes``."""
 
         blabels = [_maybe_convert_to_binary(x) for x in labels]
@@ -590,7 +595,7 @@ class Name:
         return s
 
     def to_unicode(
-        self, omit_final_dot: bool = False, idna_codec: Optional[IDNACodec] = None
+        self, omit_final_dot: bool = False, idna_codec: IDNACodec | None = None
     ) -> str:
         """Convert name to Unicode text format.
 
@@ -644,11 +649,11 @@ class Name:
 
     def to_wire(
         self,
-        file: Optional[Any] = None,
-        compress: Optional[CompressType] = None,
+        file: Any | None = None,
+        compress: CompressType | None = None,
         origin: Optional["Name"] = None,
         canonicalize: bool = False,
-    ) -> Optional[bytes]:
+    ) -> bytes | None:
         """Convert name to wire format, possibly compressing it.
 
         *file* is the file where the name is emitted (typically an
@@ -894,7 +899,7 @@ empty = Name([])
 
 
 def from_unicode(
-    text: str, origin: Optional[Name] = root, idna_codec: Optional[IDNACodec] = None
+    text: str, origin: Name | None = root, idna_codec: IDNACodec | None = None
 ) -> Name:
     """Convert unicode text into a Name object.
 
@@ -978,9 +983,9 @@ def is_all_ascii(text: str) -> bool:
 
 
 def from_text(
-    text: Union[bytes, str],
-    origin: Optional[Name] = root,
-    idna_codec: Optional[IDNACodec] = None,
+    text: bytes | str,
+    origin: Name | None = root,
+    idna_codec: IDNACodec | None = None,
 ) -> Name:
     """Convert text into a Name object.
 

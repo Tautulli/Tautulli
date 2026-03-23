@@ -133,14 +133,6 @@ def hostname_in_lockfile():
     """
 
 
-class TestLogger:
-    def __init__(self):
-        self.log_entries = []
-
-    def exception(self, msg, *args):
-        self.log_entries.append((msg,) + args)
-
-
 class LockFileLogEntryTestCase(unittest.TestCase):
     """Tests for logging in case of lock failure"""
 

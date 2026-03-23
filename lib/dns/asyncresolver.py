@@ -19,17 +19,20 @@
 
 import socket
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 import dns._ddr
 import dns.asyncbackend
 import dns.asyncquery
 import dns.exception
+import dns.inet
 import dns.name
+import dns.nameserver
 import dns.query
 import dns.rdataclass
 import dns.rdatatype
 import dns.resolver  # lgtm[py/import-and-import-from]
+import dns.reversename
 
 # import some resolver symbols for brevity
 from dns.resolver import NXDOMAIN, NoAnswer, NoRootSOA, NotAbsolute
@@ -44,16 +47,16 @@ class Resolver(dns.resolver.BaseResolver):
 
     async def resolve(
         self,
-        qname: Union[dns.name.Name, str],
-        rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
-        rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+        qname: dns.name.Name | str,
+        rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.A,
+        rdclass: dns.rdataclass.RdataClass | str = dns.rdataclass.IN,
         tcp: bool = False,
-        source: Optional[str] = None,
+        source: str | None = None,
         raise_on_no_answer: bool = True,
         source_port: int = 0,
-        lifetime: Optional[float] = None,
-        search: Optional[bool] = None,
-        backend: Optional[dns.asyncbackend.Backend] = None,
+        lifetime: float | None = None,
+        search: bool | None = None,
+        backend: dns.asyncbackend.Backend | None = None,
     ) -> dns.resolver.Answer:
         """Query nameservers asynchronously to find the answer to the question.
 
@@ -137,7 +140,7 @@ class Resolver(dns.resolver.BaseResolver):
 
     async def resolve_name(
         self,
-        name: Union[dns.name.Name, str],
+        name: dns.name.Name | str,
         family: int = socket.AF_UNSPEC,
         **kwargs: Any,
     ) -> dns.resolver.HostAnswers:
@@ -204,7 +207,7 @@ class Resolver(dns.resolver.BaseResolver):
 
     # pylint: disable=redefined-outer-name
 
-    async def canonical_name(self, name: Union[dns.name.Name, str]) -> dns.name.Name:
+    async def canonical_name(self, name: dns.name.Name | str) -> dns.name.Name:
         """Determine the canonical name of *name*.
 
         The canonical name is the name the resolver uses for queries
@@ -280,16 +283,16 @@ def reset_default_resolver() -> None:
 
 
 async def resolve(
-    qname: Union[dns.name.Name, str],
-    rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
-    rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+    qname: dns.name.Name | str,
+    rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.A,
+    rdclass: dns.rdataclass.RdataClass | str = dns.rdataclass.IN,
     tcp: bool = False,
-    source: Optional[str] = None,
+    source: str | None = None,
     raise_on_no_answer: bool = True,
     source_port: int = 0,
-    lifetime: Optional[float] = None,
-    search: Optional[bool] = None,
-    backend: Optional[dns.asyncbackend.Backend] = None,
+    lifetime: float | None = None,
+    search: bool | None = None,
+    backend: dns.asyncbackend.Backend | None = None,
 ) -> dns.resolver.Answer:
     """Query nameservers asynchronously to find the answer to the question.
 
@@ -327,7 +330,7 @@ async def resolve_address(
 
 
 async def resolve_name(
-    name: Union[dns.name.Name, str], family: int = socket.AF_UNSPEC, **kwargs: Any
+    name: dns.name.Name | str, family: int = socket.AF_UNSPEC, **kwargs: Any
 ) -> dns.resolver.HostAnswers:
     """Use a resolver to asynchronously query for address records.
 
@@ -338,7 +341,7 @@ async def resolve_name(
     return await get_default_resolver().resolve_name(name, family, **kwargs)
 
 
-async def canonical_name(name: Union[dns.name.Name, str]) -> dns.name.Name:
+async def canonical_name(name: dns.name.Name | str) -> dns.name.Name:
     """Determine the canonical name of *name*.
 
     See :py:func:`dns.resolver.Resolver.canonical_name` for more
@@ -359,11 +362,11 @@ async def try_ddr(timeout: float = 5.0) -> None:
 
 
 async def zone_for_name(
-    name: Union[dns.name.Name, str],
+    name: dns.name.Name | str,
     rdclass: dns.rdataclass.RdataClass = dns.rdataclass.IN,
     tcp: bool = False,
-    resolver: Optional[Resolver] = None,
-    backend: Optional[dns.asyncbackend.Backend] = None,
+    resolver: Resolver | None = None,
+    backend: dns.asyncbackend.Backend | None = None,
 ) -> dns.name.Name:
     """Find the name of the zone which contains the specified name.
 
@@ -395,10 +398,10 @@ async def zone_for_name(
 
 
 async def make_resolver_at(
-    where: Union[dns.name.Name, str],
+    where: dns.name.Name | str,
     port: int = 53,
     family: int = socket.AF_UNSPEC,
-    resolver: Optional[Resolver] = None,
+    resolver: Resolver | None = None,
 ) -> Resolver:
     """Make a stub resolver using the specified destination as the full resolver.
 
@@ -419,33 +422,33 @@ async def make_resolver_at(
     """
     if resolver is None:
         resolver = get_default_resolver()
-    nameservers: List[Union[str, dns.nameserver.Nameserver]] = []
+    nameservers: List[str | dns.nameserver.Nameserver] = []
     if isinstance(where, str) and dns.inet.is_address(where):
         nameservers.append(dns.nameserver.Do53Nameserver(where, port))
     else:
         answers = await resolver.resolve_name(where, family)
         for address in answers.addresses():
             nameservers.append(dns.nameserver.Do53Nameserver(address, port))
-    res = dns.asyncresolver.Resolver(configure=False)
+    res = Resolver(configure=False)
     res.nameservers = nameservers
     return res
 
 
 async def resolve_at(
-    where: Union[dns.name.Name, str],
-    qname: Union[dns.name.Name, str],
-    rdtype: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.A,
-    rdclass: Union[dns.rdataclass.RdataClass, str] = dns.rdataclass.IN,
+    where: dns.name.Name | str,
+    qname: dns.name.Name | str,
+    rdtype: dns.rdatatype.RdataType | str = dns.rdatatype.A,
+    rdclass: dns.rdataclass.RdataClass | str = dns.rdataclass.IN,
     tcp: bool = False,
-    source: Optional[str] = None,
+    source: str | None = None,
     raise_on_no_answer: bool = True,
     source_port: int = 0,
-    lifetime: Optional[float] = None,
-    search: Optional[bool] = None,
-    backend: Optional[dns.asyncbackend.Backend] = None,
+    lifetime: float | None = None,
+    search: bool | None = None,
+    backend: dns.asyncbackend.Backend | None = None,
     port: int = 53,
     family: int = socket.AF_UNSPEC,
-    resolver: Optional[Resolver] = None,
+    resolver: Resolver | None = None,
 ) -> dns.resolver.Answer:
     """Query nameservers to find the answer to the question.
 

@@ -128,6 +128,7 @@ allowed_elements = frozenset((
     (namespaces['html'], 'ul'),
     (namespaces['html'], 'var'),
     (namespaces['html'], 'video'),
+    (namespaces['html'], 'wbr'),
     (namespaces['mathml'], 'maction'),
     (namespaces['mathml'], 'math'),
     (namespaces['mathml'], 'merror'),

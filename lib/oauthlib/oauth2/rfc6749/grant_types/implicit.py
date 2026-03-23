@@ -233,10 +233,7 @@ class ImplicitGrant(GrantTypeBase):
         # In OIDC implicit flow it is possible to have a request_type that does not include the access_token!
         # "id_token token" - return the access token and the id token
         # "id_token" - don't return the access token
-        if "token" in request.response_type.split():
-            token = token_handler.create_token(request, refresh_token=False)
-        else:
-            token = {}
+        token = token_handler.create_token(request, refresh_token=False) if 'token' in request.response_type.split() else {}
 
         if request.state is not None:
             token['state'] = request.state

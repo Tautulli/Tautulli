@@ -17,8 +17,6 @@
 
 """DNS TTL conversion."""
 
-from typing import Union
-
 import dns.exception
 
 # Technically TTLs are supposed to be between 0 and 2**31 - 1, with values
@@ -83,10 +81,10 @@ def from_text(text: str) -> int:
     return total
 
 
-def make(value: Union[int, str]) -> int:
+def make(value: int | str) -> int:
     if isinstance(value, int):
         return value
     elif isinstance(value, str):
-        return dns.ttl.from_text(value)
+        return from_text(value)
     else:
         raise ValueError("cannot convert value to TTL")

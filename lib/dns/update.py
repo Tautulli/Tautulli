@@ -17,8 +17,10 @@
 
 """DNS Dynamic Update Support"""
 
-from typing import Any, List, Optional, Union
+from typing import Any, List
 
+import dns.enum
+import dns.exception
 import dns.message
 import dns.name
 import dns.opcode
@@ -26,6 +28,7 @@ import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
+import dns.rrset
 import dns.tsig
 
 
@@ -48,12 +51,12 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
 
     def __init__(
         self,
-        zone: Optional[Union[dns.name.Name, str]] = None,
+        zone: dns.name.Name | str | None = None,
         rdclass: dns.rdataclass.RdataClass = dns.rdataclass.IN,
-        keyring: Optional[Any] = None,
-        keyname: Optional[dns.name.Name] = None,
-        keyalgorithm: Union[dns.name.Name, str] = dns.tsig.default_algorithm,
-        id: Optional[int] = None,
+        keyring: Any | None = None,
+        keyname: dns.name.Name | None = None,
+        keyalgorithm: dns.name.Name | str = dns.tsig.default_algorithm,
+        id: int | None = None,
     ):
         """Initialize a new DNS Update object.
 
@@ -167,7 +170,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                     rd = dns.rdata.from_text(self.zone_rdclass, rdtype, s, self.origin)
                     self._add_rr(name, ttl, rd, section=section)
 
-    def add(self, name: Union[dns.name.Name, str], *args: Any) -> None:
+    def add(self, name: dns.name.Name | str, *args: Any) -> None:
         """Add records.
 
         The first argument is always a name.  The other
@@ -182,7 +185,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
 
         self._add(False, self.update, name, *args)
 
-    def delete(self, name: Union[dns.name.Name, str], *args: Any) -> None:
+    def delete(self, name: dns.name.Name | str, *args: Any) -> None:
         """Delete records.
 
         The first argument is always a name.  The other
@@ -242,7 +245,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
                         )
                         self._add_rr(name, 0, rd, dns.rdataclass.NONE)
 
-    def replace(self, name: Union[dns.name.Name, str], *args: Any) -> None:
+    def replace(self, name: dns.name.Name | str, *args: Any) -> None:
         """Replace records.
 
         The first argument is always a name.  The other
@@ -260,7 +263,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
 
         self._add(True, self.update, name, *args)
 
-    def present(self, name: Union[dns.name.Name, str], *args: Any) -> None:
+    def present(self, name: dns.name.Name | str, *args: Any) -> None:
         """Require that an owner name (and optionally an rdata type,
         or specific rdataset) exists as a prerequisite to the
         execution of the update.
@@ -315,8 +318,8 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
 
     def absent(
         self,
-        name: Union[dns.name.Name, str],
-        rdtype: Optional[Union[dns.rdatatype.RdataType, str]] = None,
+        name: dns.name.Name | str,
+        rdtype: dns.rdatatype.RdataType | str | None = None,
     ) -> None:
         """Require that an owner name (and optionally an rdata type) does
         not exist as a prerequisite to the execution of the update."""
@@ -351,7 +354,7 @@ class UpdateMessage(dns.message.Message):  # lgtm[py/missing-equals]
         # Updates are always one_rr_per_rrset
         return True
 
-    def _parse_rr_header(self, section, name, rdclass, rdtype):
+    def _parse_rr_header(self, section, name, rdclass, rdtype):  # pyright: ignore
         deleting = None
         empty = False
         if section == UpdateSection.ZONE:

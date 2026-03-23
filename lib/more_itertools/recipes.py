@@ -8,13 +8,15 @@ Some backward-compatible usability improvements have been made.
 
 """
 
-import math
-import operator
+import random
 
+from bisect import bisect_left, insort
 from collections import deque
-from collections.abc import Sized
-from functools import partial, reduce
+from contextlib import suppress
+from functools import lru_cache, partial, reduce
+from heapq import heappush, heappushpop
 from itertools import (
+    accumulate,
     chain,
     combinations,
     compress,
@@ -25,9 +27,12 @@ from itertools import (
     product,
     repeat,
     starmap,
+    takewhile,
     tee,
     zip_longest,
 )
+from math import prod, comb, isqrt, gcd
+from operator import mul, not_, itemgetter, getitem, index
 from random import randrange, sample, choice
 from sys import hexversion
 
@@ -42,9 +47,12 @@ __all__ = [
     'factor',
     'flatten',
     'grouper',
+    'is_prime',
     'iter_except',
     'iter_index',
+    'loops',
     'matmul',
+    'multinomial',
     'ncycles',
     'nth',
     'nth_combination',
@@ -65,6 +73,7 @@ __all__ = [
     'random_product',
     'repeatfunc',
     'roundrobin',
+    'running_median',
     'sieve',
     'sliding_window',
     'subslices',
@@ -86,17 +95,30 @@ _marker = object()
 # zip with strict is available for Python 3.10+
 try:
     zip(strict=True)
-except TypeError:
+except TypeError:  # pragma: no cover
     _zip_strict = zip
-else:
+else:  # pragma: no cover
     _zip_strict = partial(zip, strict=True)
 
+
 # math.sumprod is available for Python 3.12+
-_sumprod = getattr(math, 'sumprod', lambda x, y: dotproduct(x, y))
+try:
+    from math import sumprod as _sumprod
+except ImportError:  # pragma: no cover
+    _sumprod = lambda x, y: dotproduct(x, y)
+
+
+# heapq max-heap functions are available for Python 3.14+
+try:
+    from heapq import heappush_max, heappushpop_max
+except ImportError:  # pragma: no cover
+    _max_heap_available = False
+else:  # pragma: no cover
+    _max_heap_available = True
 
 
 def take(n, iterable):
-    """Return first *n* items of the iterable as a list.
+    """Return first *n* items of the *iterable* as a list.
 
         >>> take(3, range(10))
         [0, 1, 2]
@@ -137,14 +159,12 @@ def tail(n, iterable):
     ['E', 'F', 'G']
 
     """
-    # If the given iterable has a length, then we can use islice to get its
-    # final elements. Note that if the iterable is not actually Iterable,
-    # either islice or deque will throw a TypeError. This is why we don't
-    # check if it is Iterable.
-    if isinstance(iterable, Sized):
-        yield from islice(iterable, max(0, len(iterable) - n), None)
+    try:
+        size = len(iterable)
+    except TypeError:
+        return iter(deque(iterable, maxlen=n))
     else:
-        yield from iter(deque(iterable, maxlen=n))
+        return islice(iterable, max(0, size - n), None)
 
 
 def consume(iterator, n=None):
@@ -218,7 +238,12 @@ def all_equal(iterable, key=None):
         True
 
     """
-    return len(list(islice(groupby(iterable, key), 2))) <= 1
+    iterator = groupby(iterable, key)
+    for first in iterator:
+        for second in iterator:
+            return False
+        return True
+    return True
 
 
 def quantify(iterable, pred=bool):
@@ -261,11 +286,14 @@ def ncycles(iterable, n):
 def dotproduct(vec1, vec2):
     """Returns the dot product of the two iterables.
 
-    >>> dotproduct([10, 10], [20, 20])
-    400
+    >>> dotproduct([10, 15, 12], [0.65, 0.80, 1.25])
+    33.5
+    >>> 10 * 0.65 + 15 * 0.80 + 12 * 1.25
+    33.5
 
+    In Python 3.12 and later, use ``math.sumprod()`` instead.
     """
-    return sum(map(operator.mul, vec1, vec2))
+    return sum(map(mul, vec1, vec2))
 
 
 def flatten(listOfLists):
@@ -323,9 +351,9 @@ def _pairwise(iterable):
 
 try:
     from itertools import pairwise as itertools_pairwise
-except ImportError:
+except ImportError:  # pragma: no cover
     pairwise = _pairwise
-else:
+else:  # pragma: no cover
 
     def pairwise(iterable):
         return itertools_pairwise(iterable)
@@ -390,26 +418,26 @@ def grouper(iterable, n, incomplete='fill', fillvalue=None):
 
     When *incomplete* is `'strict'`, a subclass of `ValueError` will be raised.
 
-    >>> it = grouper('ABCDEFG', 3, incomplete='strict')
-    >>> list(it)  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> iterator = grouper('ABCDEFG', 3, incomplete='strict')
+    >>> list(iterator)  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     UnequalIterablesError
 
     """
-    args = [iter(iterable)] * n
+    iterators = [iter(iterable)] * n
     if incomplete == 'fill':
-        return zip_longest(*args, fillvalue=fillvalue)
+        return zip_longest(*iterators, fillvalue=fillvalue)
     if incomplete == 'strict':
-        return _zip_equal(*args)
+        return _zip_equal(*iterators)
     if incomplete == 'ignore':
-        return zip(*args)
+        return zip(*iterators)
     else:
         raise ValueError('Expected fill, strict, or ignore')
 
 
 def roundrobin(*iterables):
-    """Yields an item from each iterable, alternating between them.
+    """Visit input iterables in a cycle until each is exhausted.
 
         >>> list(roundrobin('ABC', 'D', 'EF'))
         ['A', 'D', 'E', 'B', 'F', 'C']
@@ -451,7 +479,7 @@ def partition(pred, iterable):
 
     t1, t2, p = tee(iterable, 3)
     p1, p2 = tee(map(pred, p))
-    return (compress(t1, map(operator.not_, p1)), compress(t2, p2))
+    return (compress(t1, map(not_, p1)), compress(t2, p2))
 
 
 def powerset(iterable):
@@ -530,9 +558,9 @@ def unique_justseen(iterable, key=None):
 
     """
     if key is None:
-        return map(operator.itemgetter(0), groupby(iterable))
+        return map(itemgetter(0), groupby(iterable))
 
-    return map(next, map(operator.itemgetter(1), groupby(iterable, key)))
+    return map(next, map(itemgetter(1), groupby(iterable, key)))
 
 
 def unique(iterable, key=None, reverse=False):
@@ -551,7 +579,8 @@ def unique(iterable, key=None, reverse=False):
     The elements in *iterable* need not be hashable, but they must be
     comparable for sorting to work.
     """
-    return unique_justseen(sorted(iterable, key=key, reverse=reverse), key=key)
+    sequenced = sorted(iterable, key=key, reverse=reverse)
+    return unique_justseen(sequenced, key=key)
 
 
 def iter_except(func, exception, first=None):
@@ -576,13 +605,11 @@ def iter_except(func, exception, first=None):
         []
 
     """
-    try:
+    with suppress(exception):
         if first is not None:
             yield first()
-        while 1:
+        while True:
             yield func()
-    except exception:
-        pass
 
 
 def first_true(iterable, default=None, pred=None):
@@ -618,7 +645,7 @@ def random_product(*args, repeat=1):
         ('a', 2, 'd', 3)
 
     This equivalent to taking a random selection from
-    ``itertools.product(*args, **kwarg)``.
+    ``itertools.product(*args, repeat=repeat)``.
 
     """
     pools = [tuple(pool) for pool in args] * repeat
@@ -734,19 +761,40 @@ def prepend(value, iterator):
 
 
 def convolve(signal, kernel):
-    """Convolve the iterable *signal* with the iterable *kernel*.
+    """Discrete linear convolution of two iterables.
+    Equivalent to polynomial multiplication.
 
-        >>> signal = (1, 2, 3, 4, 5)
-        >>> kernel = [3, 2, 1]
-        >>> list(convolve(signal, kernel))
-        [3, 8, 14, 20, 26, 14, 5]
+    For example, multiplying ``(x² -x - 20)`` by ``(x - 3)``
+    gives ``(x³ -4x² -17x + 60)``.
 
-    Note: the input arguments are not interchangeable, as the *kernel*
-    is immediately consumed and stored.
+        >>> list(convolve([1, -1, -20], [1, -3]))
+        [1, -4, -17, 60]
+
+    Examples of popular kinds of kernels:
+
+    * The kernel ``[0.25, 0.25, 0.25, 0.25]`` computes a moving average.
+      For image data, this blurs the image and reduces noise.
+    * The kernel ``[1/2, 0, -1/2]`` estimates the first derivative of
+      a function evaluated at evenly spaced inputs.
+    * The kernel ``[1, -2, 1]`` estimates the second derivative of a
+      function evaluated at evenly spaced inputs.
+
+    Convolutions are mathematically commutative; however, the inputs are
+    evaluated differently.  The signal is consumed lazily and can be
+    infinite. The kernel is fully consumed before the calculations begin.
+
+    Supports all numeric types: int, float, complex, Decimal, Fraction.
+
+    References:
+
+    * Article:  https://betterexplained.com/articles/intuitive-convolution/
+    * Video by 3Blue1Brown:  https://www.youtube.com/watch?v=KuXjwB4LzSA
 
     """
-    # This implementation intentionally doesn't match the one in the itertools
-    # documentation.
+    # This implementation comes from an older version of the itertools
+    # documentation.  While the newer implementation is a bit clearer,
+    # this one was kept because the inlined window logic is faster
+    # and it avoids an unnecessary deque-to-tuple conversion.
     kernel = tuple(kernel)[::-1]
     n = len(kernel)
     window = deque([0], maxlen=n) * n
@@ -769,23 +817,9 @@ def before_and_after(predicate, it):
     Note that the first iterator must be fully consumed before the second
     iterator can generate valid results.
     """
-    it = iter(it)
-    transition = []
-
-    def true_iterator():
-        for elem in it:
-            if predicate(elem):
-                yield elem
-            else:
-                transition.append(elem)
-                return
-
-    # Note: this is different from itertools recipes to allow nesting
-    # before_and_after remainders into before_and_after again. See tests
-    # for an example.
-    remainder_iterator = chain(transition, it)
-
-    return true_iterator(), remainder_iterator
+    trues, after = tee(it)
+    trues = compress(takewhile(predicate, trues), zip(after))
+    return trues, after
 
 
 def triplewise(iterable):
@@ -795,7 +829,7 @@ def triplewise(iterable):
     [('A', 'B', 'C'), ('B', 'C', 'D'), ('C', 'D', 'E')]
 
     """
-    # This deviates from the itertools documentation reciple - see
+    # This deviates from the itertools documentation recipe - see
     # https://github.com/more-itertools/more-itertools/issues/889
     t1, t2, t3 = tee(iterable, 3)
     next(t3, None)
@@ -814,9 +848,9 @@ def _sliding_window_islice(iterable, n):
 
 def _sliding_window_deque(iterable, n):
     # Normal path for other values of n.
-    it = iter(iterable)
-    window = deque(islice(it, n - 1), maxlen=n)
-    for x in it:
+    iterator = iter(iterable)
+    window = deque(islice(iterator, n - 1), maxlen=n)
+    for x in iterator:
         window.append(x)
         yield tuple(window)
 
@@ -857,18 +891,29 @@ def subslices(iterable):
     """
     seq = list(iterable)
     slices = starmap(slice, combinations(range(len(seq) + 1), 2))
-    return map(operator.getitem, repeat(seq), slices)
+    return map(getitem, repeat(seq), slices)
 
 
 def polynomial_from_roots(roots):
     """Compute a polynomial's coefficients from its roots.
 
-    >>> roots = [5, -4, 3]  # (x - 5) * (x + 4) * (x - 3)
-    >>> polynomial_from_roots(roots)  # x^3 - 4 * x^2 - 17 * x + 60
+    >>> roots = [5, -4, 3]            # (x - 5) * (x + 4) * (x - 3)
+    >>> polynomial_from_roots(roots)  # x³ - 4 x² - 17 x + 60
     [1, -4, -17, 60]
+
+    Note that polynomial coefficients are specified in descending power order.
+
+    Supports all numeric types: int, float, complex, Decimal, Fraction.
     """
-    factors = zip(repeat(1), map(operator.neg, roots))
-    return list(reduce(convolve, factors, [1]))
+
+    # This recipe differs from the one in itertools docs in that it
+    # applies list() after each call to convolve().  This avoids
+    # hitting stack limits with nested generators.
+
+    poly = [1]
+    for root in roots:
+        poly = list(convolve(poly, (1, -root)))
+    return poly
 
 
 def iter_index(iterable, value, start=0, stop=None):
@@ -899,19 +944,17 @@ def iter_index(iterable, value, start=0, stop=None):
     seq_index = getattr(iterable, 'index', None)
     if seq_index is None:
         # Slow path for general iterables
-        it = islice(iterable, start, stop)
-        for i, element in enumerate(it, start):
+        iterator = islice(iterable, start, stop)
+        for i, element in enumerate(iterator, start):
             if element is value or element == value:
                 yield i
     else:
         # Fast path for sequences
         stop = len(iterable) if stop is None else stop
         i = start - 1
-        try:
+        with suppress(ValueError):
             while True:
                 yield (i := seq_index(value, i + 1, stop))
-        except ValueError:
-            pass
 
 
 def sieve(n):
@@ -919,20 +962,23 @@ def sieve(n):
 
     >>> list(sieve(30))
     [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+
     """
+    # This implementation comes from an older version of the itertools
+    # documentation.  The newer implementation is easier to read but is
+    # less lazy.
     if n > 2:
         yield 2
     start = 3
     data = bytearray((0, 1)) * (n // 2)
-    limit = math.isqrt(n) + 1
-    for p in iter_index(data, 1, start, limit):
+    for p in iter_index(data, 1, start, stop=isqrt(n) + 1):
         yield from iter_index(data, 1, start, p * p)
         data[p * p : n : p + p] = bytes(len(range(p * p, n, p + p)))
         start = p * p
     yield from iter_index(data, 1, start)
 
 
-def _batched(iterable, n, *, strict=False):
+def _batched(iterable, n, *, strict=False):  # pragma: no cover
     """Batch data into tuples of length *n*. If the number of items in
     *iterable* is not divisible by *n*:
     * The last batch will be shorter if *strict* is ``False``.
@@ -945,23 +991,22 @@ def _batched(iterable, n, *, strict=False):
     """
     if n < 1:
         raise ValueError('n must be at least one')
-    it = iter(iterable)
-    while batch := tuple(islice(it, n)):
+    iterator = iter(iterable)
+    while batch := tuple(islice(iterator, n)):
         if strict and len(batch) != n:
             raise ValueError('batched(): incomplete batch')
         yield batch
 
 
-if hexversion >= 0x30D00A2:
+if hexversion >= 0x30D00A2:  # pragma: no cover
     from itertools import batched as itertools_batched
 
     def batched(iterable, n, *, strict=False):
         return itertools_batched(iterable, n, strict=strict)
 
-else:
-    batched = _batched
-
     batched.__doc__ = _batched.__doc__
+else:  # pragma: no cover
+    batched = _batched
 
 
 def transpose(it):
@@ -976,15 +1021,68 @@ def transpose(it):
     return _zip_strict(*it)
 
 
-def reshape(matrix, cols):
-    """Reshape the 2-D input *matrix* to have a column count given by *cols*.
+def _is_scalar(value, stringlike=(str, bytes)):
+    "Scalars are bytes, strings, and non-iterables."
+    try:
+        iter(value)
+    except TypeError:
+        return True
+    return isinstance(value, stringlike)
 
-    >>> matrix = [(0, 1), (2, 3), (4, 5)]
-    >>> cols = 3
-    >>> list(reshape(matrix, cols))
-    [(0, 1, 2), (3, 4, 5)]
+
+def _flatten_tensor(tensor):
+    "Depth-first iterator over scalars in a tensor."
+    iterator = iter(tensor)
+    while True:
+        try:
+            value = next(iterator)
+        except StopIteration:
+            return iterator
+        iterator = chain((value,), iterator)
+        if _is_scalar(value):
+            return iterator
+        iterator = chain.from_iterable(iterator)
+
+
+def reshape(matrix, shape):
+    """Change the shape of a *matrix*.
+
+    If *shape* is an integer, the matrix must be two dimensional
+    and the shape is interpreted as the desired number of columns:
+
+        >>> matrix = [(0, 1), (2, 3), (4, 5)]
+        >>> cols = 3
+        >>> list(reshape(matrix, cols))
+        [(0, 1, 2), (3, 4, 5)]
+
+    If *shape* is a tuple (or other iterable), the input matrix can have
+    any number of dimensions. It will first be flattened and then rebuilt
+    to the desired shape which can also be multidimensional:
+
+        >>> matrix = [(0, 1), (2, 3), (4, 5)]    # Start with a 3 x 2 matrix
+
+        >>> list(reshape(matrix, (2, 3)))        # Make a 2 x 3 matrix
+        [(0, 1, 2), (3, 4, 5)]
+
+        >>> list(reshape(matrix, (6,)))          # Make a vector of length six
+        [0, 1, 2, 3, 4, 5]
+
+        >>> list(reshape(matrix, (2, 1, 3, 1)))  # Make 2 x 1 x 3 x 1 tensor
+        [(((0,), (1,), (2,)),), (((3,), (4,), (5,)),)]
+
+    Each dimension is assumed to be uniform, either all arrays or all scalars.
+    Flattening stops when the first value in a dimension is a scalar.
+    Scalars are bytes, strings, and non-iterables.
+    The reshape iterator stops when the requested shape is complete
+    or when the input is exhausted, whichever comes first.
+
     """
-    return batched(chain.from_iterable(matrix), cols)
+    if isinstance(shape, int):
+        return batched(chain.from_iterable(matrix), shape)
+    first_dim, *dims = shape
+    scalar_stream = _flatten_tensor(matrix)
+    reshaped = reduce(batched, reversed(dims), scalar_stream)
+    return islice(reshaped, first_dim)
 
 
 def matmul(m1, m2):
@@ -995,9 +1093,30 @@ def matmul(m1, m2):
 
     The caller should ensure that the dimensions of the input matrices are
     compatible with each other.
+
+    Supports all numeric types: int, float, complex, Decimal, Fraction.
     """
     n = len(m2[0])
     return batched(starmap(_sumprod, product(m1, transpose(m2))), n)
+
+
+def _factor_pollard(n):
+    # Return a factor of n using Pollard's rho algorithm.
+    # Efficient when n is odd and composite.
+    for b in range(1, n):
+        x = y = 2
+        d = 1
+        while d == 1:
+            x = (x * x + b) % n
+            y = (y * y + b) % n
+            y = (y * y + b) % n
+            d = gcd(x - y, n)
+        if d != n:
+            return d
+    raise ValueError('prime or under 5')  # pragma: no cover
+
+
+_primes_below_211 = tuple(sieve(211))
 
 
 def factor(n):
@@ -1005,30 +1124,53 @@ def factor(n):
 
     >>> list(factor(360))
     [2, 2, 2, 3, 3, 5]
+
+    Finds small factors with trial division.  Larger factors are
+    either verified as prime with ``is_prime`` or split into
+    smaller factors with Pollard's rho algorithm.
     """
-    for prime in sieve(math.isqrt(n) + 1):
+
+    # Corner case reduction
+    if n < 2:
+        return
+
+    # Trial division reduction
+    for prime in _primes_below_211:
         while not n % prime:
             yield prime
             n //= prime
-            if n == 1:
-                return
-    if n > 1:
-        yield n
+
+    # Pollard's rho reduction
+    primes = []
+    todo = [n] if n > 1 else []
+    for n in todo:
+        if n < 211**2 or is_prime(n):
+            primes.append(n)
+        else:
+            fact = _factor_pollard(n)
+            todo += (fact, n // fact)
+    yield from sorted(primes)
 
 
 def polynomial_eval(coefficients, x):
     """Evaluate a polynomial at a specific value.
 
-    Example: evaluating x^3 - 4 * x^2 - 17 * x + 60 at x = 2.5:
+    Computes with better numeric stability than Horner's method.
+
+    Evaluate ``x^3 - 4 * x^2 - 17 * x + 60`` at ``x = 2.5``:
 
     >>> coefficients = [1, -4, -17, 60]
     >>> x = 2.5
     >>> polynomial_eval(coefficients, x)
     8.125
+
+    Note that polynomial coefficients are specified in descending power order.
+
+    Supports all numeric types: int, float, complex, Decimal, Fraction.
     """
     n = len(coefficients)
     if n == 0:
-        return x * 0  # coerce zero to the type of x
+        return type(x)(0)
     powers = map(pow, repeat(x), reversed(range(n)))
     return _sumprod(coefficients, powers)
 
@@ -1038,6 +1180,8 @@ def sum_of_squares(it):
 
     >>> sum_of_squares([10, 20, 30])
     1400
+
+    Supports all numeric types: int, float, complex, Decimal, Fraction.
     """
     return _sumprod(*tee(it))
 
@@ -1045,26 +1189,283 @@ def sum_of_squares(it):
 def polynomial_derivative(coefficients):
     """Compute the first derivative of a polynomial.
 
-    Example: evaluating the derivative of x^3 - 4 * x^2 - 17 * x + 60
+    Evaluate the derivative of ``x³ - 4 x² - 17 x + 60``:
 
     >>> coefficients = [1, -4, -17, 60]
     >>> derivative_coefficients = polynomial_derivative(coefficients)
     >>> derivative_coefficients
     [3, -8, -17]
+
+    Note that polynomial coefficients are specified in descending power order.
+
+    Supports all numeric types: int, float, complex, Decimal, Fraction.
     """
     n = len(coefficients)
     powers = reversed(range(1, n))
-    return list(map(operator.mul, coefficients, powers))
+    return list(map(mul, coefficients, powers))
 
 
 def totient(n):
     """Return the count of natural numbers up to *n* that are coprime with *n*.
 
-    >>> totient(9)
+    Euler's totient function φ(n) gives the number of totatives.
+    Totative are integers k in the range 1 ≤ k ≤ n such that gcd(n, k) = 1.
+
+    >>> n = 9
+    >>> totient(n)
     6
-    >>> totient(12)
-    4
+
+    >>> totatives = [x for x in range(1, n) if gcd(n, x) == 1]
+    >>> totatives
+    [1, 2, 4, 5, 7, 8]
+    >>> len(totatives)
+    6
+
+    Reference:  https://en.wikipedia.org/wiki/Euler%27s_totient_function
+
     """
     for prime in set(factor(n)):
         n -= n // prime
     return n
+
+
+# Miller–Rabin primality test: https://oeis.org/A014233
+_perfect_tests = [
+    (2047, (2,)),
+    (9080191, (31, 73)),
+    (4759123141, (2, 7, 61)),
+    (1122004669633, (2, 13, 23, 1662803)),
+    (2152302898747, (2, 3, 5, 7, 11)),
+    (3474749660383, (2, 3, 5, 7, 11, 13)),
+    (18446744073709551616, (2, 325, 9375, 28178, 450775, 9780504, 1795265022)),
+    (
+        3317044064679887385961981,
+        (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41),
+    ),
+]
+
+
+@lru_cache
+def _shift_to_odd(n):
+    'Return s, d such that 2**s * d == n'
+    s = ((n - 1) ^ n).bit_length() - 1
+    d = n >> s
+    assert (1 << s) * d == n and d & 1 and s >= 0
+    return s, d
+
+
+def _strong_probable_prime(n, base):
+    assert (n > 2) and (n & 1) and (2 <= base < n)
+
+    s, d = _shift_to_odd(n - 1)
+
+    x = pow(base, d, n)
+    if x == 1 or x == n - 1:
+        return True
+
+    for _ in range(s - 1):
+        x = x * x % n
+        if x == n - 1:
+            return True
+
+    return False
+
+
+# Separate instance of Random() that doesn't share state
+# with the default user instance of Random().
+_private_randrange = random.Random().randrange
+
+
+def is_prime(n):
+    """Return ``True`` if *n* is prime and ``False`` otherwise.
+
+    Basic examples:
+
+        >>> is_prime(37)
+        True
+        >>> is_prime(3 * 13)
+        False
+        >>> is_prime(18_446_744_073_709_551_557)
+        True
+
+    Find the next prime over one billion:
+
+        >>> next(filter(is_prime, count(10**9)))
+        1000000007
+
+    Generate random primes up to 200 bits and up to 60 decimal digits:
+
+        >>> from random import seed, randrange, getrandbits
+        >>> seed(18675309)
+
+        >>> next(filter(is_prime, map(getrandbits, repeat(200))))
+        893303929355758292373272075469392561129886005037663238028407
+
+        >>> next(filter(is_prime, map(randrange, repeat(10**60))))
+        269638077304026462407872868003560484232362454342414618963649
+
+    This function is exact for values of *n* below 10**24.  For larger inputs,
+    the probabilistic Miller-Rabin primality test has a less than 1 in 2**128
+    chance of a false positive.
+    """
+
+    if n < 17:
+        return n in {2, 3, 5, 7, 11, 13}
+
+    if not (n & 1 and n % 3 and n % 5 and n % 7 and n % 11 and n % 13):
+        return False
+
+    for limit, bases in _perfect_tests:
+        if n < limit:
+            break
+    else:
+        bases = (_private_randrange(2, n - 1) for i in range(64))
+
+    return all(_strong_probable_prime(n, base) for base in bases)
+
+
+def loops(n):
+    """Returns an iterable with *n* elements for efficient looping.
+    Like ``range(n)`` but doesn't create integers.
+
+    >>> i = 0
+    >>> for _ in loops(5):
+    ...     i += 1
+    >>> i
+    5
+
+    """
+    return repeat(None, n)
+
+
+def multinomial(*counts):
+    """Number of distinct arrangements of a multiset.
+
+    The expression ``multinomial(3, 4, 2)`` has several equivalent
+    interpretations:
+
+    * In the expansion of ``(a + b + c)⁹``, the coefficient of the
+      ``a³b⁴c²`` term is 1260.
+
+    * There are 1260 distinct ways to arrange 9 balls consisting of 3 reds, 4
+      greens, and 2 blues.
+
+    * There are 1260 unique ways to place 9 distinct objects into three bins
+      with sizes 3, 4, and 2.
+
+    The :func:`multinomial` function computes the length of
+    :func:`distinct_permutations`.  For example, there are 83,160 distinct
+    anagrams of the word "abracadabra":
+
+        >>> from more_itertools import distinct_permutations, ilen
+        >>> ilen(distinct_permutations('abracadabra'))
+        83160
+
+    This can be computed directly from the letter counts, 5a 2b 2r 1c 1d:
+
+        >>> from collections import Counter
+        >>> list(Counter('abracadabra').values())
+        [5, 2, 2, 1, 1]
+        >>> multinomial(5, 2, 2, 1, 1)
+        83160
+
+    A binomial coefficient is a special case of multinomial where there are
+    only two categories.  For example, the number of ways to arrange 12 balls
+    with 5 reds and 7 blues is ``multinomial(5, 7)`` or ``math.comb(12, 5)``.
+
+    Likewise, factorial is a special case of multinomial where
+    the multiplicities are all just 1 so that
+    ``multinomial(1, 1, 1, 1, 1, 1, 1) == math.factorial(7)``.
+
+    Reference:  https://en.wikipedia.org/wiki/Multinomial_theorem
+
+    """
+    return prod(map(comb, accumulate(counts), counts))
+
+
+def _running_median_minheap_and_maxheap(iterator):  # pragma: no cover
+    "Non-windowed running_median() for Python 3.14+"
+
+    read = iterator.__next__
+    lo = []  # max-heap
+    hi = []  # min-heap (same size as or one smaller than lo)
+
+    with suppress(StopIteration):
+        while True:
+            heappush_max(lo, heappushpop(hi, read()))
+            yield lo[0]
+
+            heappush(hi, heappushpop_max(lo, read()))
+            yield (lo[0] + hi[0]) / 2
+
+
+def _running_median_minheap_only(iterator):  # pragma: no cover
+    "Backport of non-windowed running_median() for Python 3.13 and prior."
+
+    read = iterator.__next__
+    lo = []  # max-heap (actually a minheap with negated values)
+    hi = []  # min-heap (same size as or one smaller than lo)
+
+    with suppress(StopIteration):
+        while True:
+            heappush(lo, -heappushpop(hi, read()))
+            yield -lo[0]
+
+            heappush(hi, -heappushpop(lo, -read()))
+            yield (hi[0] - lo[0]) / 2
+
+
+def _running_median_windowed(iterator, maxlen):
+    "Yield median of values in a sliding window."
+
+    window = deque()
+    ordered = []
+
+    for x in iterator:
+        window.append(x)
+        insort(ordered, x)
+
+        if len(ordered) > maxlen:
+            i = bisect_left(ordered, window.popleft())
+            del ordered[i]
+
+        n = len(ordered)
+        m = n // 2
+        yield ordered[m] if n & 1 else (ordered[m - 1] + ordered[m]) / 2
+
+
+def running_median(iterable, *, maxlen=None):
+    """Cumulative median of values seen so far or values in a sliding window.
+
+    Set *maxlen* to a positive integer to specify the maximum size
+    of the sliding window.  The default of *None* is equivalent to
+    an unbounded window.
+
+    For example:
+
+        >>> list(running_median([5.0, 9.0, 4.0, 12.0, 8.0, 9.0]))
+        [5.0, 7.0, 5.0, 7.0, 8.0, 8.5]
+        >>> list(running_median([5.0, 9.0, 4.0, 12.0, 8.0, 9.0], maxlen=3))
+        [5.0, 7.0, 5.0, 9.0, 8.0, 9.0]
+
+    Supports numeric types such as int, float, Decimal, and Fraction,
+    but not complex numbers which are unorderable.
+
+    On version Python 3.13 and prior, max-heaps are simulated with
+    negative values. The negation causes Decimal inputs to apply context
+    rounding, making the results slightly different than that obtained
+    by statistics.median().
+    """
+
+    iterator = iter(iterable)
+
+    if maxlen is not None:
+        maxlen = index(maxlen)
+        if maxlen <= 0:
+            raise ValueError('Window size should be positive')
+        return _running_median_windowed(iterator, maxlen)
+
+    if not _max_heap_available:
+        return _running_median_minheap_only(iterator)  # pragma: no cover
+
+    return _running_median_minheap_and_maxheap(iterator)  # pragma: no cover

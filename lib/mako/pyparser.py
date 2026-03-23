@@ -1,5 +1,5 @@
 # mako/pyparser.py
-# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -93,6 +93,7 @@ class FindIdentifiers(_ast_util.NodeVisitor):
     def visit_ListComp(self, node):
         if self.in_function:
             for comp in node.generators:
+                self.visit(comp.target)
                 self.visit(comp.iter)
         else:
             self.generic_visit(node)
@@ -102,6 +103,7 @@ class FindIdentifiers(_ast_util.NodeVisitor):
     def visit_DictComp(self, node):
         if self.in_function:
             for comp in node.generators:
+                self.visit(comp.target)
                 self.visit(comp.iter)
         else:
             self.generic_visit(node)

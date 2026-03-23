@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from pathlib import Path
 from urllib.parse import quote_plus
 from xml.etree import ElementTree
@@ -6,7 +5,6 @@ from xml.etree import ElementTree
 from plexapi import log, settings, utils
 from plexapi.base import PlexObject, cached_data_property
 from plexapi.exceptions import BadRequest
-from plexapi.utils import deprecated
 
 
 @utils.registerPlexObject
@@ -231,18 +229,6 @@ class MediaPart(PlexObject):
         self._server.query(key, method=self._server._session.put, params=params)
         return self
 
-    @deprecated('Use "setSelectedAudioStream" instead.')
-    def setDefaultAudioStream(self, stream):
-        return self.setSelectedAudioStream(stream)
-
-    @deprecated('Use "setSelectedSubtitleStream" instead.')
-    def setDefaultSubtitleStream(self, stream):
-        return self.setSelectedSubtitleStream(stream)
-
-    @deprecated('Use "resetSelectedSubtitleStream" instead.')
-    def resetDefaultSubtitleStream(self):
-        return self.resetSelectedSubtitleStream()
-
 
 class MediaPartStream(PlexObject):
     """ Base class for media streams. These consist of video, audio, subtitles, and lyrics.
@@ -433,9 +419,16 @@ class AudioStream(MediaPartStream):
         """
         return self._parent().setSelectedAudioStream(self)
 
-    @deprecated('Use "setSelected" instead.')
-    def setDefault(self):
-        return self.setSelected()
+    def levels(self, subSample=128):
+        """ Returns a list of :class:`~plexapi.media.Level` objects for this AudioStream.
+            Only available for Tracks which have been analyzed for loudness.
+
+            Attributes:
+                subSample (int): The number of loudness samples to return. Default 128.
+        """
+        key = f'/library/streams/{self.id}/levels'
+        params = {'subsample': subSample}
+        return self.fetchItems(key, params=params)
 
 
 @utils.registerPlexObject
@@ -482,10 +475,6 @@ class SubtitleStream(MediaPartStream):
             Alias for :func:`~plexapi.media.MediaPart.setSelectedSubtitleStream`.
         """
         return self._parent().setSelectedSubtitleStream(self)
-
-    @deprecated('Use "setSelected" instead.')
-    def setDefault(self):
-        return self.setSelected()
 
 
 @utils.registerPlexObject
@@ -730,7 +719,7 @@ class MediaTag(PlexObject):
 
         Attributes:
             filter (str): The library filter for the tag.
-            id (id): Tag ID (This seems meaningless except to use it as a unique id).
+            id (int): Tag ID (This seems meaningless except to use it as a unique id).
             key (str): API URL (/library/section/<librarySectionID>/all?<filter>).
             role (str): The name of the character role for :class:`~plexapi.media.Role` only.
             tag (str): Name of the tag. This will be Animation, SciFi etc for Genres. The name of
@@ -1105,6 +1094,11 @@ class Poster(BaseResource):
     TAG = 'Photo'
 
 
+class SquareArt(BaseResource):
+    """ Represents a single Square Art object. """
+    TAG = 'Photo'
+
+
 class Theme(BaseResource):
     """ Represents a single Theme object. """
     TAG = 'Track'
@@ -1265,19 +1259,10 @@ class Agent(PlexObject):
             return self.findItems(self._data, cls=AgentMediaType)
         return []
 
-    @property
-    @deprecated('use "languageCodes" instead')
-    def languageCode(self):
-        return self.languageCodes
-
     def settings(self):
         key = f'/:/plugins/{self.identifier}/prefs'
         data = self._server.query(key)
         return self.findItems(data, cls=settings.Setting)
-
-    @deprecated('use "settings" instead')
-    def _settings(self):
-        return self.settings()
 
 
 class AgentMediaType(Agent):
@@ -1300,11 +1285,6 @@ class AgentMediaType(Agent):
     @cached_data_property
     def languageCodes(self):
         return self.listAttrs(self._data, 'code', etag='Language')
-
-    @property
-    @deprecated('use "languageCodes" instead')
-    def languageCode(self):
-        return self.languageCodes
 
 
 @utils.registerPlexObject
@@ -1343,3 +1323,135 @@ class Availability(PlexObject):
         self.quality = data.attrib.get('quality')
         self.title = data.attrib.get('title')
         self.url = data.attrib.get('url')
+
+
+@utils.registerPlexObject
+class Level(PlexObject):
+    """ Represents a single loudness Level sample for an AudioStream.
+
+        Attributes:
+            loudness (float): Loudness level value
+    """
+    def _loadData(self, data):
+        """ Load attribute values from Plex XML response. """
+        self.loudness = utils.cast(float, data.attrib.get('v'))
+
+
+@utils.registerPlexObject
+class CommonSenseMedia(PlexObject):
+    """ Represents a single CommonSenseMedia media tag.
+        Note: This object is only loaded with partial data from a Plex Media Server.
+        Call `reload()` to load the full data from Plex Discover (Plex Pass required).
+
+        Attributes:
+            TAG (str): 'CommonSenseMedia'
+            ageRatings (List<:class:`~plexapi.media.AgeRating`>): List of AgeRating objects.
+            anyGood (str): A brief description of the media's quality.
+            id (int): The ID of the CommonSenseMedia tag.
+            key (str): The unique key for the CommonSenseMedia tag.
+            oneLiner (str): A brief description of the CommonSenseMedia tag.
+            parentalAdvisoryTopics (List<:class:`~plexapi.media.ParentalAdvisoryTopic`>):
+                List of ParentalAdvisoryTopic objects.
+            parentsNeedToKnow (str): A brief description of what parents need to know about the media.
+            talkingPoints (List<:class:`~plexapi.media.TalkingPoint`>): List of TalkingPoint objects.
+
+        Example:
+
+            .. code-block:: python
+
+                from plexapi.server import PlexServer
+                plex = PlexServer('http://localhost:32400', token='xxxxxxxxxxxxxxxxxxxx')
+
+                # Retrieve the Common Sense Media info for a movie
+                movie = plex.library.section('Movies').get('Cars')
+                commonSenseMedia = movie.commonSenseMedia
+                ageRating = commonSenseMedia.ageRatings[0].age
+
+                # Load the Common Sense Media info from Plex Discover (Plex Pass required)
+                commonSenseMedia.reload()
+                parentalAdvisoryTopics = commonSenseMedia.parentalAdvisoryTopics
+                talkingPoints = commonSenseMedia.talkingPoints
+
+    """
+    TAG = 'CommonSenseMedia'
+
+    def _loadData(self, data):
+        self.ageRatings = self.findItems(data, AgeRating)
+        self.anyGood = data.attrib.get('anyGood')
+        self.id = utils.cast(int, data.attrib.get('id'))
+        self.key = data.attrib.get('key')
+        self.oneLiner = data.attrib.get('oneLiner')
+        self.parentalAdvisoryTopics = self.findItems(data, ParentalAdvisoryTopic)
+        self.parentsNeedToKnow = data.attrib.get('parentsNeedToKnow')
+        self.talkingPoints = self.findItems(data, TalkingPoint)
+
+    def _reload(self, **kwargs):
+        """ Reload the data for the Common Sense Media object. """
+        guid = self._parent().guid
+        if not guid.startswith('plex://'):
+            return self
+
+        ratingKey = guid.rsplit('/', 1)[-1]
+        account = self._server.myPlexAccount()
+        key = f'{account.METADATA}/library/metadata/{ratingKey}/commonsensemedia'
+        data = account.query(key)
+        self._findAndLoadElem(data)
+        return self
+
+
+@utils.registerPlexObject
+class AgeRating(PlexObject):
+    """ Represents a single AgeRating for a Common Sense Media tag.
+
+        Attributes:
+            TAG (str): 'AgeRating'
+            age (float): The age rating (e.g. 13, 17).
+            ageGroup (str): The age group for the rating (e.g. Little Kids, Teens, etc.).
+            rating (float): The star rating (out of 5).
+            ratingCount (int): The number of ratings contributing to the star rating.
+            type (str): The type of rating (official, adult, child).
+    """
+    TAG = 'AgeRating'
+
+    def _loadData(self, data):
+        self.age = utils.cast(float, data.attrib.get('age'))
+        self.ageGroup = data.attrib.get('ageGroup')
+        self.rating = utils.cast(float, data.attrib.get('rating'))
+        self.ratingCount = utils.cast(int, data.attrib.get('ratingCount'))
+        self.type = data.attrib.get('type')
+
+
+@utils.registerPlexObject
+class TalkingPoint(PlexObject):
+    """ Represents a single TalkingPoint for a Common Sense Media tag.
+
+        Attributes:
+            TAG (str): 'TalkingPoint'
+            tag (str): The description of the talking point.
+    """
+    TAG = 'TalkingPoint'
+
+    def _loadData(self, data):
+        self.tag = data.attrib.get('tag')
+
+
+@utils.registerPlexObject
+class ParentalAdvisoryTopic(PlexObject):
+    """ Represents a single ParentalAdvisoryTopic for a Common Sense Media tag.
+
+        Attributes:
+            TAG (str): 'ParentalAdvisoryTopic'
+            id (str): The ID of the topic (e.g. violence, language, etc.).
+            label (str): The label for the topic (e.g. Violence & Scariness, Language, etc.).
+            positive (bool): Whether the topic is considered positive.
+            rating (float): The rating of the topic (out of 5).
+            tag (str): The description of the parental advisory topic.
+    """
+    TAG = 'ParentalAdvisoryTopic'
+
+    def _loadData(self, data):
+        self.id = data.attrib.get('id')
+        self.label = data.attrib.get('label')
+        self.positive = utils.cast(bool, data.attrib.get('positive'))
+        self.rating = utils.cast(float, data.attrib.get('rating'))
+        self.tag = data.attrib.get('tag')

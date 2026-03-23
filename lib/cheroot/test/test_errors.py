@@ -4,7 +4,12 @@ import pytest
 
 from cheroot import errors
 
-from .._compat import IS_LINUX, IS_MACOS, IS_SOLARIS, IS_WINDOWS  # noqa: WPS130
+from .._compat import (  # noqa: WPS130
+    IS_LINUX,
+    IS_MACOS,
+    IS_SOLARIS,
+    IS_WINDOWS,
+)
 
 
 @pytest.mark.parametrize(
@@ -13,14 +18,21 @@ from .._compat import IS_LINUX, IS_MACOS, IS_SOLARIS, IS_WINDOWS  # noqa: WPS130
         (('', 'some-nonsense-name'), []),
         (
             (
-                'EPROTOTYPE', 'EAGAIN', 'EWOULDBLOCK',
-                'WSAEWOULDBLOCK', 'EPIPE',
+                'EPROTOTYPE',
+                'EAGAIN',
+                'EWOULDBLOCK',
+                'WSAEWOULDBLOCK',
+                'EPIPE',
             ),
-            (91, 11, 32) if IS_LINUX else
-            (32, 35, 41) if IS_MACOS else
-            (98, 11, 32) if IS_SOLARIS else
-            (32, 10041, 11, 10035) if IS_WINDOWS else
-            (),
+            (91, 11, 32)
+            if IS_LINUX
+            else (32, 35, 41)
+            if IS_MACOS
+            else (98, 11, 32)
+            if IS_SOLARIS
+            else (32, 10041, 11, 10035)
+            if IS_WINDOWS
+            else (),
         ),
     ),
 )

@@ -20,7 +20,7 @@ import os
 import random
 import threading
 import time
-from typing import Any, Optional
+from typing import Any
 
 
 class EntropyPool:
@@ -29,9 +29,9 @@ class EntropyPool:
     # leaving this code doesn't hurt anything as the library code
     # is used if present.
 
-    def __init__(self, seed: Optional[bytes] = None):
+    def __init__(self, seed: bytes | None = None):
         self.pool_index = 0
-        self.digest: Optional[bytearray] = None
+        self.digest: bytearray | None = None
         self.next_byte = 0
         self.lock = threading.Lock()
         self.hash = hashlib.sha1()
@@ -45,7 +45,7 @@ class EntropyPool:
             self.seeded = False
             self.seed_pid = 0
 
-    def _stir(self, entropy: bytes) -> None:
+    def _stir(self, entropy: bytes | bytearray) -> None:
         for c in entropy:
             if self.pool_index == self.hash_len:
                 self.pool_index = 0
@@ -53,7 +53,7 @@ class EntropyPool:
             self.pool[self.pool_index] ^= b
             self.pool_index += 1
 
-    def stir(self, entropy: bytes) -> None:
+    def stir(self, entropy: bytes | bytearray) -> None:
         with self.lock:
             self._stir(entropy)
 
@@ -109,7 +109,7 @@ class EntropyPool:
 
 pool = EntropyPool()
 
-system_random: Optional[Any]
+system_random: Any | None
 try:
     system_random = random.SystemRandom()
 except Exception:  # pragma: no cover

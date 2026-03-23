@@ -31,6 +31,7 @@ __all__ = [
     "DNAME",
     "DNSKEY",
     "DS",
+    "DSYNC",
     "EUI48",
     "EUI64",
     "GPOS",

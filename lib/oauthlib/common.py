@@ -34,7 +34,7 @@ INVALID_HEX_PATTERN = re.compile(r'%[^0-9A-Fa-f]|%[0-9A-Fa-f][^0-9A-Fa-f]')
 
 always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                'abcdefghijklmnopqrstuvwxyz'
-               '0123456789' '_.-')
+               '0123456789_.-')
 
 log = logging.getLogger('oauthlib')
 
@@ -198,7 +198,7 @@ def generate_token(length=30, chars=UNICODE_ASCII_CHARACTER_SET):
 
 
 def generate_signed_token(private_pem, request):
-    import jwt
+    import jwt  # noqa: PLC0415
 
     now = datetime.datetime.utcnow()
 
@@ -216,7 +216,7 @@ def generate_signed_token(private_pem, request):
 
 
 def verify_signed_token(public_pem, token):
-    import jwt
+    import jwt  # noqa: PLC0415
 
     return jwt.decode(token, public_pem, algorithms=['RS256'])
 
@@ -316,7 +316,7 @@ class CaseInsensitiveDict(dict):
         return super().__getitem__(key)
 
     def get(self, k, default=None):
-        return self[k] if k in self else default
+        return self[k] if k in self else default  # noqa: SIM401
 
     def __setitem__(self, k, v):
         super().__setitem__(k, v)
@@ -346,7 +346,8 @@ class Request:
     def __init__(self, uri, http_method='GET', body=None, headers=None,
                  encoding='utf-8'):
         # Convert to unicode using encoding if given, else assume unicode
-        encode = lambda x: to_unicode(x, encoding) if encoding else x
+        def encode(x):
+            return to_unicode(x, encoding) if encoding else x
 
         self.uri = encode(uri)
         self.http_method = encode(http_method)

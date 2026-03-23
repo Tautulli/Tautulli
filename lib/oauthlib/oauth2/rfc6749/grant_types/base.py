@@ -143,7 +143,7 @@ class GrantTypeBase:
         :type request: oauthlib.common.Request
         """
         # Only add a hybrid access token on auth step if asked for
-        if not request.response_type in ["token", "code token", "id_token token", "code id_token token"]:
+        if request.response_type not in ["token", "code token", "id_token token", "code id_token token"]:
             return token
 
         token.update(token_handler.create_token(request, refresh_token=False))
@@ -199,10 +199,7 @@ class GrantTypeBase:
 
         if request.response_type == 'none':
             state = token.get('state', None)
-            if state:
-                token_items = [('state', state)]
-            else:
-                token_items = []
+            token_items = [('state', state)] if state else []
 
         if request.response_mode == 'query':
             headers['Location'] = add_params_to_uri(

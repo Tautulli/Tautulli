@@ -1,18 +1,18 @@
 """A library of helper functions for the Cheroot test suite."""
 
 import datetime
+import http.client
 import logging
 import os
 import sys
-import time
 import threading
+import time
 import types
-import http.client
 
 import cheroot.server
 import cheroot.wsgi
-
 from cheroot.test import webtest
+
 
 log = logging.getLogger(__name__)
 thisdir = os.path.abspath(os.path.dirname(__file__))
@@ -103,8 +103,7 @@ class CherootWebCase(webtest.WebCase):
             diff = dt2 - dt1
         if not diff < datetime.timedelta(seconds=seconds):
             raise AssertionError(
-                '%r and %r are not within %r seconds.' %
-                (dt1, dt2, seconds),
+                '%r and %r are not within %r seconds.' % (dt1, dt2, seconds),
             )
 
 
@@ -129,12 +128,11 @@ class Response:
         """Generate iterable response body object."""
         if self.body is None:
             return []
-        elif isinstance(self.body, str):
+        if isinstance(self.body, str):
             return [self.body.encode('iso-8859-1')]
-        elif isinstance(self.body, bytes):
+        if isinstance(self.body, bytes):
             return [self.body]
-        else:
-            return [x.encode('iso-8859-1') for x in self.body]
+        return [x.encode('iso-8859-1') for x in self.body]
 
 
 class Controller:
@@ -151,12 +149,9 @@ class Controller:
             resp.status = '404 Not Found'
         else:
             output = handler(req, resp)
-            if (
-                output is not None
-                and not any(
-                    resp.status.startswith(status_code)
-                    for status_code in ('204', '304')
-                )
+            if output is not None and not any(
+                resp.status.startswith(status_code)
+                for status_code in ('204', '304')
             ):
                 resp.body = output
                 try:

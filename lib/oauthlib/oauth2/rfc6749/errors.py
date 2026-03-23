@@ -6,6 +6,8 @@ Error used both by OAuth 2 clients and providers to represent the spec
 defined error responses for all four core grant types.
 """
 import json
+import inspect
+import sys
 
 from oauthlib.common import add_params_to_uri, urlencode
 
@@ -60,7 +62,7 @@ class OAuth2Error(Exception):
             self.response_type = request.response_type
             self.response_mode = request.response_mode
             self.grant_type = request.grant_type
-            if not state:
+            if state is None:
                 self.state = request.state
         else:
             self.redirect_uri = None
@@ -150,7 +152,6 @@ class FatalClientError(OAuth2Error):
 
     Instead the user should be informed of the error by the provider itself.
     """
-    pass
 
 
 class InvalidRequestFatalError(FatalClientError):
@@ -387,8 +388,6 @@ class CustomOAuth2Error(OAuth2Error):
 
 
 def raise_from_error(error, params=None):
-    import inspect
-    import sys
     kwargs = {
         'description': params.get('error_description'),
         'uri': params.get('error_uri'),

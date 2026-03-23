@@ -19,14 +19,13 @@
 
 import enum
 import io
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import dns.immutable
 import dns.name
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
-import dns.renderer
 import dns.rrset
 
 _cname_types = {
@@ -210,7 +209,7 @@ class Node:
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
         create: bool = False,
-    ) -> Optional[dns.rdataset.Rdataset]:
+    ) -> dns.rdataset.Rdataset | None:
         """Get an rdataset matching the specified properties in the
         current node.
 
@@ -339,7 +338,7 @@ class ImmutableNode(Node):
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
         create: bool = False,
-    ) -> Optional[dns.rdataset.Rdataset]:
+    ) -> dns.rdataset.Rdataset | None:
         if create:
             raise TypeError("immutable")
         return super().get_rdataset(rdclass, rdtype, covers, False)

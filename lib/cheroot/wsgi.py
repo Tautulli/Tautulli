@@ -25,11 +25,12 @@ as you want in one instance by using a PathInfoDispatcher::
     server = wsgi.Server(addr, d)
 """
 
+import contextlib
 import sys
 
 from . import server
+from ._compat import bton, ntob
 from .workers import threadpool
-from ._compat import ntob, bton
 
 
 class Server(server.HTTPServer):
@@ -38,11 +39,20 @@ class Server(server.HTTPServer):
     wsgi_version = (1, 0)
     """The version of WSGI to produce."""
 
-    def __init__(
-        self, bind_addr, wsgi_app, numthreads=10, server_name=None,
-        max=-1, request_queue_size=5, timeout=10, shutdown_timeout=5,
-        accepted_queue_size=-1, accepted_queue_timeout=10,
-        peercreds_enabled=False, peercreds_resolve_enabled=False,
+    def __init__(  # pylint: disable=too-many-positional-arguments
+        self,
+        bind_addr,
+        wsgi_app,
+        numthreads=10,
+        server_name=None,
+        max=-1,
+        request_queue_size=5,
+        timeout=10,
+        shutdown_timeout=5,
+        accepted_queue_size=-1,
+        accepted_queue_timeout=10,
+        peercreds_enabled=False,
+        peercreds_resolve_enabled=False,
         reuse_port=False,
     ):
         """Initialize WSGI Server instance.
@@ -77,7 +87,9 @@ class Server(server.HTTPServer):
         self.timeout = timeout
         self.shutdown_timeout = shutdown_timeout
         self.requests = threadpool.ThreadPool(
-            self, min=numthreads or 1, max=max,
+            self,
+            min=numthreads or 1,
+            max=max,
             accepted_queue_size=accepted_queue_size,
             accepted_queue_timeout=accepted_queue_timeout,
         )
@@ -151,8 +163,7 @@ class Gateway(server.Gateway):
         # if and only if the exc_info argument is provided."
         if self.started_response and not exc_info:
             raise RuntimeError(
-                'WSGI start_response called a second '
-                'time with no exc_info.',
+                'WSGI start_response called a second time with no exc_info.',
             )
         self.started_response = True
 
@@ -290,8 +301,9 @@ class Gateway_10(Gateway):
         # Request headers
         env.update(
             (
-                'HTTP_{header_name!s}'.
-                format(header_name=bton(k).upper().replace('-', '_')),
+                'HTTP_{header_name!s}'.format(
+                    header_name=bton(k).upper().replace('-', '_'),
+                ),
                 bton(v),
             )
             for k, v in req.inheaders.items()
@@ -355,14 +367,13 @@ class PathInfoDispatcher:
             apps (dict[str,object]|list[tuple[str,object]]): URI prefix
                 and WSGI app pairs
         """
-        try:
+        with contextlib.suppress(AttributeError):
             apps = list(apps.items())
-        except AttributeError:
-            pass
 
         # Sort the apps by len(path), descending
         def by_path_len(app):
             return len(app[0])
+
         apps.sort(key=by_path_len, reverse=True)
 
         # The path_prefix strings must start, but not end, with a slash.
@@ -387,14 +398,15 @@ class PathInfoDispatcher:
         path = environ['PATH_INFO'] or '/'
         for p, app in self.apps:
             # The apps list should be sorted by length, descending.
-            if path.startswith('{path!s}/'.format(path=p)) or path == p:
+            if path.startswith(f'{p!s}/') or path == p:
                 environ = environ.copy()
                 environ['SCRIPT_NAME'] = environ.get('SCRIPT_NAME', '') + p
-                environ['PATH_INFO'] = path[len(p):]
+                environ['PATH_INFO'] = path[len(p) :]
                 return app(environ, start_response)
 
         start_response(
-            '404 Not Found', [
+            '404 Not Found',
+            [
                 ('Content-Type', 'text/plain'),
                 ('Content-Length', '0'),
             ],

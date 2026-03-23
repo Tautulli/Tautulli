@@ -34,7 +34,7 @@ class OPENPGPKEY(dns.rdata.Rdata):
         self.key = self._as_bytes(key)
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return dns.rdata._base64ify(self.key, chunksize=None, **kw)
+        return dns.rdata._base64ify(self.key, chunksize=None, **kw)  # pyright: ignore
 
     @classmethod
     def from_text(

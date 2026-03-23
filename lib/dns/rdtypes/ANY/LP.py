@@ -21,7 +21,7 @@ class LP(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         fqdn = self.fqdn.choose_relativity(origin, relativize)
-        return "%d %s" % (self.preference, fqdn)
+        return f"{self.preference} {fqdn}"
 
     @classmethod
     def from_text(

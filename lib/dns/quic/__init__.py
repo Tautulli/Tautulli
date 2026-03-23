@@ -1,21 +1,20 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import dns._features
 import dns.asyncbackend
 
 if dns._features.have("doq"):
-    import aioquic.quic.configuration  # type: ignore
-
     from dns._asyncbackend import NullContext
-    from dns.quic._asyncio import (
-        AsyncioQuicConnection,
-        AsyncioQuicManager,
-        AsyncioQuicStream,
-    )
-    from dns.quic._common import AsyncQuicConnection, AsyncQuicManager
-    from dns.quic._sync import SyncQuicConnection, SyncQuicManager, SyncQuicStream
+    from dns.quic._asyncio import AsyncioQuicConnection as AsyncioQuicConnection
+    from dns.quic._asyncio import AsyncioQuicManager
+    from dns.quic._asyncio import AsyncioQuicStream as AsyncioQuicStream
+    from dns.quic._common import AsyncQuicConnection  # pyright: ignore
+    from dns.quic._common import AsyncQuicManager as AsyncQuicManager
+    from dns.quic._sync import SyncQuicConnection  # pyright: ignore
+    from dns.quic._sync import SyncQuicStream  # pyright: ignore
+    from dns.quic._sync import SyncQuicManager as SyncQuicManager
 
     have_quic = True
 
@@ -33,16 +32,17 @@ if dns._features.have("doq"):
     # We have a context factory and a manager factory as for trio we need to have
     # a nursery.
 
-    _async_factories = {"asyncio": (null_factory, _asyncio_manager_factory)}
+    _async_factories: Dict[str, Tuple[Any, Any]] = {
+        "asyncio": (null_factory, _asyncio_manager_factory)
+    }
 
     if dns._features.have("trio"):
         import trio
 
-        from dns.quic._trio import (  # pylint: disable=ungrouped-imports
-            TrioQuicConnection,
-            TrioQuicManager,
-            TrioQuicStream,
-        )
+        # pylint: disable=ungrouped-imports
+        from dns.quic._trio import TrioQuicConnection as TrioQuicConnection
+        from dns.quic._trio import TrioQuicManager
+        from dns.quic._trio import TrioQuicStream as TrioQuicStream
 
         def _trio_context_factory():
             return trio.open_nursery()
@@ -59,8 +59,6 @@ if dns._features.have("doq"):
 
 else:  # pragma: no cover
     have_quic = False
-
-    from typing import Any
 
     class AsyncQuicStream:  # type: ignore
         pass

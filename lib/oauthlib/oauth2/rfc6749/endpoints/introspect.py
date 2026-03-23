@@ -74,7 +74,7 @@ class IntrospectEndpoint(BaseEndpoint):
             request
         )
         if claims is None:
-            return resp_headers, json.dumps(dict(active=False)), 200
+            return resp_headers, json.dumps({'active': False}), 200
         if "active" in claims:
             claims.pop("active")
         return resp_headers, json.dumps(dict(active=True, **claims)), 200

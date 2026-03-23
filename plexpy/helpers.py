@@ -24,8 +24,7 @@ from cloudinary.utils import cloudinary_url
 from collections import OrderedDict
 from datetime import date, datetime, timezone
 from functools import reduce, wraps
-from itertools import groupby
-from future.moves.itertools import islice, zip_longest
+from itertools import groupby, islice, zip_longest
 from ipaddress import ip_address, ip_network, IPv4Address
 import ipwhois
 import ipwhois.exceptions

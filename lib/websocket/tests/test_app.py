@@ -12,7 +12,7 @@ import websocket as ws
 test_app.py
 websocket - WebSocket client library for Python
 
-Copyright 2024 engn33r
+Copyright 2025 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -346,6 +346,49 @@ class WebSocketAppTest(unittest.TestCase):
         self.assertEqual(pong_count, 2)
         self.assertIsInstance(exc, ws.WebSocketTimeoutException)
         self.assertEqual(str(exc), "ping/pong timed out")
+
+    def test_dispatcher_selection_default(self):
+        """Test default dispatcher selection"""
+        app = ws.WebSocketApp("ws://example.com")
+
+        # Test default dispatcher (non-SSL)
+        dispatcher = app.create_dispatcher(ping_timeout=10, is_ssl=False)
+        self.assertIsInstance(dispatcher, ws._dispatcher.Dispatcher)
+
+    def test_dispatcher_selection_ssl(self):
+        """Test SSL dispatcher selection"""
+        app = ws.WebSocketApp("wss://example.com")
+
+        # Test SSL dispatcher
+        dispatcher = app.create_dispatcher(ping_timeout=10, is_ssl=True)
+        self.assertIsInstance(dispatcher, ws._dispatcher.SSLDispatcher)
+
+    def test_dispatcher_selection_custom(self):
+        """Test custom dispatcher selection"""
+        from unittest.mock import Mock
+
+        app = ws.WebSocketApp("ws://example.com")
+        custom_dispatcher = Mock()
+        handle_disconnect = Mock()
+
+        # Test wrapped dispatcher with custom dispatcher
+        dispatcher = app.create_dispatcher(
+            ping_timeout=10,
+            dispatcher=custom_dispatcher,
+            handleDisconnect=handle_disconnect,
+        )
+        self.assertIsInstance(dispatcher, ws._dispatcher.WrappedDispatcher)
+        self.assertEqual(dispatcher.dispatcher, custom_dispatcher)
+        self.assertEqual(dispatcher.handleDisconnect, handle_disconnect)
+
+    def test_dispatcher_selection_no_ping_timeout(self):
+        """Test dispatcher selection without ping timeout"""
+        app = ws.WebSocketApp("ws://example.com")
+
+        # Test with None ping_timeout (should default to 10)
+        dispatcher = app.create_dispatcher(ping_timeout=None, is_ssl=False)
+        self.assertIsInstance(dispatcher, ws._dispatcher.Dispatcher)
+        self.assertEqual(dispatcher.ping_timeout, 10)
 
 
 if __name__ == "__main__":

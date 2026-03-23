@@ -55,12 +55,10 @@ class DSBase(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         kw = kw.copy()
         chunksize = kw.pop("chunksize", 128)
-        return "%d %d %d %s" % (
-            self.key_tag,
-            self.algorithm,
-            self.digest_type,
-            dns.rdata._hexify(self.digest, chunksize=chunksize, **kw),
+        digest = dns.rdata._hexify(
+            self.digest, chunksize=chunksize, **kw  # pyright: ignore
         )
+        return f"{self.key_tag} {self.algorithm} {self.digest_type} {digest}"
 
     @classmethod
     def from_text(

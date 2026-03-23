@@ -11,9 +11,9 @@ from bleach.sanitizer import (
 
 
 # yyyymmdd
-__releasedate__ = "20241029"
+__releasedate__ = "20251027"
 # x.y.z or x.y.z.dev0 -- semver
-__version__ = "6.2.0"
+__version__ = "6.3.0"
 
 
 __all__ = ["clean", "linkify"]
@@ -58,7 +58,7 @@ def clean(
     :arg dict attributes: allowed attributes; can be a callable, list or dict;
         defaults to ``bleach.sanitizer.ALLOWED_ATTRIBUTES``
 
-    :arg list protocols: allowed list of protocols for links; defaults
+    :arg set protocols: set of allowed protocols for links; defaults
         to ``bleach.sanitizer.ALLOWED_PROTOCOLS``
 
     :arg bool strip: whether or not to strip disallowed elements

@@ -70,7 +70,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-RE_CLASS = re.compile(r'(?i)[a-z_][_a-z\d\.]+\(')
+RE_CLASS = re.compile(r'(?i)[a-z_][_a-z\d.]+\(')
 RE_PARAM = re.compile(r'(?i)[_a-z][_a-z\d]+=')
 RE_EMPTY = re.compile(r'\(\)|\[\]|\{\}')
 RE_LSTRT = re.compile(r'\[')
@@ -80,11 +80,12 @@ RE_LEND = re.compile(r'\]')
 RE_DEND = re.compile(r'\}')
 RE_TEND = re.compile(r'\)')
 RE_INT = re.compile(r'\d+')
-RE_KWORD = re.compile(r'(?i)[_a-z][_a-z\d]+')
+RE_KWORD = re.compile(r'(?i)[_a-z][_a-z\d.]+')
 RE_DQSTR = re.compile(r'"(?:\\.|[^"\\])*"')
 RE_SQSTR = re.compile(r"'(?:\\.|[^'\\])*'")
 RE_SEP = re.compile(r'\s*(,)\s*')
 RE_DSEP = re.compile(r'\s*(:)\s*')
+RE_PSEP = re.compile(r'\s*(\|)\s*')
 
 TOKENS = {
     'class': RE_CLASS,
@@ -99,6 +100,7 @@ TOKENS = {
     'sqstr': RE_SQSTR,
     'sep': RE_SEP,
     'dsep': RE_DSEP,
+    'psep': RE_PSEP,
     'int': RE_INT,
     'kword': RE_KWORD,
     'dqstr': RE_DQSTR
@@ -134,6 +136,13 @@ def pretty(obj: Any) -> str:  # pragma: no cover
                     output.append(f'{m.group(1)}\n{" " * indent}')
                 elif name in ('dsep',):
                     output.append(f'{m.group(1)} ')
+                elif name in ('psep'):
+                    output.append(f' {m.group(1)} ')
                 break
+
+        # We shouldn't hit this, but if we do, store unrecognized character
+        if m is None:  # pragma: no cover
+            output.append(sel[index])
+            index += 1
 
     return ''.join(output)

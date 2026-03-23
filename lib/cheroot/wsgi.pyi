@@ -1,5 +1,6 @@
-from . import server
 from typing import Any
+
+from . import server
 
 class Server(server.HTTPServer):
     wsgi_version: Any
@@ -8,7 +9,22 @@ class Server(server.HTTPServer):
     timeout: Any
     shutdown_timeout: Any
     requests: Any
-    def __init__(self, bind_addr, wsgi_app, numthreads: int = ..., server_name: Any | None = ..., max: int = ..., request_queue_size: int = ..., timeout: int = ..., shutdown_timeout: int = ..., accepted_queue_size: int = ..., accepted_queue_timeout: int = ..., peercreds_enabled: bool = ..., peercreds_resolve_enabled: bool = ..., reuse_port: bool = ...) -> None: ...
+    def __init__(
+        self,
+        bind_addr,
+        wsgi_app,
+        numthreads: int = ...,
+        server_name: Any | None = ...,
+        max: int = ...,
+        request_queue_size: int = ...,
+        timeout: int = ...,
+        shutdown_timeout: int = ...,
+        accepted_queue_size: int = ...,
+        accepted_queue_timeout: int = ...,
+        peercreds_enabled: bool = ...,
+        peercreds_resolve_enabled: bool = ...,
+        reuse_port: bool = ...,
+    ) -> None: ...
     @property
     def numthreads(self): ...
     @numthreads.setter
@@ -40,7 +56,6 @@ class PathInfoDispatcher:
     apps: Any
     def __init__(self, apps): ...
     def __call__(self, environ, start_response): ...
-
 
 WSGIServer = Server
 WSGIGateway = Gateway

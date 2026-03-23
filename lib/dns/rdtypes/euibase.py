@@ -16,6 +16,7 @@
 
 import binascii
 
+import dns.exception
 import dns.immutable
 import dns.rdata
 
@@ -27,7 +28,9 @@ class EUIBase(dns.rdata.Rdata):
     # see: rfc7043.txt
 
     __slots__ = ["eui"]
-    # define these in subclasses
+    # redefine these in subclasses
+    byte_len = 0
+    text_len = 0
     # byte_len = 6  # 0123456789ab (in hex)
     # text_len = byte_len * 3 - 1  # 01-23-45-67-89-ab
 

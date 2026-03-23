@@ -1,16 +1,11 @@
-import unittest
-import os
 import importlib
-
-from .compat.py39 import warnings_helper
+import os
+import unittest
 
 import importlib_resources as resources
 
 from . import util
-
-# Since the functional API forwards to Traversable, we only test
-# filesystem resources here -- not zip files, namespace packages etc.
-# We do test for two kinds of Anchor, though.
+from .compat.py39 import warnings_helper
 
 
 class StringAnchorMixin:
@@ -28,7 +23,7 @@ class ModuleAnchorMixin:
         return importlib.import_module('data02')
 
 
-class FunctionalAPIBase(util.DiskSetup):
+class FunctionalAPIBase:
     def setUp(self):
         super().setUp()
         self.load_fixture('data02')
@@ -77,7 +72,7 @@ class FunctionalAPIBase(util.DiskSetup):
         # fail with PermissionError rather than IsADirectoryError
         with self.assertRaises(OSError):
             resources.read_text(self.anchor01)
-        with self.assertRaises(OSError):
+        with self.assertRaises((OSError, resources.abc.TraversalError)):
             resources.read_text(self.anchor01, 'no-such-file')
         with self.assertRaises(UnicodeDecodeError):
             resources.read_text(self.anchor01, 'utf-16.file')
@@ -125,7 +120,7 @@ class FunctionalAPIBase(util.DiskSetup):
         # fail with PermissionError rather than IsADirectoryError
         with self.assertRaises(OSError):
             resources.open_text(self.anchor01)
-        with self.assertRaises(OSError):
+        with self.assertRaises((OSError, resources.abc.TraversalError)):
             resources.open_text(self.anchor01, 'no-such-file')
         with resources.open_text(self.anchor01, 'utf-16.file') as f:
             with self.assertRaises(UnicodeDecodeError):
@@ -182,17 +177,23 @@ class FunctionalAPIBase(util.DiskSetup):
             set(c),
             {'utf-8.file', 'utf-16.file', 'binary.file', 'subdirectory'},
         )
-        with self.assertRaises(OSError), warnings_helper.check_warnings((
-            ".*contents.*",
-            DeprecationWarning,
-        )):
+        with (
+            self.assertRaises(OSError),
+            warnings_helper.check_warnings((
+                ".*contents.*",
+                DeprecationWarning,
+            )),
+        ):
             list(resources.contents(self.anchor01, 'utf-8.file'))
 
         for path_parts in self._gen_resourcetxt_path_parts():
-            with self.assertRaises(OSError), warnings_helper.check_warnings((
-                ".*contents.*",
-                DeprecationWarning,
-            )):
+            with (
+                self.assertRaises((OSError, resources.abc.TraversalError)),
+                warnings_helper.check_warnings((
+                    ".*contents.*",
+                    DeprecationWarning,
+                )),
+            ):
                 list(resources.contents(self.anchor01, *path_parts))
         with warnings_helper.check_warnings((".*contents.*", DeprecationWarning)):
             c = resources.contents(self.anchor01, 'subdirectory')
@@ -239,17 +240,28 @@ class FunctionalAPIBase(util.DiskSetup):
                     )
 
 
-class FunctionalAPITest_StringAnchor(
+class FunctionalAPITest_StringAnchor_Disk(
     StringAnchorMixin,
     FunctionalAPIBase,
+    util.DiskSetup,
     unittest.TestCase,
 ):
     pass
 
 
-class FunctionalAPITest_ModuleAnchor(
+class FunctionalAPITest_ModuleAnchor_Disk(
     ModuleAnchorMixin,
     FunctionalAPIBase,
+    util.DiskSetup,
+    unittest.TestCase,
+):
+    pass
+
+
+class FunctionalAPITest_StringAnchor_Memory(
+    StringAnchorMixin,
+    FunctionalAPIBase,
+    util.MemorySetup,
     unittest.TestCase,
 ):
     pass

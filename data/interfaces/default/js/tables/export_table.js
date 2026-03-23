@@ -99,11 +99,11 @@ export_table_options = {
             "data": "file_format",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData !== '') {
-                    var images = '';
-                    if (rowData['thumb_level'] || rowData['art_level'] || rowData['logo_level']) {
-                        images = ' + images';
+                    var resources = '';
+                    if (rowData['thumb_level'] || rowData['art_level'] || rowData['logo_level'] || rowData['squareArt_level'] || rowData['theme_level']) {
+                        resources = ' + resources';
                     }
-                    $(td).html(cellData + images);
+                    $(td).html(cellData + resources);
                 }
             },
             "width": "7%",
@@ -161,14 +161,14 @@ export_table_options = {
                 if (cellData === 1 && rowData['exists']) {
                     var tooltip_title = '';
                     var icon = '';
-                    if (rowData['thumb_level'] || rowData['art_level'] || rowData['logo_level'] || rowData['individual_files']) {
+                    if (rowData['thumb_level'] || rowData['art_level'] || rowData['logo_level'] || rowData['squareArt_level'] || rowData['theme_level'] || rowData['individual_files']) {
                         tooltip_title = 'ZIP Archive';
                         icon = 'fa-file-archive';
                     } else {
                         tooltip_title = rowData['file_format'].toUpperCase() + ' File';
                         icon = 'fa-file-download';
                     }
-                    var icon = (rowData['thumb_level'] || rowData['art_level'] || rowData['logo_level'] || rowData['individual_files']) ? 'fa-file-archive' : 'fa-file-download';
+                    var icon = (rowData['thumb_level'] || rowData['art_level'] || rowData['logo_level'] || rowData['squareArt_level'] || rowData['theme_level'] || rowData['individual_files']) ? 'fa-file-archive' : 'fa-file-download';
                     $(td).html('<button class="btn btn-xs btn-success pull-left" data-id="' + rowData['export_id'] + '"><span data-toggle="tooltip" data-placement="left"  title="' + tooltip_title + '"><i class="fa ' + icon + ' fa-fw"></i> Download</span></button>');
                 } else if (cellData === 0) {
                     var percent = Math.min(getPercent(rowData['exported_items'], rowData['total_items']), 99)

@@ -15,7 +15,7 @@ from websocket._exceptions import WebSocketProxyException
 test_url.py
 websocket - WebSocket client library for Python
 
-Copyright 2024 engn33r
+Copyright 2025 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ class UrlTest(unittest.TestCase):
         self.assertTrue(_is_address_in_network("127.0.0.1", "127.0.0.0/8"))
         self.assertTrue(_is_address_in_network("127.1.0.1", "127.0.0.0/8"))
         self.assertFalse(_is_address_in_network("127.1.0.1", "127.0.0.0/24"))
+        self.assertTrue(_is_address_in_network("2001:db8::1", "2001:db8::/64"))
+        self.assertFalse(_is_address_in_network("2001:db8:1::1", "2001:db8::/64"))
 
     def test_parse_url(self):
         p = parse_url("ws://www.example.com/r")
@@ -167,11 +169,16 @@ class IsNoProxyHostTest(unittest.TestCase):
         self.assertTrue(_is_no_proxy_host("127.0.0.1", ["127.0.0.0/8"]))
         self.assertTrue(_is_no_proxy_host("127.0.0.2", ["127.0.0.0/8"]))
         self.assertFalse(_is_no_proxy_host("127.1.0.1", ["127.0.0.0/24"]))
-        os.environ["no_proxy"] = "127.0.0.0/8"
+        self.assertTrue(_is_no_proxy_host("2001:db8::1", ["2001:db8::/64"]))
+        self.assertFalse(_is_no_proxy_host("2001:db8:1::1", ["2001:db8::/64"]))
+        os.environ["no_proxy"] = "127.0.0.0/8,2001:db8::/64"
         self.assertTrue(_is_no_proxy_host("127.0.0.1", None))
         self.assertTrue(_is_no_proxy_host("127.0.0.2", None))
-        os.environ["no_proxy"] = "127.0.0.0/24"
+        self.assertTrue(_is_no_proxy_host("2001:db8::1", None))
+        self.assertFalse(_is_no_proxy_host("2001:db8:1::1", None))
+        os.environ["no_proxy"] = "127.0.0.0/24,2001:db8::/64"
         self.assertFalse(_is_no_proxy_host("127.1.0.1", None))
+        self.assertFalse(_is_no_proxy_host("2001:db8:1::1", None))
 
     def test_hostname_match(self):
         self.assertTrue(_is_no_proxy_host("my.websocket.org", ["my.websocket.org"]))
@@ -427,12 +434,12 @@ class ProxyInfoTest(unittest.TestCase):
             ("localhost2", 3128, ("a", "b")),
         )
 
-        os.environ[
-            "http_proxy"
-        ] = "http://john%40example.com:P%40SSWORD@localhost:3128/"
-        os.environ[
-            "https_proxy"
-        ] = "http://john%40example.com:P%40SSWORD@localhost2:3128/"
+        os.environ["http_proxy"] = (
+            "http://john%40example.com:P%40SSWORD@localhost:3128/"
+        )
+        os.environ["https_proxy"] = (
+            "http://john%40example.com:P%40SSWORD@localhost2:3128/"
+        )
         self.assertEqual(
             get_proxy_info("echo.websocket.events", True),
             ("localhost2", 3128, ("john@example.com", "P@SSWORD")),

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 import re
@@ -16,7 +15,6 @@ from plexapi.mixins import (
     ArtistEditMixins, AlbumEditMixins, TrackEditMixins, PhotoalbumEditMixins, PhotoEditMixins
 )
 from plexapi.settings import Setting
-from plexapi.utils import deprecated
 
 
 if TYPE_CHECKING:
@@ -1687,14 +1685,6 @@ class LibrarySection(PlexObject):
         """ Returns a list of playlists from this library section. """
         return self._server.playlists(
             playlistType=self.CONTENT_TYPE, sectionId=self.key, sort=sort, **kwargs)
-
-    @deprecated('use "listFields" instead')
-    def filterFields(self, mediaType=None):
-        return self.listFields(libtype=mediaType)
-
-    @deprecated('use "listFilterChoices" instead')
-    def listChoices(self, category, libtype=None, **kwargs):
-        return self.listFilterChoices(field=category, libtype=libtype)
 
     def getWebURL(self, base=None, tab=None, key=None):
         """ Returns the Plex Web URL for the library.

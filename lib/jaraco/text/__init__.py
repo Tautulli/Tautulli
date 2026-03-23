@@ -1,25 +1,60 @@
-import re
-import itertools
-import textwrap
+from __future__ import annotations
+
 import functools
+import io
+import itertools
+import os
+import re
+import sys
+import textwrap
+from collections.abc import Callable, Generator, Iterable, Sequence
+from importlib.resources import files
+from typing import (
+    TYPE_CHECKING,
+    Literal,
+    Protocol,
+    SupportsIndex,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
-try:
-    from importlib.resources import files  # type: ignore
-except ImportError:  # pragma: nocover
-    from importlib_resources import files  # type: ignore
-
-from jaraco.functools import compose, method_cache
 from jaraco.context import ExceptionTrap
+from jaraco.functools import compose, method_cache
+
+if sys.version_info >= (3, 11):  # pragma: no cover
+    from importlib.resources.abc import Traversable
+else:  # pragma: no cover
+    from importlib.abc import Traversable
+
+if TYPE_CHECKING:
+    from _typeshed import (
+        FileDescriptorOrPath,
+        SupportsIter,
+        SupportsNext,
+    )
+    from typing_extensions import Self, TypeAlias, TypeGuard, Unpack
+
+    Openable: TypeAlias = FileDescriptorOrPath
+else:
+    Openable = Union[str, bytes, os.PathLike, int]
+
+_T = TypeVar("_T")
 
 
-def substitution(old, new):
+class _SupportsDecode(Protocol):
+    def decode(self) -> object: ...
+
+
+def substitution(old: str, new: str) -> Callable[[str], str]:
     """
     Return a function that will perform a substitution on a string
     """
     return lambda s: s.replace(old, new)
 
 
-def multi_substitution(*substitutions):
+def multi_substitution(*substitutions: str) -> Callable[[str], str]:
     """
     Take a sequence of pairs specifying substitutions, and create
     a function that performs those substitutions.
@@ -27,11 +62,13 @@ def multi_substitution(*substitutions):
     >>> multi_substitution(('foo', 'bar'), ('bar', 'baz'))('foo')
     'baz'
     """
-    substitutions = itertools.starmap(substitution, substitutions)
+    callables: Iterable[Callable[[str], str]] = itertools.starmap(
+        substitution, substitutions
+    )
     # compose function applies last function first, so reverse the
     #  substitutions to get the expected order.
-    substitutions = reversed(tuple(substitutions))
-    return compose(*substitutions)
+    reversed_ = reversed(tuple(callables))
+    return compose(*reversed_)
 
 
 class FoldedCase(str):
@@ -55,6 +92,11 @@ class FoldedCase(str):
 
     >>> s.split('O')
     ['hell', ' w', 'rld']
+
+    Like ``str``, split accepts None as ''.
+
+    >>> s.split(None)
+    ['hello', 'world']
 
     >>> sorted(map(FoldedCase, ['GAMMA', 'alpha', 'Beta']))
     ['alpha', 'Beta', 'GAMMA']
@@ -95,49 +137,81 @@ class FoldedCase(str):
 
     >>> FoldedCase('ß') == FoldedCase('ss')
     True
+
+    Also supports string to object comparisons:
+
+    >>> FoldedCase('foo') == object()
+    False
+    >>> FoldedCase('foo') != object()
+    True
+    >>> object() in FoldedCase('foo')
+    False
     """
 
-    def __lt__(self, other):
+    def __lt__(self, other: str) -> bool:
         return self.casefold() < other.casefold()
 
-    def __gt__(self, other):
+    def __gt__(self, other: str) -> bool:
         return self.casefold() > other.casefold()
 
-    def __eq__(self, other):
-        return self.casefold() == other.casefold()
+    @functools.singledispatchmethod
+    def __eq__(self, other: object) -> bool:
+        return False
 
-    def __ne__(self, other):
-        return self.casefold() != other.casefold()
+    @__eq__.register
+    def _(self, other: str) -> bool:
+        return self.casefold().__eq__(other.casefold())
 
-    def __hash__(self):
+    @functools.singledispatchmethod
+    def __ne__(self, other: object) -> bool:
+        return True
+
+    @__ne__.register
+    def _(self, other: str) -> bool:
+        return self.casefold().__ne__(other.casefold())
+
+    def __hash__(self) -> int:
         return hash(self.casefold())
 
-    def __contains__(self, other):
+    @functools.singledispatchmethod
+    def __contains__(self, other: object) -> bool:
+        return False
+
+    @__contains__.register
+    def _(self, other: str) -> bool:
         return super().casefold().__contains__(other.casefold())
 
-    def in_(self, other):
-        "Does self appear in other?"
+    def in_(self, other: str) -> bool:
+        """Does self appear in other?"""
         return self in FoldedCase(other)
 
     # cache casefold since it's likely to be called frequently.
     @method_cache
-    def casefold(self):
+    def casefold(self) -> str:
         return super().casefold()
 
-    def index(self, sub):
-        return self.casefold().index(sub.casefold())
+    def index(
+        self,
+        sub: str,
+        start: SupportsIndex | None = None,
+        end: SupportsIndex | None = None,
+    ) -> int:
+        return self.casefold().index(sub.casefold(), start, end)
 
-    def split(self, splitter=' ', maxsplit=0):
+    @functools.singledispatchmethod
+    def split(
+        self, splitter: str | None = ' ', maxsplit: SupportsIndex = 0
+    ) -> list[str]:
+        return self.split(' ', maxsplit=maxsplit)
+
+    @split.register
+    def _(self, splitter: str, maxsplit: SupportsIndex = 0) -> list[str]:
         pattern = re.compile(re.escape(splitter), re.I)
-        return pattern.split(self, maxsplit)
+        return pattern.split(self, int(maxsplit))
 
 
-# Python 3.8 compatibility
-_unicode_trap = ExceptionTrap(UnicodeDecodeError)
-
-
-@_unicode_trap.passes
-def is_decodable(value):
+@ExceptionTrap(UnicodeDecodeError).passes  # type: ignore[no-untyped-call, untyped-decorator, unused-ignore, misc] # jaraco/jaraco.context#15
+def is_decodable(value: _SupportsDecode) -> None:
     r"""
     Return True if the supplied value is decodable (using the default
     encoding).
@@ -150,7 +224,7 @@ def is_decodable(value):
     value.decode()
 
 
-def is_binary(value):
+def is_binary(value: _SupportsDecode) -> TypeGuard[bytes]:
     r"""
     Return True if the value appears to be binary (that is, it's a byte
     string and isn't decodable).
@@ -163,7 +237,7 @@ def is_binary(value):
     return isinstance(value, bytes) and not is_decodable(value)
 
 
-def trim(s):
+def trim(s: str) -> str:
     r"""
     Trim something like a docstring to remove the whitespace that
     is common due to indentation and formatting.
@@ -174,7 +248,7 @@ def trim(s):
     return textwrap.dedent(s).strip()
 
 
-def wrap(s):
+def wrap(s: str) -> str:
     """
     Wrap lines of text, retaining existing newlines as
     paragraph markers.
@@ -207,7 +281,7 @@ def wrap(s):
     return '\n\n'.join(wrapped)
 
 
-def unwrap(s):
+def unwrap(s: str) -> str:
     r"""
     Given a multi-line string, return an unwrapped version.
 
@@ -240,14 +314,14 @@ class Splitter:
     ['hello', ' world', ' this is your', ' master calling']
     """
 
-    def __init__(self, *args):
+    def __init__(self, *args: Unpack[tuple[str | None, SupportsIndex]]) -> None:
         self.args = args
 
-    def __call__(self, s):
+    def __call__(self, s: str) -> list[str]:
         return s.split(*self.args)
 
 
-def indent(string, prefix=' ' * 4):
+def indent(string: str, prefix: str = ' ' * 4) -> str:
     """
     >>> indent('foo')
     '    foo'
@@ -255,7 +329,7 @@ def indent(string, prefix=' ' * 4):
     return prefix + string
 
 
-class WordSet(tuple):
+class WordSet(tuple[str, ...]):
     """
     Given an identifier, return the words that identifier represents,
     whether in camel case, underscore-separated, etc.
@@ -311,31 +385,31 @@ class WordSet(tuple):
 
     _pattern = re.compile('([A-Z]?[a-z]+)|([A-Z]+(?![a-z]))')
 
-    def capitalized(self):
+    def capitalized(self) -> WordSet:
         return WordSet(word.capitalize() for word in self)
 
-    def lowered(self):
+    def lowered(self) -> WordSet:
         return WordSet(word.lower() for word in self)
 
-    def camel_case(self):
+    def camel_case(self) -> str:
         return ''.join(self.capitalized())
 
-    def headless_camel_case(self):
+    def headless_camel_case(self) -> str:
         words = iter(self)
         first = next(words).lower()
         new_words = itertools.chain((first,), WordSet(words).camel_case())
         return ''.join(new_words)
 
-    def underscore_separated(self):
+    def underscore_separated(self) -> str:
         return '_'.join(self)
 
-    def dash_separated(self):
+    def dash_separated(self) -> str:
         return '-'.join(self)
 
-    def space_separated(self):
+    def space_separated(self) -> str:
         return ' '.join(self)
 
-    def trim_right(self, item):
+    def trim_right(self, item: str) -> WordSet:
         """
         Remove the item from the end of the set.
 
@@ -348,7 +422,7 @@ class WordSet(tuple):
         """
         return self[:-1] if self and self[-1] == item else self
 
-    def trim_left(self, item):
+    def trim_left(self, item: str) -> WordSet:
         """
         Remove the item from the beginning of the set.
 
@@ -361,26 +435,30 @@ class WordSet(tuple):
         """
         return self[1:] if self and self[0] == item else self
 
-    def trim(self, item):
+    def trim(self, item: str) -> WordSet:
         """
         >>> WordSet.parse('foo bar').trim('foo')
         ('bar',)
         """
         return self.trim_left(item).trim_right(item)
 
-    def __getitem__(self, item):
+    @overload  # type:ignore[override] # more restricted return type
+    def __getitem__(self, item: slice) -> WordSet: ...
+    @overload
+    def __getitem__(self, item: SupportsIndex) -> str: ...
+    def __getitem__(self, item: slice | SupportsIndex) -> WordSet | str:
         result = super().__getitem__(item)
-        if isinstance(item, slice):
-            result = WordSet(result)
+        if isinstance(result, tuple):
+            return WordSet(result)
         return result
 
     @classmethod
-    def parse(cls, identifier):
+    def parse(cls, identifier: str) -> WordSet:
         matches = cls._pattern.finditer(identifier)
         return WordSet(match.group(0) for match in matches)
 
     @classmethod
-    def from_class_name(cls, subject):
+    def from_class_name(cls, subject: object) -> WordSet:
         return cls.parse(subject.__class__.__name__)
 
 
@@ -388,7 +466,7 @@ class WordSet(tuple):
 words = WordSet.parse
 
 
-def simple_html_strip(s):
+def simple_html_strip(s: str) -> str:
     r"""
     Remove HTML from the string `s`.
 
@@ -426,7 +504,7 @@ class SeparatedValues(str):
 
     separator = ','
 
-    def __iter__(self):
+    def __iter__(self) -> filter[str]:
         parts = self.split(self.separator)
         return filter(None, (part.strip() for part in parts))
 
@@ -458,24 +536,30 @@ class Stripper:
     ['abcd\n', '1234\n']
     """
 
-    def __init__(self, prefix, lines):
+    def __init__(self, prefix: str | None, lines: Iterable[str]) -> None:
         self.prefix = prefix
         self.lines = map(self, lines)
 
     @classmethod
-    def strip_prefix(cls, lines):
+    def strip_prefix(cls, lines: Iterable[str]) -> Self:
         prefix_lines, lines = itertools.tee(lines)
         prefix = functools.reduce(cls.common_prefix, prefix_lines)
         return cls(prefix, lines)
 
-    def __call__(self, line):
+    def __call__(self, line: str) -> str:
         if not self.prefix:
             return line
         null, prefix, rest = line.partition(self.prefix)
         return rest
 
+    @overload
     @staticmethod
-    def common_prefix(s1, s2):
+    def common_prefix(s1: str, s2: str) -> str: ...
+    @overload
+    @staticmethod
+    def common_prefix(s1: Sequence[str], s2: Sequence[str]) -> Sequence[str]: ...
+    @staticmethod
+    def common_prefix(s1: Sequence[str], s2: Sequence[str]) -> Sequence[str]:
         """
         Return the common prefix of two lines.
         """
@@ -485,7 +569,7 @@ class Stripper:
         return s1[:index]
 
 
-def remove_prefix(text, prefix):
+def remove_prefix(text: str, prefix: str) -> str:
     """
     Remove the prefix from the text if it exists.
 
@@ -499,7 +583,7 @@ def remove_prefix(text, prefix):
     return rest
 
 
-def remove_suffix(text, suffix):
+def remove_suffix(text: str, suffix: str) -> str:
     """
     Remove the suffix from the text if it exists.
 
@@ -513,7 +597,7 @@ def remove_suffix(text, suffix):
     return rest
 
 
-def normalize_newlines(text):
+def normalize_newlines(text: str) -> str:
     r"""
     Replace alternate newlines with the canonical newline.
 
@@ -529,12 +613,12 @@ def normalize_newlines(text):
     return re.sub(pattern, '\n', text)
 
 
-def _nonblank(str):
+def _nonblank(str: str) -> bool | Literal['']:
     return str and not str.startswith('#')
 
 
 @functools.singledispatch
-def yield_lines(iterable):
+def yield_lines(iterable: Iterable[_T] | str) -> itertools.chain[str]:
     r"""
     Yield valid lines of a string or iterable.
 
@@ -553,11 +637,18 @@ def yield_lines(iterable):
 
 
 @yield_lines.register(str)
-def _(text):
-    return filter(_nonblank, map(str.strip, text.splitlines()))
+def _(text: str) -> filter[str]:
+    return clean(text.splitlines())
 
 
-def drop_comment(line):
+def clean(lines: Iterable[str]) -> filter[str]:
+    """
+    Yield non-blank, non-comment elements from lines.
+    """
+    return filter(_nonblank, map(str.strip, lines))
+
+
+def drop_comment(line: str) -> str:
     """
     Drop comments.
 
@@ -572,7 +663,7 @@ def drop_comment(line):
     return line.partition(' #')[0]
 
 
-def join_continuation(lines):
+def join_continuation(lines: SupportsIter[SupportsNext[str]]) -> Generator[str]:
     r"""
     Join lines continued by a trailing backslash.
 
@@ -595,17 +686,25 @@ def join_continuation(lines):
     >>> list(join_continuation(['foo', 'bar\\', 'baz\\']))
     ['foo']
     """
-    lines = iter(lines)
-    for item in lines:
+    lines_ = iter(lines)
+    for item in lines_:  # type: ignore[attr-defined] # A bit of a false positive with iteration dunder fallback
         while item.endswith('\\'):
             try:
-                item = item[:-2].strip() + next(lines)
+                item = item[:-2].strip() + next(lines_)
             except StopIteration:
                 return
         yield item
 
 
-def read_newlines(filename, limit=1024):
+# https://docs.python.org/3/library/io.html#io.TextIOBase.newlines
+NewlineSpec: TypeAlias = Union[str, tuple[str, ...], None]
+
+
+@functools.singledispatch
+def read_newlines(
+    filename: Union[Openable, io.TextIOWrapper],  # noqa: UP007 # singledispatch uses the annotation at runtime (python 3.9)
+    limit: int | None = 1024,
+) -> NewlineSpec:
     r"""
     >>> tmp_path = getfixture('tmp_path')
     >>> filename = tmp_path / 'out.txt'
@@ -619,6 +718,32 @@ def read_newlines(filename, limit=1024):
     >>> read_newlines(filename)
     ('\r', '\n', '\r\n')
     """
+    if sys.version_info >= (3, 10):
+        assert isinstance(filename, Openable)
+    else:  # pragma: no cover
+        filename = cast(Openable, filename)
     with open(filename, encoding='utf-8') as fp:
-        fp.read(limit)
-    return fp.newlines
+        return read_newlines(fp, limit=limit)
+
+
+@read_newlines.register
+def _(
+    filename: io.TextIOWrapper,
+    limit: Union[int, None] = 1024,  # noqa: UP007 # singledispatch uses the annotation at runtime (python 3.9)
+) -> NewlineSpec:
+    filename.read(limit)
+    return filename.newlines
+
+
+def lines_from(input: Traversable) -> Generator[str]:
+    """
+    Generate lines from a :class:`importlib.resources.abc.Traversable` path.
+
+    >>> lines = lines_from(files(__name__).joinpath('Lorem ipsum.txt'))
+    >>> next(lines)
+    'Lorem ipsum...'
+    >>> next(lines)
+    'Curabitur pretium...'
+    """
+    with input.open(encoding='utf-8') as stream:
+        yield from stream

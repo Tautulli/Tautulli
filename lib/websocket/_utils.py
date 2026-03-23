@@ -1,10 +1,10 @@
-from typing import Union
+from typing import Union, Optional
 
 """
-_url.py
+_utils.py
 websocket - WebSocket client library for Python
 
-Copyright 2024 engn33r
+Copyright 2025 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -446,7 +446,7 @@ def validate_utf8(utfbytes: Union[str, bytes]) -> bool:
     return _validate_utf8(utfbytes)
 
 
-def extract_err_message(exception: Exception) -> Union[str, None]:
+def extract_err_message(exception: Exception) -> Optional[str]:
     if exception.args:
         exception_message: str = exception.args[0]
         return exception_message
@@ -454,6 +454,7 @@ def extract_err_message(exception: Exception) -> Union[str, None]:
         return None
 
 
-def extract_error_code(exception: Exception) -> Union[int, None]:
+def extract_error_code(exception: Exception) -> Optional[int]:
     if exception.args and len(exception.args) > 1:
         return exception.args[0] if isinstance(exception.args[0], int) else None
+    return None

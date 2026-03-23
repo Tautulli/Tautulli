@@ -619,18 +619,70 @@ def sign_request(params, options):
     if not api_secret:
         raise ValueError("Must supply api_secret")
     signature_algorithm = options.get("signature_algorithm", cloudinary.config().signature_algorithm)
+    signature_version = options.get("signature_version", cloudinary.config().signature_version)
 
     params = cleanup_params(params)
-    params["signature"] = api_sign_request(params, api_secret, signature_algorithm)
+    params["signature"] = api_sign_request(params, api_secret, signature_algorithm, signature_version)
     params["api_key"] = api_key
 
     return params
 
 
-def api_sign_request(params_to_sign, api_secret, algorithm=SIGNATURE_SHA1):
-    params = [(k + "=" + (",".join(v) if isinstance(v, list) else str(v))) for k, v in params_to_sign.items() if v]
-    to_sign = "&".join(sorted(params))
+def api_sign_request(params_to_sign, api_secret, algorithm=SIGNATURE_SHA1, signature_version=2):
+    """
+    Signs API request parameters using the specified algorithm and signature version.
+
+    :param params_to_sign: Parameters to include in the signature
+    :param api_secret: API secret key
+    :param algorithm: Signature algorithm (default: SHA1)
+    :param signature_version: Signature version (default: 2)
+        - Version 1: Original behavior without parameter encoding
+        - Version 2+: Includes parameter encoding to prevent parameter smuggling
+    :return: Computed signature
+    """
+    to_sign = api_string_to_sign(params_to_sign, signature_version)
     return compute_hex_hash(to_sign + api_secret, algorithm)
+
+
+def api_string_to_sign(params_to_sign, signature_version=2):
+    """
+    Generates a string to be signed for API requests.
+
+    :param params_to_sign: Parameters to include in the signature
+    :param signature_version: Version of signature algorithm to use:
+        - Version 1: Original behavior without parameter encoding
+        - Version 2+ (default): Includes parameter encoding to prevent parameter smuggling
+    :return: String to be signed
+    """
+    params = []
+    for k, v in params_to_sign.items():
+        if v:
+            if isinstance(v, list):
+                value = ",".join(v)
+            elif isinstance(v, bool):
+                value = str(v).lower()
+            else:
+                value = str(v)
+
+            param_string = k + "=" + value
+            if signature_version >= 2:
+                param_string = _encode_param(param_string)
+            params.append(param_string)
+
+    return "&".join(sorted(params))
+
+
+def _encode_param(value):
+    """
+    Encodes a parameter for safe inclusion in URL query strings.
+
+    Specifically replaces "&" characters with their percent-encoded equivalent "%26"
+    to prevent them from being interpreted as parameter separators in URL query strings.
+
+    :param value: The parameter to encode
+    :return: Encoded parameter
+    """
+    return str(value).replace("&", "%26")
 
 
 def breakpoint_settings_mapper(breakpoint_settings):
@@ -1562,7 +1614,7 @@ def verify_api_response_signature(public_id, version, signature, algorithm=None)
     :param version:   The version of the asset as returned in the API response
     :param signature: Actual signature. Can be retrieved from the X-Cld-Signature header
     :param algorithm: Name of hashing algorithm to use for calculation of HMACs.
-                      By default uses `cloudinary.config().signature_algorithm`
+                      By default, uses `cloudinary.config().signature_algorithm`
 
     :return: Boolean result of the validation
     """
@@ -1572,10 +1624,12 @@ def verify_api_response_signature(public_id, version, signature, algorithm=None)
     parameters_to_sign = {'public_id': public_id,
                           'version': version}
 
+    # Use signature version 1 for backward compatibility
     return signature == api_sign_request(
         parameters_to_sign,
         cloudinary.config().api_secret,
-        algorithm or cloudinary.config().signature_algorithm
+        algorithm or cloudinary.config().signature_algorithm,
+        signature_version=1
     )
 
 
@@ -1588,7 +1642,7 @@ def verify_notification_signature(body, timestamp, signature, valid_for=7200, al
     :param signature: Actual signature. Can be retrieved from the X-Cld-Signature header
     :param valid_for: The desired time in seconds for considering the request valid
     :param algorithm: Name of hashing algorithm to use for calculation of HMACs.
-                      By default uses `cloudinary.config().signature_algorithm`
+                      By default, uses `cloudinary.config().signature_algorithm`
 
     :return: Boolean result of the validation
     """

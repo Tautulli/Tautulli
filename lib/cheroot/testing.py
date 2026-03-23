@@ -1,22 +1,27 @@
 """Pytest fixtures and other helpers for doing testing by end-users."""
 
-from contextlib import closing, contextmanager
 import errno
+import http.client
 import socket
 import threading
 import time
-import http.client
+from contextlib import closing, contextmanager
 
 import pytest
 
 import cheroot.server
-from cheroot.test import webtest
 import cheroot.wsgi
+from cheroot.test import webtest
+
 
 EPHEMERAL_PORT = 0
 NO_INTERFACE = None  # Using this or '' will cause an exception
 ANY_INTERFACE_IPV4 = '0.0.0.0'
 ANY_INTERFACE_IPV6 = '::'
+
+# We use special exit code to indicate success, rather than normal zero, so
+# the test doesn't acidentally pass:
+SUCCESSFUL_SUBPROCESS_EXIT = 23
 
 config = {
     cheroot.wsgi.Server: {
@@ -85,14 +90,14 @@ def thread_and_native_server():
 
 
 @pytest.fixture
-def wsgi_server(thread_and_wsgi_server):  # noqa: WPS442
+def wsgi_server(thread_and_wsgi_server):
     """Set up and tear down a Cheroot WSGI server instance."""
     _server_thread, srv = thread_and_wsgi_server
     return srv
 
 
 @pytest.fixture
-def native_server(thread_and_native_server):  # noqa: WPS442
+def native_server(thread_and_native_server):
     """Set up and tear down a Cheroot HTTP server instance."""
     _server_thread, srv = thread_and_native_server
     return srv
@@ -107,25 +112,28 @@ class _TestClient:
         self._http_connection = self.get_connection()
 
     def get_connection(self):
-        name = '{interface}:{port}'.format(
-            interface=self._interface,
-            port=self._port,
-        )
+        name = f'{self._interface}:{self._port}'
         conn_cls = (
             http.client.HTTPConnection
-            if self.server_instance.ssl_adapter is None else
-            http.client.HTTPSConnection
+            if self.server_instance.ssl_adapter is None
+            else http.client.HTTPSConnection
         )
         return conn_cls(name)
 
-    def request(
-        self, uri, method='GET', headers=None, http_conn=None,
+    def request(  # pylint: disable=too-many-positional-arguments
+        self,
+        uri,
+        method='GET',
+        headers=None,
+        http_conn=None,
         protocol='HTTP/1.1',
     ):
         return webtest.openURL(
-            uri, method=method,
+            uri,
+            method=method,
             headers=headers,
-            host=self._host, port=self._port,
+            host=self._host,
+            port=self._port,
             http_conn=http_conn or self._http_connection,
             protocol=protocol,
         )

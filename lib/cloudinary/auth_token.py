@@ -12,6 +12,9 @@ AUTH_TOKEN_UNSAFE_RE = r'([ "#%&\'\/:;<=>?@\[\\\]^`{\|}~]+)'
 
 def generate(url=None, acl=None, start_time=None, duration=None,
              expiration=None, ip=None, key=None, token_name=AUTH_TOKEN_NAME, **_):
+    start_time = _ensure_int(start_time)
+    duration = _ensure_int(duration)
+    expiration = _ensure_int(expiration)
 
     if expiration is None:
         if duration is not None:
@@ -52,3 +55,22 @@ def _escape_to_lower(url):
     escaped_url = smart_escape(url, unsafe=AUTH_TOKEN_UNSAFE_RE)
     escaped_url = re.sub(r"%[0-9A-F]{2}", lambda x: x.group(0).lower(), escaped_url)
     return escaped_url
+
+def _ensure_int(value):
+    """
+    Ensures the input value is an integer.
+    Attempts to cast it to an integer if it is not already.
+
+    :param value: The value to ensure as an integer.
+    :type value: Any
+    :return: The integer value.
+    :rtype: int
+    :raises ValueError: If the value cannot be converted to an integer.
+    """
+    if isinstance(value, int) or not value:
+        return value
+
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        raise ValueError("Value '" + value + "' must be an integer.")

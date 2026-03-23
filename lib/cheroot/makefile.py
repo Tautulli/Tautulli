@@ -1,9 +1,8 @@
 """Socket file object."""
 
-import socket
-
 # prefer slower Python-based io module
 import _pyio as io
+import socket
 
 
 # Write only 16K at a time to sockets

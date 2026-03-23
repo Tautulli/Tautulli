@@ -174,8 +174,7 @@ URI = r"^(?: %(scheme)s : %(hier_part)s (?: \? %(query)s )? (?: \# %(fragment)s 
 URI_reference = r"^(?: %(URI)s | %(relative_ref)s )$" % locals()
 
 #   absolute-URI  = scheme ":" hier-part [ "?" query ]
-absolute_URI = r"^(?: %(scheme)s : %(hier_part)s (?: \? %(query)s )? )$" % locals(
-)
+absolute_URI = r"^(?: %(scheme)s : %(hier_part)s (?: \? %(query)s )? )$" % locals()  # noqa: N816
 
 
 def is_uri(uri):

@@ -52,7 +52,7 @@ class WKS(dns.rdata.Rdata):
                 if byte & (0x80 >> j):
                     bits.append(str(i * 8 + j))
         text = " ".join(bits)
-        return "%s %d %s" % (self.address, self.protocol, text)
+        return f"{self.address} {self.protocol} {text}"
 
     @classmethod
     def from_text(

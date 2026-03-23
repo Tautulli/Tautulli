@@ -1,6 +1,8 @@
 import threading
 from typing import Any
 
+__all__ = ('ThreadPool', 'WorkerThread')
+
 class TrueyZero:
     def __add__(self, other): ...
     def __radd__(self, other): ...
@@ -25,7 +27,14 @@ class ThreadPool:
     min: Any
     max: Any
     get: Any
-    def __init__(self, server, min: int = ..., max: int = ..., accepted_queue_size: int = ..., accepted_queue_timeout: int = ...) -> None: ...
+    def __init__(
+        self,
+        server,
+        min: int = ...,
+        max: int = ...,
+        accepted_queue_size: int = ...,
+        accepted_queue_timeout: int = ...,
+    ) -> None: ...
     def start(self) -> None: ...
     @property
     def idle(self): ...

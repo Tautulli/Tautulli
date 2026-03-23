@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 from typing import TYPE_CHECKING, Generic, Iterable, List, Optional, TypeVar, Union
 import weakref

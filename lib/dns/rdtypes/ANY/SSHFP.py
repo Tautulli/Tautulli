@@ -40,11 +40,10 @@ class SSHFP(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         kw = kw.copy()
         chunksize = kw.pop("chunksize", 128)
-        return "%d %d %s" % (
-            self.algorithm,
-            self.fp_type,
-            dns.rdata._hexify(self.fingerprint, chunksize=chunksize, **kw),
+        fingerprint = dns.rdata._hexify(
+            self.fingerprint, chunksize=chunksize, **kw  # pyright: ignore
         )
+        return f"{self.algorithm} {self.fp_type} {fingerprint}"
 
     @classmethod
     def from_text(

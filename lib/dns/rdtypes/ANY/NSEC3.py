@@ -21,6 +21,7 @@ import struct
 
 import dns.exception
 import dns.immutable
+import dns.name
 import dns.rdata
 import dns.rdatatype
 import dns.rdtypes.util
@@ -75,14 +76,7 @@ class NSEC3(dns.rdata.Rdata):
         else:
             salt = binascii.hexlify(self.salt).decode()
         text = Bitmap(self.windows).to_text()
-        return "%u %u %u %s %s%s" % (
-            self.algorithm,
-            self.flags,
-            self.iterations,
-            salt,
-            next,
-            text,
-        )
+        return f"{self.algorithm} {self.flags} {self.iterations} {salt} {next}{text}"
 
     @classmethod
     def from_text(

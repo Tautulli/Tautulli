@@ -19,7 +19,7 @@
 
 from typing import Tuple
 
-import dns
+import dns.exception
 
 
 def from_text(text: str) -> Tuple[int, int, int]:

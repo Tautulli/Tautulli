@@ -17,7 +17,7 @@
 
 """DNS Result Codes."""
 
-from typing import Tuple
+from typing import Tuple, Type
 
 import dns.enum
 import dns.exception
@@ -72,7 +72,7 @@ class Rcode(dns.enum.IntEnum):
         return 4095
 
     @classmethod
-    def _unknown_exception_class(cls):
+    def _unknown_exception_class(cls) -> Type[Exception]:
         return UnknownRcode
 
 

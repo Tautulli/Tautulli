@@ -15,14 +15,21 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Tuple, cast
 
+import dns.edns
 import dns.exception
 import dns.message
 import dns.name
 import dns.rcode
+import dns.rdata
 import dns.rdataset
 import dns.rdatatype
+import dns.rdtypes
+import dns.rdtypes.ANY
+import dns.rdtypes.ANY.SMIMEA
+import dns.rdtypes.ANY.SOA
+import dns.rdtypes.svcbbase
 import dns.serial
 import dns.transaction
 import dns.tsig
@@ -55,7 +62,7 @@ class Inbound:
         self,
         txn_manager: dns.transaction.TransactionManager,
         rdtype: dns.rdatatype.RdataType = dns.rdatatype.AXFR,
-        serial: Optional[int] = None,
+        serial: int | None = None,
         is_udp: bool = False,
     ):
         """Initialize an inbound zone transfer.
@@ -71,17 +78,22 @@ class Inbound:
         XFR.
         """
         self.txn_manager = txn_manager
-        self.txn: Optional[dns.transaction.Transaction] = None
+        self.txn: dns.transaction.Transaction | None = None
         self.rdtype = rdtype
         if rdtype == dns.rdatatype.IXFR:
             if serial is None:
                 raise ValueError("a starting serial must be supplied for IXFRs")
-        elif is_udp:
-            raise ValueError("is_udp specified for AXFR")
+            self.incremental = True
+        elif rdtype == dns.rdatatype.AXFR:
+            if is_udp:
+                raise ValueError("is_udp specified for AXFR")
+            self.incremental = False
+        else:
+            raise ValueError("rdtype is not IXFR or AXFR")
         self.serial = serial
         self.is_udp = is_udp
         (_, _, self.origin) = txn_manager.origin_information()
-        self.soa_rdataset: Optional[dns.rdataset.Rdataset] = None
+        self.soa_rdataset: dns.rdataset.Rdataset | None = None
         self.done = False
         self.expecting_SOA = False
         self.delete_mode = False
@@ -96,8 +108,7 @@ class Inbound:
         Returns `True` if the transfer is complete, and `False` otherwise.
         """
         if self.txn is None:
-            replacement = self.rdtype == dns.rdatatype.AXFR
-            self.txn = self.txn_manager.writer(replacement)
+            self.txn = self.txn_manager.writer(not self.incremental)
         rcode = message.rcode()
         if rcode != dns.rcode.NOERROR:
             raise TransferError(rcode)
@@ -123,14 +134,16 @@ class Inbound:
             if rdataset.rdtype != dns.rdatatype.SOA:
                 raise dns.exception.FormError("first RRset is not an SOA")
             answer_index = 1
-            self.soa_rdataset = rdataset.copy()
-            if self.rdtype == dns.rdatatype.IXFR:
-                if self.soa_rdataset[0].serial == self.serial:
+            self.soa_rdataset = rdataset.copy()  # pyright: ignore
+            if self.incremental:
+                assert self.soa_rdataset is not None
+                soa = cast(dns.rdtypes.ANY.SOA.SOA, self.soa_rdataset[0])
+                if soa.serial == self.serial:
                     #
                     # We're already up-to-date.
                     #
                     self.done = True
-                elif dns.serial.Serial(self.soa_rdataset[0].serial) < self.serial:
+                elif dns.serial.Serial(soa.serial) < self.serial:
                     # It went backwards!
                     raise SerialWentBackwards
                 else:
@@ -159,7 +172,7 @@ class Inbound:
                 #
                 # Every time we see an origin SOA delete_mode inverts
                 #
-                if self.rdtype == dns.rdatatype.IXFR:
+                if self.incremental:
                     self.delete_mode = not self.delete_mode
                 #
                 # If this SOA Rdataset is equal to the first we saw
@@ -168,19 +181,16 @@ class Inbound:
                 # part of the response.
                 #
                 if rdataset == self.soa_rdataset and (
-                    self.rdtype == dns.rdatatype.AXFR
-                    or (self.rdtype == dns.rdatatype.IXFR and self.delete_mode)
+                    (not self.incremental) or self.delete_mode
                 ):
                     #
                     # This is the final SOA
                     #
+                    soa = cast(dns.rdtypes.ANY.SOA.SOA, rdataset[0])
                     if self.expecting_SOA:
                         # We got an empty IXFR sequence!
                         raise dns.exception.FormError("empty IXFR sequence")
-                    if (
-                        self.rdtype == dns.rdatatype.IXFR
-                        and self.serial != rdataset[0].serial
-                    ):
+                    if self.incremental and self.serial != soa.serial:
                         raise dns.exception.FormError("unexpected end of IXFR sequence")
                     self.txn.replace(name, rdataset)
                     self.txn.commit()
@@ -191,16 +201,17 @@ class Inbound:
                     # This is not the final SOA
                     #
                     self.expecting_SOA = False
-                    if self.rdtype == dns.rdatatype.IXFR:
+                    soa = cast(dns.rdtypes.ANY.SOA.SOA, rdataset[0])
+                    if self.incremental:
                         if self.delete_mode:
                             # This is the start of an IXFR deletion set
-                            if rdataset[0].serial != self.serial:
+                            if soa.serial != self.serial:
                                 raise dns.exception.FormError(
                                     "IXFR base serial mismatch"
                                 )
                         else:
                             # This is the start of an IXFR addition set
-                            self.serial = rdataset[0].serial
+                            self.serial = soa.serial
                             self.txn.replace(name, rdataset)
                     else:
                         # We saw a non-final SOA for the origin in an AXFR.
@@ -212,7 +223,7 @@ class Inbound:
                 # SOA RR, but saw something else, so this must be an
                 # AXFR response.
                 #
-                self.rdtype = dns.rdatatype.AXFR
+                self.incremental = False
                 self.expecting_SOA = False
                 self.delete_mode = False
                 self.txn.rollback()
@@ -249,16 +260,16 @@ class Inbound:
 
 def make_query(
     txn_manager: dns.transaction.TransactionManager,
-    serial: Optional[int] = 0,
-    use_edns: Optional[Union[int, bool]] = None,
-    ednsflags: Optional[int] = None,
-    payload: Optional[int] = None,
-    request_payload: Optional[int] = None,
-    options: Optional[List[dns.edns.Option]] = None,
+    serial: int | None = 0,
+    use_edns: int | bool | None = None,
+    ednsflags: int | None = None,
+    payload: int | None = None,
+    request_payload: int | None = None,
+    options: List[dns.edns.Option] | None = None,
     keyring: Any = None,
-    keyname: Optional[dns.name.Name] = None,
-    keyalgorithm: Union[dns.name.Name, str] = dns.tsig.default_algorithm,
-) -> Tuple[dns.message.QueryMessage, Optional[int]]:
+    keyname: dns.name.Name | None = None,
+    keyalgorithm: dns.name.Name | str = dns.tsig.default_algorithm,
+) -> Tuple[dns.message.QueryMessage, int | None]:
     """Make an AXFR or IXFR query.
 
     *txn_manager* is a ``dns.transaction.TransactionManager``, typically a
@@ -289,7 +300,8 @@ def make_query(
         with txn_manager.reader() as txn:
             rdataset = txn.get(origin, "SOA")
             if rdataset:
-                serial = rdataset[0].serial
+                soa = cast(dns.rdtypes.ANY.SOA.SOA, rdataset[0])
+                serial = soa.serial
                 rdtype = dns.rdatatype.IXFR
             else:
                 serial = None
@@ -321,7 +333,7 @@ def make_query(
     return (q, serial)
 
 
-def extract_serial_from_query(query: dns.message.Message) -> Optional[int]:
+def extract_serial_from_query(query: dns.message.Message) -> int | None:
     """Extract the SOA serial number from query if it is an IXFR and return
     it, otherwise return None.
 
@@ -337,7 +349,8 @@ def extract_serial_from_query(query: dns.message.Message) -> Optional[int]:
         return None
     elif question.rdtype != dns.rdatatype.IXFR:
         raise ValueError("query is not an AXFR or IXFR")
-    soa = query.find_rrset(
+    soa_rrset = query.find_rrset(
         query.authority, question.name, question.rdclass, dns.rdatatype.SOA
     )
-    return soa[0].serial
+    soa = cast(dns.rdtypes.ANY.SOA.SOA, soa_rrset[0])
+    return soa.serial

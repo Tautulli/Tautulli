@@ -1,42 +1,64 @@
-"""Integration code for CSS selectors using Soup Sieve (pypi: soupsieve)."""
+"""Integration code for CSS selectors using `Soup Sieve <https://facelessuser.github.io/soupsieve/>`_ (pypi: ``soupsieve``).
 
+Acquire a `CSS` object through the `element.Tag.css` attribute of
+the starting point of your CSS selector, or (if you want to run a
+selector against the entire document) of the `BeautifulSoup` object
+itself.
+
+The main advantage of doing this instead of using ``soupsieve``
+functions is that you don't need to keep passing the `element.Tag` to be
+selected against, since the `CSS` object is permanently scoped to that
+`element.Tag`.
+
+"""
+
+from __future__ import annotations
+
+from types import ModuleType
+from typing import (
+    Any,
+    cast,
+    Iterable,
+    Iterator,
+    MutableSequence,
+    Optional,
+    TYPE_CHECKING,
+)
 import warnings
+from bs4._typing import _NamespaceMapping
+
+if TYPE_CHECKING:
+    from soupsieve import SoupSieve
+    from bs4 import element
+    from bs4.element import ResultSet, Tag
+
+soupsieve: Optional[ModuleType]
 try:
     import soupsieve
-except ImportError as e:
+except ImportError:
     soupsieve = None
     warnings.warn(
-        'The soupsieve package is not installed. CSS selectors cannot be used.'
+        "The soupsieve package is not installed. CSS selectors cannot be used."
     )
 
 
 class CSS(object):
-    """A proxy object against the soupsieve library, to simplify its
+    """A proxy object against the ``soupsieve`` library, to simplify its
     CSS selector API.
 
-    Acquire this object through the .css attribute on the
-    BeautifulSoup object, or on the Tag you want to use as the
-    starting point for a CSS selector.
+    You don't need to instantiate this class yourself; instead, use
+    `element.Tag.css`.
 
-    The main advantage of doing this is that the tag to be selected
-    against doesn't need to be explicitly specified in the function
-    calls, since it's already scoped to a tag.
+    :param tag: All CSS selectors run by this object will use this as
+        their starting point.
+
+    :param api: An optional drop-in replacement for the ``soupsieve`` module,
+        intended for use in unit tests.
     """
 
-    def __init__(self, tag, api=soupsieve):
-        """Constructor.
-
-        You don't need to instantiate this class yourself; instead,
-        access the .css attribute on the BeautifulSoup object, or on
-        the Tag you want to use as the starting point for your CSS
-        selector.
-
-        :param tag: All CSS selectors will use this as their starting
-        point.
-
-        :param api: A plug-in replacement for the soupsieve module,
-        designed mainly for use in tests.
-        """
+    def __init__(self, tag: element.Tag, api: Optional[ModuleType] = None):
+        if api is None:
+            api = soupsieve
         if api is None:
             raise NotImplementedError(
                 "Cannot execute CSS selectors because the soupsieve package is not installed."
@@ -44,19 +66,21 @@ class CSS(object):
         self.api = api
         self.tag = tag
 
-    def escape(self, ident):
+    def escape(self, ident: str) -> str:
         """Escape a CSS identifier.
 
-        This is a simple wrapper around soupselect.escape(). See the
+        This is a simple wrapper around `soupsieve.escape() <https://facelessuser.github.io/soupsieve/api/#soupsieveescape>`_. See the
         documentation for that function for more information.
         """
         if soupsieve is None:
             raise NotImplementedError(
                 "Cannot escape CSS identifiers because the soupsieve package is not installed."
             )
-        return self.api.escape(ident)
+        return cast(str, self.api.escape(ident))
 
-    def _ns(self, ns, select):
+    def _ns(
+        self, ns: Optional[_NamespaceMapping], select: str
+    ) -> Optional[_NamespaceMapping]:
         """Normalize a dictionary of namespaces."""
         if not isinstance(select, self.api.SoupSieve) and ns is None:
             # If the selector is a precompiled pattern, it already has
@@ -65,19 +89,26 @@ class CSS(object):
             ns = self.tag._namespaces
         return ns
 
-    def _rs(self, results):
-        """Normalize a list of results to a Resultset.
+    def _rs(self, results: MutableSequence[Tag]) -> ResultSet[Tag]:
+        """Normalize a list of results to a py:class:`ResultSet`.
 
-        A ResultSet is more consistent with the rest of Beautiful
-        Soup's API, and ResultSet.__getattr__ has a helpful error
-        message if you try to treat a list of results as a single
-        result (a common mistake).
+        A py:class:`ResultSet` is more consistent with the rest of
+        Beautiful Soup's API, and :py:meth:`ResultSet.__getattr__` has
+        a helpful error message if you try to treat a list of results
+        as a single result (a common mistake).
         """
         # Import here to avoid circular import
-        from bs4.element import ResultSet
+        from bs4 import ResultSet
+
         return ResultSet(None, results)
 
-    def compile(self, select, namespaces=None, flags=0, **kwargs):
+    def compile(
+        self,
+        select: str,
+        namespaces: Optional[_NamespaceMapping] = None,
+        flags: int = 0,
+        **kwargs: Any,
+    ) -> SoupSieve:
         """Pre-compile a selector and return the compiled object.
 
         :param selector: A CSS selector.
@@ -88,25 +119,28 @@ class CSS(object):
            parsing the document.
 
         :param flags: Flags to be passed into Soup Sieve's
-            soupsieve.compile() method.
+            `soupsieve.compile() <https://facelessuser.github.io/soupsieve/api/#soupsievecompile>`_ method.
 
-        :param kwargs: Keyword arguments to be passed into SoupSieve's
-           soupsieve.compile() method.
+        :param kwargs: Keyword arguments to be passed into Soup Sieve's
+           `soupsieve.compile() <https://facelessuser.github.io/soupsieve/api/#soupsievecompile>`_ method.
 
         :return: A precompiled selector object.
         :rtype: soupsieve.SoupSieve
         """
-        return self.api.compile(
-            select, self._ns(namespaces, select), flags, **kwargs
-        )
+        return self.api.compile(select, self._ns(namespaces, select), flags, **kwargs)
 
-    def select_one(self, select, namespaces=None, flags=0, **kwargs):
+    def select_one(
+        self,
+        select: str,
+        namespaces: Optional[_NamespaceMapping] = None,
+        flags: int = 0,
+        **kwargs: Any,
+    ) -> element.Tag | None:
         """Perform a CSS selection operation on the current Tag and return the
-        first result.
+        first result, if any.
 
         This uses the Soup Sieve library. For more information, see
-        that library's documentation for the soupsieve.select_one()
-        method.
+        that library's documentation for the `soupsieve.select_one() <https://facelessuser.github.io/soupsieve/api/#soupsieveselect_one>`_ method.
 
         :param selector: A CSS selector.
 
@@ -116,27 +150,29 @@ class CSS(object):
            parsing the document.
 
         :param flags: Flags to be passed into Soup Sieve's
-            soupsieve.select_one() method.
+            `soupsieve.select_one() <https://facelessuser.github.io/soupsieve/api/#soupsieveselect_one>`_ method.
 
-        :param kwargs: Keyword arguments to be passed into SoupSieve's
-           soupsieve.select_one() method.
-
-        :return: A Tag, or None if the selector has no match.
-        :rtype: bs4.element.Tag
-
+        :param kwargs: Keyword arguments to be passed into Soup Sieve's
+           `soupsieve.select_one() <https://facelessuser.github.io/soupsieve/api/#soupsieveselect_one>`_ method.
         """
         return self.api.select_one(
             select, self.tag, self._ns(namespaces, select), flags, **kwargs
         )
 
-    def select(self, select, namespaces=None, limit=0, flags=0, **kwargs):
-        """Perform a CSS selection operation on the current Tag.
+    def select(
+        self,
+        select: str,
+        namespaces: Optional[_NamespaceMapping] = None,
+        limit: int = 0,
+        flags: int = 0,
+        **kwargs: Any,
+    ) -> ResultSet[element.Tag]:
+        """Perform a CSS selection operation on the current `element.Tag`.
 
         This uses the Soup Sieve library. For more information, see
-        that library's documentation for the soupsieve.select()
-        method.
+        that library's documentation for the `soupsieve.select() <https://facelessuser.github.io/soupsieve/api/#soupsieveselect>`_ method.
 
-        :param selector: A string containing a CSS selector.
+        :param selector: A CSS selector.
 
         :param namespaces: A dictionary mapping namespace prefixes
             used in the CSS selector to namespace URIs. By default,
@@ -146,30 +182,33 @@ class CSS(object):
         :param limit: After finding this number of results, stop looking.
 
         :param flags: Flags to be passed into Soup Sieve's
-            soupsieve.select() method.
+            `soupsieve.select() <https://facelessuser.github.io/soupsieve/api/#soupsieveselect>`_ method.
 
-        :param kwargs: Keyword arguments to be passed into SoupSieve's
-            soupsieve.select() method.
-
-        :return: A ResultSet of Tag objects.
-        :rtype: bs4.element.ResultSet
-
+        :param kwargs: Keyword arguments to be passed into Soup Sieve's
+           `soupsieve.select() <https://facelessuser.github.io/soupsieve/api/#soupsieveselect>`_ method.
         """
         if limit is None:
             limit = 0
 
         return self._rs(
             self.api.select(
-                select, self.tag, self._ns(namespaces, select), limit, flags,
-                **kwargs
+                select, self.tag, self._ns(namespaces, select), limit, flags, **kwargs
             )
         )
 
-    def iselect(self, select, namespaces=None, limit=0, flags=0, **kwargs):
-        """Perform a CSS selection operation on the current Tag.
+    def iselect(
+        self,
+        select: str,
+        namespaces: Optional[_NamespaceMapping] = None,
+        limit: int = 0,
+        flags: int = 0,
+        **kwargs: Any,
+    ) -> Iterator[element.Tag]:
+        """Perform a CSS selection operation on the current `element.Tag`.
 
         This uses the Soup Sieve library. For more information, see
-        that library's documentation for the soupsieve.iselect()
+        that library's documentation for the `soupsieve.iselect()
+        <https://facelessuser.github.io/soupsieve/api/#soupsieveiselect>`_
         method. It is the same as select(), but it returns a generator
         instead of a list.
 
@@ -183,23 +222,27 @@ class CSS(object):
         :param limit: After finding this number of results, stop looking.
 
         :param flags: Flags to be passed into Soup Sieve's
-            soupsieve.iselect() method.
+            `soupsieve.iselect() <https://facelessuser.github.io/soupsieve/api/#soupsieveiselect>`_ method.
 
-        :param kwargs: Keyword arguments to be passed into SoupSieve's
-            soupsieve.iselect() method.
-
-        :return: A generator
-        :rtype: types.GeneratorType
+        :param kwargs: Keyword arguments to be passed into Soup Sieve's
+           `soupsieve.iselect() <https://facelessuser.github.io/soupsieve/api/#soupsieveiselect>`_ method.
         """
         return self.api.iselect(
             select, self.tag, self._ns(namespaces, select), limit, flags, **kwargs
         )
 
-    def closest(self, select, namespaces=None, flags=0, **kwargs):
-        """Find the Tag closest to this one that matches the given selector.
+    def closest(
+        self,
+        select: str,
+        namespaces: Optional[_NamespaceMapping] = None,
+        flags: int = 0,
+        **kwargs: Any,
+    ) -> Optional[element.Tag]:
+        """Find the `element.Tag` closest to this one that matches the given selector.
 
         This uses the Soup Sieve library. For more information, see
-        that library's documentation for the soupsieve.closest()
+        that library's documentation for the `soupsieve.closest()
+        <https://facelessuser.github.io/soupsieve/api/#soupsieveclosest>`_
         method.
 
         :param selector: A string containing a CSS selector.
@@ -210,24 +253,28 @@ class CSS(object):
             parsing the document.
 
         :param flags: Flags to be passed into Soup Sieve's
-            soupsieve.closest() method.
+            `soupsieve.closest() <https://facelessuser.github.io/soupsieve/api/#soupsieveclosest>`_ method.
 
-        :param kwargs: Keyword arguments to be passed into SoupSieve's
-            soupsieve.closest() method.
-
-        :return: A Tag, or None if there is no match.
-        :rtype: bs4.Tag
+        :param kwargs: Keyword arguments to be passed into Soup Sieve's
+           `soupsieve.closest() <https://facelessuser.github.io/soupsieve/api/#soupsieveclosest>`_ method.
 
         """
         return self.api.closest(
             select, self.tag, self._ns(namespaces, select), flags, **kwargs
         )
 
-    def match(self, select, namespaces=None, flags=0, **kwargs):
-        """Check whether this Tag matches the given CSS selector.
+    def match(
+        self,
+        select: str,
+        namespaces: Optional[_NamespaceMapping] = None,
+        flags: int = 0,
+        **kwargs: Any,
+    ) -> bool:
+        """Check whether or not this `element.Tag` matches the given CSS selector.
 
         This uses the Soup Sieve library. For more information, see
-        that library's documentation for the soupsieve.match()
+        that library's documentation for the `soupsieve.match()
+        <https://facelessuser.github.io/soupsieve/api/#soupsievematch>`_
         method.
 
         :param: a CSS selector.
@@ -238,25 +285,37 @@ class CSS(object):
             parsing the document.
 
         :param flags: Flags to be passed into Soup Sieve's
-            soupsieve.match() method.
+            `soupsieve.match()
+            <https://facelessuser.github.io/soupsieve/api/#soupsievematch>`_
+            method.
 
         :param kwargs: Keyword arguments to be passed into SoupSieve's
-            soupsieve.match() method.
-
-        :return: True if this Tag matches the selector; False otherwise.
-        :rtype: bool
+            `soupsieve.match()
+            <https://facelessuser.github.io/soupsieve/api/#soupsievematch>`_
+            method.
         """
-        return self.api.match(
-            select, self.tag, self._ns(namespaces, select), flags, **kwargs
+        return cast(
+            bool,
+            self.api.match(
+                select, self.tag, self._ns(namespaces, select), flags, **kwargs
+            ),
         )
 
-    def filter(self, select, namespaces=None, flags=0, **kwargs):
-        """Filter this Tag's direct children based on the given CSS selector.
+    def filter(
+        self,
+        select: str,
+        namespaces: Optional[_NamespaceMapping] = None,
+        flags: int = 0,
+        **kwargs: Any,
+    ) -> ResultSet[element.Tag]:
+        """Filter this `element.Tag`'s direct children based on the given CSS selector.
 
         This uses the Soup Sieve library. It works the same way as
-        passing this Tag into that library's soupsieve.filter()
-        method. More information, for more information see the
-        documentation for soupsieve.filter().
+        passing a `element.Tag` into that library's `soupsieve.filter()
+        <https://facelessuser.github.io/soupsieve/api/#soupsievefilter>`_
+        method. For more information, see the documentation for
+        `soupsieve.filter()
+        <https://facelessuser.github.io/soupsieve/api/#soupsievefilter>`_.
 
         :param namespaces: A dictionary mapping namespace prefixes
             used in the CSS selector to namespace URIs. By default,
@@ -264,14 +323,14 @@ class CSS(object):
             parsing the document.
 
         :param flags: Flags to be passed into Soup Sieve's
-            soupsieve.filter() method.
+            `soupsieve.filter()
+            <https://facelessuser.github.io/soupsieve/api/#soupsievefilter>`_
+            method.
 
         :param kwargs: Keyword arguments to be passed into SoupSieve's
-            soupsieve.filter() method.
-
-        :return: A ResultSet of Tag objects.
-        :rtype: bs4.element.ResultSet
-
+            `soupsieve.filter()
+            <https://facelessuser.github.io/soupsieve/api/#soupsievefilter>`_
+            method.
         """
         return self._rs(
             self.api.filter(

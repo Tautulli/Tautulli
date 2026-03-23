@@ -42,7 +42,7 @@ class URI(dns.rdata.Rdata):
             raise dns.exception.SyntaxError("URI target cannot be empty")
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return '%d %d "%s"' % (self.priority, self.weight, self.target.decode())
+        return f'{self.priority} {self.weight} "{self.target.decode()}"'
 
     @classmethod
     def from_text(

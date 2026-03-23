@@ -1,7 +1,6 @@
 from collections.abc import Callable, Hashable, Iterator
 from functools import partial
 from operator import methodcaller
-import sys
 from typing import (
     Any,
     Generic,
@@ -10,14 +9,12 @@ from typing import (
     overload,
 )
 
-if sys.version_info >= (3, 10):
-    from typing import Concatenate, ParamSpec
-else:
-    from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import Concatenate, ParamSpec, TypeVarTuple, Unpack
 
 _P = ParamSpec('_P')
 _R = TypeVar('_R')
 _T = TypeVar('_T')
+_Ts = TypeVarTuple('_Ts')
 _R1 = TypeVar('_R1')
 _R2 = TypeVar('_R2')
 _V = TypeVar('_V')
@@ -66,10 +63,10 @@ def method_cache(
     cache_wrapper: Callable[[Callable[..., _R]], _MethodCacheWrapper[_R]] = ...,
 ) -> _MethodCacheWrapper[_R] | _ProxyMethodCacheWrapper[_R]: ...
 def apply(
-    transform: Callable[[_R], _T]
+    transform: Callable[[_R], _T],
 ) -> Callable[[Callable[_P, _R]], Callable[_P, _T]]: ...
 def result_invoke(
-    action: Callable[[_R], Any]
+    action: Callable[[_R], Any],
 ) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]: ...
 def invoke(
     f: Callable[_P, _R], /, *args: _P.args, **kwargs: _P.kwargs
@@ -95,23 +92,23 @@ method_caller: Callable[..., methodcaller]
 def retry_call(
     func: Callable[..., _R],
     cleanup: Callable[..., None] = ...,
-    retries: int | float = ...,
+    retries: float = ...,
     trap: type[BaseException] | tuple[type[BaseException], ...] = ...,
 ) -> _R: ...
 def retry(
     cleanup: Callable[..., None] = ...,
-    retries: int | float = ...,
+    retries: float = ...,
     trap: type[BaseException] | tuple[type[BaseException], ...] = ...,
 ) -> Callable[[Callable[..., _R]], Callable[..., _R]]: ...
 def print_yielded(func: Callable[_P, Iterator[Any]]) -> Callable[_P, None]: ...
 def pass_none(
-    func: Callable[Concatenate[_T, _P], _R]
+    func: Callable[Concatenate[_T, _P], _R],
 ) -> Callable[Concatenate[_T, _P], _R]: ...
 def assign_params(
     func: Callable[..., _R], namespace: dict[str, Any]
 ) -> partial[_R]: ...
 def save_method_args(
-    method: Callable[Concatenate[_S, _P], _R]
+    method: Callable[Concatenate[_S, _P], _R],
 ) -> Callable[Concatenate[_S, _P], _R]: ...
 def except_(
     *exceptions: type[BaseException], replace: Any = ..., use: Any = ...
@@ -123,3 +120,4 @@ def bypass_when(
 def bypass_unless(
     check: Any,
 ) -> Callable[[Callable[[_T], _R]], Callable[[_T], _T | _R]]: ...
+def splat(func: Callable[[Unpack[_Ts]], _R]) -> Callable[[tuple[Unpack[_Ts]]], _R]: ...

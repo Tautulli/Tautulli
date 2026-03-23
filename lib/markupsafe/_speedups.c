@@ -175,30 +175,26 @@ static PyMethodDef module_methods[] = {
 	{NULL, NULL, 0, NULL}  /* Sentinel */
 };
 
+static PyModuleDef_Slot module_slots[] = {
+#ifdef Py_mod_multiple_interpreters  // Python 3.12+
+	{Py_mod_multiple_interpreters, Py_MOD_PER_INTERPRETER_GIL_SUPPORTED},
+#endif
+#ifdef Py_mod_gil  // Python 3.13+
+	{Py_mod_gil, Py_MOD_GIL_NOT_USED},
+#endif
+	{0, NULL}  /* Sentinel */
+};
+
 static struct PyModuleDef module_definition = {
-	PyModuleDef_HEAD_INIT,
-	"markupsafe._speedups",
-	NULL,
-	-1,
-	module_methods,
-	NULL,
-	NULL,
-	NULL,
-	NULL
+	.m_base = PyModuleDef_HEAD_INIT,
+	.m_name = "markupsafe._speedups",
+	.m_size = 0,
+	.m_methods = module_methods,
+	.m_slots = module_slots,
 };
 
 PyMODINIT_FUNC
 PyInit__speedups(void)
 {
-	PyObject *m = PyModule_Create(&module_definition);
-
-	if (m == NULL) {
-		return NULL;
-	}
-
-	#ifdef Py_GIL_DISABLED
-	PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
-	#endif
-
-	return m;
+	return PyModuleDef_Init(&module_definition);
 }

@@ -8,9 +8,24 @@ import operator
 import random
 import re
 from collections.abc import Container, Iterable, Mapping
-from typing import Any, Callable, Union
+from typing import TYPE_CHECKING, Any, Callable, TypeVar, Union, overload
 
 import jaraco.text
+
+if TYPE_CHECKING:
+    from _operator import _SupportsComparison
+
+    from _typeshed import SupportsKeysAndGetItem
+    from typing_extensions import Self
+
+    _RangeMapKT = TypeVar('_RangeMapKT', bound=_SupportsComparison)
+else:
+    # _SupportsComparison doesn't exist at runtime,
+    # but _RangeMapKT is used in RangeMap's superclass' type parameters
+    _RangeMapKT = TypeVar('_RangeMapKT')
+
+_T = TypeVar('_T')
+_VT = TypeVar('_VT')
 
 _Matchable = Union[Callable, Container, Iterable, re.Pattern]
 
@@ -21,11 +36,12 @@ def _dispatch(obj: _Matchable) -> Callable:
     # (https://peps.python.org/pep-0443/#abstract-base-classes).
     if isinstance(obj, re.Pattern):
         return obj.fullmatch
-    if not isinstance(obj, Callable):  # type: ignore
+    # mypy issue: https://github.com/python/mypy/issues/11071
+    if not isinstance(obj, Callable):  # type: ignore[arg-type]
         if not isinstance(obj, Container):
-            obj = set(obj)  # type: ignore
+            obj = set(obj)  # type: ignore[arg-type]
         obj = obj.__contains__
-    return obj  # type: ignore
+    return obj  # type: ignore[return-value]
 
 
 class Projection(collections.abc.Mapping):
@@ -119,7 +135,7 @@ def dict_map(function, dictionary):
     return dict((key, function(value)) for key, value in dictionary.items())
 
 
-class RangeMap(dict):
+class RangeMap(dict[_RangeMapKT, _VT]):
     """
     A dictionary-like object that uses the keys as bounds for a range.
     Inclusion of the value for that range is determined by the
@@ -202,21 +218,28 @@ class RangeMap(dict):
 
     def __init__(
         self,
-        source,
+        source: (
+            SupportsKeysAndGetItem[_RangeMapKT, _VT] | Iterable[tuple[_RangeMapKT, _VT]]
+        ),
         sort_params: Mapping[str, Any] = {},
-        key_match_comparator=operator.le,
+        key_match_comparator: Callable[[_RangeMapKT, _RangeMapKT], bool] = operator.le,
     ):
         dict.__init__(self, source)
         self.sort_params = sort_params
         self.match = key_match_comparator
 
     @classmethod
-    def left(cls, source):
+    def left(
+        cls,
+        source: (
+            SupportsKeysAndGetItem[_RangeMapKT, _VT] | Iterable[tuple[_RangeMapKT, _VT]]
+        ),
+    ) -> Self:
         return cls(
             source, sort_params=dict(reverse=True), key_match_comparator=operator.ge
         )
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: _RangeMapKT) -> _VT:
         sorted_keys = sorted(self.keys(), **self.sort_params)
         if isinstance(item, RangeMap.Item):
             result = self.__getitem__(sorted_keys[item])
@@ -227,7 +250,11 @@ class RangeMap(dict):
                 raise KeyError(key)
         return result
 
-    def get(self, key, default=None):
+    @overload  # type: ignore[override] # Signature simplified over dict and Mapping
+    def get(self, key: _RangeMapKT, default: _T) -> _VT | _T: ...
+    @overload
+    def get(self, key: _RangeMapKT, default: None = None) -> _VT | None: ...
+    def get(self, key: _RangeMapKT, default: _T | None = None) -> _VT | _T | None:
         """
         Return the value for key if key is in the dictionary, else default.
         If default is not given, it defaults to None, so that this method
@@ -238,14 +265,17 @@ class RangeMap(dict):
         except KeyError:
             return default
 
-    def _find_first_match_(self, keys, item):
+    def _find_first_match_(
+        self, keys: Iterable[_RangeMapKT], item: _RangeMapKT
+    ) -> _RangeMapKT:
         is_match = functools.partial(self.match, item)
-        matches = list(filter(is_match, keys))
-        if matches:
-            return matches[0]
-        raise KeyError(item)
+        matches = filter(is_match, keys)
+        try:
+            return next(matches)
+        except StopIteration:
+            raise KeyError(item) from None
 
-    def bounds(self):
+    def bounds(self) -> tuple[_RangeMapKT, _RangeMapKT]:
         sorted_keys = sorted(self.keys(), **self.sort_params)
         return (sorted_keys[RangeMap.first_item], sorted_keys[RangeMap.last_item])
 
@@ -253,7 +283,7 @@ class RangeMap(dict):
     undefined_value = type('RangeValueUndefined', (), {})()
 
     class Item(int):
-        "RangeMap Item"
+        """RangeMap Item"""
 
     first_item = Item(0)
     last_item = Item(-1)
@@ -880,7 +910,7 @@ class Everything:
         return True
 
 
-class InstrumentedDict(collections.UserDict):  # type: ignore  # buggy mypy
+class InstrumentedDict(collections.UserDict):
     """
     Instrument an existing dictionary with additional
     functionality, but always reference and mutate
@@ -983,8 +1013,7 @@ def pop_all(items):
     return result
 
 
-# mypy disabled for pytest-dev/pytest#8332
-class FreezableDefaultDict(collections.defaultdict):  # type: ignore
+class FreezableDefaultDict(collections.defaultdict):
     """
     Often it is desirable to prevent the mutation of
     a default dict after its initial construction, such
@@ -1060,3 +1089,22 @@ class WeightedLookup(RangeMap):
         lower, upper = self.bounds()
         selector = random.random() * upper
         return self[selector]
+
+
+def set_defaults(__anon_self: dict[str, object], /, **defaults) -> None:
+    """
+    Sets values on target in source not already in target.
+
+    Like :meth:`dict.setdefault`, but applies to all keys.
+
+    >>> target = dict(a=1, c=3)
+    >>> set_defaults(target, b=2, c=4)
+    >>> target
+    {'a': 1, 'c': 3, 'b': 2}
+
+    The first parameter is bound to a name that's unlikely to
+    collide with the keys in defaults.
+
+    >>> set_defaults(target, target=999)
+    """
+    __anon_self.update(Mask(__anon_self.__contains__, defaults))

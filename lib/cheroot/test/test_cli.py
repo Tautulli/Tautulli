@@ -4,6 +4,7 @@
 
    cli
 """
+
 import sys
 
 import pytest
@@ -27,8 +28,14 @@ from cheroot.cli import (
         ('foo', ('foo', None)),
         ('123456789', ('123456789', None)),
         # unix sockets
-        ('/tmp/cheroot.sock', '/tmp/cheroot.sock'),
-        ('/tmp/some-random-file-name', '/tmp/some-random-file-name'),
+        (
+            '/tmp/cheroot.sock',  # noqa: S108  # false-positive, no disk use
+            '/tmp/cheroot.sock',  # noqa: S108  # false-positive, no disk use
+        ),
+        (
+            '/tmp/some-random-file-name',  # noqa: S108  # false-positive
+            '/tmp/some-random-file-name',  # noqa: S108  # false-positive
+        ),
         # abstract sockets
         ('@cheroot', '\x00cheroot'),
     ),
@@ -44,6 +51,7 @@ def test_parse_wsgi_bind_addr(raw_bind_addr, expected_bind_addr):
 @pytest.fixture
 def wsgi_app(monkeypatch):
     """Return a WSGI app stub."""
+
     class WSGIAppMock:
         """Mock of a wsgi module."""
 
@@ -63,6 +71,7 @@ def wsgi_app(monkeypatch):
             It has an empty body because we are expecting to verify that
             the same method is return no the actual execution of it.
             """
+
     app = WSGIAppMock()
     # patch sys.modules, to include the an instance of WSGIAppMock
     # under a specific namespace

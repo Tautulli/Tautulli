@@ -46,15 +46,7 @@ class SOA(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         mname = self.mname.choose_relativity(origin, relativize)
         rname = self.rname.choose_relativity(origin, relativize)
-        return "%s %s %d %d %d %d %d" % (
-            mname,
-            rname,
-            self.serial,
-            self.refresh,
-            self.retry,
-            self.expire,
-            self.minimum,
-        )
+        return f"{mname} {rname} {self.serial} {self.refresh} {self.retry} {self.expire} {self.minimum}"
 
     @classmethod
     def from_text(

@@ -20,6 +20,7 @@ import struct
 
 import dns.exception
 import dns.immutable
+import dns.rdata
 import dns.rdtypes.util
 
 
@@ -48,13 +49,8 @@ class IPSECKEY(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         gateway = Gateway(self.gateway_type, self.gateway).to_text(origin, relativize)
-        return "%d %d %d %s %s" % (
-            self.precedence,
-            self.gateway_type,
-            self.algorithm,
-            gateway,
-            dns.rdata._base64ify(self.key, **kw),
-        )
+        key = dns.rdata._base64ify(self.key, **kw)  # pyright: ignore
+        return f"{self.precedence} {self.gateway_type} {self.algorithm} {gateway} {key}"
 
     @classmethod
     def from_text(

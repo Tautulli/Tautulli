@@ -13,12 +13,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-import datetime
+from datetime import datetime, timezone, timedelta
 import os
 import time
 
 from apscheduler.triggers.date import DateTrigger
-import pytz
 
 import plexpy
 from plexpy import activity_processor
@@ -612,13 +611,13 @@ def schedule_callback(id, func=None, remove_job=False, args=None, **kwargs):
         else:
             ACTIVITY_SCHED.reschedule_job(
                 id, args=args, trigger=DateTrigger(
-                    run_date=datetime.datetime.now(pytz.UTC) + datetime.timedelta(**kwargs),
-                    timezone=pytz.UTC))
+                    run_date=datetime.now(timezone.utc) + timedelta(**kwargs),
+                    timezone=timezone.utc))
     elif not remove_job:
         ACTIVITY_SCHED.add_job(
             func, args=args, id=id, trigger=DateTrigger(
-                run_date=datetime.datetime.now(pytz.UTC) + datetime.timedelta(**kwargs),
-                timezone=pytz.UTC),
+                run_date=datetime.now(timezone.utc) + timedelta(**kwargs),
+                timezone=timezone.utc),
             misfire_grace_time=None)
 
 

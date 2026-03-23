@@ -8,7 +8,7 @@ Tries to
     * assist python web apps to detect clients.
 """
 
-__version__ = '1.9.5'
+__version__ = '1.9.9'
 
 
 class DetectorsHub(dict):
@@ -56,6 +56,16 @@ class DetectorBase(object):
             self.name = self.__class__.__name__
         self.can_register = (self.__class__.__dict__.get('can_register', True))
 
+        if isinstance(self.look_for, (tuple, list)):
+            self._look_for = self.look_for
+        else:
+            self._look_for = (self.look_for,)
+
+        if isinstance(self.version_markers[0], (list, tuple)):
+            self._version_markers = self.version_markers
+        else:
+            self._version_markers = [self.version_markers]
+
     def detect(self, agent, result):
         # -> True/None
         word = self.checkWords(agent)
@@ -74,21 +84,16 @@ class DetectorBase(object):
         for w in self.skip_if_found:
             if w in agent:
                 return False
-        if isinstance(self.look_for, (tuple, list)):
-            for word in self.look_for:
-                if word in agent:
-                    return word
-        elif self.look_for in agent:
-            return self.look_for
+        for word in self._look_for:
+            if word in agent:
+                return word
 
     def getVersion(self, agent, word):
         """
         => version string /None
         """
-        version_markers = self.version_markers if \
-            isinstance(self.version_markers[0], (list, tuple)) else [self.version_markers]
         version_part = agent.split(word, 1)[-1]
-        for start, end in version_markers:
+        for start, end in self._version_markers:
             if version_part.startswith(start) and end in version_part:
                 version = version_part[1:]
                 if end:  # end could be empty string
@@ -248,7 +253,7 @@ class GoogleFeedFetcher(Browser):
     look_for = "Feedfetcher-Google"
     bot = True
 
-    def get_version(self, agent):
+    def getVersion(self, agent, word):
         pass
 
 class RunscopeRadar(Browser):
@@ -259,14 +264,14 @@ class GoogleAppEngine(Browser):
     look_for = "AppEngine-Google"
     bot = True
 
-    def get_version(self, agent):
+    def getVersion(self, agent, word):
         pass
 
 class GoogleApps(Browser):
     look_for = "GoogleApps script"
     bot = True
 
-    def get_version(self, agent):
+    def getVersion(self, agent, word):
         pass
 
 class TwitterBot(Browser):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import annotations
 
 import os
@@ -10,11 +9,7 @@ from typing import Any, Dict, List, Optional, TypeVar
 from plexapi import media, utils
 from plexapi.base import Playable, PlexPartialObject, PlexHistory, PlexSession, cached_data_property
 from plexapi.exceptions import BadRequest
-from plexapi.mixins import (
-    AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, PlayedUnplayedMixin, RatingMixin,
-    ArtUrlMixin, ArtMixin, PosterUrlMixin, PosterMixin, ThemeMixin, ThemeUrlMixin,
-    ArtistEditMixins, AlbumEditMixins, TrackEditMixins
-)
+from plexapi.mixins import ArtistMixins, AlbumMixins, TrackMixins, PlayedUnplayedMixin
 from plexapi.playlist import Playlist
 
 
@@ -179,10 +174,7 @@ class Audio(PlexPartialObject, PlayedUnplayedMixin):
 
 @utils.registerPlexObject
 class Artist(
-    Audio,
-    AdvancedSettingsMixin, SplitMergeMixin, UnmatchMatchMixin, ExtrasMixin, HubsMixin, RatingMixin,
-    ArtMixin, PosterMixin, ThemeMixin,
-    ArtistEditMixins
+    Audio, ArtistMixins
 ):
     """ Represents a single Artist.
 
@@ -349,10 +341,7 @@ class Artist(
 
 @utils.registerPlexObject
 class Album(
-    Audio,
-    SplitMergeMixin, UnmatchMatchMixin, RatingMixin,
-    ArtMixin, PosterMixin, ThemeUrlMixin,
-    AlbumEditMixins
+    Audio, AlbumMixins
 ):
     """ Represents a single Album.
 
@@ -502,10 +491,7 @@ class Album(
 
 @utils.registerPlexObject
 class Track(
-    Audio, Playable,
-    ExtrasMixin, RatingMixin,
-    ArtUrlMixin, PosterUrlMixin, ThemeUrlMixin,
-    TrackEditMixins
+    Audio, Playable, TrackMixins
 ):
     """ Represents a single Track.
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2020 Philip Hane
+# Copyright (c) 2013-2024 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -69,13 +69,13 @@ except ImportError:  # pragma: no cover
 log = logging.getLogger(__name__)
 
 # POSSIBLY UPDATE TO USE RDAP
-ARIN = 'http://whois.arin.net/rest/nets;q={0}?showDetails=true&showARIN=true'
+ARIN = 'https://whois.arin.net/rest/nets;q={0}?showDetails=true&showARIN=true'
 
 CYMRU_WHOIS = 'whois.cymru.com'
 
-IPV4_DNS_ZONE = '{0}.origin.asn.cymru.com'
+IPV4_DNS_ZONE = '{0}.origin.asn.cymru.com.'
 
-IPV6_DNS_ZONE = '{0}.origin6.asn.cymru.com'
+IPV6_DNS_ZONE = '{0}.origin6.asn.cymru.com.'
 
 BLACKLIST = [
     'root.rwhois.net'
@@ -126,11 +126,6 @@ class Net:
         self.timeout = timeout
 
         self.dns_resolver = dns.resolver.Resolver()
-        if hasattr(self.dns_resolver, "resolve"):
-            self.dns_resolve = getattr(self.dns_resolver, "resolve")
-        else:
-            self.dns_resolve = getattr(self.dns_resolver, "query")
-        
         self.dns_resolver.timeout = timeout
         self.dns_resolver.lifetime = timeout
 
@@ -225,7 +220,9 @@ class Net:
         try:
 
             log.debug('ASN query for {0}'.format(self.dns_zone))
-            data = self.dns_resolve(self.dns_zone, 'TXT')
+            data = self.dns_resolver.resolve(self.dns_zone, 'TXT')
+            log.debug('ASN query results using {0}: {1}'.format(
+                self.dns_zone, list(data)))
             return list(data)
 
         except (dns.resolver.NXDOMAIN, dns.resolver.NoNameservers,
@@ -262,12 +259,12 @@ class Net:
 
             asn = 'AS{0}'.format(asn)
 
-        zone = '{0}.asn.cymru.com'.format(asn)
+        zone = '{0}.asn.cymru.com.'.format(asn)
 
         try:
 
             log.debug('ASN verbose query for {0}'.format(zone))
-            data = self.dns_resolve(zone, 'TXT')
+            data = self.dns_resolver.resolve(zone, 'TXT')
             return str(data[0])
 
         except (dns.resolver.NXDOMAIN, dns.resolver.NoNameservers,
@@ -332,6 +329,10 @@ class Net:
         except (socket.timeout, socket.error) as e:  # pragma: no cover
 
             log.debug('ASN query socket error: {0}'.format(e))
+            try:
+                conn.close()
+            except Exception:
+                pass
             if retry_count > 0:
 
                 log.debug('ASN query retrying (count: {0})'.format(
@@ -491,6 +492,10 @@ class Net:
         except (socket.timeout, socket.error) as e:
 
             log.debug('ASN origin WHOIS query socket error: {0}'.format(e))
+            try:
+                conn.close()
+            except Exception:
+                pass
             if retry_count > 0:
 
                 log.debug('ASN origin WHOIS query retrying (count: {0})'
@@ -517,7 +522,7 @@ class Net:
             )
 
     def get_whois(self, asn_registry='arin', retry_count=3, server=None,
-                  port=43, extra_blacklist=None):
+                  port=43, extra_blacklist=None, get_recursive=True):
         """
         The function for retrieving whois or rwhois information for an IP
         address via any port. Defaults to port 43/tcp (WHOIS).
@@ -567,8 +572,9 @@ class Net:
             # Prep the query.
             query = self.address_str + '\r\n'
             if asn_registry == 'arin':
-
                 query = 'n + {0}'.format(query)
+            if asn_registry == 'ripencc' and get_recursive is False:
+                query = '-r {0}'.format(query)
 
             # Query the whois server, and store the results.
             conn.send(query.encode())
@@ -605,17 +611,26 @@ class Net:
                         'exceeded, wait and try again (possibly a '
                         'temporary block).'.format(self.address_str))
 
-            elif ('error 501' in response or 'error 230' in response
-                  ):  # pragma: no cover
+            elif 'error 501' in response:  # pragma: no cover
 
                 log.debug('WHOIS query error: {0}'.format(response))
                 raise ValueError
+
+            elif 'error 230' in response:  # pragma: no cover
+
+                # No results found
+                log.debug('WHOIS query error: {0}'.format(response))
+                pass
 
             return str(response)
 
         except (socket.timeout, socket.error) as e:
 
             log.debug('WHOIS query socket error: {0}'.format(e))
+            try:
+                conn.close()
+            except Exception:
+                pass
             if retry_count > 0:
 
                 log.debug('WHOIS query retrying (count: {0})'.format(
@@ -806,7 +821,7 @@ class Net:
 
             results = namedtuple('get_host_results', 'hostname, aliaslist, '
                                                      'ipaddrlist')
-            return results(*ret)
+            return results(ret)
 
         except (socket.timeout, socket.error) as e:
 

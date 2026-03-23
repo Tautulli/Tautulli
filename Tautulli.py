@@ -25,16 +25,16 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib
 
 
 import argparse
-import datetime
+from datetime import datetime
 import locale
 import platformdirs
-import pytz
 import signal
 import shutil
 import time
 import threading
 import tzlocal
 import ctypes
+import zoneinfo
 
 import plexpy
 from plexpy import common, config, database, helpers, logger, webstart
@@ -135,11 +135,11 @@ def main():
 
     try:
         plexpy.SYS_TIMEZONE = tzlocal.get_localzone()
-    except (pytz.UnknownTimeZoneError, LookupError, ValueError) as e:
+    except (zoneinfo.ZoneInfoNotFoundError, LookupError, ValueError) as e:
         logger.error("Could not determine system timezone: %s" % e)
-        plexpy.SYS_TIMEZONE = pytz.UTC
+        plexpy.SYS_TIMEZONE = zoneinfo.ZoneInfo("UTC")
 
-    plexpy.SYS_UTC_OFFSET = datetime.datetime.now(plexpy.SYS_TIMEZONE).strftime('%z')
+    plexpy.SYS_UTC_OFFSET = datetime.now(plexpy.SYS_TIMEZONE).strftime('%z')
 
     if helpers.bool_true(os.getenv('TAUTULLI_DOCKER', False)):
         plexpy.DOCKER = True

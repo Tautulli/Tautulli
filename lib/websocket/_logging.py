@@ -4,7 +4,7 @@ import logging
 _logging.py
 websocket - WebSocket client library for Python
 
-Copyright 2024 engn33r
+Copyright 2025 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ try:
     from logging import NullHandler
 except ImportError:
 
-    class NullHandler(logging.Handler):
+    class NullHandler(logging.Handler):  # type: ignore[no-redef]
         def emit(self, record) -> None:
             pass
 

@@ -45,9 +45,9 @@ class DeviceClient(Client):
         if scope:
             params.append(('scope', list_to_scope(scope)))
 
-        for k in kwargs:
-            if kwargs[k]:
-                params.append((str(k), kwargs[k]))
+        for k,v in kwargs.items():
+            if v:
+                params.append((str(k), v))
 
         return add_params_to_uri(uri, params)
 

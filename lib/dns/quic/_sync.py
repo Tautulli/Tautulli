@@ -7,6 +7,8 @@ import struct
 import threading
 import time
 
+import aioquic.h3.connection  # type: ignore
+import aioquic.h3.events  # type: ignore
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
@@ -131,25 +133,31 @@ class SyncQuicConnection(BaseQuicConnection):
 
     def _worker(self):
         try:
-            sel = selectors.DefaultSelector()
-            sel.register(self._socket, selectors.EVENT_READ, self._read)
-            sel.register(self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup)
-            while not self._done:
-                (expiration, interval) = self._get_timer_values(False)
-                items = sel.select(interval)
-                for key, _ in items:
-                    key.data()
-                with self._lock:
-                    self._handle_timer(expiration)
-                self._handle_events()
-                with self._lock:
-                    datagrams = self._connection.datagrams_to_send(time.time())
-                for datagram, _ in datagrams:
-                    try:
-                        self._socket.send(datagram)
-                    except BlockingIOError:
-                        # we let QUIC handle any lossage
-                        pass
+            with selectors.DefaultSelector() as sel:
+                sel.register(self._socket, selectors.EVENT_READ, self._read)
+                sel.register(
+                    self._receive_wakeup, selectors.EVENT_READ, self._drain_wakeup
+                )
+                while not self._done:
+                    (expiration, interval) = self._get_timer_values(False)
+                    items = sel.select(interval)
+                    for key, _ in items:
+                        key.data()
+                    with self._lock:
+                        self._handle_timer(expiration)
+                    self._handle_events()
+                    with self._lock:
+                        datagrams = self._connection.datagrams_to_send(time.time())
+                    for datagram, _ in datagrams:
+                        try:
+                            self._socket.send(datagram)
+                        except BlockingIOError:
+                            # we let QUIC handle any lossage
+                            pass
+        except Exception:
+            # Eat all exceptions as we have no way to pass them back to the
+            # caller currently.  It might be nice to fix this in the future.
+            pass
         finally:
             with self._lock:
                 self._done = True
@@ -165,6 +173,7 @@ class SyncQuicConnection(BaseQuicConnection):
                 return
             if isinstance(event, aioquic.quic.events.StreamDataReceived):
                 if self.is_h3():
+                    assert self._h3_conn is not None
                     h3_events = self._h3_conn.handle_event(event)
                     for h3_event in h3_events:
                         if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
@@ -240,11 +249,13 @@ class SyncQuicConnection(BaseQuicConnection):
         with self._lock:
             if self._closed:
                 return
-            self._manager.closed(self._peer[0], self._peer[1])
+            if self._manager is not None:
+                self._manager.closed(self._peer[0], self._peer[1])
             self._closed = True
             self._connection.close()
             self._send_wakeup.send(b"\x01")
-        self._worker_thread.join()
+        if self._worker_thread is not None:
+            self._worker_thread.join()
 
 
 class SyncQuicManager(BaseQuicManager):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import requests
 
 from plexapi import CONFIG, X_PLEX_IDENTIFIER, TIMEOUT
@@ -66,6 +65,7 @@ class PlexSonosClient(PlexClient):
         self._proxyThroughServer = False
         self._showSecrets = CONFIG.get("log.show_secrets", "").lower() == "true"
         self._timeout = timeout or TIMEOUT
+        self._timeline_cache_timestamp = 0
 
     def playMedia(self, media, offset=0, **params):
 

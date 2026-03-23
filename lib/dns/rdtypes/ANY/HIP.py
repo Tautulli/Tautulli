@@ -49,7 +49,7 @@ class HIP(dns.rdata.Rdata):
             servers.append(server.choose_relativity(origin, relativize))
         if len(servers) > 0:
             text += " " + " ".join(x.to_unicode() for x in servers)
-        return "%u %s %s%s" % (self.algorithm, hit, key, text)
+        return f"{self.algorithm} {hit} {key}{text}"
 
     @classmethod
     def from_text(

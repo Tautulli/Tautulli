@@ -3,6 +3,7 @@
 import struct
 
 import dns.immutable
+import dns.ipv4
 import dns.rdata
 
 

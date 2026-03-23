@@ -27,7 +27,7 @@ class PublicEDDSA(CryptographyPublicKey):
 
 
 class PrivateEDDSA(CryptographyPrivateKey):
-    public_cls: Type[PublicEDDSA]
+    public_cls: Type[PublicEDDSA]  # pyright: ignore
 
     def sign(
         self,

@@ -1,11 +1,12 @@
 # Copyright (C) Dnspython Contributors, see LICENSE for text of ISC license
 
 import collections
-from typing import Any, Callable, Iterator, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterator, List, Tuple
 
 import dns.exception
 import dns.name
 import dns.node
+import dns.rdata
 import dns.rdataclass
 import dns.rdataset
 import dns.rdatatype
@@ -31,7 +32,7 @@ class TransactionManager:
 
     def origin_information(
         self,
-    ) -> Tuple[Optional[dns.name.Name], bool, Optional[dns.name.Name]]:
+    ) -> Tuple[dns.name.Name | None, bool, dns.name.Name | None]:
         """Returns a tuple
 
             (absolute_origin, relativize, effective_origin)
@@ -60,7 +61,7 @@ class TransactionManager:
         """The class of the transaction manager."""
         raise NotImplementedError  # pragma: no cover
 
-    def from_wire_origin(self) -> Optional[dns.name.Name]:
+    def from_wire_origin(self) -> dns.name.Name | None:
         """Origin to use in from_wire() calls."""
         (absolute_origin, relativize, _) = self.origin_information()
         if relativize:
@@ -127,9 +128,9 @@ class Transaction:
 
     def get(
         self,
-        name: Optional[Union[dns.name.Name, str]],
-        rdtype: Union[dns.rdatatype.RdataType, str],
-        covers: Union[dns.rdatatype.RdataType, str] = dns.rdatatype.NONE,
+        name: dns.name.Name | str | None,
+        rdtype: dns.rdatatype.RdataType | str,
+        covers: dns.rdatatype.RdataType | str = dns.rdatatype.NONE,
     ) -> dns.rdataset.Rdataset:
         """Return the rdataset associated with *name*, *rdtype*, and *covers*,
         or `None` if not found.
@@ -144,7 +145,7 @@ class Transaction:
         rdataset = self._get_rdataset(name, rdtype, covers)
         return _ensure_immutable_rdataset(rdataset)
 
-    def get_node(self, name: dns.name.Name) -> Optional[dns.node.Node]:
+    def get_node(self, name: dns.name.Name) -> dns.node.Node | None:
         """Return the node at *name*, if any.
 
         Returns an immutable node or ``None``.
@@ -236,7 +237,7 @@ class Transaction:
         self._check_read_only()
         self._delete(True, args)
 
-    def name_exists(self, name: Union[dns.name.Name, str]) -> bool:
+    def name_exists(self, name: dns.name.Name | str) -> bool:
         """Does the specified name exist?"""
         self._check_ended()
         if isinstance(name, str):
@@ -416,12 +417,12 @@ class Transaction:
                 raise TypeError(f"{method}: expected more arguments")
 
     def _add(self, replace, args):
+        if replace:
+            method = "replace()"
+        else:
+            method = "add()"
         try:
             args = collections.deque(args)
-            if replace:
-                method = "replace()"
-            else:
-                method = "add()"
             arg = args.popleft()
             if isinstance(arg, str):
                 arg = dns.name.from_text(arg, None)
@@ -438,6 +439,7 @@ class Transaction:
                 raise TypeError(
                     f"{method} requires a name or RRset as the first argument"
                 )
+            assert rdataset is not None  # for type checkers
             if rdataset.rdclass != self.manager.get_class():
                 raise ValueError(f"{method} has objects of wrong RdataClass")
             if rdataset.rdtype == dns.rdatatype.SOA:
@@ -460,12 +462,12 @@ class Transaction:
             raise TypeError(f"not enough parameters to {method}")
 
     def _delete(self, exact, args):
+        if exact:
+            method = "delete_exact()"
+        else:
+            method = "delete()"
         try:
             args = collections.deque(args)
-            if exact:
-                method = "delete_exact()"
-            else:
-                method = "delete()"
             arg = args.popleft()
             if isinstance(arg, str):
                 arg = dns.name.from_text(arg, None)

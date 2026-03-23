@@ -8,17 +8,16 @@ for consuming OAuth 2.0 RFC6749.
 """
 import base64
 import hashlib
-import re
-import secrets
 import time
 import warnings
 
-from oauthlib.common import generate_token
+from oauthlib.common import UNICODE_ASCII_CHARACTER_SET, generate_token
 from oauthlib.oauth2.rfc6749 import tokens
 from oauthlib.oauth2.rfc6749.errors import (
     InsecureTransportError, TokenExpiredError,
 )
 from oauthlib.oauth2.rfc6749.parameters import (
+    parse_expires,
     parse_token_response, prepare_token_request,
     prepare_token_revocation_request,
 )
@@ -207,7 +206,7 @@ class Client:
 
         case_insensitive_token_types = {
             k.lower(): v for k, v in self.token_types.items()}
-        if not self.token_type.lower() in case_insensitive_token_types:
+        if self.token_type.lower() not in case_insensitive_token_types:
             raise ValueError("Unsupported token type: %s" % self.token_type)
 
         if not (self.access_token or self.token.get('access_token')):
@@ -466,7 +465,7 @@ class Client:
         return uri, headers, body
 
     def create_code_verifier(self, length):
-        """Create PKCE **code_verifier** used in computing **code_challenge**. 
+        """Create PKCE **code_verifier** used in computing **code_challenge**.
         See `RFC7636 Section 4.1`_
 
         :param length: REQUIRED. The length of the code_verifier.
@@ -491,11 +490,7 @@ class Client:
         if not length <= 128:
             raise ValueError("Length must be less than or equal to 128")
 
-        allowed_characters = re.compile('^[A-Zaa-z0-9-._~]')
-        code_verifier = secrets.token_urlsafe(length)
-
-        if not re.search(allowed_characters, code_verifier):
-            raise ValueError("code_verifier contains invalid characters")
+        code_verifier = generate_token(length, UNICODE_ASCII_CHARACTER_SET + "-._~")
 
         self.code_verifier = code_verifier
 
@@ -530,10 +525,10 @@ class Client:
         """
         code_challenge = None
 
-        if code_verifier == None:
+        if code_verifier is None:
             raise ValueError("Invalid code_verifier")
 
-        if code_challenge_method == None:
+        if code_challenge_method is None:
             code_challenge_method = "plain"
             self.code_challenge_method = code_challenge_method
             code_challenge = code_verifier
@@ -587,15 +582,13 @@ class Client:
         if 'token_type' in response:
             self.token_type = response.get('token_type')
 
-        if 'expires_in' in response:
-            self.expires_in = response.get('expires_in')
-            self._expires_at = time.time() + int(self.expires_in)
-
-        if 'expires_at' in response:
-            try:
-                self._expires_at = int(response.get('expires_at'))
-            except:
-                self._expires_at = None
+        vin, vat, v_at = parse_expires(response)
+        if vin:
+            self.expires_in = vin
+        if vat:
+            self.expires_at = vat
+        if v_at:
+            self._expires_at = v_at
 
         if 'mac_key' in response:
             self.mac_key = response.get('mac_key')

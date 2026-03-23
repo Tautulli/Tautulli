@@ -3,7 +3,7 @@ Classes for calling functions a schedule. Has time zone support.
 
 For example, to run a job at 08:00 every morning in 'Asia/Calcutta':
 
->>> from tests.compat.py38 import zoneinfo
+>>> import zoneinfo
 >>> job = lambda: print("time is now", datetime.datetime())
 >>> time = datetime.time(8, tzinfo=zoneinfo.ZoneInfo('Asia/Calcutta'))
 >>> cmd = PeriodicCommandFixedDelay.daily_at(time, job)
@@ -23,12 +23,19 @@ datetime.datetime(...utc)
 datetime.datetime(...utc)
 """
 
-import datetime
-import numbers
+from __future__ import annotations
+
 import abc
 import bisect
+import datetime
+import numbers
+from typing import TYPE_CHECKING, Any
 
-from .utc import now, fromtimestamp as from_timestamp
+from .utc import fromtimestamp as from_timestamp
+from .utc import now
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 class DelayedCommand(datetime.datetime):
@@ -36,8 +43,11 @@ class DelayedCommand(datetime.datetime):
     A command to be executed after some delay (seconds or timedelta).
     """
 
+    delay: datetime.timedelta = datetime.timedelta()
+    target: Any  # Expected type depends on the scheduler used
+
     @classmethod
-    def from_datetime(cls, other):
+    def from_datetime(cls, other) -> Self:
         return cls(
             other.year,
             other.month,
@@ -50,7 +60,7 @@ class DelayedCommand(datetime.datetime):
         )
 
     @classmethod
-    def after(cls, delay, target):
+    def after(cls, delay, target) -> Self:
         if not isinstance(delay, datetime.timedelta):
             delay = datetime.timedelta(seconds=delay)
         due_time = now() + delay
@@ -71,7 +81,7 @@ class DelayedCommand(datetime.datetime):
         return from_timestamp(input)
 
     @classmethod
-    def at_time(cls, at, target):
+    def at_time(cls, at, target) -> Self:
         """
         Construct a DelayedCommand to come due at `at`, where `at` may be
         a datetime or timestamp.
@@ -82,7 +92,7 @@ class DelayedCommand(datetime.datetime):
         cmd.target = target
         return cmd
 
-    def due(self):
+    def due(self) -> bool:
         return now() >= self
 
 
@@ -92,19 +102,19 @@ class PeriodicCommand(DelayedCommand):
     seconds.
     """
 
-    def _next_time(self):
+    def _next_time(self) -> Self:
         """
         Add delay to self, localized
         """
         return self + self.delay
 
-    def next(self):
+    def next(self) -> Self:
         cmd = self.__class__.from_datetime(self._next_time())
         cmd.delay = self.delay
         cmd.target = self.target
         return cmd
 
-    def __setattr__(self, key, value):
+    def __setattr__(self, key, value) -> None:
         if key == 'delay' and not value > datetime.timedelta():
             raise ValueError("A PeriodicCommand must have a positive, non-zero delay.")
         super().__setattr__(key, value)
@@ -118,7 +128,7 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
     """
 
     @classmethod
-    def at_time(cls, at, delay, target):
+    def at_time(cls, at, delay, target) -> Self:  # type: ignore[override] # jaraco/tempora#39
         """
         >>> cmd = PeriodicCommandFixedDelay.at_time(0, 30, None)
         >>> cmd.delay.total_seconds()
@@ -127,13 +137,13 @@ class PeriodicCommandFixedDelay(PeriodicCommand):
         at = cls._from_timestamp(at)
         cmd = cls.from_datetime(at)
         if isinstance(delay, numbers.Number):
-            delay = datetime.timedelta(seconds=delay)
+            delay = datetime.timedelta(seconds=delay)  # type: ignore[arg-type] # python/mypy#3186#issuecomment-1571512649
         cmd.delay = delay
         cmd.target = target
         return cmd
 
     @classmethod
-    def daily_at(cls, at, target):
+    def daily_at(cls, at, target) -> Self:
         """
         Schedule a command to run at a specific time each day.
 
@@ -158,14 +168,13 @@ class Scheduler:
     and dispatching them on schedule.
     """
 
-    def __init__(self):
-        self.queue = []
+    def __init__(self) -> None:
+        self.queue: list[DelayedCommand] = []
 
-    def add(self, command):
-        assert isinstance(command, DelayedCommand)
+    def add(self, command: DelayedCommand) -> None:
         bisect.insort(self.queue, command)
 
-    def run_pending(self):
+    def run_pending(self) -> None:
         while self.queue:
             command = self.queue[0]
             if not command.due():
@@ -176,7 +185,7 @@ class Scheduler:
             del self.queue[0]
 
     @abc.abstractmethod
-    def run(self, command):
+    def run(self, command: DelayedCommand) -> None:
         """
         Run the command
         """
@@ -187,7 +196,7 @@ class InvokeScheduler(Scheduler):
     Command targets are functions to be invoked on schedule.
     """
 
-    def run(self, command):
+    def run(self, command: DelayedCommand) -> None:
         command.target()
 
 
@@ -196,9 +205,9 @@ class CallbackScheduler(Scheduler):
     Command targets are passed to a dispatch callable on schedule.
     """
 
-    def __init__(self, dispatch):
+    def __init__(self, dispatch) -> None:
         super().__init__()
         self.dispatch = dispatch
 
-    def run(self, command):
+    def run(self, command: DelayedCommand) -> None:
         self.dispatch(command.target)

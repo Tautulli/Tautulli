@@ -121,7 +121,7 @@ if dns._features.have("doh"):
             self._family = family
 
         async def connect_tcp(
-            self, host, port, timeout, local_address, socket_options=None
+            self, host, port, timeout=None, local_address=None, socket_options=None
         ):  # pylint: disable=signature-differs
             addresses = []
             _, expiration = _compute_times(timeout)
@@ -151,13 +151,14 @@ if dns._features.have("doh"):
                     sock = await Backend().make_socket(
                         af, socket.SOCK_STREAM, 0, source, destination, timeout
                     )
+                    assert isinstance(sock, StreamSocket)
                     return _CoreTrioStream(sock.stream)
                 except Exception:
                     continue
             raise httpcore.ConnectError
 
         async def connect_unix_socket(
-            self, path, timeout, socket_options=None
+            self, path, timeout=None, socket_options=None
         ):  # pylint: disable=signature-differs
             raise NotImplementedError
 
@@ -211,6 +212,7 @@ class Backend(dns._asyncbackend.Backend):
             if socktype == socket.SOCK_STREAM or destination is not None:
                 connected = False
                 with _maybe_timeout(timeout):
+                    assert destination is not None
                     await s.connect(_lltuple(destination, af))
                     connected = True
                 if not connected:

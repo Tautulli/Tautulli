@@ -1,5 +1,7 @@
 from typing import Any
 
+IS_WINDOWS: bool
+
 def prevent_socket_inheritance(sock) -> None: ...
 
 class _ThreadsafeSelector:

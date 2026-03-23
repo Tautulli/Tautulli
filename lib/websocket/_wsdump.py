@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-wsdump.py
+_wsdump.py
 websocket - WebSocket client library for Python
 
-Copyright 2024 engn33r
+Copyright 2025 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ from urllib.parse import urlparse
 import websocket
 
 try:
-    import readline
+    import readline  # noqa: F401
 except ImportError:
     pass
 

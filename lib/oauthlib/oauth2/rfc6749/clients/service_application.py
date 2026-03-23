@@ -91,7 +91,7 @@ class ServiceApplicationClient(Client):
                          ``https://provider.com/oauth2/token``.
 
         :param expires_at: A unix expiration timestamp for the JWT. Defaults
-                           to an hour from now, i.e. ``time.time() + 3600``.
+                           to an hour from now, i.e. ``round(time.time()) + 3600``.
 
         :param issued_at: A unix timestamp of when the JWT was created.
                           Defaults to now, i.e. ``time.time()``.
@@ -149,7 +149,7 @@ class ServiceApplicationClient(Client):
 
         .. _`Section 3.2.1`: https://tools.ietf.org/html/rfc6749#section-3.2.1
         """
-        import jwt
+        import jwt  # noqa: PLC0415
 
         key = private_key or self.private_key
         if not key:

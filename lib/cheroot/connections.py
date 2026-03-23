@@ -2,22 +2,24 @@
 
 import io
 import os
+import selectors
 import socket
 import threading
 import time
-import selectors
 from contextlib import suppress
 
 from . import errors
 from ._compat import IS_WINDOWS
 from .makefile import MakeFile
 
+
 try:
     import fcntl
 except ImportError:
     try:
-        from ctypes import windll, WinError
         import ctypes.wintypes
+        from ctypes import WinError, windll
+
         _SetHandleInformation = windll.kernel32.SetHandleInformation
         _SetHandleInformation.argtypes = [
             ctypes.wintypes.HANDLE,
@@ -26,18 +28,20 @@ except ImportError:
         ]
         _SetHandleInformation.restype = ctypes.wintypes.BOOL
     except ImportError:
+
         def prevent_socket_inheritance(sock):
             """Stub inheritance prevention.
 
             Dummy function, since neither fcntl nor ctypes are available.
             """
-            pass
     else:
+
         def prevent_socket_inheritance(sock):
             """Mark the given socket fd as non-inheritable (Windows)."""
             if not _SetHandleInformation(sock.fileno(), 1, 0):
                 raise WinError()
 else:
+
     def prevent_socket_inheritance(sock):
         """Mark the given socket fd as non-inheritable (POSIX)."""
         fd = sock.fileno()
@@ -129,7 +133,8 @@ class ConnectionManager:
 
         self._selector.register(
             server.socket.fileno(),
-            selectors.EVENT_READ, data=server,
+            selectors.EVENT_READ,
+            data=server,
         )
 
     def put(self, conn):
@@ -145,7 +150,9 @@ class ConnectionManager:
             self.server.process_conn(conn)
         else:
             self._selector.register(
-                conn.socket.fileno(), selectors.EVENT_READ, data=conn,
+                conn.socket.fileno(),
+                selectors.EVENT_READ,
+                data=conn,
             )
 
     def _expire(self, threshold):
@@ -235,7 +242,7 @@ class ConnectionManager:
                 self._remove_invalid_sockets()
                 continue
 
-            for (sock_fd, conn) in active_list:
+            for sock_fd, conn in active_list:
                 if conn is self.server:
                     # New connection
                     new_conn = self._from_server_socket(self.server.socket)
@@ -294,17 +301,17 @@ class ConnectionManager:
                     s, ssl_env = self.server.ssl_adapter.wrap(s)
                 except errors.FatalSSLAlert as tls_connection_drop_error:
                     self.server.error_log(
-                        f'Client {addr !s} lost — peer dropped the TLS '
+                        f'Client {addr!s} lost — peer dropped the TLS '
                         'connection suddenly, during handshake: '
-                        f'{tls_connection_drop_error !s}',
+                        f'{tls_connection_drop_error!s}',
                     )
-                    return
+                    return None
                 except errors.NoSSLError as http_over_https_err:
                     self.server.error_log(
-                        f'Client {addr !s} attempted to speak plain HTTP into '
+                        f'Client {addr!s} attempted to speak plain HTTP into '
                         'a TCP connection configured for TLS-only traffic — '
                         'trying to send back a plain HTTP error response: '
-                        f'{http_over_https_err !s}',
+                        f'{http_over_https_err!s}',
                     )
                     msg = (
                         'The client sent a plain HTTP request, but '
@@ -323,7 +330,7 @@ class ConnectionManager:
                     except OSError as ex:
                         if ex.args[0] not in errors.socket_errors_to_ignore:
                             raise
-                    return
+                    return None
                 mf = self.server.ssl_adapter.makefile
                 # Re-apply our timeout since we may have a new socket object
                 if hasattr(s, 'settimeout'):
@@ -352,7 +359,7 @@ class ConnectionManager:
             # The only reason for the timeout in start() is so we can
             # notice keyboard interrupts on Win32, which don't interrupt
             # accept() by default
-            return
+            return None
         except OSError as ex:
             if self.server.stats['Enabled']:
                 self.server.stats['Socket Errors'] += 1
@@ -363,20 +370,20 @@ class ConnectionManager:
                 # will then go ahead and poll for and handle the signal
                 # elsewhere. See
                 # https://github.com/cherrypy/cherrypy/issues/707.
-                return
+                return None
             if ex.args[0] in errors.socket_errors_nonblocking:
                 # Just try again. See
                 # https://github.com/cherrypy/cherrypy/issues/479.
-                return
+                return None
             if ex.args[0] in errors.socket_errors_to_ignore:
                 # Our socket was closed.
                 # See https://github.com/cherrypy/cherrypy/issues/686.
-                return
+                return None
             raise
 
     def close(self):
         """Close all monitored connections."""
-        for (_, conn) in self._selector.connections:
+        for _, conn in self._selector.connections:
             if conn is not self.server:  # server closes its own socket
                 conn.close()
         self._selector.close()

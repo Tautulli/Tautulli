@@ -17,6 +17,8 @@
 
 """DNS Opcodes."""
 
+from typing import Type
+
 import dns.enum
 import dns.exception
 
@@ -38,7 +40,7 @@ class Opcode(dns.enum.IntEnum):
         return 15
 
     @classmethod
-    def _unknown_exception_class(cls):
+    def _unknown_exception_class(cls) -> Type[Exception]:
         return UnknownOpcode
 
 

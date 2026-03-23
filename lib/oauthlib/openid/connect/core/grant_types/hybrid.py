@@ -54,10 +54,9 @@ class HybridGrant(GrantTypeBase):
         # Token. Sufficient entropy MUST be present in the `nonce`
         # values used to prevent attackers from guessing values. For
         # implementation notes, see Section 15.5.2.
-        if request.response_type in ["code id_token", "code id_token token"]:
-            if not request.nonce:
-                raise InvalidRequestError(
-                    request=request,
-                    description='Request is missing mandatory nonce parameter.'
-                )
+        if request.response_type in ["code id_token", "code id_token token"] and not request.nonce:
+            raise InvalidRequestError(
+                request=request,
+                description='Request is missing mandatory nonce parameter.'
+            )
         return request_info

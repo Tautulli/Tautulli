@@ -6,17 +6,18 @@
 """
 
 import collections
+import contextlib
 import logging
+import queue
+import socket
 import threading
 import time
-import socket
 import warnings
-import queue
 
 from jaraco.functools import pass_none
 
 
-__all__ = ('WorkerThread', 'ThreadPool')
+__all__ = ('ThreadPool', 'WorkerThread')
 
 
 class TrueyZero:
@@ -70,32 +71,30 @@ class WorkerThread(threading.Thread):
         self.start_time = None
         self.work_time = 0
         self.stats = {
-            'Requests': lambda s: self.requests_seen + (
-                self.start_time is None
-                and trueyzero
+            'Requests': lambda s: self.requests_seen
+            + (
+                (self.start_time is None and trueyzero)
                 or self.conn.requests_seen
             ),
-            'Bytes Read': lambda s: self.bytes_read + (
-                self.start_time is None
-                and trueyzero
+            'Bytes Read': lambda s: self.bytes_read
+            + (
+                (self.start_time is None and trueyzero)
                 or self.conn.rfile.bytes_read
             ),
-            'Bytes Written': lambda s: self.bytes_written + (
-                self.start_time is None
-                and trueyzero
+            'Bytes Written': lambda s: self.bytes_written
+            + (
+                (self.start_time is None and trueyzero)
                 or self.conn.wfile.bytes_written
             ),
-            'Work Time': lambda s: self.work_time + (
-                self.start_time is None
-                and trueyzero
+            'Work Time': lambda s: self.work_time
+            + (
+                (self.start_time is None and trueyzero)
                 or time.time() - self.start_time
             ),
-            'Read Throughput': lambda s: s['Bytes Read'](s) / (
-                s['Work Time'](s) or 1e-6
-            ),
-            'Write Throughput': lambda s: s['Bytes Written'](s) / (
-                s['Work Time'](s) or 1e-6
-            ),
+            'Read Throughput': lambda s: s['Bytes Read'](s)
+            / (s['Work Time'](s) or 1e-6),
+            'Write Throughput': lambda s: s['Bytes Written'](s)
+            / (s['Work Time'](s) or 1e-6),
         }
         threading.Thread.__init__(self)
 
@@ -120,17 +119,17 @@ class WorkerThread(threading.Thread):
         except (KeyboardInterrupt, SystemExit) as interrupt_exc:
             interrupt_cause = interrupt_exc.__cause__ or interrupt_exc
             self.server.error_log(
-                f'Setting the server interrupt flag to {interrupt_cause !r}',
+                f'Setting the server interrupt flag to {interrupt_cause!r}',
                 level=logging.DEBUG,
             )
             self.server.interrupt = interrupt_cause
-        except BaseException as underlying_exc:  # noqa: WPS424
+        except BaseException as underlying_exc:
             # NOTE: This is the last resort logging with the last dying breath
             # NOTE: of the worker. It is only reachable when exceptions happen
             # NOTE: in the `finally` branch of the internal try/except block.
             self.server.error_log(
                 'A fatal exception happened. Setting the server interrupt flag'
-                f' to {underlying_exc !r} and giving up.'
+                f' to {underlying_exc!r} and giving up.'
                 '\N{NEW LINE}\N{NEW LINE}'
                 'Please, report this on the Cheroot tracker at '
                 '<https://github.com/cherrypy/cheroot/issues/new/choose>, '
@@ -162,14 +161,14 @@ class WorkerThread(threading.Thread):
             if is_stats_enabled:
                 self.start_time = time.time()
             keep_conn_open = False
-            try:
+            try:  # noqa: WPS243 check "Found too long `finally` block: 3 > 2"
                 keep_conn_open = conn.communicate()
             except ConnectionError as connection_error:
                 keep_conn_open = False  # Drop the connection cleanly
                 self.server.error_log(
                     'Got a connection error while handling a '
-                    f'connection from {conn.remote_addr !s}:'
-                    f'{conn.remote_port !s} ({connection_error !s})',
+                    f'connection from {conn.remote_addr!s}:'
+                    f'{conn.remote_port!s} ({connection_error!s})',
                     level=logging.INFO,
                 )
                 continue
@@ -178,14 +177,14 @@ class WorkerThread(threading.Thread):
                 keep_conn_open = False  # Drop the connection cleanly
                 self.server.error_log(
                     'Got a server shutdown request while handling a '
-                    f'connection from {conn.remote_addr !s}:'
-                    f'{conn.remote_port !s} ({shutdown_request !s})',
+                    f'connection from {conn.remote_addr!s}:'
+                    f'{conn.remote_port!s} ({shutdown_request!s})',
                     level=logging.DEBUG,
                 )
                 raise SystemExit(
                     str(shutdown_request),
                 ) from shutdown_request
-            except BaseException as unhandled_error:  # noqa: WPS424
+            except BaseException as unhandled_error:
                 # NOTE: Only a shutdown request should bubble up to the
                 # NOTE: external cleanup code. Otherwise, this thread dies.
                 # NOTE: If this were to happen, the threadpool would still
@@ -194,7 +193,7 @@ class WorkerThread(threading.Thread):
                 # NOTE: of new requests.
                 self.server.error_log(
                     'Unhandled error while processing an incoming '
-                    f'connection {unhandled_error !r}',
+                    f'connection {unhandled_error!r}',
                     level=logging.ERROR,
                     traceback=True,
                 )
@@ -230,9 +229,13 @@ class ThreadPool:
     and stop(timeout) attributes.
     """
 
-    def __init__(
-            self, server, min=10, max=-1, accepted_queue_size=-1,
-            accepted_queue_timeout=10,
+    def __init__(  # pylint: disable=too-many-positional-arguments
+        self,
+        server,
+        min=10,
+        max=-1,
+        accepted_queue_size=-1,
+        accepted_queue_timeout=10,
     ):
         """Initialize HTTP requests queue instance.
 
@@ -304,10 +307,8 @@ class ThreadPool:
         # Remove any dead threads from our list
         for t in [t for t in self._threads if not t.is_alive()]:
             self._threads.remove(t)
-            try:
+            with contextlib.suppress(IndexError):
                 self._pending_shutdowns.popleft()
-            except IndexError:
-                pass
 
     def grow(self, amount):
         """Spawn new worker threads (not above self.max)."""
@@ -317,15 +318,12 @@ class ThreadPool:
         workers = [self._spawn_worker() for i in range(n_new)]
         for worker in workers:
             while not worker.ready:
-                time.sleep(.1)
+                time.sleep(0.1)
         self._threads.extend(workers)
 
     def _spawn_worker(self):
         worker = WorkerThread(self.server)
-        worker.name = (
-            'CP Server {worker_name!s}'.
-            format(worker_name=worker.name)
-        )
+        worker.name = f'CP Server {worker.name!s}'
         worker.start()
         return worker
 
@@ -367,12 +365,14 @@ class ThreadPool:
                 stacklevel=2,
             )
 
-        if timeout is not None:
+        if timeout is None:
+            endtime = float('inf')
+        else:
             endtime = time.time() + timeout
 
         # Must shut down threads here so the code that calls
         # this method can know when all threads are stopped.
-        for worker in self._threads:
+        for _worker in self._threads:
             self._queue.put(_SHUTDOWNREQUEST)
 
         ignored_errors = (

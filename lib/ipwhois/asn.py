@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2020 Philip Hane
+# Copyright (c) 2013-2024 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ ASN_ORIGIN_WHOIS = {
 
 ASN_ORIGIN_HTTP = {
     'radb': {
-        'url': 'http://www.radb.net/query',
+        'url': 'https://www.radb.net/query',
         'form_data_asn_field': 'keywords',
         'form_data': {
             'advanced_query': '1',
@@ -75,7 +75,7 @@ ASN_ORIGIN_HTTP = {
             'description': r'(descr):[^\S\n]+(?P<val>.+?)\n',
             'maintainer': r'(mnt-by):[^\S\n]+(?P<val>.+?)\n',
             'updated': r'(changed):[^\S\n]+(?P<val>.+?)\n',
-            'source': r'(source):[^\S\n]+(?P<val>.+?)\<',
+            'source': r'(source):[^\S\n]+(?P<val>.+?)(\<|\n)',
         }
     },
 }
@@ -816,6 +816,11 @@ class ASNOrigin:
                                  ).format(ASN_ORIGIN_HTTP['radb']['url'], asn),
                             retry_count=retry_count,
                             request_type='GET',
+                            headers={'Accept': 'text/html',
+                                     'User-Agent':
+                                         'Mozilla/5.0 (X11; Ubuntu; '
+                                         'Linux x86_64; rv:131.0) '
+                                         'Gecko/20100101 Firefox/131.0'}
                             # form_data=tmp
                         )
                         is_http = True   # pragma: no cover

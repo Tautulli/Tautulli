@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import json
 import socket
 from typing import Callable

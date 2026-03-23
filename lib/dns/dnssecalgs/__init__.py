@@ -1,10 +1,13 @@
-from typing import Dict, Optional, Tuple, Type, Union
+from typing import Dict, Tuple, Type
 
+import dns._features
 import dns.name
 from dns.dnssecalgs.base import GenericPrivateKey
 from dns.dnssectypes import Algorithm
 from dns.exception import UnsupportedAlgorithm
 from dns.rdtypes.ANY.DNSKEY import DNSKEY
+
+# pyright: reportPossiblyUnboundVariable=false
 
 if dns._features.have("dnssec"):
     from dns.dnssecalgs.dsa import PrivateDSA, PrivateDSANSEC3SHA1
@@ -22,7 +25,7 @@ if dns._features.have("dnssec"):
 else:
     _have_cryptography = False
 
-AlgorithmPrefix = Optional[Union[bytes, dns.name.Name]]
+AlgorithmPrefix = bytes | dns.name.Name | None
 
 algorithms: Dict[Tuple[Algorithm, AlgorithmPrefix], Type[GenericPrivateKey]] = {}
 if _have_cryptography:
@@ -45,7 +48,7 @@ if _have_cryptography:
 
 
 def get_algorithm_cls(
-    algorithm: Union[int, str], prefix: AlgorithmPrefix = None
+    algorithm: int | str, prefix: AlgorithmPrefix = None
 ) -> Type[GenericPrivateKey]:
     """Get Private Key class from Algorithm.
 
@@ -83,10 +86,10 @@ def get_algorithm_cls_from_dnskey(dnskey: DNSKEY) -> Type[GenericPrivateKey]:
 
 
 def register_algorithm_cls(
-    algorithm: Union[int, str],
+    algorithm: int | str,
     algorithm_cls: Type[GenericPrivateKey],
-    name: Optional[Union[dns.name.Name, str]] = None,
-    oid: Optional[bytes] = None,
+    name: dns.name.Name | str | None = None,
+    oid: bytes | None = None,
 ) -> None:
     """Register Algorithm Private Key class.
 

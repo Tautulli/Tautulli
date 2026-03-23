@@ -45,6 +45,7 @@ import warnings
 from oauthlib.common import extract_params, safe_string_equals, urldecode
 
 from . import utils
+import contextlib
 
 log = logging.getLogger(__name__)
 
@@ -188,10 +189,9 @@ def base_string_uri(uri: str, host: str = None) -> str:
         raise ValueError('missing host')
 
     # NOTE: Try guessing if we're dealing with IP or hostname
-    try:
+    with contextlib.suppress(ValueError):
         hostname = ipaddress.ip_address(hostname)
-    except ValueError:
-        pass
+
 
     if isinstance(hostname, ipaddress.IPv6Address):
         hostname = f"[{hostname}]"
@@ -568,7 +568,7 @@ def _get_jwt_rsa_algorithm(hash_algorithm_name: str):
         # Not in cache: instantiate a new RSAAlgorithm
 
         # PyJWT has some nice pycrypto/cryptography abstractions
-        import jwt.algorithms as jwt_algorithms
+        import jwt.algorithms as jwt_algorithms  # noqa: PLC0415
         m = {
             'SHA-1': jwt_algorithms.hashes.SHA1,
             'SHA-256': jwt_algorithms.hashes.SHA256,

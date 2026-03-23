@@ -33,11 +33,10 @@ Now should be affected by freezegun.
 import datetime as std
 import functools
 
-
 __all__ = ['now', 'fromtimestamp', 'datetime', 'time']
 
 
-def now():
+def now() -> std.datetime:
     return std.datetime.now(std.timezone.utc)
 
 

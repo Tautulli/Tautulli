@@ -7048,6 +7048,8 @@ class WebInterface(object):
                           "filename": null,
                           "individual_files": 1,
                           "logo_level": 0,
+                          "squareArt_level": 0,
+                          "theme_level": 0,
                           "media_info_level": 1,
                           "media_type": "collection",
                           "media_type_title": "Collection",
@@ -7143,7 +7145,7 @@ class WebInterface(object):
     @addtoapi()
     def export_metadata(self, section_id=None, user_id=None, rating_key=None, file_format='csv',
                         metadata_level=1, media_info_level=1,
-                        thumb_level=0, art_level=0, logo_level=0,
+                        thumb_level=0, art_level=0, logo_level=0, squareArt_level=0, theme_level=0,
                         custom_fields='', export_type='all', individual_files=False, **kwargs):
         """ Export library or media metadata to a file
 
@@ -7160,6 +7162,8 @@ class WebInterface(object):
                 thumb_level (int):         The level of poster/cover images to export (default 0)
                 art_level (int):           The level of background artwork images to export (default 0)
                 logo_level (int):          The level of logo images to export (default 0)
+                squareArt_level (int):     The level of square art images to export (default 0)
+                theme_level (int):         The level of theme images to export (default 0)
                 custom_fields (str):       Comma separated list of custom fields to export
                                            in addition to the export level selected
                 export_type (str):         'collection' or 'playlist' for library/user export,
@@ -7181,6 +7185,8 @@ class WebInterface(object):
                                  thumb_level=thumb_level,
                                  art_level=art_level,
                                  logo_level=logo_level,
+                                 squareArt_level=squareArt_level,
+                                 theme_level=theme_level,
                                  custom_fields=custom_fields,
                                  export_type=export_type,
                                  individual_files=individual_files).export()
@@ -7270,7 +7276,11 @@ class WebInterface(object):
         result = exporter.get_export(export_id=export_id)
 
         if result and result['complete'] == 1 and result['exists']:
-            if result['thumb_level'] or result['art_level'] or result['logo_level'] or result['individual_files']:
+            if (
+                result['thumb_level'] or result['art_level'] or 
+                result['logo_level'] or result['squareArt_level'] or 
+                result['theme_level'] or result['individual_files']
+            ):
                 directory = exporter.format_export_directory(result['title'], result['timestamp'])
                 dirpath = exporter.get_export_dirpath(directory)
                 zip_filename = '{}.zip'.format(directory)

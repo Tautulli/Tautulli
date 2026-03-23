@@ -17,7 +17,7 @@
 
 """DNS E.164 helpers."""
 
-from typing import Iterable, Optional, Union
+from typing import Iterable
 
 import dns.exception
 import dns.name
@@ -28,7 +28,7 @@ public_enum_domain = dns.name.from_text("e164.arpa.")
 
 
 def from_e164(
-    text: str, origin: Optional[dns.name.Name] = public_enum_domain
+    text: str, origin: dns.name.Name | None = public_enum_domain
 ) -> dns.name.Name:
     """Convert an E.164 number in textual form into a Name object whose
     value is the ENUM domain name for that number.
@@ -51,7 +51,7 @@ def from_e164(
 
 def to_e164(
     name: dns.name.Name,
-    origin: Optional[dns.name.Name] = public_enum_domain,
+    origin: dns.name.Name | None = public_enum_domain,
     want_plus_prefix: bool = True,
 ) -> str:
     """Convert an ENUM domain name into an E.164 number.
@@ -87,8 +87,8 @@ def to_e164(
 
 def query(
     number: str,
-    domains: Iterable[Union[dns.name.Name, str]],
-    resolver: Optional[dns.resolver.Resolver] = None,
+    domains: Iterable[dns.name.Name | str],
+    resolver: dns.resolver.Resolver | None = None,
 ) -> dns.resolver.Answer:
     """Look for NAPTR RRs for the specified number in the specified domains.
 
@@ -108,7 +108,7 @@ def query(
     for domain in domains:
         if isinstance(domain, str):
             domain = dns.name.from_text(domain)
-        qname = dns.e164.from_e164(number, domain)
+        qname = from_e164(number, domain)
         try:
             return resolver.resolve(qname, "NAPTR")
         except dns.resolver.NXDOMAIN as e:

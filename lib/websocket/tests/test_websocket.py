@@ -7,7 +7,11 @@ import unittest
 from base64 import decodebytes as base64decode
 
 import websocket as ws
-from websocket._exceptions import WebSocketBadStatusException, WebSocketAddressException
+from websocket._exceptions import (
+    WebSocketBadStatusException,
+    WebSocketAddressException,
+    WebSocketException,
+)
 from websocket._handshake import _create_sec_websocket_key
 from websocket._handshake import _validate as _validate_header
 from websocket._http import read_headers
@@ -17,7 +21,7 @@ from websocket._utils import validate_utf8
 test_websocket.py
 websocket - WebSocket client library for Python
 
-Copyright 2024 engn33r
+Copyright 2025 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -295,7 +299,7 @@ class WebSocketTest(unittest.TestCase):
     def test_close(self):
         sock = ws.WebSocket()
         sock.connected = True
-        sock.close
+        sock.close()
 
         sock = ws.WebSocket()
         s = sock.sock = SockMock()
@@ -454,7 +458,7 @@ class HandshakeTest(unittest.TestCase):
         self.assertRaises(ValueError, websock1.connect, "wss://api.bitfinex.com/ws/2")
         websock2 = ws.WebSocket(sslopt={"certfile": "myNonexistentCertFile"})
         self.assertRaises(
-            FileNotFoundError, websock2.connect, "wss://api.bitfinex.com/ws/2"
+            WebSocketException, websock2.connect, "wss://api.bitfinex.com/ws/2"
         )
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")

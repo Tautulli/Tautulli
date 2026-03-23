@@ -23,8 +23,13 @@ import random
 import struct
 import time
 
+import dns.edns
 import dns.exception
+import dns.rdataclass
+import dns.rdatatype
 import dns.tsig
+
+# Note we can't import dns.message for cicularity reasons
 
 QUESTION = 0
 ANSWER = 1
@@ -214,7 +219,9 @@ class Renderer:
                 pad = b""
             options = list(opt_rdata.options)
             options.append(dns.edns.GenericOption(dns.edns.OptionType.PADDING, pad))
-            opt = dns.message.Message._make_opt(ttl, opt_rdata.rdclass, options)
+            opt = dns.message.Message._make_opt(  # pyright: ignore
+                ttl, opt_rdata.rdclass, options
+            )
             self.was_padded = True
         self.add_rrset(ADDITIONAL, opt)
 
@@ -224,7 +231,9 @@ class Renderer:
         # make sure the EDNS version in ednsflags agrees with edns
         ednsflags &= 0xFF00FFFF
         ednsflags |= edns << 16
-        opt = dns.message.Message._make_opt(ednsflags, payload, options)
+        opt = dns.message.Message._make_opt(  # pyright: ignore
+            ednsflags, payload, options
+        )
         self.add_opt(opt)
 
     def add_tsig(
@@ -246,7 +255,7 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(
+        tsig = dns.message.Message._make_tsig(  # pyright: ignore
             keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
         )
         (tsig, _) = dns.tsig.sign(s, key, tsig[0], int(time.time()), request_mac)
@@ -278,7 +287,7 @@ class Renderer:
             key = secret
         else:
             key = dns.tsig.Key(keyname, secret, algorithm)
-        tsig = dns.message.Message._make_tsig(
+        tsig = dns.message.Message._make_tsig(  # pyright: ignore
             keyname, algorithm, 0, fudge, b"", id, tsig_error, other_data
         )
         (tsig, ctx) = dns.tsig.sign(

@@ -143,7 +143,7 @@ class RequestValidator(OAuth2RequestValidator):
           Token MUST NOT be accepted by the RP when performing
           authentication with the OP.
 
-        Additionals claims must be added, note that `request.scope`
+        Additional claims must be added, note that `request.scope`
         should be used to determine the list of claims.
 
         More information can be found at `OpenID Connect Core#Claims`_

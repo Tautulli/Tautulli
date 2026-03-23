@@ -1,9 +1,7 @@
-from typing import Optional, Union
 from urllib.parse import urlparse
 
 import dns.asyncbackend
 import dns.asyncquery
-import dns.inet
 import dns.message
 import dns.query
 
@@ -31,7 +29,7 @@ class Nameserver:
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool,
         one_rr_per_rrset: bool = False,
@@ -43,7 +41,7 @@ class Nameserver:
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool,
         backend: dns.asyncbackend.Backend,
@@ -87,7 +85,7 @@ class Do53Nameserver(AddressAndPortNameserver):
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool,
         one_rr_per_rrset: bool = False,
@@ -124,7 +122,7 @@ class Do53Nameserver(AddressAndPortNameserver):
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool,
         backend: dns.asyncbackend.Backend,
@@ -165,8 +163,8 @@ class DoHNameserver(Nameserver):
     def __init__(
         self,
         url: str,
-        bootstrap_address: Optional[str] = None,
-        verify: Union[bool, str] = True,
+        bootstrap_address: str | None = None,
+        verify: bool | str = True,
         want_get: bool = False,
         http_version: dns.query.HTTPVersion = dns.query.HTTPVersion.DEFAULT,
     ):
@@ -199,7 +197,7 @@ class DoHNameserver(Nameserver):
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool = False,
         one_rr_per_rrset: bool = False,
@@ -223,7 +221,7 @@ class DoHNameserver(Nameserver):
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool,
         backend: dns.asyncbackend.Backend,
@@ -250,8 +248,8 @@ class DoTNameserver(AddressAndPortNameserver):
         self,
         address: str,
         port: int = 853,
-        hostname: Optional[str] = None,
-        verify: Union[bool, str] = True,
+        hostname: str | None = None,
+        verify: bool | str = True,
     ):
         super().__init__(address, port)
         self.hostname = hostname
@@ -264,7 +262,7 @@ class DoTNameserver(AddressAndPortNameserver):
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool = False,
         one_rr_per_rrset: bool = False,
@@ -285,7 +283,7 @@ class DoTNameserver(AddressAndPortNameserver):
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool,
         backend: dns.asyncbackend.Backend,
@@ -309,8 +307,8 @@ class DoQNameserver(AddressAndPortNameserver):
         self,
         address: str,
         port: int = 853,
-        verify: Union[bool, str] = True,
-        server_hostname: Optional[str] = None,
+        verify: bool | str = True,
+        server_hostname: str | None = None,
     ):
         super().__init__(address, port)
         self.verify = verify
@@ -323,7 +321,7 @@ class DoQNameserver(AddressAndPortNameserver):
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool = False,
         one_rr_per_rrset: bool = False,
@@ -344,7 +342,7 @@ class DoQNameserver(AddressAndPortNameserver):
         self,
         request: dns.message.QueryMessage,
         timeout: float,
-        source: Optional[str],
+        source: str | None,
         source_port: int,
         max_size: bool,
         backend: dns.asyncbackend.Backend,

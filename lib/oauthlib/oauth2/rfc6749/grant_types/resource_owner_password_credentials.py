@@ -180,12 +180,11 @@ class ResourceOwnerPasswordCredentialsGrant(GrantTypeBase):
                                                     request.password, request.client, request):
             raise errors.InvalidGrantError(
                 'Invalid credentials given.', request=request)
-        else:
-            if not hasattr(request.client, 'client_id'):
-                raise NotImplementedError(
-                    'Validate user must set the '
-                    'request.client.client_id attribute '
-                    'in authenticate_client.')
+        elif not hasattr(request.client, 'client_id'):
+            raise NotImplementedError(
+                'Validate user must set the '
+                'request.client.client_id attribute '
+                'in authenticate_client.')
         log.debug('Authorizing access to user %r.', request.user)
 
         # Ensure client is authorized use of this grant type

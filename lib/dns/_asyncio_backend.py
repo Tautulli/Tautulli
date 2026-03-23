@@ -49,7 +49,8 @@ class _DatagramProtocol:
                 self.recvfrom.set_exception(exc)
 
     def close(self):
-        self.transport.close()
+        if self.transport is not None:
+            self.transport.close()
 
 
 async def _maybe_wait_for(awaitable, timeout):
@@ -130,7 +131,7 @@ if dns._features.have("doh"):
     import httpx
 
     _CoreAsyncNetworkBackend = httpcore.AsyncNetworkBackend
-    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream
+    _CoreAnyIOStream = httpcore._backends.anyio.AnyIOStream  # pyright: ignore
 
     from dns.query import _compute_times, _expiration_for_this_attempt, _remaining
 
@@ -147,7 +148,7 @@ if dns._features.have("doh"):
                 )
 
         async def connect_tcp(
-            self, host, port, timeout, local_address, socket_options=None
+            self, host, port, timeout=None, local_address=None, socket_options=None
         ):  # pylint: disable=signature-differs
             addresses = []
             _, expiration = _compute_times(timeout)
@@ -180,7 +181,7 @@ if dns._features.have("doh"):
             raise httpcore.ConnectError
 
         async def connect_unix_socket(
-            self, path, timeout, socket_options=None
+            self, path, timeout=None, socket_options=None
         ):  # pylint: disable=signature-differs
             raise NotImplementedError
 
@@ -233,7 +234,7 @@ class Backend(dns._asyncbackend.Backend):
                 # proper fix for [#637].
                 source = (dns.inet.any_for_af(af), 0)
             transport, protocol = await loop.create_datagram_endpoint(
-                _DatagramProtocol,
+                _DatagramProtocol,  # pyright: ignore
                 source,
                 family=af,
                 proto=proto,

@@ -1,14 +1,10 @@
+import calendar
+import datetime
 import logging
 import os
 import time
-import datetime
-import calendar
 import warnings
-
-try:
-    import zoneinfo  # pragma: no cover
-except ImportError:
-    from backports import zoneinfo  # pragma: no cover
+import zoneinfo
 
 from tzlocal import windows_tz
 
@@ -35,9 +31,9 @@ def assert_tz_offset(tz, error=True):
     # No one has timezone offsets less than a minute, so this should be close enough:
     if abs(tz_offset - system_offset) > 60:
         msg = (
-            "Timezone offset does not match system offset: {} != {}. "
+            f"Timezone offset does not match system offset: {tz_offset} != {system_offset}. "
             "Please, check your config files."
-        ).format(tz_offset, system_offset)
+        )
         if error:
             raise ValueError(msg)
         warnings.warn(msg)
@@ -107,6 +103,6 @@ def _tz_from_env(tzenv=None):
     except zoneinfo.ZoneInfoNotFoundError:
         # Nope, it's something like "PST4DST" etc, we can't handle that.
         raise zoneinfo.ZoneInfoNotFoundError(
-            "tzlocal() does not support non-zoneinfo timezones like %s. \n"
-            "Please use a timezone in the form of Continent/City" % tzenv
+            f"tzlocal() does not support non-zoneinfo timezones like {tzenv}. \n"
+            "Please use a timezone in the form of Continent/City"
         ) from None

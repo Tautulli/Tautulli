@@ -38,9 +38,9 @@ class MetadataEndpoint(BaseEndpoint):
    """
 
     def __init__(self, endpoints, claims={}, raise_errors=True):
-        assert isinstance(claims, dict)
+        assert isinstance(claims, dict)  # noqa: S101
         for endpoint in endpoints:
-            assert isinstance(endpoint, BaseEndpoint)
+            assert isinstance(endpoint, BaseEndpoint)  # noqa: S101
 
         BaseEndpoint.__init__(self)
         self.raise_errors = raise_errors

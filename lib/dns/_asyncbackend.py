@@ -71,7 +71,7 @@ class NullTransport:
 
 
 class Backend:  # pragma: no cover
-    def name(self):
+    def name(self) -> str:
         return "unknown"
 
     async def make_socket(

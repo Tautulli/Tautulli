@@ -1,11 +1,18 @@
+from __future__ import annotations
+
 import collections.abc
 import contextlib
 import datetime
 import functools
 import numbers
 import time
+from types import TracebackType
+from typing import TYPE_CHECKING
 
 import jaraco.functools
+
+if TYPE_CHECKING:
+    from typing_extensions import Self
 
 
 class Stopwatch:
@@ -40,35 +47,40 @@ class Stopwatch:
     0
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.reset()
         self.start()
 
-    def reset(self):
+    def reset(self) -> None:
         self.elapsed = datetime.timedelta(0)
         with contextlib.suppress(AttributeError):
             del self._start
 
-    def _diff(self):
+    def _diff(self) -> datetime.timedelta:
         return datetime.timedelta(seconds=time.monotonic() - self._start)
 
-    def start(self):
+    def start(self) -> None:
         self._start = time.monotonic()
 
-    def stop(self):
+    def stop(self) -> datetime.timedelta:
         self.elapsed += self._diff()
         del self._start
         return self.elapsed
 
-    def split(self):
+    def split(self) -> datetime.timedelta:
         return self.elapsed + self._diff()
 
     # context manager support
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self.start()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None:
         self.stop()
 
 
@@ -82,9 +94,9 @@ class IntervalGovernor:
     30.0
     """
 
-    def __init__(self, min_interval):
+    def __init__(self, min_interval) -> None:
         if isinstance(min_interval, numbers.Number):
-            min_interval = datetime.timedelta(seconds=min_interval)
+            min_interval = datetime.timedelta(seconds=min_interval)  # type: ignore[arg-type] # python/mypy#3186#issuecomment-1571512649
         self.min_interval = min_interval
         self.last_call = None
 
@@ -113,12 +125,12 @@ class Timer(Stopwatch):
     True
     """
 
-    def __init__(self, target=float('Inf')):
+    def __init__(self, target=float('Inf')) -> None:
         self.target = self._accept(target)
         super().__init__()
 
     @staticmethod
-    def _accept(target):
+    def _accept(target: float) -> float:
         """
         Accept None or ∞ or datetime or numeric for target
 
@@ -136,7 +148,7 @@ class Timer(Stopwatch):
 
         return target
 
-    def expired(self):
+    def expired(self) -> bool:
         return self.split().total_seconds() > self.target
 
 
@@ -220,45 +232,56 @@ class BackoffDelay(collections.abc.Iterator):
     True
     """
 
-    delay = 0
-
     factor = 1
     "Multiplier applied to delay"
 
-    jitter = 0
-    "Number or callable returning extra seconds to add to delay"
+    jitter: collections.abc.Callable[[], float]
+    "Callable returning extra seconds to add to delay"
 
     @jaraco.functools.save_method_args
-    def __init__(self, delay=0, factor=1, limit=float('inf'), jitter=0):
+    def __init__(
+        self,
+        delay: float = 0,
+        factor=1,
+        limit: collections.abc.Callable[[float], float] | float = float('inf'),
+        jitter: collections.abc.Callable[[], float] | float = 0,
+    ) -> None:
         self.delay = delay
         self.factor = factor
         if isinstance(limit, numbers.Number):
             limit_ = limit
 
-            def limit(n):
+            def limit_func(n: float, /) -> float:
                 return max(0, min(limit_, n))
 
-        self.limit = limit
+        else:
+            # python/mypy#16946 or # python/mypy#13914
+            limit_func: collections.abc.Callable[[float], float] = limit  # type: ignore[no-redef]
+        self.limit = limit_func
         if isinstance(jitter, numbers.Number):
             jitter_ = jitter
 
-            def jitter():
+            def jitter_func() -> float:
                 return jitter_
 
-        self.jitter = jitter
+        else:
+            # python/mypy#16946 or # python/mypy#13914
+            jitter_func: collections.abc.Callable[[], float] = jitter  # type: ignore[no-redef]
 
-    def __call__(self):
+        self.jitter = jitter_func
+
+    def __call__(self) -> None:
         time.sleep(next(self))
 
-    def __next__(self):
+    def __next__(self) -> int | float:
         delay = self.delay
         self.bump()
         return delay
 
-    def __iter__(self):
+    def __iter__(self) -> Self:
         return self
 
-    def bump(self):
+    def bump(self) -> None:
         self.delay = self.limit(self.delay * self.factor + self.jitter())
 
     def reset(self):

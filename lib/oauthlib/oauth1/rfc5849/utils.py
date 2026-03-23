@@ -30,7 +30,8 @@ def filter_params(target):
 
 def filter_oauth_params(params):
     """Removes all non oauth parameters from a dict or a list of params."""
-    is_oauth = lambda kv: kv[0].startswith("oauth_")
+    def is_oauth(kv):
+        return kv[0].startswith('oauth_')
     if isinstance(params, dict):
         return list(filter(is_oauth, list(params.items())))
     else:
@@ -59,7 +60,7 @@ def unescape(u):
     return unquote(u)
 
 
-def parse_keqv_list(l):
+def parse_keqv_list(l):  # noqa: E741
     """A unicode-safe version of urllib2.parse_keqv_list"""
     # With Python 2.6, parse_http_list handles unicode fine
     return urllib2.parse_keqv_list(l)

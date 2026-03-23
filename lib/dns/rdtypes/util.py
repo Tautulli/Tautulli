@@ -18,13 +18,16 @@
 import collections
 import random
 import struct
-from typing import Any, List
+from typing import Any, Iterable, List, Tuple
 
 import dns.exception
 import dns.ipv4
 import dns.ipv6
 import dns.name
 import dns.rdata
+import dns.rdatatype
+import dns.tokenizer
+import dns.wire
 
 
 class Gateway:
@@ -32,7 +35,7 @@ class Gateway:
 
     name = ""
 
-    def __init__(self, type, gateway=None):
+    def __init__(self, type: Any, gateway: str | dns.name.Name | None = None):
         self.type = dns.rdata.Rdata._as_uint8(type)
         self.gateway = gateway
         self._check()
@@ -48,9 +51,11 @@ class Gateway:
             self.gateway = None
         elif self.type == 1:
             # check that it's OK
+            assert isinstance(self.gateway, str)
             dns.ipv4.inet_aton(self.gateway)
         elif self.type == 2:
             # check that it's OK
+            assert isinstance(self.gateway, str)
             dns.ipv6.inet_aton(self.gateway)
         elif self.type == 3:
             if not isinstance(self.gateway, dns.name.Name):
@@ -64,6 +69,7 @@ class Gateway:
         elif self.type in (1, 2):
             return self.gateway
         elif self.type == 3:
+            assert isinstance(self.gateway, dns.name.Name)
             return str(self.gateway.choose_relativity(origin, relativize))
         else:
             raise ValueError(self._invalid_type(self.type))  # pragma: no cover
@@ -87,10 +93,13 @@ class Gateway:
         if self.type == 0:
             pass
         elif self.type == 1:
+            assert isinstance(self.gateway, str)
             file.write(dns.ipv4.inet_aton(self.gateway))
         elif self.type == 2:
+            assert isinstance(self.gateway, str)
             file.write(dns.ipv6.inet_aton(self.gateway))
         elif self.type == 3:
+            assert isinstance(self.gateway, dns.name.Name)
             self.gateway.to_wire(file, None, origin, False)
         else:
             raise ValueError(self._invalid_type(self.type))  # pragma: no cover
@@ -117,8 +126,10 @@ class Bitmap:
 
     type_name = ""
 
-    def __init__(self, windows=None):
+    def __init__(self, windows: Iterable[Tuple[int, bytes]] | None = None):
         last_window = -1
+        if windows is None:
+            windows = []
         self.windows = windows
         for window, bitmap in self.windows:
             if not isinstance(window, int):
@@ -140,7 +151,7 @@ class Bitmap:
             for i, byte in enumerate(bitmap):
                 for j in range(0, 8):
                     if byte & (0x80 >> j):
-                        rdtype = window * 256 + i * 8 + j
+                        rdtype = dns.rdatatype.RdataType.make(window * 256 + i * 8 + j)
                         bits.append(dns.rdatatype.to_text(rdtype))
             text += " " + " ".join(bits)
         return text
@@ -236,9 +247,10 @@ def weighted_processing_order(iterable):
                 if weight > r:
                     break
                 r -= weight
-            total -= weight
-            ordered.append(rdata)  # pylint: disable=undefined-loop-variable
-            del rdatas[n]  # pylint: disable=undefined-loop-variable
+            total -= weight  # pyright: ignore[reportPossiblyUnboundVariable]
+            # pylint: disable=undefined-loop-variable
+            ordered.append(rdata)  # pyright: ignore[reportPossiblyUnboundVariable]
+            del rdatas[n]  # pyright: ignore[reportPossiblyUnboundVariable]
         ordered.append(rdatas[0])
     return ordered
 

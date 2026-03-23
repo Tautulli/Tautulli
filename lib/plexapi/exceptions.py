@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-
 class PlexApiException(Exception):
     """ Base class for all PlexAPI exceptions. """
     pass

@@ -81,4 +81,4 @@ class ResourceEndpoint(BaseEndpoint):
         """
         estimates = sorted(((t.estimate_type(request), n)
                             for n, t in self.tokens.items()), reverse=True)
-        return estimates[0][1] if len(estimates) else None
+        return estimates[0][1] if estimates else None

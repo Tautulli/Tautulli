@@ -52,13 +52,12 @@ class NAPTR(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         replacement = self.replacement.choose_relativity(origin, relativize)
-        return '%d %d "%s" "%s" "%s" %s' % (
-            self.order,
-            self.preference,
-            dns.rdata._escapify(self.flags),
-            dns.rdata._escapify(self.service),
-            dns.rdata._escapify(self.regexp),
-            replacement,
+        return (
+            f"{self.order} {self.preference} "
+            f'"{dns.rdata._escapify(self.flags)}" '
+            f'"{dns.rdata._escapify(self.service)}" '
+            f'"{dns.rdata._escapify(self.regexp)}" '
+            f"{replacement}"
         )
 
     @classmethod

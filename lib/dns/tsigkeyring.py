@@ -24,14 +24,14 @@ import dns.name
 import dns.tsig
 
 
-def from_text(textring: Dict[str, Any]) -> Dict[dns.name.Name, dns.tsig.Key]:
+def from_text(textring: Dict[str, Any]) -> Dict[dns.name.Name, Any]:
     """Convert a dictionary containing (textual DNS name, base64 secret)
     pairs into a binary keyring which has (dns.name.Name, bytes) pairs, or
     a dictionary containing (textual DNS name, (algorithm, base64 secret))
     pairs into a binary keyring which has (dns.name.Name, dns.tsig.Key) pairs.
     @rtype: dict"""
 
-    keyring = {}
+    keyring: Dict[dns.name.Name, Any] = {}
     for name, value in textring.items():
         kname = dns.name.from_text(name)
         if isinstance(value, str):

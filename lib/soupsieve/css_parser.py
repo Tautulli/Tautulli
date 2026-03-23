@@ -18,6 +18,7 @@ PSEUDO_SIMPLE = {
     ":first-child",
     ":first-of-type",
     ":in-range",
+    ":open",
     ":out-of-range",
     ":last-child",
     ":last-of-type",
@@ -36,26 +37,35 @@ PSEUDO_SIMPLE = {
     ':read-write',
     ':required',
     ':scope',
-    ':defined'
+    ':defined',
+    ':muted'
 }
 
 # Supported, simple pseudo classes that match nothing in the Soup Sieve environment
 PSEUDO_SIMPLE_NO_MATCH = {
     ':active',
+    ':autofill',
+    ':buffering',
     ':current',
     ':focus',
     ':focus-visible',
     ':focus-within',
+    ':fullscreen',
     ':future',
     ':host',
     ':hover',
     ':local-link',
     ':past',
     ':paused',
+    ':picture-in-picture',
     ':playing',
+    ':popover-open',
+    ':seeking',
+    ':stalled',
     ':target',
     ':target-within',
     ':user-invalid',
+    ':volume-locked',
     ':visited'
 }
 
@@ -108,9 +118,9 @@ IDENTIFIER = fr'''
 # `nth` content
 NTH = fr'(?:[-+])?(?:[0-9]+n?|n)(?:(?<=n){WSC}*(?:[-+]){WSC}*(?:[0-9]+))?'
 # Value: quoted string or identifier
-VALUE = fr'''(?:"(?:\\(?:.|{NEWLINE})|[^\\"\r\n\f]+)*?"|'(?:\\(?:.|{NEWLINE})|[^\\'\r\n\f]+)*?'|{IDENTIFIER}+)'''
+VALUE = fr'''(?:"(?:\\(?:.|{NEWLINE})|[^\\"\r\n\f]+)*?"|'(?:\\(?:.|{NEWLINE})|[^\\'\r\n\f]+)*?'|{IDENTIFIER})'''
 # Attribute value comparison. `!=` is handled special as it is non-standard.
-ATTR = fr'(?:{WSC}*(?P<cmp>[!~^|*$]?=){WSC}*(?P<value>{VALUE})(?:{WSC}*(?P<case>[is]))?)?{WSC}*\]'
+ATTR = fr'(?:{WSC}*(?P<cmp>[!~^|*$]?=){WSC}*(?P<value>{VALUE})(?:{WSC}*(?P<case>[is]))?)?{WSC}*'
 
 # Selector patterns
 # IDs (`#id`)
@@ -120,13 +130,15 @@ PAT_CLASS = fr'\.{IDENTIFIER}'
 # Prefix:Tag (`prefix|tag`)
 PAT_TAG = fr'(?P<tag_ns>(?:{IDENTIFIER}|\*)?\|)?(?P<tag_name>{IDENTIFIER}|\*)'
 # Attributes (`[attr]`, `[attr=value]`, etc.)
-PAT_ATTR = fr'\[{WSC}*(?P<attr_ns>(?:{IDENTIFIER}|\*)?\|)?(?P<attr_name>{IDENTIFIER}){ATTR}'
+PAT_ATTR = fr'\[{WSC}*(?P<attr_ns>(?:{IDENTIFIER}|\*)?\|)?(?P<attr_name>{IDENTIFIER}){ATTR}\]'
 # Pseudo class (`:pseudo-class`, `:pseudo-class(`)
 PAT_PSEUDO_CLASS = fr'(?P<name>:{IDENTIFIER})(?P<open>\({WSC}*)?'
 # Pseudo class special patterns. Matches `:pseudo-class(` for special case pseudo classes.
 PAT_PSEUDO_CLASS_SPECIAL = fr'(?P<name>:{IDENTIFIER})(?P<open>\({WSC}*)'
 # Custom pseudo class (`:--custom-pseudo`)
 PAT_PSEUDO_CLASS_CUSTOM = fr'(?P<name>:(?=--){IDENTIFIER})'
+# Nesting ampersand selector. Matches `&`
+PAT_AMP = r'&'
 # Closing pseudo group (`)`)
 PAT_PSEUDO_CLOSE = fr'{WSC}*\)'
 # Pseudo element (`::pseudo-element`)
@@ -435,6 +447,7 @@ class CSSParser:
         SelectorPattern("pseudo_class_custom", PAT_PSEUDO_CLASS_CUSTOM),
         SelectorPattern("pseudo_class", PAT_PSEUDO_CLASS),
         SelectorPattern("pseudo_element", PAT_PSEUDO_ELEMENT),
+        SelectorPattern("amp", PAT_AMP),
         SelectorPattern("at_rule", PAT_AT_RULE),
         SelectorPattern("id", PAT_ID),
         SelectorPattern("class", PAT_CLASS),
@@ -603,6 +616,10 @@ class CSSParser:
                 sel.selectors.append(CSS_ENABLED)
             elif pseudo == ":required":
                 sel.selectors.append(CSS_REQUIRED)
+            elif pseudo == ":muted":
+                sel.selectors.append(CSS_MUTED)
+            elif pseudo == ":open":
+                sel.selectors.append(CSS_OPEN)
             elif pseudo == ":optional":
                 sel.selectors.append(CSS_OPTIONAL)
             elif pseudo == ":read-only":
@@ -652,8 +669,11 @@ class CSSParser:
                 m.start(0)
             )
         else:
-            raise NotImplementedError(
-                f"'{pseudo}' pseudo-class is not implemented at this time"
+            raise SelectorSyntaxError(
+                f"'{pseudo}' was detected as a pseudo-class and is either unsupported or invalid. "
+                "If the syntax was not intended to be recognized as a pseudo-class, please escape the colon.",
+                self.pattern,
+                m.start(0)
             )
 
         return has_selector, is_html
@@ -967,6 +987,9 @@ class CSSParser:
                 # Handle parts
                 if key == "at_rule":
                     raise NotImplementedError(f"At-rules found at position {m.start(0)}")
+                elif key == "amp":
+                    sel.flags |= ct.SEL_SCOPE
+                    has_selector = True
                 elif key == 'pseudo_class_custom':
                     has_selector = self.parse_pseudo_class_custom(sel, m, has_selector)
                 elif key == 'pseudo_class':
@@ -1278,3 +1301,18 @@ CSS_OUT_OF_RANGE = CSSParser(
     )
     '''
 ).process_selectors(flags=FLG_PSEUDO | FLG_OUT_OF_RANGE | FLG_HTML)
+
+# CSS pattern for :open
+CSS_OPEN = CSSParser(
+    '''
+    html|*:is(details, dialog)[open]
+    '''
+).process_selectors(flags=FLG_PSEUDO | FLG_HTML)
+
+
+# CSS pattern for :muted
+CSS_MUTED = CSSParser(
+    '''
+    html|*:is(video, audio)[muted]
+    '''
+).process_selectors(flags=FLG_PSEUDO | FLG_HTML)

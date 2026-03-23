@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 from itertools import groupby
 from pathlib import Path
@@ -8,16 +7,12 @@ from plexapi import media, utils
 from plexapi.base import Playable, PlexPartialObject, cached_data_property
 from plexapi.exceptions import BadRequest, NotFound, Unsupported
 from plexapi.library import LibrarySection, MusicSection
-from plexapi.mixins import SmartFilterMixin, ArtMixin, PosterMixin, PlaylistEditMixins
-from plexapi.utils import deprecated
+from plexapi.mixins import PlaylistMixins
 
 
 @utils.registerPlexObject
 class Playlist(
-    PlexPartialObject, Playable,
-    SmartFilterMixin,
-    ArtMixin, PosterMixin,
-    PlaylistEditMixins
+    PlexPartialObject, Playable, PlaylistMixins
 ):
     """ Represents a single Playlist.
 
@@ -253,10 +248,6 @@ class Playlist(
 
         return self
 
-    @deprecated('use "removeItems" instead')
-    def removeItem(self, item):
-        self.removeItems(item)
-
     def removeItems(self, items):
         """ Remove items from the playlist.
 
@@ -344,21 +335,6 @@ class Playlist(
         key = f'{self.key}{utils.joinArgs(kwargs)}'
         self._server.query(key, method=self._server._session.put)
         return self
-
-    @deprecated('use "editTitle" and "editSummary" instead')
-    def edit(self, title=None, summary=None):
-        """ Edit the playlist.
-
-            Parameters:
-                title (str, optional): The title of the playlist.
-                summary (str, optional): The summary of the playlist.
-        """
-        args = {}
-        if title:
-            args['title'] = title
-        if summary:
-            args['summary'] = summary
-        return self._edit(**args)
 
     def delete(self):
         """ Delete the playlist. """

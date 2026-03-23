@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2020 Philip Hane
+# Copyright (c) 2013-2024 Philip Hane
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

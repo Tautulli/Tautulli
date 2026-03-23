@@ -46,7 +46,7 @@ class CSYNC(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         text = Bitmap(self.windows).to_text()
-        return "%d %d%s" % (self.serial, self.flags, text)
+        return f"{self.serial} {self.flags}{text}"
 
     @classmethod
     def from_text(

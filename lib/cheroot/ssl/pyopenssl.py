@@ -54,11 +54,12 @@ import socket
 import sys
 import threading
 import time
+from warnings import warn as _warn
+
 
 try:
     import OpenSSL.version
-    from OpenSSL import SSL
-    from OpenSSL import crypto
+    from OpenSSL import SSL, crypto
 
     try:
         ssl_conn_type = SSL.Connection
@@ -67,16 +68,21 @@ try:
 except ImportError:
     SSL = None
 
-from . import Adapter
-from .. import errors, server as cheroot_server
+import contextlib
+
+from .. import (
+    errors,
+    server as cheroot_server,
+)
 from ..makefile import StreamReader, StreamWriter
+from . import Adapter
 
 
 class SSLFileobjectMixin:
     """Base mixin for a TLS socket stream."""
 
     ssl_timeout = 3
-    ssl_retry = .01
+    ssl_retry = 0.01
 
     # FIXME:
     def _safe_call(self, is_reader, call, *args, **kwargs):  # noqa: C901
@@ -111,14 +117,12 @@ class SSLFileobjectMixin:
                     return b''
 
                 thirdarg = None
-                try:
+                with contextlib.suppress(IndexError):
                     thirdarg = e.args[0][0][2]
-                except IndexError:
-                    pass
 
                 if thirdarg == 'http request':
                     # The client is talking HTTP to an HTTPS server.
-                    raise errors.NoSSLError()
+                    raise errors.NoSSLError
 
                 raise errors.FatalSSLAlert(*e.args)
 
@@ -150,7 +154,8 @@ class SSLFileobjectMixin:
         return self._safe_call(
             False,
             super(SSLFileobjectMixin, self).sendall,
-            *args, **kwargs,
+            *args,
+            **kwargs,
         )
 
     def send(self, *args, **kwargs):
@@ -158,7 +163,8 @@ class SSLFileobjectMixin:
         return self._safe_call(
             False,
             super(SSLFileobjectMixin, self).send,
-            *args, **kwargs,
+            *args,
+            **kwargs,
         )
 
 
@@ -176,23 +182,44 @@ class SSLConnectionProxyMeta:
     def __new__(mcl, name, bases, nmspc):
         """Attach a list of proxy methods to a new class."""
         proxy_methods = (
-            'get_context', 'pending', 'send', 'write', 'recv', 'read',
-            'renegotiate', 'bind', 'listen', 'connect', 'accept',
-            'setblocking', 'fileno', 'close', 'get_cipher_list',
-            'getpeername', 'getsockname', 'getsockopt', 'setsockopt',
-            'makefile', 'get_app_data', 'set_app_data', 'state_string',
-            'sock_shutdown', 'get_peer_certificate', 'want_read',
-            'want_write', 'set_connect_state', 'set_accept_state',
-            'connect_ex', 'sendall', 'settimeout', 'gettimeout',
+            'get_context',
+            'pending',
+            'send',
+            'write',
+            'recv',
+            'read',
+            'renegotiate',
+            'bind',
+            'listen',
+            'connect',
+            'accept',
+            'setblocking',
+            'fileno',
+            'close',
+            'get_cipher_list',
+            'getpeername',
+            'getsockname',
+            'getsockopt',
+            'setsockopt',
+            'makefile',
+            'get_app_data',
+            'set_app_data',
+            'state_string',
+            'sock_shutdown',
+            'get_peer_certificate',
+            'want_read',
+            'want_write',
+            'set_connect_state',
+            'set_accept_state',
+            'connect_ex',
+            'sendall',
+            'settimeout',
+            'gettimeout',
             'shutdown',
         )
-        proxy_methods_no_args = (
-            'shutdown',
-        )
+        proxy_methods_no_args = ('shutdown',)
 
-        proxy_props = (
-            'family',
-        )
+        proxy_props = ('family',)
 
         def lock_decorator(method):
             """Create a proxy method for a new class."""
@@ -206,7 +233,9 @@ class SSLConnectionProxyMeta:
                     return getattr(self._ssl_conn, method)(*new_args)
                 finally:
                     self._lock.release()
+
             return proxy_wrapper
+
         for m in proxy_methods:
             nmspc[m] = lock_decorator(m)
             nmspc[m].__name__ = m
@@ -216,8 +245,10 @@ class SSLConnectionProxyMeta:
 
             def proxy_prop_wrapper(self):
                 return getattr(self._ssl_conn, property_)
+
             proxy_prop_wrapper.__name__ = property_
             return property(proxy_prop_wrapper)
+
         for p in proxy_props:
             nmspc[p] = make_property(p)
 
@@ -241,7 +272,7 @@ class SSLConnection(metaclass=SSLConnectionProxyMeta):
 
 
 class pyOpenSSLAdapter(Adapter):
-    """A wrapper for integrating pyOpenSSL with Cheroot."""
+    """A wrapper for integrating :doc:`pyOpenSSL <pyopenssl:index>`."""
 
     certificate = None
     """The file name of the server's TLS certificate."""
@@ -263,16 +294,28 @@ class pyOpenSSLAdapter(Adapter):
     ciphers = None
     """The ciphers list of TLS."""
 
+    private_key_password = None
+    """Optional passphrase for password protected private key."""
+
     def __init__(
-            self, certificate, private_key, certificate_chain=None,
-            ciphers=None,
+        self,
+        certificate,
+        private_key,
+        certificate_chain=None,
+        ciphers=None,
+        *,
+        private_key_password=None,
     ):
         """Initialize OpenSSL Adapter instance."""
         if SSL is None:
             raise ImportError('You must install pyOpenSSL to use HTTPS.')
 
         super(pyOpenSSLAdapter, self).__init__(
-            certificate, private_key, certificate_chain, ciphers,
+            certificate,
+            private_key,
+            certificate_chain,
+            ciphers,
+            private_key_password=private_key_password,
         )
 
         self._environ = None
@@ -292,6 +335,31 @@ class pyOpenSSLAdapter(Adapter):
         # closing so we can't reliably access protocol/client cert for the env
         return sock, self._environ.copy()
 
+    def _password_callback(
+        self,
+        password_max_length,
+        _verify_twice,
+        password,
+        /,
+    ):
+        """Pass a passphrase to password protected private key."""
+        b_password = b''  # returning a falsy value communicates an error
+        if isinstance(password, str):
+            b_password = password.encode('utf-8')
+        elif isinstance(password, bytes):
+            b_password = password
+
+        password_length = len(b_password)
+        if password_length > password_max_length:
+            _warn(
+                f'User-provided password is {password_length} bytes long and will '
+                f'be truncated since it exceeds the maximum of {password_max_length}.',
+                UserWarning,
+                stacklevel=1,
+            )
+
+        return b_password
+
     def get_context(self):
         """Return an ``SSL.Context`` from self attributes.
 
@@ -299,6 +367,7 @@ class pyOpenSSLAdapter(Adapter):
         """
         # See https://code.activestate.com/recipes/442473/
         c = SSL.Context(SSL.SSLv23_METHOD)
+        c.set_passwd_cb(self._password_callback, self.private_key_password)
         c.use_privatekey_file(self.private_key)
         if self.certificate_chain:
             c.load_verify_locations(self.certificate_chain)
@@ -310,9 +379,11 @@ class pyOpenSSLAdapter(Adapter):
         ssl_environ = {
             'wsgi.url_scheme': 'https',
             'HTTPS': 'on',
-            'SSL_VERSION_INTERFACE': '%s %s/%s Python/%s' % (
+            'SSL_VERSION_INTERFACE': '%s %s/%s Python/%s'
+            % (
                 cheroot_server.HTTPServer.version,
-                OpenSSL.version.__title__, OpenSSL.version.__version__,
+                OpenSSL.version.__title__,
+                OpenSSL.version.__version__,
                 sys.version,
             ),
             'SSL_VERSION_LIBRARY': SSL.SSLeay_version(
@@ -324,17 +395,20 @@ class pyOpenSSLAdapter(Adapter):
             # Server certificate attributes
             with open(self.certificate, 'rb') as cert_file:
                 cert = crypto.load_certificate(
-                    crypto.FILETYPE_PEM, cert_file.read(),
+                    crypto.FILETYPE_PEM,
+                    cert_file.read(),
                 )
 
-            ssl_environ.update({
-                'SSL_SERVER_M_VERSION': cert.get_version(),
-                'SSL_SERVER_M_SERIAL': cert.get_serial_number(),
-                # 'SSL_SERVER_V_START':
-                #   Validity of server's certificate (start time),
-                # 'SSL_SERVER_V_END':
-                #   Validity of server's certificate (end time),
-            })
+            ssl_environ.update(
+                {
+                    'SSL_SERVER_M_VERSION': cert.get_version(),
+                    'SSL_SERVER_M_SERIAL': cert.get_serial_number(),
+                    # 'SSL_SERVER_V_START':
+                    #   Validity of server's certificate (start time),
+                    # 'SSL_SERVER_V_END':
+                    #   Validity of server's certificate (end time),
+                },
+            )
 
             for prefix, dn in [
                 ('I', cert.get_issuer()),
@@ -352,9 +426,9 @@ class pyOpenSSLAdapter(Adapter):
                 # for any value to contain slashes itself (in a URL).
                 while dnstr:
                     pos = dnstr.rfind('=')
-                    dnstr, value = dnstr[:pos], dnstr[pos + 1:]
+                    dnstr, value = dnstr[:pos], dnstr[pos + 1 :]
                     pos = dnstr.rfind('/')
-                    dnstr, key = dnstr[:pos], dnstr[pos + 1:]
+                    dnstr, key = dnstr[:pos], dnstr[pos + 1 :]
                     if key and value:
                         wsgikey = 'SSL_SERVER_%s_DN_%s' % (prefix, key)
                         ssl_environ[wsgikey] = value
@@ -365,8 +439,8 @@ class pyOpenSSLAdapter(Adapter):
         """Return socket file object."""
         cls = (
             SSLFileobjectStreamReader
-            if 'r' in mode else
-            SSLFileobjectStreamWriter
+            if 'r' in mode
+            else SSLFileobjectStreamWriter
         )
         if SSL and isinstance(sock, ssl_conn_type):
             wrapped_socket = cls(sock, mode, bufsize)
@@ -374,5 +448,4 @@ class pyOpenSSLAdapter(Adapter):
             return wrapped_socket
         # This is from past:
         # TODO: figure out what it's meant for
-        else:
-            return cheroot_server.CP_fileobject(sock, mode, bufsize)
+        return cheroot_server.CP_fileobject(sock, mode, bufsize)

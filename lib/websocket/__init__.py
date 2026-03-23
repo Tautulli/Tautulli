@@ -2,7 +2,7 @@
 __init__.py
 websocket - WebSocket client library for Python
 
-Copyright 2024 engn33r
+Copyright 2025 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,11 +16,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from ._abnf import *
-from ._app import WebSocketApp as WebSocketApp, setReconnect as setReconnect
-from ._core import *
-from ._exceptions import *
-from ._logging import *
-from ._socket import *
 
-__version__ = "1.8.0"
+from ._abnf import *  # noqa: F401,F403
+from ._app import (  # noqa: F401
+    WebSocketApp as WebSocketApp,
+    set_reconnect as set_reconnect,
+)
+from ._core import *  # noqa: F401,F403
+from ._exceptions import *  # noqa: F401,F403
+from ._logging import *  # noqa: F401,F403
+from ._socket import *  # noqa: F401,F403
+
+__version__ = "1.9.0"

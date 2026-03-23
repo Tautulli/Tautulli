@@ -107,11 +107,10 @@ class ClientCredentialsGrant(GrantTypeBase):
         if not self.request_validator.authenticate_client(request):
             log.debug('Client authentication failed, %r.', request)
             raise errors.InvalidClientError(request=request)
-        else:
-            if not hasattr(request.client, 'client_id'):
-                raise NotImplementedError('Authenticate client must set the '
-                                          'request.client.client_id attribute '
-                                          'in authenticate_client.')
+        elif not hasattr(request.client, 'client_id'):
+            raise NotImplementedError('Authenticate client must set the '
+                                      'request.client.client_id attribute '
+                                      'in authenticate_client.')
         # Ensure client is authorized use of this grant type
         self.validate_grant_type(request)
 

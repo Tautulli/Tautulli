@@ -19,6 +19,7 @@
 
 import binascii
 
+import dns.exception
 import dns.ipv4
 import dns.ipv6
 import dns.name
@@ -54,13 +55,13 @@ def from_address(
     try:
         v6 = dns.ipv6.inet_aton(text)
         if dns.ipv6.is_mapped(v6):
-            parts = ["%d" % byte for byte in v6[12:]]
+            parts = [str(byte) for byte in v6[12:]]
             origin = v4_origin
         else:
             parts = [x for x in str(binascii.hexlify(v6).decode())]
             origin = v6_origin
     except Exception:
-        parts = ["%d" % byte for byte in dns.ipv4.inet_aton(text)]
+        parts = [str(byte) for byte in dns.ipv4.inet_aton(text)]
         origin = v4_origin
     return dns.name.from_text(".".join(reversed(parts)), origin=origin)
 

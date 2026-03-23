@@ -6,6 +6,8 @@ import ssl
 import struct
 import time
 
+import aioquic.h3.connection  # type: ignore
+import aioquic.h3.events  # type: ignore
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 import aioquic.quic.events  # type: ignore
@@ -144,6 +146,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
             datagrams = self._connection.datagrams_to_send(time.time())
             for datagram, address in datagrams:
                 assert address == self._peer
+                assert self._socket is not None
                 await self._socket.sendto(datagram, self._peer, None)
             (expiration, interval) = self._get_timer_values()
             try:
@@ -161,6 +164,7 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                 return
             if isinstance(event, aioquic.quic.events.StreamDataReceived):
                 if self.is_h3():
+                    assert self._h3_conn is not None
                     h3_events = self._h3_conn.handle_event(event)
                     for h3_event in h3_events:
                         if isinstance(h3_event, aioquic.h3.events.HeadersReceived):
@@ -186,7 +190,8 @@ class AsyncioQuicConnection(AsyncQuicConnection):
                 self._handshake_complete.set()
             elif isinstance(event, aioquic.quic.events.ConnectionTerminated):
                 self._done = True
-                self._receiver_task.cancel()
+                if self._receiver_task is not None:
+                    self._receiver_task.cancel()
             elif isinstance(event, aioquic.quic.events.StreamReset):
                 stream = self._streams.get(event.stream_id)
                 if stream:
@@ -222,21 +227,25 @@ class AsyncioQuicConnection(AsyncQuicConnection):
 
     async def close(self):
         if not self._closed:
-            self._manager.closed(self._peer[0], self._peer[1])
+            if self._manager is not None:
+                self._manager.closed(self._peer[0], self._peer[1])
             self._closed = True
             self._connection.close()
             # sender might be blocked on this, so set it
             self._socket_created.set()
             await self._wakeup()
             try:
-                await self._receiver_task
+                if self._receiver_task is not None:
+                    await self._receiver_task
             except asyncio.CancelledError:
                 pass
             try:
-                await self._sender_task
+                if self._sender_task is not None:
+                    await self._sender_task
             except asyncio.CancelledError:
                 pass
-            await self._socket.close()
+            if self._socket is not None:
+                await self._socket.close()
 
 
 class AsyncioQuicManager(AsyncQuicManager):

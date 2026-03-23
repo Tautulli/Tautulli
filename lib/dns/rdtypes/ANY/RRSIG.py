@@ -94,16 +94,14 @@ class RRSIG(dns.rdata.Rdata):
         return self.type_covered
 
     def to_text(self, origin=None, relativize=True, **kw):
-        return "%s %d %d %d %s %s %d %s %s" % (
-            dns.rdatatype.to_text(self.type_covered),
-            self.algorithm,
-            self.labels,
-            self.original_ttl,
-            posixtime_to_sigtime(self.expiration),
-            posixtime_to_sigtime(self.inception),
-            self.key_tag,
-            self.signer.choose_relativity(origin, relativize),
-            dns.rdata._base64ify(self.signature, **kw),
+        return (
+            f"{dns.rdatatype.to_text(self.type_covered)} "
+            f"{self.algorithm} {self.labels} {self.original_ttl} "
+            f"{posixtime_to_sigtime(self.expiration)} "
+            f"{posixtime_to_sigtime(self.inception)} "
+            f"{self.key_tag} "
+            f"{self.signer.choose_relativity(origin, relativize)} "
+            f"{dns.rdata._base64ify(self.signature, **kw)}"  # pyright: ignore
         )
 
     @classmethod
@@ -154,4 +152,4 @@ class RRSIG(dns.rdata.Rdata):
         header = parser.get_struct("!HBBIIIH")
         signer = parser.get_name(origin)
         signature = parser.get_remaining()
-        return cls(rdclass, rdtype, *header, signer, signature)
+        return cls(rdclass, rdtype, *header, signer, signature)  # pyright: ignore

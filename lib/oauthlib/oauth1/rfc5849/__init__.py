@@ -121,7 +121,8 @@ class Client:
         :param timestamp: Use this timestamp instead of using current. (Mainly for testing)
         """
         # Convert to unicode using encoding if given, else assume unicode
-        encode = lambda x: to_unicode(x, encoding) if encoding else x
+        def encode(x):
+            return to_unicode(x, encoding) if encoding else x
 
         self.client_key = encode(client_key)
         self.client_secret = encode(client_secret)
@@ -219,7 +220,7 @@ class Client:
         content_type = request.headers.get('Content-Type', None)
         content_type_eligible = content_type and content_type.find('application/x-www-form-urlencoded') < 0
         if request.body is not None and content_type_eligible:
-            params.append(('oauth_body_hash', base64.b64encode(hashlib.sha1(request.body.encode('utf-8')).digest()).decode('utf-8')))
+            params.append(('oauth_body_hash', base64.b64encode(hashlib.sha1(request.body.encode('utf-8')).digest()).decode('utf-8')))  # noqa: S324
 
         return params
 

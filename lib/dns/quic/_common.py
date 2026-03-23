@@ -6,14 +6,14 @@ import functools
 import socket
 import struct
 import time
-import urllib
-from typing import Any, Optional
+import urllib.parse
+from typing import Any
 
 import aioquic.h3.connection  # type: ignore
-import aioquic.h3.events  # type: ignore
 import aioquic.quic.configuration  # type: ignore
 import aioquic.quic.connection  # type: ignore
 
+import dns._tls_util
 import dns.inet
 
 QUIC_MAX_DATAGRAM = 2048
@@ -165,7 +165,7 @@ class BaseQuicConnection:
         self._closed = False
         self._manager = manager
         self._streams = {}
-        if manager.is_h3():
+        if manager is not None and manager.is_h3():
             self._h3_conn = aioquic.h3.connection.H3Connection(connection, False)
         else:
             self._h3_conn = None
@@ -190,9 +190,11 @@ class BaseQuicConnection:
         del self._streams[stream_id]
 
     def send_headers(self, stream_id, headers, is_end=False):
+        assert self._h3_conn is not None
         self._h3_conn.send_headers(stream_id, headers, is_end)
 
     def send_data(self, stream_id, data, is_end=False):
+        assert self._h3_conn is not None
         self._h3_conn.send_data(stream_id, data, is_end)
 
     def _get_timer_values(self, closed_is_special=True):
@@ -215,7 +217,7 @@ class BaseQuicConnection:
 
 
 class AsyncQuicConnection(BaseQuicConnection):
-    async def make_stream(self, timeout: Optional[float] = None) -> Any:
+    async def make_stream(self, timeout: float | None = None) -> Any:
         pass
 
 
@@ -243,7 +245,10 @@ class BaseQuicManager:
                 server_name=server_name,
             )
             if verify_path is not None:
-                conf.load_verify_locations(verify_path)
+                cafile, capath = dns._tls_util.convert_verify_to_cafile_and_capath(
+                    verify_path
+                )
+                conf.load_verify_locations(cafile=cafile, capath=capath)
         self._conf = conf
 
     def _connect(

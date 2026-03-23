@@ -143,13 +143,13 @@ class LOC(dns.rdata.Rdata):
         if isinstance(latitude, float):
             latitude = _float_to_tuple(latitude)
         _check_coordinate_list(latitude, -90, 90)
-        self.latitude = tuple(latitude)
+        self.latitude = tuple(latitude)  # pyright: ignore
         if isinstance(longitude, int):
             longitude = float(longitude)
         if isinstance(longitude, float):
             longitude = _float_to_tuple(longitude)
         _check_coordinate_list(longitude, -180, 180)
-        self.longitude = tuple(longitude)
+        self.longitude = tuple(longitude)  # pyright: ignore
         self.altitude = float(altitude)
         self.size = float(size)
         self.horizontal_precision = float(hprec)
@@ -164,18 +164,12 @@ class LOC(dns.rdata.Rdata):
             long_hemisphere = "E"
         else:
             long_hemisphere = "W"
-        text = "%d %d %d.%03d %s %d %d %d.%03d %s %0.2fm" % (
-            self.latitude[0],
-            self.latitude[1],
-            self.latitude[2],
-            self.latitude[3],
-            lat_hemisphere,
-            self.longitude[0],
-            self.longitude[1],
-            self.longitude[2],
-            self.longitude[3],
-            long_hemisphere,
-            self.altitude / 100.0,
+        text = (
+            f"{self.latitude[0]} {self.latitude[1]} "
+            f"{self.latitude[2]}.{self.latitude[3]:03d} {lat_hemisphere} "
+            f"{self.longitude[0]} {self.longitude[1]} "
+            f"{self.longitude[2]}.{self.longitude[3]:03d} {long_hemisphere} "
+            f"{(self.altitude / 100.0):0.2f}m"
         )
 
         # do not print default values

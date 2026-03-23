@@ -1,9 +1,6 @@
 """High-performance, pure-Python HTTP server used by CherryPy."""
 
-try:
-    from importlib import metadata
-except ImportError:
-    import importlib_metadata as metadata  # noqa: WPS440
+from importlib import metadata
 
 
 try:

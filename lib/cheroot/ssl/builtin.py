@@ -12,6 +12,7 @@ import sys
 import threading
 from contextlib import suppress
 
+
 try:
     import ssl
 except ImportError:
@@ -25,10 +26,10 @@ except ImportError:
     except ImportError:
         DEFAULT_BUFFER_SIZE = -1
 
-from . import Adapter
 from .. import errors
 from ..makefile import StreamReader, StreamWriter
 from ..server import HTTPServer
+from . import Adapter
 
 
 def _assert_ssl_exc_contains(exc, *msgs):
@@ -50,7 +51,9 @@ def _loopback_for_cert_thread(context, server):
     # https://github.com/cherrypy/cheroot/issues/302#issuecomment-662592030
     with suppress(ssl.SSLError, OSError):
         with context.wrap_socket(
-                server, do_handshake_on_connect=True, server_side=True,
+            server,
+            do_handshake_on_connect=True,
+            server_side=True,
         ) as ssl_sock:
             # in TLS 1.3 (Python 3.7+, OpenSSL 1.1.1+), the server
             # sends the client session tickets that can be used to
@@ -73,10 +76,20 @@ def _loopback_for_cert_thread(context, server):
             ssl_sock.send(b'0000')
 
 
-def _loopback_for_cert(certificate, private_key, certificate_chain):
+def _loopback_for_cert(
+    certificate,
+    private_key,
+    certificate_chain,
+    *,
+    private_key_password=None,
+):
     """Create a loopback connection to parse a cert with a private key."""
     context = ssl.create_default_context(cafile=certificate_chain)
-    context.load_cert_chain(certificate, private_key)
+    context.load_cert_chain(
+        certificate,
+        private_key,
+        password=private_key_password,
+    )
     context.check_hostname = False
     context.verify_mode = ssl.CERT_NONE
 
@@ -90,13 +103,15 @@ def _loopback_for_cert(certificate, private_key, certificate_chain):
         # when `close` is called, the SSL shutdown notice will be sent
         # and then python will wait to receive the corollary shutdown.
         thread = threading.Thread(
-            target=_loopback_for_cert_thread, args=(context, server),
+            target=_loopback_for_cert_thread,
+            args=(context, server),
         )
         try:
             thread.start()
             with context.wrap_socket(
-                    client, do_handshake_on_connect=True,
-                    server_side=False,
+                client,
+                do_handshake_on_connect=True,
+                server_side=False,
             ) as ssl_sock:
                 ssl_sock.recv(4)
                 return ssl_sock.getpeercert()
@@ -107,7 +122,13 @@ def _loopback_for_cert(certificate, private_key, certificate_chain):
         server.close()
 
 
-def _parse_cert(certificate, private_key, certificate_chain):
+def _parse_cert(
+    certificate,
+    private_key,
+    certificate_chain,
+    *,
+    private_key_password=None,
+):
     """Parse a certificate."""
     # loopback_for_cert uses socket.socketpair which was only
     # introduced in Python 3.0 for *nix and 3.5 for Windows
@@ -115,7 +136,12 @@ def _parse_cert(certificate, private_key, certificate_chain):
     # it also requires a private key either in its own file
     # or combined with the cert (SSLError)
     with suppress(AttributeError, ssl.SSLError, OSError):
-        return _loopback_for_cert(certificate, private_key, certificate_chain)
+        return _loopback_for_cert(
+            certificate,
+            private_key,
+            certificate_chain,
+            private_key_password=private_key_password,
+        )
 
     # KLUDGE: using an undocumented, private, test method to parse a cert
     # unfortunately, it is the only built-in way without a connection
@@ -147,6 +173,9 @@ class BuiltinSSLAdapter(Adapter):
 
     ciphers = None
     """The ciphers list of SSL."""
+
+    private_key_password = None
+    """Optional passphrase for password protected private key."""
 
     # from mod_ssl/pkg.sslmod/ssl_engine_vars.c ssl_var_lookup_ssl_cert
     CERT_KEY_TO_ENV = {
@@ -198,33 +227,51 @@ class BuiltinSSLAdapter(Adapter):
     }
 
     def __init__(
-            self, certificate, private_key, certificate_chain=None,
-            ciphers=None,
+        self,
+        certificate,
+        private_key,
+        certificate_chain=None,
+        ciphers=None,
+        *,
+        private_key_password=None,
     ):
         """Set up context in addition to base class properties if available."""
         if ssl is None:
             raise ImportError('You must install the ssl module to use HTTPS.')
 
         super(BuiltinSSLAdapter, self).__init__(
-            certificate, private_key, certificate_chain, ciphers,
+            certificate,
+            private_key,
+            certificate_chain,
+            ciphers,
+            private_key_password=private_key_password,
         )
 
         self.context = ssl.create_default_context(
             purpose=ssl.Purpose.CLIENT_AUTH,
             cafile=certificate_chain,
         )
-        self.context.load_cert_chain(certificate, private_key)
+        self.context.load_cert_chain(
+            certificate,
+            private_key,
+            password=private_key_password,
+        )
         if self.ciphers is not None:
             self.context.set_ciphers(ciphers)
 
         self._server_env = self._make_env_cert_dict(
             'SSL_SERVER',
-            _parse_cert(certificate, private_key, self.certificate_chain),
+            _parse_cert(
+                certificate,
+                private_key,
+                self.certificate_chain,
+                private_key_password=private_key_password,
+            ),
         )
         if not self._server_env:
             return
         cert = None
-        with open(certificate, mode='rt') as f:
+        with open(certificate) as f:
             cert = f.read()
 
         # strip off any keys by only taking the first certificate
@@ -264,7 +311,9 @@ class BuiltinSSLAdapter(Adapter):
         """Wrap and return the given socket, plus WSGI environ entries."""
         try:
             s = self.context.wrap_socket(
-                sock, do_handshake_on_connect=True, server_side=True,
+                sock,
+                do_handshake_on_connect=True,
+                server_side=True,
             )
         except (
             ssl.SSLEOFError,
@@ -275,8 +324,8 @@ class BuiltinSSLAdapter(Adapter):
             ) from tls_connection_drop_error
         except ssl.SSLError as generic_tls_error:
             peer_speaks_plain_http_over_https = (
-                generic_tls_error.errno == ssl.SSL_ERROR_SSL and
-                _assert_ssl_exc_contains(generic_tls_error, 'http request')
+                generic_tls_error.errno == ssl.SSL_ERROR_SSL
+                and _assert_ssl_exc_contains(generic_tls_error, 'http request')
             )
             if peer_speaks_plain_http_over_https:
                 reraised_connection_drop_exc_cls = errors.NoSSLError
@@ -303,8 +352,10 @@ class BuiltinSSLAdapter(Adapter):
             'SSL_CIPHER': cipher[0],
             'SSL_CIPHER_EXPORT': '',
             'SSL_CIPHER_USEKEYSIZE': cipher[2],
-            'SSL_VERSION_INTERFACE': '%s Python/%s' % (
-                HTTPServer.version, sys.version,
+            'SSL_VERSION_INTERFACE': '%s Python/%s'
+            % (
+                HTTPServer.version,
+                sys.version,
             ),
             'SSL_VERSION_LIBRARY': ssl.OPENSSL_VERSION,
             'SSL_CLIENT_VERIFY': 'NONE',

@@ -1,5 +1,18 @@
 from typing import Any
 
+__all__ = (
+    'ChunkedRFile',
+    'DropUnderscoreHeaderReader',
+    'Gateway',
+    'HTTPConnection',
+    'HTTPRequest',
+    'HTTPServer',
+    'HeaderReader',
+    'KnownLengthRFile',
+    'SizeCheckWrapper',
+    'get_ssl_adapter_class',
+)
+
 class HeaderReader:
     def __call__(self, rfile, hdict: Any | None = ...): ...
 
@@ -61,7 +74,13 @@ class HTTPRequest:
     chunked_read: bool
     proxy_mode: Any
     strict_mode: Any
-    def __init__(self, server, conn, proxy_mode: bool = ..., strict_mode: bool = ...) -> None: ...
+    def __init__(
+        self,
+        server,
+        conn,
+        proxy_mode: bool = ...,
+        strict_mode: bool = ...,
+    ) -> None: ...
     rfile: Any
     def parse_request(self) -> None: ...
     uri: Any
@@ -133,7 +152,17 @@ class HTTPServer:
     reuse_port: bool
     keep_alive_conn_limit: int
     requests: Any
-    def __init__(self, bind_addr, gateway, minthreads: int = ..., maxthreads: int = ..., server_name: Any | None = ..., peercreds_enabled: bool = ..., peercreds_resolve_enabled: bool = ..., reuse_port: bool = ...) -> None: ...
+    def __init__(
+        self,
+        bind_addr,
+        gateway,
+        minthreads: int = ...,
+        maxthreads: int = ...,
+        server_name: Any | None = ...,
+        peercreds_enabled: bool = ...,
+        peercreds_resolve_enabled: bool = ...,
+        reuse_port: bool = ...,
+    ) -> None: ...
     stats: Any
     def clear_stats(self): ...
     def runtime(self): ...
@@ -149,13 +178,27 @@ class HTTPServer:
     @property
     def can_add_keepalive_connection(self): ...
     def put_conn(self, conn) -> None: ...
-    def error_log(self, msg: str = ..., level: int = ..., traceback: bool = ...) -> None: ...
+    def error_log(
+        self,
+        msg: str = ...,
+        level: int = ...,
+        traceback: bool = ...,
+    ) -> None: ...
     def bind(self, family, type, proto: int = ...): ...
     def bind_unix_socket(self, bind_addr): ...
     @staticmethod
     def _make_socket_reusable(socket_, bind_addr) -> None: ...
     @classmethod
-    def prepare_socket(cls, bind_addr, family, type, proto, nodelay, ssl_adapter, reuse_port: bool = ...): ...
+    def prepare_socket(
+        cls,
+        bind_addr,
+        family,
+        type,
+        proto,
+        nodelay,
+        ssl_adapter,
+        reuse_port: bool = ...,
+    ): ...
     @staticmethod
     def bind_socket(socket_, bind_addr): ...
     @staticmethod

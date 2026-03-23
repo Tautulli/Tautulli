@@ -101,6 +101,9 @@ class RefreshTokenGrant(GrantTypeBase):
             if not self.request_validator.authenticate_client(request):
                 log.debug('Invalid client (%r), denying access.', request)
                 raise errors.InvalidClientError(request=request)
+            # Ensure that request.client_id is set.
+            if request.client_id is None and request.client is not None:
+                request.client_id = request.client.client_id
         elif not self.request_validator.authenticate_client_id(request.client_id, request):
             log.debug('Client authentication failed, %r.', request)
             raise errors.InvalidClientError(request=request)

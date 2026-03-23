@@ -36,12 +36,10 @@ class ZONEMD(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         kw = kw.copy()
         chunksize = kw.pop("chunksize", 128)
-        return "%d %d %d %s" % (
-            self.serial,
-            self.scheme,
-            self.hash_algorithm,
-            dns.rdata._hexify(self.digest, chunksize=chunksize, **kw),
+        digest = dns.rdata._hexify(
+            self.digest, chunksize=chunksize, **kw  # pyright: ignore
         )
+        return f"{self.serial} {self.scheme} {self.hash_algorithm} {digest}"
 
     @classmethod
     def from_text(

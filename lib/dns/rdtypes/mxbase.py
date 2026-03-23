@@ -39,7 +39,7 @@ class MXBase(dns.rdata.Rdata):
 
     def to_text(self, origin=None, relativize=True, **kw):
         exchange = self.exchange.choose_relativity(origin, relativize)
-        return "%d %s" % (self.preference, exchange)
+        return f"{self.preference} {exchange}"
 
     @classmethod
     def from_text(

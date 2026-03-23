@@ -31,11 +31,10 @@ import argparse
 import os
 import sys
 import urllib.parse  # noqa: WPS301
-from importlib import import_module
 from contextlib import suppress
+from importlib import import_module
 
-from . import server
-from . import wsgi
+from . import server, wsgi
 
 
 class BindLocation:
@@ -69,7 +68,7 @@ class AbstractSocket(BindLocation):
 
     def __init__(self, abstract_socket):
         """Initialize."""
-        self.bind_addr = '\x00{sock_path}'.format(sock_path=abstract_socket)
+        self.bind_addr = f'\x00{abstract_socket}'
 
 
 class Application:
@@ -97,7 +96,7 @@ class Application:
         self.wsgi_app = wsgi_app
 
     def server_args(self, parsed_args):
-        """Return keyword args for Server class."""
+        """Return keyword arguments for Server class."""
         args = {
             arg: value
             for arg, value in vars(parsed_args).items()
@@ -140,7 +139,7 @@ def parse_wsgi_bind_location(bind_addr_string):
 
     # try and match for an IP/hostname and port
     match = urllib.parse.urlparse(
-        '//{addr}'.format(addr=bind_addr_string),
+        f'//{bind_addr_string}',
     )
     try:
         addr = match.hostname

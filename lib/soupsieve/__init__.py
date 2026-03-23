@@ -31,7 +31,7 @@ from . import css_parser as cp
 from . import css_match as cm
 from . import css_types as ct
 from .util import DEBUG, SelectorSyntaxError  # noqa: F401
-import bs4  # type: ignore[import]
+import bs4
 from typing import Any, Iterator, Iterable
 
 __all__ = (
@@ -84,7 +84,7 @@ def closest(
     *,
     custom: dict[str, str] | None = None,
     **kwargs: Any
-) -> bs4.Tag:
+) -> bs4.Tag | None:
     """Match closest ancestor."""
 
     return compile(select, namespaces, flags, **kwargs).closest(tag)
@@ -126,7 +126,7 @@ def select_one(
     *,
     custom: dict[str, str] | None = None,
     **kwargs: Any
-) -> bs4.Tag:
+) -> bs4.Tag | None:
     """Select a single tag."""
 
     return compile(select, namespaces, flags, **kwargs).select_one(tag)

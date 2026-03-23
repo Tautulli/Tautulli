@@ -7,7 +7,7 @@ signals_available = False
 try:
     from blinker import Namespace
     signals_available = True
-except ImportError:  # noqa
+except ImportError:
     class Namespace:
         def signal(self, name, doc=None):
             return _FakeSignal(name, doc)
@@ -26,7 +26,8 @@ except ImportError:  # noqa
             raise RuntimeError('signalling support is unavailable '
                                'because the blinker library is '
                                'not installed.')
-        send = lambda *a, **kw: None
+        def send(*a, **kw):
+            return None
         connect = disconnect = has_receivers_for = receivers_for = \
             temporarily_connected_to = connected_to = _fail
         del _fail

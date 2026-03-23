@@ -14,7 +14,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import ctypes
-import datetime
+from datetime import datetime, timezone, timedelta
 import os
 import queue
 import sqlite3
@@ -33,7 +33,6 @@ except ImportError:
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from ga4mp import GtagMP
-import pytz
 
 from plexpy import activity_handler
 from plexpy import activity_pinger
@@ -512,16 +511,16 @@ def schedule_job(func, name, hours=0, minutes=0, seconds=0, args=None):
         if hours == 0 and minutes == 0 and seconds == 0:
             SCHED.remove_job(name)
             logger.info("Removed background task: %s", name)
-        elif job.trigger.interval != datetime.timedelta(hours=hours, minutes=minutes):
+        elif job.trigger.interval != timedelta(hours=hours, minutes=minutes, seconds=seconds):
             SCHED.reschedule_job(
                 name, trigger=IntervalTrigger(
-                    hours=hours, minutes=minutes, seconds=seconds, timezone=pytz.UTC),
+                    hours=hours, minutes=minutes, seconds=seconds, timezone=timezone.utc),
                 args=args)
             logger.info("Re-scheduled background task: %s", name)
     elif hours > 0 or minutes > 0 or seconds > 0:
         SCHED.add_job(
             func, id=name, trigger=IntervalTrigger(
-                hours=hours, minutes=minutes, seconds=seconds, timezone=pytz.UTC),
+                hours=hours, minutes=minutes, seconds=seconds, timezone=timezone.utc),
             args=args, misfire_grace_time=None)
         logger.info("Scheduled background task: %s", name)
 
@@ -536,9 +535,9 @@ def start():
         threading.Thread(target=startup_refresh).start()
 
         global SCHED
-        SCHED = BackgroundScheduler(timezone=pytz.UTC)
-        activity_handler.ACTIVITY_SCHED = BackgroundScheduler(timezone=pytz.UTC)
-        newsletter_handler.NEWSLETTER_SCHED = BackgroundScheduler(timezone=pytz.UTC)
+        SCHED = BackgroundScheduler(timezone=timezone.utc)
+        activity_handler.ACTIVITY_SCHED = BackgroundScheduler(timezone=timezone.utc)
+        newsletter_handler.NEWSLETTER_SCHED = BackgroundScheduler(timezone=timezone.utc)
 
         # Start the scheduler for stale stream callbacks
         activity_handler.ACTIVITY_SCHED.start()
@@ -858,7 +857,9 @@ def dbcheck():
         "timestamp INTEGER, section_id INTEGER, user_id INTEGER, rating_key INTEGER, media_type TEXT, "
         "title TEXT, file_format TEXT, "
         "metadata_level INTEGER, media_info_level INTEGER, "
-        "thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0, logo_level INTEGER DEFAULT 0, "
+        "thumb_level INTEGER DEFAULT 0, art_level INTEGER DEFAULT 0,"
+        "logo_level INTEGER DEFAULT 0, squareArt_level INTEGER DEFAULT 0, "
+        "theme_level INTEGER DEFAULT 0, "
         "custom_fields TEXT, individual_files INTEGER DEFAULT 0, "
         "file_size INTEGER DEFAULT 0, complete INTEGER DEFAULT 0, "
         "exported_items INTEGER DEFAULT 0, total_items INTEGER DEFAULT 0)"
@@ -2624,6 +2625,24 @@ def dbcheck():
         logger.debug("Altering database. Updating database table exports.")
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN logo_level INTEGER DEFAULT 0"
+        )
+
+    # Upgrade exports table from earlier versions
+    try:
+        c_db.execute("SELECT squareArt_level FROM exports")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table exports.")
+        c_db.execute(
+            "ALTER TABLE exports ADD COLUMN squareArt_level INTEGER DEFAULT 0"
+        )
+
+    # Upgrade exports table from earlier versions
+    try:
+        c_db.execute("SELECT theme_level FROM exports")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table exports.")
+        c_db.execute(
+            "ALTER TABLE exports ADD COLUMN theme_level INTEGER DEFAULT 0"
         )
 
     # Fix unique constraints

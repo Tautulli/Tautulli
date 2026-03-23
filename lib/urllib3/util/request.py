@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import sys
 import typing
 from base64 import b64encode
 from enum import Enum
@@ -30,18 +31,14 @@ else:
     ACCEPT_ENCODING += ",br"
 
 try:
-    from compression import (  # type: ignore[import-not-found] # noqa: F401
-        zstd as _unused_module_zstd,
-    )
-
-    ACCEPT_ENCODING += ",zstd"
+    if sys.version_info >= (3, 14):
+        from compression import zstd as _unused_module_zstd  # noqa: F401
+    else:
+        from backports import zstd as _unused_module_zstd  # noqa: F401
 except ImportError:
-    try:
-        import zstandard as _unused_module_zstd  # noqa: F401
-
-        ACCEPT_ENCODING += ",zstd"
-    except ImportError:
-        pass
+    pass
+else:
+    ACCEPT_ENCODING += ",zstd"
 
 
 class _TYPE_FAILEDTELL(Enum):
@@ -77,8 +74,9 @@ def make_headers(
     :param accept_encoding:
         Can be a boolean, list, or string.
         ``True`` translates to 'gzip,deflate'.  If the dependencies for
-        Brotli (either the ``brotli`` or ``brotlicffi`` package) and/or Zstandard
-        (the ``zstandard`` package) algorithms are installed, then their encodings are
+        Brotli (either the ``brotli`` or ``brotlicffi`` package) and/or
+        Zstandard (the ``backports.zstd`` package for Python before 3.14)
+        algorithms are installed, then their encodings are
         included in the string ('br' and 'zstd', respectively).
         List will get joined by comma.
         String will be used as provided.
@@ -230,7 +228,6 @@ def body_to_chunks(
     elif hasattr(body, "read"):
 
         def chunk_readable() -> typing.Iterable[bytes]:
-            nonlocal body, blocksize
             encode = isinstance(body, io.TextIOBase)
             while True:
                 datablock = body.read(blocksize)

@@ -1,5 +1,5 @@
 # mako/parsetree.py
-# Copyright 2006-2024 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -322,7 +322,7 @@ class Tag(Node, metaclass=_TagMeta):
         for key in self.attributes:
             if key in expressions:
                 expr = []
-                for x in re.compile(r"(\${.+?})", re.S).split(
+                for x in re.compile(r"(\${(?:[^$]*?{.+|.+?)})", re.S).split(
                     self.attributes[key]
                 ):
                     m = re.compile(r"^\${(.+?)}$", re.S).match(x)

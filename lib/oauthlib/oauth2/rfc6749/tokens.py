@@ -24,7 +24,7 @@ class OAuth2Token(dict):
     def __init__(self, params, old_scope=None):
         super().__init__(params)
         self._new_scope = None
-        if 'scope' in params and params['scope']:
+        if params.get('scope'):
             self._new_scope = set(utils.scope_to_list(params['scope']))
         if old_scope is not None:
             self._old_scope = set(utils.scope_to_list(old_scope))
@@ -123,10 +123,7 @@ def prepare_mac_header(token, uri, key, http_method,
 
     sch, net, path, par, query, fra = urlparse(uri)
 
-    if query:
-        request_uri = path + '?' + query
-    else:
-        request_uri = path
+    request_uri = path + '?' + query if query else path
 
     # Hash the body/payload
     if body is not None and draft == 0:
@@ -305,10 +302,7 @@ class BearerToken(TokenBase):
                           "If you do, call `request_validator.save_token()` instead.",
                           DeprecationWarning)
 
-        if callable(self.expires_in):
-            expires_in = self.expires_in(request)
-        else:
-            expires_in = self.expires_in
+        expires_in = self.expires_in(request) if callable(self.expires_in) else self.expires_in
 
         request.expires_in = expires_in
 

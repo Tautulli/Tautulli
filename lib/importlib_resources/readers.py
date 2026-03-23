@@ -3,14 +3,13 @@ from __future__ import annotations
 import collections
 import contextlib
 import itertools
-import pathlib
 import operator
+import pathlib
 import re
 import warnings
 from collections.abc import Iterator
 
 from . import abc
-
 from ._itertools import only
 from .compat.py39 import ZipPath
 

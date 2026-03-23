@@ -99,7 +99,7 @@ jobs:
             Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
 
       - name: Upload Installer
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: Tautulli-${{ matrix.os }}-installer
           path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
@@ -112,10 +112,10 @@ jobs:
     steps:
       - name: Download Installers
         if: needs.build-installer.result == 'success'
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
 
       - name: Upload to VirusTotal
-        uses: crazy-max/ghaction-virustotal@v4
+        uses: crazy-max/ghaction-virustotal@v5
         with:
           vt_api_key: ${{ secrets.VT_API_KEY }}
           files: |
@@ -138,7 +138,7 @@ jobs:
 
       - name: Download Installers
         if: needs.build-installer.result == 'success'
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
 
       - name: Get Changelog
         id: get_changelog

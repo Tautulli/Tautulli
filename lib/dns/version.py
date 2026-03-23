@@ -20,7 +20,7 @@
 #: MAJOR
 MAJOR = 2
 #: MINOR
-MINOR = 7
+MINOR = 8
 #: MICRO
 MICRO = 0
 #: RELEASELEVEL
@@ -30,29 +30,13 @@ SERIAL = 0
 
 if RELEASELEVEL == 0x0F:  # pragma: no cover  lgtm[py/unreachable-statement]
     #: version
-    version = "%d.%d.%d" % (MAJOR, MINOR, MICRO)  # lgtm[py/unreachable-statement]
+    version = f"{MAJOR}.{MINOR}.{MICRO}"  # lgtm[py/unreachable-statement]
 elif RELEASELEVEL == 0x00:  # pragma: no cover  lgtm[py/unreachable-statement]
-    version = "%d.%d.%ddev%d" % (
-        MAJOR,
-        MINOR,
-        MICRO,
-        SERIAL,
-    )  # lgtm[py/unreachable-statement]
+    version = f"{MAJOR}.{MINOR}.{MICRO}dev{SERIAL}"  # lgtm[py/unreachable-statement]
 elif RELEASELEVEL == 0x0C:  # pragma: no cover  lgtm[py/unreachable-statement]
-    version = "%d.%d.%drc%d" % (
-        MAJOR,
-        MINOR,
-        MICRO,
-        SERIAL,
-    )  # lgtm[py/unreachable-statement]
+    version = f"{MAJOR}.{MINOR}.{MICRO}rc{SERIAL}"  # lgtm[py/unreachable-statement]
 else:  # pragma: no cover  lgtm[py/unreachable-statement]
-    version = "%d.%d.%d%x%d" % (
-        MAJOR,
-        MINOR,
-        MICRO,
-        RELEASELEVEL,
-        SERIAL,
-    )  # lgtm[py/unreachable-statement]
+    version = f"{MAJOR}.{MINOR}.{MICRO}{RELEASELEVEL:x}{SERIAL}"  # lgtm[py/unreachable-statement]
 
 #: hexversion
 hexversion = MAJOR << 24 | MINOR << 16 | MICRO << 8 | RELEASELEVEL << 4 | SERIAL

@@ -41,12 +41,10 @@ class TLSABase(dns.rdata.Rdata):
     def to_text(self, origin=None, relativize=True, **kw):
         kw = kw.copy()
         chunksize = kw.pop("chunksize", 128)
-        return "%d %d %d %s" % (
-            self.usage,
-            self.selector,
-            self.mtype,
-            dns.rdata._hexify(self.cert, chunksize=chunksize, **kw),
+        cert = dns.rdata._hexify(
+            self.cert, chunksize=chunksize, **kw  # pyright: ignore
         )
+        return f"{self.usage} {self.selector} {self.mtype} {cert}"
 
     @classmethod
     def from_text(

@@ -15,7 +15,8 @@ from cloudinary.exceptions import (
     RateLimited,
     GeneralError
 )
-from cloudinary.utils import process_params, safe_cast, smart_escape, unquote
+from cloudinary.utils import process_params, safe_cast, smart_escape, unquote, normalize_params, urlencode, \
+    bracketize_seq
 
 EXCEPTION_CODES = {
     400: BadRequest,
@@ -24,6 +25,7 @@ EXCEPTION_CODES = {
     404: NotFound,
     409: AlreadyExists,
     420: RateLimited,
+    429: RateLimited,
     500: GeneralError
 }
 
@@ -54,15 +56,21 @@ def execute_request(http_connector, method, params, headers, auth, api_url, **op
     if headers is not None:
         req_headers.update(headers)
 
+    api_url = smart_escape(unquote(api_url))
     kw = {}
     if "timeout" in options:
         kw["timeout"] = options["timeout"]
     if "body" in options:
         kw["body"] = options["body"]
 
-    processed_params = process_params(params)
+    if method.upper() == "GET":
+        query_string = urlencode(bracketize_seq(params), True)
+        if query_string:
+            api_url += "?" + query_string
+        processed_params = None
+    else:
+        processed_params = process_params(params)
 
-    api_url = smart_escape(unquote(api_url))
     try:
         response = http_connector.request(method=method.upper(), url=api_url, fields=processed_params, headers=req_headers, **kw)
         body = response.data
@@ -79,7 +87,6 @@ def execute_request(http_connector, method, params, headers, auth, api_url, **op
 
     if "error" in result:
         exception_class = EXCEPTION_CODES.get(response.status) or Exception
-        exception_class = exception_class
         raise exception_class("Error {0} - {1}".format(response.status, result["error"]["message"]))
 
     return Response(result, response)

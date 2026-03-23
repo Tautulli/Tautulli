@@ -17,11 +17,13 @@
 
 """DNS RRsets (an RRset is a named rdataset)"""
 
-from typing import Any, Collection, Dict, Optional, Union, cast
+from typing import Any, Collection, Dict, cast
 
 import dns.name
+import dns.rdata
 import dns.rdataclass
 import dns.rdataset
+import dns.rdatatype
 import dns.renderer
 
 
@@ -43,7 +45,7 @@ class RRset(dns.rdataset.Rdataset):
         rdclass: dns.rdataclass.RdataClass,
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType = dns.rdatatype.NONE,
-        deleting: Optional[dns.rdataclass.RdataClass] = None,
+        deleting: dns.rdataclass.RdataClass | None = None,
     ):
         """Create a new RRset."""
 
@@ -52,7 +54,7 @@ class RRset(dns.rdataset.Rdataset):
         self.deleting = deleting
 
     def _clone(self):
-        obj = super()._clone()
+        obj = cast(RRset, super()._clone())
         obj.name = self.name
         obj.deleting = self.deleting
         return obj
@@ -114,7 +116,7 @@ class RRset(dns.rdataset.Rdataset):
         rdclass: dns.rdataclass.RdataClass,
         rdtype: dns.rdatatype.RdataType,
         covers: dns.rdatatype.RdataType,
-        deleting: Optional[dns.rdataclass.RdataClass] = None,
+        deleting: dns.rdataclass.RdataClass | None = None,
     ) -> bool:
         """Returns ``True`` if this rrset matches the specified name, class,
         type, covers, and deletion state.
@@ -129,7 +131,7 @@ class RRset(dns.rdataset.Rdataset):
 
     def to_text(  # type: ignore[override]
         self,
-        origin: Optional[dns.name.Name] = None,
+        origin: dns.name.Name | None = None,
         relativize: bool = True,
         **kw: Dict[str, Any],
     ) -> str:
@@ -156,8 +158,8 @@ class RRset(dns.rdataset.Rdataset):
     def to_wire(  # type: ignore[override]
         self,
         file: Any,
-        compress: Optional[dns.name.CompressType] = None,  # type: ignore
-        origin: Optional[dns.name.Name] = None,
+        compress: dns.name.CompressType | None = None,  # type: ignore
+        origin: dns.name.Name | None = None,
         **kw: Dict[str, Any],
     ) -> int:
         """Convert the RRset to wire format.
@@ -183,15 +185,15 @@ class RRset(dns.rdataset.Rdataset):
 
 
 def from_text_list(
-    name: Union[dns.name.Name, str],
+    name: dns.name.Name | str,
     ttl: int,
-    rdclass: Union[dns.rdataclass.RdataClass, str],
-    rdtype: Union[dns.rdatatype.RdataType, str],
+    rdclass: dns.rdataclass.RdataClass | str,
+    rdtype: dns.rdatatype.RdataType | str,
     text_rdatas: Collection[str],
-    idna_codec: Optional[dns.name.IDNACodec] = None,
-    origin: Optional[dns.name.Name] = None,
+    idna_codec: dns.name.IDNACodec | None = None,
+    origin: dns.name.Name | None = None,
     relativize: bool = True,
-    relativize_to: Optional[dns.name.Name] = None,
+    relativize_to: dns.name.Name | None = None,
 ) -> RRset:
     """Create an RRset with the specified name, TTL, class, and type, and with
     the specified list of rdatas in text format.
@@ -226,10 +228,10 @@ def from_text_list(
 
 
 def from_text(
-    name: Union[dns.name.Name, str],
+    name: dns.name.Name | str,
     ttl: int,
-    rdclass: Union[dns.rdataclass.RdataClass, str],
-    rdtype: Union[dns.rdatatype.RdataType, str],
+    rdclass: dns.rdataclass.RdataClass | str,
+    rdtype: dns.rdatatype.RdataType | str,
     *text_rdatas: Any,
 ) -> RRset:
     """Create an RRset with the specified name, TTL, class, and type and with
@@ -244,10 +246,10 @@ def from_text(
 
 
 def from_rdata_list(
-    name: Union[dns.name.Name, str],
+    name: dns.name.Name | str,
     ttl: int,
     rdatas: Collection[dns.rdata.Rdata],
-    idna_codec: Optional[dns.name.IDNACodec] = None,
+    idna_codec: dns.name.IDNACodec | None = None,
 ) -> RRset:
     """Create an RRset with the specified name and TTL, and with
     the specified list of rdata objects.
@@ -275,7 +277,7 @@ def from_rdata_list(
     return r
 
 
-def from_rdata(name: Union[dns.name.Name, str], ttl: int, *rdatas: Any) -> RRset:
+def from_rdata(name: dns.name.Name | str, ttl: int, *rdatas: Any) -> RRset:
     """Create an RRset with the specified name and TTL, and with
     the specified rdata objects.
 
