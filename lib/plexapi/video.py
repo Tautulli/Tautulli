@@ -710,7 +710,7 @@ class Show(
             Raises:
                 :exc:`~plexapi.exceptions.BadRequest`: If title or season parameter is missing.
         """
-        key = f'{self.key}/children?excludeAllLeaves=1'
+        key = self._buildQueryKey(f'{self.key}/children', excludeAllLeaves=1)
         if title is not None and not isinstance(title, int):
             return self.fetchItem(key, Season, title__iexact=title)
         elif season is not None or isinstance(title, int):
@@ -723,7 +723,7 @@ class Show(
 
     def seasons(self, **kwargs):
         """ Returns a list of :class:`~plexapi.video.Season` objects in the show. """
-        key = f'{self.key}/children?excludeAllLeaves=1'
+        key = self._buildQueryKey(f'{self.key}/children', excludeAllLeaves=1)
         return self.fetchItems(key, Season, container_size=self.childCount, **kwargs)
 
     def episode(self, title=None, season=None, episode=None):
@@ -737,7 +737,7 @@ class Show(
             Raises:
                 :exc:`~plexapi.exceptions.BadRequest`: If title or season and episode parameters are missing.
         """
-        key = f'{self.key}/allLeaves'
+        key = self._buildQueryKey(f'{self.key}/allLeaves')
         if title is not None:
             return self.fetchItem(key, Episode, title__iexact=title)
         elif season is not None and episode is not None:
@@ -746,7 +746,7 @@ class Show(
 
     def episodes(self, **kwargs):
         """ Returns a list of :class:`~plexapi.video.Episode` objects in the show. """
-        key = f'{self.key}/allLeaves'
+        key = self._buildQueryKey(f'{self.key}/allLeaves')
         return self.fetchItems(key, Episode, **kwargs)
 
     def get(self, title=None, season=None, episode=None):
@@ -906,7 +906,7 @@ class Season(
             Raises:
                 :exc:`~plexapi.exceptions.BadRequest`: If title or episode parameter is missing.
         """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         if title is not None and not isinstance(title, int):
             return self.fetchItem(key, Episode, title__iexact=title)
         elif episode is not None or isinstance(title, int):
@@ -919,7 +919,7 @@ class Season(
 
     def episodes(self, **kwargs):
         """ Returns a list of :class:`~plexapi.video.Episode` objects in the season. """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItems(key, Episode, **kwargs)
 
     def get(self, title=None, episode=None):
@@ -928,7 +928,7 @@ class Season(
 
     def show(self):
         """ Return the season's :class:`~plexapi.video.Show`. """
-        return self.fetchItem(self.parentKey)
+        return self.fetchItem(self._buildQueryKey(self.parentKey))
 
     def watched(self):
         """ Returns list of watched :class:`~plexapi.video.Episode` objects. """
@@ -1136,7 +1136,12 @@ class Episode(
     def _season(self):
         """ Returns the :class:`~plexapi.video.Season` object by querying for the show's children. """
         if self.grandparentKey and self.parentIndex is not None:
-            return self.fetchItem(f'{self.grandparentKey}/children?excludeAllLeaves=1&index={self.parentIndex}')
+            key = self._buildQueryKey(
+                f'{self.grandparentKey}/children',
+                excludeAllLeaves=1,
+                index=self.parentIndex
+            )
+            return self.fetchItem(key)
         return None
 
     def __repr__(self):
@@ -1213,11 +1218,11 @@ class Episode(
 
     def season(self):
         """" Return the episode's :class:`~plexapi.video.Season`. """
-        return self.fetchItem(self.parentKey)
+        return self.fetchItem(self._buildQueryKey(self.parentKey))
 
     def show(self):
         """" Return the episode's :class:`~plexapi.video.Show`. """
-        return self.fetchItem(self.grandparentKey)
+        return self.fetchItem(self._buildQueryKey(self.grandparentKey))
 
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """

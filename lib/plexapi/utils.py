@@ -18,6 +18,7 @@ from hashlib import sha1
 from threading import Event, Thread
 from urllib.parse import quote
 from xml.etree import ElementTree
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import requests
 from requests.status_codes import _codes as codes
@@ -102,6 +103,9 @@ REVERSETAGTYPES = {v: k for k, v in TAGTYPES.items()}
 
 # Plex Objects - Populated at runtime
 PLEXOBJECTS = {}
+
+# Global timezone for toDatetime() conversions, set by setDatetimeTimezone()
+DATETIME_TIMEZONE = None
 
 
 class SecretsFilter(logging.Filter):
@@ -326,6 +330,66 @@ def threaded(callback, listargs):
     return [r for r in results if r is not None]
 
 
+def setDatetimeTimezone(value):
+    """ Sets the timezone to use when converting values with :func:`toDatetime`.
+
+        Parameters:
+            value (bool, str):
+                - ``False`` or ``None`` to disable timezone (default).
+                - ``True`` or ``"local"`` to use the local timezone.
+                - A valid IANA timezone (e.g. ``UTC`` or ``America/New_York``).
+
+        Returns:
+            datetime.tzinfo: Resolved timezone object or ``None`` if disabled or invalid.
+    """
+    global DATETIME_TIMEZONE
+
+    # Disable timezone if value is False or None
+    if value is None or value is False:
+        tzinfo = None
+    # Use local timezone if value is True or "local"
+    elif value is True or str(value).strip().lower() == 'local':
+        tzinfo = datetime.now().astimezone().tzinfo
+    # Attempt to resolve value as a boolean-like string or IANA timezone string
+    else:
+        setting = str(value).strip()
+        # Try to cast as boolean first (normalize to lowercase for case-insensitive matching)
+        try:
+            is_enabled = cast(bool, setting.lower())
+            tzinfo = datetime.now().astimezone().tzinfo if is_enabled else None
+        except ValueError:
+            # Not a boolean string, try parsing as IANA timezone
+            try:
+                tzinfo = ZoneInfo(setting)
+            except ZoneInfoNotFoundError:
+                tzinfo = None
+                log.warning('Failed to set timezone to "%s", defaulting to None', value)
+
+    DATETIME_TIMEZONE = tzinfo
+    return DATETIME_TIMEZONE
+
+
+def _parseTimestamp(value, tzinfo):
+    """ Helper function to parse a timestamp value into a datetime object. """
+    try:
+        value = int(value)
+    except ValueError:
+        log.info('Failed to parse "%s" to datetime as timestamp, defaulting to None', value)
+        return None
+    try:
+        if tzinfo:
+            return datetime.fromtimestamp(value, tz=tzinfo)
+        return datetime.fromtimestamp(value)
+    except (OSError, OverflowError, ValueError):
+        try:
+            if tzinfo:
+                return datetime.fromtimestamp(0, tz=tzinfo) + timedelta(seconds=value)
+            return datetime.fromtimestamp(0) + timedelta(seconds=value)
+        except OverflowError:
+            log.info('Failed to parse "%s" to datetime as timestamp (out-of-bounds), defaulting to None', value)
+            return None
+
+
 def toDatetime(value, format=None):
     """ Returns a datetime object from the specified value.
 
@@ -334,26 +398,20 @@ def toDatetime(value, format=None):
             format (str): Format to pass strftime (optional; if value is a str).
     """
     if value is not None:
+        tzinfo = DATETIME_TIMEZONE
         if format:
             try:
-                return datetime.strptime(value, format)
+                dt = datetime.strptime(value, format)
+                # If parsed datetime already contains timezone
+                if dt.tzinfo is not None:
+                    return dt.astimezone(tzinfo) if tzinfo else dt
+                else:
+                    return dt.replace(tzinfo=tzinfo) if tzinfo else dt
             except ValueError:
                 log.info('Failed to parse "%s" to datetime as format "%s", defaulting to None', value, format)
                 return None
         else:
-            try:
-                value = int(value)
-            except ValueError:
-                log.info('Failed to parse "%s" to datetime as timestamp, defaulting to None', value)
-                return None
-            try:
-                return datetime.fromtimestamp(value)
-            except (OSError, OverflowError, ValueError):
-                try:
-                    return datetime.fromtimestamp(0) + timedelta(seconds=value)
-                except OverflowError:
-                    log.info('Failed to parse "%s" to datetime as timestamp (out-of-bounds), defaulting to None', value)
-                    return None
+            return _parseTimestamp(value, tzinfo)
     return value
 
 

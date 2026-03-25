@@ -176,6 +176,25 @@ class PlexObject(metaclass=PlexObjectMeta):
             details_key += '?' + urlencode(sorted(params.items()))
         return details_key
 
+    def _buildQueryKey(self, key, **kwargs):
+        """ Returns a query key suitable for fetching partial objects.
+
+            Parameters:
+                key (str): The key to which options should be added to form a query.
+                **kwargs (dict): Optional query parameters to add to the key, such as
+                    'excludeAllLeaves=1' or 'index=0'. Additional XML filters should instead
+                    be passed into search functions. See :func:`~plexapi.base.PlexObject.fetchItems`
+                    for details.
+
+        """
+        if not key:
+            return None
+
+        args = {'includeGuids': 1, **kwargs}
+        params = utils.joinArgs(args)
+
+        return f"{key}{params}"
+
     def _isChildOf(self, **kwargs):
         """ Returns True if this object is a child of the given attributes.
             This will search the parent objects all the way to the top.
