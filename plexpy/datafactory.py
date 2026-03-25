@@ -613,8 +613,9 @@ class DataFactory(object):
                 try:
                     query = "SELECT sh.id, shm.grandparent_title, shm.original_title, shm.year, " \
                             "sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, " \
-                            "shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, " \
-                            "MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration " \
+                            "shm.art, sh.media_type, shm.content_rating, shm.rating, shm.labels, " \
+                            "sh.started, shm.live, shm.guid, MAX(sh.started) AS last_watch, " \
+                            "COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration " \
                             "FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
                             "       AS d " \
@@ -645,6 +646,7 @@ class DataFactory(object):
                            'section_id': item['section_id'],
                            'media_type': item['media_type'],
                            'content_rating': item['content_rating'],
+                           'rating': item['rating'],
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
@@ -665,8 +667,8 @@ class DataFactory(object):
                 try:
                     query = "SELECT sh.id, shm.grandparent_title, shm.original_title, shm.year, " \
                             "sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, " \
-                            "shm.art, sh.media_type, shm.content_rating, shm.labels, sh.started, shm.live, shm.guid, " \
-                            "COUNT(DISTINCT sh.user_id) AS users_watched, " \
+                            "shm.art, sh.media_type, shm.content_rating, shm.rating, shm.labels, " \
+                            "sh.started, shm.live, shm.guid, COUNT(DISTINCT sh.user_id) AS users_watched, " \
                             "MAX(sh.started) AS last_watch, COUNT(sh.id) as total_plays, SUM(sh.d) AS total_duration " \
                             "FROM (SELECT *, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
                             "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
@@ -697,6 +699,7 @@ class DataFactory(object):
                            'section_id': item['section_id'],
                            'media_type': item['media_type'],
                            'content_rating': item['content_rating'],
+                           'rating': item['rating'],
                            'labels': item['labels'].split(';') if item['labels'] else (),
                            'user': '',
                            'friendly_name': '',
