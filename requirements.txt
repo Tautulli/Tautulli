@@ -13,7 +13,7 @@ ga4mp==2.0.4
 gntp==1.0.3
 html5lib==1.1
 httpagentparser==1.9.9
-importlib-metadata==8.7.0
+importlib-metadata==9.0.0
 importlib-resources==6.5.2
 ipwhois==1.3.0
 IPy==1.01

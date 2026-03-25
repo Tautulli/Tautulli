@@ -1,5 +1,5 @@
 cryptography==46.0.5
-importlib-metadata==8.7.0
+importlib-metadata==9.0.0
 importlib-resources==6.5.2
 pyinstaller==6.19.0
 pyopenssl==26.0.0
