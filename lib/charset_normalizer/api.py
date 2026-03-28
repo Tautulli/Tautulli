@@ -10,7 +10,13 @@ from .cd import (
     mb_encoding_languages,
     merge_coherence_ratios,
 )
-from .constant import IANA_SUPPORTED, TOO_BIG_SEQUENCE, TOO_SMALL_SEQUENCE, TRACE
+from .constant import (
+    IANA_SUPPORTED,
+    IANA_SUPPORTED_SIMILAR,
+    TOO_BIG_SEQUENCE,
+    TOO_SMALL_SEQUENCE,
+    TRACE,
+)
 from .md import mess_ratio
 from .models import CharsetMatch, CharsetMatches
 from .utils import (
@@ -18,7 +24,6 @@ from .utils import (
     cut_sequence_chunks,
     iana_name,
     identify_sig_or_bom,
-    is_cp_similar,
     is_multi_byte_encoding,
     should_strip_sig_or_bom,
 )
@@ -28,6 +33,25 @@ explain_handler = logging.StreamHandler()
 explain_handler.setFormatter(
     logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")
 )
+
+# Pre-compute a reordered encoding list: multibyte first, then single-byte.
+# This allows the mb_definitive_match optimization to fire earlier, skipping
+# all single-byte encodings for genuine CJK content. Multibyte codecs
+# hard-fail (UnicodeDecodeError) on single-byte data almost instantly, so
+# testing them first costs negligible time for non-CJK files.
+_mb_supported: list[str] = []
+_sb_supported: list[str] = []
+
+for _supported_enc in IANA_SUPPORTED:
+    try:
+        if is_multi_byte_encoding(_supported_enc):
+            _mb_supported.append(_supported_enc)
+        else:
+            _sb_supported.append(_supported_enc)
+    except ImportError:
+        _sb_supported.append(_supported_enc)
+
+IANA_SUPPORTED_MB_FIRST: list[str] = _mb_supported + _sb_supported
 
 
 def from_bytes(
@@ -78,7 +102,7 @@ def from_bytes(
         logger.debug("Encoding detection on empty bytes, assuming utf_8 intention.")
         if explain:  # Defensive: ensure exit path clean handler
             logger.removeHandler(explain_handler)
-            logger.setLevel(previous_logger_level or logging.WARNING)
+            logger.setLevel(previous_logger_level)
         return CharsetMatches([CharsetMatch(sequences, "utf_8", 0.0, False, [], "")])
 
     if cp_isolation is not None:
@@ -152,6 +176,40 @@ def from_bytes(
     tested: set[str] = set()
     tested_but_hard_failure: list[str] = []
     tested_but_soft_failure: list[str] = []
+    soft_failure_skip: set[str] = set()
+    success_fast_tracked: set[str] = set()
+
+    # Cache for decoded payload deduplication: hash(decoded_payload) -> (mean_mess_ratio, cd_ratios_merged, passed)
+    # When multiple encodings decode to the exact same string, we can skip the expensive
+    # mess_ratio and coherence_ratio analysis and reuse the results from the first encoding.
+    payload_result_cache: dict[int, tuple[float, list[tuple[str, float]], bool]] = {}
+
+    # When a definitive result (chaos=0.0 and good coherence) is found after testing
+    # the prioritized encodings (ascii, utf_8), we can significantly reduce the remaining
+    # work. Encodings that target completely different language families (e.g., Cyrillic
+    # when the definitive match is Latin) are skipped entirely.
+    # Additionally, for same-family encodings that pass chaos probing, we reuse the
+    # definitive match's coherence ratios instead of recomputing them — a major savings
+    # since coherence_ratio accounts for ~30% of total time on slow Latin files.
+    definitive_match_found: bool = False
+    definitive_target_languages: set[str] = set()
+    # After the definitive match fires, we cap the number of additional same-family
+    # single-byte encodings that pass chaos probing. Once we've accumulated enough
+    # good candidates (N), further same-family SB encodings are unlikely to produce
+    # a better best() result and just waste mess_ratio + coherence_ratio time.
+    # The first encoding to trigger the definitive match is NOT counted (it's already in).
+    post_definitive_sb_success_count: int = 0
+    POST_DEFINITIVE_SB_CAP: int = 7
+
+    # When a non-UTF multibyte encoding passes chaos probing with significant multibyte
+    # content (decoded length < 98% of raw length), skip all remaining single-byte encodings.
+    # Rationale: multi-byte decoders (CJK) have strict byte-sequence validation — if they
+    # decode without error AND pass chaos probing with substantial multibyte content, the
+    # data is genuinely multibyte encoded. Single-byte encodings will always decode (every
+    # byte maps to something) but waste time on mess_ratio before failing.
+    # The 98% threshold prevents false triggers on files that happen to have a few valid
+    # multibyte pairs (e.g., cp424/_ude_1.txt where big5 decodes with 99% ratio).
+    mb_definitive_match_found: bool = False
 
     fallback_ascii: CharsetMatch | None = None
     fallback_u8: CharsetMatch | None = None
@@ -177,7 +235,7 @@ def from_bytes(
     if "utf_8" not in prioritized_encodings:
         prioritized_encodings.append("utf_8")
 
-    for encoding_iana in prioritized_encodings + IANA_SUPPORTED:
+    for encoding_iana in prioritized_encodings + IANA_SUPPORTED_MB_FIRST:
         if cp_isolation and encoding_iana not in cp_isolation:
             continue
 
@@ -210,12 +268,80 @@ def from_bytes(
             )
             continue
 
+        # Skip encodings similar to ones that already soft-failed (high mess ratio).
+        # Checked BEFORE the expensive decode attempt.
+        if encoding_iana in soft_failure_skip:
+            logger.log(
+                TRACE,
+                "%s is deemed too similar to a code page that was already considered unsuited. Continuing!",
+                encoding_iana,
+            )
+            continue
+
+        # Skip encodings that were already fast-tracked from a similar successful encoding.
+        if encoding_iana in success_fast_tracked:
+            logger.log(
+                TRACE,
+                "Skipping %s: already fast-tracked from a similar successful encoding.",
+                encoding_iana,
+            )
+            continue
+
         try:
             is_multi_byte_decoder: bool = is_multi_byte_encoding(encoding_iana)
-        except (ModuleNotFoundError, ImportError):
+        except (ModuleNotFoundError, ImportError):  # Defensive:
             logger.log(
                 TRACE,
                 "Encoding %s does not provide an IncrementalDecoder",
+                encoding_iana,
+            )
+            continue
+
+        # When we've already found a definitive match (chaos=0.0 with good coherence)
+        # after testing the prioritized encodings, skip encodings that target
+        # completely different language families. This avoids running expensive
+        # mess_ratio + coherence_ratio on clearly unrelated candidates (e.g., Cyrillic
+        # when the definitive match is Latin-based).
+        if definitive_match_found:
+            if not is_multi_byte_decoder:
+                enc_languages = set(encoding_languages(encoding_iana))
+            else:
+                enc_languages = set(mb_encoding_languages(encoding_iana))
+            if not enc_languages.intersection(definitive_target_languages):
+                logger.log(
+                    TRACE,
+                    "Skipping %s: definitive match already found, this encoding targets different languages (%s vs %s).",
+                    encoding_iana,
+                    enc_languages,
+                    definitive_target_languages,
+                )
+                continue
+
+        # After the definitive match, cap the number of additional same-family
+        # single-byte encodings that pass chaos probing. This avoids testing the
+        # tail of rare, low-value same-family encodings (mac_iceland, cp860, etc.)
+        # that almost never change best() but each cost ~1-2ms of mess_ratio + coherence.
+        if (
+            definitive_match_found
+            and not is_multi_byte_decoder
+            and post_definitive_sb_success_count >= POST_DEFINITIVE_SB_CAP
+        ):
+            logger.log(
+                TRACE,
+                "Skipping %s: already accumulated %d same-family results after definitive match (cap=%d).",
+                encoding_iana,
+                post_definitive_sb_success_count,
+                POST_DEFINITIVE_SB_CAP,
+            )
+            continue
+
+        # When a multibyte encoding with significant multibyte content has already
+        # passed chaos probing, skip all single-byte encodings. They will either fail
+        # chaos probing (wasting mess_ratio time) or produce inferior results.
+        if mb_definitive_match_found and not is_multi_byte_decoder:
+            logger.log(
+                TRACE,
+                "Skipping single-byte %s: multi-byte definitive match already found.",
                 encoding_iana,
             )
             continue
@@ -250,22 +376,6 @@ def from_bytes(
             tested_but_hard_failure.append(encoding_iana)
             continue
 
-        similar_soft_failure_test: bool = False
-
-        for encoding_soft_failed in tested_but_soft_failure:
-            if is_cp_similar(encoding_iana, encoding_soft_failed):
-                similar_soft_failure_test = True
-                break
-
-        if similar_soft_failure_test:
-            logger.log(
-                TRACE,
-                "%s is deemed too similar to code page %s and was consider unsuited already. Continuing!",
-                encoding_iana,
-                encoding_soft_failed,
-            )
-            continue
-
         r_ = range(
             0 if not bom_or_sig_available else len(sig_payload),
             length,
@@ -285,6 +395,108 @@ def from_bytes(
                 "was encoded using n-bytes.",
                 encoding_iana,
             )
+
+        # Payload-hash deduplication: if another encoding already decoded to the
+        # exact same string, reuse its mess_ratio and coherence results entirely.
+        # This is strictly more general than the old IANA_SUPPORTED_SIMILAR approach
+        # because it catches ALL identical decoding, not just pre-mapped ones.
+        if decoded_payload is not None and not is_multi_byte_decoder:
+            payload_hash: int = hash(decoded_payload)
+            cached = payload_result_cache.get(payload_hash)
+            if cached is not None:
+                cached_mess, cached_cd, cached_passed = cached
+                if cached_passed:
+                    # The previous encoding with identical output passed chaos probing.
+                    fast_match = CharsetMatch(
+                        sequences,
+                        encoding_iana,
+                        cached_mess,
+                        bom_or_sig_available,
+                        cached_cd,
+                        (
+                            decoded_payload
+                            if (
+                                is_too_large_sequence is False
+                                or encoding_iana
+                                in [specified_encoding, "ascii", "utf_8"]
+                            )
+                            else None
+                        ),
+                        preemptive_declaration=specified_encoding,
+                    )
+                    results.append(fast_match)
+                    success_fast_tracked.add(encoding_iana)
+                    logger.log(
+                        TRACE,
+                        "%s fast-tracked (identical decoded payload to a prior encoding, chaos=%f %%).",
+                        encoding_iana,
+                        round(cached_mess * 100, ndigits=3),
+                    )
+
+                    if (
+                        encoding_iana in [specified_encoding, "ascii", "utf_8"]
+                        and cached_mess < 0.1
+                    ):
+                        if cached_mess == 0.0:
+                            logger.debug(
+                                "Encoding detection: %s is most likely the one.",
+                                fast_match.encoding,
+                            )
+                            if explain:
+                                logger.removeHandler(explain_handler)
+                                logger.setLevel(previous_logger_level)
+                            return CharsetMatches([fast_match])
+                        early_stop_results.append(fast_match)
+
+                    if (
+                        len(early_stop_results)
+                        and (specified_encoding is None or specified_encoding in tested)
+                        and "ascii" in tested
+                        and "utf_8" in tested
+                    ):
+                        probable_result: CharsetMatch = early_stop_results.best()  # type: ignore[assignment]
+                        logger.debug(
+                            "Encoding detection: %s is most likely the one.",
+                            probable_result.encoding,
+                        )
+                        if explain:
+                            logger.removeHandler(explain_handler)
+                            logger.setLevel(previous_logger_level)
+                        return CharsetMatches([probable_result])
+
+                    continue
+                else:
+                    # The previous encoding with identical output failed chaos probing.
+                    tested_but_soft_failure.append(encoding_iana)
+                    logger.log(
+                        TRACE,
+                        "%s fast-skipped (identical decoded payload to a prior encoding that failed chaos probing).",
+                        encoding_iana,
+                    )
+                    # Prepare fallbacks for special encodings even when skipped.
+                    if enable_fallback and encoding_iana in [
+                        "ascii",
+                        "utf_8",
+                        specified_encoding,
+                        "utf_16",
+                        "utf_32",
+                    ]:
+                        fallback_entry = CharsetMatch(
+                            sequences,
+                            encoding_iana,
+                            threshold,
+                            bom_or_sig_available,
+                            [],
+                            decoded_payload,
+                            preemptive_declaration=specified_encoding,
+                        )
+                        if encoding_iana == specified_encoding:
+                            fallback_specified = fallback_entry
+                        elif encoding_iana == "ascii":
+                            fallback_ascii = fallback_entry
+                        else:
+                            fallback_u8 = fallback_entry
+                    continue
 
         max_chunk_gave_up: int = int(len(r_) / 4)
 
@@ -358,6 +570,14 @@ def from_bytes(
         mean_mess_ratio: float = sum(md_ratios) / len(md_ratios) if md_ratios else 0.0
         if mean_mess_ratio >= threshold or early_stop_count >= max_chunk_gave_up:
             tested_but_soft_failure.append(encoding_iana)
+            if encoding_iana in IANA_SUPPORTED_SIMILAR:
+                soft_failure_skip.update(IANA_SUPPORTED_SIMILAR[encoding_iana])
+            # Cache this soft-failure so identical decoding from other encodings
+            # can be skipped immediately.
+            if decoded_payload is not None and not is_multi_byte_decoder:
+                payload_result_cache.setdefault(
+                    hash(decoded_payload), (mean_mess_ratio, [], False)
+                )
             logger.log(
                 TRACE,
                 "%s was excluded because of initial chaos probing. Gave up %i time(s). "
@@ -369,14 +589,15 @@ def from_bytes(
             # Preparing those fallbacks in case we got nothing.
             if (
                 enable_fallback
-                and encoding_iana in ["ascii", "utf_8", specified_encoding]
+                and encoding_iana
+                in ["ascii", "utf_8", specified_encoding, "utf_16", "utf_32"]
                 and not lazy_str_hard_failure
             ):
                 fallback_entry = CharsetMatch(
                     sequences,
                     encoding_iana,
                     threshold,
-                    False,
+                    bom_or_sig_available,
                     [],
                     decoded_payload,
                     preemptive_declaration=specified_encoding,
@@ -411,9 +632,14 @@ def from_bytes(
 
         cd_ratios = []
 
-        # We shall skip the CD when its about ASCII
-        # Most of the time its not relevant to run "language-detection" on it.
+        # Run coherence detection on all chunks. We previously tried limiting to
+        # 1-2 chunks for post-definitive encodings to save time, but this caused
+        # coverage regressions by producing unrepresentative coherence scores.
+        # The SB cap and language-family skip optimizations provide sufficient
+        # speedup without sacrificing coherence accuracy.
         if encoding_iana != "ascii":
+            # We shall skip the CD when its about ASCII
+            # Most of the time its not relevant to run "language-detection" on it.
             for chunk in md_chunks:
                 chunk_languages = coherence_ratio(
                     chunk,
@@ -422,8 +648,9 @@ def from_bytes(
                 )
 
                 cd_ratios.append(chunk_languages)
-
-        cd_ratios_merged = merge_coherence_ratios(cd_ratios)
+            cd_ratios_merged = merge_coherence_ratios(cd_ratios)
+        else:
+            cd_ratios_merged = merge_coherence_ratios(cd_ratios)
 
         if cd_ratios_merged:
             logger.log(
@@ -452,6 +679,25 @@ def from_bytes(
 
         results.append(current_match)
 
+        # Cache the successful result for payload-hash deduplication.
+        if decoded_payload is not None and not is_multi_byte_decoder:
+            payload_result_cache.setdefault(
+                hash(decoded_payload),
+                (mean_mess_ratio, cd_ratios_merged, True),
+            )
+
+        # Count post-definitive same-family SB successes for the early termination cap.
+        # Only count low-mess encodings (< 2%) toward the cap. High-mess encodings are
+        # marginal results that shouldn't prevent better-quality candidates from being
+        # tested. For example, iso8859_4 (mess=0%) should not be skipped just because
+        # 7 high-mess Latin encodings (cp1252 at 8%, etc.) were tried first.
+        if (
+            definitive_match_found
+            and not is_multi_byte_decoder
+            and mean_mess_ratio < 0.02
+        ):
+            post_definitive_sb_success_count += 1
+
         if (
             encoding_iana in [specified_encoding, "ascii", "utf_8"]
             and mean_mess_ratio < 0.1
@@ -475,16 +721,76 @@ def from_bytes(
             and "ascii" in tested
             and "utf_8" in tested
         ):
-            probable_result: CharsetMatch = early_stop_results.best()  # type: ignore[assignment]
+            probable_result = early_stop_results.best()  # type: ignore[assignment]
             logger.debug(
                 "Encoding detection: %s is most likely the one.",
-                probable_result.encoding,
+                probable_result.encoding,  # type: ignore[union-attr]
             )
             if explain:  # Defensive: ensure exit path clean handler
                 logger.removeHandler(explain_handler)
                 logger.setLevel(previous_logger_level)
 
             return CharsetMatches([probable_result])
+
+        # Once we find a result with good coherence (>= 0.5) after testing the
+        # prioritized encodings (ascii, utf_8), activate "definitive mode": skip
+        # encodings that target completely different language families. This avoids
+        # running expensive mess_ratio + coherence_ratio on clearly unrelated
+        # candidates (e.g., Cyrillic encodings when the match is Latin-based).
+        # We require coherence >= 0.5 to avoid false positives (e.g., cp1251 decoding
+        # Hebrew text with 0.0 chaos but wrong language detection at coherence 0.33).
+        if not definitive_match_found and not is_multi_byte_decoder:
+            best_coherence = (
+                max((v for _, v in cd_ratios_merged), default=0.0)
+                if cd_ratios_merged
+                else 0.0
+            )
+            if best_coherence >= 0.5 and "ascii" in tested and "utf_8" in tested:
+                definitive_match_found = True
+                definitive_target_languages.update(target_languages)
+                logger.log(
+                    TRACE,
+                    "Definitive match found: %s (chaos=%.3f, coherence=%.2f). Encodings targeting different language families will be skipped.",
+                    encoding_iana,
+                    mean_mess_ratio,
+                    best_coherence,
+                )
+
+        # When a non-UTF multibyte encoding passes chaos probing with significant
+        # multibyte content (decoded < 98% of raw), activate mb_definitive_match.
+        # This skips all remaining single-byte encodings which would either soft-fail
+        # (running expensive mess_ratio for nothing) or produce inferior results.
+        if (
+            not mb_definitive_match_found
+            and is_multi_byte_decoder
+            and multi_byte_bonus
+            and decoded_payload is not None
+            and len(decoded_payload) < length * 0.98
+            and encoding_iana
+            not in {
+                "utf_8",
+                "utf_8_sig",
+                "utf_16",
+                "utf_16_be",
+                "utf_16_le",
+                "utf_32",
+                "utf_32_be",
+                "utf_32_le",
+                "utf_7",
+            }
+            and "ascii" in tested
+            and "utf_8" in tested
+        ):
+            mb_definitive_match_found = True
+            logger.log(
+                TRACE,
+                "Multi-byte definitive match: %s (chaos=%.3f, decoded=%d/%d=%.1f%%). Single-byte encodings will be skipped.",
+                encoding_iana,
+                mean_mess_ratio,
+                len(decoded_payload),
+                length,
+                len(decoded_payload) / length * 100,
+            )
 
         if encoding_iana == sig_encoding:
             logger.debug(

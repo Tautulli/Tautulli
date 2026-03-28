@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from encodings.aliases import aliases
-from hashlib import sha256
 from json import dumps
 from re import sub
 from typing import Any, Iterator, List, Tuple
@@ -13,7 +12,7 @@ from .utils import iana_name, is_multi_byte_encoding, unicode_range
 class CharsetMatch:
     def __init__(
         self,
-        payload: bytes,
+        payload: bytes | bytearray,
         guessed_encoding: str,
         mean_mess_ratio: float,
         has_sig_or_bom: bool,
@@ -21,7 +20,7 @@ class CharsetMatch:
         decoded_payload: str | None = None,
         preemptive_declaration: str | None = None,
     ):
-        self._payload: bytes = payload
+        self._payload: bytes | bytearray = payload
 
         self._encoding: str = guessed_encoding
         self._mean_mess_ratio: float = mean_mess_ratio
@@ -56,10 +55,10 @@ class CharsetMatch:
         chaos_difference: float = abs(self.chaos - other.chaos)
         coherence_difference: float = abs(self.coherence - other.coherence)
 
-        # Below 1% difference --> Use Coherence
-        if chaos_difference < 0.01 and coherence_difference > 0.02:
+        # Below 0.5% difference --> Use Coherence
+        if chaos_difference < 0.005 and coherence_difference > 0.02:
             return self.coherence > other.coherence
-        elif chaos_difference < 0.01 and coherence_difference <= 0.02:
+        elif chaos_difference < 0.005 and coherence_difference <= 0.02:
             # When having a difficult decision, use the result that decoded as many multi-byte as possible.
             # preserve RAM usage!
             if len(self._payload) >= TOO_BIG_SEQUENCE:
@@ -79,7 +78,7 @@ class CharsetMatch:
         return self._string
 
     def __repr__(self) -> str:
-        return f"<CharsetMatch '{self.encoding}' bytes({self.fingerprint})>"
+        return f"<CharsetMatch '{self.encoding}' fp({self.fingerprint})>"
 
     def add_submatch(self, other: CharsetMatch) -> None:
         if not isinstance(other, CharsetMatch) or other == self:
@@ -172,7 +171,7 @@ class CharsetMatch:
         return round(self.coherence * 100, ndigits=3)
 
     @property
-    def raw(self) -> bytes:
+    def raw(self) -> bytes | bytearray:
         """
         Original untouched bytes.
         """
@@ -235,11 +234,11 @@ class CharsetMatch:
         return self._output_payload  # type: ignore
 
     @property
-    def fingerprint(self) -> str:
+    def fingerprint(self) -> int:
         """
-        Retrieve the unique SHA256 computed using the transformed (re-encoded) payload. Not the original one.
+        Retrieve a hash fingerprint of the decoded payload, used for deduplication.
         """
-        return sha256(self.output()).hexdigest()
+        return hash(str(self))
 
 
 class CharsetMatches:

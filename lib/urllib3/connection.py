@@ -160,6 +160,12 @@ class HTTPConnection(_HTTPConnection):
         self._tunnel_port: int | None = None
         self._tunnel_scheme: str | None = None
 
+    def __str__(self) -> str:
+        return f"{type(self).__name__}(host={self.host!r}, port={self.port!r})"
+
+    def __repr__(self) -> str:
+        return f"<{self} at {id(self):#x}>"
+
     @property
     def host(self) -> str:
         """

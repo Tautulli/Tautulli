@@ -6,9 +6,9 @@ import threading
 import types
 import typing
 
-import h2.config  # type: ignore[import-untyped]
-import h2.connection  # type: ignore[import-untyped]
-import h2.events  # type: ignore[import-untyped]
+import h2.config
+import h2.connection
+import h2.events
 
 from .._base_connection import _TYPE_BODY
 from .._collections import HTTPHeaderDict
@@ -185,7 +185,7 @@ class HTTP2Connection(HTTPSConnection):
                     if not chunk:
                         break
                     if isinstance(chunk, str):
-                        chunk = chunk.encode()  # pragma: no cover
+                        chunk = chunk.encode()
                     conn.send_data(self._h2_stream, chunk, end_stream=False)
                     if data_to_send := conn.data_to_send():
                         self.sock.sendall(data_to_send)

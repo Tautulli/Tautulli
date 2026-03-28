@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import logging
 import unicodedata
+from bisect import bisect_right
 from codecs import IncrementalDecoder
 from encodings.aliases import aliases
 from functools import lru_cache
@@ -21,25 +22,57 @@ from .constant import (
     UNICODE_SECONDARY_RANGE_KEYWORD,
     UTF8_MAXIMAL_ALLOCATION,
     COMMON_CJK_CHARACTERS,
+    _LATIN,
+    _CJK,
+    _HANGUL,
+    _KATAKANA,
+    _HIRAGANA,
+    _THAI,
+    _ARABIC,
+    _ARABIC_ISOLATED_FORM,
+    _ACCENT_KEYWORDS,
+    _ACCENTUATED,
 )
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
-def is_accentuated(character: str) -> bool:
+def _character_flags(character: str) -> int:
+    """Compute all name-based classification flags with a single unicodedata.name() call."""
     try:
-        description: str = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-    return (
-        "WITH GRAVE" in description
-        or "WITH ACUTE" in description
-        or "WITH CEDILLA" in description
-        or "WITH DIAERESIS" in description
-        or "WITH CIRCUMFLEX" in description
-        or "WITH TILDE" in description
-        or "WITH MACRON" in description
-        or "WITH RING ABOVE" in description
-    )
+        desc: str = unicodedata.name(character)
+    except ValueError:
+        return 0
+
+    flags: int = 0
+
+    if "LATIN" in desc:
+        flags |= _LATIN
+    if "CJK" in desc:
+        flags |= _CJK
+    if "HANGUL" in desc:
+        flags |= _HANGUL
+    if "KATAKANA" in desc:
+        flags |= _KATAKANA
+    if "HIRAGANA" in desc:
+        flags |= _HIRAGANA
+    if "THAI" in desc:
+        flags |= _THAI
+    if "ARABIC" in desc:
+        flags |= _ARABIC
+        if "ISOLATED FORM" in desc:
+            flags |= _ARABIC_ISOLATED_FORM
+
+    for kw in _ACCENT_KEYWORDS:
+        if kw in desc:
+            flags |= _ACCENTUATED
+            break
+
+    return flags
+
+
+@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
+def is_accentuated(character: str) -> bool:
+    return bool(_character_flags(character) & _ACCENTUATED)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
@@ -53,6 +86,15 @@ def remove_accent(character: str) -> str:
     return chr(int(codes[0], 16))
 
 
+# Pre-built sorted lookup table for O(log n) binary search in unicode_range().
+# Each entry is (range_start, range_end_exclusive, range_name).
+_UNICODE_RANGES_SORTED: list[tuple[int, int, str]] = sorted(
+    (ord_range.start, ord_range.stop, name)
+    for name, ord_range in UNICODE_RANGES_COMBINED.items()
+)
+_UNICODE_RANGE_STARTS: list[int] = [e[0] for e in _UNICODE_RANGES_SORTED]
+
+
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def unicode_range(character: str) -> str | None:
     """
@@ -60,20 +102,19 @@ def unicode_range(character: str) -> str | None:
     """
     character_ord: int = ord(character)
 
-    for range_name, ord_range in UNICODE_RANGES_COMBINED.items():
-        if character_ord in ord_range:
-            return range_name
+    # Binary search: find the rightmost range whose start <= character_ord
+    idx = bisect_right(_UNICODE_RANGE_STARTS, character_ord) - 1
+    if idx >= 0:
+        start, stop, name = _UNICODE_RANGES_SORTED[idx]
+        if character_ord < stop:
+            return name
 
     return None
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_latin(character: str) -> bool:
-    try:
-        description: str = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-    return "LATIN" in description
+    return bool(_character_flags(character) & _LATIN)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
@@ -133,72 +174,37 @@ def is_case_variable(character: str) -> bool:
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_cjk(character: str) -> bool:
-    try:
-        character_name = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-
-    return "CJK" in character_name
+    return bool(_character_flags(character) & _CJK)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_hiragana(character: str) -> bool:
-    try:
-        character_name = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-
-    return "HIRAGANA" in character_name
+    return bool(_character_flags(character) & _HIRAGANA)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_katakana(character: str) -> bool:
-    try:
-        character_name = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-
-    return "KATAKANA" in character_name
+    return bool(_character_flags(character) & _KATAKANA)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_hangul(character: str) -> bool:
-    try:
-        character_name = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-
-    return "HANGUL" in character_name
+    return bool(_character_flags(character) & _HANGUL)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_thai(character: str) -> bool:
-    try:
-        character_name = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-
-    return "THAI" in character_name
+    return bool(_character_flags(character) & _THAI)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_arabic(character: str) -> bool:
-    try:
-        character_name = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-
-    return "ARABIC" in character_name
+    return bool(_character_flags(character) & _ARABIC)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_arabic_isolated_form(character: str) -> bool:
-    try:
-        character_name = unicodedata.name(character)
-    except ValueError:  # Defensive: unicode database outdated?
-        return False
-
-    return "ARABIC" in character_name and "ISOLATED FORM" in character_name
+    return bool(_character_flags(character) & _ARABIC_ISOLATED_FORM)
 
 
 @lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
@@ -222,11 +228,13 @@ def is_unprintable(character: str) -> bool:
     )
 
 
-def any_specified_encoding(sequence: bytes, search_zone: int = 8192) -> str | None:
+def any_specified_encoding(
+    sequence: bytes | bytearray, search_zone: int = 8192
+) -> str | None:
     """
     Extract using ASCII-only decoder any specified encoding in the first n-bytes.
     """
-    if not isinstance(sequence, bytes):
+    if not isinstance(sequence, (bytes, bytearray)):
         raise TypeError
 
     seq_len: int = len(sequence)
@@ -275,7 +283,7 @@ def is_multi_byte_encoding(name: str) -> bool:
     )
 
 
-def identify_sig_or_bom(sequence: bytes) -> tuple[str | None, bytes]:
+def identify_sig_or_bom(sequence: bytes | bytearray) -> tuple[str | None, bytes]:
     """
     Identify and extract SIG/BOM in given sequence.
     """
@@ -326,12 +334,12 @@ def cp_similarity(iana_name_a: str, iana_name_b: str) -> float:
 
     character_match_count: int = 0
 
-    for i in range(255):
+    for i in range(256):
         to_be_decoded: bytes = bytes([i])
         if id_a.decode(to_be_decoded) == id_b.decode(to_be_decoded):
             character_match_count += 1
 
-    return character_match_count / 254
+    return character_match_count / 256
 
 
 def is_cp_similar(iana_name_a: str, iana_name_b: str) -> bool:
@@ -359,7 +367,7 @@ def set_logging_handler(
 
 
 def cut_sequence_chunks(
-    sequences: bytes,
+    sequences: bytes | bytearray,
     encoding_iana: str,
     offsets: range,
     chunk_size: int,
