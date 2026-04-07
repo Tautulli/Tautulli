@@ -357,14 +357,28 @@ def from_bytes(
                     encoding=encoding_iana,
                 )
             else:
-                decoded_payload = str(
-                    (
-                        sequences
-                        if strip_sig_or_bom is False
-                        else sequences[len(sig_payload) :]
-                    ),
-                    encoding=encoding_iana,
-                )
+                # UTF-7 BOM is encoded in modified Base64 whose byte boundary
+                # can overlap with the next character. Stripping raw SIG bytes
+                # before decoding may leave stray bytes that decode as garbage.
+                # Decode the full sequence and remove the leading BOM char instead.
+                # see https://github.com/jawah/charset_normalizer/issues/718
+                # and https://github.com/jawah/charset_normalizer/issues/716
+                if encoding_iana == "utf_7" and bom_or_sig_available:
+                    decoded_payload = str(
+                        sequences,
+                        encoding=encoding_iana,
+                    )
+                    if decoded_payload and decoded_payload[0] == "\ufeff":
+                        decoded_payload = decoded_payload[1:]
+                else:
+                    decoded_payload = str(
+                        (
+                            sequences
+                            if strip_sig_or_bom is False
+                            else sequences[len(sig_payload) :]
+                        ),
+                        encoding=encoding_iana,
+                    )
         except (UnicodeDecodeError, LookupError) as e:
             if not isinstance(e, LookupError):
                 logger.log(

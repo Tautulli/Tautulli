@@ -75,6 +75,16 @@ class CharsetMatch:
         # Lazy Str Loading
         if self._string is None:
             self._string = str(self._payload, self._encoding, "strict")
+            # UTF-7 BOM is encoded in modified Base64 whose byte boundary
+            # can overlap with the next character, so raw-byte stripping
+            # is unreliable. Strip the decoded BOM character instead.
+            if (
+                self._has_sig_or_bom
+                and self._encoding == "utf_7"
+                and self._string
+                and self._string[0] == "\ufeff"
+            ):
+                self._string = self._string[1:]
         return self._string
 
     def __repr__(self) -> str:
