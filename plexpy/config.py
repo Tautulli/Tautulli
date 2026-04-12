@@ -41,6 +41,7 @@ FILENAME = "config.ini"
 
 _CONFIG_DEFINITIONS = {
     'ALLOW_GUEST_ACCESS': (int, 'General', 0),
+    'ALLOW_MOUNTED_FOLDERS': (int, 'Advanced', 0),
     'DATE_FORMAT': (str, 'General', 'YYYY-MM-DD'),
     'PMS_CLIENT_ID': (str, 'PMS', ''),
     'PMS_IDENTIFIER': (str, 'PMS', ''),

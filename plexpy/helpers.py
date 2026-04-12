@@ -34,7 +34,7 @@ import json
 import math
 import operator
 import os
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import re
 import shlex
 import socket
@@ -1741,6 +1741,40 @@ def is_subdir(child: str, parent: str) -> bool:
     child = Path(child).resolve()
     parent = Path(parent).resolve()
     return child.is_relative_to(parent)
+
+
+def is_mount(path: str) -> bool:
+    if not path:
+        return False
+
+    # Ignore paths within Tautulli's data directory (e.g. Docker /config folder)
+    if is_subdir(path, plexpy.DATA_DIR):
+        return False
+
+    try:
+        path = Path(path).resolve()
+    except OSError:
+        path = Path(path)
+
+    def is_filesystem_root(p: Path) -> bool:
+        # Windows: Drive letter roots (e.g., C:\, D:\) but not UNC paths (e.g., \\server\share)
+        if isinstance(p, PureWindowsPath) and len(p.drive) == 2 and p.parent == p:
+            return True
+        # Unix/Linux: Filesystem root (/)
+        if p == Path('/'):
+            return True
+        return False
+
+    try:
+        # Check if path or any parent is a mount (but not a filesystem root)
+        return any(p.is_mount() and not is_filesystem_root(p) for p in [path, *path.parents])
+    except (OSError, FileNotFoundError):
+        # If we can't check mount status (e.g., path doesn't exist, access denied)
+        return False
+
+
+def allow_mount(path: str) -> bool:
+    return plexpy.CONFIG.ALLOW_MOUNTED_FOLDERS or not is_mount(path)
 
 
 def base64str(text):
