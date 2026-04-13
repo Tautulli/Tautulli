@@ -1382,7 +1382,7 @@ class WebInterface(object):
                 allow_guest (int):          0 or 1
 
             Optional parameters:
-                None
+                exclude_from_reports (int): 0 or 1, whether to exclude the user from reports and statistics
 
             Returns:
                 None
@@ -1393,6 +1393,7 @@ class WebInterface(object):
         do_notify = kwargs.get('do_notify', 0)
         keep_history = kwargs.get('keep_history', 0)
         allow_guest = kwargs.get('allow_guest', 0)
+        exclude_from_reports = kwargs.get('exclude_from_reports', None)
 
         if user_id:
             try:
@@ -1402,7 +1403,8 @@ class WebInterface(object):
                                      custom_thumb=custom_thumb,
                                      do_notify=do_notify,
                                      keep_history=keep_history,
-                                     allow_guest=allow_guest)
+                                     allow_guest=allow_guest,
+                                     exclude_from_reports=exclude_from_reports)
                 status_message = "Successfully updated user."
                 return status_message
             except:
@@ -1647,6 +1649,7 @@ class WebInterface(object):
                      "deleted_user": 0,
                      "do_notify": 1,
                      "email": "Jon.Snow.1337@CastleBlack.com",
+                     "exclude_from_reports": 0,
                      "friendly_name": "Jon Snow",
                      "is_active": 1,
                      "is_admin": 0,
@@ -3371,7 +3374,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def check_pms_token(self, **kwargs):
         plex_tv = plextv.PlexTV()
-        if plex_tv.check_token() is False:
+        if not plex_tv.check_token():
             cherrypy.response.status = 401
 
     @cherrypy.expose
@@ -6198,6 +6201,7 @@ class WebInterface(object):
                     [{"allow_guest": 1,
                       "do_notify": 1,
                       "email": "Jon.Snow.1337@CastleBlack.com",
+                      "exclude_from_reports": 0,
                       "filter_all": "",
                       "filter_movies": "",
                       "filter_music": "",

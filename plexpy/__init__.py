@@ -718,7 +718,8 @@ def dbcheck():
         "is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, "
         "do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, "
         "allow_guest INTEGER DEFAULT 0, user_token TEXT, server_token TEXT, shared_libraries TEXT, "
-        "filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT)"
+        "filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT, "
+        "exclude_from_reports INTEGER DEFAULT 0)"
     )
 
     # library_sections table :: This table keeps record of the servers library sections
@@ -2691,6 +2692,14 @@ def dbcheck():
                      "WHERE id NOT IN (SELECT MIN(id) FROM imgur_lookup GROUP BY img_hash)")
     except sqlite3.OperationalError:
         pass
+
+    try:
+        c_db.execute("SELECT exclude_from_reports FROM users")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Adding exclude_from_reports column to users table.")
+        c_db.execute(
+            "ALTER TABLE users ADD COLUMN exclude_from_reports INTEGER DEFAULT 0"
+        )
 
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute("SELECT id FROM users WHERE username = 'Local'")
