@@ -1221,7 +1221,11 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="help-block">Optional: Enter the full path to your custom newsletter templates folder. Leave blank for default.</p>
+                            <p class="help-block">
+                                Optional: Enter the full path to your custom newsletter templates folder. Leave blank for default.<br>
+                                Note: <span class="inline-pre">allow_mounted_folders = 1</span> must be manually enabled in the configuration file to allow mounted folder paths.
+                                Enabling this setting could pose a security risk. Enable at your own risk. It is recommended to leave this feature disabled if it is not being used.
+                            </p>
                         </div>
                         <div class="form-group advanced-setting">
                             <label for="newsletter_dir">Newsletter Output Directory</label> ${docker_msg | n}
@@ -1947,7 +1951,7 @@ Rating: {rating}/10   --> Rating: /10
                     </div>
                     <div style="padding-bottom: 10px;">
                         <p class="help-block">
-                            Note: <span class="inline-pre">notify_text_eval = 1</span> must be manually enabled in the configuration file to enable expressions.
+                            Note: <span class="inline-pre">notify_text_eval = 1</span> must be manually enabled in the configuration file to allow expressions.
                             Enabling this setting could pose a security risk. Enable at your own risk. It is recommended to leave this feature disabled if it is not being used.
                         </p>
                         <p class="help-block">
