@@ -10,7 +10,7 @@ var log_table_options = {
         data.search.search = "";
         data.start = 0;
     },
-    "stateDuration": 0,
+    "stateDuration": -1,
     "language": {
                 "search": "Search: ",
                 "lengthMenu": "Show _MENU_ lines per page",

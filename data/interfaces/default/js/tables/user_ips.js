@@ -36,7 +36,7 @@ user_ip_table_options = {
         data.search.search = "";
         data.start = 0;
     },
-    "stateDuration": 0,
+    "stateDuration": -1,
     "pagingType": "full_numbers",
     "processing": false,
     "serverSide": true,

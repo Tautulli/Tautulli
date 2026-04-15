@@ -29,7 +29,7 @@ media_info_table_options = {
         data.search.search = "";
         data.start = 0;
     },
-    "stateDuration": 0,
+    "stateDuration": -1,
     "processing": false,
     "serverSide": true,
     "pageLength": 25,
