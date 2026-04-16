@@ -1243,7 +1243,7 @@ class Graphs(object):
                 user_cond = cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
 
         exclude_prefix = 'AND ' if user_cond else (cond_prefix + ' ')
-        user_cond += (exclude_prefix + 'session_history.user_id NOT IN '
-                      '(SELECT user_id FROM users WHERE exclude_from_reports = 1 '
-                      'AND user_id IS NOT NULL) ')
+        user_cond += (exclude_prefix + 'NOT EXISTS '
+                      '(SELECT 1 FROM users WHERE users.user_id = session_history.user_id '
+                      'AND users.exclude_from_reports = 1) ')
         return user_cond
