@@ -33,13 +33,13 @@ class Graphs(object):
     def __init__(self):
         pass
 
-    def get_total_plays_per_day(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_per_day(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -148,13 +148,13 @@ class Graphs(object):
                   'series': series_output}
         return output
 
-    def get_total_plays_per_dayofweek(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_per_dayofweek(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -274,13 +274,13 @@ class Graphs(object):
                   'series': series_output}
         return output
 
-    def get_total_plays_per_hourofday(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_per_hourofday(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -382,13 +382,13 @@ class Graphs(object):
                   'series': series_output}
         return output
 
-    def get_total_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 12
         timestamp = arrow.get(helpers.timestamp()).shift(months=-time_range).floor('month').timestamp()
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -498,13 +498,13 @@ class Graphs(object):
                   'series': series_output}
         return output
 
-    def get_total_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -594,13 +594,13 @@ class Graphs(object):
                   'series': series_output}
         return output
 
-    def get_total_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -701,13 +701,13 @@ class Graphs(object):
                   'series': series_output}
         return output
 
-    def get_total_plays_per_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_per_stream_type(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -789,13 +789,14 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_concurrent_streams_per_stream_type(self, time_range='30', user_id=None):
+    def get_total_concurrent_streams_per_stream_type(self, time_range='30', user_id=None, machine_id=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
         user_cond = self._make_user_cond(user_id, 'WHERE')
+        user_cond = user_cond + self._make_machine_cond(machine_id, 'AND' if user_cond else 'WHERE')
         
         def calc_most_concurrent(result):
             times = []
@@ -883,13 +884,13 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output, series_4_output]}
         return output
 
-    def get_total_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -961,13 +962,13 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_total_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_total_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -1065,13 +1066,13 @@ class Graphs(object):
                   'series': [series_1_output, series_2_output, series_3_output]}
         return output
 
-    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -1142,13 +1143,13 @@ class Graphs(object):
 
         return output
 
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, machine_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id)
+        user_cond = self._make_user_cond(user_id) + self._make_machine_cond(machine_id)
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -1242,3 +1243,15 @@ class Graphs(object):
             if all(id.isdigit() for id in user_ids):
                 user_cond = cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
         return user_cond
+
+    def _make_machine_cond(self, machine_id, cond_prefix='AND'):
+        """
+        Expects machine_id to be a comma-separated list of strings.
+        """
+        if not machine_id:
+            return ''
+        machine_ids = helpers.split_strip(machine_id)
+        quoted = ','.join("'" + m.replace("'", "''") + "'" for m in machine_ids if m)
+        if not quoted:
+            return ''
+        return cond_prefix + ' session_history.machine_id IN (%s) ' % quoted

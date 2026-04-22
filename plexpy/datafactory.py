@@ -2434,6 +2434,25 @@ class DataFactory(object):
 
         return [d['machine_id'] for d in result]
 
+    def get_machine_names(self):
+        monitor_db = database.MonitorDatabase()
+
+        query = "SELECT machine_id, player FROM session_history " \
+                "WHERE id IN (" \
+                "  SELECT MAX(id) FROM session_history " \
+                "  WHERE machine_id IS NOT NULL AND machine_id != '' " \
+                "  GROUP BY machine_id" \
+                ") " \
+                "ORDER BY player COLLATE NOCASE"
+
+        try:
+            result = monitor_db.select(query=query)
+        except Exception as e:
+            logger.warn("Tautulli DataFactory :: Unable to execute database query for get_machine_names: %s." % e)
+            return []
+
+        return result
+
     def get_recently_added_item(self, rating_key=''):
         monitor_db = database.MonitorDatabase()
 

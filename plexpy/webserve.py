@@ -2204,7 +2204,34 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_machine_names(self, **kwargs):
+        """ Get a list of all devices (machine_id and player name) seen in the play history.
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                None
+
+            Returns:
+                json:
+                    [{"machine_id": "3fbc8ba5da6d3277-com-plexapp-android", "player": "AFTMM"},
+                     {"machine_id": "B6D07220-58C2-47B5-AE16-1E668F405A3C", "player": "Apple TV"},
+                     {...},
+                    ]
+            ```
+        """
+        data_factory = datafactory.DataFactory()
+        machine_names = data_factory.get_machine_names()
+
+        return machine_names
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth()
+    @addtoapi()
+    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', grouping=None, machine_id=None, **kwargs):
         """ Get graph data by date.
 
             ```
@@ -2235,7 +2262,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_day(time_range=time_range,
                                                y_axis=y_axis,
-                                               user_id=user_id,
+                                               user_id=user_id, machine_id=machine_id,
                                                grouping=grouping)
 
         if result:
@@ -2248,7 +2275,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', grouping=None, machine_id=None, **kwargs):
         """ Get graph data by day of the week.
 
             ```
@@ -2279,7 +2306,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_dayofweek(time_range=time_range,
                                                      y_axis=y_axis,
-                                                     user_id=user_id,
+                                                     user_id=user_id, machine_id=machine_id,
                                                      grouping=grouping)
 
         if result:
@@ -2292,7 +2319,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', grouping=None, machine_id=None, **kwargs):
         """ Get graph data by hour of the day.
 
             ```
@@ -2323,7 +2350,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_hourofday(time_range=time_range,
                                                      y_axis=y_axis,
-                                                     user_id=user_id,
+                                                     user_id=user_id, machine_id=machine_id,
                                                      grouping=grouping)
 
         if result:
@@ -2336,7 +2363,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None, machine_id=None, **kwargs):
         """ Get graph data by month.
 
             ```
@@ -2367,7 +2394,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_month(time_range=time_range,
                                                  y_axis=y_axis,
-                                                 user_id=user_id,
+                                                 user_id=user_id, machine_id=machine_id,
                                                  grouping=grouping)
 
         if result:
@@ -2380,7 +2407,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None, machine_id=None, **kwargs):
         """ Get graph data by top 10 platforms.
 
             ```
@@ -2411,7 +2438,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_top_10_platforms(time_range=time_range,
                                                            y_axis=y_axis,
-                                                           user_id=user_id,
+                                                           user_id=user_id, machine_id=machine_id,
                                                            grouping=grouping)
 
         if result:
@@ -2424,7 +2451,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None, machine_id=None, **kwargs):
         """ Get graph data by top 10 users.
 
             ```
@@ -2455,7 +2482,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_top_10_users(time_range=time_range,
                                                        y_axis=y_axis,
-                                                       user_id=user_id,
+                                                       user_id=user_id, machine_id=machine_id,
                                                        grouping=grouping)
 
         if result:
@@ -2468,7 +2495,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None, machine_id=None, **kwargs):
         """ Get graph data by stream type by date.
 
             ```
@@ -2498,7 +2525,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_per_stream_type(time_range=time_range,
                                                        y_axis=y_axis,
-                                                       user_id=user_id,
+                                                       user_id=user_id, machine_id=machine_id,
                                                        grouping=grouping)
 
         if result:
@@ -2511,7 +2538,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_concurrent_streams_by_stream_type(self, time_range='30', user_id=None, **kwargs):
+    def get_concurrent_streams_by_stream_type(self, time_range='30', user_id=None, machine_id=None, **kwargs):
         """ Get graph data for concurrent streams by stream type by date.
 
             ```
@@ -2537,7 +2564,7 @@ class WebInterface(object):
         """
 
         graph = graphs.Graphs()
-        result = graph.get_total_concurrent_streams_per_stream_type(time_range=time_range, user_id=user_id)
+        result = graph.get_total_concurrent_streams_per_stream_type(time_range=time_range, user_id=user_id, machine_id=machine_id)
 
         if result:
             return result
@@ -2549,7 +2576,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, machine_id=None, **kwargs):
         """ Get graph data by source resolution.
 
             ```
@@ -2579,7 +2606,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_source_resolution(time_range=time_range,
                                                             y_axis=y_axis,
-                                                            user_id=user_id,
+                                                            user_id=user_id, machine_id=machine_id,
                                                             grouping=grouping)
 
         if result:
@@ -2592,7 +2619,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, machine_id=None, **kwargs):
         """ Get graph data by stream resolution.
 
             ```
@@ -2622,7 +2649,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_total_plays_by_stream_resolution(time_range=time_range,
                                                             y_axis=y_axis,
-                                                            user_id=user_id,
+                                                            user_id=user_id, machine_id=machine_id,
                                                             grouping=grouping)
 
         if result:
@@ -2635,7 +2662,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None, machine_id=None, **kwargs):
         """ Get graph data by stream type by top 10 users.
 
             ```
@@ -2665,7 +2692,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_stream_type_by_top_10_users(time_range=time_range,
                                                        y_axis=y_axis,
-                                                       user_id=user_id,
+                                                       user_id=user_id, machine_id=machine_id,
                                                        grouping=grouping)
 
         if result:
@@ -2678,7 +2705,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None, machine_id=None, **kwargs):
         """ Get graph data by stream type by top 10 platforms.
 
             ```
@@ -2708,7 +2735,7 @@ class WebInterface(object):
         graph = graphs.Graphs()
         result = graph.get_stream_type_by_top_10_platforms(time_range=time_range,
                                                            y_axis=y_axis,
-                                                           user_id=user_id,
+                                                           user_id=user_id, machine_id=machine_id,
                                                            grouping=grouping)
 
         if result:
