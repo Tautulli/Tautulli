@@ -33,7 +33,7 @@ history_table_options = {
     "serverSide": true,
     "pageLength": 25,
     "order": [ 1, 'desc'],
-    "autoWidth": false,
+    "autoWidth": true,
     "scrollX": true,
     "columnDefs": [
         {
