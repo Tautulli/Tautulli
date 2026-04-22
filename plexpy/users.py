@@ -574,12 +574,12 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = "SELECT player, COUNT(DISTINCT %s) as total_plays, (SUM(stopped - started) - " \
+                query = "SELECT machine_id, player, COUNT(DISTINCT %s) as total_plays, (SUM(stopped - started) - " \
                         "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                        "platform " \
+                        "platform, MAX(started) AS last_seen " \
                         "FROM session_history " \
                         "WHERE user_id = ? " \
-                        "GROUP BY player " \
+                        "GROUP BY machine_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % group_by
                 result = monitor_db.select(query, args=[user_id])
             else:
@@ -594,10 +594,12 @@ class Users(object):
             platform_name = next((v for k, v in common.PLATFORM_NAMES.items() if k in platform.lower()), 'default')
 
             row = {'player_name': item['player'],
+                   'machine_id': item['machine_id'],
                    'platform': platform,
                    'platform_name': platform_name,
                    'total_plays': item['total_plays'],
                    'total_time': item['total_time'],
+                   'last_seen': item['last_seen'],
                    'result_id': result_id
                    }
             player_stats.append(row)
