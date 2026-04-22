@@ -427,6 +427,8 @@ DOCUMENTATION :: END
 <%def name="modalIncludes()">
 <div id="edit-user-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="edit-user-modal">
 </div>
+<div id="edit-device-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="edit-device-modal">
+</div>
 <div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="info-modal">
 </div>
 <div class="modal fade" id="ip-info-modal" tabindex="-1" role="dialog" aria-labelledby="ip-info-modal">
@@ -755,6 +757,22 @@ DOCUMENTATION :: END
             async: true,
             complete: function(xhr, status) {
                 $("#edit-user-modal").html(xhr.responseText);
+            }
+        });
+    });
+
+    // Load edit device modal (delegated since user-player-stats is loaded via ajax)
+    $('#user-player-stats').on('click', '.edit-device-pencil', function(e) {
+        e.preventDefault();
+        var machine_id = $(this).data('machine-id');
+        $.ajax({
+            url: 'edit_device_dialog',
+            data: { machine_id: machine_id },
+            cache: false,
+            async: true,
+            complete: function(xhr, status) {
+                $("#edit-device-modal").html(xhr.responseText);
+                $("#edit-device-modal").modal();
             }
         });
     });

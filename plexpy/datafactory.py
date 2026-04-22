@@ -91,9 +91,10 @@ class DataFactory(object):
             "users.custom_avatar_url AS custom_thumb",
             "platform",
             "product",
-            "player",
+            "(CASE WHEN device_names.friendly_name IS NULL OR TRIM(device_names.friendly_name) = '' \
+             THEN player ELSE device_names.friendly_name END) AS player",
             "ip_address",
-            "machine_id",
+            "session_history.machine_id AS machine_id",
             "location",
             "secure",
             "relayed",
@@ -209,13 +210,16 @@ class DataFactory(object):
                                           group_by_union=group_by_union,
                                           join_types=['LEFT OUTER JOIN',
                                                       'JOIN',
-                                                      'JOIN'],
+                                                      'JOIN',
+                                                      'LEFT OUTER JOIN'],
                                           join_tables=['users',
                                                        'session_history_metadata',
-                                                       'session_history_media_info'],
+                                                       'session_history_media_info',
+                                                       'device_names'],
                                           join_evals=[['session_history.user_id', 'users.user_id'],
                                                       ['session_history.id', 'session_history_metadata.id'],
-                                                      ['session_history.id', 'session_history_media_info.id']],
+                                                      ['session_history.id', 'session_history_media_info.id'],
+                                                      ['session_history.machine_id', 'device_names.machine_id']],
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_history: %s." % e)
@@ -2452,6 +2456,48 @@ class DataFactory(object):
             return []
 
         return result
+
+    def get_device_details(self, machine_id=None):
+        default_return = {'machine_id': '',
+                          'friendly_name': '',
+                          'custom_thumb': '',
+                          'player': ''
+                          }
+
+        if not machine_id:
+            return default_return
+
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            query = "SELECT dn.machine_id, dn.friendly_name, dn.custom_thumb, " \
+                    "(SELECT player FROM session_history WHERE machine_id = ? " \
+                    " ORDER BY id DESC LIMIT 1) AS player " \
+                    "FROM (SELECT ? AS machine_id) AS m " \
+                    "LEFT OUTER JOIN device_names AS dn ON dn.machine_id = m.machine_id"
+            result = monitor_db.select_single(query, args=[machine_id, machine_id])
+        except Exception as e:
+            logger.warn("Tautulli DataFactory :: Unable to execute database query for get_device_details: %s." % e)
+            return default_return
+
+        return {'machine_id': result.get('machine_id') or machine_id,
+                'friendly_name': result.get('friendly_name') or '',
+                'custom_thumb': result.get('custom_thumb') or '',
+                'player': result.get('player') or ''
+                }
+
+    def set_device_config(self, machine_id=None, friendly_name='', custom_thumb=''):
+        if machine_id:
+            monitor_db = database.MonitorDatabase()
+
+            key_dict = {'machine_id': machine_id}
+            value_dict = {'friendly_name': friendly_name,
+                          'custom_thumb': custom_thumb
+                          }
+            try:
+                monitor_db.upsert('device_names', value_dict, key_dict)
+            except Exception as e:
+                logger.warn("Tautulli DataFactory :: Unable to execute database query for set_device_config: %s." % e)
 
     def get_recently_added_item(self, rating_key=''):
         monitor_db = database.MonitorDatabase()

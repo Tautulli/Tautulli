@@ -574,12 +574,16 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
-                query = "SELECT machine_id, player, COUNT(DISTINCT %s) as total_plays, (SUM(stopped - started) - " \
+                query = "SELECT session_history.machine_id, " \
+                        "(CASE WHEN device_names.friendly_name IS NULL OR TRIM(device_names.friendly_name) = '' " \
+                        " THEN player ELSE device_names.friendly_name END) AS player, " \
+                        "COUNT(DISTINCT %s) as total_plays, (SUM(stopped - started) - " \
                         "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
                         "platform, MAX(started) AS last_seen " \
                         "FROM session_history " \
+                        "LEFT OUTER JOIN device_names ON device_names.machine_id = session_history.machine_id " \
                         "WHERE user_id = ? " \
-                        "GROUP BY machine_id " \
+                        "GROUP BY session_history.machine_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % group_by
                 result = monitor_db.select(query, args=[user_id])
             else:

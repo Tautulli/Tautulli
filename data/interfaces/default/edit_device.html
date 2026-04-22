@@ -1,0 +1,83 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           edit_device.html
+Version:            0.1
+Variable names:     data [list]
+
+data :: Usable parameters
+
+== Global keys ==
+machine_id          Returns the Plex player machine_id.
+friendly_name       Returns the friendly name of the device.
+custom_thumb        Returns the thumbnail for the device.
+player              Returns the most recent player name for the device.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data != None:
+<div class="modal-dialog" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
+            <h4 class="modal-title">Edit device <strong>${data['player'] or data['machine_id']}</strong></h4>
+        </div>
+        <div class="modal-body" id="modal-text">
+            <fieldset>
+                <div class="form-group">
+                    <label for="friendly_name">Friendly Name</label>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="friendly_name" name="friendly_name" value="${data['friendly_name']}" size="30">
+                        </div>
+                    </div>
+                    <p class="help-block">Replace all occurrences of the player name for this device with this name.</p>
+                </div>
+                <div class="form-group">
+                    <label for="custom_thumb">Device Thumbnail URL</label>
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" id="custom_thumb" name="custom_thumb" value="${data['custom_thumb']}">
+                        </div>
+                    </div>
+                    <p class="help-block">Change the device thumbnail in Tautulli. To reset to default, leave this field empty and save.</p>
+                </div>
+                <div class="form-group">
+                    <label>Machine ID</label>
+                    <p class="help-block"><code>${data['machine_id']}</code></p>
+                </div>
+            </fieldset>
+        </div>
+        <div class="modal-footer">
+            <div>
+                <span id="edit-device-status-message"></span>
+                <input type="button" id="save_device" class="btn btn-bright" value="Save">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Set device options
+    $("#save_device").on('click', function () {
+        var friendly_name = $("input#friendly_name").val();
+        var custom_thumb = $("#custom_thumb").val();
+
+        $.ajax({
+            url: 'edit_device',
+            data: {
+                machine_id: '${data["machine_id"]}',
+                friendly_name: friendly_name,
+                custom_thumb: custom_thumb
+            },
+            cache: false,
+            async: true,
+            success: function(data) {
+                location.reload();
+            }
+        });
+    });
+</script>
+% endif

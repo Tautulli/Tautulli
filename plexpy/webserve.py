@@ -1394,6 +1394,53 @@ class WebInterface(object):
                 return status_message
 
     @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def edit_device_dialog(self, machine_id=None, **kwargs):
+        if machine_id:
+            data_factory = datafactory.DataFactory()
+            result = data_factory.get_device_details(machine_id=machine_id)
+            status_message = ''
+        else:
+            result = None
+            status_message = 'An error occurred.'
+
+        return serve_template(template_name="edit_device.html", title="Edit Device", data=result, status_message=status_message)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def edit_device(self, machine_id=None, **kwargs):
+        """ Update a device friendly name on Tautulli.
+
+            ```
+            Required parameters:
+                machine_id (str):           The Plex player machine_id
+                friendly_name (str):        The friendly name of the device
+                custom_thumb (str):         The URL for the custom device thumbnail
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        friendly_name = kwargs.get('friendly_name', '')
+        custom_thumb = kwargs.get('custom_thumb', '')
+
+        if machine_id:
+            try:
+                data_factory = datafactory.DataFactory()
+                data_factory.set_device_config(machine_id=machine_id,
+                                               friendly_name=friendly_name,
+                                               custom_thumb=custom_thumb)
+                status_message = "Successfully updated device."
+                return status_message
+            except:
+                status_message = "Failed to update device."
+                return status_message
+
+    @cherrypy.expose
     @requireAuth()
     def user_watch_time_stats(self, user=None, user_id=None, **kwargs):
         if not allow_session_user(user_id):

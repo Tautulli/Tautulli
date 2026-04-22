@@ -718,6 +718,12 @@ def dbcheck():
         "filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT)"
     )
 
+    # device_names table :: This table keeps record of friendly names for Plex player devices (machine_id)
+    c_db.execute(
+        "CREATE TABLE IF NOT EXISTS device_names (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "machine_id TEXT NOT NULL UNIQUE, friendly_name TEXT, custom_thumb TEXT)"
+    )
+
     # library_sections table :: This table keeps record of the servers library sections
     c_db.execute(
         "CREATE TABLE IF NOT EXISTS library_sections (id INTEGER PRIMARY KEY AUTOINCREMENT, "
