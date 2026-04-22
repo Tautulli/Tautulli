@@ -280,6 +280,16 @@ history_table_options = {
             "className": "no-wrap",
             "width": "2%"
         },
+        {
+            "targets": [13],
+            "data": "machine_id",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData) {
+                    $(td).html('<a href="javascript:void(0)" class="machine-id-tooltip" data-toggle="tooltip" title="Show history for ' + cellData + '">' + cellData.substring(0, 8) + '</a>');
+                }
+            },
+            "className": "no-wrap modal-control-machine"
+        },
     ],
     "drawCallback": function (settings) {
         // Jump to top of page
@@ -374,6 +384,17 @@ $('.history_table').on('click', '> tbody > tr > td.modal-control', function () {
     }).then(function (jqXHR) {
         $("#info-modal").html(jqXHR);
     });
+});
+
+// Parent table device id filter
+$('.history_table').on('click', '> tbody > tr > td.modal-control-machine', function () {
+    var tr = $(this).closest('tr');
+    var row = history_table.row( tr );
+    var rowData = row.data();
+
+    if (rowData['machine_id']) {
+        history_table.search(rowData['machine_id']).draw();
+    }
 });
 
 // Parent table ip address modal
@@ -535,6 +556,7 @@ function childTableFormat(rowData) {
                 '<th align="left" id="stopped">Stopped</th>' +
                 '<th align="left" id="play_duration">Duration</th>' +
                 '<th align="left" id="percent_complete"></th>' +
+                '<th align="left" id="machine_id">Device ID</th>' +
             '</tr>' +
             '</thead>' +
             '<tbody>' +
