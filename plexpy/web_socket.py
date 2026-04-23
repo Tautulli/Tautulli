@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -102,7 +102,7 @@ def on_intup():
 
 
 def reconnect():
-    close()
+    shutdown()
     logger.info("Tautulli WebSocket :: Reconnecting websocket...")
     start_thread()
 
