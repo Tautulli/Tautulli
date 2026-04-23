@@ -4932,6 +4932,7 @@ class WebInterface(object):
         db = database.MonitorDatabase(database_copy)
         try:
             db.action('UPDATE users SET user_token = NULL, server_token = NULL')
+            db.action('UPDATE user_login SET jwt_token = NULL')
         except:
             logger.error('Failed to remove tokens from downloaded database.')
             cherrypy.response.status = 500
