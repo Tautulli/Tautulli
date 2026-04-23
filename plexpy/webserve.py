@@ -72,7 +72,7 @@ from plexpy import web_socket
 from plexpy import webstart
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
-from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
+from plexpy.session import get_session_info, get_session_csrf_token, get_session_user_id, allow_session_user, allow_session_library
 from plexpy.webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
 if common.PLATFORM == 'Windows':
     from plexpy import windows
@@ -96,11 +96,12 @@ def serve_template(template_name, **kwargs):
     cache_param = '?' + (plexpy.CURRENT_VERSION or common.RELEASE)
 
     _session = get_session_info()
+    _csrf_token = get_session_csrf_token()
 
     try:
         template = TEMPLATE_LOOKUP.get_template(template_name)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
-                               _session=_session, **kwargs)
+                               _session=_session, _csrf_token=_csrf_token, **kwargs)
     except Exception as e:
         logger.exception("WebUI :: Mako template render error: %s" % e)
         return mako.exceptions.html_error_template().render()

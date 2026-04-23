@@ -1,3 +1,14 @@
+const csrf_token = $('meta[name="csrf-token"]').attr('content');
+const csrfSafeMethod = method => {
+    // these HTTP methods do not require CSRF protection
+    return /^(GET|HEAD|OPTIONS)$/i.test(method);
+};
+$(document).ajaxSend(function(event, jqXHR, settings) {
+    if (!csrfSafeMethod(settings.type) && !settings.crossDomain) {
+        jqXHR.setRequestHeader("X-CSRF-Token", csrf_token);
+    }
+});
+
 var p = {
     name: 'Unknown',
     version: 'Unknown',

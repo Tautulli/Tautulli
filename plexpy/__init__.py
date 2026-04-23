@@ -242,6 +242,8 @@ def initialize(config_file):
             CONFIG.EXPORT_DIR, os.path.join(DATA_DIR, 'exports'), 'exports')
         CONFIG.NEWSLETTER_DIR, _ = check_folder_writable(
             CONFIG.NEWSLETTER_DIR, os.path.join(DATA_DIR, 'newsletters'), 'newsletters')
+        CONFIG.SESSIONS_DIR, _ = check_folder_writable(
+            CONFIG.SESSIONS_DIR, os.path.join(DATA_DIR, 'sessions'), 'sessions')
 
         # Initialize the database
         logger.info("Checking if the database upgrades are required...")
@@ -552,6 +554,9 @@ def start():
 
         # Cancel processing exports
         exporter.cancel_exports()
+
+        # Clean up stale session locks
+        webstart.cleanup_session_locks()
 
         if CONFIG.SYSTEM_ANALYTICS:
             global TRACKER

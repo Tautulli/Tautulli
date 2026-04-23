@@ -21,6 +21,7 @@
 # Session tool to be loaded.
 
 from datetime import datetime, timedelta, timezone
+from hmac import compare_digest
 from urllib.parse import quote, unquote
 
 import cherrypy
@@ -31,6 +32,7 @@ import plexpy
 from plexpy import logger
 from plexpy.database import MonitorDatabase
 from plexpy.helpers import timestamp
+from plexpy.session import generate_csrf_token
 from plexpy.users import Users, refresh_users
 from plexpy.plextv import PlexTV
 
@@ -265,6 +267,15 @@ def check_rate_limit(ip_address):
         return max(last_timestamp - (timestamp() - plexpy.CONFIG.HTTP_RATE_LIMIT_LOCKOUT_TIME), 0)
 
 
+def check_csrf_token():
+    if not cherrypy.request.path_info.startswith('/api') and cherrypy.request.method in ('POST', 'PUT', 'DELETE'):
+        session_token = cherrypy.session.get('_csrf_token')
+        header_token = cherrypy.request.headers.get('X-CSRF-Token')
+        if not session_token or not header_token or not compare_digest(session_token, header_token):
+            logger.error("Tautulli WebAuth :: CSRF token validation failed for %s", cherrypy.request.path_info)
+            raise cherrypy.HTTPError(403)
+
+
 # Controller to provide login and logout actions
 
 class AuthController(object):
@@ -308,6 +319,7 @@ class AuthController(object):
 
     def get_loginform(self, redirect_uri=''):
         from plexpy.webserve import serve_template
+        cherrypy.session['_csrf_token'] = generate_csrf_token()
         return serve_template(template_name="login.html", title="Login", redirect_uri=unquote(redirect_uri))
 
     @cherrypy.expose
@@ -339,6 +351,7 @@ class AuthController(object):
             cherrypy.response.headers['Set-Cookie'] = jwt_cookie + '=""; max-age=0; path=/'
 
         cherrypy.request.login = None
+        cherrypy.lib.sessions.expire()
 
         if redirect_uri:
             redirect_uri = '?redirect_uri=' + redirect_uri
@@ -398,6 +411,7 @@ class AuthController(object):
             cherrypy.response.cookie[jwt_cookie]['httponly'] = True
             cherrypy.response.cookie[jwt_cookie]['samesite'] = 'lax'
 
+            cherrypy.session['_csrf_token'] = generate_csrf_token()
             cherrypy.request.login = payload
             cherrypy.response.status = 200
             return {'status': 'success', 'token': jwt_token, 'uuid': plexpy.CONFIG.PMS_UUID}

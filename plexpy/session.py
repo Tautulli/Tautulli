@@ -15,11 +15,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import secrets
+
 import cherrypy
 
 import plexpy
 from plexpy import common
 from plexpy import users
+
+
+def generate_csrf_token():
+    """
+    Generates a CSRF token for the current session
+    """
+    return secrets.token_urlsafe(32)
 
 
 def get_session_info():
@@ -35,6 +44,16 @@ def get_session_info():
         return cherrypy.request.login
 
     return _session
+
+
+def get_session_csrf_token():
+    """
+    Returns the CSRF token for the current logged in session
+    """
+    if '_csrf_token' not in cherrypy.session:
+        cherrypy.session['_csrf_token'] = generate_csrf_token()
+    return cherrypy.session['_csrf_token']
+
 
 def get_session_user():
     """

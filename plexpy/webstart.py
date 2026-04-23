@@ -18,6 +18,7 @@
 import os
 import ssl
 import sys
+from pathlib import Path
 
 import cheroot.errors
 import cherrypy
@@ -150,6 +151,8 @@ def initialize(options):
     else:
         plexpy.HTTP_ROOT = options['http_root'] = '/'
 
+    cherrypy.tools.csrf = cherrypy.Tool('before_handler', webauth.check_csrf_token, priority=3)
+
     logger.info("Tautulli WebStart :: Thread Pool Size: %d.", plexpy.CONFIG.HTTP_THREAD_POOL)
     cherrypy.config.update(options_dict)
 
@@ -162,23 +165,33 @@ def initialize(options):
             'tools.gzip.mime_types': ['text/html', 'text/plain', 'text/css',
                                       'text/javascript', 'application/json',
                                       'application/javascript'],
+            'tools.sessions.on': True,
+            'tools.sessions.name': f'tautulli_session_{plexpy.CONFIG.PMS_UUID}',
+            'tools.sessions.storage_class': cherrypy.lib.sessions.FileSession,
+            'tools.sessions.storage_path': plexpy.CONFIG.SESSIONS_DIR,
+            'tools.sessions.locking': 'early',
             'tools.auth.on': plexpy.AUTH_ENABLED,
             'tools.auth_basic.on': basic_auth_enabled,
             'tools.auth_basic.realm': 'Tautulli web server',
             'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
-                options['http_username']: options['http_password']})
+                options['http_username']: options['http_password']}),
+            'tools.csrf.on': True,
         },
         '/api': {
-            'tools.auth_basic.on': False
+            'tools.auth_basic.on': False,
+            'tools.sessions.on': False,
         },
         '/status': {
-            'tools.auth_basic.on': False
+            'tools.auth_basic.on': False,
+            'tools.sessions.on': False,
         },
         '/newsletter': {
-            'tools.auth_basic.on': False
+            'tools.auth_basic.on': False,
+            'tools.sessions.on': False,
         },
         '/image': {
-            'tools.auth_basic.on': False
+            'tools.auth_basic.on': False,
+            'tools.sessions.on': False,
         },
         '/interfaces': {
             'tools.staticdir.on': True,
@@ -189,7 +202,7 @@ def initialize(options):
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
-            'tools.auth.on': False
+            'tools.auth.on': False,
         },
         '/images': {
             'tools.staticdir.on': True,
@@ -201,7 +214,7 @@ def initialize(options):
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
-            'tools.auth.on': False
+            'tools.auth.on': False,
         },
         '/css': {
             'tools.staticdir.on': True,
@@ -212,7 +225,7 @@ def initialize(options):
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
-            'tools.auth.on': False
+            'tools.auth.on': False,
         },
         '/fonts': {
             'tools.staticdir.on': True,
@@ -223,7 +236,7 @@ def initialize(options):
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
-            'tools.auth.on': False
+            'tools.auth.on': False,
         },
         '/js': {
             'tools.staticdir.on': True,
@@ -234,7 +247,7 @@ def initialize(options):
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
-            'tools.auth.on': False
+            'tools.auth.on': False,
         },
         '/favicon.ico': {
             'tools.staticfile.on': True,
@@ -246,7 +259,7 @@ def initialize(options):
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
-            'tools.auth.on': False
+            'tools.auth.on': False,
         }
     }
 
@@ -300,3 +313,8 @@ def proxy():
 
     # Call original cherrypy proxy tool with the new local
     cherrypy.lib.cptools.proxy(local=local)
+
+
+def cleanup_session_locks():
+    for file in Path(plexpy.CONFIG.SESSIONS_DIR).glob('*.lock'):
+        file.unlink(missing_ok=True)
