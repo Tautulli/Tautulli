@@ -89,7 +89,7 @@
             <div class="collapse navbar-collapse navbar-right" id="navbar-collapse-1">
                 <ul class="nav navbar-nav">
                     <li>
-                        <form action="search" method="post" class="form" id="search_form">
+                        <form action="search" method="get" class="form" id="search_form">
                             <div class="input-group">
                                 <span class="input-textbox">
                                     <input type="text" class="form-control" name="query" id="query" aria-label="Search" placeholder="Search Plex library..."/>
@@ -470,7 +470,7 @@ ${next.modalIncludes()}
     $('#search_form').submit(function (e) {
         if ($('#query').val().trim() != '') {
             $.ajax({
-                type: 'post',
+                type: 'GET',
                 url: 'search',
                 data: { query: $('#query').val() }
             })

@@ -986,6 +986,7 @@
         showMsg('<i class="fa fa-refresh fa-spin"></i>&nbsp; Sending Newsletter', false);
         $.ajax({
             url: 'send_newsletter',
+            type: 'POST',
             data: {
                 newsletter_id: $('#newsletter_id').val(),
                 notify_action: 'test'

@@ -2536,7 +2536,7 @@ $(document).ready(function() {
 
     $('#api_key').click(function(){ $('#api_key').select() });
     $("#generate_api").click(function() {
-        $.get('generate_api_key',
+        $.post('generate_api_key',
             function (apikey) {
                 $('#api_key').val(apikey);
         });
@@ -3004,6 +3004,7 @@ $(document).ready(function() {
     $('.new-notification-agent').click(function () {
         $.ajax({
             url: 'add_notifier_config',
+            type: 'POST',
             data: { agent_id: $(this).data('id') },
             cache: false,
             async: true,
@@ -3026,6 +3027,7 @@ $(document).ready(function() {
     $('.new-newsletter-agent').click(function () {
         $.ajax({
             url: 'add_newsletter_config',
+            type: 'POST',
             data: { agent_id: $(this).data('id') },
             cache: false,
             async: true,
