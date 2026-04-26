@@ -272,12 +272,20 @@ def check_rate_limit(ip_address):
 
 
 def check_csrf_token():
-    if not cherrypy.request.path_info.startswith('/api') and cherrypy.request.method in ('POST', 'PUT', 'DELETE'):
-        session_token = cherrypy.session.get('_csrf_token')
-        header_token = cherrypy.request.headers.get('X-CSRF-Token')
-        if not session_token or not header_token or not compare_digest(session_token, header_token):
-            logger.error("Tautulli WebAuth :: CSRF token validation failed for %s", cherrypy.request.path_info)
-            raise cherrypy.HTTPError(403)
+    if cherrypy.request.path_info.startswith('/api'):
+        return
+
+    if apikey := cherrypy.request.headers.get('X-Api-Key') and compare_digest(apikey, plexpy.CONFIG.API_KEY):
+        return
+
+    if cherrypy.request.method not in ('POST', 'PUT', 'DELETE'):
+        return
+
+    session_token = cherrypy.session.get('_csrf_token')
+    header_token = cherrypy.request.headers.get('X-CSRF-Token')
+    if not session_token or not header_token or not compare_digest(session_token, header_token):
+        logger.error("Tautulli WebAuth :: CSRF token validation failed for %s", cherrypy.request.path_info)
+        raise cherrypy.HTTPError(403)
 
 
 # Controller to provide login and logout actions
@@ -363,12 +371,9 @@ class AuthController(object):
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "auth/login" + redirect_uri)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     def signin(self, username=None, password=None, token=None, remember_me='0', admin_login='0', *args, **kwargs):
-        if cherrypy.request.method != 'POST':
-            cherrypy.response.status = 405
-            return {'status': 'error', 'message': 'Sign in using POST.'}
-
         ip_address = cherrypy.request.remote.ip
         rate_limit = check_rate_limit(ip_address)
 
