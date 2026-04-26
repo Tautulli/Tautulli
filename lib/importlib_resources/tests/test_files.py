@@ -37,15 +37,7 @@ class FilesTests:
     def test_joinpath_with_multiple_args(self):
         files = resources.files(self.data)
         binfile = files.joinpath('subdirectory', 'binary.file')
-        self.assertTrue(binfile.is_file())
-
-    def test_old_parameter(self):
-        """
-        Files used to take a 'package' parameter. Make sure anyone
-        passing by name is still supported.
-        """
-        with suppress_known_deprecation():
-            resources.files(package=self.data)
+        assert binfile.is_file()
 
 
 class OpenDiskTests(FilesTests, util.DiskSetup, unittest.TestCase):
