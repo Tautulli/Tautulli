@@ -38,7 +38,7 @@ CL_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAA
 URI_SCHEME = "cloudinary"
 API_VERSION = "v1_1"
 
-VERSION = "1.44.1"
+VERSION = "1.44.2"
 
 _USER_PLATFORM_DETAILS = "; ".join((platform(), "Python {}".format(python_version())))
 
