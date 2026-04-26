@@ -38,6 +38,7 @@ from mako.lookup import TemplateLookup
 import mako.template
 import mako.exceptions
 
+import bleach
 import certifi
 import websocket
 
@@ -3164,10 +3165,13 @@ class WebInterface(object):
     @requireAuth()
     def log_js_errors(self, page, message, file, line, **kwargs):
         """ Logs javascript errors from the web interface. """
-        logger.error("WebUI :: /%s : %s. (%s:%s)" % (page.rpartition('/')[-1],
-                                                      message,
-                                                      file.rpartition('/')[-1].partition('?')[0],
-                                                      line))
+        logger.error(
+            "WebUI :: /%s : %s. (%s:%s)",
+            page.rpartition('/')[-1],
+            bleach.clean(message),
+            file.rpartition('/')[-1].partition('?')[0],
+            line
+        )
         return "js error logged."
 
     @cherrypy.expose
@@ -3182,7 +3186,7 @@ class WebInterface(object):
 
         try:
             with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r', encoding='utf-8') as f:
-                return '<pre>%s</pre>' % f.read()
+                return f'<pre>{bleach.clean(f.read())}</pre>'
         except IOError as e:
             return "Log file not found."
 
