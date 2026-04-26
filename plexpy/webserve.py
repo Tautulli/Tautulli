@@ -17,6 +17,7 @@
 
 import base64
 import csv
+from hmac import compare_digest
 from io import open, BytesIO
 import json
 import linecache
@@ -6837,7 +6838,7 @@ class WebInterface(object):
         elif plexpy.CONFIG.NEWSLETTER_AUTH == 1 and plexpy.CONFIG.NEWSLETTER_PASSWORD:
             if len(args) >= 2 and args[0] == 'image':
                 return self.newsletter_auth(*args, **kwargs)
-            elif kwargs.pop('key', None) == plexpy.CONFIG.NEWSLETTER_PASSWORD:
+            elif compare_digest(kwargs.pop('key', ''), plexpy.CONFIG.NEWSLETTER_PASSWORD):
                 return self.newsletter_auth(*args, **kwargs)
             else:
                 return serve_template(template_name="newsletter_auth.html",

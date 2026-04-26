@@ -179,19 +179,19 @@ def initialize(options):
         },
         '/api': {
             'tools.auth_basic.on': False,
-            'tools.sessions.on': False,
+            'tools.sessions.on': True,
         },
         '/status': {
             'tools.auth_basic.on': False,
-            'tools.sessions.on': False,
+            'tools.sessions.on': True,
         },
         '/newsletter': {
             'tools.auth_basic.on': False,
-            'tools.sessions.on': False,
+            'tools.sessions.on': True,
         },
         '/image': {
             'tools.auth_basic.on': False,
-            'tools.sessions.on': False,
+            'tools.sessions.on': True,
         },
         '/interfaces': {
             'tools.staticdir.on': True,
