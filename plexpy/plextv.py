@@ -830,13 +830,9 @@ class PlexTV(object):
             return False
 
         if subscription and helpers.get_xml_attr(subscription[0], 'active') == '1':
-            plexpy.CONFIG.__setattr__('PMS_PLEXPASS', 1)
-            plexpy.CONFIG.write()
             return True
         else:
             logger.debug("Tautulli PlexTV :: Plex Pass subscription not found.")
-            plexpy.CONFIG.__setattr__('PMS_PLEXPASS', 0)
-            plexpy.CONFIG.write()
             return False
 
     def get_devices_list(self):
