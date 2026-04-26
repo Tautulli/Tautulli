@@ -15,6 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import os
 import ssl
 import sys
@@ -176,6 +177,7 @@ def initialize(options):
             'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
                 options['http_username']: options['http_password']}),
             'tools.csrf.on': True,
+            'error_page.default': error_page
         },
         '/api': {
             'tools.auth_basic.on': False,
@@ -290,6 +292,11 @@ def initialize(options):
         sys.exit(1)
 
     cherrypy.server.wait()
+
+
+def error_page(status, message, traceback, version):
+    cherrypy.response.headers['Content-Type'] = 'application/json'
+    return json.dumps({"status": status, "message": message, "error": True}).encode('utf-8')
 
 
 def proxy():
