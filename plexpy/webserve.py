@@ -4825,7 +4825,8 @@ class WebInterface(object):
         img_hash = notification_handler.set_hash_image_info(
             img=img, rating_key=rating_key, width=width, height=height,
             opacity=opacity, background=background, blur=blur, fallback=fallback,
-            add_to_db=return_hash)
+            add_to_db=(return_hash and not img.startswith('http'))
+        )
 
         if return_hash:
             return {'img_hash': img_hash}
