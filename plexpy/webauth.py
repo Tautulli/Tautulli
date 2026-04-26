@@ -31,7 +31,7 @@ import jwt
 import plexpy
 from plexpy import logger
 from plexpy.database import MonitorDatabase
-from plexpy.helpers import timestamp
+from plexpy.helpers import hash_pms_uuid, timestamp
 from plexpy.session import generate_csrf_token
 from plexpy.users import Users, refresh_users
 from plexpy.plextv import PlexTV
@@ -136,8 +136,12 @@ def check_credentials(username=None, password=None, token=None, admin_login='0',
     return False, None, None
 
 
+def jwt_cookie_name():
+    return f"{JWT_COOKIE_NAME}{hash_pms_uuid()}"
+
+
 def get_jwt_token():
-    jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
+    jwt_cookie = jwt_cookie_name()
     jwt_token = cherrypy.request.cookie.get(jwt_cookie)
 
     if jwt_token:
@@ -341,7 +345,7 @@ class AuthController(object):
             self.on_logout(username=payload['user'],
                            user_group=payload['user_group'])
 
-        jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
+        jwt_cookie = jwt_cookie_name()
         cherrypy.response.cookie[jwt_cookie] = ''
         cherrypy.response.cookie[jwt_cookie]['max-age'] = 0
         cherrypy.response.cookie[jwt_cookie]['path'] = plexpy.HTTP_ROOT.rstrip('/') or '/'
@@ -404,7 +408,7 @@ class AuthController(object):
                           expiry=expiry,
                           jwt_token=jwt_token)
 
-            jwt_cookie = str(JWT_COOKIE_NAME + plexpy.CONFIG.PMS_UUID)
+            jwt_cookie = jwt_cookie_name()
             cherrypy.response.cookie[jwt_cookie] = jwt_token
             cherrypy.response.cookie[jwt_cookie]['max-age'] = int(time_delta.total_seconds())
             cherrypy.response.cookie[jwt_cookie]['path'] = plexpy.HTTP_ROOT.rstrip('/') or '/'
@@ -414,7 +418,7 @@ class AuthController(object):
             cherrypy.session['_csrf_token'] = generate_csrf_token()
             cherrypy.request.login = payload
             cherrypy.response.status = 200
-            return {'status': 'success', 'token': jwt_token, 'uuid': plexpy.CONFIG.PMS_UUID}
+            return {'status': 'success', 'token': jwt_token, 'uuid': hash_pms_uuid()}
 
         elif admin_login == '1' and username:
             self.on_login(username=username)

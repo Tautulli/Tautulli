@@ -24,6 +24,7 @@ from cloudinary.utils import cloudinary_url
 from collections import OrderedDict
 from datetime import date, datetime, timezone
 from functools import reduce, wraps
+import hashlib
 from itertools import groupby, islice, zip_longest
 from ipaddress import ip_address, ip_network, IPv4Address
 import ipwhois
@@ -1781,3 +1782,7 @@ def base64str(text):
     if isinstance(text, str):
         text = text.encode('utf-8')
     return base64.b64encode(text).decode('utf-8')
+
+
+def hash_pms_uuid():
+    return hashlib.sha256(plexpy.CONFIG.PMS_UUID.encode()).hexdigest()[:10]

@@ -27,7 +27,7 @@ import cherrypy_cors
 import plexpy
 from plexpy import logger
 from plexpy import webauth
-from plexpy.helpers import create_https_certificates
+from plexpy.helpers import create_https_certificates, hash_pms_uuid
 from plexpy.webserve import WebInterface, BaseRedirect
 
 
@@ -166,7 +166,7 @@ def initialize(options):
                                       'text/javascript', 'application/json',
                                       'application/javascript'],
             'tools.sessions.on': True,
-            'tools.sessions.name': f'tautulli_session_{plexpy.CONFIG.PMS_UUID}',
+            'tools.sessions.name': f'tautulli_session_{hash_pms_uuid()}',
             'tools.sessions.storage_class': cherrypy.lib.sessions.FileSession,
             'tools.sessions.storage_path': plexpy.CONFIG.SESSIONS_DIR,
             'tools.sessions.locking': 'early',
