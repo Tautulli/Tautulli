@@ -259,9 +259,7 @@ class Template:
             self.module_id = "memory:" + hex(id(self))
             self.uri = self.module_id
 
-        u_norm = self.uri
-        if u_norm.startswith("/"):
-            u_norm = u_norm[1:]
+        u_norm = self.uri.lstrip("/")
         u_norm = os.path.normpath(u_norm)
         if u_norm.startswith(".."):
             raise exceptions.TemplateLookupException(
