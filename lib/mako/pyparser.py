@@ -10,9 +10,8 @@ Parsing to AST is done via _ast on Python > 2.5, otherwise the compiler
 module is used.
 """
 
-import operator
-
 import _ast
+import operator
 
 from mako import _ast_util
 from mako import compat
