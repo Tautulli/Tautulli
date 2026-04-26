@@ -193,6 +193,7 @@
         showMsg('Refreshing users list...', true, false);
         $.ajax({
             url: 'refresh_users_list',
+            type: 'POST',
             cache: false,
             async: true,
             complete: function (xhr, status) {

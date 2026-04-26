@@ -157,7 +157,7 @@ $('.login_log_table').on('click', '> tbody > tr > td> .sign-out-tooltip', functi
     var row = login_log_table.row(tr);
     var rowData = row.data();
 
-    $.get('logout_user_session', {
+    $.post('logout_user_session', {
         row_ids: rowData['row_id'],
         current: rowData['current']
     }).then(function () {

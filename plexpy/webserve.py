@@ -17,6 +17,7 @@
 
 import base64
 import csv
+from hmac import compare_digest
 from io import open, BytesIO
 import json
 import linecache
@@ -72,7 +73,7 @@ from plexpy import web_socket
 from plexpy import webstart
 from plexpy.api2 import API2
 from plexpy.helpers import checked, addtoapi, get_ip, create_https_certificates, build_datatables_json, sanitize_out
-from plexpy.session import get_session_info, get_session_user_id, allow_session_user, allow_session_library
+from plexpy.session import get_session_info, get_session_csrf_token, get_session_user_id, allow_session_user, allow_session_library
 from plexpy.webauth import AuthController, requireAuth, member_of, check_auth, get_jwt_token
 if common.PLATFORM == 'Windows':
     from plexpy import windows
@@ -96,11 +97,12 @@ def serve_template(template_name, **kwargs):
     cache_param = '?' + (plexpy.CURRENT_VERSION or common.RELEASE)
 
     _session = get_session_info()
+    _csrf_token = get_session_csrf_token()
 
     try:
         template = TEMPLATE_LOOKUP.get_template(template_name)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
-                               _session=_session, **kwargs)
+                               _session=_session, _csrf_token=_csrf_token, **kwargs)
     except Exception as e:
         logger.exception("WebUI :: Mako template render error: %s" % e)
         return mako.exceptions.html_error_template().render()
@@ -189,6 +191,7 @@ class WebInterface(object):
             return serve_template(template_name="welcome.html", title="Welcome", config=config)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def save_pms_token(self, token=None, client_id=None, **kwargs):
@@ -315,6 +318,7 @@ class WebInterface(object):
             return serve_template(template_name="current_activity_instance.html", session=None)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -395,6 +399,7 @@ class WebInterface(object):
             return serve_template(template_name="recently_added.html", data=None)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -407,6 +412,7 @@ class WebInterface(object):
                 'message': 'Regrouping play history started. Check the logs to monitor any problems.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -421,6 +427,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Flush sessions failed.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -563,6 +570,7 @@ class WebInterface(object):
             return result
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def refresh_libraries_list(self, **kwargs):
@@ -614,6 +622,7 @@ class WebInterface(object):
                               data=result, server_id=plexpy.CONFIG.PMS_IDENTIFIER, status_message=status_message)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     @addtoapi()
     def edit_library(self, section_id=None, **kwargs):
@@ -1078,6 +1087,7 @@ class WebInterface(object):
             logger.warn("Library user stats requested but no section_id received.")
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -1107,6 +1117,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'No server id and section id or row ids received.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -1136,6 +1147,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'No server id and section id or row ids received.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -1165,6 +1177,7 @@ class WebInterface(object):
         return {'result': 'error', 'message': 'Unable to re-add library. Invalid section_id or section_name.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -1307,6 +1320,7 @@ class WebInterface(object):
         return user_list
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def refresh_users_list(self, **kwargs):
@@ -1352,6 +1366,7 @@ class WebInterface(object):
         return serve_template(template_name="edit_user.html", title="Edit User", data=result, status_message=status_message)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     @addtoapi()
     def edit_user(self, user_id=None, **kwargs):
@@ -1585,6 +1600,7 @@ class WebInterface(object):
         return history
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -1757,6 +1773,7 @@ class WebInterface(object):
             logger.warn("User watch time stats requested but no user_id received.")
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -1785,6 +1802,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'No user id or row ids received.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -1813,6 +1831,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'No user id or row ids received.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -2134,6 +2153,7 @@ class WebInterface(object):
                               data=ip_address, public=public, kwargs=kwargs)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("delete_history")
@@ -2756,6 +2776,7 @@ class WebInterface(object):
         return output
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("delete_synced_item")
@@ -3024,6 +3045,7 @@ class WebInterface(object):
         return newsletter_logs
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3049,6 +3071,7 @@ class WebInterface(object):
         return {'result': res, 'message': msg}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3074,6 +3097,7 @@ class WebInterface(object):
         return {'result': res, 'message': msg}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3099,6 +3123,7 @@ class WebInterface(object):
         return {'result': res, 'message': msg}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def delete_logs(self, logfile='', **kwargs):
@@ -3135,6 +3160,7 @@ class WebInterface(object):
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth()
     def log_js_errors(self, page, message, file, line, **kwargs):
         """ Logs javascript errors from the web interface. """
@@ -3187,6 +3213,7 @@ class WebInterface(object):
         return serve_template(template_name="settings.html", title="Settings", config=settings_dict)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def configUpdate(self, **kwargs):
@@ -3358,6 +3385,7 @@ class WebInterface(object):
         return plextv.get_server_resources(return_server=True, **kwargs)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def backup_config(self, **kwargs):
@@ -3402,6 +3430,7 @@ class WebInterface(object):
                 'pms_update_distro_build': plexpy.CONFIG.PMS_UPDATE_DISTRO_BUILD}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def backup_db(self, **kwargs):
@@ -3450,6 +3479,7 @@ class WebInterface(object):
         return serve_template(template_name="notifiers_table.html", notifiers_list=result)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3533,6 +3563,7 @@ class WebInterface(object):
         return serve_template(template_name="notifier_config.html", notifier=result, parameters=parameters)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3558,6 +3589,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to add notification agent.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3645,6 +3677,7 @@ class WebInterface(object):
         return parameters
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def send_notification(self, notifier_id=None, subject='Tautulli', body='Test notification', notify_action='', **kwargs):
@@ -3703,6 +3736,7 @@ class WebInterface(object):
             return None
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def facebook_auth(self, app_id='', app_secret='', redirect_uri='', **kwargs):
@@ -3747,6 +3781,7 @@ class WebInterface(object):
             return {'result': 'error', 'msg': 'Failed to request authorization.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     def osxnotifyregister(self, app, **kwargs):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
@@ -3762,6 +3797,7 @@ class WebInterface(object):
         return msg
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def zapier_test_hook(self, zapier_hook='', **kwargs):
@@ -3773,27 +3809,12 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def set_notification_config(self, **kwargs):
-
-        for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
-            # the use prefix is fairly nice in the html, but does not match the actual config
-            kwargs[plain_config] = kwargs[use_config]
-            del kwargs[use_config]
-
-        plexpy.CONFIG.process_kwargs(kwargs)
-
-        # Write the config
-        plexpy.CONFIG.write()
-
-        cherrypy.response.status = 200
-
-    @cherrypy.expose
-    @requireAuth(member_of("admin"))
     def get_mobile_devices_table(self, **kwargs):
         result = mobile_app.get_mobile_devices()
         return serve_template(template_name="mobile_devices_table.html", devices_list=result)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def verify_mobile_device(self, device_token='', cancel=False, **kwargs):
@@ -3808,7 +3829,6 @@ class WebInterface(object):
         else:
             return {'result': 'error', 'message': 'Device not registered.'}
 
-
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_mobile_device_config_modal(self, mobile_device_id=None, **kwargs):
@@ -3817,6 +3837,7 @@ class WebInterface(object):
         return serve_template(template_name="mobile_device_config.html", device=result)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3842,6 +3863,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to save mobile device.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3869,6 +3891,7 @@ class WebInterface(object):
 
     @cherrypy.config(**{'response.timeout': 3600})
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -3971,6 +3994,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'App not recognized for import'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -4206,6 +4230,7 @@ class WebInterface(object):
             return result
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def generate_api_key(self, device=None, **kwargs):
@@ -4669,6 +4694,7 @@ class WebInterface(object):
             return metadata
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi('notify_recently_added')
@@ -5009,6 +5035,7 @@ class WebInterface(object):
             return "Plex log file '%s' not found." % log_file
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -5017,6 +5044,7 @@ class WebInterface(object):
         return self.delete_cache(images=True)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -5048,6 +5076,7 @@ class WebInterface(object):
         return {'result': result, 'message': msg}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -5082,6 +5111,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to delete hosted images.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -5202,6 +5232,7 @@ class WebInterface(object):
             return serve_template(template_name="update_metadata.html", query=query, update=update, title="Info")
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -6627,6 +6658,7 @@ class WebInterface(object):
         return serve_template(template_name="newsletters_table.html", newsletters_list=result)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -6702,6 +6734,7 @@ class WebInterface(object):
         return serve_template(template_name="newsletter_config.html", newsletter=result)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -6727,6 +6760,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to add newsletter.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -6755,6 +6789,7 @@ class WebInterface(object):
             return {'result': 'error', 'message': 'Failed to save newsletter.'}
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def send_newsletter(self, newsletter_id=None, subject='', body='', message='', notify_action='', **kwargs):
@@ -6804,7 +6839,7 @@ class WebInterface(object):
         elif plexpy.CONFIG.NEWSLETTER_AUTH == 1 and plexpy.CONFIG.NEWSLETTER_PASSWORD:
             if len(args) >= 2 and args[0] == 'image':
                 return self.newsletter_auth(*args, **kwargs)
-            elif kwargs.pop('key', None) == plexpy.CONFIG.NEWSLETTER_PASSWORD:
+            elif compare_digest(kwargs.pop('key', ''), plexpy.CONFIG.NEWSLETTER_PASSWORD):
                 return self.newsletter_auth(*args, **kwargs)
             else:
                 return serve_template(template_name="newsletter_auth.html",
@@ -7085,6 +7120,7 @@ class WebInterface(object):
         return custom_fields
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -7255,6 +7291,7 @@ class WebInterface(object):
             return json.dumps({'result': 'error', 'message': msg}).encode('utf-8')
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()

@@ -108,7 +108,7 @@ DOCUMENTATION :: END
         getPlexPyURL().then(function (url) {
             checkQRAddress(url);
 
-            $.get('generate_api_key', { device: true }).then(function (token) {
+            $.post('generate_api_key', { device: true }).then(function (token) {
                 $('#api_qr_address').val(url);
                 $('#api_qr_token').val(token);
                 generateQRCode(url);
@@ -117,7 +117,7 @@ DOCUMENTATION :: END
                     setTimeout(function () {
                         $.ajax({
                             url: 'verify_mobile_device',
-                            type: 'GET',
+                            type: 'POST',
                             data: {
                                 device_token: token
                             },
@@ -153,7 +153,7 @@ DOCUMENTATION :: END
         if (!(verifiedDevice)) {
             $.ajax({
                 url: 'verify_mobile_device',
-                type: 'GET',
+                type: 'POST',
                 data: {
                     device_token: $('#api_qr_token').val(),
                     cancel: true

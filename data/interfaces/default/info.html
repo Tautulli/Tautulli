@@ -1152,6 +1152,7 @@ DOCUMENTATION :: END
         $('#send-recently-added-modal').one('click', '#confirm-send-notification', function () {
             $.ajax({
                 url: 'send_manual_on_created',
+                type: 'POST',
                 data: {
                     rating_key: rating_key,
                     notifier_id: $('#send-notification-notifier option:selected').val()

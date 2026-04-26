@@ -551,6 +551,7 @@
         var facebook_token;
         $.ajax({
             url: 'facebook_auth',
+            type: 'POST',
             data: {
                 app_id: $('#facebook_app_id').val(),
                 app_secret: $('#facebook_app_secret').val(),
@@ -610,7 +611,7 @@
     % elif notifier['agent_name'] == 'osx':
     $('#osx_notify_register').click(function () {
         var osx_notify_app = $('#osx_notify_app').val();
-        $.get('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
+        $.post('osxnotifyregister', { 'app': osx_notify_app }, function (data) { showMsg('<i class="fa fa-check"></i> ' + data, false, true, 3000); });
     });
 
     % elif notifier['agent_name'] == 'email':
@@ -698,7 +699,7 @@
 
     % elif notifier['agent_name'] == 'zapier':
     $('#zapier_test_hook').click(function () {
-        $.get('zapier_test_hook', { 'zapier_hook': $('#zapier_hook').val() }, function (data) {
+        $.post('zapier_test_hook', { 'zapier_hook': $('#zapier_hook').val() }, function (data) {
             if (data.result === 'success') {
                 showMsg('<i class="fa fa-check"></i> ' + data.msg, false, true, 5000);
             } else {
@@ -873,6 +874,7 @@
         if ('${notifier["agent_name"]}' !== 'browser') {
             $.ajax({
                 url: 'send_notification',
+                type: 'POST',
                 data: {
                     notifier_id: $('#notifier_id').val(),
                     subject: $('#test_subject').val(),

@@ -186,6 +186,7 @@
         showMsg('Refreshing libraries list...', true, false);
         $.ajax({
             url: 'refresh_libraries_list',
+            type: 'POST',
             cache: false,
             async: true,
             complete: function (xhr, status) {
