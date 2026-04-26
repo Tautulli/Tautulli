@@ -2645,6 +2645,13 @@ def dbcheck():
             "ALTER TABLE exports ADD COLUMN theme_level INTEGER DEFAULT 0"
         )
 
+    # Upgrade image_hash_lookup table from earlier versions
+    try:
+        c_db.execute("DELETE FROM image_hash_lookup "
+                     "WHERE img LIKE 'http%'")
+    except sqlite3.OperationalError:
+        pass
+
     # Fix unique constraints
     try:
         c_db.execute("DELETE FROM tvmaze_lookup "
