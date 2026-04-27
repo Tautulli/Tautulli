@@ -201,8 +201,6 @@ def initialize(options):
                                       'application/javascript'],
             'tools.sessions.on': True,
             'tools.sessions.name': f'tautulli_session_{hash_pms_uuid()}',
-            'tools.sessions.storage_class': cherrypy.lib.sessions.FileSession,
-            'tools.sessions.storage_path': plexpy.CONFIG.SESSIONS_DIR,
             'tools.sessions.locking': 'early',
             'tools.auth.on': plexpy.AUTH_ENABLED,
             'tools.auth_basic.on': basic_auth_enabled,
@@ -344,8 +342,3 @@ def proxy():
 
     # Call original cherrypy proxy tool with the new local
     cherrypy.lib.cptools.proxy(local=local)
-
-
-def cleanup_session_locks():
-    for file in Path(plexpy.CONFIG.SESSIONS_DIR).glob('*.lock'):
-        file.unlink(missing_ok=True)
