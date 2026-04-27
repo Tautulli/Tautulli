@@ -32,6 +32,37 @@ from plexpy.helpers import create_https_certificates, hash_pms_uuid
 from plexpy.webserve import WebInterface, BaseRedirect
 
 
+def _patch_cheroot_makefile():
+    """Patch cheroot makefile to handle socket errors during cleanup.
+
+    When pages are refreshed quickly, sockets can become invalid before
+    the buffer finishes flushing, causing OSError exceptions during cleanup.
+    This patch catches those errors to prevent "Exception ignored in __del__" warnings.
+    """
+    try:
+        import _pyio as io
+        from cheroot import makefile
+
+        def _flush_unlocked_patched(self):
+            """Patched version that handles OSError during socket writes."""
+            self._checkClosed('flush of closed file')
+            while self._write_buf:
+                try:
+                    n = self.raw.write(bytes(self._write_buf))
+                except io.BlockingIOError as e:
+                    n = e.characters_written
+                except OSError:
+                    # Socket is no longer valid (e.g., on rapid page refresh)
+                    # Clear the buffer and exit to avoid exception during cleanup
+                    self._write_buf.clear()
+                    break
+                del self._write_buf[:n]
+
+        makefile.BufferedWriter._flush_unlocked = _flush_unlocked_patched
+    except Exception:
+        pass
+
+
 def start():
     logger.info("Tautulli WebStart :: Initializing Tautulli web server...")
     web_config = {
@@ -66,6 +97,9 @@ def restart():
 
 def initialize(options):
     cherrypy_cors.install()
+
+    # Monkey-patch cheroot makefile to handle socket errors during cleanup
+    _patch_cheroot_makefile()
 
     # HTTPS stuff stolen from sickbeard
     enable_https = options['enable_https']
@@ -159,7 +193,6 @@ def initialize(options):
 
     conf = {
         '/': {
-            'engine.timeout_monitor.on': False,
             'tools.staticdir.root': os.path.join(plexpy.PROG_DIR, 'data'),
             'tools.proxy.on': bool(options['http_proxy']),
             'tools.gzip.on': True,
@@ -279,7 +312,6 @@ def initialize(options):
     try:
         logger.info("Tautulli WebStart :: Starting Tautulli web server on %s://%s:%d%s", protocol,
                     options['http_host'], options['http_port'], options['http_root'])
-        #cherrypy.process.servers.check_port(str(options['http_host']), options['http_port'])
         if not plexpy.DEV:
             cherrypy.server.start()
         else:
@@ -300,13 +332,6 @@ def error_page(status, message, traceback, version):
 
 
 def proxy():
-    # logger.debug("REQUEST URI: %s, HEADER [X-Forwarded-Host]: %s, [X-Host]: %s, [Origin]: %s, [Host]: %s",
-    #              cherrypy.request.wsgi_environ['REQUEST_URI'],
-    #              cherrypy.request.headers.get('X-Forwarded-Host'),
-    #              cherrypy.request.headers.get('X-Host'),
-    #              cherrypy.request.headers.get('Origin'),
-    #              cherrypy.request.headers.get('Host'))
-
     # Change cherrpy.tools.proxy.local header if X-Forwarded-Host header is not present
     local = 'X-Forwarded-Host'
     if not cherrypy.request.headers.get('X-Forwarded-Host'):
@@ -316,7 +341,6 @@ def proxy():
             local = 'Origin'
         elif cherrypy.request.headers.get('Host'):  # nginx
             local = 'Host'
-        # logger.debug("cherrypy.tools.proxy.local set to [%s]", local)
 
     # Call original cherrypy proxy tool with the new local
     cherrypy.lib.cptools.proxy(local=local)
