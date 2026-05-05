@@ -1,5 +1,34 @@
 # Changelog
 
+## v2.17.1 (2026-05-04)
+
+* Notifications:
+  * Fix: Tautulli Remote App notifications failing to send. (#2669)
+  * New: Added extra type and preroll to notification parameters.
+  * New: Added Simkl URL to notification parameters.
+* Newsletters:
+  * Fix: Remote code execution via newsletter custom template directory. (CVE-2026-41065) (Thanks @remindsec)
+* Exporter:
+  * Fix: Export failed when logo / square art keys were included. (#2685)
+* UI:
+  * Fix: Error when browsing for folder paths. (#2673)
+  * New: Added AV1 media flag image. (#2676) (Thanks @little0831)
+  * New: Added opus media flag image.
+* Other:
+  * Fix: Clean empty directories after updating using git. (#2667)
+  * Fix: Tautulli failing to reconnect to Plex Media Server until restarted after a connection loss at startup. (#2640)
+  * Fix: Path treversal in cache deletion API. (CVE-2026-40605) (Thanks @JakePeralta7)
+  * Fix: Websocket not exiting and reconnecting cleanly after changing Plex servers.
+  * Fix: Sanitize JS log errors to prevent XSS. (CVE-2026-43984) (Thanks @larlarua)
+  * Fix: Do not store image hash for external images. (CVE-2026-43986) (Thanks @larlarua)
+  * New: Update Windows and MacOS packages to Python 3.13.
+  * New: Update Snap package to core24.
+  * New: Using mounted folders for custom newsletter templates and scripts requires manually enabling allow_mounted_folders = 1 in the config file.
+  * New: Added anti-CSRF tokens and enforce POST methods to state change endpoints. (CVE-2026-43985) (Thanks @larlarua)
+  * New: Hash Tautulli cookie name. All existing login sessions will be invalidated after the update.
+  * New: Require X-Api-Key header for login through the /auth/signin endpoint.
+
+
 ## v2.17.0 (2026-03-27)
 
 * Important Note!
@@ -24,8 +53,8 @@
   * Fix: Validate log path for Plex log files. (#2632)
   * Fix: Add authentication to /pms_image_proxy endpoint. (CVE-2026-31804) (Thanks @mandreko)
   * New: Updated third party donation logos. (#2646) (Thanks @aisgbnok)
-  * New: Update Bootstrap CSS to v3.4.1 and decouple overrides (#2662) (Thanks @aisgbnok)
-  * New: Update Bootstrap-select to v1.13.18 (#2666) (Thanks @aisgbnok)
+  * New: Update Bootstrap CSS to v3.4.1 and decouple overrides. (#2662) (Thanks @aisgbnok)
+  * New: Update Bootstrap-select to v1.13.18. (#2666) (Thanks @aisgbnok)
 
 
 ## v2.16.1 (2026-12-15)
