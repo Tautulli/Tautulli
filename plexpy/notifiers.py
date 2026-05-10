@@ -1717,7 +1717,7 @@ class GOTIFY(Notifier):
                     'contentType': 'text/markdown'
                 }
             },
-            'message': body.replace('\n', '\n\n'),
+            'message': body.replace('\n', '  \n'),
             'priority': self.config['priority']
         }
 
