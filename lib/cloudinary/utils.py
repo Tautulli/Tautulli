@@ -121,6 +121,7 @@ __SIMPLE_UPLOAD_PARAMS = [
     "async",
     "cinemagraph_analysis",
     "accessibility_analysis",
+    "auto_chaptering",
 ]
 
 __SERIALIZED_UPLOAD_PARAMS = [
@@ -138,6 +139,7 @@ __SERIALIZED_UPLOAD_PARAMS = [
     "responsive_breakpoints",
     "access_control",
     "metadata",
+    "auto_transcription",
 ]
 
 upload_params = __SIMPLE_UPLOAD_PARAMS + __SERIALIZED_UPLOAD_PARAMS
@@ -1173,7 +1175,8 @@ def build_upload_params(**options):
         "auto_tagging": options.get("auto_tagging") and str(options.get("auto_tagging")),
         "responsive_breakpoints": generate_responsive_breakpoints_string(options.get("responsive_breakpoints")),
         "access_control": options.get("access_control") and json_encode(
-            build_list_of_dicts(options.get("access_control")))
+            build_list_of_dicts(options.get("access_control"))),
+        "auto_transcription": json_encode(options.get("auto_transcription")),
     }
 
     # make sure that we are in-sync with __SERIALIZED_UPLOAD_PARAMS which are in use by other methods

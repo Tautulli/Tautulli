@@ -314,12 +314,20 @@ def blacklist_logger():
 
 
 def serve_template(template_name, **kwargs):
-    if plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR:
-        logger.info("Tautulli Newsletters :: Using custom newsletter template directory.")
-        template_dir = plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
+    interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
+    default_dir = os.path.join(str(interface_dir), plexpy.CONFIG.NEWSLETTER_TEMPLATES)
+    custom_dir = plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
+
+    if custom_dir:
+        if helpers.allow_mount(custom_dir):
+            logger.info("Tautulli Newsletters :: Using custom newsletter template directory.")
+            template_dir = custom_dir
+        else:
+            logger.warn("Tautulli Newsletters :: Custom newsletter template directory is on a mounted path "
+                        "which is not allowed. Using default templates instead.")
+            template_dir = default_dir
     else:
-        interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
-        template_dir = os.path.join(str(interface_dir), plexpy.CONFIG.NEWSLETTER_TEMPLATES)
+        template_dir = default_dir
 
         if not plexpy.CONFIG.NEWSLETTER_INLINE_STYLES:
             template_name = template_name.replace('.html', '.internal.html')

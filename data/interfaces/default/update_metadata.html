@@ -230,6 +230,7 @@ DOCUMENTATION :: END
 
             $.ajax({
                 url: 'update_metadata_details',
+                type: 'POST',
                 data: {
                     old_rating_key: '${query["rating_key"]}',
                     new_rating_key: new_rating_key,

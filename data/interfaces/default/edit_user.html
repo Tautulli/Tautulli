@@ -107,6 +107,7 @@ DOCUMENTATION :: END
 
         $.ajax({
             url: 'edit_user',
+            type: 'POST',
             data: {
                 user_id: '${data["user_id"]}',
                 friendly_name: friendly_name,

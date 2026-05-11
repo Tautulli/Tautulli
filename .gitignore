@@ -28,6 +28,7 @@ backups/*
 cache/*
 exports/*
 newsletters/*
+sessions/*
 *.mmdb
 version.txt
 branch.txt

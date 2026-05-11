@@ -41,6 +41,7 @@ FILENAME = "config.ini"
 
 _CONFIG_DEFINITIONS = {
     'ALLOW_GUEST_ACCESS': (int, 'General', 0),
+    'ALLOW_MOUNTED_FOLDERS': (int, 'Advanced', 0),
     'DATE_FORMAT': (str, 'General', 'YYYY-MM-DD'),
     'PMS_CLIENT_ID': (str, 'PMS', ''),
     'PMS_IDENTIFIER': (str, 'PMS', ''),
@@ -131,7 +132,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_PROXY': (int, 'General', 0),
     'HTTP_ROOT': (str, 'General', ''),
     'HTTP_USERNAME': (str, 'General', ''),
-    'HTTP_PLEX_ADMIN': (int, 'General', 0),
+    'HTTP_PLEX_ADMIN': (int, 'General', 1),
     'HTTP_BASE_URL': (str, 'General', ''),
     'HTTP_RATE_LIMIT_ATTEMPTS': (int, 'General', 10),
     'HTTP_RATE_LIMIT_ATTEMPTS_INTERVAL': (int, 'General', 300),

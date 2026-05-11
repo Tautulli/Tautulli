@@ -14,8 +14,8 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 from datetime import datetime, timezone, timedelta
-import os
 import time
+from pathlib import Path
 
 from apscheduler.triggers.date import DateTrigger
 
@@ -731,8 +731,5 @@ def on_created(rating_key, **kwargs):
 
 
 def delete_metadata_cache(session_key):
-    try:
-        os.remove(os.path.join(plexpy.CONFIG.CACHE_DIR, 'session_metadata', 'metadata-sessionKey-%s.json' % session_key))
-    except OSError as e:
-        logger.error("Tautulli ActivityHandler :: Failed to remove metadata cache file (sessionKey %s): %s"
-                     % (session_key, e))
+    file = Path(plexpy.CONFIG.CACHE_DIR) / 'session_metadata' / f'metadata-sessionKey-{session_key}.json'
+    file.unlink(missing_ok=True)

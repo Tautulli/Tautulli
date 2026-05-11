@@ -581,6 +581,9 @@ def startup_refresh():
     # Connect server after server resource is refreshed
     if CONFIG.FIRST_RUN_COMPLETE:
         activity_pinger.connect_server(log=True, startup=True)
+    else:
+        logger.info("Setup wizard not completed. Skipping Plex server connection.")
+
 
     # Refresh the users list on startup
     if CONFIG.PMS_TOKEN and CONFIG.REFRESH_USERS_ON_STARTUP:
@@ -2650,6 +2653,13 @@ def dbcheck():
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN theme_level INTEGER DEFAULT 0"
         )
+
+    # Upgrade image_hash_lookup table from earlier versions
+    try:
+        c_db.execute("DELETE FROM image_hash_lookup "
+                     "WHERE img LIKE 'http%'")
+    except sqlite3.OperationalError:
+        pass
 
     # Fix unique constraints
     try:

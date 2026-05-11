@@ -241,7 +241,7 @@ class TemplateLookup(TemplateCollection):
             else:
                 return self._collection[uri]
         except KeyError as e:
-            u = re.sub(r"^\/+", "", uri)
+            u = re.sub(r"^\/+", "", uri.replace("\\", "/"))
             for dir_ in self.directories:
                 # make sure the path seperators are posix - os.altsep is empty
                 # on POSIX and cannot be used.

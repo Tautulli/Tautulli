@@ -1717,7 +1717,7 @@ class GOTIFY(Notifier):
                     'contentType': 'text/markdown'
                 }
             },
-            'message': body,
+            'message': body.replace('\n', '  \n'),
             'priority': self.config['priority']
         }
 
@@ -3600,7 +3600,7 @@ class SCRIPTS(Notifier):
         scriptdir = self.config['script_folder']
         scripts = {'': ''}
 
-        if scriptdir and not os.path.exists(scriptdir):
+        if scriptdir and (not helpers.allow_mount(scriptdir) or not os.path.exists(scriptdir)):
             return scripts
 
         for root, dirs, files in os.walk(scriptdir):
@@ -3692,6 +3692,10 @@ class SCRIPTS(Notifier):
         if not self.config['script_folder']:
             logger.error("Tautulli Notifiers :: No script folder specified.")
             return
+        
+        if not helpers.allow_mount(self.config['script_folder']):
+            logger.warn("Tautulli Notifiers :: Script folder is on a mounted path which is not allowed.")
+            return
 
         script = kwargs.get('script', self.config.get('script', ''))
         script_args = helpers.split_args(kwargs.get('script_args', subject))
@@ -3753,7 +3757,9 @@ class SCRIPTS(Notifier):
                          {'label': 'Script Folder',
                           'value': self.config['script_folder'],
                           'name': 'scripts_script_folder',
-                          'description': 'Enter the full path to your script folder.',
+                          'description': 'Enter the full path to your script folder.<br>'
+                              'Note: <span class="inline-pre">allow_mounted_folders = 1</span> must be manually enabled in the configuration file to allow mounted folder paths. '
+                              'Enabling this setting could pose a security risk. Enable at your own risk. It is recommended to leave this feature disabled if it is not being used.',
                           'input_type': 'text',
                           'refresh': True
                           },
