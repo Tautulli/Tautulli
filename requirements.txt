@@ -27,7 +27,7 @@ python-twitter==3.5
 requests==2.33.1
 rumps==0.4.0; platform_system == "Darwin"
 tzlocal==5.3.1
-urllib3==2.6.3
+urllib3==2.7.0
 websocket-client==1.9.0
 xmltodict==1.0.4
 
