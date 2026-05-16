@@ -7,82 +7,93 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2021-06-04 21:44-0700\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"POT-Creation-Date: 2021-06-05 00:01-0700\n"
+"PO-Revision-Date: 2021-06-08 15:32+0000\n"
+"Last-Translator: J. Lavoie <j.lavoie@net-c.ca>\n"
+"Language-Team: Italian <https://hosted.weblate.org/projects/tautulli/"
+"tautulli/it/>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 4.7-dev\n"
 "Generated-By: Babel 2.9.0\n"
 
-#: ../../data/interfaces/default/base.html:107
-#: ../../data/interfaces/default/base.html:109
-msgid "base.nav.libraries"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:112
-#: ../../data/interfaces/default/base.html:114
-msgid "base.nav.users"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:117
-#: ../../data/interfaces/default/base.html:119
-msgid "base.nav.history"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:122
-#: ../../data/interfaces/default/base.html:124
-msgid "base.nav.graphs"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:127
-#: ../../data/interfaces/default/base.html:129
-msgid "base.nav.synced_items"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:140
-msgid "base.nav.settings"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:142
-msgid "base.nav.view_logs"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:144
-msgid "base.nav.support"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:146
-msgid "base.nav.donate"
-msgstr ""
-
-#: ../../data/interfaces/default/base.html:149
 msgid "base.nav.check_for_updates"
-msgstr ""
+msgstr "Controlla gli aggiornamenti"
 
-#: ../../data/interfaces/default/base.html:151
+msgid "base.nav.donate"
+msgstr "Dona"
+
+msgid "base.nav.graphs"
+msgstr "Grafici"
+
+msgid "base.nav.history"
+msgstr "Cronologia"
+
+msgid "base.nav.libraries"
+msgstr "Raccolte"
+
 msgid "base.nav.restart"
-msgstr ""
+msgstr "Riavvia"
 
-#: ../../data/interfaces/default/base.html:152
+msgid "base.nav.settings"
+msgstr "Impostazioni"
+
 msgid "base.nav.shutdown"
-msgstr ""
+msgstr "Spegni"
 
-#: ../../data/interfaces/default/base.html:154
-#: ../../data/interfaces/default/base.html:183
-msgid "base.nav.admin_login"
-msgstr ""
+msgid "base.nav.support"
+msgstr "Supporto"
 
-#: ../../data/interfaces/default/base.html:158
-msgid "base.nav.sign_out"
-msgstr ""
+msgid "base.nav.synced_items"
+msgstr "Elementi sincronizzati"
 
-#: ../../data/interfaces/default/base.html:202
+msgid "base.nav.users"
+msgstr "Utenti"
+
+msgid "base.nav.view_logs"
+msgstr "Visualizza i registri"
+
+msgid "global.cancel"
+msgstr "Annulla"
+
+msgid "global.confirm"
+msgstr "Conferma"
+
+msgid "login.admin_login"
+msgstr "Accesso amministratore"
+
+msgid "login.error_plex_communication"
+msgstr "Errore di comunicazione con Plex.tv."
+
+msgid "login.error_plex_invalid"
+msgstr "Accesso a Plex non valido."
+
+msgid "login.error_retry"
+msgstr "`Troppi tentativi di accesso. Riprova tra ${retry} minuto/i.`"
+
+msgid "login.error_tautulli_invalid"
+msgstr "Nome utente o password errati."
+
+msgid "login.password"
+msgstr "Password"
+
 msgid "login.remember_me"
-msgstr ""
+msgstr "Memorizza le credenziali"
 
-#: ../../data/interfaces/default/base.html:210
 msgid "login.sign_in"
-msgstr ""
+msgstr "Accedi"
+
+msgid "login.sign_in_plex"
+msgstr "Accedi con Plex"
+
+msgid "login.sign_in_tautulli"
+msgstr "Accedi con Tautulli"
+
+msgid "login.sign_out"
+msgstr "Esci"
+
+msgid "login.username"
+msgstr "Nome utente"
