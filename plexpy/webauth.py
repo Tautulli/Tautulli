@@ -275,7 +275,7 @@ def check_csrf_token():
     if cherrypy.request.path_info.startswith('/api'):
         return
 
-    if apikey := cherrypy.request.headers.get('X-Api-Key') and compare_digest(apikey, plexpy.CONFIG.API_KEY):
+    if (apikey := cherrypy.request.headers.get('X-Api-Key')) and compare_digest(apikey, plexpy.CONFIG.API_KEY):
         return
 
     if cherrypy.request.method not in ('POST', 'PUT', 'DELETE'):
