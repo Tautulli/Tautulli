@@ -705,10 +705,10 @@
     });
 
     if (${newsletter['config']['custom_cron']}) {
-        $('#cron_value').val('${newsletter['cron'] | n}');
+        $('#cron_value').val(${json.dumps(newsletter['cron']) | n});
     } else {
         try {
-            cron_widget.cron('value', '${newsletter['cron']}');
+            cron_widget.cron('value', ${json.dumps(newsletter['cron']) | n});
         } catch (e) {}
     }
 
