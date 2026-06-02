@@ -295,6 +295,8 @@
 
     var create_instances = [];
     var activity_ready = true;
+    var activity_refresh_timer;
+    var activity_progress_timer;
 
     $('#currentActivityHeader-bandwidth-tooltip').tooltip({ container: 'body', placement: 'right', delay: 50 });
 
@@ -657,14 +659,17 @@
     }
 
     function activityConnected() {
+        clearInterval(activity_refresh_timer);
+        clearInterval(activity_progress_timer);
+
         getCurrentActivity();
-        setInterval(function () {
+        activity_refresh_timer = setInterval(function () {
             if (!(create_instances.length) && activity_ready) {
                 getCurrentActivity();
             }
         }, ${config['home_refresh_interval'] * 1000});
 
-        setInterval(function(){
+        activity_progress_timer = setInterval(function(){
             $('.progress_time_offset').each(function () {
                 if ($(this).data('state') === 'playing' && $(this).data('view_offset') >= 0) {
                     var view_offset = parseInt($(this).data('view_offset'));
