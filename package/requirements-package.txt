@@ -4,7 +4,7 @@ importlib-resources==7.1.0
 pyinstaller==6.19.0
 pyopenssl==26.0.0
 
-pyobjc-core==12.1; platform_system == "Darwin"
+pyobjc-core==12.2; platform_system == "Darwin"
 pyobjc-framework-Cocoa==12.1; platform_system == "Darwin"
 
 pywin32==311; platform_system == "Windows"
