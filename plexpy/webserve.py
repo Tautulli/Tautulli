@@ -3937,9 +3937,10 @@ class WebInterface(object):
             database_path = shutil.copyfile(database_path, database_cache_path)
 
         elif database_file:
-            database_path = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file.filename + '.import.db')
+            database_file_name = os.path.basename(database_file.filename)
+            database_path = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file_name + '.import.db')
             logger.info("Received database file '%s' for import. Saving to cache: %s",
-                        database_file.filename, database_path)
+                        database_file_name, database_path)
             with open(database_path, 'wb') as f:
                 while True:
                     data = database_file.file.read(8192)
@@ -4029,9 +4030,10 @@ class WebInterface(object):
                     'message': 'Database import is in progress. Please wait until it is finished to import a config.'}
 
         if config_file:
-            config_path = os.path.join(plexpy.CONFIG.CACHE_DIR, config_file.filename + '.import.ini')
+            config_file_name = os.path.basename(config_file.filename)
+            config_path = os.path.join(plexpy.CONFIG.CACHE_DIR, config_file_name + '.import.ini')
             logger.info("Received config file '%s' for import. Saving to cache '%s'.",
-                        config_file.filename, config_path)
+                        config_file_name, config_path)
             with open(config_path, 'wb') as f:
                 while True:
                     data = config_file.file.read(8192)
