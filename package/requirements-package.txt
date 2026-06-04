@@ -7,4 +7,4 @@ pyopenssl==26.0.0
 pyobjc-core==12.1; platform_system == "Darwin"
 pyobjc-framework-Cocoa==12.1; platform_system == "Darwin"
 
-pywin32==311; platform_system == "Windows"
+pywin32==312; platform_system == "Windows"
