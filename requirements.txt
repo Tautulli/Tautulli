@@ -1,7 +1,7 @@
 apscheduler==3.11.2
 arrow==1.4.0
 beautifulsoup4==4.14.3
-bleach==6.3.0
+bleach==6.4.0
 certifi==2026.4.22
 cheroot==11.1.2
 cherrypy==18.10.0
