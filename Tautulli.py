@@ -284,8 +284,9 @@ def main():
 
     # Open webbrowser
     if plexpy.CONFIG.LAUNCH_BROWSER and not args.nolaunch and not plexpy.DEV:
-        plexpy.launch_browser(plexpy.CONFIG.HTTP_HOST, plexpy.HTTP_PORT,
-                              plexpy.HTTP_ROOT)
+        # Fallback to localhost if host is empty string
+        host = plexpy.CONFIG.HTTP_HOST if plexpy.CONFIG.HTTP_HOST else 'localhost'
+        plexpy.launch_browser(host, plexpy.HTTP_PORT, plexpy.HTTP_ROOT)
 
     if common.PLATFORM == 'Darwin' and plexpy.CONFIG.SYS_TRAY_ICON:
         if not macos.HAS_PYOBJC:
