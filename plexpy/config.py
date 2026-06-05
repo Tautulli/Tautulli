@@ -126,7 +126,7 @@ _CONFIG_DEFINITIONS = {
     'HTTP_ENVIRONMENT': (str, 'General', 'production'),
     'HTTP_HASH_PASSWORD': (int, 'General', 1),
     'HTTP_HASHED_PASSWORD': (int, 'General', 1),
-    'HTTP_HOST': (str, 'General', '0.0.0.0'),
+    'HTTP_HOST': (str, 'General', ''),
     'HTTP_PASSWORD': (str, 'General', ''),
     'HTTP_PORT': (int, 'General', 8181),
     'HTTP_PROXY': (int, 'General', 0),
