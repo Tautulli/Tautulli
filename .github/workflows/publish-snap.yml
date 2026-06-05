@@ -50,7 +50,7 @@ jobs:
           path: ${{ steps.build.outputs.snap }}
 
       - name: Review Snap Package
-        uses: diddlesnaps/snapcraft-review-tools-action@master
+        uses: snapcrafters/ci/review-snap@main
         with:
           snap: ${{ steps.build.outputs.snap }}
 
