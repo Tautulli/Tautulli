@@ -178,6 +178,9 @@
                         $('#username').focus();
                     }
                 },
+                403: function(xhr, status) {
+                    $('#sign-in-alert').text('Invalid CSRF token. Refresh the page and try again.').show();
+                },
                 429: function(xhr, status) {
                     var retry = Math.ceil(xhr.getResponseHeader('Retry-After') / 60)
                     $('#sign-in-alert').text('Too many login attempts. Try again in ' + retry + ' minute(s).').show();
