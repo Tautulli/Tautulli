@@ -1241,4 +1241,13 @@ class Graphs(object):
             user_ids = helpers.split_strip(user_id)
             if all(id.isdigit() for id in user_ids):
                 user_cond = cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
-        return user_cond
+
+        # An explicit user filter (session scope or user_id) should show that user's data
+        # even when they are excluded from reports. Only aggregate views, where no specific
+        # user was requested, hide the excluded users.
+        if user_cond:
+            return user_cond
+
+        return (cond_prefix + ' NOT EXISTS '
+                '(SELECT 1 FROM users WHERE users.user_id = session_history.user_id '
+                'AND users.exclude_from_reports = 1) ')

@@ -1382,7 +1382,7 @@ class WebInterface(object):
                 allow_guest (int):          0 or 1
 
             Optional parameters:
-                None
+                exclude_from_reports (int): 0 or 1, whether to exclude the user from reports and statistics
 
             Returns:
                 None
@@ -1393,6 +1393,7 @@ class WebInterface(object):
         do_notify = kwargs.get('do_notify', 0)
         keep_history = kwargs.get('keep_history', 0)
         allow_guest = kwargs.get('allow_guest', 0)
+        exclude_from_reports = kwargs.get('exclude_from_reports', None)
 
         if user_id:
             try:
@@ -1402,7 +1403,8 @@ class WebInterface(object):
                                      custom_thumb=custom_thumb,
                                      do_notify=do_notify,
                                      keep_history=keep_history,
-                                     allow_guest=allow_guest)
+                                     allow_guest=allow_guest,
+                                     exclude_from_reports=exclude_from_reports)
                 status_message = "Successfully updated user."
                 return status_message
             except:
@@ -1647,6 +1649,7 @@ class WebInterface(object):
                      "deleted_user": 0,
                      "do_notify": 1,
                      "email": "Jon.Snow.1337@CastleBlack.com",
+                     "exclude_from_reports": 0,
                      "friendly_name": "Jon Snow",
                      "is_active": 1,
                      "is_admin": 0,
@@ -1985,14 +1988,17 @@ class WebInterface(object):
         include_activity = helpers.bool_true(include_activity, return_none=True)
 
         custom_where = []
+        user_requested = False
         if user_id:
             user_id = helpers.split_strip(user_id)
             if user_id:
                 custom_where.append(['session_history.user_id', user_id])
+                user_requested = True
         elif user:
             user = helpers.split_strip(user)
             if user:
                 custom_where.append(['session_history.user', user])
+                user_requested = True
         if 'rating_key' in kwargs:
             if kwargs.get('media_type') in ('collection', 'playlist') and kwargs.get('rating_key'):
                 pms_connect = pmsconnect.PmsConnect()
@@ -2048,7 +2054,8 @@ class WebInterface(object):
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
-                                                      grouping=grouping, include_activity=include_activity)
+                                                      grouping=grouping, include_activity=include_activity,
+                                                      user_requested=user_requested)
 
         return history
 
@@ -6198,6 +6205,7 @@ class WebInterface(object):
                     [{"allow_guest": 1,
                       "do_notify": 1,
                       "email": "Jon.Snow.1337@CastleBlack.com",
+                      "exclude_from_reports": 0,
                       "filter_all": "",
                       "filter_movies": "",
                       "filter_music": "",
