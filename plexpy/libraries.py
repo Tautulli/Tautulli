@@ -912,7 +912,9 @@ class Libraries(object):
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE stopped >= %s " \
-                                "AND section_id = ?" % (group_by, timestamp_query)
+                                "AND section_id = ? " \
+                                "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                                "AND users.exclude_from_reports = 1)" % (group_by, timestamp_query)
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
@@ -923,7 +925,9 @@ class Libraries(object):
                                 "COUNT(DISTINCT %s) AS total_plays " \
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE section_id = ?" % group_by
+                                "WHERE section_id = ? " \
+                                "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                                "AND users.exclude_from_reports = 1)" % group_by
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
@@ -972,6 +976,8 @@ class Libraries(object):
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
                         "WHERE section_id = ? " \
+                        "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                        "AND users.exclude_from_reports = 1) " \
                         "GROUP BY users.user_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % group_by
                 result = monitor_db.select(query, args=[section_id])
@@ -1020,6 +1026,8 @@ class Libraries(object):
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
                         "WHERE section_id = ? " \
+                        "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                        "AND users.exclude_from_reports = 1) " \
                         "GROUP BY session_history.rating_key " \
                         "ORDER BY MAX(started) DESC LIMIT ?"
                 result = monitor_db.select(query, args=[section_id, limit])

@@ -43,7 +43,8 @@ class DataFactory(object):
     def __init__(self):
         pass
 
-    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=None, include_activity=None):
+    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=None, include_activity=None,
+                               user_requested=False):
         data_tables = datatables.DataTables()
 
         if custom_where is None:
@@ -70,6 +71,10 @@ class DataFactory(object):
 
             if not added:
                 custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
+
+        # Only hide users flagged for report exclusion from the global/aggregate view.
+        # If a specific user was explicitly requested (filter or session scope), show their data.
+        apply_exclude = not user_requested and not session.get_session_user_id()
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
@@ -138,11 +143,12 @@ class DataFactory(object):
             group_by_union = ['session_key']
 
             # sessions table has no join to users, so fetch excluded IDs explicitly
-            _db = database.MonitorDatabase()
-            _excluded_ids = [r['user_id'] for r in _db.select(
-                'SELECT user_id FROM users WHERE exclude_from_reports = 1 AND user_id IS NOT NULL')]
-            if _excluded_ids:
-                custom_where_union.append(['user_id NOT IN', _excluded_ids])
+            if apply_exclude:
+                _db = database.MonitorDatabase()
+                _excluded_ids = [r['user_id'] for r in _db.select(
+                    'SELECT user_id FROM users WHERE exclude_from_reports = 1 AND user_id IS NOT NULL')]
+                if _excluded_ids:
+                    custom_where_union.append(['user_id NOT IN', _excluded_ids])
 
             columns_union = [
                 "NULL AS reference_id",
@@ -206,7 +212,8 @@ class DataFactory(object):
             custom_where_union = group_by_union = columns_union = []
 
         # Exclude users flagged for report exclusion (applied after union to avoid sessions table schema conflict)
-        custom_where.append(['users.exclude_from_reports', [0, None]])
+        if apply_exclude:
+            custom_where.append(['users.exclude_from_reports', [0, None]])
 
         try:
             query = data_tables.ssp_query(table_name='session_history',
@@ -400,12 +407,17 @@ class DataFactory(object):
             where_id += 'AND session_history.user_id = ? '
             where_id_args.append(user_id)
 
-        where_exclude = ("AND NOT EXISTS "
-                         "(SELECT 1 FROM users WHERE exclude_from_reports = 1 "
-                         "AND users.user_id = session_history.user_id) ")
-        where_exclude_sh = ("AND NOT EXISTS "
-                            "(SELECT 1 FROM users WHERE exclude_from_reports = 1 "
-                            "AND users.user_id = sh.user_id) ")
+        if user_id:
+            # Explicit user filter: show the requested user's data even if excluded from reports.
+            where_exclude = ''
+            where_exclude_sh = ''
+        else:
+            where_exclude = ("AND NOT EXISTS "
+                             "(SELECT 1 FROM users WHERE exclude_from_reports = 1 "
+                             "AND users.user_id = session_history.user_id) ")
+            where_exclude_sh = ("AND NOT EXISTS "
+                                "(SELECT 1 FROM users WHERE exclude_from_reports = 1 "
+                                "AND users.user_id = sh.user_id) ")
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
         sort_type = 'total_duration' if stats_type == 'duration' else 'total_plays'
@@ -1267,10 +1279,12 @@ class DataFactory(object):
                                 "WHERE stopped >= ? " \
                                 "AND (session_history.grandparent_rating_key IN (%s) " \
                                 "OR session_history.parent_rating_key IN (%s) " \
-                                "OR session_history.rating_key IN (%s))" % (
+                                "OR session_history.rating_key IN (%s)) " \
+                                "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                                "AND users.exclude_from_reports = 1)" % (
                                     group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
                                 )
-                        
+
                         result = monitor_db.select(query, args=[timestamp_query] + rating_keys * 3)
                     elif guid:
                         query = "SELECT (SUM(stopped - started) - " \
@@ -1279,7 +1293,9 @@ class DataFactory(object):
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE stopped >= ? " \
-                                "AND session_history_metadata.guid = ? " % group_by
+                                "AND session_history_metadata.guid = ? " \
+                                "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                                "AND users.exclude_from_reports = 1) " % group_by
 
                         result = monitor_db.select(query, args=[timestamp_query, guid])
                     else:
@@ -1293,7 +1309,9 @@ class DataFactory(object):
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE (session_history.grandparent_rating_key IN (%s) " \
                                 "OR session_history.parent_rating_key IN (%s) " \
-                                "OR session_history.rating_key IN (%s))" % (
+                                "OR session_history.rating_key IN (%s)) " \
+                                "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                                "AND users.exclude_from_reports = 1)" % (
                                     group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
                                 )
                         
@@ -1304,7 +1322,9 @@ class DataFactory(object):
                                 "COUNT(DISTINCT %s) AS total_plays, section_id " \
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE session_history_metadata.guid = ? " % group_by
+                                "WHERE session_history_metadata.guid = ? " \
+                                "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                                "AND users.exclude_from_reports = 1) " % group_by
 
                         result = monitor_db.select(query, args=[guid])
                     else:
@@ -1370,6 +1390,8 @@ class DataFactory(object):
                         "WHERE (session_history.grandparent_rating_key IN (%s) " \
                         "OR session_history.parent_rating_key IN (%s) " \
                         "OR session_history.rating_key IN (%s)) " \
+                        "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                        "AND users.exclude_from_reports = 1) " \
                         "GROUP BY users.user_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % (
                             group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
@@ -1387,6 +1409,8 @@ class DataFactory(object):
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
                         "WHERE session_history_metadata.guid = ? " \
+                        "AND NOT EXISTS (SELECT 1 FROM users WHERE users.user_id = session_history.user_id " \
+                        "AND users.exclude_from_reports = 1) " \
                         "GROUP BY users.user_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % group_by
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+* UI:
+  * New: Added option to exclude specific users from reports, statistics, history, and graphs.
+
+
 ## v2.17.1 (2026-05-04)
 
 * Notifications:

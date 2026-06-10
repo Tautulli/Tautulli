@@ -1988,14 +1988,17 @@ class WebInterface(object):
         include_activity = helpers.bool_true(include_activity, return_none=True)
 
         custom_where = []
+        user_requested = False
         if user_id:
             user_id = helpers.split_strip(user_id)
             if user_id:
                 custom_where.append(['session_history.user_id', user_id])
+                user_requested = True
         elif user:
             user = helpers.split_strip(user)
             if user:
                 custom_where.append(['session_history.user', user])
+                user_requested = True
         if 'rating_key' in kwargs:
             if kwargs.get('media_type') in ('collection', 'playlist') and kwargs.get('rating_key'):
                 pms_connect = pmsconnect.PmsConnect()
@@ -2051,7 +2054,8 @@ class WebInterface(object):
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
-                                                      grouping=grouping, include_activity=include_activity)
+                                                      grouping=grouping, include_activity=include_activity,
+                                                      user_requested=user_requested)
 
         return history
 
