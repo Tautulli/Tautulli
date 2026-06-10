@@ -1712,6 +1712,7 @@ class DataFactory(object):
                     "(CASE WHEN session_history_metadata.live = 1 THEN 'live' ELSE session_history.media_type END) " \
                     "AS media_type_live " \
                     "FROM session_history " \
+                    "LEFT OUTER JOIN users ON session_history.user_id = users.user_id " \
                     "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                     "JOIN session_history_media_info ON session_history_media_info.id = session_history.id " \
                     "%s " % where
