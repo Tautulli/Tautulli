@@ -444,8 +444,9 @@ class AuthController(object):
             return error_message
 
     @cherrypy.expose
+    @requireAuth()
     def redirect(self, redirect_uri='', *args, **kwargs):
         root = plexpy.HTTP_ROOT.rstrip('/')
         if redirect_uri.startswith(root):
             redirect_uri = redirect_uri[len(root):]
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + redirect_uri.strip('/'))
+        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + redirect_uri.strip('/ \t\r\n'))
