@@ -22,7 +22,7 @@ paho-mqtt==2.1.0
 platformdirs==4.9.6
 plexapi==4.18.1
 profilehooks==1.13.0
-PyJWT==2.12.1
+PyJWT==2.13.0
 python-twitter==3.5
 requests==2.33.1
 rumps==0.4.0; platform_system == "Darwin"
