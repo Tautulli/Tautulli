@@ -165,6 +165,15 @@ class PyJWS:
 
         if is_payload_detached:
             header["b64"] = False
+            # RFC 7797 §3: producers MUST list "b64" in "crit" whenever
+            # "b64" appears in the protected header, so b64-unaware
+            # verifiers don't silently treat an unencoded payload as
+            # base64-encoded.
+            existing_crit = header.get("crit", [])
+            if not isinstance(existing_crit, list):
+                raise InvalidTokenError("Invalid 'crit' header: must be a list")
+            if "b64" not in existing_crit:
+                header["crit"] = [*existing_crit, "b64"]
         elif "b64" in header:
             # True is the standard value for b64, so no need for it
             del header["b64"]
@@ -242,6 +251,14 @@ class PyJWS:
         self._validate_headers(header)
 
         if header.get("b64", True) is False:
+            # RFC 7797 §3: when "b64" is present in the protected header,
+            # it MUST also appear in "crit". A token that sets b64=false
+            # without declaring it critical is malformed.
+            crit = header.get("crit") or []
+            if not isinstance(crit, list) or "b64" not in crit:
+                raise InvalidTokenError(
+                    "The 'b64' header parameter requires 'b64' to be listed in 'crit'."
+                )
             if detached_payload is None:
                 raise DecodeError(
                     'It is required that you pass in a value for the "detached_payload" argument to decode a message having the b64 header set to false.'
@@ -250,7 +267,14 @@ class PyJWS:
             signing_input = b".".join([signing_input.rsplit(b".", 1)[0], payload])
 
         if verify_signature:
-            self._verify_signature(signing_input, header, signature, key, algorithms)
+            self._verify_signature(
+                signing_input,
+                header,
+                signature,
+                key,
+                algorithms,
+                options=merged_options,
+            )
 
         return {
             "payload": payload,
@@ -317,10 +341,22 @@ class PyJWS:
         if not isinstance(header, dict):
             raise DecodeError("Invalid header string: must be a json object")
 
-        try:
-            payload = base64url_decode(payload_segment)
-        except (TypeError, binascii.Error) as err:
-            raise DecodeError("Invalid payload padding") from err
+        if header.get("b64", True) is False:
+            # Detached payload form (RFC 7515 Appendix F): the compact-form
+            # payload segment must be empty; the caller supplies the actual
+            # payload via the `detached_payload` argument in decode_complete.
+            # Skipping the base64 decode here removes an unauthenticated work
+            # amplifier — otherwise an attacker can inflate the unused
+            # segment to force CPU + memory cost before the signature is
+            # even checked.
+            if payload_segment:
+                raise DecodeError("Payload segment must be empty when 'b64' is false.")
+            payload = b""
+        else:
+            try:
+                payload = base64url_decode(payload_segment)
+            except (TypeError, binascii.Error) as err:
+                raise DecodeError("Invalid payload padding") from err
 
         try:
             signature = base64url_decode(crypto_segment)
@@ -336,7 +372,10 @@ class PyJWS:
         signature: bytes,
         key: AllowedPublicKeys | PyJWK | str | bytes = "",
         algorithms: Sequence[str] | None = None,
+        options: SigOptions | None = None,
     ) -> None:
+        effective_options = options if options is not None else self.options
+
         if algorithms is None and isinstance(key, PyJWK):
             algorithms = [key.algorithm_name]
         try:
@@ -348,6 +387,16 @@ class PyJWS:
             raise InvalidAlgorithmError("The specified alg value is not allowed")
 
         if isinstance(key, PyJWK):
+            # The PyJWK has a fixed algorithm bound at construction time.
+            # Verification must use that algorithm, not whatever the token
+            # header advertises, otherwise the caller's allow-list check
+            # above degenerates into a string compare with no behavioural
+            # effect on which algorithm actually verifies the signature.
+            if alg != key.algorithm_name:
+                raise InvalidAlgorithmError(
+                    f"Token algorithm {alg!r} does not match the key's "
+                    f"algorithm {key.algorithm_name!r}"
+                )
             alg_obj = key.Algorithm
             prepared_key = key.key
         else:
@@ -359,7 +408,7 @@ class PyJWS:
 
         key_length_msg = alg_obj.check_key_length(prepared_key)
         if key_length_msg:
-            if self.options.get("enforce_minimum_key_length", False):
+            if effective_options.get("enforce_minimum_key_length", False):
                 raise InvalidKeyError(key_length_msg)
             else:
                 warnings.warn(key_length_msg, InsecureKeyLengthWarning, stacklevel=4)
