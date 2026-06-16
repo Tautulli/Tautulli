@@ -1,5 +1,21 @@
 # Changelog
 
+## v2.17.2 (2026-06-16)
+
+* Notifications:
+  * Fix: Line breaks in Gotify notification body text. (#2702)
+* Newsletters:
+  * Fix: XSS in newsletter cron value. (CVE-2026-49995) (Thanks @elvinsuleymanov)
+* UI:
+  * Fix: Reflected XSS in search query string. (CVE-2026-45381) (Thanks @JakePeralta7, @sondt99, @kah-ja)
+  * Fix: Duplicated activity card progress timers. (#2716) (Thanks @omglazrgunpewpew)
+* Other:
+  * Fix: Fix X-Api-Key header check crashing server. (#2711)
+  * Fix: Path traversal in uploaded database and config file names. (CVE-2026-52835) (Thanks @tonghuaroot)
+  * Fix: Empty host fallback in URL when launching browser. (#2722) (Thanks @upmcplanetracker)
+  * Fix: Open redirect via whitespace bypass in /auth/redirect (CVE-2026-54915) (Thanks @sondt99)
+
+
 ## v2.17.1 (2026-05-04)
 
 * Notifications:
