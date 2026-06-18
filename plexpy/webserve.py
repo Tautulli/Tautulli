@@ -2916,7 +2916,7 @@ class WebInterface(object):
         try:
             return {'data': log_reader.get_log_tail(window=window, parsed=True, log_file=logfile)}
         except:
-            logger.warn("Unable to retrieve Plex log file '%'." % logfile)
+            logger.warn("Unable to retrieve Plex log file '%s'." % logfile)
             return []
 
     @cherrypy.expose
