@@ -265,6 +265,7 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
     
     $.ajax({
         url: 'edit_library',
+        type: 'POST',
         data: {
             section_id: rowData['section_id'],
             keep_history: keep_history,
