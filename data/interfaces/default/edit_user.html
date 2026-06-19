@@ -77,8 +77,13 @@ DOCUMENTATION :: END
                 % endif
                 % if data['deleted_user']:
                 <div class="form-group">
-                    <button class="btn btn-bright" id="undelete-user">Undelete</button>
-                    <p class="help-block">Click to re-add the user to the Tautulli users list.</p>
+                    <button class="btn btn-bright" id="undelete-user">Restore</button>
+                    <p class="help-block">Click to restore the user to the Tautulli users list.</p>
+                </div>
+                % else:
+                <div class="form-group">
+                    <button class="btn btn-danger" id="delete-user">Delete</button>
+                    <p class="help-block">Click to remove the user from the Tautulli users list. This will also purge all history logged for this user.</p>
                 </div>
                 % endif
             </fieldset>
@@ -131,9 +136,16 @@ DOCUMENTATION :: END
     });
 
     $('#undelete-user').click(function () {
-        var msg = 'Are you sure you want to undelete this user?';
+        var msg = 'Are you sure you want to restore the <strong>${data["username"]}</strong> user?';
         var url = 'undelete_user';
         confirmAjaxCall(url, msg, { user_id: '${data["user_id"]}' }, null, function () { location.reload(); });
+    });
+
+    $('#delete-user').click(function () {
+        var msg = 'Are you sure you want to delete the <strong>${data["username"]}</strong> user?<br>' +
+            'This will also purge all history for this user and cannot be undone!';
+        var url = 'delete_user';
+        confirmAjaxCall(url, msg, { user_id: '${data["user_id"]}' }, null, function () { window.location = 'users'; });
     });
 </script>
 % endif

@@ -71,8 +71,13 @@ DOCUMENTATION :: END
                 % endif
                 % if data['deleted_section']:
                 <div class="form-group">
-                    <button class="btn btn-bright" id="undelete-library">Undelete</button>
-                    <p class="help-block">Click to re-add the library to the Tautulli libraries list.</p>
+                    <button class="btn btn-bright" id="undelete-library">Restore</button>
+                    <p class="help-block">Click to restore the library to the Tautulli libraries list.</p>
+                </div>
+                % else:
+                <div class="form-group">
+                    <button class="btn btn-danger" id="delete-library">Delete</button>
+                    <p class="help-block">Click to remove the library from the Tautulli libraries list. This will also purge all history logged for this library.</p>
                 </div>
                 % endif
             </fieldset>
@@ -120,9 +125,16 @@ DOCUMENTATION :: END
     });
 
     $('#undelete-library').click(function () {
-        var msg = 'Are you sure you want to undelete this library?';
+        var msg = 'Are you sure you want to restore the <strong>${data["section_name"]}</strong> library?';
         var url = 'undelete_library';
         confirmAjaxCall(url, msg, { section_id: '${data["section_id"]}' }, null, function () { location.reload(); });
+    });
+
+    $('#delete-library').click(function () {
+        var msg = 'Are you sure you want to delete the <strong>${data["section_name"]}</strong> library?<br>' +
+            'This will also purge all history for this library and cannot be undone!';
+        var url = 'delete_library';
+        confirmAjaxCall(url, msg, { server_id: '${server_id}', section_id: '${data["section_id"]}' }, null, function () { window.location = 'libraries'; });
     });
 </script>
 % endif

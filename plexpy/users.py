@@ -754,7 +754,7 @@ class Users(object):
                 query = "SELECT * FROM users WHERE user_id = ?"
                 result = monitor_db.select(query=query, args=[user_id])
                 if result:
-                    logger.info("Tautulli Users :: Re-adding user with id %s to database." % user_id)
+                    logger.info("Tautulli Users :: Restoring user with id %s to database." % user_id)
                     monitor_db.action("UPDATE users "
                                       "SET deleted_user = 0, keep_history = 1, do_notify = 1 "
                                       "WHERE user_id = ?", [user_id])
@@ -766,7 +766,7 @@ class Users(object):
                 query = "SELECT * FROM users WHERE username = ?"
                 result = monitor_db.select(query=query, args=[username])
                 if result:
-                    logger.info("Tautulli Users :: Re-adding user with username %s to database." % username)
+                    logger.info("Tautulli Users :: Restoring user with username %s to database." % username)
                     monitor_db.action("UPDATE users "
                                       "SET deleted_user = 0, keep_history = 1, do_notify = 1 "
                                       "WHERE username = ?", [username])

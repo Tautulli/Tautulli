@@ -1174,8 +1174,8 @@ class WebInterface(object):
                 msg ='section_id %s' % section_id
             elif section_name:
                 msg = 'section_name %s' % section_name
-            return {'result': 'success', 'message': 'Re-added library with %s.' % msg}
-        return {'result': 'error', 'message': 'Unable to re-add library. Invalid section_id or section_name.'}
+            return {'result': 'success', 'message': 'Restored library with %s.' % msg}
+        return {'result': 'error', 'message': 'Unable to restore library. Invalid section_id or section_name.'}
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
@@ -1858,8 +1858,8 @@ class WebInterface(object):
                 msg ='user_id %s' % user_id
             elif username:
                 msg = 'username %s' % username
-            return {'result': 'success', 'message': 'Re-added user with %s.' % msg}
-        return {'result': 'error', 'message': 'Unable to re-add user. Invalid user_id or username.'}
+            return {'result': 'success', 'message': 'Restored user with %s.' % msg}
+        return {'result': 'error', 'message': 'Unable to restore user. Invalid user_id or username.'}
 
 
     ##### History #####

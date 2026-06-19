@@ -1135,7 +1135,7 @@ class Libraries(object):
                 query = "SELECT * FROM library_sections WHERE section_id = ?"
                 result = monitor_db.select(query=query, args=[section_id])
                 if result:
-                    logger.info("Tautulli Libraries :: Re-adding library with id %s to database." % section_id)
+                    logger.info("Tautulli Libraries :: Restoring library with id %s to database." % section_id)
                     monitor_db.action("UPDATE library_sections "
                                       "SET deleted_section = 0, keep_history = 1, do_notify = 1, do_notify_created = 1 "
                                       "WHERE section_id = ?",
@@ -1148,7 +1148,7 @@ class Libraries(object):
                 query = "SELECT * FROM library_sections WHERE section_name = ?"
                 result = monitor_db.select(query=query, args=[section_name])
                 if result:
-                    logger.info("Tautulli Libraries :: Re-adding library with name %s to database." % section_name)
+                    logger.info("Tautulli Libraries :: Restoring library with name %s to database." % section_name)
                     monitor_db.action("UPDATE library_sections "
                                       "SET deleted_section = 0, keep_history = 1, do_notify = 1, do_notify_created = 1 "
                                       "WHERE section_name = ?",
