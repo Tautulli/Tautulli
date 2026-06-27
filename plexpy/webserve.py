@@ -18,6 +18,7 @@
 import base64
 import csv
 from hmac import compare_digest
+import html
 from io import open, BytesIO
 import json
 import linecache
@@ -38,7 +39,6 @@ from mako.lookup import TemplateLookup
 import mako.template
 import mako.exceptions
 
-import bleach
 import certifi
 import websocket
 
@@ -3168,7 +3168,7 @@ class WebInterface(object):
         logger.error(
             "WebUI :: /%s : %s. (%s:%s)",
             page.rpartition('/')[-1],
-            bleach.clean(message),
+            html.escape(message),
             file.rpartition('/')[-1].partition('?')[0],
             line
         )
@@ -3186,7 +3186,7 @@ class WebInterface(object):
 
         try:
             with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r', encoding='utf-8') as f:
-                return f'<pre>{bleach.clean(f.read())}</pre>'
+                return f'<pre>{html.escape(f.read())}</pre>'
         except IOError as e:
             return "Log file not found."
 
