@@ -488,14 +488,15 @@ class BleachSanitizerFilter(html5lib_shim.SanitizerFilter):
         # Convert all character entities in the value
         normalized_uri = html5lib_shim.convert_entities(value)
 
-        # Nix backtick, space characters, and control characters
+        # Strip backtick, whitespace, and control characters
         normalized_uri = re.sub(r"[`\000-\040\177-\240\s]+", "", normalized_uri)
 
-        # Remove REPLACEMENT characters
-        normalized_uri = normalized_uri.replace("\ufffd", "")
+        # Strip non-ASCII characters so that urlparse can parse the url into
+        # components correctly. This drops invisible and whitespace unicode
+        # characters among other things.
+        normalized_uri = re.sub(r"[^\x00-\x7f]", "", normalized_uri)
 
-        # Lowercase it--this breaks the value, but makes it easier to match
-        # against
+        # Lowercase value to make matching easier
         normalized_uri = normalized_uri.lower()
 
         try:
