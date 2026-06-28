@@ -271,13 +271,21 @@ DOCUMENTATION :: END
                                         You may leave this page and check back later.
                                     </div>
                                     % endif
-                                    <div class='table-card-header'>
+                                    <div class='table-card-header spaced'>
                                         <div class="header-bar">
                                             <span>
                                                 <i class="fa fa-info-circle"></i> Media Info for <strong>
                                                     <span class="set-username">${data['section_name']}</span>
                                                 </strong>
                                             </span>
+                                        </div>
+                                        <div class="info-bar">
+                                            <div class="info-element">
+                                                <span>Total File Size: <strong><span id="info-element-total-storage" /></strong></span>
+                                            </div>
+                                            <div class="info-element">
+                                                <span>Total Media Runtime: <strong><span id="info-element-total-runtime" /></strong></span>
+                                            </div>
                                         </div>
                                         <div class="button-bar">
                                             % if _session['user_group'] == 'admin':
@@ -310,6 +318,7 @@ DOCUMENTATION :: END
                                                     <th align="left" id="audio_codec">Audio Codec</th>
                                                     <th align="left" id="audio_channels">Audio Channels</th>
                                                     <th align="left" id="file_size">File Size</th>
+                                                    <th align="left" id="duration">Duration</th>
                                                     <th align="left" id="last_played">Last Played</th>
                                                     <th align="left" id="total_plays">Total Plays</th>
                                                 </tr>
@@ -779,6 +788,22 @@ DOCUMENTATION :: END
         clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
     }
 
+    $(document).ready(function () {
+        loadLibraryMediaStats();
+    });
+
+    function loadLibraryMediaStats(refresh) {
+        // Populate media stats
+        $.ajax({
+            url: 'get_library_media_stats',
+            data: { section_id: section_id, refresh: refresh },
+            complete: function(xhr, status) {
+                $("#info-element-total-runtime").html(humanDuration(xhr.responseJSON.total_duration));
+                $("#info-element-total-storage").html(humanFileSize(xhr.responseJSON.total_storage));
+            }
+        });
+    }
+
     $('#nav-tabs-mediainfo').on('shown.bs.tab', function() {
         if (typeof(media_info_table) === 'undefined') {
             loadMediaInfoTable();
@@ -790,6 +815,7 @@ DOCUMENTATION :: END
         refresh_table = true;
         refresh_child_tables = true;
         media_info_table.draw();
+        loadLibraryMediaStats(true);
         refresh_table = false;
     });
 

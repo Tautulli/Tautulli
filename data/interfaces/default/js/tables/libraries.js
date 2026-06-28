@@ -202,6 +202,30 @@ libraries_list_table_options = {
             "searchable": false,
             "width": "10%",
             "className": "no-wrap"
+        },
+        {
+            "targets": [11],
+            "data": "total_storage",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(humanFileSize(cellData));
+                }
+            },
+            "searchable": false,
+            "width": "10%",
+            "className": "no-wrap"
+        },
+        {
+            "targets": [12],
+            "data": "total_duration",
+            "createdCell": function (td, cellData, rowData, row, col) {
+                if (cellData !== null && cellData !== '') {
+                    $(td).html(humanDuration(cellData));
+                }
+            },
+            "searchable": false,
+            "width": "10%",
+            "className": "no-wrap"
         }
 
     ],
