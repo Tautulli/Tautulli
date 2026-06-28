@@ -11,7 +11,7 @@ env:
 
 jobs:
   build-installer:
-    name: Build ${{ matrix.os_upper }} Installer
+    name: Build ${{ matrix.os_upper }} (${{ matrix.arch }}) Installer
     runs-on: ${{ matrix.os }}-${{ matrix.os_version }}
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     strategy:
@@ -25,8 +25,13 @@ jobs:
             ext: 'exe'
           - os: 'macos'
             os_upper: 'MacOS'
-            os_version: '14'
-            arch: 'universal'
+            os_version: 'latest'
+            arch: 'x86_64'
+            ext: 'pkg'
+          - os: 'macos'
+            os_upper: 'MacOS'
+            os_version: 'latest'
+            arch: 'arm64'
             ext: 'pkg'
 
     steps:
@@ -57,6 +62,7 @@ jobs:
             echo ${GITHUB_REF#refs/heads/} > branch.txt
           fi
           echo $GITHUB_SHA > version.txt
+          echo "ARCH=${{ matrix.arch }}" >> $GITHUB_ENV
 
       - name: Set Up Python
         uses: actions/setup-python@v6
@@ -69,6 +75,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r package/requirements-package.txt --no-binary cffi
+          if [[ ${{ matrix.os }} == 'macos' && ${{ matrix.arch }} == 'x86_64' ]]; then
+            pip install --force-reinstall cryptography==48.0.1 pyopenssl==26.2.0
+          fi
 
       - name: Build Package
         run: |
@@ -120,7 +129,8 @@ jobs:
           vt_api_key: ${{ secrets.VT_API_KEY }}
           files: |
             Tautulli-windows-installer/Tautulli-windows-*-x64.exe
-            Tautulli-macos-installer/Tautulli-macos-*-universal.pkg
+            Tautulli-macos-installer/Tautulli-macos-*-x86_64.pkg
+            Tautulli-macos-installer/Tautulli-macos-*-arm64.pkg
 
   release:
     name: Release Installers
@@ -164,7 +174,8 @@ jobs:
           prerelease: ${{ endsWith(steps.get_version.outputs.RELEASE_VERSION, '-beta') }}
           files: |
             Tautulli-windows-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
-            Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-universal.pkg
+            Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x86_64.pkg
+            Tautulli-macos-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-arm64.pkg
 
   discord:
     name: Discord Notification
