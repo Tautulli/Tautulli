@@ -1,4 +1,4 @@
-apscheduler==3.11.2
+apscheduler==3.11.3
 arrow==1.4.0
 beautifulsoup4==4.14.3
 bleach==6.4.0
