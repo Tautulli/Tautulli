@@ -81,17 +81,32 @@ class DataTables(object):
 
         args = cw_args + cwu_args + w_args
 
+        # Build the inner query
+        inner_query = 'SELECT %s FROM %s %s %s %s %s' \
+                      % (extracted_columns['column_string'], table_name, join, c_where, group, union)
+
+        # Get the number of filtered rows
+        filtered_count = self.ssp_db.select(
+            'SELECT COUNT(*) AS filtered_count FROM (%s) %s' % (inner_query, where),
+            args=args)[0]['filtered_count']
+
+        # Paginate using LIMIT and OFFSET so only the requested page is
+        # fetched from the database (LIMIT -1 returns all rows in SQLite)
+        start = helpers.cast_to_int(parameters.get('start', 0))
+        length = helpers.cast_to_int(parameters.get('length', -1))
+        if length < 0:
+            length = -1
+
         # Build the query
-        query = 'SELECT * FROM (SELECT %s FROM %s %s %s %s %s) %s %s' \
-                % (extracted_columns['column_string'], table_name, join, c_where, group, union, where, order)
+        query = 'SELECT * FROM (%s) %s %s LIMIT ? OFFSET ?' % (inner_query, where, order)
 
         # logger.debug("Query: %s" % query)
 
         # Execute the query
-        filtered = self.ssp_db.select(query, args=args)
+        result = self.ssp_db.select(query, args=args + [length, start])
 
         # Remove NULL rows
-        filtered = [row for row in filtered if not all(v is None for v in row.values())]
+        result = [row for row in result if not all(v is None for v in row.values())]
 
         # Build grand totals
         totalcount = self.ssp_db.select('SELECT COUNT(id) as total_count from %s' % table_name)[0]['total_count']
@@ -99,12 +114,9 @@ class DataTables(object):
         # Get draw counter
         draw_counter = int(parameters['draw'])
 
-        # Paginate results
-        result = filtered[parameters['start']:(parameters['start'] + parameters['length'])]
-
         output = {'result': result,
                   'draw': draw_counter,
-                  'filteredCount': len(filtered),
+                  'filteredCount': filtered_count,
                   'totalCount': totalcount}
 
         return output
