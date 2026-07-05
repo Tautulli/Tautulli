@@ -2896,16 +2896,20 @@ class WebInterface(object):
                      ]
             ```
         """
+        if not plexpy.CONFIG.PMS_LOGS_FOLDER:
+            return {'result': 'error', 'message': 'Plex log folder not set in the settings.'}
+
         if kwargs.get('log_type'):
             logfile = 'Plex Media ' + kwargs['log_type'].capitalize()
 
         window = int(kwargs.get('window', plexpy.CONFIG.PMS_LOGS_LINE_CAP))
+        logs = log_reader.get_log_tail(window=window, parsed=True, log_file=logfile)
 
-        try:
-            return {'data': log_reader.get_log_tail(window=window, parsed=True, log_file=logfile)}
-        except:
+        if logs:
+            return {'data': logs}
+        else:
             logger.warn("Unable to retrieve Plex log file '%s'." % logfile)
-            return []
+            return {'result': 'error', 'message': "Plex log file '%s.log' not found." % logfile}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -5014,7 +5018,8 @@ class WebInterface(object):
             ```
         """
         if not plexpy.CONFIG.PMS_LOGS_FOLDER:
-            return "Plex log folder not set in the settings."
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return json.dumps({'result': 'error', 'message': 'Plex log folder not set in the settings.'}).encode('utf-8')
 
         if kwargs.get('log_type'):
             logfile = 'Plex Media ' + kwargs['log_type'].capitalize()
@@ -5026,7 +5031,8 @@ class WebInterface(object):
             log_file_name = os.path.basename(log_file_path)
             return serve_download(log_file_path, name=log_file_name)
         else:
-            return "Plex log file '%s' not found." % log_file
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return json.dumps({'result': 'error', 'message': "Plex log file '%s' not found." % log_file}).encode('utf-8')
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
