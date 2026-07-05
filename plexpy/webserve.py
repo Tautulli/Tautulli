@@ -26,6 +26,7 @@ import os
 import shutil
 import ssl as _ssl
 import sys
+import tempfile
 import threading
 import zipfile
 from urllib.parse import urlencode
@@ -4917,24 +4918,26 @@ class WebInterface(object):
     def download_config(self, **kwargs):
         """ Download the Tautulli configuration file. """
         config_file = config.FILENAME
-        config_copy = os.path.join(plexpy.CONFIG.CACHE_DIR, config_file)
+
+        plexpy.CONFIG.write()
+
+        with tempfile.NamedTemporaryFile(delete=False, mode='w+t', suffix=f".{config_file}") as temp:
+            with open(plexpy.CONFIG_FILE, 'r') as f:
+                temp.write(f.read())
+                temp_path = temp.name
 
         try:
-            plexpy.CONFIG.write()
-            shutil.copyfile(plexpy.CONFIG_FILE, config_copy)
-        except:
-            pass
-
-        try:
-            cfg = config.Config(config_copy)
+            cfg = config.Config(temp_path)
             for key in config._DO_NOT_DOWNLOAD_KEYS:
                 setattr(cfg, key, '')
             cfg.write()
         except:
             cherrypy.response.status = 500
-            return 'Error downloading config. Check the logs.'
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return {'result': 'error', 'message': 'Error downloading config. Check the logs.'}
 
-        return serve_download(config_copy, name=config_file)
+        cherrypy.request.hooks.attach('on_end_request', helpers.delete_file, file_path=temp_path)
+        return serve_download(temp_path, name=config_file)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -4942,27 +4945,32 @@ class WebInterface(object):
     def download_database(self, **kwargs):
         """ Download the Tautulli database file. """
         database_file = database.FILENAME
-        database_copy = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file)
 
         try:
             db = database.MonitorDatabase()
             db.connection.execute('begin immediate')
-            shutil.copyfile(plexpy.DB_FILE, database_copy)
+
+            with tempfile.NamedTemporaryFile(delete=False, mode='w+b', suffix=f".{database_file}") as temp:
+                with open(plexpy.DB_FILE, 'rb') as f:
+                    temp.write(f.read())
+                    temp_path = temp.name
+
             db.connection.rollback()
         except:
             pass
 
         # Remove tokens
-        db = database.MonitorDatabase(database_copy)
         try:
+            db = database.MonitorDatabase(temp_path)
             db.action('UPDATE users SET user_token = NULL, server_token = NULL')
             db.action('UPDATE user_login SET jwt_token = NULL')
         except:
             logger.error('Failed to remove tokens from downloaded database.')
             cherrypy.response.status = 500
-            return 'Error downloading database. Check the logs.'
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return {'result': 'error', 'message': 'Error downloading database. Check the logs.'}
 
-        return serve_download(database_copy, name=database_file)
+        return serve_download(temp_path, name=database_file)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -4997,7 +5005,13 @@ class WebInterface(object):
         except:
             pass
 
-        return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, filename), name=filename)
+        with tempfile.NamedTemporaryFile(delete=False, mode='w+t', suffix=f".{filename}") as temp:
+            with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r') as f:
+                temp.write(f.read())
+                temp_path = temp.name
+
+        cherrypy.request.hooks.attach('on_end_request', helpers.delete_file, file_path=temp_path)
+        return serve_download(temp_path, name=filename)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -5029,7 +5043,14 @@ class WebInterface(object):
 
         if log_file and helpers.is_subdir(log_file_path, plexpy.CONFIG.PMS_LOGS_FOLDER) and os.path.isfile(log_file_path):
             log_file_name = os.path.basename(log_file_path)
-            return serve_download(log_file_path, name=log_file_name)
+
+            with tempfile.NamedTemporaryFile(delete=False, mode='w+t', suffix=f".{log_file}") as temp:
+                with open(log_file_path, 'r') as f:
+                    temp.write(f.read())
+                    temp_path = temp.name
+
+            cherrypy.request.hooks.attach('on_end_request', helpers.delete_file, file_path=temp_path)
+            return serve_download(temp_path, name=log_file_name)
         else:
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             return json.dumps({'result': 'error', 'message': "Plex log file '%s' not found." % log_file}).encode('utf-8')
