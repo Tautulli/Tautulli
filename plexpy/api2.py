@@ -765,7 +765,7 @@ General optional parameters:
 
         if self._api_result_type == 'success' and not self._api_response_code:
             self._api_response_code = 200
-        elif self._api_result_type == 'error' and self._api_response_code != 500:
+        elif self._api_result_type == 'error' and (not self._api_response_code or self._api_response_code < 400):
             self._api_response_code = 400
 
         if not self._api_response_code:
