@@ -430,7 +430,9 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/hubs/search?query=' + quote(query.encode('utf8')) + '&limit=' + limit + '&includeCollections=1'
+        uri = '/hubs/search?query=' + quote(query.encode('utf8')) + '&includeCollections=1'
+        if limit:
+            uri += '&limit=' + limit
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
