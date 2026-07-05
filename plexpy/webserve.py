@@ -5114,8 +5114,10 @@ class WebInterface(object):
 
         if result:
             return {'result': 'success', 'message': 'Deleted hosted images from %s.' % result.capitalize()}
+        elif result is False:
+            return {'result': 'error', 'message': 'Failed to delete hosted images: rating_key not provided.'}
         else:
-            return {'result': 'error', 'message': 'Failed to delete hosted images.'}
+            return {'result': 'error', 'message': f"Failed to delete hosted images: invalid service '{service}' provided."}
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])

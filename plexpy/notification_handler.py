@@ -876,7 +876,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     img_service = helpers.get_img_service(include_self=True)
     fallback = 'poster-live' if notify_params['live'] else 'poster'
-    if img_service not in (None, 'self-hosted'):
+    if img_service not in ('', 'self-hosted'):
         img_info = get_img_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback=fallback)
         poster_info = {'poster_title': img_info['img_title'], 'poster_url': img_info['img_url']}
         notify_params.update(poster_info)
@@ -1552,7 +1552,7 @@ def get_img_info(img=None, rating_key=None, title='', width=1000, height=1500,
 
     service = helpers.get_img_service()
 
-    if service is None:
+    if service == '':
         return img_info
 
     elif service == 'cloudinary':

@@ -1796,7 +1796,7 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if not delete_all:
-            service = helpers.get_img_service()
+            service = service or helpers.get_img_service()
 
         if not rating_key and not delete_all:
             logger.error("Tautulli DataFactory :: Unable to delete hosted images: rating_key not provided.")
@@ -1824,9 +1824,10 @@ class DataFactory(object):
 
             logger.info("Tautulli DataFactory :: Deleting Imgur info%s from the database."
                         % log_msg)
-            result = monitor_db.action("DELETE FROM imgur_lookup WHERE img_hash "
-                                       "IN (SELECT img_hash FROM image_hash_lookup %s)" % where,
-                                       args)
+            monitor_db.action("DELETE FROM imgur_lookup WHERE img_hash "
+                              "IN (SELECT img_hash FROM image_hash_lookup %s)" % where,
+                              args)
+            return service
 
         elif service.lower() == 'cloudinary':
             # Delete from Cloudinary
@@ -1843,15 +1844,15 @@ class DataFactory(object):
 
             logger.info("Tautulli DataFactory :: Deleting Cloudinary info%s from the database."
                         % log_msg)
-            result = monitor_db.action("DELETE FROM cloudinary_lookup WHERE img_hash "
-                                       "IN (SELECT img_hash FROM image_hash_lookup %s)" % where,
-                                       args)
+            monitor_db.action("DELETE FROM cloudinary_lookup WHERE img_hash "
+                              "IN (SELECT img_hash FROM image_hash_lookup %s)" % where,
+                              args)
+            return service
 
         else:
             logger.error("Tautulli DataFactory :: Unable to delete hosted images: invalid service '%s' provided."
                          % service)
-
-        return service
+            return None
 
     def get_poster_info(self, rating_key='', metadata=None, service=None):
         poster_key = ''

@@ -785,7 +785,7 @@ def get_img_service(include_self=False):
     elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 3:
         return 'cloudinary'
     else:
-        return None
+        return ''
 
 
 def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
