@@ -501,6 +501,9 @@ class API2(object):
             self._api_result_type = 'error'
             return
 
+        # Remove notify_action if present, as it will be set to 'api' in the notify call
+        kwargs.pop('notify_action', None)
+
         logger.api_debug('Tautulli APIv2 :: Sending notification.')
         success = notification_handler.notify(notifier_id=notifier_id,
                                               notify_action='api',
