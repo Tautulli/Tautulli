@@ -3585,13 +3585,12 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def set_notifier_config(self, notifier_id=None, agent_id=None, **kwargs):
+    def set_notifier_config(self, notifier_id=None, **kwargs):
         """ Configure an existing notification agent.
 
             ```
             Required parameters:
                 notifier_id (int):        The notifier config to update
-                agent_id (int):           The agent of the notifier
 
             Optional parameters:
                 Pass all the config options for the agent with the agent prefix:
@@ -3610,7 +3609,7 @@ class WebInterface(object):
                 None
             ```
         """
-        result = notifiers.set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **kwargs)
+        result = notifiers.set_notifier_config(notifier_id=notifier_id, **kwargs)
 
         if result:
             return {'result': 'success', 'message': 'Saved notification agent.'}
@@ -6776,13 +6775,12 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def set_newsletter_config(self, newsletter_id=None, agent_id=None, **kwargs):
+    def set_newsletter_config(self, newsletter_id=None, **kwargs):
         """ Configure an existing newsletter agent.
 
             ```
             Required parameters:
                 newsletter_id (int):    The newsletter config to update
-                agent_id (int):         The newsletter type of the newsletter
 
             Optional parameters:
                 Pass all the config options for the agent with the 'newsletter_config_' and 'newsletter_email_' prefix.
@@ -6791,9 +6789,7 @@ class WebInterface(object):
                 None
             ```
         """
-        result = newsletters.set_newsletter_config(newsletter_id=newsletter_id,
-                                                   agent_id=agent_id,
-                                                   **kwargs)
+        result = newsletters.set_newsletter_config(newsletter_id=newsletter_id, **kwargs)
 
         if result:
             return {'result': 'success', 'message': 'Saved newsletter.'}
