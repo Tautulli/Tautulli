@@ -252,9 +252,9 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
             old_newsletter_config = get_newsletter_config(newsletter_id=newsletter_id)
             email_config[cfg] = old_newsletter_config['email_config'][cfg]
 
-    subject = kwargs.pop('subject')
-    body = kwargs.pop('body')
-    message = kwargs.pop('message')
+    subject = kwargs.pop('subject', '')
+    body = kwargs.pop('body', '')
+    message = kwargs.pop('message', '')
 
     agent_class = get_agent_class(agent_id=agent['id'],
                                   config=newsletter_config, email_config=email_config,
