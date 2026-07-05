@@ -2719,7 +2719,7 @@ def get_custom_fields(media_type, sub_media_type=None):
 
     collection_sub_media_types = {'movie', 'show', 'artist', 'album', 'photoalbum'}
     playlist_sub_media_types = {'video', 'audio', 'photo'}
-    sub_media_type = {s.strip().lower() for s in sub_media_type.split(',')}
+    sub_media_type = {s.strip().lower() for s in (sub_media_type or '').split(',')}
 
     export = Export()
 
