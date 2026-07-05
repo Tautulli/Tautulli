@@ -641,9 +641,9 @@ class WebInterface(object):
                 None
             ```
         """
-        custom_thumb = kwargs.get('custom_thumb', '')
-        custom_art = kwargs.get('custom_art', '')
-        keep_history = kwargs.get('keep_history', 0)
+        custom_thumb = kwargs.get('custom_thumb')
+        custom_art = kwargs.get('custom_art')
+        keep_history = kwargs.get('keep_history')
 
         if section_id:
             try:
@@ -1379,10 +1379,10 @@ class WebInterface(object):
                 None
             ```
         """
-        friendly_name = kwargs.get('friendly_name', '')
-        custom_thumb = kwargs.get('custom_thumb', '')
-        keep_history = kwargs.get('keep_history', 0)
-        allow_guest = kwargs.get('allow_guest', 0)
+        friendly_name = kwargs.get('friendly_name')
+        custom_thumb = kwargs.get('custom_thumb')
+        keep_history = kwargs.get('keep_history')
+        allow_guest = kwargs.get('allow_guest')
 
         if user_id:
             try:

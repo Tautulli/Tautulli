@@ -744,14 +744,20 @@ class Libraries(object):
             except IOError as e:
                 logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
 
-    def set_config(self, section_id=None, custom_thumb='', custom_art='', keep_history=1):
-        if section_id:
+    def set_config(self, section_id=None, custom_thumb=None, custom_art=None, keep_history=None):
+        if str(section_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
             key_dict = {'section_id': section_id}
-            value_dict = {'custom_thumb_url': custom_thumb,
-                          'custom_art_url': custom_art,
-                          'keep_history': keep_history}
+            value_dict = {}
+
+            if custom_thumb is not None:
+                value_dict['custom_thumb_url'] = custom_thumb
+            if custom_art is not None:
+                value_dict['custom_art_url'] = custom_art
+            if keep_history is not None:
+                value_dict['keep_history'] = int(helpers.bool_true(keep_history))
+
             try:
                 monitor_db.upsert('library_sections', value_dict, key_dict)
             except Exception as e:
@@ -799,7 +805,7 @@ class Libraries(object):
                 return library_details
 
             else:
-                logger.warn("Tautulli Users :: Unable to retrieve library %s from database. Returning 'Local' library."
+                logger.warn("Tautulli Libraries :: Unable to retrieve library %s from database. Returning 'Local' library."
                             % section_id)
                 # If there is no library data we must return something
                 return default_return
@@ -1120,7 +1126,7 @@ class Libraries(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            if section_id and section_id.isdigit():
+            if section_id and str(section_id).isdigit():
                 query = "SELECT * FROM library_sections WHERE section_id = ?"
                 result = monitor_db.select(query=query, args=[section_id])
                 if result:

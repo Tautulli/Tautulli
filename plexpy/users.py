@@ -349,7 +349,7 @@ class Users(object):
 
         return dict
 
-    def set_config(self, user_id=None, friendly_name='', custom_thumb='', keep_history=1, allow_guest=1):
+    def set_config(self, user_id=None, friendly_name=None, custom_thumb=None, keep_history=None, allow_guest=None):
         if str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
@@ -358,11 +358,17 @@ class Users(object):
                 friendly_name = None
 
             key_dict = {'user_id': user_id}
-            value_dict = {'friendly_name': friendly_name,
-                          'custom_avatar_url': custom_thumb,
-                          'keep_history': keep_history,
-                          'allow_guest': allow_guest
-                          }
+            value_dict = {}
+
+            if friendly_name is not None:
+                value_dict['friendly_name'] = friendly_name
+            if custom_thumb is not None:
+                value_dict['custom_avatar_url'] = custom_thumb
+            if keep_history is not None:
+                value_dict['keep_history'] = int(helpers.bool_true(keep_history))
+            if allow_guest is not None:
+                value_dict['allow_guest'] = int(helpers.bool_true(allow_guest))
+
             try:
                 monitor_db.upsert('users', value_dict, key_dict)
             except Exception as e:
