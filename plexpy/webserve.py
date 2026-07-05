@@ -3846,7 +3846,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def set_mobile_device_config(self, mobile_device_id=None, **kwargs):
-        """ Configure an existing notification agent.
+        """ Configure an existing mobile device.
 
             ```
             Required parameters:
@@ -6713,7 +6713,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_newsletter_config(self, newsletter_id=None, **kwargs):
-        """ Get the configuration for an existing notification agent.
+        """ Get the configuration for an existing newsletter agent.
 
             ```
             Required parameters:
@@ -6765,7 +6765,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def add_newsletter_config(self, agent_id=None, **kwargs):
-        """ Add a new notification agent.
+        """ Add a new newsletter agent.
 
             ```
             Required parameters:
