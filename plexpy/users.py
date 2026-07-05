@@ -157,7 +157,6 @@ class Users(object):
                    "session_history_metadata.originally_available_at",
                    "session_history_metadata.guid",
                    "session_history_media_info.transcode_decision",
-                   "users.do_notify AS do_notify",
                    "users.keep_history AS keep_history",
                    "users.allow_guest AS allow_guest",
                    "users.is_active AS is_active"
@@ -228,7 +227,6 @@ class Users(object):
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
                    'transcode_decision': item['transcode_decision'],
-                   'do_notify': item['do_notify'],
                    'keep_history': item['keep_history'],
                    'allow_guest': item['allow_guest'],
                    'is_active': item['is_active']
@@ -351,7 +349,7 @@ class Users(object):
 
         return dict
 
-    def set_config(self, user_id=None, friendly_name='', custom_thumb='', do_notify=1, keep_history=1, allow_guest=1):
+    def set_config(self, user_id=None, friendly_name='', custom_thumb='', keep_history=1, allow_guest=1):
         if str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
@@ -362,7 +360,6 @@ class Users(object):
             key_dict = {'user_id': user_id}
             value_dict = {'friendly_name': friendly_name,
                           'custom_avatar_url': custom_thumb,
-                          'do_notify': do_notify,
                           'keep_history': keep_history,
                           'allow_guest': allow_guest
                           }
@@ -383,7 +380,6 @@ class Users(object):
                           'is_home_user': 0,
                           'is_allow_sync': 0,
                           'is_restricted': 0,
-                          'do_notify': 0,
                           'keep_history': 1,
                           'allow_guest': 0,
                           'deleted_user': 0,
@@ -444,7 +440,7 @@ class Users(object):
             query = "SELECT users.id AS row_id, users.user_id, username, friendly_name, " \
                     "thumb AS user_thumb, custom_avatar_url AS custom_thumb, " \
                     "email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
-                    "do_notify, keep_history, deleted_user, " \
+                    "keep_history, deleted_user, " \
                     "allow_guest, shared_libraries, %s AS last_seen " \
                     "FROM users %s " \
                     "WHERE %s COLLATE NOCASE" % (last_seen, join, where)
@@ -483,7 +479,6 @@ class Users(object):
                                 'is_home_user': item['is_home_user'],
                                 'is_allow_sync': item['is_allow_sync'],
                                 'is_restricted': item['is_restricted'],
-                                'do_notify': item['do_notify'],
                                 'keep_history': item['keep_history'],
                                 'deleted_user': item['deleted_user'],
                                 'allow_guest': item['allow_guest'],
@@ -674,7 +669,7 @@ class Users(object):
         try:
             query = "SELECT id AS row_id, user_id, username, friendly_name, thumb, custom_avatar_url, email, " \
                     "is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
-                    "do_notify, keep_history, allow_guest, shared_libraries, " \
+                    "keep_history, allow_guest, shared_libraries, " \
                     "filter_all, filter_movies, filter_tv, filter_music, filter_photos " \
                     "FROM users %s" % where
             result = monitor_db.select(query=query)
@@ -697,7 +692,6 @@ class Users(object):
                     'is_home_user': item['is_home_user'],
                     'is_allow_sync': item['is_allow_sync'],
                     'is_restricted': item['is_restricted'],
-                    'do_notify': item['do_notify'],
                     'keep_history': item['keep_history'],
                     'allow_guest': item['allow_guest'],
                     'shared_libraries': shared_libraries,
@@ -737,7 +731,7 @@ class Users(object):
                             % user_id)
                 try:
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 1, keep_history = 0, do_notify = 0 "
+                                      "SET deleted_user = 1, keep_history = 0 "
                                       "WHERE user_id = ?", [user_id])
                     return delete_success
                 except Exception as e:
@@ -756,7 +750,7 @@ class Users(object):
                 if result:
                     logger.info("Tautulli Users :: Restoring user with id %s to database." % user_id)
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 0, keep_history = 1, do_notify = 1 "
+                                      "SET deleted_user = 0, keep_history = 1 "
                                       "WHERE user_id = ?", [user_id])
                     return True
                 else:
@@ -768,7 +762,7 @@ class Users(object):
                 if result:
                     logger.info("Tautulli Users :: Restoring user with username %s to database." % username)
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 0, keep_history = 1, do_notify = 1 "
+                                      "SET deleted_user = 0, keep_history = 1 "
                                       "WHERE username = ?", [username])
                     return True
                 else:

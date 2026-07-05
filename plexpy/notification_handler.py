@@ -146,21 +146,6 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
 
     # Activity notifications
     if stream_data:
-        # Check if notifications enabled for user and library
-        # user_data = users.Users()
-        # user_details = user_data.get_details(user_id=stream_data['user_id'])
-        #
-        # library_data = libraries.Libraries()
-        # library_details = library_data.get_details(section_id=stream_data['section_id'])
-
-        # if not user_details['do_notify']:
-        #     logger.debug("Tautulli NotificationHandler :: Notifications for user '%s' are disabled." % user_details['username'])
-        #     return False
-        #
-        # elif not library_details['do_notify'] and notify_action not in ('on_concurrent', 'on_newdevice'):
-        #     logger.debug("Tautulli NotificationHandler :: Notifications for library '%s' are disabled." % library_details['section_name'])
-        #     return False
-
         if notify_action == 'on_concurrent':
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_current_activity()
@@ -209,14 +194,6 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
 
     # Recently Added notifications
     elif timeline_data:
-
-        # Check if notifications enabled for library
-        # library_data = libraries.Libraries()
-        # library_details = library_data.get_details(section_id=timeline_data['section_id'])
-        #
-        # if not library_details['do_notify_created']:
-        #     # logger.debug("Tautulli NotificationHandler :: Notifications for library '%s' is disabled." % library_details['section_name'])
-        #     return False
 
         evaluated = True
 

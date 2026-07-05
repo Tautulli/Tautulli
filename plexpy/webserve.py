@@ -479,8 +479,6 @@ class WebInterface(object):
                         [{"child_count": 3745,
                           "content_rating": "TV-MA",
                           "count": 62,
-                          "do_notify": 1,
-                          "do_notify_created": 1,
                           "duration": 1578037,
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "histroy_row_id": 1128,
@@ -645,8 +643,6 @@ class WebInterface(object):
         """
         custom_thumb = kwargs.get('custom_thumb', '')
         custom_art = kwargs.get('custom_art', '')
-        do_notify = kwargs.get('do_notify', 0)
-        do_notify_created = kwargs.get('do_notify_created', 0)
         keep_history = kwargs.get('keep_history', 0)
 
         if section_id:
@@ -655,8 +651,6 @@ class WebInterface(object):
                 library_data.set_config(section_id=section_id,
                                         custom_thumb=custom_thumb,
                                         custom_art=custom_art,
-                                        do_notify=do_notify,
-                                        do_notify_created=do_notify_created,
                                         keep_history=keep_history)
 
                 return "Successfully updated library."
@@ -960,8 +954,6 @@ class WebInterface(object):
                     {"child_count": null,
                      "count": 887,
                      "deleted_section": 0,
-                     "do_notify": 1,
-                     "do_notify_created": 1,
                      "is_active": 1,
                      "keep_history": 1,
                      "last_accessed": 1462693216,
@@ -1259,7 +1251,6 @@ class WebInterface(object):
                      "recordsFiltered": 10,
                      "data":
                         [{"allow_guest": 1,
-                          "do_notify": 1,
                           "duration": 2998290,
                           "email": "Jon.Snow.1337@CastleBlack.com",
                           "friendly_name": "Jon Snow",
@@ -1390,7 +1381,6 @@ class WebInterface(object):
         """
         friendly_name = kwargs.get('friendly_name', '')
         custom_thumb = kwargs.get('custom_thumb', '')
-        do_notify = kwargs.get('do_notify', 0)
         keep_history = kwargs.get('keep_history', 0)
         allow_guest = kwargs.get('allow_guest', 0)
 
@@ -1400,7 +1390,6 @@ class WebInterface(object):
                 user_data.set_config(user_id=user_id,
                                      friendly_name=friendly_name,
                                      custom_thumb=custom_thumb,
-                                     do_notify=do_notify,
                                      keep_history=keep_history,
                                      allow_guest=allow_guest)
                 status_message = "Successfully updated user."
@@ -1645,7 +1634,6 @@ class WebInterface(object):
                 json:
                     {"allow_guest": 1,
                      "deleted_user": 0,
-                     "do_notify": 1,
                      "email": "Jon.Snow.1337@CastleBlack.com",
                      "friendly_name": "Jon Snow",
                      "is_active": 1,
@@ -5898,7 +5886,6 @@ class WebInterface(object):
                              "directors": [
                                  "Jeremy Podeswa"
                              ],
-                             "do_notify": 0,
                              "duration": "2998272",
                              "email": "Jon.Snow.1337@CastleBlack.com",
                              "file": "/media/TV Shows/Game of Thrones/Season 06/Game of Thrones - S06E01 - The Red Woman.mkv",
@@ -6215,7 +6202,6 @@ class WebInterface(object):
             Returns:
                 json:
                     [{"allow_guest": 1,
-                      "do_notify": 1,
                       "email": "Jon.Snow.1337@CastleBlack.com",
                       "filter_all": "",
                       "filter_movies": "",
