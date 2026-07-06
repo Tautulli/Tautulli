@@ -23,6 +23,7 @@ import os
 import re
 import time
 import traceback
+from hmac import compare_digest
 
 import cherrypy
 import xmltodict
@@ -120,7 +121,8 @@ class API2(object):
             self._api_app = True
 
         if plexpy.CONFIG.API_ENABLED and not self._api_msg or self._api_cmd in ('docs', 'docs_md'):
-            if not self._api_app and self._api_apikey == plexpy.CONFIG.API_KEY:
+            if not self._api_app and isinstance(self._api_apikey, str) and \
+                    compare_digest(self._api_apikey.encode('utf-8'), plexpy.CONFIG.API_KEY.encode('utf-8')):
                 self._api_authenticated = True
 
             elif self._api_app and mobile_app.get_temp_device_token(self._api_apikey) and \
