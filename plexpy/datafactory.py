@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -361,19 +361,21 @@ class DataFactory(object):
         where_timeframe = ''
         where_timeframe_args = []
         if before:
-            where_timeframe += "AND strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime')) <= ? "
-            where_timeframe_args.append(before)
+            where_timeframe += "AND session_history.started <= ? "
+            before_timestamp = helpers.YMD_to_timestamp(before)
+            where_timeframe_args.append(before_timestamp)
             if not after:
-                timestamp = helpers.YMD_to_timestamp(before) - time_range * 24 * 60 * 60
+                after = helpers.YMD_to_timestamp(before) - time_range * 24 * 60 * 60
                 where_timeframe += "AND session_history.stopped >= ? "
-                where_timeframe_args.append(timestamp)
+                where_timeframe_args.append(after)
         if after:
-            where_timeframe += "AND strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime')) >= ? "
-            where_timeframe_args.append(after)
+            where_timeframe += "AND session_history.started >= ? "
+            after_timestamp = helpers.YMD_to_timestamp(after)
+            where_timeframe_args.append(after_timestamp)
             if not before:
-                timestamp = helpers.YMD_to_timestamp(after) + time_range * 24 * 60 * 60
+                before = helpers.YMD_to_timestamp(after) + time_range * 24 * 60 * 60
                 where_timeframe += "AND session_history.stopped <= ? "
-                where_timeframe_args.append(timestamp)
+                where_timeframe_args.append(before)
         if not (before and after):
             timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
             where_timeframe += "AND session_history.stopped >= ? "

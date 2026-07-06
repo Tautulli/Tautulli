@@ -226,7 +226,7 @@ def now(sep=False):
 
 
 def YMD_to_timestamp(ymd):
-    return datetime.strptime(ymd, "%Y-%m-%d").timestamp()
+    return datetime.strptime(ymd, "%Y-%m-%d").astimezone().timestamp()
 
 
 def timestamp_to_YMDHMS(ts, sep=False, ymd=False):

@@ -2024,13 +2024,13 @@ class WebInterface(object):
             if start_date:
                 custom_where.append(["strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime'))", start_date])
         if 'before' in kwargs:
-            before = helpers.split_strip(kwargs.pop('before', ''))
+            before = [helpers.YMD_to_timestamp(t) for t in helpers.split_strip(kwargs.pop('before', ''))]
             if before:
-                custom_where.append(["strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime')) <", before])
+                custom_where.append(["started <", before])
         if 'after' in kwargs:
-            after = helpers.split_strip(kwargs.pop('after', ''))
+            after = [helpers.YMD_to_timestamp(t) for t in helpers.split_strip(kwargs.pop('after', ''))]
             if after:
-                custom_where.append(["strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime')) >", after])
+                custom_where.append(["started >", after])
         if 'reference_id' in kwargs:
             reference_id = helpers.split_strip(kwargs.pop('reference_id', ''))
             if reference_id:
