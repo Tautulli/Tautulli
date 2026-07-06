@@ -213,6 +213,12 @@ def integrity_check():
     return result
 
 
+def quick_check():
+    monitor_db = MonitorDatabase()
+    result = monitor_db.select_single("PRAGMA quick_check")
+    return result
+
+
 def clear_table(table=None):
     if table:
         monitor_db = MonitorDatabase()
@@ -336,7 +342,7 @@ def make_backup(cleanup=False, scheduler=False):
     """ Makes a backup of db, removes all but the last 5 backups """
 
     # Check the integrity of the database first
-    integrity = (integrity_check()['integrity_check'] == 'ok')
+    integrity = (quick_check()['quick_check'] == 'ok')
 
     corrupt = ''
     if not integrity:
@@ -354,11 +360,19 @@ def make_backup(cleanup=False, scheduler=False):
     if not os.path.exists(backup_folder):
         os.makedirs(backup_folder)
 
+    snapshot = os.path.join(backup_folder, 'tautulli.snapshot.db')
+    dest = sqlite3.connect(snapshot)
     db = MonitorDatabase()
-    db.connection.execute("BEGIN IMMEDIATE")
+    db.connection.backup(dest)
+    dest.close()
+
     with zipfile.ZipFile(backup_file_fp, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        zipf.write(db_filename(), arcname=FILENAME)
-    db.connection.rollback()
+        zipf.write(snapshot, arcname=FILENAME)
+
+    try:
+        os.remove(snapshot)
+    except OSError as e:
+        logger.error("Tautulli Database :: Failed to delete %s from the backup folder: %s" % (snapshot, e))
 
     # Only cleanup if the database integrity is okay
     if cleanup and integrity:
