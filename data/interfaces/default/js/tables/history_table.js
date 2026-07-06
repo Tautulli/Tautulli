@@ -481,6 +481,9 @@ function childTableOptions(rowData) {
                 grouping: false,
                 reference_id: rowData['reference_id']
             };
+        },
+        error: function(xhr, error, thrown) {
+            showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
         }
     }
     history_child_options.drawCallback = function (settings) {

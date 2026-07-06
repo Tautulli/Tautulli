@@ -376,6 +376,9 @@ function childTableOptionsMedia(rowData) {
                 rating_key: rowData['rating_key'],
                 refresh: refresh_child_tables
             };
+        },
+        error: function(xhr, error, thrown) {
+            showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
         }
     }
     media_info_table_options.drawCallback = function (settings) {

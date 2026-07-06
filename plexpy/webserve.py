@@ -534,6 +534,10 @@ class WebInterface(object):
         library_data = libraries.Libraries()
         library_list = library_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
 
+        if library_list is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve library list.'}
+
         return library_list
 
     @cherrypy.expose
@@ -1310,6 +1314,10 @@ class WebInterface(object):
         user_data = users.Users()
         user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
 
+        if user_list is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve user list.'}
+
         return user_list
 
     @cherrypy.expose
@@ -1523,6 +1531,10 @@ class WebInterface(object):
         user_data = users.Users()
         history = user_data.get_datatables_unique_ips(user_id=user_id, kwargs=kwargs)
 
+        if history is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve user IP history.'}
+
         return history
 
     @cherrypy.expose
@@ -1587,6 +1599,10 @@ class WebInterface(object):
         history = user_data.get_datatables_user_login(user_id=user_id,
                                                       jwt_token=jwt_token,
                                                       kwargs=kwargs)
+
+        if history is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve user login history.'}
 
         return history
 
@@ -2038,6 +2054,10 @@ class WebInterface(object):
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
                                                       grouping=grouping, include_activity=include_activity)
+
+        if history is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve history.'}
 
         return history
 
@@ -2972,6 +2992,10 @@ class WebInterface(object):
         data_factory = datafactory.DataFactory()
         notification_logs = data_factory.get_notification_log(kwargs=kwargs)
 
+        if notification_logs is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve notification logs.'}
+
         return notification_logs
 
     @cherrypy.expose
@@ -3035,6 +3059,10 @@ class WebInterface(object):
 
         data_factory = datafactory.DataFactory()
         newsletter_logs = data_factory.get_newsletter_log(kwargs=kwargs)
+
+        if newsletter_logs is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve newsletter logs.'}
 
         return newsletter_logs
 
@@ -7102,6 +7130,10 @@ class WebInterface(object):
                                                user_id=user_id,
                                                rating_key=rating_key,
                                                kwargs=kwargs)
+
+        if result is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Failed to retrieve export data.'}
 
         return result
 

@@ -104,11 +104,6 @@ class Users(object):
         pass
 
     def get_datatables_list(self, kwargs=None, grouping=None):
-        default_return = {'recordsFiltered': 0,
-                          'recordsTotal': 0,
-                          'draw': 0,
-                          'data': []}
-
         data_tables = datatables.DataTables()
 
         custom_where = [['users.deleted_user', 0]]
@@ -178,7 +173,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_list: %s." % e)
-            return default_return
+            return
 
         users = query['result']
 
@@ -243,13 +238,13 @@ class Users(object):
         return dict
 
     def get_datatables_unique_ips(self, user_id=None, kwargs=None):
-        default_return = {'recordsFiltered': 0,
-                          'recordsTotal': 0,
-                          'draw': 0,
-                          'data': []}
-
         if not session.allow_session_user(user_id):
-            return default_return
+            return {
+                'recordsFiltered': 0,
+                'recordsTotal': 0,
+                'draw': 0,
+                'data': []
+            }
 
         data_tables = datatables.DataTables()
 
@@ -300,7 +295,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_unique_ips: %s." % e)
-            return default_return
+            return
 
         results = query['result']
 
@@ -928,13 +923,13 @@ class Users(object):
         return True
 
     def get_datatables_user_login(self, user_id=None, jwt_token=None, kwargs=None):
-        default_return = {'recordsFiltered': 0,
-                          'recordsTotal': 0,
-                          'draw': 0,
-                          'data': []}
-
         if not session.allow_session_user(user_id):
-            return default_return
+            return {
+                'recordsFiltered': 0,
+                'recordsTotal': 0,
+                'draw': 0,
+                'data': []
+            }
 
         data_tables = datatables.DataTables()
 
@@ -969,7 +964,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
-            return default_return
+            return
 
         results = query['result']
 

@@ -293,11 +293,6 @@ class Libraries(object):
         pass
 
     def get_datatables_list(self, kwargs=None, grouping=None):
-        default_return = {'recordsFiltered': 0,
-                          'recordsTotal': 0,
-                          'draw': 0,
-                          'data': []}
-
         data_tables = datatables.DataTables()
 
         custom_where = [['library_sections.deleted_section', 0]]
@@ -364,7 +359,7 @@ class Libraries(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
-            return default_return
+            return
 
         result = query['result']
 

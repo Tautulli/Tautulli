@@ -219,12 +219,7 @@ class DataFactory(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_history: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': [],
-                    'filter_duration': '0',
-                    'total_duration': '0'}
+            return
 
         history = query['result']
 
@@ -2290,10 +2285,7 @@ class DataFactory(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_notification_log: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': []}
+            return
 
         notifications = query['result']
 
@@ -2368,10 +2360,7 @@ class DataFactory(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_newsletter_log: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': []}
+            return
 
         newsletters = query['result']
 

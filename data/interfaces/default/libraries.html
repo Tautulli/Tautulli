@@ -88,6 +88,9 @@
                 return { 
                     json_data: JSON.stringify(d)
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
 

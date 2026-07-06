@@ -2582,11 +2582,6 @@ def cancel_exports():
 
 
 def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=None):
-    default_return = {'recordsFiltered': 0,
-                      'recordsTotal': 0,
-                      'draw': 0,
-                      'data': []}
-
     data_tables = datatables.DataTables()
 
     custom_where = []
@@ -2633,7 +2628,7 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                                       kwargs=kwargs)
     except Exception as e:
         logger.warn("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s.", e)
-        return default_return
+        return
 
     result = query['result']
 
