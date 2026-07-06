@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -1122,7 +1122,10 @@ class DataFactory(object):
             return home_stats[0]
         return home_stats
 
-    def get_library_stats(self, library_cards=[]):
+    def get_library_stats(self, library_cards=None):
+        if library_cards is None:
+            library_cards = []
+
         monitor_db = database.MonitorDatabase()
 
         if session.get_session_shared_libraries():
@@ -1658,6 +1661,9 @@ class DataFactory(object):
             return []
 
     def get_total_duration(self, custom_where=None):
+        if custom_where is None:
+            custom_where = []
+
         monitor_db = database.MonitorDatabase()
 
         join_tables = set()

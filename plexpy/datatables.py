@@ -32,20 +32,39 @@ class DataTables(object):
     def ssp_query(self,
                   table_name=None,
                   table_name_union=None,
-                  columns=[],
-                  columns_union=[],
-                  custom_where=[],
-                  custom_where_union=[],
-                  group_by=[],
-                  group_by_union=[],
-                  join_types=[],
-                  join_tables=[],
-                  join_evals=[],
+                  columns=None,
+                  columns_union=None,
+                  custom_where=None,
+                  custom_where_union=None,
+                  group_by=None,
+                  group_by_union=None,
+                  join_types=None,
+                  join_tables=None,
+                  join_evals=None,
                   kwargs=None):
 
         if not table_name:
             logger.error('Tautulli DataTables :: No table name received.')
             return None
+        
+        if columns is None:
+            columns = []
+        if columns_union is None:
+            columns_union = []
+        if custom_where is None:
+            custom_where = []
+        if custom_where_union is None:
+            custom_where_union = []
+        if group_by is None:
+            group_by = []
+        if group_by_union is None:
+            group_by_union = []
+        if join_types is None:
+            join_types = []
+        if join_tables is None:
+            join_tables = []
+        if join_evals is None:
+            join_evals = []
 
         # Fetch all our parameters
         if kwargs.get('json_data'):
@@ -122,7 +141,10 @@ class DataTables(object):
         return output
 
 
-def build_grouping(group_by=[]):
+def build_grouping(group_by=None):
+    if group_by is None:
+        group_by = []
+
     # Build grouping
     group = ''
 
@@ -134,7 +156,14 @@ def build_grouping(group_by=[]):
     return group
 
 
-def build_join(join_types=[], join_tables=[], join_evals=[]):
+def build_join(join_types=None, join_tables=None, join_evals=None):
+    if join_types is None:
+        join_types = []
+    if join_tables is None:
+        join_tables = []
+    if join_evals is None:
+        join_evals = []
+
     # Build join parameters
     join = ''
 
@@ -147,7 +176,10 @@ def build_join(join_types=[], join_tables=[], join_evals=[]):
     return join
 
 
-def build_custom_where(custom_where=[]):
+def build_custom_where(custom_where=None):
+    if custom_where is None:
+        custom_where = []
+
     # Build custom where parameters
     c_where = ''
     args = []
@@ -196,7 +228,14 @@ def build_custom_where(custom_where=[]):
     return c_where, args
 
 
-def build_order(order_param=[], columns=[], dt_columns=[]):
+def build_order(order_param=None, columns=None, dt_columns=None):
+    if order_param is None:
+        order_param = []
+    if columns is None:
+        columns = []
+    if dt_columns is None:
+        dt_columns = []
+
     # Build ordering
     order = ''
 
@@ -224,7 +263,12 @@ def build_order(order_param=[], columns=[], dt_columns=[]):
     return order
 
 
-def build_where(search_param='', columns=[], dt_columns=[]):
+def build_where(search_param='', columns=None, dt_columns=None):
+    if columns is None:
+        columns = []
+    if dt_columns is None:
+        dt_columns = []
+
     # Build where parameters
     where = ''
     args = []
