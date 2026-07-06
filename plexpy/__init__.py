@@ -244,14 +244,12 @@ def initialize(config_file):
             CONFIG.NEWSLETTER_DIR, os.path.join(DATA_DIR, 'newsletters'), 'newsletters')
 
         # Initialize the database
-        logger.info("Checking if the database upgrades are required...")
         try:
             dbcheck()
         except Exception as e:
             logger.error("Can't connect to the database: %s" % e)
 
         # Perform upgrades
-        logger.info("Checking if configuration upgrades are required...")
         try:
             upgrade()
         except Exception as e:
@@ -601,6 +599,8 @@ def sig_handler(signum=None, frame=None):
 
 
 def dbcheck():
+    logger.info("Checking if the database upgrades are required...")
+
     conn_db = sqlite3.connect(DB_FILE)
     c_db = conn_db.cursor()
 
@@ -2703,7 +2703,19 @@ def dbcheck():
         logger.debug("User 'Local' does not exist. Adding user.")
         c_db.execute("INSERT INTO users (user_id, username) VALUES (0, 'Local')")
 
+    logger.info("Database upgrade complete.")
+
+    logger.info("Creating database indices....")
+
     # Create session_history table indices
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_started "
+        "ON session_history (started)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_stopped "
+        "ON session_history (stopped)"
+    )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_media_type "
         "ON session_history (media_type)"
@@ -2735,6 +2747,10 @@ def dbcheck():
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_user_id_stopped "
         "ON session_history (user_id, stopped ASC)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_user_id_rating_key "
+        "ON session_history (user_id, rating_key)"
     )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_section_id "
@@ -2769,6 +2785,20 @@ def dbcheck():
         "ON session_history_media_info (transcode_decision)"
     )
 
+    # Create notify_log table indices
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_notify_log_session "
+        "ON notify_log (session_key, rating_key, user_id)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_notify_log_timestamp "
+        "ON notify_log (timestamp)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_notify_log_action_tag "
+        "ON notify_log (notify_action, tag)"
+    )
+
     # Create lookup table indices
     c_db.execute(
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_tvmaze_lookup "
@@ -2798,6 +2828,8 @@ def dbcheck():
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_continued "
         "ON sessions_continued (user_id, machine_id, media_type)"
     )
+
+    logger.info("Database indices created.")
 
     # Set database version
     result = c_db.execute("SELECT value FROM version_info WHERE key = 'version'").fetchone()
@@ -2838,10 +2870,14 @@ def dbcheck():
 
 
 def upgrade():
+    logger.info("Checking if the configurastion upgrades are required...")
+
     if CONFIG.UPGRADE_FLAG == 0:
         mobile_app.revalidate_onesignal_ids()
         CONFIG.UPGRADE_FLAG = 1
         CONFIG.write()
+
+    logger.info("Configuration upgrade complete.")
 
     return
 
