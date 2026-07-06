@@ -28,10 +28,10 @@
 
 <%def name="javascriptIncludes()">
 <%
-    import json
+    from plexpy.helpers import json_dumps_for_html
 %>
 <script>
-    var query_string = ${json.dumps(query) | n};
+    var query_string = ${json_dumps_for_html(query) | n};
 
     $('#query').val(query_string);
     if ($(window).width() >= 768) {
