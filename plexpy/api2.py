@@ -15,14 +15,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from hashing_passwords import check_hash
 from io import open
 
-import hashlib
 import inspect
 import json
 import os
-import random
 import re
 import time
 import traceback
@@ -99,8 +96,8 @@ class API2(object):
             self._api_msg = 'API key not generated correctly'
             self._api_response_code = 401
 
-        elif 'apikey' not in kwargs:
-            self._api_msg = 'Parameter apikey is required'
+        elif 'apikey' not in kwargs and 'X-Api-Key' not in cherrypy.request.headers:
+            self._api_msg = 'Parameter apikey is required or X-Api-Key header is required'
             self._api_response_code = 401
 
         elif 'cmd' not in kwargs:
@@ -112,7 +109,7 @@ class API2(object):
             self._api_response_code = 400
 
         self._api_callback = kwargs.pop('callback', None)
-        self._api_apikey = kwargs.pop('apikey', None)
+        self._api_apikey = kwargs.pop('apikey', cherrypy.request.headers.get('X-Api-Key', None))
         self._api_cmd = kwargs.pop('cmd', None)
         self._api_debug = kwargs.pop('debug', False)
         self._api_profileme = kwargs.pop('profileme', None)
@@ -572,10 +569,25 @@ class API2(object):
         head = '''## General structure
 The API endpoint is
 ```
+http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?cmd=$command
+```
+
+The API key can be passed as an `X-Api-Key` header or as an `apikey` parameter. The header is preferred for security reasons.
+```
+http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?cmd=$command
+HEADER: X-Api-Key: $apikey
+```
+Or
+```
 http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?apikey=$apikey&cmd=$command
 ```
 
 Example:
+```
+http://localhost:8181/api/v2?cmd=get_metadata&rating_key=153037
+HEADER: X-Api-Key: 66198313a092496b8a725867d2223b5f
+```
+Or
 ```
 http://localhost:8181/api/v2?apikey=66198313a092496b8a725867d2223b5f&cmd=get_metadata&rating_key=153037
 ```

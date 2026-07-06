@@ -212,7 +212,7 @@ def initialize(options):
         },
         '/api': {
             'tools.auth_basic.on': False,
-            'tools.sessions.on': True,
+            'tools.sessions.on': False,
         },
         '/status': {
             'tools.auth_basic.on': False,
