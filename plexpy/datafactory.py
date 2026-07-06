@@ -219,12 +219,7 @@ class DataFactory(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_history: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': [],
-                    'filter_duration': '0',
-                    'total_duration': '0'}
+            return
 
         history = query['result']
 
@@ -366,20 +361,23 @@ class DataFactory(object):
         where_timeframe = ''
         where_timeframe_args = []
         if before:
-            where_timeframe += "AND strftime('%%Y-%%m-%%d', datetime(started, 'unixepoch', 'localtime')) <= '?' "
+            where_timeframe += "AND strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime')) <= ? "
             where_timeframe_args.append(before)
             if not after:
                 timestamp = helpers.YMD_to_timestamp(before) - time_range * 24 * 60 * 60
-                where_timeframe += "AND session_history.stopped >= %s " % timestamp
+                where_timeframe += "AND session_history.stopped >= ? "
+                where_timeframe_args.append(timestamp)
         if after:
-            where_timeframe += "AND strftime('%%Y-%%m-%%d', datetime(started, 'unixepoch', 'localtime')) >= '?' "
+            where_timeframe += "AND strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime')) >= ? "
             where_timeframe_args.append(after)
             if not before:
                 timestamp = helpers.YMD_to_timestamp(after) + time_range * 24 * 60 * 60
-                where_timeframe += "AND session_history.stopped <= %s " % timestamp
+                where_timeframe += "AND session_history.stopped <= ? "
+                where_timeframe_args.append(timestamp)
         if not (before and after):
             timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
-            where_timeframe += "AND session_history.stopped >= %s" % timestamp
+            where_timeframe += "AND session_history.stopped >= ? "
+            where_timeframe_args.append(timestamp)
 
         where_id = ''
         where_id_args = []
@@ -1793,7 +1791,7 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         if not delete_all:
-            service = helpers.get_img_service()
+            service = service or helpers.get_img_service()
 
         if not rating_key and not delete_all:
             logger.error("Tautulli DataFactory :: Unable to delete hosted images: rating_key not provided.")
@@ -1821,9 +1819,10 @@ class DataFactory(object):
 
             logger.info("Tautulli DataFactory :: Deleting Imgur info%s from the database."
                         % log_msg)
-            result = monitor_db.action("DELETE FROM imgur_lookup WHERE img_hash "
-                                       "IN (SELECT img_hash FROM image_hash_lookup %s)" % where,
-                                       args)
+            monitor_db.action("DELETE FROM imgur_lookup WHERE img_hash "
+                              "IN (SELECT img_hash FROM image_hash_lookup %s)" % where,
+                              args)
+            return service
 
         elif service.lower() == 'cloudinary':
             # Delete from Cloudinary
@@ -1840,15 +1839,15 @@ class DataFactory(object):
 
             logger.info("Tautulli DataFactory :: Deleting Cloudinary info%s from the database."
                         % log_msg)
-            result = monitor_db.action("DELETE FROM cloudinary_lookup WHERE img_hash "
-                                       "IN (SELECT img_hash FROM image_hash_lookup %s)" % where,
-                                       args)
+            monitor_db.action("DELETE FROM cloudinary_lookup WHERE img_hash "
+                              "IN (SELECT img_hash FROM image_hash_lookup %s)" % where,
+                              args)
+            return service
 
         else:
             logger.error("Tautulli DataFactory :: Unable to delete hosted images: invalid service '%s' provided."
                          % service)
-
-        return service
+            return None
 
     def get_poster_info(self, rating_key='', metadata=None, service=None):
         poster_key = ''
@@ -2286,10 +2285,7 @@ class DataFactory(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_notification_log: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': []}
+            return
 
         notifications = query['result']
 
@@ -2364,10 +2360,7 @@ class DataFactory(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_newsletter_log: %s." % e)
-            return {'recordsFiltered': 0,
-                    'recordsTotal': 0,
-                    'draw': 0,
-                    'data': []}
+            return
 
         newsletters = query['result']
 

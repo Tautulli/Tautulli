@@ -534,6 +534,7 @@ attr_val_is_uri = frozenset((
     (None, 'dynsrc'),
     (None, 'lowsrc'),
     (None, 'ping'),
+    (None, 'formaction'),
     (namespaces['xlink'], 'href'),
     (namespaces['xml'], 'base'),
 ))

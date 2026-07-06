@@ -5,6 +5,7 @@ sys.modules['FixTk'] = None
 
 import os
 VERSION = os.getenv('VERSION', '0.0.0')
+ARCH = os.getenv('ARCH', 'arm64')
 
 block_cipher = None
 
@@ -36,7 +37,7 @@ exe = EXE(
     console=False,
     icon='../data/interfaces/default/images/logo-circle.icns',
     contents_directory='.',
-    target_arch='universal2'
+    target_arch=ARCH
 )
 coll = COLLECT(
     exe,

@@ -700,6 +700,20 @@ def sanitize(obj):
     else:
         return obj
 
+def json_dumps_for_html(obj, **kwargs):
+    """ Serialize obj to JSON that is safe to embed inside an HTML <script> block.
+
+    json.dumps does not escape '<', '>' or '&', so a value containing '</script>'
+    would otherwise break out of the script element and allow HTML/JS injection.
+    These characters are replaced with their equivalent \\uXXXX escapes, which are
+    parsed back to the original characters by the JS engine but are inert to the
+    HTML parser. The line/paragraph separators are already escaped by json.dumps
+    (ensure_ascii defaults to True).
+    """
+    return (json.dumps(obj, **kwargs)
+            .replace('<', '\\u003c')
+            .replace('>', '\\u003e')
+            .replace('&', '\\u0026'))
 
 def is_public_ip(host):
     ip = is_valid_ip(get_ip(host))
@@ -785,7 +799,7 @@ def get_img_service(include_self=False):
     elif plexpy.CONFIG.NOTIFY_UPLOAD_POSTERS == 3:
         return 'cloudinary'
     else:
-        return None
+        return ''
 
 
 def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):

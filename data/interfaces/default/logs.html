@@ -257,6 +257,9 @@
                         json_data: JSON.stringify(d),
                         log_level: selected_log_level
                     };
+                },
+                error: function(xhr, error, thrown) {
+                    showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
                 }
             };
             log_table = $('#' + logfile + '_log_table').DataTable(log_table_options);
@@ -273,6 +276,9 @@
                 type: 'POST',
                 data: {
                     logfile: logfile
+                },
+                error: function(xhr, error, thrown) {
+                    showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
                 }
             };
             plex_log_table_options.initComplete = bindLogLevelFilter;
@@ -287,6 +293,9 @@
                     return {
                         json_data: JSON.stringify(d)
                     };
+                },
+                error: function(xhr, error, thrown) {
+                    showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
                 }
             };
             notification_log_table = $('#notification_log_table').DataTable(notification_log_table_options);
@@ -299,6 +308,9 @@
                     return {
                         json_data: JSON.stringify(d)
                     };
+                },
+                error: function(xhr, error, thrown) {
+                    showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
                 }
             };
             newsletter_log_table = $('#newsletter_log_table').DataTable(newsletter_log_table_options);
@@ -313,6 +325,9 @@
                     return {
                         json_data: JSON.stringify(d)
                     };
+                },
+                error: function(xhr, error, thrown) {
+                    showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
                 }
             };
             login_log_table = $('#login_log_table').DataTable(login_log_table_options);

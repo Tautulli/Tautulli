@@ -17,7 +17,6 @@ user_thumb          Returns the thumbnail for the user.
 is_home_user        Returns bool value for whether the user is part of a Plex Home.
 is_allow_sync       Returns bool value for whether the user has sync rights.
 is_restricted       Returns bool value for whether the user account is restricted.
-do_notify           Returns bool value for whether to send notifications for the user.
 keep_history        Returns bool value for whether to keep history for the user.
 
 DOCUMENTATION :: END
@@ -471,7 +470,6 @@ DOCUMENTATION :: END
 <script src="${http_root}js/tables/playlists_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/user_ips.js${cache_param}"></script>
-<script src="${http_root}js/tables/sync_table.js${cache_param}"></script>
 <script src="${http_root}js/tables/login_logs.js${cache_param}"></script>
 <script>
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -492,6 +490,9 @@ DOCUMENTATION :: END
                     media_type: media_type,
                     transcode_decision: transcode_decision
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         history_table = $('#history_table-UID-${data["user_id"]}').DataTable(history_table_options);
@@ -555,6 +556,9 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     user_id: user_id
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         playlists_table = $('#playlists_table-SID-${data["user_id"]}').DataTable(playlists_table_options);
@@ -575,25 +579,6 @@ DOCUMENTATION :: END
         playlists_table.draw();
     });
 
-    function loadSyncTable() {
-        // Build user sync table
-        sync_table_options.ajax = {
-             url: 'get_sync?user_id=' + user_id,
-            type: 'POST'
-        };
-        sync_table = $('#sync_table-UID-${data["user_id"]}').DataTable(sync_table_options);
-        sync_table.column(2).visible(false);
-
-        var colvis_sync = new $.fn.dataTable.ColVis( sync_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0] } );
-        $( colvis_sync.button() ).appendTo('#button-bar-sync');
-
-        clearSearchButton('sync_table-UID-${data["user_id"]}', sync_table);
-    }
-
-    $("#refresh-syncs-list").click(function() {
-        sync_table.ajax.reload();
-    });
-
     function loadIPAddressTable() {
         // Build user IP table
         user_ip_table_options.ajax = {
@@ -604,6 +589,9 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     user_id: user_id
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         user_ip_table = $('#user_ip_table-UID-${data["user_id"]}').DataTable(user_ip_table_options);
@@ -634,6 +622,9 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify(d),
                     user_id: user_id
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         login_log_table = $('#login_log_table-UID-${data["user_id"]}').DataTable(login_log_table_options);
@@ -721,6 +712,9 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     user_id: user_id
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         export_table = $('#export_table-SID-${data["user_id"]}').DataTable(export_table_options);
@@ -813,55 +807,6 @@ DOCUMENTATION :: END
 
             history_to_delete = [];
             $('.history_table .delete-control').each(function() {
-                $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
-                $(this).removeClass('hidden');
-            });
-        }
-    });
-
-    $('#sync-row-edit-mode').on('click', function() {
-        if ($(this).hasClass('active')) {
-            $(this).tooltip('destroy');
-
-            if (syncs_to_delete.length > 0) {
-                $('#deleteCount').text(syncs_to_delete.length);
-                $('#deleteType').text('sync');
-                $('#confirm-modal-delete').modal();
-                $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                    syncs_to_delete.forEach(function(row, idx) {
-                        $.ajax({
-                            url: 'delete_sync_rows',
-                            type: 'POST',
-                            data: {
-                                client_id: row.client_id,
-                                sync_id: row.sync_id
-                            },
-                            async: true,
-                            success: function (data) {
-                                var msg = "Sync deleted";
-                                showMsg(msg, false, true, 2000);
-                            }
-                        });
-                    });
-                    sync_table.ajax.reload();
-                });
-            }
-
-            $('.sync_table .delete-control').each(function () {
-                $(this).addClass('hidden');
-                $('#sync-row-edit-mode-alert').fadeOut(200);
-            });
-
-        } else {
-            $(this).tooltip({
-                container: '.body-container',
-                placement: 'bottom',
-                title: 'Select syncs to delete. Data is deleted upon exiting delete mode.',
-                trigger: 'manual'
-            }).tooltip('show');
-
-            syncs_to_delete = [];
-            $('.sync_table .delete-control').each(function() {
                 $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                 $(this).removeClass('hidden');
             });

@@ -15,17 +15,15 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
-from hashing_passwords import check_hash
 from io import open
 
-import hashlib
 import inspect
 import json
 import os
-import random
 import re
 import time
 import traceback
+from hmac import compare_digest
 
 import cherrypy
 import xmltodict
@@ -99,8 +97,8 @@ class API2(object):
             self._api_msg = 'API key not generated correctly'
             self._api_response_code = 401
 
-        elif 'apikey' not in kwargs:
-            self._api_msg = 'Parameter apikey is required'
+        elif 'apikey' not in kwargs and 'X-Api-Key' not in cherrypy.request.headers:
+            self._api_msg = 'Parameter apikey is required or X-Api-Key header is required'
             self._api_response_code = 401
 
         elif 'cmd' not in kwargs:
@@ -112,7 +110,7 @@ class API2(object):
             self._api_response_code = 400
 
         self._api_callback = kwargs.pop('callback', None)
-        self._api_apikey = kwargs.pop('apikey', None)
+        self._api_apikey = kwargs.pop('apikey', cherrypy.request.headers.get('X-Api-Key', None))
         self._api_cmd = kwargs.pop('cmd', None)
         self._api_debug = kwargs.pop('debug', False)
         self._api_profileme = kwargs.pop('profileme', None)
@@ -123,7 +121,8 @@ class API2(object):
             self._api_app = True
 
         if plexpy.CONFIG.API_ENABLED and not self._api_msg or self._api_cmd in ('docs', 'docs_md'):
-            if not self._api_app and self._api_apikey == plexpy.CONFIG.API_KEY:
+            if not self._api_app and isinstance(self._api_apikey, str) and \
+                    compare_digest(self._api_apikey.encode('utf-8'), plexpy.CONFIG.API_KEY.encode('utf-8')):
                 self._api_authenticated = True
 
             elif self._api_app and mobile_app.get_temp_device_token(self._api_apikey) and \
@@ -221,6 +220,19 @@ class API2(object):
                     }
                     templog.append(d)
 
+        if search:
+            logger.api_debug("Tautulli APIv2 :: Searching log values for '%s'" % search)
+            tt = [d for d in templog if any(search.lower() in str(v).lower() for v in d.values())]
+            templog = tt
+
+        if regex:
+            tt = []
+            for l in templog:
+                stringdict = ' '.join('{}{}'.format(k, v) for k, v in l.items())
+                if reg.search(stringdict):
+                    tt.append(l)
+            templog = tt
+
         if order == 'desc':
             templog = templog[::-1]
 
@@ -231,23 +243,6 @@ class API2(object):
         if sort:
             logger.api_debug("Tautulli APIv2 :: Sorting log based on '%s'" % sort)
             templog = sorted(templog, key=lambda k: k[sort])
-
-        if search:
-            logger.api_debug("Tautulli APIv2 :: Searching log values for '%s'" % search)
-            tt = [d for d in templog for k, v in d.items() if search.lower() in v.lower()]
-
-            if len(tt):
-                templog = tt
-
-        if regex:
-            tt = []
-            for l in templog:
-                stringdict = ' '.join('{}{}'.format(k, v) for k, v in l.items())
-                if reg.search(stringdict):
-                    tt.append(l)
-
-            if len(tt):
-                templog = tt
 
         return templog
 
@@ -501,6 +496,9 @@ class API2(object):
             self._api_result_type = 'error'
             return
 
+        # Remove notify_action if present, as it will be set to 'api' in the notify call
+        kwargs.pop('notify_action', None)
+
         logger.api_debug('Tautulli APIv2 :: Sending notification.')
         success = notification_handler.notify(notifier_id=notifier_id,
                                               notify_action='api',
@@ -569,10 +567,25 @@ class API2(object):
         head = '''## General structure
 The API endpoint is
 ```
+http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?cmd=$command
+```
+
+The API key can be passed as an `X-Api-Key` header or as an `apikey` parameter. The header is preferred for security reasons.
+```
+http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?cmd=$command
+HEADER: X-Api-Key: $apikey
+```
+Or
+```
 http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?apikey=$apikey&cmd=$command
 ```
 
 Example:
+```
+http://localhost:8181/api/v2?cmd=get_metadata&rating_key=153037
+HEADER: X-Api-Key: 66198313a092496b8a725867d2223b5f
+```
+Or
 ```
 http://localhost:8181/api/v2?apikey=66198313a092496b8a725867d2223b5f&cmd=get_metadata&rating_key=153037
 ```
@@ -762,7 +775,7 @@ General optional parameters:
 
         if self._api_result_type == 'success' and not self._api_response_code:
             self._api_response_code = 200
-        elif self._api_result_type == 'error' and self._api_response_code != 500:
+        elif self._api_result_type == 'error' and (not self._api_response_code or self._api_response_code < 400):
             self._api_response_code = 400
 
         if not self._api_response_code:

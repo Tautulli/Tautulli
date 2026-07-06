@@ -48,9 +48,7 @@ def build_url_re(tlds=TLDS, protocols=html5lib_shim.allowed_protocols):
         (?:[/?][^\s\{{\}}\|\\\^`<>"]*)?
             # /path/zz (excluding "unsafe" chars from RFC 3986,
             # except for # and ~, which happen in practice)
-        """.format(
-            "|".join(sorted(protocols)), "|".join(sorted(tlds))
-        ),
+        """.format("|".join(sorted(protocols)), "|".join(sorted(tlds))),
         re.IGNORECASE | re.VERBOSE | re.UNICODE,
     )
 
@@ -81,9 +79,7 @@ def build_email_re(tlds=TLDS):
         |^"([\001-\010\013\014\016-\037!#-\[\]-\177]
             |\\[\001-\011\013\014\016-\177])*"  # quoted-string
         )@(?:[A-Z0-9](?:[A-Z0-9-]{{0,61}}[A-Z0-9])?\.)+(?:{0}))  # domain
-        """.format(
-            "|".join(tlds)
-        ),
+        """.format("|".join(tlds)),
         re.IGNORECASE | re.MULTILINE | re.VERBOSE,
     )
 

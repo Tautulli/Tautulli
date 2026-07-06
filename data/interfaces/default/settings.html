@@ -5,7 +5,7 @@
 
     import plexpy
     from plexpy import common, notifiers, newsletters
-    from plexpy.helpers import anon_url, checked
+    from plexpy.helpers import anon_url, checked, json_dumps_for_html
 
     docker_setting = 'disabled' if plexpy.DOCKER else ''
     docker_msg = '<span class="setting-message small">(Controlled by Docker Container)</span>' if plexpy.DOCKER else ''
@@ -2829,7 +2829,7 @@ $(document).ready(function() {
         $('#home_sections').val(home_sections);
     }
 
-    var sec_cards = ${config['home_sections'] | n};
+    var sec_cards = JSON.parse(${json_dumps_for_html(config['home_sections']) | n});
     sec_cards.reverse().forEach(function (item) {
         $('#hsec-' + item).prop('checked', !$(this).prop('checked'));
         $('#hsec-' + item).closest('li.card').prependTo('#sortable_home_sections');
@@ -2855,8 +2855,8 @@ $(document).ready(function() {
         $('#home_stats_cards').val(home_stats_cards);
     }
 
-    var config_cards = ${config['home_stats_cards'] | n};
-    config_cards.reverse().forEach(function (item) {
+    var home_stats_cards = JSON.parse(${json_dumps_for_html(config['home_stats_cards']) | n});
+    home_stats_cards.reverse().forEach(function (item) {
         $('#hscard-' + item).prop('checked', !$(this).prop('checked'));
         $('#hscard-' + item).closest('li.card').prependTo('#sortable_home_stats_cards');
     });
@@ -2900,8 +2900,8 @@ $(document).ready(function() {
                     '</li>'
                 );
             }
-            var config_cards = ${config['home_library_cards'] | n};
-            config_cards.reverse().forEach(function (item) {
+            var home_library_cards = JSON.parse(${json_dumps_for_html(config['home_library_cards']) | n});
+            home_library_cards.reverse().forEach(function (item) {
                 $('#hlcard-' + item).prop('checked', !$(this).prop('checked'));
                 $('#hlcard-' + item).closest('li.card').prependTo('#sortable_home_library_cards');
             });

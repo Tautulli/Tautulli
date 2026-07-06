@@ -293,11 +293,6 @@ class Libraries(object):
         pass
 
     def get_datatables_list(self, kwargs=None, grouping=None):
-        default_return = {'recordsFiltered': 0,
-                          'recordsTotal': 0,
-                          'draw': 0,
-                          'data': []}
-
         data_tables = datatables.DataTables()
 
         custom_where = [['library_sections.deleted_section', 0]]
@@ -344,8 +339,6 @@ class Libraries(object):
                    "session_history_metadata.added_at",
                    "session_history_metadata.originally_available_at",
                    "session_history_metadata.guid",
-                   "library_sections.do_notify",
-                   "library_sections.do_notify_created",
                    "library_sections.keep_history",
                    "library_sections.is_active"
                    ]
@@ -366,7 +359,7 @@ class Libraries(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
-            return default_return
+            return
 
         result = query['result']
 
@@ -418,8 +411,6 @@ class Libraries(object):
                    'live': item['live'],
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
-                   'do_notify': item['do_notify'],
-                   'do_notify_created': item['do_notify_created'],
                    'keep_history': item['keep_history'],
                    'is_active': item['is_active']
                    }
@@ -748,17 +739,20 @@ class Libraries(object):
             except IOError as e:
                 logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
 
-    def set_config(self, section_id=None, custom_thumb='', custom_art='',
-                   do_notify=1, keep_history=1, do_notify_created=1):
-        if section_id:
+    def set_config(self, section_id=None, custom_thumb=None, custom_art=None, keep_history=None):
+        if str(section_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
             key_dict = {'section_id': section_id}
-            value_dict = {'custom_thumb_url': custom_thumb,
-                          'custom_art_url': custom_art,
-                          'do_notify': do_notify,
-                          'do_notify_created': do_notify_created,
-                          'keep_history': keep_history}
+            value_dict = {}
+
+            if custom_thumb is not None:
+                value_dict['custom_thumb_url'] = custom_thumb
+            if custom_art is not None:
+                value_dict['custom_art_url'] = custom_art
+            if keep_history is not None:
+                value_dict['keep_history'] = int(helpers.bool_true(keep_history))
+
             try:
                 monitor_db.upsert('library_sections', value_dict, key_dict)
             except Exception as e:
@@ -776,8 +770,6 @@ class Libraries(object):
                           'parent_count': 0,
                           'child_count': 0,
                           'is_active': 1,
-                          'do_notify': 0,
-                          'do_notify_created': 0,
                           'keep_history': 1,
                           'deleted_section': 0,
                           'last_accessed': None,
@@ -808,7 +800,7 @@ class Libraries(object):
                 return library_details
 
             else:
-                logger.warn("Tautulli Users :: Unable to retrieve library %s from database. Returning 'Local' library."
+                logger.warn("Tautulli Libraries :: Unable to retrieve library %s from database. Returning 'Local' library."
                             % section_id)
                 # If there is no library data we must return something
                 return default_return
@@ -838,7 +830,7 @@ class Libraries(object):
                     "library_sections.thumb AS library_thumb, custom_thumb_url AS custom_thumb, " \
                     "library_sections.art AS library_art, " \
                     "custom_art_url AS custom_art, is_active, " \
-                    "do_notify, do_notify_created, keep_history, deleted_section, %s AS last_accessed " \
+                    "keep_history, deleted_section, %s AS last_accessed " \
                     "FROM library_sections %s " \
                     "WHERE %s AND server_id = ? " % (last_accessed, join, where)
             result = monitor_db.select(query, args=args + [server_id])
@@ -872,8 +864,6 @@ class Libraries(object):
                                    'parent_count': item['parent_count'],
                                    'child_count': item['child_count'],
                                    'is_active': item['is_active'],
-                                   'do_notify': item['do_notify'],
-                                   'do_notify_created': item['do_notify_created'],
                                    'keep_history': item['keep_history'],
                                    'deleted_section': item['deleted_section'],
                                    'last_accessed': item['last_accessed']
@@ -1118,7 +1108,7 @@ class Libraries(object):
                             % (server_id, section_id))
                 try:
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 1, keep_history = 0, do_notify = 0, do_notify_created = 0 "
+                                      "SET deleted_section = 1, keep_history = 0 "
                                       "WHERE server_id = ? AND section_id = ?", [server_id, section_id])
                     return delete_success
                 except Exception as e:
@@ -1131,13 +1121,13 @@ class Libraries(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            if section_id and section_id.isdigit():
+            if section_id and str(section_id).isdigit():
                 query = "SELECT * FROM library_sections WHERE section_id = ?"
                 result = monitor_db.select(query=query, args=[section_id])
                 if result:
-                    logger.info("Tautulli Libraries :: Re-adding library with id %s to database." % section_id)
+                    logger.info("Tautulli Libraries :: Restoring library with id %s to database." % section_id)
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 0, keep_history = 1, do_notify = 1, do_notify_created = 1 "
+                                      "SET deleted_section = 0, keep_history = 1 "
                                       "WHERE section_id = ?",
                                       [section_id])
                     return True
@@ -1148,9 +1138,9 @@ class Libraries(object):
                 query = "SELECT * FROM library_sections WHERE section_name = ?"
                 result = monitor_db.select(query=query, args=[section_name])
                 if result:
-                    logger.info("Tautulli Libraries :: Re-adding library with name %s to database." % section_name)
+                    logger.info("Tautulli Libraries :: Restoring library with name %s to database." % section_name)
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 0, keep_history = 1, do_notify = 1, do_notify_created = 1 "
+                                      "SET deleted_section = 0, keep_history = 1 "
                                       "WHERE section_name = ?",
                                       [section_name])
                     return True

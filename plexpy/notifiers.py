@@ -637,23 +637,15 @@ def add_notifier_config(agent_id=None, **kwargs):
         return False
 
 
-def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
-    if str(agent_id).isdigit():
-        agent_id = int(agent_id)
-    else:
-        logger.error("Tautulli Notifiers :: Unable to set existing notifier: invalid agent_id %s."
-                     % agent_id)
+def set_notifier_config(notifier_id=None, **kwargs):
+    notifier = get_notifier_config(notifier_id=notifier_id)
+    if not notifier:
+        logger.error("Tautulli Notifiers :: Unable to update notification agent: invalid notifier_id %s."
+                     % notifier_id)
         return False
-
-    agent = get_notify_agents(return_dict=True).get(agent_id, None)
-
-    if not agent:
-        logger.error("Tautulli Notifiers :: Unable to retrieve existing notification agent: invalid agent_id %s."
-                     % agent_id)
-        return False
-
+    
     notify_actions = get_notify_actions()
-    config_prefix = agent['name'] + '_'
+    config_prefix = notifier['agent_name'] + '_'
 
     actions = {k: helpers.cast_to_int(kwargs.pop(k))
                for k in list(kwargs.keys()) if k in notify_actions}
@@ -664,29 +656,32 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     notifier_config = {k[len(config_prefix):]: kwargs.pop(k)
                        for k in list(kwargs.keys()) if k.startswith(config_prefix)}
 
-    for cfg, val in notifier_config.items():
-        # Check for a password config keys and a blank password from the HTML form
-        if 'password' in cfg and val == '    ':
-            # Get the previous password so we don't overwrite it with a blank value
-            old_notifier_config = get_notifier_config(notifier_id=notifier_id)
-            notifier_config[cfg] = old_notifier_config['config'][cfg]
+    for cfg, val in notifier['config'].items():
+        if cfg in notifier_config:
+            # Check for a password config keys and a blank password from the HTML form
+            # so we don't overwrite the existing password with a blank value
+            if 'password' in cfg and val == '    ':
+                continue
+            notifier['config'][cfg] = notifier_config[cfg]
 
-    agent_class = get_agent_class(agent_id=agent['id'], config=notifier_config)
-
-    custom_conditions = validate_conditions(kwargs.get('custom_conditions'))
-    if custom_conditions is False:
-        logger.error("Tautulli Notifiers :: Unable to update notification agent: Invalid custom conditions.")
-        return False
+    if friendly_name := kwargs.get('friendly_name'):
+        notifier['friendly_name'] = friendly_name
+    if custom_conditions := kwargs.get('custom_conditions'):
+        if validated_conditions := validate_conditions(custom_conditions):
+            notifier['custom_conditions'] = validated_conditions
+        else:
+            logger.error("Tautulli Notifiers :: Unable to update notification agent: Invalid custom conditions.")
+            return False
+    if custom_conditions_logic := kwargs.get('custom_conditions_logic'):
+        notifier['custom_conditions_logic'] = custom_conditions_logic
 
     keys = {'id': notifier_id}
-    values = {'agent_id': agent['id'],
-              'agent_name': agent['name'],
-              'agent_label': agent['label'],
-              'friendly_name': kwargs.get('friendly_name', ''),
-              'notifier_config': json.dumps(agent_class.config),
-              'custom_conditions': json.dumps(custom_conditions or DEFAULT_CUSTOM_CONDITIONS),
-              'custom_conditions_logic': kwargs.get('custom_conditions_logic', ''),
-              }
+    values = {
+        'friendly_name': notifier['friendly_name'],
+        'notifier_config': json.dumps(notifier['config']),
+        'custom_conditions': json.dumps(notifier['custom_conditions']),
+        'custom_conditions_logic': notifier['custom_conditions_logic'],
+    }
     values.update(actions)
     values.update(subject_text)
     values.update(body_text)
@@ -695,10 +690,10 @@ def set_notifier_config(notifier_id=None, agent_id=None, **kwargs):
     try:
         db.upsert(table_name='notifiers', key_dict=keys, value_dict=values)
         logger.info("Tautulli Notifiers :: Updated notification agent: %s (notifier_id %s)."
-                    % (agent['label'], notifier_id))
+                    % (notifier['agent_label'], notifier_id))
         blacklist_logger()
 
-        if agent['name'] == 'browser':
+        if notifier['agent_name'] == 'browser':
             check_browser_enabled()
 
         return True

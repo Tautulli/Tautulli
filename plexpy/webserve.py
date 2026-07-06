@@ -18,6 +18,7 @@
 import base64
 import csv
 from hmac import compare_digest
+import html
 from io import open, BytesIO
 import json
 import linecache
@@ -25,6 +26,7 @@ import os
 import shutil
 import ssl as _ssl
 import sys
+import tempfile
 import threading
 import zipfile
 from urllib.parse import urlencode
@@ -32,13 +34,13 @@ from urllib.parse import urlencode
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_fileobj, serve_download
 from cherrypy._cperror import NotFound
+import cherrypy_cors
 
 from hashing_passwords import make_hash
 from mako.lookup import TemplateLookup
 import mako.template
 import mako.exceptions
 
-import bleach
 import certifi
 import websocket
 
@@ -479,8 +481,6 @@ class WebInterface(object):
                         [{"child_count": 3745,
                           "content_rating": "TV-MA",
                           "count": 62,
-                          "do_notify": 1,
-                          "do_notify_created": 1,
                           "duration": 1578037,
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "histroy_row_id": 1128,
@@ -534,6 +534,10 @@ class WebInterface(object):
 
         library_data = libraries.Libraries()
         library_list = library_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
+
+        if library_list is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve library list.'}
 
         return library_list
 
@@ -643,11 +647,9 @@ class WebInterface(object):
                 None
             ```
         """
-        custom_thumb = kwargs.get('custom_thumb', '')
-        custom_art = kwargs.get('custom_art', '')
-        do_notify = kwargs.get('do_notify', 0)
-        do_notify_created = kwargs.get('do_notify_created', 0)
-        keep_history = kwargs.get('keep_history', 0)
+        custom_thumb = kwargs.get('custom_thumb')
+        custom_art = kwargs.get('custom_art')
+        keep_history = kwargs.get('keep_history')
 
         if section_id:
             try:
@@ -655,8 +657,6 @@ class WebInterface(object):
                 library_data.set_config(section_id=section_id,
                                         custom_thumb=custom_thumb,
                                         custom_art=custom_art,
-                                        do_notify=do_notify,
-                                        do_notify_created=do_notify_created,
                                         keep_history=keep_history)
 
                 return "Successfully updated library."
@@ -960,8 +960,6 @@ class WebInterface(object):
                     {"child_count": null,
                      "count": 887,
                      "deleted_section": 0,
-                     "do_notify": 1,
-                     "do_notify_created": 1,
                      "is_active": 1,
                      "keep_history": 1,
                      "last_accessed": 1462693216,
@@ -1174,8 +1172,8 @@ class WebInterface(object):
                 msg ='section_id %s' % section_id
             elif section_name:
                 msg = 'section_name %s' % section_name
-            return {'result': 'success', 'message': 'Re-added library with %s.' % msg}
-        return {'result': 'error', 'message': 'Unable to re-add library. Invalid section_id or section_name.'}
+            return {'result': 'success', 'message': 'Restored library with %s.' % msg}
+        return {'result': 'error', 'message': 'Unable to restore library. Invalid section_id or section_name.'}
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
@@ -1259,7 +1257,6 @@ class WebInterface(object):
                      "recordsFiltered": 10,
                      "data":
                         [{"allow_guest": 1,
-                          "do_notify": 1,
                           "duration": 2998290,
                           "email": "Jon.Snow.1337@CastleBlack.com",
                           "friendly_name": "Jon Snow",
@@ -1317,6 +1314,10 @@ class WebInterface(object):
 
         user_data = users.Users()
         user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
+
+        if user_list is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve user list.'}
 
         return user_list
 
@@ -1388,11 +1389,10 @@ class WebInterface(object):
                 None
             ```
         """
-        friendly_name = kwargs.get('friendly_name', '')
-        custom_thumb = kwargs.get('custom_thumb', '')
-        do_notify = kwargs.get('do_notify', 0)
-        keep_history = kwargs.get('keep_history', 0)
-        allow_guest = kwargs.get('allow_guest', 0)
+        friendly_name = kwargs.get('friendly_name')
+        custom_thumb = kwargs.get('custom_thumb')
+        keep_history = kwargs.get('keep_history')
+        allow_guest = kwargs.get('allow_guest')
 
         if user_id:
             try:
@@ -1400,7 +1400,6 @@ class WebInterface(object):
                 user_data.set_config(user_id=user_id,
                                      friendly_name=friendly_name,
                                      custom_thumb=custom_thumb,
-                                     do_notify=do_notify,
                                      keep_history=keep_history,
                                      allow_guest=allow_guest)
                 status_message = "Successfully updated user."
@@ -1533,6 +1532,10 @@ class WebInterface(object):
         user_data = users.Users()
         history = user_data.get_datatables_unique_ips(user_id=user_id, kwargs=kwargs)
 
+        if history is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve user IP history.'}
+
         return history
 
     @cherrypy.expose
@@ -1598,6 +1601,10 @@ class WebInterface(object):
                                                       jwt_token=jwt_token,
                                                       kwargs=kwargs)
 
+        if history is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve user login history.'}
+
         return history
 
     @cherrypy.expose
@@ -1645,7 +1652,6 @@ class WebInterface(object):
                 json:
                     {"allow_guest": 1,
                      "deleted_user": 0,
-                     "do_notify": 1,
                      "email": "Jon.Snow.1337@CastleBlack.com",
                      "friendly_name": "Jon Snow",
                      "is_active": 1,
@@ -1858,8 +1864,8 @@ class WebInterface(object):
                 msg ='user_id %s' % user_id
             elif username:
                 msg = 'username %s' % username
-            return {'result': 'success', 'message': 'Re-added user with %s.' % msg}
-        return {'result': 'error', 'message': 'Unable to re-add user. Invalid user_id or username.'}
+            return {'result': 'success', 'message': 'Restored user with %s.' % msg}
+        return {'result': 'error', 'message': 'Unable to restore user. Invalid user_id or username.'}
 
 
     ##### History #####
@@ -2049,6 +2055,10 @@ class WebInterface(object):
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
                                                       grouping=grouping, include_activity=include_activity)
+
+        if history is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve history.'}
 
         return history
 
@@ -2908,16 +2918,20 @@ class WebInterface(object):
                      ]
             ```
         """
+        if not plexpy.CONFIG.PMS_LOGS_FOLDER:
+            return {'result': 'error', 'message': 'Plex log folder not set in the settings.'}
+
         if kwargs.get('log_type'):
             logfile = 'Plex Media ' + kwargs['log_type'].capitalize()
 
         window = int(kwargs.get('window', plexpy.CONFIG.PMS_LOGS_LINE_CAP))
+        logs = log_reader.get_log_tail(window=window, parsed=True, log_file=logfile)
 
-        try:
-            return {'data': log_reader.get_log_tail(window=window, parsed=True, log_file=logfile)}
-        except:
-            logger.warn("Unable to retrieve Plex log file '%'." % logfile)
-            return []
+        if logs:
+            return {'data': logs}
+        else:
+            logger.warn("Unable to retrieve Plex log file '%s'." % logfile)
+            return {'result': 'error', 'message': "Plex log file '%s.log' not found." % logfile}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2978,6 +2992,10 @@ class WebInterface(object):
 
         data_factory = datafactory.DataFactory()
         notification_logs = data_factory.get_notification_log(kwargs=kwargs)
+
+        if notification_logs is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve notification logs.'}
 
         return notification_logs
 
@@ -3042,6 +3060,10 @@ class WebInterface(object):
 
         data_factory = datafactory.DataFactory()
         newsletter_logs = data_factory.get_newsletter_log(kwargs=kwargs)
+
+        if newsletter_logs is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Unable to retrieve newsletter logs.'}
 
         return newsletter_logs
 
@@ -3168,7 +3190,7 @@ class WebInterface(object):
         logger.error(
             "WebUI :: /%s : %s. (%s:%s)",
             page.rpartition('/')[-1],
-            bleach.clean(message),
+            html.escape(message),
             file.rpartition('/')[-1].partition('?')[0],
             line
         )
@@ -3186,7 +3208,7 @@ class WebInterface(object):
 
         try:
             with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r', encoding='utf-8') as f:
-                return f'<pre>{bleach.clean(f.read())}</pre>'
+                return f'<pre>{html.escape(f.read())}</pre>'
         except IOError as e:
             return "Log file not found."
 
@@ -3597,13 +3619,12 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def set_notifier_config(self, notifier_id=None, agent_id=None, **kwargs):
+    def set_notifier_config(self, notifier_id=None, **kwargs):
         """ Configure an existing notification agent.
 
             ```
             Required parameters:
                 notifier_id (int):        The notifier config to update
-                agent_id (int):           The agent of the notifier
 
             Optional parameters:
                 Pass all the config options for the agent with the agent prefix:
@@ -3622,7 +3643,7 @@ class WebInterface(object):
                 None
             ```
         """
-        result = notifiers.set_notifier_config(notifier_id=notifier_id, agent_id=agent_id, **kwargs)
+        result = notifiers.set_notifier_config(notifier_id=notifier_id, **kwargs)
 
         if result:
             return {'result': 'success', 'message': 'Saved notification agent.'}
@@ -3846,7 +3867,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def set_mobile_device_config(self, mobile_device_id=None, **kwargs):
-        """ Configure an existing notification agent.
+        """ Configure an existing mobile device.
 
             ```
             Required parameters:
@@ -4926,24 +4947,26 @@ class WebInterface(object):
     def download_config(self, **kwargs):
         """ Download the Tautulli configuration file. """
         config_file = config.FILENAME
-        config_copy = os.path.join(plexpy.CONFIG.CACHE_DIR, config_file)
+
+        plexpy.CONFIG.write()
+
+        with tempfile.NamedTemporaryFile(delete=False, mode='w+t', suffix=f".{config_file}") as temp:
+            with open(plexpy.CONFIG_FILE, 'r') as f:
+                temp.write(f.read())
+                temp_path = temp.name
 
         try:
-            plexpy.CONFIG.write()
-            shutil.copyfile(plexpy.CONFIG_FILE, config_copy)
-        except:
-            pass
-
-        try:
-            cfg = config.Config(config_copy)
+            cfg = config.Config(temp_path)
             for key in config._DO_NOT_DOWNLOAD_KEYS:
                 setattr(cfg, key, '')
             cfg.write()
         except:
             cherrypy.response.status = 500
-            return 'Error downloading config. Check the logs.'
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return {'result': 'error', 'message': 'Error downloading config. Check the logs.'}
 
-        return serve_download(config_copy, name=config_file)
+        cherrypy.request.hooks.attach('on_end_request', helpers.delete_file, file_path=temp_path)
+        return serve_download(temp_path, name=config_file)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -4951,27 +4974,32 @@ class WebInterface(object):
     def download_database(self, **kwargs):
         """ Download the Tautulli database file. """
         database_file = database.FILENAME
-        database_copy = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file)
 
         try:
             db = database.MonitorDatabase()
             db.connection.execute('begin immediate')
-            shutil.copyfile(plexpy.DB_FILE, database_copy)
+
+            with tempfile.NamedTemporaryFile(delete=False, mode='w+b', suffix=f".{database_file}") as temp:
+                with open(plexpy.DB_FILE, 'rb') as f:
+                    temp.write(f.read())
+                    temp_path = temp.name
+
             db.connection.rollback()
         except:
             pass
 
         # Remove tokens
-        db = database.MonitorDatabase(database_copy)
         try:
+            db = database.MonitorDatabase(temp_path)
             db.action('UPDATE users SET user_token = NULL, server_token = NULL')
             db.action('UPDATE user_login SET jwt_token = NULL')
         except:
             logger.error('Failed to remove tokens from downloaded database.')
             cherrypy.response.status = 500
-            return 'Error downloading database. Check the logs.'
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return {'result': 'error', 'message': 'Error downloading database. Check the logs.'}
 
-        return serve_download(database_copy, name=database_file)
+        return serve_download(temp_path, name=database_file)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -5006,7 +5034,13 @@ class WebInterface(object):
         except:
             pass
 
-        return serve_download(os.path.join(plexpy.CONFIG.LOG_DIR, filename), name=filename)
+        with tempfile.NamedTemporaryFile(delete=False, mode='w+t', suffix=f".{filename}") as temp:
+            with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r') as f:
+                temp.write(f.read())
+                temp_path = temp.name
+
+        cherrypy.request.hooks.attach('on_end_request', helpers.delete_file, file_path=temp_path)
+        return serve_download(temp_path, name=filename)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -5027,7 +5061,8 @@ class WebInterface(object):
             ```
         """
         if not plexpy.CONFIG.PMS_LOGS_FOLDER:
-            return "Plex log folder not set in the settings."
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return json.dumps({'result': 'error', 'message': 'Plex log folder not set in the settings.'}).encode('utf-8')
 
         if kwargs.get('log_type'):
             logfile = 'Plex Media ' + kwargs['log_type'].capitalize()
@@ -5037,9 +5072,17 @@ class WebInterface(object):
 
         if log_file and helpers.is_subdir(log_file_path, plexpy.CONFIG.PMS_LOGS_FOLDER) and os.path.isfile(log_file_path):
             log_file_name = os.path.basename(log_file_path)
-            return serve_download(log_file_path, name=log_file_name)
+
+            with tempfile.NamedTemporaryFile(delete=False, mode='w+t', suffix=f".{log_file}") as temp:
+                with open(log_file_path, 'r') as f:
+                    temp.write(f.read())
+                    temp_path = temp.name
+
+            cherrypy.request.hooks.attach('on_end_request', helpers.delete_file, file_path=temp_path)
+            return serve_download(temp_path, name=log_file_name)
         else:
-            return "Plex log file '%s' not found." % log_file
+            cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            return json.dumps({'result': 'error', 'message': "Plex log file '%s' not found." % log_file}).encode('utf-8')
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
@@ -5114,8 +5157,10 @@ class WebInterface(object):
 
         if result:
             return {'result': 'success', 'message': 'Deleted hosted images from %s.' % result.capitalize()}
+        elif result is False:
+            return {'result': 'error', 'message': 'Failed to delete hosted images: rating_key not provided.'}
         else:
-            return {'result': 'error', 'message': 'Failed to delete hosted images.'}
+            return {'result': 'error', 'message': f"Failed to delete hosted images: invalid service '{service}' provided."}
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
@@ -5498,6 +5543,7 @@ class WebInterface(object):
                                              "selected": 0
                                          },
                                          {
+                                             "audio_atmos": 0,
                                              "audio_bitrate": "384",
                                              "audio_bitrate_mode": "",
                                              "audio_channel_layout": "5.1(side)",
@@ -5863,6 +5909,7 @@ class WebInterface(object):
                              "aspect_ratio": "1.78",
                              "audience_rating": "",
                              "audience_rating_image": "rottentomatoes://image.rating.upright",
+                             "audio_atmos": 0,
                              "audio_bitrate": "384",
                              "audio_bitrate_mode": "",
                              "audio_channel_layout": "5.1(side)",
@@ -5894,7 +5941,6 @@ class WebInterface(object):
                              "directors": [
                                  "Jeremy Podeswa"
                              ],
-                             "do_notify": 0,
                              "duration": "2998272",
                              "email": "Jon.Snow.1337@CastleBlack.com",
                              "file": "/media/TV Shows/Game of Thrones/Season 06/Game of Thrones - S06E01 - The Red Woman.mkv",
@@ -5970,6 +6016,7 @@ class WebInterface(object):
                              "sort_title": "Red Woman",
                              "state": "playing",
                              "stream_aspect_ratio": "1.78",
+                             "stream_audio_atmos": 0,
                              "stream_audio_bitrate": "384",
                              "stream_audio_bitrate_mode": "",
                              "stream_audio_channel_layout": "5.1(side)",
@@ -6003,6 +6050,13 @@ class WebInterface(object):
                              "stream_video_color_space": "bt709",
                              "stream_video_color_trc": "",
                              "stream_video_decision": "direct play",
+                             "stream_video_dovi_bl_present": 0,
+                             "stream_video_dovi_el_present": 0,
+                             "stream_video_dovi_level": 0,
+                             "stream_video_dovi_present": 0,
+                             "stream_video_dovi_profile": 0,
+                             "stream_video_dovi_rpu_present": 0,
+                             "stream_video_dovi_version": 0,
                              "stream_video_dynamic_range": "SDR",
                              "stream_video_framerate": "24p",
                              "stream_video_full_resolution": "1080p",
@@ -6069,6 +6123,13 @@ class WebInterface(object):
                              "video_color_space": "bt709",
                              "video_color_trc": ",
                              "video_decision": "direct play",
+                             "video_dovi_bl_present": 0,
+                             "video_dovi_el_present": 0,
+                             "video_dovi_level": 0,
+                             "video_dovi_present": 0,
+                             "video_dovi_profile": 0,
+                             "video_dovi_rpu_present": 0,
+                             "video_dovi_version": 0,
                              "video_dynamic_range": "SDR",
                              "video_frame_rate": "23.976",
                              "video_framerate": "24p",
@@ -6196,7 +6257,6 @@ class WebInterface(object):
             Returns:
                 json:
                     [{"allow_guest": 1,
-                      "do_notify": 1,
                       "email": "Jon.Snow.1337@CastleBlack.com",
                       "filter_all": "",
                       "filter_movies": "",
@@ -6468,6 +6528,17 @@ class WebInterface(object):
 
     @cherrypy.expose
     def api(self, *args, **kwargs):
+        if cherrypy.request.method == 'OPTIONS':
+            cherrypy_cors.preflight(
+                allowed_methods=['GET', 'POST', 'OPTIONS'],
+                allowed_headers=['Content-Type', 'X-Api-Key'],
+                allow_credentials=True,
+                max_age=86400
+            )
+            cherrypy.response.status = 204
+            cherrypy.response.headers['Content-Length'] = '0'
+            return
+
         if args and 'v2' in args[0]:
             return API2()._api_run(**kwargs)
         else:
@@ -6694,7 +6765,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def get_newsletter_config(self, newsletter_id=None, **kwargs):
-        """ Get the configuration for an existing notification agent.
+        """ Get the configuration for an existing newsletter agent.
 
             ```
             Required parameters:
@@ -6746,7 +6817,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def add_newsletter_config(self, agent_id=None, **kwargs):
-        """ Add a new notification agent.
+        """ Add a new newsletter agent.
 
             ```
             Required parameters:
@@ -6771,13 +6842,12 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def set_newsletter_config(self, newsletter_id=None, agent_id=None, **kwargs):
+    def set_newsletter_config(self, newsletter_id=None, **kwargs):
         """ Configure an existing newsletter agent.
 
             ```
             Required parameters:
                 newsletter_id (int):    The newsletter config to update
-                agent_id (int):         The newsletter type of the newsletter
 
             Optional parameters:
                 Pass all the config options for the agent with the 'newsletter_config_' and 'newsletter_email_' prefix.
@@ -6786,9 +6856,7 @@ class WebInterface(object):
                 None
             ```
         """
-        result = newsletters.set_newsletter_config(newsletter_id=newsletter_id,
-                                                   agent_id=agent_id,
-                                                   **kwargs)
+        result = newsletters.set_newsletter_config(newsletter_id=newsletter_id, **kwargs)
 
         if result:
             return {'result': 'success', 'message': 'Saved newsletter.'}
@@ -7074,6 +7142,10 @@ class WebInterface(object):
                                                user_id=user_id,
                                                rating_key=rating_key,
                                                kwargs=kwargs)
+
+        if result is None:
+            cherrypy.response.status = 500
+            return {'result': 'error', 'message': 'Failed to retrieve export data.'}
 
         return result
 

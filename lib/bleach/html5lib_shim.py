@@ -347,6 +347,37 @@ class BleachHTMLTokenizer(HTMLTokenizer):
                     yield token
 
                 elif (
+                    last_error_token["data"]
+                    in (
+                        "invalid-character-in-attribute-name",
+                        "invalid-character-after-attribute-name",
+                    )
+                    and token["type"] == TAG_TOKEN_TYPE_CHARACTERS
+                    and token.get("data")
+                    and " " in token["data"]
+                ):
+                    # token["data"] has something that starts with a left angle
+                    # bracket, then has some characters followed by a space
+                    # followed by another left angle bracket and ending with
+                    # a right angle bracket. That part could be a real tag, so
+                    # we don't want it to get treated as Characters. For
+                    # example, soemthing in this shape: <nottag <...>
+                    # If so, we want to take off the first bit that is
+                    # definitely not a tag and reparse the rest.
+                    head, rest = token["data"].split(" ", 1)
+                    if rest.strip().startswith("<"):
+                        # yield the not-a-tag plus the space we split on
+                        token["data"] = head + " "
+                        yield token
+
+                        # shove the rest back in the stream for the praser to look
+                        # at
+                        for c in reversed(rest):
+                            self.stream.unget(c)
+                    else:
+                        yield token
+
+                elif (
                     last_error_token["data"] == "expected-closing-tag-but-got-char"
                     and self.parser.tags is not None
                     and token["data"].lower().strip() not in self.parser.tags

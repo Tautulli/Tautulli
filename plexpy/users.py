@@ -104,11 +104,6 @@ class Users(object):
         pass
 
     def get_datatables_list(self, kwargs=None, grouping=None):
-        default_return = {'recordsFiltered': 0,
-                          'recordsTotal': 0,
-                          'draw': 0,
-                          'data': []}
-
         data_tables = datatables.DataTables()
 
         custom_where = [['users.deleted_user', 0]]
@@ -157,7 +152,6 @@ class Users(object):
                    "session_history_metadata.originally_available_at",
                    "session_history_metadata.guid",
                    "session_history_media_info.transcode_decision",
-                   "users.do_notify AS do_notify",
                    "users.keep_history AS keep_history",
                    "users.allow_guest AS allow_guest",
                    "users.is_active AS is_active"
@@ -179,7 +173,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_list: %s." % e)
-            return default_return
+            return
 
         users = query['result']
 
@@ -228,7 +222,6 @@ class Users(object):
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
                    'transcode_decision': item['transcode_decision'],
-                   'do_notify': item['do_notify'],
                    'keep_history': item['keep_history'],
                    'allow_guest': item['allow_guest'],
                    'is_active': item['is_active']
@@ -245,13 +238,13 @@ class Users(object):
         return dict
 
     def get_datatables_unique_ips(self, user_id=None, kwargs=None):
-        default_return = {'recordsFiltered': 0,
-                          'recordsTotal': 0,
-                          'draw': 0,
-                          'data': []}
-
         if not session.allow_session_user(user_id):
-            return default_return
+            return {
+                'recordsFiltered': 0,
+                'recordsTotal': 0,
+                'draw': 0,
+                'data': []
+            }
 
         data_tables = datatables.DataTables()
 
@@ -302,7 +295,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_unique_ips: %s." % e)
-            return default_return
+            return
 
         results = query['result']
 
@@ -351,7 +344,7 @@ class Users(object):
 
         return dict
 
-    def set_config(self, user_id=None, friendly_name='', custom_thumb='', do_notify=1, keep_history=1, allow_guest=1):
+    def set_config(self, user_id=None, friendly_name=None, custom_thumb=None, keep_history=None, allow_guest=None):
         if str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
@@ -360,12 +353,17 @@ class Users(object):
                 friendly_name = None
 
             key_dict = {'user_id': user_id}
-            value_dict = {'friendly_name': friendly_name,
-                          'custom_avatar_url': custom_thumb,
-                          'do_notify': do_notify,
-                          'keep_history': keep_history,
-                          'allow_guest': allow_guest
-                          }
+            value_dict = {}
+
+            if friendly_name is not None:
+                value_dict['friendly_name'] = friendly_name
+            if custom_thumb is not None:
+                value_dict['custom_avatar_url'] = custom_thumb
+            if keep_history is not None:
+                value_dict['keep_history'] = int(helpers.bool_true(keep_history))
+            if allow_guest is not None:
+                value_dict['allow_guest'] = int(helpers.bool_true(allow_guest))
+
             try:
                 monitor_db.upsert('users', value_dict, key_dict)
             except Exception as e:
@@ -383,7 +381,6 @@ class Users(object):
                           'is_home_user': 0,
                           'is_allow_sync': 0,
                           'is_restricted': 0,
-                          'do_notify': 0,
                           'keep_history': 1,
                           'allow_guest': 0,
                           'deleted_user': 0,
@@ -444,7 +441,7 @@ class Users(object):
             query = "SELECT users.id AS row_id, users.user_id, username, friendly_name, " \
                     "thumb AS user_thumb, custom_avatar_url AS custom_thumb, " \
                     "email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
-                    "do_notify, keep_history, deleted_user, " \
+                    "keep_history, deleted_user, " \
                     "allow_guest, shared_libraries, %s AS last_seen " \
                     "FROM users %s " \
                     "WHERE %s COLLATE NOCASE" % (last_seen, join, where)
@@ -483,7 +480,6 @@ class Users(object):
                                 'is_home_user': item['is_home_user'],
                                 'is_allow_sync': item['is_allow_sync'],
                                 'is_restricted': item['is_restricted'],
-                                'do_notify': item['do_notify'],
                                 'keep_history': item['keep_history'],
                                 'deleted_user': item['deleted_user'],
                                 'allow_guest': item['allow_guest'],
@@ -674,7 +670,7 @@ class Users(object):
         try:
             query = "SELECT id AS row_id, user_id, username, friendly_name, thumb, custom_avatar_url, email, " \
                     "is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
-                    "do_notify, keep_history, allow_guest, shared_libraries, " \
+                    "keep_history, allow_guest, shared_libraries, " \
                     "filter_all, filter_movies, filter_tv, filter_music, filter_photos " \
                     "FROM users %s" % where
             result = monitor_db.select(query=query)
@@ -697,7 +693,6 @@ class Users(object):
                     'is_home_user': item['is_home_user'],
                     'is_allow_sync': item['is_allow_sync'],
                     'is_restricted': item['is_restricted'],
-                    'do_notify': item['do_notify'],
                     'keep_history': item['keep_history'],
                     'allow_guest': item['allow_guest'],
                     'shared_libraries': shared_libraries,
@@ -737,7 +732,7 @@ class Users(object):
                             % user_id)
                 try:
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 1, keep_history = 0, do_notify = 0 "
+                                      "SET deleted_user = 1, keep_history = 0 "
                                       "WHERE user_id = ?", [user_id])
                     return delete_success
                 except Exception as e:
@@ -754,9 +749,9 @@ class Users(object):
                 query = "SELECT * FROM users WHERE user_id = ?"
                 result = monitor_db.select(query=query, args=[user_id])
                 if result:
-                    logger.info("Tautulli Users :: Re-adding user with id %s to database." % user_id)
+                    logger.info("Tautulli Users :: Restoring user with id %s to database." % user_id)
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 0, keep_history = 1, do_notify = 1 "
+                                      "SET deleted_user = 0, keep_history = 1 "
                                       "WHERE user_id = ?", [user_id])
                     return True
                 else:
@@ -766,9 +761,9 @@ class Users(object):
                 query = "SELECT * FROM users WHERE username = ?"
                 result = monitor_db.select(query=query, args=[username])
                 if result:
-                    logger.info("Tautulli Users :: Re-adding user with username %s to database." % username)
+                    logger.info("Tautulli Users :: Restoring user with username %s to database." % username)
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 0, keep_history = 1, do_notify = 1 "
+                                      "SET deleted_user = 0, keep_history = 1 "
                                       "WHERE username = ?", [username])
                     return True
                 else:
@@ -925,16 +920,16 @@ class Users(object):
                 logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
                 return False
 
-        return True
+        return False
 
     def get_datatables_user_login(self, user_id=None, jwt_token=None, kwargs=None):
-        default_return = {'recordsFiltered': 0,
-                          'recordsTotal': 0,
-                          'draw': 0,
-                          'data': []}
-
         if not session.allow_session_user(user_id):
-            return default_return
+            return {
+                'recordsFiltered': 0,
+                'recordsTotal': 0,
+                'draw': 0,
+                'data': []
+            }
 
         data_tables = datatables.DataTables()
 
@@ -969,7 +964,7 @@ class Users(object):
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
-            return default_return
+            return
 
         results = query['result']
 

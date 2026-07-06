@@ -222,19 +222,11 @@ def add_newsletter_config(agent_id=None, **kwargs):
         return False
 
 
-def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
-    if str(agent_id).isdigit():
-        agent_id = int(agent_id)
-    else:
-        logger.error("Tautulli Newsletters :: Unable to set existing newsletter: invalid agent_id %s."
-                     % agent_id)
-        return False
-
-    agent = next((a for a in available_newsletter_agents() if a['id'] == agent_id), None)
-
-    if not agent:
-        logger.error("Tautulli Newsletters :: Unable to retrieve existing newsletter agent: invalid agent_id %s."
-                     % agent_id)
+def set_newsletter_config(newsletter_id=None, **kwargs):
+    newsletter = get_newsletter_config(newsletter_id=newsletter_id)
+    if not newsletter:
+        logger.error("Tautulli Newsletters :: Unable to update newsletter agent: invalid newsletter_id %s."
+                     % newsletter_id)
         return False
 
     config_prefix = 'newsletter_config_'
@@ -245,41 +237,52 @@ def set_newsletter_config(newsletter_id=None, agent_id=None, **kwargs):
     email_config = {k[len(email_config_prefix):]: kwargs.pop(k)
                     for k in list(kwargs.keys()) if k.startswith(email_config_prefix)}
 
-    for cfg, val in email_config.items():
-        # Check for a password config keys and a blank password from the HTML form
-        if 'password' in cfg and val == '    ':
-            # Get the previous password so we don't overwrite it with a blank value
-            old_newsletter_config = get_newsletter_config(newsletter_id=newsletter_id)
-            email_config[cfg] = old_newsletter_config['email_config'][cfg]
+    for cfg, val in newsletter['config'].items():
+        if cfg in newsletter_config:
+            newsletter['config'][cfg] = newsletter_config[cfg]
 
-    subject = kwargs.pop('subject')
-    body = kwargs.pop('body')
-    message = kwargs.pop('message')
+    for cfg, val in newsletter['email_config'].items():
+        if cfg in email_config:
+            # Check for a password config keys and a blank password from the HTML form
+            # so we don't overwrite the existing password with a blank value
+            if 'password' in cfg and val == '    ':
+                continue
+            newsletter['email_config'][cfg] = email_config[cfg]
 
-    agent_class = get_agent_class(agent_id=agent['id'],
-                                  config=newsletter_config, email_config=email_config,
-                                  subject=subject, body=body, message=message)
+
+    if id_name := kwargs.get('id_name'):
+        newsletter['id_name'] = id_name
+    if friendly_name := kwargs.get('friendly_name'):
+        newsletter['friendly_name'] = friendly_name
+    if subject := kwargs.get('subject'):
+        newsletter['subject'] = subject
+    if body := kwargs.get('body'):
+        newsletter['body'] = body
+    if message := kwargs.get('message'):
+        newsletter['message'] = message
+    if cron := kwargs.get('cron'):
+        newsletter['cron'] = cron
+    if active := kwargs.get('active'):
+        newsletter['active'] = active
 
     keys = {'id': newsletter_id}
-    values = {'agent_id': agent['id'],
-              'agent_name': agent['name'],
-              'agent_label': agent['label'],
-              'id_name': kwargs.get('id_name', ''),
-              'friendly_name': kwargs.get('friendly_name', ''),
-              'newsletter_config': json.dumps(agent_class.config),
-              'email_config': json.dumps(agent_class.email_config),
-              'subject': agent_class.subject,
-              'body': agent_class.body,
-              'message': agent_class.message,
-              'cron': kwargs.get('cron'),
-              'active': kwargs.get('active')
-              }
+    values = {
+        'id_name': newsletter['id_name'],
+        'friendly_name': newsletter['friendly_name'],
+        'newsletter_config': json.dumps(newsletter['config']),
+        'email_config': json.dumps(newsletter['email_config']),
+        'subject': newsletter['subject'],
+        'body': newsletter['body'],
+        'message': newsletter['message'],
+        'cron': newsletter['cron'],
+        'active': newsletter['active']
+    }
 
     db = database.MonitorDatabase()
     try:
         db.upsert(table_name='newsletters', key_dict=keys, value_dict=values)
         logger.info("Tautulli Newsletters :: Updated newsletter agent: %s (newsletter_id %s)."
-                    % (agent['label'], newsletter_id))
+                    % (newsletter['agent_label'], newsletter_id))
         newsletter_handler.schedule_newsletters(newsletter_id=newsletter_id)
         blacklist_logger()
         return True

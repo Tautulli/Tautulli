@@ -11,9 +11,9 @@ from bleach.sanitizer import (
 
 
 # yyyymmdd
-__releasedate__ = "20251027"
+__releasedate__ = "20260605"
 # x.y.z or x.y.z.dev0 -- semver
-__version__ = "6.3.0"
+__version__ = "6.4.0"
 
 
 __all__ = ["clean", "linkify"]

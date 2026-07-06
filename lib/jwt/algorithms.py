@@ -325,11 +325,34 @@ class HMACAlgorithm(Algorithm):
     def prepare_key(self, key: str | bytes) -> bytes:
         key_bytes = force_bytes(key)
 
+        if len(key_bytes) == 0:
+            raise InvalidKeyError("HMAC key must not be empty.")
+
         if is_pem_format(key_bytes) or is_ssh_key(key_bytes):
             raise InvalidKeyError(
                 "The specified key is an asymmetric key or x509 certificate and"
                 " should not be used as an HMAC secret."
             )
+
+        # Defense against algorithm-confusion attacks: an attacker with
+        # control over the token header can force this code path by setting
+        # alg=HS*, and HMACAlgorithm is the only algorithm that accepts
+        # arbitrary bytes as a valid secret. Other algorithms reject
+        # non-key-shaped input naturally. Even a symmetric (kty=oct) JWK
+        # should be loaded via PyJWK / from_jwk rather than fed as raw JSON
+        # bytes (whose contents are not the secret material).
+        stripped = key_bytes.lstrip()
+        if stripped.startswith(b"{"):
+            try:
+                jwk_obj = json.loads(key_bytes)
+            except ValueError:
+                jwk_obj = None
+            if isinstance(jwk_obj, dict) and "kty" in jwk_obj:
+                raise InvalidKeyError(
+                    "The specified key looks like a JWK and should not be "
+                    "used directly as an HMAC secret. Load it via "
+                    "PyJWK / HMACAlgorithm.from_jwk first."
+                )
 
         return key_bytes
 
@@ -420,7 +443,10 @@ if has_crypto:
 
         def prepare_key(self, key: AllowedRSAKeys | str | bytes) -> AllowedRSAKeys:
             if isinstance(key, self._crypto_key_types):
-                return cast(AllowedRSAKeys, key)
+                # Cast is required for type narrowing on Python 3.9's mypy
+                # but redundant on newer mypy versions; suppress both
+                # diagnostics so the line works across all supported envs.
+                return cast(AllowedRSAKeys, key)  # type: ignore[redundant-cast,unused-ignore]
 
             if not isinstance(key, (bytes, str)):
                 raise TypeError("Expecting a PEM-formatted key.")
@@ -614,7 +640,8 @@ if has_crypto:
 
         def prepare_key(self, key: AllowedECKeys | str | bytes) -> AllowedECKeys:
             if isinstance(key, self._crypto_key_types):
-                ec_key = cast(AllowedECKeys, key)
+                # See note in RSAAlgorithm.prepare_key.
+                ec_key = cast(AllowedECKeys, key)  # type: ignore[redundant-cast,unused-ignore]
                 self._validate_curve(ec_key)
                 return ec_key
 

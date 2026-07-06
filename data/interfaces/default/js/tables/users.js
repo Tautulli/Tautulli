@@ -344,12 +344,12 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
 
     $.ajax({
         url: 'edit_user',
+        type: 'POST',
         data: {
             user_id: rowData['user_id'],
             friendly_name: friendly_name,
             keep_history: keep_history,
-            allow_guest: allow_guest,
-            thumb: rowData['user_thumb']
+            allow_guest: allow_guest
         },
         cache: false,
         async: true,

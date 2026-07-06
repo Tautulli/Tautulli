@@ -63,6 +63,36 @@ def _patch_cheroot_makefile():
         pass
 
 
+def _patch_cherrypy_cors_preflight():
+    """Monkey patch vendored cherrypy_cors preflight validation.
+
+    The vendored cherrypy_cors implementation compares the requested
+    method and request headers using exact case, which can cause valid
+    preflight requests to fail and drop the CORS preflight headers.
+    """
+    try:
+        cors_cls = cherrypy_cors.CORS
+    except AttributeError:
+        return
+
+    def _has_valid_method(self, allowed_methods):
+        return (
+            self.requested_method
+            and self.requested_method.upper() in [method.upper() for method in allowed_methods]
+        )
+
+    def _valid_headers(self, allowed_headers):
+        if self.requested_headers and allowed_headers:
+            allowed_headers = [header.lower() for header in allowed_headers]
+            for header in self.requested_headers.split(','):
+                if header.strip().lower() not in allowed_headers:
+                    return False
+        return True
+
+    cors_cls._has_valid_method = _has_valid_method
+    cors_cls._valid_headers = _valid_headers
+
+
 def start():
     logger.info("Tautulli WebStart :: Initializing Tautulli web server...")
     web_config = {
@@ -96,6 +126,8 @@ def restart():
 
 
 def initialize(options):
+    # Monkey-patch vendored cherrypy_cors preflight validation to handle case-insensitive method and header checks
+    _patch_cherrypy_cors_preflight()
     cherrypy_cors.install()
 
     # Monkey-patch cheroot makefile to handle socket errors during cleanup
@@ -130,7 +162,6 @@ def initialize(options):
         'tools.encode.on': True,
         'tools.encode.encoding': 'utf-8',
         'tools.decode.on': True,
-        'cors.expose.on': True,
     }
 
     if plexpy.DEV:
@@ -187,6 +218,7 @@ def initialize(options):
         plexpy.HTTP_ROOT = options['http_root'] = '/'
 
     cherrypy.tools.csrf = cherrypy.Tool('before_handler', webauth.check_csrf_token, priority=3)
+    cherrypy.tools.secheaders = cherrypy.Tool('before_finalize', set_security_headers)
 
     logger.info("Tautulli WebStart :: Thread Pool Size: %d.", plexpy.CONFIG.HTTP_THREAD_POOL)
     cherrypy.config.update(options_dict)
@@ -208,11 +240,13 @@ def initialize(options):
             'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
                 options['http_username']: options['http_password']}),
             'tools.csrf.on': True,
-            'error_page.default': error_page
+            'tools.secheaders.on': True,
+            'error_page.default': error_page,
+            'cors.expose.on': True,
         },
         '/api': {
             'tools.auth_basic.on': False,
-            'tools.sessions.on': True,
+            'tools.sessions.on': False,
         },
         '/status': {
             'tools.auth_basic.on': False,
@@ -342,3 +376,10 @@ def proxy():
 
     # Call original cherrypy proxy tool with the new local
     cherrypy.lib.cptools.proxy(local=local)
+
+
+def set_security_headers():
+    headers = cherrypy.response.headers
+    headers['X-Content-Type-Options'] = 'nosniff'
+    headers['X-Frame-Options'] = 'SAMEORIGIN'
+    headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'

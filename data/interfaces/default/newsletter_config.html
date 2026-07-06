@@ -2,7 +2,7 @@
 <%!
     import json
     from plexpy import notifiers
-    from plexpy.helpers import anon_url, checked
+    from plexpy.helpers import anon_url, checked, json_dumps_for_html
 
     all_notifiers = sorted(notifiers.get_notifiers(), key=lambda k: (k['agent_label'].lower(), k['friendly_name'], k['id']))
     email_notifiers = [n for n in all_notifiers if n['agent_name'] == 'email']
@@ -705,10 +705,10 @@
     });
 
     if (${newsletter['config']['custom_cron']}) {
-        $('#cron_value').val(${json.dumps(newsletter['cron']) | n});
+        $('#cron_value').val(${json_dumps_for_html(newsletter['cron']) | n});
     } else {
         try {
-            cron_widget.cron('value', ${json.dumps(newsletter['cron']) | n});
+            cron_widget.cron('value', ${json_dumps_for_html(newsletter['cron']) | n});
         } catch (e) {}
     }
 
@@ -776,7 +776,7 @@
         }
     });
     var incl_libraries = $incl_libraries[0].selectize;
-    incl_libraries.setValue(${json.dumps(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_libraries'), [])) | n});
+    incl_libraries.setValue(${json_dumps_for_html(next((c['value'] for c in newsletter['config_options'] if c['name'] == 'newsletter_config_incl_libraries'), [])) | n});
 
     initConfigCheckbox('#newsletter_config_save_only_checkbox', '#newsletter_agent_options', true);
 
@@ -881,9 +881,9 @@
     var email_to = $email_selectors[0].selectize;
     var email_cc = $email_selectors[1].selectize;
     var email_bcc = $email_selectors[2].selectize;
-    email_to.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_to'), [])) | n});
-    email_cc.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_cc'), [])) | n});
-    email_bcc.setValue(${json.dumps(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_bcc'), [])) | n});
+    email_to.setValue(${json_dumps_for_html(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_to'), [])) | n});
+    email_cc.setValue(${json_dumps_for_html(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_cc'), [])) | n});
+    email_bcc.setValue(${json_dumps_for_html(next((c['value'] for c in newsletter['email_config_options'] if c['name'] == 'newsletter_email_bcc'), [])) | n});
 
     function reloadModal() {
         $.ajax({

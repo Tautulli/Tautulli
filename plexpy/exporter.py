@@ -2582,11 +2582,6 @@ def cancel_exports():
 
 
 def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=None):
-    default_return = {'recordsFiltered': 0,
-                      'recordsTotal': 0,
-                      'draw': 0,
-                      'data': []}
-
     data_tables = datatables.DataTables()
 
     custom_where = []
@@ -2633,7 +2628,7 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                                       kwargs=kwargs)
     except Exception as e:
         logger.warn("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s.", e)
-        return default_return
+        return
 
     result = query['result']
 
@@ -2719,7 +2714,7 @@ def get_custom_fields(media_type, sub_media_type=None):
 
     collection_sub_media_types = {'movie', 'show', 'artist', 'album', 'photoalbum'}
     playlist_sub_media_types = {'video', 'audio', 'photo'}
-    sub_media_type = {s.strip().lower() for s in sub_media_type.split(',')}
+    sub_media_type = {s.strip().lower() for s in (sub_media_type or '').split(',')}
 
     export = Export()
 

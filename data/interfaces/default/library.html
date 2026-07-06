@@ -18,7 +18,6 @@ library_art         Returns the artwork for the library.
 count               Returns the item count for the library.
 parent_count        Returns the parent item count for the library.
 child_count         Returns the child item count for the library.
-do_notify           Returns bool value for whether to send notifications for the library.
 keep_history        Returns bool value for whether to keep history for the library.
 
 DOCUMENTATION :: END
@@ -579,6 +578,9 @@ DOCUMENTATION :: END
                     user_id: "${history_user_id}",
                     transcode_decision: transcode_decision
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading history.<br>Please check the logs.', false, false, null, true);
             }
         };
         history_table = $('#history_table-SID-${data["section_id"]}').DataTable(history_table_options);
@@ -627,6 +629,9 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     section_id: section_id
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         collections_table = $('#collections_table-SID-${data["section_id"]}').DataTable(collections_table_options);
@@ -659,6 +664,9 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     section_id: section_id
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         playlists_table = $('#playlists_table-SID-${data["section_id"]}').DataTable(playlists_table_options);
@@ -769,6 +777,9 @@ DOCUMENTATION :: END
                     section_id: section_id,
                     refresh: refresh_table
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
@@ -803,6 +814,9 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     section_id: section_id
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         export_table = $('#export_table-SID-${data["section_id"]}').DataTable(export_table_options);

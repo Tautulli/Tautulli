@@ -890,6 +890,9 @@ DOCUMENTATION :: END
                     rating_key: "${data['rating_key']}"
                     % endif
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         }
         history_table = $('#history_table-RK-${data["rating_key"]}').DataTable(history_table_options);
@@ -1074,6 +1077,9 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     rating_key: "${data['rating_key']}"
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
         export_table = $('#export_table-RK-${data["rating_key"]}').DataTable(export_table_options);

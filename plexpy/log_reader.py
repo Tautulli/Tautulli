@@ -54,12 +54,12 @@ def get_log_tail(window=20, parsed=True, log_file=''):
         return
 
     try:
-        logfile = open(log_file, 'r', encoding='utf-8')
+        logfile = open(log_file, 'rb')
     except IOError as e:
         logger.error('Unable to open Plex Log file. %s' % e)
         return []
 
-    log_lines = tail(logfile, window)
+    log_lines = [line.decode('utf-8', errors='replace') for line in tail(logfile, window)]
 
     if parsed:
         line_error = False

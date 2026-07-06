@@ -2590,6 +2590,11 @@ def dbcheck():
         c_db.execute(
             "UPDATE exports SET thumb_level = 9 WHERE include_thumb = 1"
         )
+
+    # Upgrade exports table from earlier versions
+    try:
+        c_db.execute("SELECT art_level FROM exports")
+    except sqlite3.OperationalError:
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN art_level INTEGER DEFAULT 0"
         )

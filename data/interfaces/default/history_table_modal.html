@@ -60,6 +60,9 @@
                     transcode_decision: "${data.get('transcode_decision')}",
                     include_activity: false
                 };
+            },
+            error: function(xhr, error, thrown) {
+                showMsg('<i class="fa fa-exclamation-triangle"></i> An error occurred while loading table.<br>Please check the logs.', false, false, null, true);
             }
         };
 

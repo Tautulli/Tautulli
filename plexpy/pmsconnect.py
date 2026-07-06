@@ -430,7 +430,9 @@ class PmsConnect(object):
 
         Output: array
         """
-        uri = '/hubs/search?query=' + quote(query.encode('utf8')) + '&limit=' + limit + '&includeCollections=1'
+        uri = '/hubs/search?query=' + quote(query.encode('utf8')) + '&includeCollections=1'
+        if limit:
+            uri += '&limit=' + limit
         request = self.request_handler.make_request(uri=uri,
                                                     request_type='GET',
                                                     output_format=output_format)
@@ -1624,6 +1626,7 @@ class PmsConnect(object):
                                             'audio_language': helpers.get_xml_attr(stream, 'language'),
                                             'audio_language_code': helpers.get_xml_attr(stream, 'languageCode'),
                                             'audio_profile': helpers.get_xml_attr(stream, 'profile'),
+                                            'audio_atmos': helpers.cast_to_int('atmos' in helpers.get_xml_attr(stream, 'profile').lower()),
                                             'selected': int(helpers.get_xml_attr(stream, 'selected') == '1')
                                             })
 
@@ -2073,6 +2076,13 @@ class PmsConnect(object):
                              'stream_video_color_space': '',
                              'stream_video_color_trc': '',
                              'stream_video_dynamic_range': '',
+                             'stream_video_dovi_bl_present': 0,
+                             'stream_video_dovi_el_present': 0,
+                             'stream_video_dovi_level': 0,
+                             'stream_video_dovi_present': 0,
+                             'stream_video_dovi_profile': 0,
+                             'stream_video_dovi_rpu_present': 0,
+                             'stream_video_dovi_version': 0.0,
                              'stream_video_height': '',
                              'stream_video_width': '',
                              'stream_video_ref_frames': '',
@@ -2097,6 +2107,7 @@ class PmsConnect(object):
                              'stream_audio_language': helpers.get_xml_attr(audio_stream_info, 'language'),
                              'stream_audio_language_code': helpers.get_xml_attr(audio_stream_info, 'languageCode'),
                              'stream_audio_profile': helpers.get_xml_attr(audio_stream_info, 'profile'),
+                             'stream_audio_atmos': helpers.cast_to_int('atmos' in helpers.get_xml_attr(audio_stream_info, 'profile').lower()),
                              'stream_audio_decision': helpers.get_xml_attr(audio_stream_info, 'decision') or 'direct play'
                              }
         else:
@@ -2110,6 +2121,7 @@ class PmsConnect(object):
                              'stream_audio_language': '',
                              'stream_audio_language_code': '',
                              'stream_audio_profile': '',
+                             'stream_audio_atmos': 0,
                              'stream_audio_decision': ''
                              }
 
@@ -2285,7 +2297,8 @@ class PmsConnect(object):
                                     'audio_sample_rate': '',
                                     'audio_language': '',
                                     'audio_language_code': '',
-                                    'audio_profile': ''
+                                    'audio_profile': '',
+                                    'audio_atmos': 0
                                     }
             source_subtitle_details = {'id': '',
                                        'type': '',

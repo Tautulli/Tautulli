@@ -268,13 +268,15 @@ DOCUMENTATION :: END
                                     % if data['stream_audio_decision']:
                                         <%
                                             audio_language = (data['audio_language'] or 'Unknown') +  ' - ' if data['media_type'] != 'track' else ''
+                                            audio_atmos = ' + Atmos' if data['audio_atmos'] else ''
+                                            stream_audio_atmos = ' + Atmos' if data['stream_audio_atmos'] else ''
                                         %>
                                         % if data['stream_audio_decision'] == 'transcode':
-                                        Transcode (${audio_language}${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()} <i class="fa fa-long-arrow-right"></i> ${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                        Transcode (${audio_language}${AUDIO_CODEC_OVERRIDES.get(data['audio_codec'], data['audio_codec'].upper())} ${data['audio_channel_layout'].split('(')[0].capitalize()}${audio_atmos} <i class="fa fa-long-arrow-right"></i> ${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()}${stream_audio_atmos})
                                         % elif data['stream_audio_decision'] == 'copy':
-                                        Direct Stream (${audio_language}${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                        Direct Stream (${audio_language}${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()}${stream_audio_atmos})
                                         % else:
-                                        Direct Play (${audio_language}${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()})
+                                        Direct Play (${audio_language}${AUDIO_CODEC_OVERRIDES.get(data['stream_audio_codec'], data['stream_audio_codec'].upper())} ${data['stream_audio_channel_layout'].split('(')[0].capitalize()}${stream_audio_atmos})
                                         % endif
                                     % endif
                                 </div>
