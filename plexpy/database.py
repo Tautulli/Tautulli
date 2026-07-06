@@ -220,7 +220,6 @@ def clear_table(table=None):
         logger.debug("Tautulli Database :: Clearing database table '%s'." % table)
         try:
             monitor_db.action("DELETE FROM %s" % table)
-            vacuum()
             return True
         except Exception as e:
             logger.error("Tautulli Database :: Failed to clear database table '%s': %s." % (table, e))
@@ -258,7 +257,6 @@ def delete_rows_from_table(table, row_ids):
             for row_ids_group in helpers.chunk(row_ids, sqlite_max_variable_number):
                 query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids_group))
                 monitor_db.action(query, row_ids_group)
-            vacuum()
         except Exception as e:
             logger.error("Tautulli Database :: Failed to delete rows from %s database table: %s" % (table, e))
             return False
@@ -302,9 +300,12 @@ def delete_library_history(section_id=None):
 def vacuum():
     monitor_db = MonitorDatabase()
 
-    logger.info("Tautulli Database :: Vacuuming database.")
     try:
-        monitor_db.action("VACUUM")
+        freelist_count = monitor_db.select_single("PRAGMA freelist_count").get('freelist_count', 0)
+        page_count = monitor_db.select_single("PRAGMA page_count").get('page_count', 0)
+        if page_count > 0 and freelist_count / page_count >= 0.20:
+            logger.info("Tautulli Database :: Vacuuming database.")
+            monitor_db.action("VACUUM")
     except Exception as e:
         logger.error("Tautulli Database :: Failed to vacuum database: %s" % e)
 
