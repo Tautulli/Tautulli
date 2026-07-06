@@ -449,4 +449,5 @@ class AuthController(object):
         root = plexpy.HTTP_ROOT.rstrip('/')
         if redirect_uri.startswith(root):
             redirect_uri = redirect_uri[len(root):]
+        redirect_uri = redirect_uri.replace('\\', '/')
         raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + redirect_uri.strip('/ \t\r\n'))
