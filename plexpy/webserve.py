@@ -34,6 +34,7 @@ from urllib.parse import urlencode
 import cherrypy
 from cherrypy.lib.static import serve_file, serve_fileobj, serve_download
 from cherrypy._cperror import NotFound
+import cherrypy_cors
 
 from hashing_passwords import make_hash
 from mako.lookup import TemplateLookup
@@ -6527,6 +6528,17 @@ class WebInterface(object):
 
     @cherrypy.expose
     def api(self, *args, **kwargs):
+        if cherrypy.request.method == 'OPTIONS':
+            cherrypy_cors.preflight(
+                allowed_methods=['GET', 'POST', 'OPTIONS'],
+                allowed_headers=['Content-Type', 'X-Api-Key'],
+                allow_credentials=True,
+                max_age=86400
+            )
+            cherrypy.response.status = 204
+            cherrypy.response.headers['Content-Length'] = '0'
+            return
+
         if args and 'v2' in args[0]:
             return API2()._api_run(**kwargs)
         else:
