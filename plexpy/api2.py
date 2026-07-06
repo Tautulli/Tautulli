@@ -218,6 +218,19 @@ class API2(object):
                     }
                     templog.append(d)
 
+        if search:
+            logger.api_debug("Tautulli APIv2 :: Searching log values for '%s'" % search)
+            tt = [d for d in templog if any(search.lower() in str(v).lower() for v in d.values())]
+            templog = tt
+
+        if regex:
+            tt = []
+            for l in templog:
+                stringdict = ' '.join('{}{}'.format(k, v) for k, v in l.items())
+                if reg.search(stringdict):
+                    tt.append(l)
+            templog = tt
+
         if order == 'desc':
             templog = templog[::-1]
 
@@ -228,23 +241,6 @@ class API2(object):
         if sort:
             logger.api_debug("Tautulli APIv2 :: Sorting log based on '%s'" % sort)
             templog = sorted(templog, key=lambda k: k[sort])
-
-        if search:
-            logger.api_debug("Tautulli APIv2 :: Searching log values for '%s'" % search)
-            tt = [d for d in templog for k, v in d.items() if search.lower() in v.lower()]
-
-            if len(tt):
-                templog = tt
-
-        if regex:
-            tt = []
-            for l in templog:
-                stringdict = ' '.join('{}{}'.format(k, v) for k, v in l.items())
-                if reg.search(stringdict):
-                    tt.append(l)
-
-            if len(tt):
-                templog = tt
 
         return templog
 
