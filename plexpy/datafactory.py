@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -1658,17 +1658,31 @@ class DataFactory(object):
     def get_total_duration(self, custom_where=None):
         monitor_db = database.MonitorDatabase()
 
+        join_tables = set()
+        media_type_live = ''
+
+        for c_where in custom_where:
+            if 'session_history_metadata.' in c_where[0]:
+                join_tables.add('session_history_metadata')
+            elif 'session_history_media_info.' in c_where[0]:
+                join_tables.add('session_history_media_info')
+            elif c_where[0] == 'media_type_live':
+                join_tables.add('session_history_metadata')
+                media_type_live = (
+                    ", (CASE WHEN session_history_metadata.live = 1 THEN 'live' ELSE session_history.media_type END) "
+                    "AS media_type_live"
+                )
+
+        joins = ''
+        for table in join_tables:
+            joins += f"JOIN {table} ON {table}.id = session_history.id "
+
         where, args = datatables.build_custom_where(custom_where=custom_where)
 
         try:
             query = "SELECT SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - " \
-                    "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration, " \
-                    "(CASE WHEN session_history_metadata.live = 1 THEN 'live' ELSE session_history.media_type END) " \
-                    "AS media_type_live " \
-                    "FROM session_history " \
-                    "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                    "JOIN session_history_media_info ON session_history_media_info.id = session_history.id " \
-                    "%s " % where
+                    "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS total_duration %s " \
+                    "FROM session_history %s %s" % (media_type_live, joins, where)
             result = monitor_db.select(query, args=args)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_total_duration: %s." % e)
