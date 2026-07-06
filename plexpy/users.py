@@ -920,7 +920,7 @@ class Users(object):
                 logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
                 return False
 
-        return True
+        return False
 
     def get_datatables_user_login(self, user_id=None, jwt_token=None, kwargs=None):
         if not session.allow_session_user(user_id):
