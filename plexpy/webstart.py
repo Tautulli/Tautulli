@@ -218,6 +218,7 @@ def initialize(options):
         plexpy.HTTP_ROOT = options['http_root'] = '/'
 
     cherrypy.tools.csrf = cherrypy.Tool('before_handler', webauth.check_csrf_token, priority=3)
+    cherrypy.tools.secheaders = cherrypy.Tool('before_finalize', set_security_headers)
 
     logger.info("Tautulli WebStart :: Thread Pool Size: %d.", plexpy.CONFIG.HTTP_THREAD_POOL)
     cherrypy.config.update(options_dict)
@@ -239,6 +240,7 @@ def initialize(options):
             'tools.auth_basic.checkpassword': cherrypy.lib.auth_basic.checkpassword_dict({
                 options['http_username']: options['http_password']}),
             'tools.csrf.on': True,
+            'tools.secheaders.on': True,
             'error_page.default': error_page,
             'cors.expose.on': True,
         },
@@ -374,3 +376,10 @@ def proxy():
 
     # Call original cherrypy proxy tool with the new local
     cherrypy.lib.cptools.proxy(local=local)
+
+
+def set_security_headers():
+    headers = cherrypy.response.headers
+    headers['X-Content-Type-Options'] = 'nosniff'
+    headers['X-Frame-Options'] = 'SAMEORIGIN'
+    headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
