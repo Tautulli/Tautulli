@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -1668,7 +1668,7 @@ class DataFactory(object):
                 join_tables.add('session_history_metadata')
             elif 'session_history_media_info.' in c_where[0]:
                 join_tables.add('session_history_media_info')
-            elif c_where[0] == 'media_type_live':
+            elif c_where[0].startswith('media_type_live'):
                 join_tables.add('session_history_metadata')
                 media_type_live = (
                     ", (CASE WHEN session_history_metadata.live = 1 THEN 'live' ELSE session_history.media_type END) "

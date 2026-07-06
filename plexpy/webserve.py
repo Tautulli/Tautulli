@@ -1994,11 +1994,11 @@ class WebInterface(object):
         if user_id:
             user_id = helpers.split_strip(user_id)
             if user_id:
-                custom_where.append(['session_history.user_id', user_id])
+                custom_where.append(['session_history.user_id IN', user_id])
         elif user:
             user = helpers.split_strip(user)
             if user:
-                custom_where.append(['session_history.user', user])
+                custom_where.append(['session_history.user IN', user])
         if 'rating_key' in kwargs:
             if kwargs.get('media_type') in ('collection', 'playlist') and kwargs.get('rating_key'):
                 pms_connect = pmsconnect.PmsConnect()
@@ -2010,15 +2010,15 @@ class WebInterface(object):
             else:
                 rating_key = helpers.split_strip(kwargs.pop('rating_key', ''))
                 if rating_key:
-                    custom_where.append(['session_history.rating_key', rating_key])
+                    custom_where.append(['session_history.rating_key IN', rating_key])
         if 'parent_rating_key' in kwargs:
             rating_key = helpers.split_strip(kwargs.pop('parent_rating_key', ''))
             if rating_key:
-                custom_where.append(['session_history.parent_rating_key', rating_key])
+                custom_where.append(['session_history.parent_rating_key IN', rating_key])
         if 'grandparent_rating_key' in kwargs:
             rating_key = helpers.split_strip(kwargs.pop('grandparent_rating_key', ''))
             if rating_key:
-                custom_where.append(['session_history.grandparent_rating_key', rating_key])
+                custom_where.append(['session_history.grandparent_rating_key IN', rating_key])
         if 'start_date' in kwargs:
             start_date = helpers.split_strip(kwargs.pop('start_date', ''))
             if start_date:
@@ -2034,19 +2034,19 @@ class WebInterface(object):
         if 'reference_id' in kwargs:
             reference_id = helpers.split_strip(kwargs.pop('reference_id', ''))
             if reference_id:
-                custom_where.append(['session_history.reference_id', reference_id])
+                custom_where.append(['session_history.reference_id IN', reference_id])
         if 'section_id' in kwargs:
             section_id = helpers.split_strip(kwargs.pop('section_id', ''))
             if section_id:
-                custom_where.append(['session_history.section_id', section_id])
+                custom_where.append(['session_history.section_id IN', section_id])
         if 'media_type' in kwargs:
             media_type = helpers.split_strip(kwargs.pop('media_type', ''))
             if media_type and 'all' not in media_type:
-                custom_where.append(['media_type_live', media_type])
+                custom_where.append(['media_type_live IN', media_type])
         if 'transcode_decision' in kwargs:
             transcode_decision = helpers.split_strip(kwargs.pop('transcode_decision', ''))
             if transcode_decision and 'all' not in transcode_decision:
-                custom_where.append(['session_history_media_info.transcode_decision', transcode_decision])
+                custom_where.append(['session_history_media_info.transcode_decision IN', transcode_decision])
         if 'guid' in kwargs:
             guid = helpers.split_strip(kwargs.pop('guid', '').split('?')[0])
             if guid:
