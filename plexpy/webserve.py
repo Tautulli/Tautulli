@@ -2926,7 +2926,7 @@ class WebInterface(object):
         logs = log_reader.get_log_tail(window=window, parsed=True, log_file=logfile)
 
         if logs:
-            return {'data': logs}
+            return logs
         else:
             logger.warn("Unable to retrieve Plex log file '%s'." % logfile)
             return {'result': 'error', 'message': "Plex log file '%s.log' not found." % logfile}
