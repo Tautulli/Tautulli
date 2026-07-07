@@ -634,12 +634,12 @@ class WebInterface(object):
             ```
             Required parameters:
                 section_id (str):           The id of the Plex library section
+
+            Optional parameters:
+                WARNING: On v.2.17.2 and older, optional parameters are reset to default if not provided.
                 custom_thumb (str):         The URL for the custom library thumbnail
                 custom_art (str):           The URL for the custom library background art
                 keep_history (int):         0 or 1
-
-            Optional parameters:
-                None
 
             Returns:
                 None
@@ -1125,10 +1125,11 @@ class WebInterface(object):
             Required parameters:
                 server_id (str):        The Plex server identifier of the library section
                 section_id (str):       The id of the Plex library section
-
-            Optional parameters:
+                or
                 row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
+            Optional parameters:
+                None
             Returns:
                 None
             ```
@@ -1375,13 +1376,13 @@ class WebInterface(object):
             ```
             Required parameters:
                 user_id (str):              The id of the Plex user
+
+            Optional parameters:
+                WARNING: On v.2.17.2 and older, optional parameters are reset to default if not provided.
                 friendly_name(str):         The friendly name of the user
                 custom_thumb (str):         The URL for the custom user thumbnail
                 keep_history (int):         0 or 1
                 allow_guest (int):          0 or 1
-
-            Optional parameters:
-                None
 
             Returns:
                 None
@@ -1817,9 +1818,11 @@ class WebInterface(object):
             ```
             Required parameters:
                 user_id (str):          The id of the Plex user
+                or
+                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
 
             Optional parameters:
-                row_ids (str):          Comma separated row ids to delete, e.g. "2,3,8"
+                None
 
             Returns:
                 None
@@ -2902,7 +2905,7 @@ class WebInterface(object):
 
             Optional parameters:
                 window (int):           The number of tail lines to return
-                logfile (int):          The name of the Plex log file,
+                logfile (str):          The name of the Plex log file,
                                         e.g. "Plex Media Server", "Plex Media Scanner"
 
             Returns:
@@ -2961,6 +2964,7 @@ class WebInterface(object):
                           "agent_name": "telegram",
                           "body_text": "DanyKhaleesi69 started playing The Red Woman.",
                           "id": 1000,
+                          "notifier_id": 1,
                           "notify_action": "on_play",
                           "rating_key": 153037,
                           "session_key": 147,
@@ -3025,6 +3029,7 @@ class WebInterface(object):
                      "data":
                         [{"agent_id": 0,
                           "agent_name": "recently_added",
+                          "body_text": "",
                           "end_date": "2018-03-18",
                           "id": 7,
                           "newsletter_id": 1,
@@ -3602,7 +3607,7 @@ class WebInterface(object):
                 None
 
             Returns:
-                None
+                notifier_id (int):        The ID of the new notification agent
             ```
         """
         result = notifiers.add_notifier_config(agent_id=agent_id, **kwargs)
@@ -4117,7 +4122,6 @@ class WebInterface(object):
 
             Optional parameters:
                 ssl (int):          0 or 1
-                remote (int):       0 or 1
 
             Returns:
                 json:
@@ -4214,7 +4218,6 @@ class WebInterface(object):
                 json:
                     {"pms_identifier": "08u2phnlkdshf890bhdlksghnljsahgleikjfg9t",
                      "pms_ip": "10.10.10.1",
-                     "pms_is_remote": 0,
                      "pms_name": "Winterfell-Server",
                      "pms_platform": "Windows",
                      "pms_plexpass": 1,
@@ -5096,8 +5099,13 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @addtoapi()
     def delete_cache(self, images=False, **kwargs):
-        """ Delete and recreate the cache directory. """
-        folder = 'images' if images else ''
+        """ Delete and recreate the cache directory.
+        
+            Optional parameters:
+                images (bool):       True to only clear the image cache,
+                                     False to clear the entire cache.
+        """
+        folder = 'images' if helpers.bool_true(images) else ''
         
         cache_dir = os.path.join(plexpy.CONFIG.CACHE_DIR, folder)
         result = 'success'
@@ -5970,6 +5978,24 @@ class WebInterface(object):
                              "local": "1",
                              "location": "lan",
                              "machine_id": "lmd93nkn12k29j2lnm",
+                             "markers": [
+                                 {
+                                     "id": 908,
+                                     "type": "credits",
+                                     "start_time_offset": 2923863,
+                                     "end_time_offset": 2998197,
+                                     "first": true,
+                                     "final": true
+                                 },
+                                 {
+                                     "id": 908,
+                                     "type": "intro",
+                                     "start_time_offset": 1622,
+                                     "end_time_offset": 109135,
+                                     "first": null,
+                                     "final": null
+                                 }
+                             ],
                              "media_index": "1",
                              "media_type": "episode",
                              "optimized_version": 0,
@@ -5994,7 +6020,7 @@ class WebInterface(object):
                              "rating": "7.8",
                              "rating_image": "rottentomatoes://image.rating.ripe",
                              "rating_key": "153037",
-                             "relay": 0,
+                             "relayed": 0,
                              "section_id": "2",
                              "secure": 1,
                              "session_id": "helf15l3rxgw01xxe0jf3l3d",
@@ -6288,7 +6314,6 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @sanitize_out()
-    @addtoapi()
     def get_synced_items(self, machine_id='', user_id='', **kwargs):
         """ Get a list of synced items on the PMS.
 
@@ -6822,7 +6847,7 @@ class WebInterface(object):
                 None
 
             Returns:
-                None
+                newsletter_id (int):      The ID of the new newsletter agent
             ```
         """
         result = newsletters.add_newsletter_config(agent_id=agent_id, **kwargs)

@@ -394,7 +394,6 @@ class API2(object):
                 json:
                     {"pms_identifier": "08u2phnlkdshf890bhdlksghnljsahgleikjfg9t",
                      "pms_ip": "10.10.10.1",
-                     "pms_is_remote": 0,
                      "pms_name": "Winterfell-Server",
                      "pms_platform": "Windows",
                      "pms_plexpass": 1,
@@ -570,7 +569,7 @@ The API endpoint is
 http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?cmd=$command
 ```
 
-The API key can be passed as an `X-Api-Key` header or as an `apikey` parameter. The header is preferred for security reasons.
+The API key can be passed as an `X-Api-Key` header (in v2.17.3 or greater) or as an `apikey` parameter. The header is preferred for security reasons.
 ```
 http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?cmd=$command
 HEADER: X-Api-Key: $apikey
