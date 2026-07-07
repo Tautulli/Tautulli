@@ -623,7 +623,7 @@ class PmsConnect(object):
                         guids.append(helpers.get_xml_attr(guid, 'id'))
 
                 recent_item = {'media_type': helpers.get_xml_attr(m, 'type'),
-                               'section_id': helpers.get_xml_attr(m, 'librarySectionID'),
+                               'section_id': helpers.get_xml_attr(m, 'librarySectionID') or section_id,
                                'library_name': helpers.get_xml_attr(m, 'librarySectionTitle'),
                                'rating_key': helpers.get_xml_attr(m, 'ratingKey'),
                                'parent_rating_key': helpers.get_xml_attr(m, 'parentRatingKey'),
