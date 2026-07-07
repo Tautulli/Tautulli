@@ -5401,13 +5401,12 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_metadata")
-    def get_metadata_details(self, rating_key='', sync_id='', **kwargs):
+    def get_metadata_details(self, rating_key='', **kwargs):
         """ Get the metadata for a media item.
 
             ```
             Required parameters:
                 rating_key (str):       Rating key of the item, OR
-                sync_id (str):          Sync ID of a synced item
 
             Optional parameters:
                 None
@@ -5612,14 +5611,13 @@ class WebInterface(object):
             ```
         """
         pms_connect = pmsconnect.PmsConnect()
-        metadata = pms_connect.get_metadata_details(rating_key=rating_key,
-                                                    sync_id=sync_id)
+        metadata = pms_connect.get_metadata_details(rating_key=rating_key)
 
         if metadata:
             return metadata
         else:
             logger.warn("Unable to retrieve data for get_metadata_details.")
-            return metadata
+            return {'result': 'error', 'message': "Unable to retrieve metadata for rating_key '%s'" % rating_key}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
