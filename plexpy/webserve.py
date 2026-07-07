@@ -181,7 +181,6 @@ class WebInterface(object):
             "pms_ip": plexpy.CONFIG.PMS_IP,
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
-            "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "pms_name": helpers.pms_name(),
             "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
         }
@@ -253,7 +252,6 @@ class WebInterface(object):
             "home_sections": plexpy.CONFIG.HOME_SECTIONS,
             "home_refresh_interval": plexpy.CONFIG.HOME_REFRESH_INTERVAL,
             "pms_name": helpers.pms_name(),
-            "pms_is_cloud": plexpy.CONFIG.PMS_IS_CLOUD,
             "update_show_changelog": plexpy.CONFIG.UPDATE_SHOW_CHANGELOG,
             "first_run_complete": plexpy.CONFIG.FIRST_RUN_COMPLETE
         }
@@ -4229,7 +4227,6 @@ class WebInterface(object):
             ```
         """
         server = plextv.get_server_resources(return_info=True)
-        server.pop('pms_is_cloud', None)
         return server
 
     @cherrypy.expose

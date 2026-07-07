@@ -39,7 +39,6 @@ def get_server_resources(return_presence=False, return_server=False, return_info
               'pms_ip': plexpy.CONFIG.PMS_IP,
               'pms_port': plexpy.CONFIG.PMS_PORT,
               'pms_ssl': plexpy.CONFIG.PMS_SSL,
-              'pms_is_cloud': plexpy.CONFIG.PMS_IS_CLOUD,
               'pms_url': plexpy.CONFIG.PMS_URL,
               'pms_url_manual': plexpy.CONFIG.PMS_URL_MANUAL,
               'pms_identifier': plexpy.CONFIG.PMS_IDENTIFIER,
@@ -51,10 +50,10 @@ def get_server_resources(return_presence=False, return_server=False, return_info
 
     if kwargs:
         server.update(kwargs)
-        for k in ['pms_ssl', 'pms_is_cloud', 'pms_url_manual']:
+        for k in ['pms_ssl', 'pms_url_manual']:
             server[k] = int(server[k])
 
-    if server['pms_url_manual'] and server['pms_ssl'] or server['pms_is_cloud']:
+    if server['pms_url_manual'] and server['pms_ssl']:
         scheme = 'https'
     else:
         scheme = 'http'
