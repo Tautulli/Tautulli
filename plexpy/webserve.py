@@ -2791,7 +2791,6 @@ class WebInterface(object):
     @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
-    @addtoapi("delete_synced_item")
     def delete_sync_rows(self, client_id=None, sync_id=None, **kwargs):
         """ Delete a synced item from a device.
 
