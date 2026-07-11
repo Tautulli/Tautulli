@@ -5065,8 +5065,12 @@ class WebInterface(object):
             img_info = notification_handler.get_hash_image_info(img_hash=img_hash)
 
             if img_info:
+                # Serve the cached image file when available; the hash
+                # identifies the image and its parameters, so a forced
+                # refresh here only re-fetched identical data from the
+                # PMS on every view
                 kwargs.update(img_info)
-                return self.real_pms_image_proxy(refresh=True, **kwargs)
+                return self.real_pms_image_proxy(**kwargs)
 
         return
 
