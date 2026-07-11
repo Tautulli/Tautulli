@@ -15,6 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import copy
 import json
 import os
 import time
@@ -51,6 +52,15 @@ def get_server_friendly_name():
         logger.info("Tautulli Pmsconnect :: Server name retrieved.")
 
     return server_name
+
+
+# Parent metadata (shows, seasons, artists, albums) is shared across many
+# children and rarely changes; memoized briefly so writing history for a
+# run of episodes/tracks does not re-fetch the same parents over HTTP
+# (each parent fetch is otherwise 1-2 requests, per completed item)
+_parent_metadata_cache = {}
+_PARENT_METADATA_TTL = 300  # seconds
+_PARENT_METADATA_CACHE_MAX = 512
 
 
 class PmsConnect(object):
@@ -674,6 +684,24 @@ class PmsConnect(object):
 
         return output
 
+    def get_parent_metadata_details(self, rating_key='', plex_guid='', epg_key=''):
+        """Memoized get_metadata_details for parent items.
+
+        Returns a private copy; callers may mutate the result.
+        """
+        cache_key = (self.url, rating_key, plex_guid, epg_key)
+        now = helpers.timestamp()
+        cached = _parent_metadata_cache.get(cache_key)
+        if cached and now - cached[0] < _PARENT_METADATA_TTL:
+            return copy.deepcopy(cached[1])
+
+        metadata = self.get_metadata_details(rating_key=rating_key, plex_guid=plex_guid, epg_key=epg_key)
+        if metadata:
+            if len(_parent_metadata_cache) >= _PARENT_METADATA_CACHE_MAX:
+                _parent_metadata_cache.clear()
+            _parent_metadata_cache[cache_key] = (now, copy.deepcopy(metadata))
+        return metadata
+
     def get_metadata_details(self, rating_key='', sync_id='', plex_guid='', epg_key='', section_id='',
                              skip_cache=False, cache_key=None, return_cache=False, media_info=True):
         """
@@ -939,12 +967,12 @@ class PmsConnect(object):
             parent_guid = helpers.get_xml_attr(metadata_main, 'parentGuid')
             show_details = {}
             if plex_guid and parent_guid:
-                show_details = self.get_metadata_details(plex_guid=parent_guid)
+                show_details = self.get_parent_metadata_details(plex_guid=parent_guid)
             elif epg_key and parent_guid:
                 epg_key_root = epg_key.rsplit('/', maxsplit=1)[0]
-                show_details = self.get_metadata_details(epg_key=f"{epg_key_root}/{quote_plus(parent_guid)}")
+                show_details = self.get_parent_metadata_details(epg_key=f"{epg_key_root}/{quote_plus(parent_guid)}")
             elif not plex_guid and not epg_key and parent_rating_key:
-                show_details = self.get_metadata_details(parent_rating_key)
+                show_details = self.get_parent_metadata_details(parent_rating_key)
 
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
@@ -1009,17 +1037,17 @@ class PmsConnect(object):
             grandparent_guid = helpers.get_xml_attr(metadata_main, 'grandparentGuid')
             show_details = {}
             if plex_guid and grandparent_guid:
-                show_details = self.get_metadata_details(plex_guid=grandparent_guid)
+                show_details = self.get_parent_metadata_details(plex_guid=grandparent_guid)
             elif epg_key and grandparent_guid:
                 epg_key_root = epg_key.rsplit('/', maxsplit=1)[0]
-                show_details = self.get_metadata_details(epg_key=f"{epg_key_root}/{quote_plus(grandparent_guid)}")
+                show_details = self.get_parent_metadata_details(epg_key=f"{epg_key_root}/{quote_plus(grandparent_guid)}")
             elif not plex_guid and grandparent_rating_key:
-                show_details = self.get_metadata_details(grandparent_rating_key)
+                show_details = self.get_parent_metadata_details(grandparent_rating_key)
 
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
             parent_media_index = helpers.get_xml_attr(metadata_main, 'parentIndex')
             parent_thumb = helpers.get_xml_attr(metadata_main, 'parentThumb')
-            season_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
+            season_details = self.get_parent_metadata_details(parent_rating_key) if parent_rating_key else {}
 
             if not plex_guid and not epg_key and not parent_rating_key:
                 # Try getting the parent_rating_key from the parent_thumb
@@ -1150,7 +1178,7 @@ class PmsConnect(object):
 
         elif metadata_type == 'album':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            artist_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
+            artist_details = self.get_parent_metadata_details(parent_rating_key) if parent_rating_key else {}
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
@@ -1211,7 +1239,7 @@ class PmsConnect(object):
 
         elif metadata_type == 'track':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            album_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
+            album_details = self.get_parent_metadata_details(parent_rating_key) if parent_rating_key else {}
             track_artist = helpers.get_xml_attr(metadata_main, 'originalTitle') or \
                            helpers.get_xml_attr(metadata_main, 'grandparentTitle')
             metadata = {'media_type': metadata_type,
@@ -1332,7 +1360,7 @@ class PmsConnect(object):
 
         elif metadata_type == 'photo':
             parent_rating_key = helpers.get_xml_attr(metadata_main, 'parentRatingKey')
-            photo_album_details = self.get_metadata_details(parent_rating_key) if parent_rating_key else {}
+            photo_album_details = self.get_parent_metadata_details(parent_rating_key) if parent_rating_key else {}
             metadata = {'media_type': metadata_type,
                         'section_id': section_id,
                         'library_name': library_name,
