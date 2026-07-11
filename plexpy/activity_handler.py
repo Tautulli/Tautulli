@@ -72,7 +72,8 @@ class ActivityHandler(object):
 
     def get_live_session(self, skip_cache=False):
         pms_connect = pmsconnect.PmsConnect()
-        session_list = pms_connect.get_current_activity(skip_cache=skip_cache)
+        session_list = pms_connect.get_current_activity(
+            skip_cache_key=self.session_key if skip_cache else None)
 
         if session_list:
             for session in session_list['sessions']:

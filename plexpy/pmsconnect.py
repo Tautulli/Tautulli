@@ -1824,9 +1824,12 @@ class PmsConnect(object):
 
         return metadata_list
 
-    def get_current_activity(self, skip_cache=False):
+    def get_current_activity(self, skip_cache_key=None):
         """
         Return processed and validated session list.
+
+        skip_cache_key bypasses the metadata cache for that session key
+        only; all other concurrent sessions keep using their cache.
 
         Output: array
         """
@@ -1854,17 +1857,17 @@ class PmsConnect(object):
                     # Filter out background theme music sessions
                     if helpers.get_xml_attr(session_, 'guid').startswith('library://'):
                         continue
-                    session_output = self.get_session_each(session_, skip_cache=skip_cache)
+                    session_output = self.get_session_each(session_, skip_cache_key=skip_cache_key)
                     session_list.append(session_output)
             if a.getElementsByTagName('Video'):
                 session_data = a.getElementsByTagName('Video')
                 for session_ in session_data:
-                    session_output = self.get_session_each(session_, skip_cache=skip_cache)
+                    session_output = self.get_session_each(session_, skip_cache_key=skip_cache_key)
                     session_list.append(session_output)
             if a.getElementsByTagName('Photo'):
                 session_data = a.getElementsByTagName('Photo')
                 for session_ in session_data:
-                    session_output = self.get_session_each(session_, skip_cache=skip_cache)
+                    session_output = self.get_session_each(session_, skip_cache_key=skip_cache_key)
                     session_list.append(session_output)
 
         session_list = sorted(session_list, key=lambda k: k['session_key'])
@@ -1875,7 +1878,7 @@ class PmsConnect(object):
 
         return output
 
-    def get_session_each(self, session=None, skip_cache=False):
+    def get_session_each(self, session=None, skip_cache_key=None):
         """
         Return selected data from current sessions.
         This function processes and validates session data
@@ -1888,6 +1891,10 @@ class PmsConnect(object):
         media_type = helpers.get_xml_attr(session, 'type')
         rating_key = helpers.get_xml_attr(session, 'ratingKey')
         session_key = helpers.get_xml_attr(session, 'sessionKey')
+
+        # Only bypass the metadata cache for the session that triggered
+        # the refresh
+        skip_cache = skip_cache_key is not None and str(skip_cache_key) == str(session_key)
 
         # Get the user details
         user_info = session.getElementsByTagName('User')[0]
