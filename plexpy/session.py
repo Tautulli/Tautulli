@@ -50,13 +50,16 @@ def get_session_csrf_token():
     """
     Returns the CSRF token for the current logged in session
     """
+    # Session locking is 'explicit'. Acquire the lock before the first
+    # session access: loading happens lazily on first access, and two
+    # parallel first renders (e.g. tabs restored after a restart, when
+    # the RAM session store is empty) must not each load their own empty
+    # copy and mint different tokens. Only HTML page renders take this
+    # lock; XHRs and images never touch the session. CherryPy releases
+    # the lock automatically when the request ends.
+    cherrypy.session.acquire_lock()
     if '_csrf_token' not in cherrypy.session:
-        # Session locking is 'explicit'; take the lock only for the one
-        # write a session ever sees. CherryPy releases the lock
-        # automatically when the request ends.
-        cherrypy.session.acquire_lock()
-        if '_csrf_token' not in cherrypy.session:
-            cherrypy.session['_csrf_token'] = generate_csrf_token()
+        cherrypy.session['_csrf_token'] = generate_csrf_token()
     return cherrypy.session['_csrf_token']
 
 
