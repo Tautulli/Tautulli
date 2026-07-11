@@ -15,15 +15,28 @@
 #  You should have received a copy of the GNU General Public License
 #  along with PlexPy.  If not, see <http://www.gnu.org/licenses/>.
 
+from http.cookiejar import DefaultCookiePolicy
 from multiprocessing.dummy import Pool as ThreadPool
 from urllib.parse import urljoin
 
 import requests
+import requests.adapters
 import urllib3
 
 import plexpy
 from plexpy import helpers
 from plexpy import logger
+
+
+# One shared session so every PMS/plex.tv operation reuses pooled
+# TCP/TLS connections instead of paying a fresh handshake per call.
+# Authentication is per-request via the X-Plex-Token header; cookie
+# storage is disabled so requests are fully independent.
+_session = requests.Session()
+_session.cookies.set_policy(DefaultCookiePolicy(allowed_domains=[]))
+_adapter = requests.adapters.HTTPAdapter(pool_connections=10, pool_maxsize=25)
+_session.mount('http://', _adapter)
+_session.mount('https://', _adapter)
 
 
 class HTTPHandler(object):
@@ -60,7 +73,7 @@ class HTTPHandler(object):
         if self.token:
             self.headers['X-Plex-Token'] = self.token
 
-        self._session = requests.Session()
+        self._default_timeout = timeout
         self.timeout = timeout
         # verify=True lets requests reuse its preloaded default SSL context
         # (same certifi bundle); passing the bundle path forces the CA PEM
@@ -78,6 +91,7 @@ class HTTPHandler(object):
         self.callback = None
         self.raise_errors = True
         self.request_kwargs = {}
+        self.request_headers = self.headers
 
     def make_request(self,
                      uri=None,
@@ -106,7 +120,7 @@ class HTTPHandler(object):
         self.return_type = return_type
         self.callback = callback
         self.raise_errors = raise_errors
-        self.timeout = timeout or self.timeout
+        self.timeout = timeout or self._default_timeout
         self.request_kwargs = request_kwargs
 
         if self.request_type not in self._valid_request_types:
@@ -116,10 +130,15 @@ class HTTPHandler(object):
         if uri:
             request_urls = [urljoin(str(url), self.uri) for url in self.urls]
 
+            # Build the headers per request instead of mutating the
+            # handler's base headers (no_token would otherwise remove the
+            # token for all later requests on this handler)
+            request_headers = dict(self.headers)
             if no_token:
-                self.headers.pop('X-Plex-Token', None)
+                request_headers.pop('X-Plex-Token', None)
             if headers:
-                self.headers.update(headers)
+                request_headers.update(headers)
+            self.request_headers = request_headers
 
             responses = []
             for r in self._http_requests_pool(request_urls):
@@ -161,8 +180,8 @@ class HTTPHandler(object):
         err = False
         error_msg = "Failed to access uri endpoint %s. " % self.uri
         try:
-            r = self._session.request(self.request_type, url, headers=self.headers, data=self.data,
-                                      timeout=self.timeout, verify=self.ssl_verify, **self.request_kwargs)
+            r = _session.request(self.request_type, url, headers=self.request_headers, data=self.data,
+                                 timeout=self.timeout, verify=self.ssl_verify, **self.request_kwargs)
             if self.raise_errors:
                 r.raise_for_status()
         except requests.exceptions.Timeout as e:
