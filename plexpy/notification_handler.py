@@ -557,15 +557,25 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     notify_params.update(media_info)
     notify_params.update(media_part_info)
 
-    child_metadata = grandchild_metadata = []
-    for key in kwargs.pop('child_keys', []):
-        child = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
-        if child:
-            child_metadata.append(child)
-    for key in kwargs.pop('grandchild_keys', []):
-        grandchild = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
-        if grandchild:
-            grandchild_metadata.append(grandchild)
+    child_metadata = []
+    child_keys = kwargs.pop('child_keys', [])
+    if child_keys:
+        # Only media_index and parent_rating_key are needed for grouped
+        # notifications; one children listing provides them for every
+        # grouped child instead of one full metadata fetch per child key
+        child_keys = {str(key) for key in child_keys}
+        children = pmsconnect.PmsConnect().get_item_children(rating_key=rating_key)
+        if children:
+            child_metadata = [child for child in children['children_list']
+                              if str(child['rating_key']) in child_keys]
+        if not child_metadata:
+            # The children listing failed or did not include the queued
+            # keys; fall back to fetching each child so the grouped
+            # season/episode ranges are not silently empty
+            for key in child_keys:
+                child = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
+                if child:
+                    child_metadata.append(child)
 
     # Session values
     session = session or {}
