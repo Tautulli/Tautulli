@@ -204,18 +204,19 @@ class _AlwaysLockedConnection:
         raise sqlite3.OperationalError("database is locked")
 
 
-def test_action_returns_none_after_five_failed_retries(app_db, monkeypatch):
+def test_action_raises_after_five_failed_retries(app_db, monkeypatch):
     fake_connection = _AlwaysLockedConnection()
-    monkeypatch.setattr(app_db, "connection", fake_connection)
+    monkeypatch.setattr(plexpy.database, "get_connection", lambda filename: fake_connection)
 
     sleep_calls = []
     monkeypatch.setattr(plexpy.database.time, "sleep", lambda seconds: sleep_calls.append(seconds))
 
-    result = app_db.action("SELECT 1")
+    # A silent None here would let a transaction() block commit a partial write.
+    with pytest.raises(sqlite3.OperationalError, match="database is locked"):
+        app_db.action("SELECT 1")
 
-    assert result is None
     assert fake_connection.raise_count == 5
-    assert len(sleep_calls) == 5
+    assert len(sleep_calls) == 4
 
 
 # ---------------------------------------------------------------------------
