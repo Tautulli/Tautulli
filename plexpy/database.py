@@ -587,6 +587,9 @@ class MonitorDatabase(object):
                 logger.error("Tautulli Database :: Fatal Error executing %s :: %s", query, e)
                 raise
 
+        if return_last_id:
+            return sql_result.lastrowid if sql_result is not None else None
+
         return sql_result
 
     @staticmethod
@@ -612,6 +615,19 @@ class MonitorDatabase(object):
             return {}
 
         return sql_results
+
+    def insert(self, table_name, value_dict):
+        """Insert a new row and return its rowid.
+
+        Unlike upsert(), no UPDATE probe is attempted first; use this
+        when the row is known not to exist yet.
+        """
+        columns = list(value_dict.keys())
+        insert_query = (
+            "INSERT INTO " + table_name + " (" + ", ".join(columns) + ")" +
+            " VALUES (" + ", ".join(["?"] * len(columns)) + ")"
+        )
+        return self.action(insert_query, list(value_dict.values()), return_last_id=True)
 
     def upsert(self, table_name, value_dict, key_dict):
 
