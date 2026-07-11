@@ -703,7 +703,8 @@ class PmsConnect(object):
         return metadata
 
     def get_metadata_details(self, rating_key='', sync_id='', plex_guid='', epg_key='', section_id='',
-                             skip_cache=False, cache_key=None, return_cache=False, media_info=True):
+                             skip_cache=False, cache_key=None, return_cache=False, media_info=True,
+                             metadata_xml=None):
         """
         Return processed and validated metadata list for requested item.
 
@@ -732,7 +733,10 @@ class PmsConnect(object):
                 if return_cache or helpers.timestamp() - _cache_time <= plexpy.CONFIG.METADATA_CACHE_SECONDS:
                     return metadata
 
-        if rating_key:
+        if metadata_xml is not None:
+            # Caller supplied a (possibly batched) metadata document
+            pass
+        elif rating_key:
             metadata_xml = self.get_metadata(str(rating_key), output_format='xml')
         elif sync_id:
             metadata_xml = self.get_sync_item(str(sync_id), output_format='xml')
@@ -770,10 +774,14 @@ class PmsConnect(object):
                 logger.debug("Tautulli Pmsconnect :: Metadata failed")
                 return {}
 
-            if sync_id and len(metadata_main_list) > 1:
-                for metadata_main in metadata_main_list:
-                    if helpers.get_xml_attr(metadata_main, 'ratingKey') == rating_key:
-                        break
+            if (sync_id or rating_key) and len(metadata_main_list) > 1:
+                # A batched fetch returns every requested key; pick ours
+                metadata_main = next(
+                    (m for m in metadata_main_list
+                     if helpers.get_xml_attr(m, 'ratingKey') == str(rating_key)), None)
+                if metadata_main is None:
+                    logger.debug("Tautulli Pmsconnect :: Metadata failed")
+                    return {}
             else:
                 metadata_main = metadata_main_list[0]
 
@@ -1780,19 +1788,21 @@ class PmsConnect(object):
 
             if a.getElementsByTagName('Video'):
                 metadata_main = a.getElementsByTagName('Video')
-                for item in metadata_main:
-                    child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
-                    metadata = self.get_metadata_details(str(child_rating_key))
-                    if metadata:
-                        metadata_list.append(metadata)
-
             elif a.getElementsByTagName('Track'):
                 metadata_main = a.getElementsByTagName('Track')
-                for item in metadata_main:
-                    child_rating_key = helpers.get_xml_attr(item, 'ratingKey')
-                    metadata = self.get_metadata_details(str(child_rating_key))
-                    if metadata:
-                        metadata_list.append(metadata)
+            else:
+                metadata_main = []
+
+            if metadata_main:
+                child_rating_keys = [helpers.get_xml_attr(item, 'ratingKey') for item in metadata_main]
+                # One batched /library/metadata/k1,k2,... request per chunk
+                # instead of one request per child
+                for chunk in helpers.chunk(child_rating_keys, 25):
+                    batch_xml = self.get_metadata(','.join(chunk), output_format='xml')
+                    for child_rating_key in chunk:
+                        metadata = self.get_metadata_details(str(child_rating_key), metadata_xml=batch_xml)
+                        if metadata:
+                            metadata_list.append(metadata)
 
             elif get_children and a.getElementsByTagName('Directory'):
                 dir_main = a.getElementsByTagName('Directory')
