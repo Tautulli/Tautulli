@@ -83,10 +83,10 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
 
     if notifier_id:
         # Send to a specific notifier regardless if it is enabled
-        notifiers_enabled = notifiers.get_notifiers(notifier_id=notifier_id)
+        notifiers_enabled = notifiers.get_notifiers(notifier_id=notifier_id, include_last_triggered=False)
     else:
         # Check if any notification agents have notifications enabled for the action
-        notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action)
+        notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action, include_last_triggered=False)
 
     if notifiers_enabled and not manual_trigger:
         logger.debug("Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s'." % notify_action)

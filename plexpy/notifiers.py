@@ -484,7 +484,7 @@ def get_notify_actions(return_dict=False):
     return tuple(a['name'] for a in available_notification_actions())
 
 
-def get_notifiers(notifier_id=None, notify_action=None):
+def get_notifiers(notifier_id=None, notify_action=None, include_last_triggered=True):
     notify_actions = get_notify_actions()
 
     where = where_id = where_action = ''
@@ -501,16 +501,27 @@ def get_notifiers(notifier_id=None, notify_action=None):
         where += ' AND '.join([w for w in [where_id, where_action] if w])
 
     db = database.MonitorDatabase()
-    result = db.select(
-        (
+
+    if include_last_triggered:
+        query = (
             "SELECT notifiers.id, notifiers.agent_id, notifiers.agent_name, notifiers.agent_label, notifiers.friendly_name, %s, "
             "MAX(notify_log.timestamp) AS last_triggered, notify_log.success AS last_success "
             "FROM notifiers "
             "LEFT OUTER JOIN notify_log ON notifiers.id = notify_log.notifier_id "
             "%s "
             "GROUP BY notifiers.id"
-        ) % (', '.join(notify_actions), where), args=args
-    )
+        ) % (', '.join(notify_actions), where)
+    else:
+        # The notification path only needs the notifier configuration;
+        # last_triggered/last_success (a scan of the unbounded notify_log
+        # table) is only displayed by the settings UI
+        query = (
+            "SELECT notifiers.id, notifiers.agent_id, notifiers.agent_name, notifiers.agent_label, notifiers.friendly_name, %s "
+            "FROM notifiers "
+            "%s"
+        ) % (', '.join(notify_actions), where)
+
+    result = db.select(query, args=args)
 
     for item in result:
         item['active'] = int(any([item.pop(k) for k in list(item.keys()) if k in notify_actions]))
@@ -4891,7 +4902,7 @@ class ZAPIER(Notifier):
 def check_browser_enabled():
     global BROWSER_NOTIFIERS
     BROWSER_NOTIFIERS = {}
-    for n in get_notifiers():
+    for n in get_notifiers(include_last_triggered=False):
         if n['agent_id'] == 17 and n['active']:
             notifier_config = get_notifier_config(n['id'])
             BROWSER_NOTIFIERS[n['id']] = notifier_config['config']['auto_hide_delay']
