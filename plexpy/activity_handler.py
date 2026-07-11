@@ -390,7 +390,7 @@ class ActivityHandler(object):
 
                 break
 
-        if not marker_flag:
+        if not marker_flag and self.db_session and self.db_session['marker'] != 0:
             self.ap.set_marker(session_key=self.session_key, marker_idx=0)
 
     def _marker_callback(self, marker):
