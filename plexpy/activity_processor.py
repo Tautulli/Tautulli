@@ -288,7 +288,6 @@ class ActivityProcessor(object):
 
                 # logger.debug("Tautulli ActivityProcessor :: Attempting to write sessionKey %s to session_history table..."
                 #              % session['session_key'])
-                keys = {'id': None}
                 values = {'started': session['started'],
                           'stopped': stopped,
                           'rating_key': session['rating_key'],
@@ -317,10 +316,7 @@ class ActivityProcessor(object):
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."
                 #              % session['session_key'])
-                db.upsert(table_name='session_history', key_dict=keys, value_dict=values)
-
-                # Get the last insert row id
-                last_id = db.last_insert_id()
+                last_id = db.insert(table_name='session_history', value_dict=values)
                 self.group_history(last_id, session, metadata)
                 
                 # logger.debug("Tautulli ActivityProcessor :: Successfully written history item, last id for session_history is %s"
@@ -330,8 +326,8 @@ class ActivityProcessor(object):
 
                 # logger.debug("Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_media_info table..."
                 #              % session['session_key'])
-                keys = {'id': last_id}
-                values = {'rating_key': session['rating_key'],
+                values = {'id': last_id,
+                          'rating_key': session['rating_key'],
                           'video_decision': session['video_decision'],
                           'audio_decision': session['audio_decision'],
                           'transcode_decision': session['transcode_decision'],
@@ -411,7 +407,7 @@ class ActivityProcessor(object):
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_media_info transaction..."
                 #              % session['session_key'])
-                db.upsert(table_name='session_history_media_info', key_dict=keys, value_dict=values)
+                db.insert(table_name='session_history_media_info', value_dict=values)
 
                 # Write the session_history_metadata table
                 directors = ";".join(metadata['directors'])
@@ -430,8 +426,8 @@ class ActivityProcessor(object):
 
                 # logger.debug("Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_metadata table..."
                 #              % session['session_key'])
-                keys = {'id': last_id}
-                values = {'rating_key': session['rating_key'],
+                values = {'id': last_id,
+                          'rating_key': session['rating_key'],
                           'parent_rating_key': session['parent_rating_key'],
                           'grandparent_rating_key': session['grandparent_rating_key'],
                           'title': session['title'],
@@ -476,7 +472,7 @@ class ActivityProcessor(object):
 
                 # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
                 #              % session['session_key'])
-                db.upsert(table_name='session_history_metadata', key_dict=keys, value_dict=values)
+                db.insert(table_name='session_history_metadata', value_dict=values)
 
             # Return the session row id when the session is successfully written to the database
             return session['id']

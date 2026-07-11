@@ -461,15 +461,14 @@ def set_notify_state(notifier, notify_action, subject='', body='', script_args='
 
         script_args = json.dumps(script_args) if script_args else None
 
-        keys = {'timestamp': helpers.timestamp(),
-                'session_key': session.get('session_key', None),
-                'rating_key': session.get('rating_key', None),
-                'user_id': session.get('user_id', None),
-                'notifier_id': notifier['id'],
-                'agent_id': notifier['agent_id'],
-                'notify_action': notify_action}
-
-        values = {'parent_rating_key': session.get('parent_rating_key', None),
+        values = {'timestamp': helpers.timestamp(),
+                  'session_key': session.get('session_key', None),
+                  'rating_key': session.get('rating_key', None),
+                  'user_id': session.get('user_id', None),
+                  'notifier_id': notifier['id'],
+                  'agent_id': notifier['agent_id'],
+                  'notify_action': notify_action,
+                  'parent_rating_key': session.get('parent_rating_key', None),
                   'grandparent_rating_key': session.get('grandparent_rating_key', None),
                   'user': session.get('user', None),
                   'agent_name': notifier['agent_name'],
@@ -484,18 +483,14 @@ def set_notify_state(notifier, notify_action, subject='', body='', script_args='
         elif notify_action == 'on_tokenexpired':
             values['tag'] = hashlib.sha256(plexpy.CONFIG.PMS_TOKEN.encode('utf-8')).hexdigest()[:10]
 
-        monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
-        return monitor_db.last_insert_id()
+        return monitor_db.insert(table_name='notify_log', value_dict=values)
     else:
         logger.error("Tautulli NotificationHandler :: Unable to set notify state.")
 
 
 def set_notify_success(notification_id):
-    keys = {'id': notification_id}
-    values = {'success': 1}
-
     monitor_db = database.MonitorDatabase()
-    monitor_db.upsert(table_name='notify_log', key_dict=keys, value_dict=values)
+    monitor_db.action("UPDATE notify_log SET success = 1 WHERE id = ?", [notification_id])
 
 
 def check_nofity_tag(notify_action, tag):

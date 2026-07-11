@@ -151,10 +151,9 @@ def set_notify_state(newsletter, notify_action, subject, body, message, filename
     if newsletter and notify_action:
         db = database.MonitorDatabase()
 
-        keys = {'timestamp': helpers.timestamp(),
-                'uuid': newsletter_uuid}
-
-        values = {'newsletter_id': newsletter['id'],
+        values = {'timestamp': helpers.timestamp(),
+                  'uuid': newsletter_uuid,
+                  'newsletter_id': newsletter['id'],
                   'agent_id': newsletter['agent_id'],
                   'agent_name': newsletter['agent_name'],
                   'notify_action': notify_action,
@@ -168,18 +167,14 @@ def set_notify_state(newsletter, notify_action, subject, body, message, filename
                   'email_msg_id': email_msg_id,
                   'filename': filename}
 
-        db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
-        return db.last_insert_id()
+        return db.insert(table_name='newsletter_log', value_dict=values)
     else:
         logger.error("Tautulli NewsletterHandler :: Unable to set notify state.")
 
 
 def set_notify_success(newsletter_log_id):
-    keys = {'id': newsletter_log_id}
-    values = {'success': 1}
-
     db = database.MonitorDatabase()
-    db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
+    db.action("UPDATE newsletter_log SET success = 1 WHERE id = ?", [newsletter_log_id])
 
 
 def get_last_newsletter_email_msg_id(newsletter_id, notify_action):
