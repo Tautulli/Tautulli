@@ -18,7 +18,6 @@
 from multiprocessing.dummy import Pool as ThreadPool
 from urllib.parse import urljoin
 
-import certifi
 import requests
 import urllib3
 
@@ -63,7 +62,10 @@ class HTTPHandler(object):
 
         self._session = requests.Session()
         self.timeout = timeout
-        self.ssl_verify = certifi.where() if ssl_verify else False
+        # verify=True lets requests reuse its preloaded default SSL context
+        # (same certifi bundle); passing the bundle path forces the CA PEM
+        # to be re-parsed for every new connection
+        self.ssl_verify = bool(ssl_verify)
         if not self.ssl_verify:
             urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
