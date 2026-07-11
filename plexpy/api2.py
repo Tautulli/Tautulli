@@ -236,13 +236,13 @@ class API2(object):
         if order == 'desc':
             templog = templog[::-1]
 
-        if end > 0 or start > 0:
-            logger.api_debug("Tautulli APIv2 :: Slicing the log from %s to %s" % (start, end))
-            templog = templog[start:end]
-
         if sort:
             logger.api_debug("Tautulli APIv2 :: Sorting log based on '%s'" % sort)
             templog = sorted(templog, key=lambda k: k[sort])
+
+        if end > 0 or start > 0:
+            logger.api_debug("Tautulli APIv2 :: Slicing the log from %s to %s" % (start, end))
+            templog = templog[start:end]
 
         return templog
 
