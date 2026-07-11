@@ -1824,12 +1824,16 @@ class PmsConnect(object):
 
         return metadata_list
 
-    def get_current_activity(self, skip_cache_key=None):
+    def get_current_activity(self, skip_cache_key=None, session_key=None):
         """
         Return processed and validated session list.
 
         skip_cache_key bypasses the metadata cache for that session key
         only; all other concurrent sessions keep using their cache.
+        session_key limits processing to that single session: each
+        processed session costs a user-details lookup and a metadata
+        cache read, so callers interested in one session should not pay
+        for all of them.
 
         Output: array
         """
@@ -1857,16 +1861,22 @@ class PmsConnect(object):
                     # Filter out background theme music sessions
                     if helpers.get_xml_attr(session_, 'guid').startswith('library://'):
                         continue
+                    if session_key is not None and helpers.get_xml_attr(session_, 'sessionKey') != str(session_key):
+                        continue
                     session_output = self.get_session_each(session_, skip_cache_key=skip_cache_key)
                     session_list.append(session_output)
             if a.getElementsByTagName('Video'):
                 session_data = a.getElementsByTagName('Video')
                 for session_ in session_data:
+                    if session_key is not None and helpers.get_xml_attr(session_, 'sessionKey') != str(session_key):
+                        continue
                     session_output = self.get_session_each(session_, skip_cache_key=skip_cache_key)
                     session_list.append(session_output)
             if a.getElementsByTagName('Photo'):
                 session_data = a.getElementsByTagName('Photo')
                 for session_ in session_data:
+                    if session_key is not None and helpers.get_xml_attr(session_, 'sessionKey') != str(session_key):
+                        continue
                     session_output = self.get_session_each(session_, skip_cache_key=skip_cache_key)
                     session_list.append(session_output)
 

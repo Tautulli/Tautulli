@@ -81,7 +81,8 @@ class ActivityHandler(object):
     def get_live_session(self, skip_cache=False):
         pms_connect = pmsconnect.PmsConnect()
         session_list = pms_connect.get_current_activity(
-            skip_cache_key=self.session_key if skip_cache else None)
+            skip_cache_key=self.session_key if skip_cache else None,
+            session_key=self.session_key)
 
         if session_list:
             for session in session_list['sessions']:
@@ -99,10 +100,14 @@ class ActivityHandler(object):
             self.get_live_session()
 
         if self.session:
-            # Update our session temp table values
+            # Fold the websocket event's state into the row write instead
+            # of issuing a second UPDATE for it afterwards
+            self.session['state'] = self.state
+            self.session['view_offset'] = self.view_offset
             self.ap.write_session(session=self.session, notify=notify)
-
-        self.set_session_state()
+            self.get_db_session()
+        else:
+            self.set_session_state()
 
     def set_session_state(self, view_offset=None):
         self.ap.set_session_state(
