@@ -346,8 +346,11 @@ class ActivityHandler(object):
                     self.on_buffer()
 
             elif self.state == 'paused':
-                # Update the session last_paused timestamp
-                self.on_pause(still_paused=True)
+                # Plex keeps emitting events while paused; update the
+                # session last_paused timestamp only if the last set
+                # temporary stopped time exceeds 60 seconds
+                if helpers.timestamp() - self.db_session['stopped'] > 60:
+                    self.on_pause(still_paused=True)
 
             elif self.state == 'buffering':
                 self.on_buffer()
