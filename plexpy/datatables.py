@@ -47,6 +47,8 @@ class DataTables(object):
                   join_types=None,
                   join_tables=None,
                   join_evals=None,
+                  filtered_count_query=None,
+                  filtered_count_args=None,
                   kwargs=None):
 
         if not table_name:
@@ -117,7 +119,16 @@ class DataTables(object):
         if length < 0:
             length = -1
 
-        if _WINDOW_FUNCTIONS_SUPPORTED:
+        if filtered_count_query and not where:
+            # The caller supplied an equivalent cheap count (e.g. group
+            # keys counted on the base tables without the 1:1 joins);
+            # valid whenever no search filter is active
+            filtered_count = self.ssp_db.select(
+                filtered_count_query, args=filtered_count_args or [])[0]['filtered_count']
+
+            query = 'SELECT * FROM (%s) %s %s LIMIT ? OFFSET ?' % (inner_query, where, order)
+            result = self.ssp_db.select(query, args=args + [length, start])
+        elif _WINDOW_FUNCTIONS_SUPPORTED:
             # Compute the filtered count in the same statement as the page
             query = 'SELECT *, COUNT(*) OVER () AS __filtered_count FROM (%s) %s %s LIMIT ? OFFSET ?' \
                     % (inner_query, where, order)

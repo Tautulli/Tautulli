@@ -198,6 +198,45 @@ class DataFactory(object):
             table_name_union = None
             custom_where_union = group_by_union = columns_union = []
 
+        # Cheap filtered count for draws without a search filter: the 1:1
+        # joins cannot change the group count, so count the group keys on
+        # the base tables directly instead of materializing the joined,
+        # grouped result a second time. Joins are added back only for
+        # filters that reference the side tables (same pattern as
+        # get_total_duration).
+        media_type_live_case = ("(CASE WHEN session_history_metadata.live = 1 "
+                                "THEN 'live' ELSE session_history.media_type END)")
+        count_join_tables = set()
+        count_alias = ''
+        for c_where in custom_where:
+            if 'session_history_metadata.' in c_where[0]:
+                count_join_tables.add('session_history_metadata')
+            elif 'session_history_media_info.' in c_where[0]:
+                count_join_tables.add('session_history_media_info')
+            elif c_where[0].startswith('media_type_live'):
+                count_join_tables.add('session_history_metadata')
+                count_alias = ', %s AS media_type_live' % media_type_live_case
+        count_joins = ''.join('JOIN %s ON %s.id = session_history.id ' % (t, t)
+                              for t in count_join_tables)
+        count_where, count_args = datatables.build_custom_where(
+            [[c[0], c[1]] for c in custom_where])
+
+        history_count = ("SELECT c FROM (SELECT COUNT(DISTINCT %s) AS c%s "
+                         "FROM session_history %s%s)"
+                         % (group_by[0], count_alias, count_joins, count_where))
+
+        if include_activity:
+            sessions_alias = ", (CASE WHEN live = 1 THEN 'live' ELSE media_type END) AS media_type_live"
+            sessions_where, sessions_args = datatables.build_custom_where(
+                [[c[0].split('.')[-1], c[1]] for c in custom_where])
+            sessions_count = ("SELECT c FROM (SELECT COUNT(DISTINCT session_key) AS c%s "
+                              "FROM sessions %s)" % (sessions_alias, sessions_where))
+            filtered_count_query = 'SELECT (%s) + (%s) AS filtered_count' % (history_count, sessions_count)
+            filtered_count_args = count_args + sessions_args
+        else:
+            filtered_count_query = 'SELECT (%s) AS filtered_count' % history_count
+            filtered_count_args = count_args
+
         try:
             query = data_tables.ssp_query(table_name='session_history',
                                           table_name_union=table_name_union,
@@ -216,6 +255,8 @@ class DataFactory(object):
                                           join_evals=[['session_history.user_id', 'users.user_id'],
                                                       ['session_history.id', 'session_history_metadata.id'],
                                                       ['session_history.id', 'session_history_media_info.id']],
+                                          filtered_count_query=filtered_count_query,
+                                          filtered_count_args=filtered_count_args,
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_history: %s." % e)
