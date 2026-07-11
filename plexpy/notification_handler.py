@@ -222,7 +222,7 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
 
 
 def notify_custom_conditions(notifier_id=None, parameters=None):
-    notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
+    notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id, load_config_options=False)
 
     custom_conditions_logic = notifier_config['custom_conditions_logic']
     custom_conditions = notifier_config['custom_conditions']
@@ -364,7 +364,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, parameters=None, **kwargs):
     logger.info("Tautulli NotificationHandler :: Preparing notification for notifier_id %s." % notifier_id)
 
-    notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id)
+    notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id, load_config_options=False)
 
     if not notifier_config:
         return
@@ -403,6 +403,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
                                           script_args=script_args,
                                           notify_action=notify_action,
                                           notification_id=notification_id,
+                                          notifier_config=notifier_config,
                                           parameters=parameters or {},
                                           **kwargs)
 

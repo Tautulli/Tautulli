@@ -541,7 +541,7 @@ def delete_notifier(notifier_id=None):
         return False
 
 
-def get_notifier_config(notifier_id=None, mask_passwords=False):
+def get_notifier_config(notifier_id=None, mask_passwords=False, load_config_options=True):
     if str(notifier_id).isdigit():
         notifier_id = int(notifier_id)
     else:
@@ -592,7 +592,14 @@ def get_notifier_config(notifier_id=None, mask_passwords=False):
         result['custom_conditions_logic'] = ''
 
     result['config'] = notifier_agent.config
-    result['config_options'] = notifier_agent.return_config_options(mask_passwords=mask_passwords)
+    if load_config_options:
+        # Building the config options is only needed for the settings UI
+        # and can be expensive: some agents fetch their vendor's device
+        # list over HTTPS (Join, Pushbullet), walk the scripts directory
+        # (Scripts), or query the users table (Email)
+        result['config_options'] = notifier_agent.return_config_options(mask_passwords=mask_passwords)
+    else:
+        result['config_options'] = []
     result['actions'] = notifier_actions
     result['notify_text'] = notifier_text
 
@@ -713,8 +720,10 @@ def set_notifier_config(notifier_id=None, **kwargs):
         return False
 
 
-def send_notification(notifier_id=None, subject='', body='', notify_action='', notification_id=None, **kwargs):
-    notifier_config = get_notifier_config(notifier_id=notifier_id)
+def send_notification(notifier_id=None, subject='', body='', notify_action='', notification_id=None,
+                      notifier_config=None, **kwargs):
+    if notifier_config is None:
+        notifier_config = get_notifier_config(notifier_id=notifier_id, load_config_options=False)
     if notifier_config:
         agent = get_agent_class(agent_id=notifier_config['agent_id'],
                                 config=notifier_config['config'])
@@ -4904,7 +4913,7 @@ def check_browser_enabled():
     BROWSER_NOTIFIERS = {}
     for n in get_notifiers(include_last_triggered=False):
         if n['agent_id'] == 17 and n['active']:
-            notifier_config = get_notifier_config(n['id'])
+            notifier_config = get_notifier_config(n['id'], load_config_options=False)
             BROWSER_NOTIFIERS[n['id']] = notifier_config['config']['auto_hide_delay']
 
 
