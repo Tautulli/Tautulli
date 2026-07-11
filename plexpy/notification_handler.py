@@ -26,6 +26,7 @@ import os
 import re
 from string import Formatter
 import threading
+import time
 import types
 from typing import Any, Callable, Optional
 
@@ -1662,6 +1663,25 @@ def get_hash_image_info(img_hash=None):
     return result
 
 
+# Failed third-party ID lookups are not persisted to the lookup tables,
+# so the same item re-triggered an external HTTP lookup on every
+# notification; remember misses for a while instead
+_lookup_negative_cache = {}
+_LOOKUP_NEGATIVE_CACHE_TTL = 6 * 60 * 60  # seconds
+
+
+def _lookup_recently_failed(service, rating_key):
+    if not rating_key:
+        return False
+    failed_at = _lookup_negative_cache.get((service, rating_key))
+    return failed_at is not None and time.time() - failed_at < _LOOKUP_NEGATIVE_CACHE_TTL
+
+
+def _set_lookup_failed(service, rating_key):
+    if rating_key:
+        _lookup_negative_cache[(service, rating_key)] = time.time()
+
+
 def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=None):
     db = database.MonitorDatabase()
 
@@ -1675,6 +1695,9 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=No
 
     if not tvmaze_info:
         tvmaze_info = {}
+
+        if _lookup_recently_failed('tvmaze', rating_key):
+            return tvmaze_info
 
         if thetvdb_id:
             logger.debug("Tautulli NotificationHandler :: Looking up TVmaze info for thetvdb_id '{}'.".format(thetvdb_id))
@@ -1719,6 +1742,9 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=No
             if req_msg:
                 logger.debug("Tautulli NotificationHandler :: Request response: {}".format(req_msg))
 
+    if not tvmaze_info:
+        _set_lookup_failed('tvmaze', rating_key)
+
     return tvmaze_info
 
 
@@ -1735,6 +1761,9 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, titl
 
     if not themoviedb_info:
         themoviedb_info = {}
+
+        if _lookup_recently_failed('themoviedb', rating_key):
+            return themoviedb_info
 
         if thetvdb_id:
             logger.debug("Tautulli NotificationHandler :: Looking up The Movie Database info for thetvdb_id '{}'.".format(thetvdb_id))
@@ -1793,6 +1822,9 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, titl
 
             if req_msg:
                 logger.debug("Tautulli NotificationHandler :: Request response: {}".format(req_msg))
+
+    if not themoviedb_info:
+        _set_lookup_failed('themoviedb', rating_key)
 
     return themoviedb_info
 
@@ -1862,6 +1894,9 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
         logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_musicbrainz: %s." % e)
         return {}
 
+    if not musicbrainz_info and _lookup_recently_failed('musicbrainz', rating_key):
+        return {}
+
     if not musicbrainz_info:
         musicbrainzngs.set_useragent(
             common.PRODUCT,
@@ -1909,6 +1944,9 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
 
         else:
             logger.warn("Tautulli NotificationHandler :: No match found on MusicBrainz.")
+
+    if not musicbrainz_info:
+        _set_lookup_failed('musicbrainz', rating_key)
 
     return musicbrainz_info
 
