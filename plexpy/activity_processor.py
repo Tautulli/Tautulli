@@ -15,6 +15,7 @@
 
 from collections import defaultdict
 import json
+import sqlite3
 
 import plexpy
 from plexpy import database
@@ -286,193 +287,206 @@ class ActivityProcessor(object):
                     ## TODO: Fix media info from imports. Temporary media info from import session.
                     media_info = session
 
-                # logger.debug("Tautulli ActivityProcessor :: Attempting to write sessionKey %s to session_history table..."
-                #              % session['session_key'])
-                values = {'started': session['started'],
-                          'stopped': stopped,
-                          'rating_key': session['rating_key'],
-                          'parent_rating_key': session['parent_rating_key'],
-                          'grandparent_rating_key': session['grandparent_rating_key'],
-                          'media_type': session['media_type'],
-                          'user_id': session['user_id'],
-                          'user': session['user'],
-                          'ip_address': session['ip_address'],
-                          'paused_counter': session['paused_counter'],
-                          'player': session['player'],
-                          'product': session['product'],
-                          'product_version': session['product_version'],
-                          'platform': session['platform'],
-                          'platform_version': session['platform_version'],
-                          'profile': session['profile'],
-                          'machine_id': session['machine_id'],
-                          'bandwidth': session['bandwidth'],
-                          'location': session['location'],
-                          'quality_profile': session['quality_profile'],
-                          'view_offset': session['view_offset'],
-                          'section_id': metadata['section_id'],
-                          'secure': session['secure'],
-                          'relayed': session['relayed']
-                          }
+                # Write the history entry, its grouping, media info, and
+                # metadata atomically so a mid-chain failure cannot leave
+                # a partial history row behind
+                try:
+                    with db.transaction():
+                        # logger.debug("Tautulli ActivityProcessor :: Attempting to write sessionKey %s to session_history table..."
+                        #              % session['session_key'])
+                        values = {'started': session['started'],
+                                  'stopped': stopped,
+                                  'rating_key': session['rating_key'],
+                                  'parent_rating_key': session['parent_rating_key'],
+                                  'grandparent_rating_key': session['grandparent_rating_key'],
+                                  'media_type': session['media_type'],
+                                  'user_id': session['user_id'],
+                                  'user': session['user'],
+                                  'ip_address': session['ip_address'],
+                                  'paused_counter': session['paused_counter'],
+                                  'player': session['player'],
+                                  'product': session['product'],
+                                  'product_version': session['product_version'],
+                                  'platform': session['platform'],
+                                  'platform_version': session['platform_version'],
+                                  'profile': session['profile'],
+                                  'machine_id': session['machine_id'],
+                                  'bandwidth': session['bandwidth'],
+                                  'location': session['location'],
+                                  'quality_profile': session['quality_profile'],
+                                  'view_offset': session['view_offset'],
+                                  'section_id': metadata['section_id'],
+                                  'secure': session['secure'],
+                                  'relayed': session['relayed']
+                                  }
 
-                # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."
-                #              % session['session_key'])
-                last_id = db.insert(table_name='session_history', value_dict=values)
-                self.group_history(last_id, session, metadata)
+                        # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."
+                        #              % session['session_key'])
+                        last_id = db.insert(table_name='session_history', value_dict=values)
+                        self.group_history(last_id, session, metadata)
                 
-                # logger.debug("Tautulli ActivityProcessor :: Successfully written history item, last id for session_history is %s"
-                #              % last_id)
+                        # logger.debug("Tautulli ActivityProcessor :: Successfully written history item, last id for session_history is %s"
+                        #              % last_id)
 
-                # Write the session_history_media_info table
+                        # Write the session_history_media_info table
 
-                # logger.debug("Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_media_info table..."
-                #              % session['session_key'])
-                values = {'id': last_id,
-                          'rating_key': session['rating_key'],
-                          'video_decision': session['video_decision'],
-                          'audio_decision': session['audio_decision'],
-                          'transcode_decision': session['transcode_decision'],
-                          'duration': session['duration'],
-                          'container': session['container'],
-                          'bitrate': session['bitrate'],
-                          'width': session['width'],
-                          'height': session['height'],
-                          'video_bit_depth': session['video_bit_depth'],
-                          'video_bitrate': session['video_bitrate'],
-                          'video_codec': session['video_codec'],
-                          'video_codec_level': session['video_codec_level'],
-                          'video_width': session['video_width'],
-                          'video_height': session['video_height'],
-                          'video_resolution': session['video_resolution'],
-                          'video_framerate': session['video_framerate'],
-                          'video_scan_type': session['video_scan_type'],
-                          'video_full_resolution': session['video_full_resolution'],
-                          'video_dynamic_range': session['video_dynamic_range'],
-                          'aspect_ratio': session['aspect_ratio'],
-                          'audio_codec': session['audio_codec'],
-                          'audio_bitrate': session['audio_bitrate'],
-                          'audio_channels': session['audio_channels'],
-                          'audio_language': session['audio_language'],
-                          'audio_language_code': session['audio_language_code'],
-                          'subtitle_codec': session['subtitle_codec'],
-                          'subtitle_forced': session['subtitle_forced'],
-                          'subtitle_language': session['subtitle_language'],
-                          'transcode_protocol': session['transcode_protocol'],
-                          'transcode_container': session['transcode_container'],
-                          'transcode_video_codec': session['transcode_video_codec'],
-                          'transcode_audio_codec': session['transcode_audio_codec'],
-                          'transcode_audio_channels': session['transcode_audio_channels'],
-                          'transcode_width': session['transcode_width'],
-                          'transcode_height': session['transcode_height'],
-                          'transcode_hw_requested': session['transcode_hw_requested'],
-                          'transcode_hw_full_pipeline': session['transcode_hw_full_pipeline'],
-                          'transcode_hw_decoding': session['transcode_hw_decoding'],
-                          'transcode_hw_decode': session['transcode_hw_decode'],
-                          'transcode_hw_decode_title': session['transcode_hw_decode_title'],
-                          'transcode_hw_encoding': session['transcode_hw_encoding'],
-                          'transcode_hw_encode': session['transcode_hw_encode'],
-                          'transcode_hw_encode_title': session['transcode_hw_encode_title'],
-                          'stream_container': session['stream_container'],
-                          'stream_container_decision': session['stream_container_decision'],
-                          'stream_bitrate': session['stream_bitrate'],
-                          'stream_video_decision': session['stream_video_decision'],
-                          'stream_video_bitrate': session['stream_video_bitrate'],
-                          'stream_video_codec': session['stream_video_codec'],
-                          'stream_video_codec_level': session['stream_video_codec_level'],
-                          'stream_video_bit_depth': session['stream_video_bit_depth'],
-                          'stream_video_height': session['stream_video_height'],
-                          'stream_video_width': session['stream_video_width'],
-                          'stream_video_resolution': session['stream_video_resolution'],
-                          'stream_video_framerate': session['stream_video_framerate'],
-                          'stream_video_scan_type': session['stream_video_scan_type'],
-                          'stream_video_full_resolution': session['stream_video_full_resolution'],
-                          'stream_video_dynamic_range': session['stream_video_dynamic_range'],
-                          'stream_audio_decision': session['stream_audio_decision'],
-                          'stream_audio_codec': session['stream_audio_codec'],
-                          'stream_audio_bitrate': session['stream_audio_bitrate'],
-                          'stream_audio_channels': session['stream_audio_channels'],
-                          'stream_audio_language': session['stream_audio_language'],
-                          'stream_audio_language_code': session['stream_audio_language_code'],
-                          'stream_subtitle_decision': session['stream_subtitle_decision'],
-                          'stream_subtitle_codec': session['stream_subtitle_codec'],
-                          'stream_subtitle_container': session['stream_subtitle_container'],
-                          'stream_subtitle_forced': session['stream_subtitle_forced'],
-                          'stream_subtitle_language': session['stream_subtitle_language'],
-                          'subtitles': session['subtitles'],
-                          'synced_version': session['synced_version'],
-                          'synced_version_profile': session['synced_version_profile'],
-                          'optimized_version': session['optimized_version'],
-                          'optimized_version_profile': session['optimized_version_profile'],
-                          'optimized_version_title': session['optimized_version_title']
-                          }
+                        # logger.debug("Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_media_info table..."
+                        #              % session['session_key'])
+                        values = {'id': last_id,
+                                  'rating_key': session['rating_key'],
+                                  'video_decision': session['video_decision'],
+                                  'audio_decision': session['audio_decision'],
+                                  'transcode_decision': session['transcode_decision'],
+                                  'duration': session['duration'],
+                                  'container': session['container'],
+                                  'bitrate': session['bitrate'],
+                                  'width': session['width'],
+                                  'height': session['height'],
+                                  'video_bit_depth': session['video_bit_depth'],
+                                  'video_bitrate': session['video_bitrate'],
+                                  'video_codec': session['video_codec'],
+                                  'video_codec_level': session['video_codec_level'],
+                                  'video_width': session['video_width'],
+                                  'video_height': session['video_height'],
+                                  'video_resolution': session['video_resolution'],
+                                  'video_framerate': session['video_framerate'],
+                                  'video_scan_type': session['video_scan_type'],
+                                  'video_full_resolution': session['video_full_resolution'],
+                                  'video_dynamic_range': session['video_dynamic_range'],
+                                  'aspect_ratio': session['aspect_ratio'],
+                                  'audio_codec': session['audio_codec'],
+                                  'audio_bitrate': session['audio_bitrate'],
+                                  'audio_channels': session['audio_channels'],
+                                  'audio_language': session['audio_language'],
+                                  'audio_language_code': session['audio_language_code'],
+                                  'subtitle_codec': session['subtitle_codec'],
+                                  'subtitle_forced': session['subtitle_forced'],
+                                  'subtitle_language': session['subtitle_language'],
+                                  'transcode_protocol': session['transcode_protocol'],
+                                  'transcode_container': session['transcode_container'],
+                                  'transcode_video_codec': session['transcode_video_codec'],
+                                  'transcode_audio_codec': session['transcode_audio_codec'],
+                                  'transcode_audio_channels': session['transcode_audio_channels'],
+                                  'transcode_width': session['transcode_width'],
+                                  'transcode_height': session['transcode_height'],
+                                  'transcode_hw_requested': session['transcode_hw_requested'],
+                                  'transcode_hw_full_pipeline': session['transcode_hw_full_pipeline'],
+                                  'transcode_hw_decoding': session['transcode_hw_decoding'],
+                                  'transcode_hw_decode': session['transcode_hw_decode'],
+                                  'transcode_hw_decode_title': session['transcode_hw_decode_title'],
+                                  'transcode_hw_encoding': session['transcode_hw_encoding'],
+                                  'transcode_hw_encode': session['transcode_hw_encode'],
+                                  'transcode_hw_encode_title': session['transcode_hw_encode_title'],
+                                  'stream_container': session['stream_container'],
+                                  'stream_container_decision': session['stream_container_decision'],
+                                  'stream_bitrate': session['stream_bitrate'],
+                                  'stream_video_decision': session['stream_video_decision'],
+                                  'stream_video_bitrate': session['stream_video_bitrate'],
+                                  'stream_video_codec': session['stream_video_codec'],
+                                  'stream_video_codec_level': session['stream_video_codec_level'],
+                                  'stream_video_bit_depth': session['stream_video_bit_depth'],
+                                  'stream_video_height': session['stream_video_height'],
+                                  'stream_video_width': session['stream_video_width'],
+                                  'stream_video_resolution': session['stream_video_resolution'],
+                                  'stream_video_framerate': session['stream_video_framerate'],
+                                  'stream_video_scan_type': session['stream_video_scan_type'],
+                                  'stream_video_full_resolution': session['stream_video_full_resolution'],
+                                  'stream_video_dynamic_range': session['stream_video_dynamic_range'],
+                                  'stream_audio_decision': session['stream_audio_decision'],
+                                  'stream_audio_codec': session['stream_audio_codec'],
+                                  'stream_audio_bitrate': session['stream_audio_bitrate'],
+                                  'stream_audio_channels': session['stream_audio_channels'],
+                                  'stream_audio_language': session['stream_audio_language'],
+                                  'stream_audio_language_code': session['stream_audio_language_code'],
+                                  'stream_subtitle_decision': session['stream_subtitle_decision'],
+                                  'stream_subtitle_codec': session['stream_subtitle_codec'],
+                                  'stream_subtitle_container': session['stream_subtitle_container'],
+                                  'stream_subtitle_forced': session['stream_subtitle_forced'],
+                                  'stream_subtitle_language': session['stream_subtitle_language'],
+                                  'subtitles': session['subtitles'],
+                                  'synced_version': session['synced_version'],
+                                  'synced_version_profile': session['synced_version_profile'],
+                                  'optimized_version': session['optimized_version'],
+                                  'optimized_version_profile': session['optimized_version_profile'],
+                                  'optimized_version_title': session['optimized_version_title']
+                                  }
 
-                # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_media_info transaction..."
-                #              % session['session_key'])
-                db.insert(table_name='session_history_media_info', value_dict=values)
+                        # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_media_info transaction..."
+                        #              % session['session_key'])
+                        db.insert(table_name='session_history_media_info', value_dict=values)
 
-                # Write the session_history_metadata table
-                directors = ";".join(metadata['directors'])
-                writers = ";".join(metadata['writers'])
-                actors = ";".join(metadata['actors'])
-                genres = ";".join(metadata['genres'])
-                labels = ";".join(metadata['labels'])
+                        # Write the session_history_metadata table
+                        directors = ";".join(metadata['directors'])
+                        writers = ";".join(metadata['writers'])
+                        actors = ";".join(metadata['actors'])
+                        genres = ";".join(metadata['genres'])
+                        labels = ";".join(metadata['labels'])
 
-                marker_credits_first = None
-                marker_credits_final = None
-                for marker in metadata['markers']:
-                    if marker['first']:
-                        marker_credits_first = marker['start_time_offset']
-                    if marker['final']:
-                        marker_credits_final = marker['start_time_offset']
+                        marker_credits_first = None
+                        marker_credits_final = None
+                        for marker in metadata['markers']:
+                            if marker['first']:
+                                marker_credits_first = marker['start_time_offset']
+                            if marker['final']:
+                                marker_credits_final = marker['start_time_offset']
 
-                # logger.debug("Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_metadata table..."
-                #              % session['session_key'])
-                values = {'id': last_id,
-                          'rating_key': session['rating_key'],
-                          'parent_rating_key': session['parent_rating_key'],
-                          'grandparent_rating_key': session['grandparent_rating_key'],
-                          'title': session['title'],
-                          'parent_title': session['parent_title'],
-                          'grandparent_title': session['grandparent_title'],
-                          'original_title': session['original_title'],
-                          'full_title': session['full_title'],
-                          'media_index': metadata['media_index'],
-                          'parent_media_index': metadata['parent_media_index'],
-                          'thumb': metadata['thumb'],
-                          'parent_thumb': metadata['parent_thumb'],
-                          'grandparent_thumb': metadata['grandparent_thumb'],
-                          'art': metadata['art'],
-                          'media_type': session['media_type'],
-                          'year': metadata['year'],
-                          'originally_available_at': metadata['originally_available_at'],
-                          'added_at': metadata['added_at'],
-                          'updated_at': metadata['updated_at'],
-                          'last_viewed_at': metadata['last_viewed_at'],
-                          'content_rating': metadata['content_rating'],
-                          'summary': metadata['summary'],
-                          'tagline': metadata['tagline'],
-                          'rating': metadata['rating'],
-                          'duration': metadata['duration'],
-                          'guid': metadata['guid'],
-                          'directors': directors,
-                          'writers': writers,
-                          'actors': actors,
-                          'genres': genres,
-                          'studio': metadata['studio'],
-                          'labels': labels,
-                          'live': session['live'],
-                          'channel_call_sign': media_info.get('channel_call_sign', session.get('channel_call_sign', '')),
-                          'channel_id': media_info.get('channel_id', session.get('channel_id', '')),
-                          'channel_identifier': media_info.get('channel_identifier', session.get('channel_identifier', '')),
-                          'channel_title': media_info.get('channel_title', session.get('channel_title', '')),
-                          'channel_thumb': media_info.get('channel_thumb', session.get('channel_thumb', '')),
-                          'channel_vcn': media_info.get('channel_vcn', session.get('channel_vcn', '')),
-                          'marker_credits_first': marker_credits_first,
-                          'marker_credits_final': marker_credits_final
-                          }
+                        # logger.debug("Tautulli ActivityProcessor :: Attempting to write to sessionKey %s session_history_metadata table..."
+                        #              % session['session_key'])
+                        values = {'id': last_id,
+                                  'rating_key': session['rating_key'],
+                                  'parent_rating_key': session['parent_rating_key'],
+                                  'grandparent_rating_key': session['grandparent_rating_key'],
+                                  'title': session['title'],
+                                  'parent_title': session['parent_title'],
+                                  'grandparent_title': session['grandparent_title'],
+                                  'original_title': session['original_title'],
+                                  'full_title': session['full_title'],
+                                  'media_index': metadata['media_index'],
+                                  'parent_media_index': metadata['parent_media_index'],
+                                  'thumb': metadata['thumb'],
+                                  'parent_thumb': metadata['parent_thumb'],
+                                  'grandparent_thumb': metadata['grandparent_thumb'],
+                                  'art': metadata['art'],
+                                  'media_type': session['media_type'],
+                                  'year': metadata['year'],
+                                  'originally_available_at': metadata['originally_available_at'],
+                                  'added_at': metadata['added_at'],
+                                  'updated_at': metadata['updated_at'],
+                                  'last_viewed_at': metadata['last_viewed_at'],
+                                  'content_rating': metadata['content_rating'],
+                                  'summary': metadata['summary'],
+                                  'tagline': metadata['tagline'],
+                                  'rating': metadata['rating'],
+                                  'duration': metadata['duration'],
+                                  'guid': metadata['guid'],
+                                  'directors': directors,
+                                  'writers': writers,
+                                  'actors': actors,
+                                  'genres': genres,
+                                  'studio': metadata['studio'],
+                                  'labels': labels,
+                                  'live': session['live'],
+                                  'channel_call_sign': media_info.get('channel_call_sign', session.get('channel_call_sign', '')),
+                                  'channel_id': media_info.get('channel_id', session.get('channel_id', '')),
+                                  'channel_identifier': media_info.get('channel_identifier', session.get('channel_identifier', '')),
+                                  'channel_title': media_info.get('channel_title', session.get('channel_title', '')),
+                                  'channel_thumb': media_info.get('channel_thumb', session.get('channel_thumb', '')),
+                                  'channel_vcn': media_info.get('channel_vcn', session.get('channel_vcn', '')),
+                                  'marker_credits_first': marker_credits_first,
+                                  'marker_credits_final': marker_credits_final
+                                  }
 
-                # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
-                #              % session['session_key'])
-                db.insert(table_name='session_history_metadata', value_dict=values)
+                        # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
+                        #              % session['session_key'])
+                        db.insert(table_name='session_history_metadata', value_dict=values)
+                except sqlite3.OperationalError as e:
+                    # Locked/busy after all retries: the transaction has
+                    # rolled back. Return falsy so the callers' existing
+                    # 30-second force-stop retry chain re-attempts the
+                    # write instead of losing the play
+                    logger.warn("Tautulli ActivityProcessor :: Failed to write sessionKey %s to the database: %s"
+                                % (session['session_key'], e))
+                    return False
 
             # Return the session row id when the session is successfully written to the database
             return session['id']
