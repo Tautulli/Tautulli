@@ -1414,9 +1414,9 @@ class EMAIL(Notifier):
 
         try:
             if self.config['tls'] == 2:
-                mailserver = smtplib.SMTP_SSL(self.config['smtp_server'], self.config['smtp_port'])
+                mailserver = smtplib.SMTP_SSL(self.config['smtp_server'], self.config['smtp_port'], timeout=60)
             else:
-                mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
+                mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'], timeout=60)
 
             mailserver.ehlo()
 
