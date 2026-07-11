@@ -206,7 +206,7 @@ def run():
             if reconnects == 0:
                 logger.warn("Tautulli WebSocket :: Connection has closed.")
 
-            if not plexpy.CONFIG.PMS_IS_CLOUD and reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
+            if reconnects < plexpy.CONFIG.WEBSOCKET_CONNECTION_ATTEMPTS:
                 reconnects += 1
 
                 # Sleep 5 between connection attempts

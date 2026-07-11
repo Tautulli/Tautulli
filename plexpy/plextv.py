@@ -305,14 +305,6 @@ class PlexTV(object):
 
         return request
 
-    def cloud_server_status(self, output_format=''):
-        uri = '/api/v2/cloud_server'
-        request = self.request_handler.make_request(uri=uri,
-                                                    request_type='GET',
-                                                    output_format=output_format)
-
-        return request
-
     def get_public_ip(self, output_format=''):
         uri = '/:/ip'
         request = self.request_handler.make_request(uri=uri,
@@ -603,8 +595,7 @@ class PlexTV(object):
                       'pms_name': helpers.get_xml_attr(device, 'name'),
                       'pms_version': helpers.get_xml_attr(device, 'productVersion'),
                       'pms_platform': helpers.get_xml_attr(device, 'platform'),
-                      'pms_presence': helpers.get_xml_attr(device, 'presence'),
-                      'pms_is_cloud': 1 if helpers.get_xml_attr(device, 'platform') == 'Cloud' else 0
+                      'pms_presence': helpers.get_xml_attr(device, 'presence')
                       }
 
             for c in connections:
@@ -665,7 +656,7 @@ class PlexTV(object):
 
         return server_times
 
-    def discover(self, include_cloud=True, all_servers=False):
+    def discover(self, all_servers=False):
         """ Query plex for all servers online. Returns the ones you own in a selectize format """
 
         # Try to discover localhost server
@@ -685,7 +676,6 @@ class PlexTV(object):
                         'uri': 'http://127.0.0.1:32400',
                         'local': '1',
                         'value': '127.0.0.1:32400',
-                        'is_cloud': False
                         }
 
         servers = self.get_plextv_resources(include_https=True, output_format='xml')
@@ -710,10 +700,6 @@ class PlexTV(object):
                             helpers.get_xml_attr(d, 'owned') == '1' and \
                             helpers.get_xml_attr(d, 'provides') == 'server':
 
-                        is_cloud = (helpers.get_xml_attr(d, 'platform').lower() == 'cloud')
-                        if not include_cloud and is_cloud:
-                            continue
-
                         connections = d.getElementsByTagName('Connection')
 
                         for c in connections:
@@ -734,7 +720,7 @@ class PlexTV(object):
                                 clean_servers.append(local_server)
                                 local_machine_identifier = None
 
-                            server = {'httpsRequired': '1' if is_cloud else helpers.get_xml_attr(d, 'httpsRequired'),
+                            server = {'httpsRequired': helpers.get_xml_attr(d, 'httpsRequired'),
                                       'clientIdentifier': helpers.get_xml_attr(d, 'clientIdentifier'),
                                       'label': helpers.get_xml_attr(d, 'name'),
                                       'ip': helpers.get_xml_attr(c, 'address'),
@@ -742,7 +728,6 @@ class PlexTV(object):
                                       'uri': helpers.get_xml_attr(c, 'uri'),
                                       'local': helpers.get_xml_attr(c, 'local'),
                                       'value': helpers.get_xml_attr(c, 'address') + ':' + helpers.get_xml_attr(c, 'port'),
-                                      'is_cloud': is_cloud
                                       }
                             clean_servers.append(server)
 
@@ -861,24 +846,6 @@ class PlexTV(object):
             devices_list.append(device)
 
         return devices_list
-
-    def get_cloud_server_status(self):
-        cloud_status = self.cloud_server_status(output_format='xml')
-
-        try:
-            status_info = cloud_status.getElementsByTagName('info')
-        except Exception as e:
-            logger.warn("Tautulli PlexTV :: Unable to parse XML for get_cloud_server_status: %s." % e)
-            return False
-
-        for info in status_info:
-            servers = info.getElementsByTagName('server')
-            for s in servers:
-                if helpers.get_xml_attr(s, 'address') == plexpy.CONFIG.PMS_IP:
-                    if helpers.get_xml_attr(info, 'running') == '1':
-                        return True
-                    else:
-                        return False
 
     def get_plex_account_details(self):
         account_data = self.get_plextv_user_details(output_format='xml')

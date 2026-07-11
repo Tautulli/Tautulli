@@ -136,7 +136,6 @@
                                             data-ip="${config['pms_ip']}"
                                             data-port="${config['pms_port']}"
                                             data-ssl="${config['pms_ssl']}"
-                                            data-is_cloud="${config['pms_is_cloud']}"
                                             data-label="${config['pms_name'] or 'Local'}"
                                             selected>${config['pms_ip']}</option>
                                     % endif
@@ -162,7 +161,6 @@
                     </div>
                     <input type="hidden" id="pms_valid" data-validate="validatePMSip" value="">
                     <input type="hidden" id="pms_ip" name="pms_ip" value="${config['pms_ip']}">
-                    <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
                     <input type="hidden" id="pms_identifier" name="pms_identifier" value="${config['pms_identifier']}">
                     <a class="btn btn-dark" id="verify-plex-server" href="#" role="button">Verify</a>
                     <span style="margin-left: 10px; display: none;" id="pms-verify-status"></span>
@@ -383,7 +381,6 @@ $(document).ready(function() {
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
                         '" data-ssl="' + item.httpsRequired +
-                        '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
                         '<span class="item-text">' + escape(label) + '</span>' +
                         (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
@@ -396,7 +393,6 @@ $(document).ready(function() {
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
                         '" data-ssl="' + item.httpsRequired +
-                        '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
                         escape(label) +
                         (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
@@ -418,7 +414,6 @@ $(document).ready(function() {
             var ip = $(pms_ip_selected).data('ip');
             var port = $(pms_ip_selected).data('port');
             var ssl = $(pms_ip_selected).data('ssl');
-            var is_cloud = $(pms_ip_selected).data('is_cloud');
             var value = $(pms_ip_selected).data('value');
 
             $("#pms_valid").val(identifier !== 'undefined' ? 'valid' : '');
@@ -429,15 +424,9 @@ $(document).ready(function() {
             $('#pms_port').val(port !== 'undefined' ? port : 32400);
             $('#pms_ssl_checkbox').prop('checked', (ssl !== 'undefined' && ssl === 1));
             $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
-            $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
 
-            if (is_cloud === true) {
-                $('#pms_port').prop('readonly', true);
-                $('#pms_ssl_checkbox').prop('disabled', true);
-            } else {
-                $('#pms_port').prop('readonly', false);
-                $('#pms_ssl_checkbox').prop('disabled', false);
-            }
+            $('#pms_port').prop('readonly', false);
+            $('#pms_ssl_checkbox').prop('disabled', false);
         },
         onDropdownOpen: function() {
             this.clear();

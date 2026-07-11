@@ -207,7 +207,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi("get_server_list")
-    def discover(self, include_cloud=True, all_servers=True, **kwargs):
+    def discover(self, all_servers=True, **kwargs):
         """ Get all your servers that are published to Plex.tv.
 
             ```
@@ -232,12 +232,10 @@ class WebInterface(object):
                      ]
             ```
         """
-        include_cloud = not (include_cloud == 'false')
         all_servers = not (all_servers == 'false')
 
         plex_tv = plextv.PlexTV()
-        servers_list = plex_tv.discover(include_cloud=include_cloud,
-                                        all_servers=all_servers)
+        servers_list = plex_tv.discover(all_servers=all_servers)
 
         if servers_list:
             return servers_list

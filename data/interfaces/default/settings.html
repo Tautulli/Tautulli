@@ -768,7 +768,6 @@
                                                     data-ip="${config['pms_ip']}"
                                                     data-port="${config['pms_port']}"
                                                     data-ssl="${config['pms_ssl']}"
-                                                    data-is_cloud="${config['pms_is_cloud']}"
                                                     data-label="${config['pms_name'] or 'Local'}"
                                                     selected>${config['pms_ip']}</option>
                                         </select>
@@ -851,7 +850,6 @@
                         </div>
 
                         <input type="hidden" id="pms_ip" name="pms_ip" value="${config['pms_ip']}">
-                        <input type="hidden" id="pms_is_cloud" name="pms_is_cloud" value="${config['pms_is_cloud']}">
                         <input type="checkbox" name="server_changed" id="server_changed" value="1" style="display: none;">
 
                         <div class="form-group advanced-setting">
@@ -2593,7 +2591,6 @@ $(document).ready(function() {
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
                         '" data-ssl="' + item.httpsRequired +
-                        '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
                         '<span class="item-text">' + escape(label) + '</span>' +
                         (caption ? '<span class="item-value">' + escape(caption) + '</span>' : '') +
@@ -2606,7 +2603,6 @@ $(document).ready(function() {
                         '" data-ip="' + item.ip +
                         '" data-port="' + item.port +
                         '" data-ssl="' + item.httpsRequired +
-                        '" data-is_cloud="' + item.is_cloud +
                         '" data-label="' + item.label + '">' +
                         escape(label) +
                         (caption ? '<span class="caption">' + escape(caption) + '</span>' : '') +
@@ -2628,7 +2624,6 @@ $(document).ready(function() {
             var ip = $(pms_ip_selected).data('ip');
             var port = $(pms_ip_selected).data('port');
             var ssl = $(pms_ip_selected).data('ssl');
-            var is_cloud = $(pms_ip_selected).data('is_cloud');
             var value = $(pms_ip_selected).data('value');
 
             $("#pms_identifier").val(identifier !== 'undefined' ? identifier : '');
@@ -2636,7 +2631,6 @@ $(document).ready(function() {
             $('#pms_port').val(port !== 'undefined' ? port : 32400);
             $('#pms_ssl_checkbox').prop('checked', (ssl !== 'undefined' && ssl === 1));
             $('#pms_ssl').val(ssl !== 'undefined' && ssl === 1 ? 1 : 0);
-            $('#pms_is_cloud').val(is_cloud !== 'undefined' && is_cloud === true ? 1 : 0);
             $('#pms_url_manual').prop('checked', false);
             $('#pms_url').val('Please verify your server above to retrieve the URL');
         },

@@ -25,8 +25,6 @@
             <div id="currentActivity">
                 % if PLEX_SERVER_UP:
                 <div class="text-muted" id="dashboard-checking-activity"><i class="fa fa-refresh fa-spin"></i>&nbsp; Checking for activity...</div>
-                % elif config['pms_is_cloud']:
-                <div id="dashboard-no-activity" class="text-muted">Plex Cloud server is sleeping.</div>
                 % elif not config['first_run_complete']:
                 <div id="dashboard-no-activity" class="text-muted">The Tautulli setup wizard has not been completed. Please click <a href="welcome">here</a> to go to the setup wizard.</div>
                 % else:
@@ -129,8 +127,6 @@
             <div id="recentlyAdded" style="margin-right: -15px;">
                 % if PLEX_SERVER_UP:
                 <div id="dashboard-checking-recently-added" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Looking for new items...</div>
-                % elif config['pms_is_cloud']:
-                <div class="text-muted">Plex Cloud server is sleeping.</div>
                 % else:
                 <div id="dashboard-no-recently-added" class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Tautulli is connecting to your Plex server...</div>
                 % endif

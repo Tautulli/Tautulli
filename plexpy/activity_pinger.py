@@ -207,36 +207,13 @@ def check_active_sessions(ws_request=False):
 
 
 def connect_server(log=True, startup=False):
-    if plexpy.CONFIG.PMS_IS_CLOUD:
-        if log:
-            logger.info("Tautulli Monitor :: Checking for Plex Cloud server status...")
+    if log and not startup:
+        logger.info("Tautulli Monitor :: Attempting to reconnect Plex server...")
 
-        plex_tv = plextv.PlexTV()
-        status = plex_tv.get_cloud_server_status()
-
-        if status is True:
-            logger.info("Tautulli Monitor :: Plex Cloud server is active.")
-        elif status is False:
-            if log:
-                logger.info("Tautulli Monitor :: Plex Cloud server is sleeping.")
-        else:
-            if log:
-                logger.error("Tautulli Monitor :: Failed to retrieve Plex Cloud server status.")
-
-        if not status and startup:
-            web_socket.on_disconnect()
-
-    else:
-        status = True
-
-    if status:
-        if log and not startup:
-            logger.info("Tautulli Monitor :: Attempting to reconnect Plex server...")
-
-        try:
-            web_socket.start_thread()
-        except Exception as e:
-            logger.error("Websocket :: Unable to open connection: %s." % e)
+    try:
+        web_socket.start_thread()
+    except Exception as e:
+        logger.error("Websocket :: Unable to open connection: %s." % e)
 
 
 def check_server_updates():
