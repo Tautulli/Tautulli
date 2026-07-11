@@ -1118,16 +1118,12 @@ class DataFactory(object):
 
             elif stat == 'most_concurrent':
 
-                def calc_most_concurrent(title, result):
+                def calc_most_concurrent(title, times):
                     '''
                     Function to calculate most concurrent streams
-                    Input: Stat title, SQLite query result
+                    Input: Stat title, list of start/stop events
                     Output: Dict {title, count, started, stopped}
                     '''
-                    times = []
-                    for item in result:
-                        times.append({'time': str(item['started']) + 'B', 'count': 1})
-                        times.append({'time': str(item['stopped']) + 'A', 'count': -1})
                     times = sorted(times, key=lambda k: k['time'])
 
                     count = 0
@@ -1157,40 +1153,35 @@ class DataFactory(object):
                 most_concurrent = []
 
                 try:
-                    base_query = "SELECT sh.started, sh.stopped " \
-                                 "FROM session_history AS sh " \
-                                 "JOIN session_history_media_info AS shmi ON sh.id = shmi.id " \
-                                 "WHERE %s %s " % (where_timeframe[4:].replace('session_history.', 'sh.'),
-                                                   '' if include_archived else
-                                                   users.archived_user_cond(column='sh.user_id') +
-                                                   libraries.archived_library_cond(column='sh.section_id'))
-
-                    title = 'Concurrent Streams'
-                    query = base_query
+                    # One pass over the window instead of four filtered
+                    # scans of the same rows
+                    query = "SELECT sh.started, sh.stopped, shmi.transcode_decision " \
+                            "FROM session_history AS sh " \
+                            "JOIN session_history_media_info AS shmi ON sh.id = shmi.id " \
+                            "WHERE %s %s " % (where_timeframe[4:].replace('session_history.', 'sh.'),
+                                              '' if include_archived else
+                                              users.archived_user_cond(column='sh.user_id') +
+                                              libraries.archived_library_cond(column='sh.section_id'))
                     result = monitor_db.select(query, args=where_timeframe_args)
-                    if result:
-                        most_concurrent.append(calc_most_concurrent(title, result))
 
-                    title = 'Concurrent Transcodes'
-                    query = base_query \
-                          + "AND shmi.transcode_decision = 'transcode' "
-                    result = monitor_db.select(query, args=where_timeframe_args)
-                    if result:
-                        most_concurrent.append(calc_most_concurrent(title, result))
+                    categories = {'Concurrent Streams': None,
+                                  'Concurrent Transcodes': 'transcode',
+                                  'Concurrent Direct Streams': 'copy',
+                                  'Concurrent Direct Plays': 'direct play'
+                                  }
+                    events = {title: [] for title in categories}
 
-                    title = 'Concurrent Direct Streams'
-                    query = base_query \
-                          + "AND shmi.transcode_decision = 'copy' "
-                    result = monitor_db.select(query, args=where_timeframe_args)
-                    if result:
-                        most_concurrent.append(calc_most_concurrent(title, result))
+                    for item in result:
+                        start_event = {'time': str(item['started']) + 'B', 'count': 1}
+                        stop_event = {'time': str(item['stopped']) + 'A', 'count': -1}
+                        for title, decision in categories.items():
+                            if decision is None or item['transcode_decision'] == decision:
+                                events[title].append(start_event)
+                                events[title].append(stop_event)
 
-                    title = 'Concurrent Direct Plays'
-                    query = base_query \
-                          + "AND shmi.transcode_decision = 'direct play' "
-                    result = monitor_db.select(query, args=where_timeframe_args)
-                    if result:
-                        most_concurrent.append(calc_most_concurrent(title, result))
+                    for title in categories:
+                        if events[title]:
+                            most_concurrent.append(calc_most_concurrent(title, events[title]))
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: most_concurrent: %s." % e)
                     return None
