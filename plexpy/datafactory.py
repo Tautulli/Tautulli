@@ -36,6 +36,10 @@ _UPDATE_METADATA_IDS = {
 }
 
 
+# Cached get_total_duration results, invalidated when history changes
+_TOTAL_DURATION_CACHE = {'version': -1, 'values': {}}
+
+
 class DataFactory(object):
     """
     Retrieve and process data from the monitor database
@@ -1784,6 +1788,17 @@ class DataFactory(object):
         if custom_where is None:
             custom_where = []
 
+        # The totals only change when history is written; every history
+        # table draw re-requested them (a full-table aggregate on the
+        # default view)
+        cache_key = str(custom_where)
+        if _TOTAL_DURATION_CACHE['version'] == database.history_version:
+            if cache_key in _TOTAL_DURATION_CACHE['values']:
+                return _TOTAL_DURATION_CACHE['values'][cache_key]
+        else:
+            _TOTAL_DURATION_CACHE['version'] = database.history_version
+            _TOTAL_DURATION_CACHE['values'] = {}
+
         monitor_db = database.MonitorDatabase()
 
         join_tables = set()
@@ -1819,6 +1834,8 @@ class DataFactory(object):
         total_duration = 0
         for item in result:
             total_duration = item['total_duration']
+
+        _TOTAL_DURATION_CACHE['values'][cache_key] = total_duration
 
         return total_duration
 

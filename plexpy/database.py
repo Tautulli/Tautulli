@@ -53,6 +53,16 @@ def _use_lock_free_reads():
 
 IS_IMPORTING = False
 
+# Bumped whenever session_history contents change, so expensive history
+# aggregates can be cached until the next write. A lost concurrent bump
+# costs at most one extra recompute.
+history_version = 0
+
+
+def bump_history_version():
+    global history_version
+    history_version += 1
+
 
 def get_connection(filename):
     """Return this thread's persistent connection to the database file.
@@ -262,6 +272,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
 
     optimize_db()
 
+    bump_history_version()
     logger.info("Tautulli Database :: Tautulli database import complete.")
     set_is_importing(False)
 
@@ -338,6 +349,8 @@ def delete_session_history_rows(row_ids=None):
     with monitor_db.transaction():
         for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
             success.append(delete_rows_from_table(table=table, row_ids=row_ids))
+    # Bump after the commit. A reader that ran before it must not cache the old total as current.
+    bump_history_version()
     return all(success)
 
 
@@ -356,6 +369,7 @@ def _delete_session_history_where(where_column, where_value):
                                   [where_value])
             monitor_db.action("DELETE FROM session_history WHERE {column} = ?".format(column=where_column),
                               [where_value])
+        bump_history_version()
         return True
     except Exception as e:
         logger.error("Tautulli Database :: Failed to delete history for %s %s: %s"

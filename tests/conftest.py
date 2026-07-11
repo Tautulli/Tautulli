@@ -70,6 +70,9 @@ def app_db(tmp_path, app_config, monkeypatch):
     from plexpy import libraries
     monkeypatch.setitem(libraries._LIBRARY_TYPES_CACHE, "types", None)
 
+    # The cached history totals belong to the previous test's database.
+    plexpy.database.bump_history_version()
+
     plexpy.dbcheck()
 
     yield plexpy.database.MonitorDatabase()

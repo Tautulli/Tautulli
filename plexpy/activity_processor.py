@@ -479,6 +479,7 @@ class ActivityProcessor(object):
                         # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history_metadata transaction..."
                         #              % session['session_key'])
                         db.insert(table_name='session_history_metadata', value_dict=values)
+                    database.bump_history_version()
                 except sqlite3.OperationalError as e:
                     # Locked/busy after all retries: the transaction has
                     # rolled back. Return falsy so the callers' existing
