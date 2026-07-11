@@ -134,6 +134,7 @@ class Export(object):
 
         self.total_items = 0
         self.exported_items = 0
+        self._exported_items_lock = threading.Lock()
         self.success = False
 
         # Reset export options for m3u
@@ -2134,7 +2135,9 @@ class Export(object):
 
     def _do_export(self, item):
         result = item._export_obj()
-        self.exported_items += 1
+        # Incremented from multiple pool threads
+        with self._exported_items_lock:
+            self.exported_items += 1
         self.set_export_progress()
         return result
 
