@@ -693,10 +693,10 @@ def on_created(rating_key, **kwargs):
     pms_connect = pmsconnect.PmsConnect()
     metadata = pms_connect.get_metadata_details(rating_key)
 
-    logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) added to Plex.",
-                 metadata['full_title'], str(rating_key))
-
     if metadata:
+        logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) added to Plex.",
+                     metadata['full_title'], str(rating_key))
+
         notify = True
         # now = helpers.timestamp()
         #
