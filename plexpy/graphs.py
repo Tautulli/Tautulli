@@ -796,8 +796,8 @@ class Graphs(object):
         time_range = helpers.cast_to_int(time_range) or 30
         timestamp = helpers.timestamp() - time_range * 24 * 60 * 60
 
-        user_cond = self._make_user_cond(user_id, 'WHERE')
-        
+        user_cond = self._make_user_cond(user_id)
+
         def calc_most_concurrent(result):
             times = []
             for item in result:
@@ -821,14 +821,17 @@ class Graphs(object):
             return final_count
 
         try:
-            query = "SELECT sh.date_played, sh.started, sh.stopped, shmi.transcode_decision " \
-                    "FROM (SELECT *, " \
-                        "date(started, 'unixepoch', 'localtime') AS date_played " \
-                        "FROM session_history %s " \
-                        "GROUP BY id) AS sh " \
-                    "JOIN session_history_media_info AS shmi ON sh.id = shmi.id " \
-                    "WHERE sh.stopped >= %s " \
-                    "ORDER BY sh.started" % (user_cond, timestamp)
+            # Unlike the sibling graphs the time filter must be inside the
+            # main WHERE (there is no aggregate subquery), so the stopped
+            # index bounds the scan instead of reading every row ever
+            # recorded. The + on started stops SQLite from walking the
+            # started index to skip the sort, which reads every row too.
+            query = "SELECT date(session_history.started, 'unixepoch', 'localtime') AS date_played, " \
+                    "session_history.started, session_history.stopped, shmi.transcode_decision " \
+                    "FROM session_history " \
+                    "JOIN session_history_media_info AS shmi ON session_history.id = shmi.id " \
+                    "WHERE session_history.stopped >= %s %s " \
+                    "ORDER BY +session_history.started" % (timestamp, user_cond)
 
             result = monitor_db.select(query)
         except Exception as e:
