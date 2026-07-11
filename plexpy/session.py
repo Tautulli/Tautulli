@@ -56,8 +56,11 @@ def get_session_csrf_token():
     # the RAM session store is empty) must not each load their own empty
     # copy and mint different tokens. Only HTML page renders take this
     # lock; XHRs and images never touch the session. CherryPy releases
-    # the lock automatically when the request ends.
-    cherrypy.session.acquire_lock()
+    # the lock ONCE automatically when the request ends, so a request
+    # must never acquire it twice (the login handlers also acquire
+    # before this runs via the template render).
+    if not cherrypy.session.locked:
+        cherrypy.session.acquire_lock()
     if '_csrf_token' not in cherrypy.session:
         cherrypy.session['_csrf_token'] = generate_csrf_token()
     return cherrypy.session['_csrf_token']
