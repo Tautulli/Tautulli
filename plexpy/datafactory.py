@@ -320,6 +320,10 @@ class DataFactory(object):
 
             if item['live']:
                 item['percent_complete'] = 100
+            elif item['percent_complete'] is None:
+                # A metadata duration of 0 makes the SQL percent
+                # expression divide by zero and yield NULL
+                item['percent_complete'] = 0
 
             # A sessions row written by an older version can have no media_type
             base_watched_value = watched_percent.get(item['media_type'], 0) / 4.0
