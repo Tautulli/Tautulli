@@ -427,6 +427,9 @@ class WebInterface(object):
         result = database.delete_sessions()
 
         if result:
+            # The flushed sessions' cached markers die with them
+            from plexpy import activity_handler
+            activity_handler.clear_markers_cache()
             return {'result': 'success', 'message': 'Temporary sessions flushed.'}
         else:
             return {'result': 'error', 'message': 'Flush sessions failed.'}
