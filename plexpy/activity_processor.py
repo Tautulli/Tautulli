@@ -632,25 +632,16 @@ class ActivityProcessor(object):
     def set_session_last_paused(self, session_key=None, timestamp=None):
         db = database.MonitorDatabase()
         if str(session_key).isdigit():
-            result = db.select("SELECT last_paused, paused_counter "
-                                    "FROM sessions "
-                                    "WHERE session_key = ?", args=[session_key])
-
-            paused_counter = None
-            for session in result:
-                if session['last_paused']:
-                    paused_offset = helpers.timestamp() - int(session['last_paused'])
-                    if session['paused_counter']:
-                        paused_counter = int(session['paused_counter']) + int(paused_offset)
-                    else:
-                        paused_counter = int(paused_offset)
-
-            values = {'last_paused': timestamp}
-
-            if paused_counter:
-                values['paused_counter'] = paused_counter
-
-            self.set_session_state(session_key=session_key, **values)
+            # Accumulate the elapsed pause time into paused_counter and
+            # set the new last_paused value in a single statement instead
+            # of a read-modify-write
+            db.action("UPDATE sessions SET "
+                      "paused_counter = CASE WHEN last_paused IS NOT NULL "
+                      "THEN COALESCE(paused_counter, 0) + (? - last_paused) "
+                      "ELSE paused_counter END, "
+                      "last_paused = ? "
+                      "WHERE session_key = ?",
+                      [helpers.timestamp(), timestamp, session_key])
 
     def increment_session_buffer_count(self, session_key=None):
         db = database.MonitorDatabase()
@@ -698,9 +689,8 @@ class ActivityProcessor(object):
     def increment_write_attempts(self, session_key=None):
         db = database.MonitorDatabase()
         if str(session_key).isdigit():
-            session = self.get_session_by_key(session_key=session_key)
-            db.action("UPDATE sessions SET write_attempts = ? WHERE session_key = ?",
-                           [session['write_attempts'] + 1, session_key])
+            db.action("UPDATE sessions SET write_attempts = write_attempts + 1 WHERE session_key = ?",
+                           [session_key])
 
     def set_marker(self, session_key=None, marker_idx=None, marker_type=None):
         db = database.MonitorDatabase()
