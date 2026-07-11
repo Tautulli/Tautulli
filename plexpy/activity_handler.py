@@ -210,7 +210,10 @@ class ActivityHandler(object):
         # Get our last triggered time
         buffer_last_triggered = self.ap.get_session_buffer_trigger_time(self.session_key)
 
-        self.update_db_session()
+        # Buffer events arrive in bursts while the client is already
+        # struggling; update the state from the websocket data without
+        # refetching all sessions from the server and rewriting the row
+        self.set_session_state()
 
         time_since_last_trigger = 0
         if buffer_last_triggered:
