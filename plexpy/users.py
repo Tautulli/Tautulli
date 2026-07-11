@@ -310,11 +310,34 @@ class Users(object):
 
         custom_where = ['users.user_id', user_id]
 
+        # Aggregate the narrow session_history table per IP first, then
+        # join the wide tables only for each IP's most recent history row
+        # (the old form joined every history row of the user to the wide
+        # tables and picked the displayed row arbitrarily)
+        # The shown row is the play with the latest start, and the highest id on a tie.
+        archived_cond = '' if include_archived else libraries.archived_library_cond()
+        last_row_cond = '' if include_archived else libraries.archived_library_cond(column='s2.section_id')
+
+        history_agg = (
+            "(SELECT ip_address AS agg_ip_address, "
+            "MIN(started) AS first_seen, "
+            "MAX(started) AS last_seen, "
+            "COUNT(id) AS play_count, "
+            "(SELECT s2.id FROM session_history AS s2 "
+            "WHERE s2.user_id = %d AND s2.ip_address IS session_history.ip_address %s"
+            "ORDER BY s2.started DESC, s2.id DESC LIMIT 1) AS history_row_id "
+            "FROM session_history "
+            "WHERE user_id = %d %s"
+            "GROUP BY ip_address) AS history_agg" % (
+                helpers.cast_to_int(user_id), last_row_cond,
+                helpers.cast_to_int(user_id), archived_cond)
+        )
+
         columns = ["session_history.id AS history_row_id",
-                   "MIN(session_history.started) AS first_seen",
-                   "MAX(session_history.started) AS last_seen",
+                   "history_agg.first_seen",
+                   "history_agg.last_seen",
                    "session_history.ip_address",
-                   "COUNT(session_history.id) AS play_count",
+                   "history_agg.play_count",
                    "session_history.platform",
                    "session_history.player",
                    "session_history.rating_key",
@@ -342,16 +365,17 @@ class Users(object):
             query = data_tables.ssp_query(table_name='session_history',
                                           columns=columns,
                                           custom_where=[custom_where],
-                                          group_by=['ip_address'],
+                                          group_by=[],
                                           join_types=['JOIN',
                                                       'JOIN',
+                                                      'JOIN',
                                                       'JOIN'],
-                                          join_tables=['users',
+                                          join_tables=[history_agg,
+                                                       'users',
                                                        'session_history_metadata',
                                                        'session_history_media_info'],
-                                          join_evals=[['session_history.user_id',
-                                                       'users.user_id ' +
-                                                       ('' if include_archived else libraries.archived_library_cond())],
+                                          join_evals=[['session_history.id', 'history_agg.history_row_id'],
+                                                      ['session_history.user_id', 'users.user_id'],
                                                       ['session_history.id', 'session_history_metadata.id'],
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)

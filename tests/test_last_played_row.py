@@ -49,3 +49,13 @@ def test_libraries_table_shows_the_play_that_matches_last_accessed(app_db):
 
     assert row["last_accessed"] == 8000
     assert row["last_played"] == "Later Movie"
+
+
+def test_user_ips_table_shows_the_play_that_matches_last_seen(app_db):
+    seed_overlapping_plays(app_db)
+    columns = ["last_seen", "first_seen", "ip_address", "play_count", "last_played"]
+
+    row = users.Users().get_datatables_unique_ips(user_id=1, kwargs=draw(columns, 0))["data"][0]
+
+    assert (row["first_seen"], row["last_seen"], row["play_count"]) == (7000, 8000, 2)
+    assert row["last_played"] == "Later Movie"
