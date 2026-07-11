@@ -332,7 +332,32 @@ class Libraries(object):
         if session.get_session_shared_libraries():
             custom_where.append(['library_sections.section_id', session.get_session_shared_libraries()])
 
-        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+        group_by = 'reference_id' if grouping else 'id'
+
+        # Aggregate the narrow session_history table once per section,
+        # then join the wide metadata table only for each section's most
+        # recent history row. The old form joined every history row of
+        # every section to the wide tables on every table draw (including
+        # a media_info join that no selected column used).
+        archived_cond = '' if include_archived else users.archived_user_cond(cond_prefix='WHERE')
+
+        # The shown row is the play with the latest start, and the highest id on a tie.
+        # The (key, started) index serves the lookup.
+        last_row_cond = '' if include_archived else users.archived_user_cond(column='s2.user_id')
+
+        history_agg = (
+            "(SELECT section_id, "
+            "COUNT(DISTINCT %s) AS plays, "
+            "SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - "
+            "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration, "
+            "MAX(started) AS last_accessed, "
+            "(SELECT s2.id FROM session_history AS s2 "
+            "WHERE s2.section_id = session_history.section_id %s"
+            "ORDER BY s2.started DESC, s2.id DESC LIMIT 1) AS history_row_id "
+            "FROM session_history "
+            "%s"
+            "GROUP BY section_id) AS history_agg" % (group_by, last_row_cond, archived_cond)
+        )
 
         columns = ["library_sections.id AS row_id",
                    "library_sections.server_id",
@@ -346,12 +371,10 @@ class Libraries(object):
                    "library_sections.custom_thumb_url AS custom_thumb",
                    "library_sections.art AS library_art",
                    "library_sections.custom_art_url AS custom_art",
-                   "COUNT(DISTINCT %s) AS plays" % group_by,
-                   "SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
-                    ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
-                    session_history.paused_counter END) AS duration",
-                   "MAX(session_history.started) AS last_accessed",
-                   "MAX(session_history.id) AS history_row_id",
+                   "COALESCE(history_agg.plays, 0) AS plays",
+                   "COALESCE(history_agg.duration, 0) AS duration",
+                   "history_agg.last_accessed",
+                   "history_agg.history_row_id",
                    "session_history_metadata.full_title AS last_played",
                    "session_history.rating_key",
                    "session_history_metadata.media_type",
@@ -377,18 +400,16 @@ class Libraries(object):
             query = data_tables.ssp_query(table_name='library_sections',
                                           columns=columns,
                                           custom_where=custom_where,
-                                          group_by=['library_sections.server_id', 'library_sections.section_id'],
+                                          group_by=[],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN'],
-                                          join_tables=['session_history',
-                                                       'session_history_metadata',
-                                                       'session_history_media_info'],
-                                          join_evals=[['session_history.section_id',
-                                                       'library_sections.section_id ' +
-                                                       ('' if include_archived else users.archived_user_cond())],
-                                                      ['session_history.id', 'session_history_metadata.id'],
-                                                      ['session_history.id', 'session_history_media_info.id']],
+                                          join_tables=[history_agg,
+                                                       'session_history',
+                                                       'session_history_metadata'],
+                                          join_evals=[['history_agg.section_id', 'library_sections.section_id'],
+                                                      ['session_history.id', 'history_agg.history_row_id'],
+                                                      ['session_history_metadata.id', 'history_agg.history_row_id']],
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
