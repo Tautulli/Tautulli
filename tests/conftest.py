@@ -66,6 +66,10 @@ def app_db(tmp_path, app_config, monkeypatch):
     monkeypatch.setattr(plexpy.session, "get_session_user_id", lambda: None)
     monkeypatch.setattr(plexpy.session, "friendly_name_to_username", lambda list_of_dicts: list_of_dicts)
 
+    # The cached section types belong to the previous test's database.
+    from plexpy import libraries
+    monkeypatch.setitem(libraries._LIBRARY_TYPES_CACHE, "types", None)
+
     plexpy.dbcheck()
 
     yield plexpy.database.MonitorDatabase()
