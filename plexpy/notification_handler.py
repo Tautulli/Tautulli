@@ -42,7 +42,6 @@ from plexpy import helpers
 from plexpy import notifiers
 from plexpy import pmsconnect
 from plexpy import request
-from plexpy.newsletter_handler import notify as notify_newsletter
 
 
 def process_queue():
@@ -54,9 +53,7 @@ def process_queue():
             break
         elif params:
             try:
-                if 'newsletter' in params:
-                    notify_newsletter(**params)
-                elif 'notification' in params:
+                if 'notification' in params:
                     notify(**params)
                 else:
                     add_notifier_each(**params)

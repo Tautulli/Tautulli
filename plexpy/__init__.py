@@ -547,6 +547,9 @@ def start():
         # Repair any device left unvalidated by an earlier outage
         mobile_app.revalidate_devices()
 
+        # Start background newsletter thread
+        newsletter_handler.start_thread()
+
         # Schedule newsletters
         newsletter_handler.NEWSLETTER_SCHED.start()
         newsletter_handler.schedule_newsletters()
@@ -2962,6 +2965,7 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
     # Stop the notification threads
     for i in range(CONFIG.NOTIFICATION_THREADS):
         NOTIFY_QUEUE.put(None)
+    newsletter_handler.NEWSLETTER_QUEUE.put(None)
 
     CONFIG.write()
 

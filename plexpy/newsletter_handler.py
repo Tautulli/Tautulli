@@ -17,7 +17,9 @@
 
 from io import open
 import os
+import queue
 import shlex
+import threading
 
 from apscheduler.triggers.cron import CronTrigger
 import email.utils
@@ -30,6 +32,33 @@ from plexpy import newsletters
 
 
 NEWSLETTER_SCHED = None
+NEWSLETTER_QUEUE = queue.Queue()
+
+
+def process_queue():
+    while True:
+        params = NEWSLETTER_QUEUE.get()
+
+        if params is None:
+            break
+        elif params:
+            try:
+                notify(**params)
+            except Exception as e:
+                logger.exception("Tautulli NewsletterHandler :: Newsletter thread exception: %s" % e)
+
+        NEWSLETTER_QUEUE.task_done()
+
+    logger.info("Tautulli NewsletterHandler :: Newsletter thread exiting...")
+
+
+def start_thread():
+    # Newsletters build on their own worker so a long newsletter render
+    # cannot stall playback notifications behind it
+    logger.info("Tautulli NewsletterHandler :: Starting background newsletter handler thread.")
+    thread = threading.Thread(target=process_queue)
+    thread.daemon = True
+    thread.start()
 
 
 def add_newsletter_each(newsletter_id=None, notify_action=None, **kwargs):
@@ -41,7 +70,7 @@ def add_newsletter_each(newsletter_id=None, notify_action=None, **kwargs):
             'newsletter_id': newsletter_id,
             'notify_action': notify_action}
     data.update(kwargs)
-    plexpy.NOTIFY_QUEUE.put(data)
+    NEWSLETTER_QUEUE.put(data)
 
 
 def schedule_newsletters(newsletter_id=None):
