@@ -98,7 +98,7 @@ class DataTables(object):
             extracted_columns_union = extract_columns(columns=columns_union)
             group_u = build_grouping(group_by_union)
             c_where_u, cwu_args = build_custom_where(custom_where_union)
-            union = 'UNION SELECT %s FROM %s %s %s' % (extracted_columns_union['column_string'],
+            union = 'UNION ALL SELECT %s FROM %s %s %s' % (extracted_columns_union['column_string'],
                                                        table_name_union,
                                                        c_where_u,
                                                        group_u)
