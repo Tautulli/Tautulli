@@ -561,8 +561,6 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     notify_params.update(media_info)
     notify_params.update(media_part_info)
 
-    metadata = pmsconnect.PmsConnect().get_metadata_details(rating_key=rating_key)
-
     child_metadata = grandchild_metadata = []
     for key in kwargs.pop('child_keys', []):
         child = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
