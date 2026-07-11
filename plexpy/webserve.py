@@ -24,6 +24,7 @@ import json
 import linecache
 import os
 import shutil
+import sqlite3
 import ssl as _ssl
 import sys
 import tempfile
@@ -4972,24 +4973,37 @@ class WebInterface(object):
         """ Download the Tautulli database file. """
         database_file = database.FILENAME
 
+        temp_path = None
+
         try:
             db = database.MonitorDatabase()
             db.connection.execute('begin immediate')
 
-            with tempfile.NamedTemporaryFile(delete=False, mode='w+b', suffix=f".{database_file}") as temp:
-                with open(plexpy.DB_FILE, 'rb') as f:
-                    temp.write(f.read())
-                    temp_path = temp.name
-
-            db.connection.rollback()
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, mode='w+b', suffix=f".{database_file}") as temp:
+                    with open(plexpy.DB_FILE, 'rb') as f:
+                        temp.write(f.read())
+                        temp_path = temp.name
+            finally:
+                # The connection is this thread's persistent one; never
+                # leave the write transaction open on a failed copy or
+                # every writer in the process stalls indefinitely
+                db.connection.rollback()
         except:
             pass
 
-        # Remove tokens
+        # Remove tokens. Use a plain short-lived sqlite3 connection: the
+        # thread-local MonitorDatabase cache would otherwise hold a
+        # connection to this one-off temp file for the life of the
+        # worker thread.
         try:
-            db = database.MonitorDatabase(temp_path)
-            db.action('UPDATE users SET user_token = NULL, server_token = NULL')
-            db.action('UPDATE user_login SET jwt_token = NULL')
+            temp_db = sqlite3.connect(temp_path, timeout=20)
+            try:
+                temp_db.execute('UPDATE users SET user_token = NULL, server_token = NULL')
+                temp_db.execute('UPDATE user_login SET jwt_token = NULL')
+                temp_db.commit()
+            finally:
+                temp_db.close()
         except:
             logger.error('Failed to remove tokens from downloaded database.')
             cherrypy.response.status = 500
