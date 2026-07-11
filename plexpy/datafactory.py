@@ -2187,31 +2187,34 @@ class DataFactory(object):
 
         # get grandparent_rating_keys
         grandparents = {}
-        result = monitor_db.select(query=query.format('grandparent_rating_key', 'grandparent_rating_key'),
-                                   args=[grandparent_rating_key])
-        for item in result:
+        grandparent_results = monitor_db.select(
+            query=query.format('grandparent_rating_key', 'grandparent_rating_key'),
+            args=[grandparent_rating_key])
+        for grandparent_item in grandparent_results:
             # get parent_rating_keys
             parents = {}
-            result = monitor_db.select(query=query.format('grandparent_rating_key', 'parent_rating_key'),
-                                       args=[item['grandparent_rating_key']])
-            for item in result:
+            parent_results = monitor_db.select(
+                query=query.format('grandparent_rating_key', 'parent_rating_key'),
+                args=[grandparent_item['grandparent_rating_key']])
+            for parent_item in parent_results:
                 # get rating_keys
                 children = {}
-                result = monitor_db.select(query=query.format('parent_rating_key', 'rating_key'),
-                                           args=[item['parent_rating_key']])
-                for item in result:
-                    key = item['media_index'] if item['media_index'] else str(item['title']).lower()
-                    children.update({key: {'rating_key': item['rating_key']}})
+                child_results = monitor_db.select(
+                    query=query.format('parent_rating_key', 'rating_key'),
+                    args=[parent_item['parent_rating_key']])
+                for child_item in child_results:
+                    key = child_item['media_index'] if child_item['media_index'] else str(child_item['title']).lower()
+                    children.update({key: {'rating_key': child_item['rating_key']}})
 
-                key = item['parent_media_index'] if match_type == 'index' else str(item['parent_title']).lower()
+                key = parent_item['parent_media_index'] if match_type == 'index' else str(parent_item['parent_title']).lower()
                 parents.update({key:
-                                {'rating_key': item['parent_rating_key'],
+                                {'rating_key': parent_item['parent_rating_key'],
                                  'children': children}
                                 })
 
-            key = 0 if match_type == 'index' else str(item['grandparent_title']).lower()
+            key = 0 if match_type == 'index' else str(grandparent_item['grandparent_title']).lower()
             grandparents.update({key:
-                                 {'rating_key': item['grandparent_rating_key'],
+                                 {'rating_key': grandparent_item['grandparent_rating_key'],
                                   'children': parents}
                                  })
 
