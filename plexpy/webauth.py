@@ -331,6 +331,7 @@ class AuthController(object):
 
     def get_loginform(self, redirect_uri=''):
         from plexpy.webserve import serve_template
+        cherrypy.session.acquire_lock()
         cherrypy.session['_csrf_token'] = generate_csrf_token()
         return serve_template(template_name="login.html", title="Login", redirect_uri=unquote(redirect_uri))
 
@@ -420,6 +421,7 @@ class AuthController(object):
             cherrypy.response.cookie[jwt_cookie]['httponly'] = True
             cherrypy.response.cookie[jwt_cookie]['samesite'] = 'lax'
 
+            cherrypy.session.acquire_lock()
             cherrypy.session['_csrf_token'] = generate_csrf_token()
             cherrypy.request.login = payload
             cherrypy.response.status = 200

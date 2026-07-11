@@ -51,7 +51,12 @@ def get_session_csrf_token():
     Returns the CSRF token for the current logged in session
     """
     if '_csrf_token' not in cherrypy.session:
-        cherrypy.session['_csrf_token'] = generate_csrf_token()
+        # Session locking is 'explicit'; take the lock only for the one
+        # write a session ever sees. CherryPy releases the lock
+        # automatically when the request ends.
+        cherrypy.session.acquire_lock()
+        if '_csrf_token' not in cherrypy.session:
+            cherrypy.session['_csrf_token'] = generate_csrf_token()
     return cherrypy.session['_csrf_token']
 
 
