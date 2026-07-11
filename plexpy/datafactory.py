@@ -2514,15 +2514,19 @@ class DataFactory(object):
                 query = "SELECT machine_id FROM session_history " \
                         "WHERE user_id = ? " \
                         "GROUP BY machine_id"
+                args = [user_id]
             else:
-                query = "SELECT * FROM (" \
-                        "SELECT user_id, machine_id FROM session_history " \
-                        "UNION SELECT user_id, machine_id from sessions_continued) " \
-                        "WHERE user_id = ? " \
-                        "GROUP BY machine_id"
+                # Filter each arm before the UNION so the indexes on
+                # user_id are used; the old form deduplicated the whole
+                # tables' (user_id, machine_id) projection in a temp
+                # B-tree before filtering
+                query = "SELECT machine_id FROM session_history WHERE user_id = ? " \
+                        "UNION " \
+                        "SELECT machine_id FROM sessions_continued WHERE user_id = ?"
+                args = [user_id, user_id]
 
             try:
-                result = monitor_db.select(query=query, args=[user_id])
+                result = monitor_db.select(query=query, args=args)
             except Exception as e:
                 logger.warn("Tautulli DataFactory :: Unable to execute database query for get_user_devices: %s." % e)
                 return []
