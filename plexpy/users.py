@@ -689,6 +689,21 @@ class Users(object):
 
         try:
             if str(user_id).isdigit():
+                # Find each item's most recent history row over the narrow
+                # table first, then join the wide metadata table for only
+                # the returned rows (the old form joined metadata to every
+                # history row of the user before grouping)
+                last_rows = monitor_db.select(
+                    "SELECT session_history.id, MAX(started) AS last_started "
+                    "FROM session_history "
+                    "WHERE user_id = ? %s"
+                    "GROUP BY (CASE WHEN media_type = 'track' THEN parent_rating_key "
+                    "   ELSE rating_key END) "
+                    "ORDER BY last_started DESC LIMIT ?" % (
+                        '' if include_archived else libraries.archived_library_cond()),
+                    args=[user_id, limit])
+                last_ids = [row['id'] for row in last_rows]
+
                 query = "SELECT session_history.id, session_history.media_type, guid, " \
                         "session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, " \
                         "title, parent_title, grandparent_title, original_title, " \
@@ -696,12 +711,9 @@ class Users(object):
                         "year, originally_available_at, added_at, live, started, user " \
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
-                        "WHERE user_id = ? %s" \
-                        "GROUP BY (CASE WHEN session_history.media_type = 'track' THEN session_history.parent_rating_key " \
-                        "   ELSE session_history.rating_key END) " \
-                        "ORDER BY MAX(started) DESC LIMIT ?" % (
-                            '' if include_archived else libraries.archived_library_cond())
-                result = monitor_db.select(query, args=[user_id, limit])
+                        "WHERE session_history.id IN (%s) " \
+                        "ORDER BY started DESC" % ",".join(["?"] * len(last_ids))
+                result = monitor_db.select(query, args=last_ids) if last_ids else []
             else:
                 result = []
         except Exception as e:
