@@ -85,6 +85,10 @@ elif common.PLATFORM == 'Darwin':
     from plexpy import macos
 
 
+# Parsed log-viewer cache keyed by (mtime, size) per log file; the Logs
+# page auto-refresh re-reads and re-parses the whole file per draw
+_parsed_log_cache = {}
+
 TEMPLATE_LOOKUP = None
 
 
@@ -2966,27 +2970,42 @@ class WebInterface(object):
         else:
             filename = logger.FILENAME
 
-        with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r', encoding='utf-8') as f:
-            for l in f.readlines():
-                try:
-                    temp_loglevel_and_time = l.split(' - ', 1)
-                    loglvl = temp_loglevel_and_time[1].split(' ::', 1)[0].strip()
-                    msg = helpers.sanitize(l.split(' : ', 1)[1].replace('\n', ''))
-                    fa([temp_loglevel_and_time[0], loglvl, msg])
-                except IndexError:
-                    # Add traceback message to previous msg.
-                    tl = (len(filt) - 1)
-                    n = len(l) - len(l.lstrip(' '))
-                    ll = '&nbsp;' * (2 * n) + helpers.sanitize(l[n:])
-                    filt[tl][2] += '<br>' + ll
-                    continue
+        log_file_path = os.path.join(plexpy.CONFIG.LOG_DIR, filename)
+        try:
+            log_stat = os.stat(log_file_path)
+            cache_token = (log_stat.st_mtime, log_stat.st_size)
+        except OSError:
+            cache_token = None
+
+        cached = _parsed_log_cache.get(filename)
+        if cache_token and cached and cached[0] == cache_token:
+            filt = cached[1]
+        else:
+            with open(log_file_path, 'r', encoding='utf-8') as f:
+                for l in f.readlines():
+                    try:
+                        temp_loglevel_and_time = l.split(' - ', 1)
+                        loglvl = temp_loglevel_and_time[1].split(' ::', 1)[0].strip()
+                        msg = helpers.sanitize(l.split(' : ', 1)[1].replace('\n', ''))
+                        fa([temp_loglevel_and_time[0], loglvl, msg])
+                    except IndexError:
+                        # Add traceback message to previous msg.
+                        tl = (len(filt) - 1)
+                        n = len(l) - len(l.lstrip(' '))
+                        ll = '&nbsp;' * (2 * n) + helpers.sanitize(l[n:])
+                        filt[tl][2] += '<br>' + ll
+                        continue
+
+            if cache_token:
+                _parsed_log_cache[filename] = (cache_token, filt)
 
         log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
         if log_level in log_levels:
             log_levels = log_levels[log_levels.index(log_level)::]
             filtered = [row for row in filt if row[1] in log_levels]
         else:
-            filtered = filt
+            # Copy: the sort below must not reorder the cached list
+            filtered = list(filt)
 
         if search_value:
             filtered = [row for row in filtered for column in row if search_value.lower() in column.lower()]
