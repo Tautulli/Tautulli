@@ -45,8 +45,14 @@ from plexpy import users
 
 
 class API2(object):
+    # The set of valid API methods is static; computed once instead of
+    # re-introspecting every method with inspect on each API call
+    _api_valid_methods_cached = None
+
     def __init__(self, **kwargs):
-        self._api_valid_methods = self._api_docs().keys()
+        if API2._api_valid_methods_cached is None:
+            API2._api_valid_methods_cached = frozenset(self._api_docs().keys())
+        self._api_valid_methods = API2._api_valid_methods_cached
         self._api_authenticated = False
         self._api_out_type = 'json'  # default
         self._api_msg = None
