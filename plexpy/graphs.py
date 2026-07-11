@@ -835,7 +835,7 @@ class Graphs(object):
 
             result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_stream_type: %s." % e)
+            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_concurrent_streams_per_stream_type: %s." % e)
             return None
 
         result_by_date_and_decision = helpers.group_by_keys(result, ('date_played', 'transcode_decision'))
