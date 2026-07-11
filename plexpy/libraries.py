@@ -92,9 +92,11 @@ def refresh_libraries():
 
         _LIBRARY_TYPES_CACHE['types'] = None
 
-        new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
-        plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
-        plexpy.CONFIG.write()
+        # Only rewrite the config file when new libraries were found
+        if new_keys:
+            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+            plexpy.CONFIG.write()
 
         logger.info("Tautulli Libraries :: Libraries list refreshed.")
         return True
