@@ -1361,7 +1361,6 @@ class DataFactory(object):
                                 "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
                                 "COUNT(DISTINCT %s) AS total_plays, section_id " \
                                 "FROM session_history " \
-                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE stopped >= ? " \
                                 "AND (session_history.grandparent_rating_key IN (%s) " \
                                 "OR session_history.parent_rating_key IN (%s) " \
@@ -1388,7 +1387,6 @@ class DataFactory(object):
                                 "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
                                 "COUNT(DISTINCT %s) AS total_plays, section_id " \
                                 "FROM session_history " \
-                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE (session_history.grandparent_rating_key IN (%s) " \
                                 "OR session_history.parent_rating_key IN (%s) " \
                                 "OR session_history.rating_key IN (%s)) %s" % (
@@ -1464,7 +1462,6 @@ class DataFactory(object):
                         "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
                         "section_id " \
                         "FROM session_history " \
-                        "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
                         "WHERE (session_history.grandparent_rating_key IN (%s) " \
                         "OR session_history.parent_rating_key IN (%s) " \

@@ -924,7 +924,7 @@ class Libraries(object):
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         if query_days and query_days is not None:
-            query_days = map(helpers.cast_to_int, str(query_days).split(','))
+            query_days = list(map(helpers.cast_to_int, str(query_days).split(',')))
         else:
             query_days = [1, 7, 30, 0]
 
@@ -934,44 +934,46 @@ class Libraries(object):
 
         library_watch_time_stats = []
 
-        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+        group_by = 'reference_id' if grouping else 'id'
         archived_cond = '' if include_archived else users.archived_user_cond()
 
-        for days in query_days:
-            timestamp_query = timestamp - days * 24 * 60 * 60
+        if str(section_id).isdigit():
+            # Compute every requested window with conditional aggregation
+            # in a single pass over the section's history instead of one
+            # full aggregate query per window. The old query also joined
+            # session_history_metadata without using any of its columns
+            # (section_id lives on session_history).
+            select_parts = []
+            for i, days in enumerate(query_days):
+                if days > 0:
+                    timestamp_query = timestamp - days * 24 * 60 * 60
+                    select_parts.append(
+                        "SUM(CASE WHEN stopped >= %(ts)d THEN (stopped - started) - "
+                        "(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) "
+                        "AS total_time_%(i)d, "
+                        "COUNT(DISTINCT CASE WHEN stopped >= %(ts)d THEN %(group_by)s END) "
+                        "AS total_plays_%(i)d" % {'ts': timestamp_query, 'i': i, 'group_by': group_by})
+                else:
+                    select_parts.append(
+                        "(SUM(stopped - started) - "
+                        "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) "
+                        "AS total_time_%(i)d, "
+                        "COUNT(DISTINCT %(group_by)s) AS total_plays_%(i)d" % {'i': i, 'group_by': group_by})
 
             try:
-                if days > 0:
-                    if str(section_id).isdigit():
-                        query = "SELECT (SUM(stopped - started) - " \
-                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                                "COUNT(DISTINCT %s) AS total_plays " \
-                                "FROM session_history " \
-                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE stopped >= %s " \
-                                "AND section_id = ? %s" % (group_by, timestamp_query, archived_cond)
-                        result = monitor_db.select(query, args=[section_id])
-                    else:
-                        result = []
-                else:
-                    if str(section_id).isdigit():
-                        query = "SELECT (SUM(stopped - started) - " \
-                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                                "COUNT(DISTINCT %s) AS total_plays " \
-                                "FROM session_history " \
-                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE section_id = ? %s" % (group_by, archived_cond)
-                        result = monitor_db.select(query, args=[section_id])
-                    else:
-                        result = []
+                query = "SELECT " + ", ".join(select_parts) + \
+                        " FROM session_history WHERE section_id = ? %s" % archived_cond
+                result = monitor_db.select_single(query, args=[section_id])
             except Exception as e:
                 logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
-                result = []
+                return []
 
-            for item in result:
-                if item['total_time']:
-                    total_time = item['total_time']
-                    total_plays = item['total_plays']
+            for i, days in enumerate(query_days):
+                total_time = result.get('total_time_%d' % i)
+                # Match the old per-window behavior exactly: a window
+                # with no (or zero) watch time reports zero plays too
+                if total_time:
+                    total_plays = result.get('total_plays_%d' % i) or 0
                 else:
                     total_time = 0
                     total_plays = 0
