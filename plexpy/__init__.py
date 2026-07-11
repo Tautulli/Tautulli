@@ -2799,6 +2799,13 @@ def dbcheck():
         "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_guid "
         "ON session_history_metadata (guid)"
     )
+    # SQLite's LIKE-prefix optimization requires a NOCASE collated index
+    # (case_sensitive_like is never enabled); serves the history guid
+    # filter and the live-TV metadata fallback, which use guid LIKE 'x%'
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_guid_nocase "
+        "ON session_history_metadata (guid COLLATE NOCASE)"
+    )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_live "
         "ON session_history_metadata (live)"
