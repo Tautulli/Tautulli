@@ -448,6 +448,10 @@ class Config(object):
 
     def __init__(self, config_file, is_import=False):
         """ Initialize the config with values from a file """
+        # Resolved settings cache: every CONFIG.X read previously re-ran
+        # an environment probe and a type cast; environment variables
+        # cannot change mid-process, so resolve once per key
+        self._settings_cache = {}
         self._config_file = config_file
         try:
             self._config = ConfigObj(self._config_file, encoding='utf-8')
@@ -498,12 +502,21 @@ class Config(object):
     def get_setting(self, name):
         """ Get the value of a setting, either from the config file or environment variable """
         key, definition_type, section, ini_key, default = self._define(name)
-        # Check if the key is in the environment variables
-        value = self._from_env(key)
-        if not value:
-            # If not, check if the key is in the config file
-            value = self._config[section].get(ini_key, default)
-        return self._cast_setting(definition_type, value, default)
+        try:
+            value = self._settings_cache[key]
+        except KeyError:
+            # Check if the key is in the environment variables
+            value = self._from_env(key)
+            if not value:
+                # If not, check if the key is in the config file
+                value = self._config[section].get(ini_key, default)
+            value = self._cast_setting(definition_type, value, default)
+            self._settings_cache[key] = value
+        if definition_type in (list, dict):
+            # Hand out a copy so callers cannot mutate the cached value
+            # (matches the old cast-per-read behavior)
+            return definition_type(value)
+        return value
     
     def set_setting(self, name, value):
         """ Set the value of a setting in the config file """
@@ -516,6 +529,7 @@ class Config(object):
 
         # If not, set the value in the config file
         self._config[section][ini_key] = self._cast_setting(definition_type, value, default)
+        self._settings_cache[key] = self._config[section][ini_key]
         return self._config[section][ini_key]
     
     def _from_env(self, key):
@@ -532,6 +546,10 @@ class Config(object):
 
     def write(self):
         """ Make a copy of the stored config and write it to the configured file """
+        # A config import merges directly into _config before writing;
+        # drop the resolved cache so re-reads pick up merged values
+        self._settings_cache.clear()
+
         new_config = ConfigObj(encoding="UTF-8")
         new_config.filename = self._config_file
 
@@ -605,6 +623,7 @@ class Config(object):
             return super(Config, self).__delattr__(name)
         else:
             key, definition_type, section, ini_key, default = self._define(name)
+            self._settings_cache.pop(key, None)
             del self._config[section][ini_key]
 
     def process_kwargs(self, kwargs):
