@@ -334,35 +334,45 @@ def delete_rows_from_table(table, row_ids):
 
 def delete_session_history_rows(row_ids=None):
     success = []
-    for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
-        success.append(delete_rows_from_table(table=table, row_ids=row_ids))
+    monitor_db = MonitorDatabase()
+    with monitor_db.transaction():
+        for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
+            success.append(delete_rows_from_table(table=table, row_ids=row_ids))
     return all(success)
+
+
+def _delete_session_history_where(where_column, where_value):
+    monitor_db = MonitorDatabase()
+
+    try:
+        # Delete the side tables through the main table's id set, then
+        # the main table itself — one transaction, without materializing
+        # the id list in Python and issuing thousands of chunked DELETEs
+        with monitor_db.transaction():
+            for table in ('session_history_media_info', 'session_history_metadata'):
+                monitor_db.action("DELETE FROM {table} WHERE id IN "
+                                  "(SELECT id FROM session_history WHERE {column} = ?)".format(
+                                      table=table, column=where_column),
+                                  [where_value])
+            monitor_db.action("DELETE FROM session_history WHERE {column} = ?".format(column=where_column),
+                              [where_value])
+        return True
+    except Exception as e:
+        logger.error("Tautulli Database :: Failed to delete history for %s %s: %s"
+                     % (where_column, where_value, e))
+        return False
 
 
 def delete_user_history(user_id=None):
     if str(user_id).isdigit():
-        monitor_db = MonitorDatabase()
-
-        # Get all history associated with the user_id
-        result = monitor_db.select("SELECT id FROM session_history WHERE user_id = ?",
-                                   [user_id])
-        row_ids = [row['id'] for row in result]
-
         logger.info("Tautulli Database :: Deleting all history for user_id %s from database." % user_id)
-        return delete_session_history_rows(row_ids=row_ids)
+        return _delete_session_history_where('user_id', user_id)
 
 
 def delete_library_history(section_id=None):
     if str(section_id).isdigit():
-        monitor_db = MonitorDatabase()
-
-        # Get all history associated with the section_id
-        result = monitor_db.select("SELECT id FROM session_history WHERE section_id = ?",
-                                   [section_id])
-        row_ids = [row['id'] for row in result]
-
         logger.info("Tautulli Database :: Deleting all history for library section_id %s from database." % section_id)
-        return delete_session_history_rows(row_ids=row_ids)
+        return _delete_session_history_where('section_id', section_id)
 
 
 def vacuum():
