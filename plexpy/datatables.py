@@ -162,7 +162,7 @@ class DataTables(object):
         result = [row for row in result if not all(v is None for v in row.values())]
 
         # Build grand totals
-        totalcount = self.ssp_db.select('SELECT COUNT(id) as total_count from %s' % table_name)[0]['total_count']
+        totalcount = self.ssp_db.select('SELECT COUNT(*) as total_count from %s' % table_name)[0]['total_count']
 
         # Get draw counter
         draw_counter = int(parameters['draw'])
