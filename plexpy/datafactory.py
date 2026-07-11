@@ -1207,25 +1207,62 @@ class DataFactory(object):
         library_stats = []
 
         try:
-            query = "SELECT ls.id, ls.section_id, ls.section_name, ls.section_type, ls.thumb AS library_thumb, " \
-                    "ls.custom_thumb_url AS custom_thumb, ls.art AS library_art, ls.custom_art_url AS custom_art, " \
-                    "ls.count, ls.parent_count, ls.child_count, " \
-                    "sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, " \
-                    "shm.media_index, shm.parent_media_index, " \
-                    "sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, " \
-                    "sh.user, sh.user_id, sh.player, " \
-                    "shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, " \
-                    "MAX(sh.started) AS last_watch " \
-                    "FROM library_sections AS ls " \
-                    "LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id %s" \
-                    "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id " \
-                    "WHERE ls.section_id IN (%s) AND ls.deleted_section = 0 %s" \
-                    "GROUP BY ls.id " \
-                    "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC " % (
-                        '' if include_archived else users.archived_user_cond(column='sh.user_id'), ",".join(library_cards),
-                        '' if include_archived else "AND ls.is_archived = 0 "
-                    )
-            result = monitor_db.select(query)
+            cards_in = ",".join(["?"] * len(library_cards))
+
+            # Find the most recent history row id per section first
+            # (served by the (section_id, started) index), then join the
+            # wide metadata table for only those few rows. The old form
+            # joined every history row of every displayed section to the
+            # metadata table just to keep one MAX(started) row per
+            # section, on every home page render.
+            last_watched = monitor_db.select(
+                "SELECT section_id, id AS last_id, MAX(started) "
+                "FROM session_history "
+                "WHERE section_id IN (%s) %s"
+                "GROUP BY section_id" % (cards_in, '' if include_archived else users.archived_user_cond(column='user_id')),
+                args=library_cards)
+            last_ids = [row['last_id'] for row in last_watched]
+
+            history_by_section = {}
+            if last_ids:
+                # LEFT JOIN like the old combined query: an orphaned
+                # history row without metadata still contributes its
+                # session_history fields to the library card
+                history_rows = monitor_db.select(
+                    "SELECT sh.section_id, sh.id, shm.title, shm.grandparent_title, shm.full_title, shm.year, "
+                    "shm.media_index, shm.parent_media_index, "
+                    "sh.rating_key, shm.grandparent_rating_key, shm.thumb, shm.grandparent_thumb, "
+                    "sh.user, sh.user_id, sh.player, "
+                    "shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, "
+                    "sh.started AS last_watch "
+                    "FROM session_history AS sh "
+                    "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id "
+                    "WHERE sh.id IN (%s)" % ",".join(["?"] * len(last_ids)),
+                    args=last_ids)
+                history_by_section = {row['section_id']: row for row in history_rows}
+
+            sections = monitor_db.select(
+                "SELECT section_id, section_name, section_type, thumb AS library_thumb, "
+                "custom_thumb_url AS custom_thumb, art AS library_art, custom_art_url AS custom_art, "
+                "count, parent_count, child_count "
+                "FROM library_sections "
+                "WHERE section_id IN (%s) AND deleted_section = 0 %s"
+                "ORDER BY section_type, count DESC, parent_count DESC, child_count DESC"
+                % (cards_in, '' if include_archived else "AND is_archived = 0 "),
+                args=library_cards)
+
+            history_defaults = {'id': None, 'title': None, 'grandparent_title': None, 'full_title': None,
+                                'year': None, 'media_index': None, 'parent_media_index': None,
+                                'rating_key': None, 'grandparent_rating_key': None, 'thumb': None,
+                                'grandparent_thumb': None, 'user': None, 'user_id': None, 'player': None,
+                                'art': None, 'media_type': None, 'content_rating': None, 'labels': None,
+                                'live': None, 'guid': None, 'last_watch': None}
+
+            result = []
+            for section in sections:
+                row = dict(section)
+                row.update(history_by_section.get(section['section_id'], history_defaults))
+                result.append(row)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
             return None
