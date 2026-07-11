@@ -473,25 +473,64 @@ class DataFactory(object):
 
         home_stats = []
 
+        # Each top/popular card pair aggregates the same rows and differs
+        # only in ordering, so the (superset) query runs once per media
+        # type without LIMIT and each card sorts and slices in Python
+        stats_start = helpers.cast_to_int(stats_start)
+        stats_count = helpers.cast_to_int(stats_count)
+        pair_cache = {}
+
+        def _pair_rows(media_type, identity_columns, outer_group_by, extra_inner_columns=''):
+            if media_type not in pair_cache:
+                query = "SELECT %s, " \
+                        "COUNT(DISTINCT sh.user_id) AS users_watched, " \
+                        "MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration " \
+                        "FROM (SELECT id, media_type, section_id, started, user_id%s, " \
+                        "       SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
+                        "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
+                        "       AS d " \
+                        "   FROM session_history " \
+                        "   WHERE session_history.media_type = '%s' %s %s " \
+                        "   GROUP BY %s) AS sh " \
+                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
+                        "GROUP BY %s " % (identity_columns, extra_inner_columns, media_type,
+                                          where_timeframe, where_id, group_by, outer_group_by)
+                pair_cache[media_type] = monitor_db.select(
+                    query, args=where_timeframe_args + where_id_args)
+            return pair_cache[media_type]
+
+        def _top_slice(rows):
+            rows = sorted(rows, key=lambda k: (-(k[sort_type] or 0), -(k['started'] or 0)))
+            return rows[stats_start:stats_start + stats_count]
+
+        def _popular_slice(rows):
+            rows = sorted(rows, key=lambda k: (-(k['users_watched'] or 0),
+                                               -(k[sort_type] or 0), -(k['started'] or 0)))
+            return rows[stats_start:stats_start + stats_count]
+
+        _movie_pair = ("sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, "
+                       "sh.section_id, shm.art, sh.media_type, shm.content_rating, shm.rating, "
+                       "shm.labels, sh.started, shm.live, shm.guid",
+                       "shm.full_title, shm.year",
+                       ", rating_key")
+        _tv_pair = ("sh.id, shm.grandparent_title, sh.grandparent_rating_key, "
+                    "shm.grandparent_thumb, sh.section_id, "
+                    "shm.year, sh.rating_key, shm.art, sh.media_type, "
+                    "shm.content_rating, shm.rating, shm.labels, sh.started, shm.live, shm.guid",
+                    "shm.grandparent_title",
+                    ", grandparent_rating_key, rating_key")
+        _music_pair = ("sh.id, shm.grandparent_title, shm.original_title, shm.year, "
+                       "sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, "
+                       "shm.art, sh.media_type, shm.content_rating, shm.rating, shm.labels, "
+                       "sh.started, shm.live, shm.guid",
+                       "shm.original_title, shm.grandparent_title",
+                       ", grandparent_rating_key")
+
         for stat in stats_cards:
             if stat == 'top_movies':
                 top_movies = []
                 try:
-                    query = "SELECT sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, " \
-                            "sh.section_id, shm.art, sh.media_type, shm.content_rating, shm.rating, " \
-                            "shm.labels, sh.started, shm.live, shm.guid, " \
-                            "MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration " \
-                            "FROM (SELECT id, media_type, rating_key, section_id, started, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
-                            "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
-                            "       AS d " \
-                            "   FROM session_history " \
-                            "   WHERE session_history.media_type = 'movie' %s %s " \
-                            "   GROUP BY %s) AS sh " \
-                            "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
-                            "GROUP BY shm.full_title, shm.year " \
-                            "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
-                    result = monitor_db.select(query, args=where_timeframe_args + where_id_args)
+                    result = _top_slice(_pair_rows('movie', *_movie_pair))
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_movies: %s." % e)
                     return None
@@ -530,22 +569,7 @@ class DataFactory(object):
             elif stat == 'popular_movies':
                 popular_movies = []
                 try:
-                    query = "SELECT sh.id, shm.full_title, shm.year, sh.rating_key, shm.thumb, " \
-                            "sh.section_id, shm.art, sh.media_type, shm.content_rating, shm.rating, " \
-                            "shm.labels, sh.started, shm.live, shm.guid, " \
-                            "COUNT(DISTINCT sh.user_id) AS users_watched, " \
-                            "MAX(sh.started) AS last_watch, COUNT(sh.id) as total_plays, SUM(sh.d) AS total_duration " \
-                            "FROM (SELECT id, media_type, rating_key, section_id, started, user_id, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
-                            "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
-                            "       AS d " \
-                            "   FROM session_history " \
-                            "   WHERE session_history.media_type = 'movie' %s %s " \
-                            "   GROUP BY %s) AS sh " \
-                            "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
-                            "GROUP BY shm.full_title, shm.year " \
-                            "ORDER BY users_watched DESC, %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
-                    result = monitor_db.select(query, args=where_timeframe_args + where_id_args)
+                    result = _popular_slice(_pair_rows('movie', *_movie_pair))
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: popular_movies: %s." % e)
                     return None
@@ -582,22 +606,7 @@ class DataFactory(object):
             elif stat == 'top_tv':
                 top_tv = []
                 try:
-                    query = "SELECT sh.id, shm.grandparent_title, sh.grandparent_rating_key, " \
-                            "shm.grandparent_thumb, sh.section_id, " \
-                            "shm.year, sh.rating_key, shm.art, sh.media_type, " \
-                            "shm.content_rating, shm.rating, shm.labels, sh.started, shm.live, shm.guid, " \
-                            "MAX(sh.started) AS last_watch, COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration " \
-                            "FROM (SELECT id, grandparent_rating_key, media_type, rating_key, section_id, started, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
-                            "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
-                            "       AS d " \
-                            "   FROM session_history " \
-                            "   WHERE session_history.media_type = 'episode' %s %s " \
-                            "   GROUP BY %s) AS sh " \
-                            "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
-                            "GROUP BY shm.grandparent_title " \
-                            "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
-                    result = monitor_db.select(query, args=where_timeframe_args + where_id_args)
+                    result = _top_slice(_pair_rows('episode', *_tv_pair))
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_tv: %s." % e)
                     return None
@@ -636,23 +645,7 @@ class DataFactory(object):
             elif stat == 'popular_tv':
                 popular_tv = []
                 try:
-                    query = "SELECT sh.id, shm.grandparent_title, sh.grandparent_rating_key, " \
-                            "shm.grandparent_thumb, sh.section_id, " \
-                            "shm.year, sh.rating_key, shm.art, sh.media_type, " \
-                            "shm.content_rating, shm.rating, shm.labels, sh.started, shm.live, shm.guid, " \
-                            "COUNT(DISTINCT sh.user_id) AS users_watched, " \
-                            "MAX(sh.started) AS last_watch, COUNT(sh.id) as total_plays, SUM(sh.d) AS total_duration " \
-                            "FROM (SELECT id, grandparent_rating_key, media_type, rating_key, section_id, started, user_id, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
-                            "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
-                            "       AS d " \
-                            "   FROM session_history " \
-                            "   WHERE session_history.media_type = 'episode' %s %s " \
-                            "   GROUP BY %s) AS sh " \
-                            "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
-                            "GROUP BY shm.grandparent_title " \
-                            "ORDER BY users_watched DESC, %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
-                    result = monitor_db.select(query, args=where_timeframe_args + where_id_args)
+                    result = _popular_slice(_pair_rows('episode', *_tv_pair))
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: popular_tv: %s." % e)
                     return None
@@ -689,22 +682,7 @@ class DataFactory(object):
             elif stat == 'top_music':
                 top_music = []
                 try:
-                    query = "SELECT sh.id, shm.grandparent_title, shm.original_title, shm.year, " \
-                            "sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, " \
-                            "shm.art, sh.media_type, shm.content_rating, shm.rating, shm.labels, " \
-                            "sh.started, shm.live, shm.guid, MAX(sh.started) AS last_watch, " \
-                            "COUNT(sh.id) AS total_plays, SUM(sh.d) AS total_duration " \
-                            "FROM (SELECT id, grandparent_rating_key, media_type, section_id, started, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
-                            "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
-                            "       AS d " \
-                            "   FROM session_history " \
-                            "   WHERE session_history.media_type = 'track' %s %s " \
-                            "   GROUP BY %s) AS sh " \
-                            "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
-                            "GROUP BY shm.original_title, shm.grandparent_title " \
-                            "ORDER BY %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
-                    result = monitor_db.select(query, args=where_timeframe_args + where_id_args)
+                    result = _top_slice(_pair_rows('track', *_music_pair))
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: top_music: %s." % e)
                     return None
@@ -743,22 +721,7 @@ class DataFactory(object):
             elif stat == 'popular_music':
                 popular_music = []
                 try:
-                    query = "SELECT sh.id, shm.grandparent_title, shm.original_title, shm.year, " \
-                            "sh.grandparent_rating_key, shm.grandparent_thumb, sh.section_id, " \
-                            "shm.art, sh.media_type, shm.content_rating, shm.rating, shm.labels, " \
-                            "sh.started, shm.live, shm.guid, COUNT(DISTINCT sh.user_id) AS users_watched, " \
-                            "MAX(sh.started) AS last_watch, COUNT(sh.id) as total_plays, SUM(sh.d) AS total_duration " \
-                            "FROM (SELECT id, grandparent_rating_key, media_type, section_id, started, user_id, SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
-                            "       (CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) " \
-                            "       AS d " \
-                            "   FROM session_history " \
-                            "   WHERE session_history.media_type = 'track' %s %s " \
-                            "   GROUP BY %s) AS sh " \
-                            "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
-                            "GROUP BY shm.original_title, shm.grandparent_title " \
-                            "ORDER BY users_watched DESC, %s DESC, sh.started DESC " \
-                            "LIMIT %s OFFSET %s " % (where_timeframe, where_id, group_by, sort_type, stats_count, stats_start)
-                    result = monitor_db.select(query, args=where_timeframe_args + where_id_args)
+                    result = _popular_slice(_pair_rows('track', *_music_pair))
                 except Exception as e:
                     logger.warn("Tautulli DataFactory :: Unable to execute database query for get_home_stats: popular_music: %s." % e)
                     return None
