@@ -458,6 +458,7 @@ def web_pages(library, monkeypatch):
     # history metadata when the Plex server has no match.
     monkeypatch.setattr(plexpy, "PROG_DIR", os.path.dirname(os.path.dirname(plexpy.__file__)))
     monkeypatch.setattr(webserve, "TEMPLATE_LOOKUP", None)
+    monkeypatch.setattr(webserve, "_activity_cache", {})
     monkeypatch.setattr(webserve, "get_session_csrf_token", lambda: "")
     monkeypatch.setattr(pmsconnect.PmsConnect, "get_metadata_details", lambda self, **kwargs: {})
     library.action("UPDATE session_history_metadata SET summary = ''")

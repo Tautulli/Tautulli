@@ -29,6 +29,7 @@ import ssl as _ssl
 import sys
 import tempfile
 import threading
+import time
 import zipfile
 from urllib.parse import urlencode
 
@@ -88,6 +89,28 @@ elif common.PLATFORM == 'Darwin':
 # Parsed log-viewer cache keyed by (mtime, size) per log file; the Logs
 # page auto-refresh re-reads and re-parses the whole file per draw
 _parsed_log_cache = {}
+
+# Short-lived cache of the processed PMS activity payload so multiple
+# dashboard tabs and per-card refreshes share one /status/sessions
+# fetch per interval. Keyed by session user because guest masking is
+# applied inside get_current_activity.
+_ACTIVITY_CACHE_TTL = 2  # seconds
+_activity_cache = {}
+
+
+def get_current_activity_cached():
+    cache_key = get_session_user_id()
+    now = time.time()
+    cached = _activity_cache.get(cache_key)
+    if cached and now < cached[0]:
+        return cached[1]
+
+    pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
+    result = pms_connect.get_current_activity()
+    if result:
+        _activity_cache[cache_key] = (now + _ACTIVITY_CACHE_TTL, result)
+    return result
+
 
 TEMPLATE_LOOKUP = None
 
@@ -302,8 +325,7 @@ class WebInterface(object):
     @requireAuth()
     def get_current_activity(self, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-        result = pms_connect.get_current_activity()
+        result = get_current_activity_cached()
 
         if result:
             return serve_template(template_name="current_activity.html", data=result)
@@ -315,8 +337,7 @@ class WebInterface(object):
     @requireAuth()
     def get_current_activity_instance(self, session_key=None, **kwargs):
 
-        pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-        result = pms_connect.get_current_activity()
+        result = get_current_activity_cached()
 
         if result:
             session = next((s for s in result['sessions'] if s['session_key'] == session_key), None)
@@ -6350,8 +6371,7 @@ class WebInterface(object):
             ```
         """
         try:
-            pms_connect = pmsconnect.PmsConnect(token=plexpy.CONFIG.PMS_TOKEN)
-            result = pms_connect.get_current_activity()
+            result = get_current_activity_cached()
 
             if result:
                 if session_key:
