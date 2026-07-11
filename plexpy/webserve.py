@@ -2099,7 +2099,21 @@ class WebInterface(object):
                 custom_where.append(['session_history.grandparent_rating_key IN', rating_key])
         if 'start_date' in kwargs:
             start_date = helpers.split_strip(kwargs.pop('start_date', ''))
-            if start_date:
+            day_bounds = None
+            if len(start_date) == 1:
+                try:
+                    day_bounds = helpers.YMD_to_timestamp_range(start_date[0])
+                except ValueError:
+                    # Malformed date: fall through to the string
+                    # comparison, which harmlessly matches nothing
+                    pass
+            if day_bounds:
+                # Compare against epoch bounds for the local day so the
+                # started index can be used instead of evaluating
+                # strftime() on every row
+                custom_where.append(["started >", day_bounds[0]])
+                custom_where.append(["started <", day_bounds[1] - 1])
+            elif start_date:
                 custom_where.append(["strftime('%Y-%m-%d', datetime(started, 'unixepoch', 'localtime'))", start_date])
         if 'before' in kwargs:
             before = [helpers.YMD_to_timestamp(t) for t in helpers.split_strip(kwargs.pop('before', ''))]

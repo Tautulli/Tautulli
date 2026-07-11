@@ -22,7 +22,7 @@ from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
 from collections import OrderedDict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from functools import reduce, wraps
 import hashlib
 from itertools import groupby, islice, zip_longest
@@ -228,6 +228,14 @@ def now(sep=False):
 def YMD_to_timestamp(ymd):
     # datetime also converts the day before, which Windows rejects near the epoch.
     return time.mktime(datetime.strptime(ymd, "%Y-%m-%d").timetuple())
+
+
+def YMD_to_timestamp_range(ymd):
+    """Return the [start, end) epoch bounds of the local calendar day."""
+    day = datetime.strptime(ymd, "%Y-%m-%d")
+    day_start = day.astimezone().timestamp()
+    day_end = (day + timedelta(days=1)).astimezone().timestamp()
+    return int(day_start), int(day_end)
 
 
 def timestamp_to_YMDHMS(ts, sep=False, ymd=False):
