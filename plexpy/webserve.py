@@ -7239,9 +7239,12 @@ class WebInterface(object):
                 check_auth()
 
             if 'database' in (args[:1] or kwargs.get('check')):
-                result = database.integrity_check()
-                status.update(result)
-                if result['integrity_check'] == 'ok':
+                # quick_check on its own connection: a full
+                # integrity_check held the database lock for the
+                # duration of a whole-file scan while monitors polled
+                result = database.quick_check_cached()
+                status['integrity_check'] = result['quick_check'] if result else 'error'
+                if status['integrity_check'] == 'ok':
                     status['message'] = 'Database ok'
                 else:
                     status['result'] = 'error'

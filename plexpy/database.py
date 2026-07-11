@@ -286,6 +286,35 @@ def integrity_check():
     return result
 
 
+# Cached quick check for the status endpoint: monitoring tools poll it,
+# and a whole-database scan takes ~15 s on a multi-GB file
+_quick_check_cache = {'expiry': 0.0, 'result': None}
+_QUICK_CHECK_CACHE_TTL = 30  # seconds
+
+
+def quick_check_cached():
+    """Run a bounded database check outside the write lock.
+
+    Uses its own short-lived connection so neither readers nor writers
+    are blocked while the file is scanned, and caches the result
+    briefly so polling cannot stack scans.
+    """
+    now = time.time()
+    if _quick_check_cache['result'] is not None and now < _quick_check_cache['expiry']:
+        return _quick_check_cache['result']
+
+    connection = sqlite3.connect(db_filename(), timeout=20)
+    try:
+        connection.row_factory = dict_factory
+        result = connection.execute("PRAGMA quick_check(1)").fetchone()
+    finally:
+        connection.close()
+
+    _quick_check_cache['result'] = result
+    _quick_check_cache['expiry'] = now + _QUICK_CHECK_CACHE_TTL
+    return result
+
+
 def quick_check():
     monitor_db = MonitorDatabase()
     result = monitor_db.select_single("PRAGMA quick_check")
