@@ -155,7 +155,7 @@ libraries_list_table_options = {
                         if (rowData['year']) { parent_info = ' (' + rowData['year'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="' + icon_title + '"><i class="fa ' + icon + ' fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, fallback) + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '">' + media_type + '&nbsp;' + thumb_popover + '</a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         icon = (rowData['live']) ? 'fa-broadcast-tower' : 'fa-television';
                         icon_title = (rowData['live']) ? 'Live TV' : 'Episode';
@@ -168,7 +168,7 @@ libraries_list_table_options = {
                         if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 300, null, null, null, 'cover') + '" data-height="80" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '">' + media_type + '&nbsp;' + thumb_popover + '</a></div>');
                     } else if (rowData['media_type']) {
                         $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                     }
@@ -262,7 +262,7 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
     } else {
         custom_thumb = rowData['library_thumb']
     }
-    
+
     $.ajax({
         url: 'edit_library',
         type: 'POST',
