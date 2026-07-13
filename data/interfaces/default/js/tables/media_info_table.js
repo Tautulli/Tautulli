@@ -115,7 +115,7 @@ media_info_table_options = {
                     } else if (rowData['media_type'] === 'photo') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Photo"><i class="fa fa-picture-o fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, 'poster') + '" data-height="120" data-width="80">' + rowData['title'] + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key']) + '"><div style="padding-left: 15px;">asdf' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key']) + '"><div style="padding-left: 15px;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
                     } else if (rowData['media_type'] === 'clip') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Video"><i class="fa fa-video-camera fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 500, 280, null, null, null, 'art') + '" data-height="80" data-width="140">' + rowData['title'] + '</span>';
