@@ -84,7 +84,7 @@ table.display tr.heading2 td {
 	border-bottom: 1px solid #aaa;
 }
 table.display td {
-	padding: 5px 0 5px 5px;
+	/* padding: 5px 0 5px 5px; */
 }
 table.display td.title {
 	padding: 5px;
@@ -379,7 +379,16 @@ table.display tr.shown + tr .pagination > li > a:hover {
 }
 table.display tr.odd td,
 table.display tr.even td {
-    padding: 5px 10px !important;
+    /* padding: 5px 10px !important; */
+}
+
+/* New rules to make the whole cell clickable when a link is contained within */
+table.display td:not(:has(a)) {
+    padding: 5px;
+}
+table.display td:has(a) a {
+    display: block;
+    padding: 5px;
 }
 table[id^='history_child'] {
     margin-top: 0;
