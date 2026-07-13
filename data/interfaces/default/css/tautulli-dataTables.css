@@ -364,7 +364,7 @@ table.display tr.shown + tr .pagination > .active > a,
 table.display tr.shown + tr .pagination > .active > a:hover {
     color: #fff;
 }
-table.display tr.shown + tr table[id^='history_child'] td:hover a, 
+table.display tr.shown + tr table[id^='history_child'] td:hover a,
 table.display tr.shown + tr table[id^='history_child'] td:hover a .fa,
 table.display tr.shown + tr table[id^='media_info_child'] > tr > td:hover a,
 table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] td:hover a {
@@ -388,7 +388,7 @@ table.display td:not(:has(a)) {
 }
 table.display td:has(a) a {
     display: block;
-    padding: 5px;
+    padding: 5px 10px;
 }
 table[id^='history_child'] {
     margin-top: 0;
