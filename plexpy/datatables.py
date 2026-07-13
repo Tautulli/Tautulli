@@ -14,11 +14,15 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import sqlite3
 
 import plexpy
 from plexpy import database
 from plexpy import helpers
 from plexpy import logger
+
+# Window functions require SQLite 3.25.0
+_WINDOW_FUNCTIONS = sqlite3.sqlite_version_info >= (3, 25, 0)
 
 
 class DataTables(object):
@@ -104,11 +108,6 @@ class DataTables(object):
         inner_query = 'SELECT %s FROM %s %s %s %s %s' \
                       % (extracted_columns['column_string'], table_name, join, c_where, group, union)
 
-        # Get the number of filtered rows
-        filtered_count = self.ssp_db.select(
-            'SELECT COUNT(*) AS filtered_count FROM (%s) %s' % (inner_query, where),
-            args=args)[0]['filtered_count']
-
         # Paginate using LIMIT and OFFSET so only the requested page is
         # fetched from the database (LIMIT -1 returns all rows in SQLite)
         start = helpers.cast_to_int(parameters.get('start', 0))
@@ -116,13 +115,32 @@ class DataTables(object):
         if length < 0:
             length = -1
 
-        # Build the query
-        query = 'SELECT * FROM (%s) %s %s LIMIT ? OFFSET ?' % (inner_query, where, order)
+        # Build the query, computing the number of filtered rows with a
+        # window function so the inner query only runs once
+        filtered_count = None
+
+        if _WINDOW_FUNCTIONS:
+            query = 'SELECT *, COUNT(*) OVER () AS filtered_count FROM (%s) %s %s LIMIT ? OFFSET ?' \
+                    % (inner_query, where, order)
+        else:
+            query = 'SELECT * FROM (%s) %s %s LIMIT ? OFFSET ?' % (inner_query, where, order)
 
         # logger.debug("Query: %s" % query)
 
         # Execute the query
         result = self.ssp_db.select(query, args=args + [length, start])
+
+        if _WINDOW_FUNCTIONS and result:
+            filtered_count = result[0]['filtered_count']
+            for row in result:
+                del row['filtered_count']
+
+        if filtered_count is None:
+            # Query the filtered count separately if it could not be
+            # computed with a window function or no rows were returned
+            filtered_count = self.ssp_db.select(
+                'SELECT COUNT(*) AS filtered_count FROM (%s) %s' % (inner_query, where),
+                args=args)[0]['filtered_count']
 
         # Remove NULL rows
         result = [row for row in result if not all(v is None for v in row.values())]
