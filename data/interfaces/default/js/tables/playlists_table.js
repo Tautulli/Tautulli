@@ -39,7 +39,7 @@ playlists_table_options = {
                         breadcrumb = '&section_id=' + rowData['librarySectionID'];
                     }
                     var thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['composite'], rowData['ratingKey'], 300, 300, null, null, null, 'cover') + '" data-height="80" data-width="80">' + cellData + '</span>';
-                    $(td).html(smart + '<a href="' + page('info', rowData['ratingKey']) + breadcrumb +'">' + thumb_popover + '</a>');
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + breadcrumb +'">' + smart + '&nbsp;' + thumb_popover + '</a>');
                 }
             },
             "width": "60%",

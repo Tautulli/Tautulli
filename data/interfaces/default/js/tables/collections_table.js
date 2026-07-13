@@ -38,7 +38,7 @@ collections_table_options = {
                     } else {
                         var thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['ratingKey'], 300, 450, null, null, null, 'poster') + '" data-height="120" data-width="80">' + rowData['title'] + '</span>';
                     }
-                    $(td).html(smart + '<a href="' + page('info', rowData['ratingKey']) + '">' + thumb_popover + '</a>');
+                    $(td).html('<a href="' + page('info', rowData['ratingKey']) + '">' + smart + '&nbsp;' + thumb_popover + '</a>');
                 }
             },
             "width": "50%",
