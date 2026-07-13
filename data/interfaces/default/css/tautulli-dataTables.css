@@ -374,13 +374,19 @@ table.display tr.shown + tr .pagination > .disabled > a:hover {
 table.display tr.shown + tr .pagination > li > a:hover {
     color: #e9a049;
 }
-/* New rules to make the whole cell clickable when a link is contained within */
-table.display td:not(:has(a)) {
+/* Fallback for browsers that don't support :has() */
+table.display td {
     padding: 5px;
 }
-table.display td:has(a) a {
-    display: block;
-    padding: 5px;
+/* New rules to make the whole cell clickable when a link is contained within. */
+@supports selector(td:has(a)) {
+    table.display td:has(a) {
+        padding: 0;
+    }
+    table.display td:has(a) a {
+        display: block;
+        padding: 5px;
+    }
 }
 table[id^='history_child'] {
     margin-top: 0;
