@@ -381,11 +381,22 @@ table.display td {
 /* New rules to make the whole cell clickable when a link is contained within. */
 @supports selector(td:has(a)) {
     table.display td:has(a) {
+        position: relative;
         padding: 0;
     }
     table.display td:has(a) a {
         display: block;
         padding: 5px;
+    }
+
+    table.display td:has(a) a::before {
+      content: '';
+      display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
     }
 }
 table[id^='history_child'] {
