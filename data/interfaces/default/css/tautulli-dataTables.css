@@ -390,8 +390,8 @@ table.display td {
     }
 
     table.display td:has(a) a::before {
-      content: '';
-      display: block;
+        content: '';
+        display: block;
         position: absolute;
         top: 0;
         left: 0;
