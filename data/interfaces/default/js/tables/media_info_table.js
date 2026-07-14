@@ -49,19 +49,19 @@ media_info_table_options = {
                     }
                     if (rowData['media_type'] === 'show') {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Seasons"><i class="fa fa-plus-circle fa-fw"></i></span>';
-                        $(td).html('<div><a href="#">' + expand_details + '&nbsp;' + date + '</a></div>');
+                        $(td).html('<a href="#">' + expand_details + '&nbsp;' + date + '</a>');
                     } else if (rowData['media_type'] === 'season') {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Episodes"><i class="fa fa-plus-circle fa-fw"></i></span>';
-                        $(td).html('<div><a href="#">' + expand_details + '&nbsp;' + date + '</a></div>');
+                        $(td).html('<a href="#">' + expand_details + '&nbsp;' + date + '</a>');
                     } else if (rowData['media_type'] === 'artist') {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Albums"><i class="fa fa-plus-circle fa-fw"></i></span>';
-                        $(td).html('<div><a href="#">' + expand_details + '&nbsp;' + date + '</a></div>');
+                        $(td).html('<a href="#">' + expand_details + '&nbsp;' + date + '</a>');
                     } else if (rowData['media_type'] === 'album') {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Tracks"><i class="fa fa-plus-circle fa-fw"></i></span>';
-                        $(td).html('<div><a href="#">' + expand_details + '&nbsp;' + date + '</a></div>');
+                        $(td).html('<a href="#">' + expand_details + '&nbsp;' + date + '</a>');
                     } else if (rowData['media_type'] === 'photo_album') {
                         expand_details = '<span class="expand-media-info-tooltip" data-toggle="tooltip" title="Show Photos"><i class="fa fa-plus-circle fa-fw"></i></span>';
-                        $(td).html('<div><a href="#">' + expand_details + '&nbsp;' + date + '</a></div>');
+                        $(td).html('<a href="#">' + expand_details + '&nbsp;' + date + '</a>');
                     } else {
                         $(td).html('<i class="fa fa-plus-circle fa-fw fa-blank"></i>&nbsp;' + date);
                     }

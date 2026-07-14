@@ -182,7 +182,7 @@ users_list_table_options = {
                     } else if (rowData['transcode_decision'] === 'direct play') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
-                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal">' + transcode_dec + '&nbsp;' + cellData + '</a></div>');
+                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal">' + transcode_dec + '&nbsp;' + cellData + '</a>');
                 } else {
                     $(td).html('n/a');
                 }
