@@ -378,8 +378,9 @@ table.display tr.shown + tr .pagination > li > a:hover {
 table.display td {
     padding: 5px;
 }
-/* New rules to make the whole cell clickable when a link is contained within. */
 @supports selector(td:has(a)) {
+    /* On cells with anchors, remove the default padding and set the padding */
+    /* on the anchors themselves. */
     table.display td:has(a) {
         position: relative;
         padding: 0;
@@ -389,6 +390,7 @@ table.display td {
         padding: 5px;
     }
 
+    /* Invisible overlay to trigger anchor hover events */
     table.display td:has(a) a::before {
         content: '';
         display: block;
@@ -399,11 +401,11 @@ table.display td {
         height: 100%;
     }
 
-    /* Restores the z-index of the spans so they can be hovered. */
-    /* Things like the play icon, player tooltip, and poster thumbnails */
+    /* ...but then set the z-index of spans higher than the overlay *
+    /* so the play icon, player tooltip, and poster thumbnails can be hovered */
     table.display td:has(a) a span { position: relative; z-index: 1; }
 
-    /* Restore Bootstrap pagination sizing inside expanded child rows. */
+    /* Bootstrap pagination within nested rows shouldn't have custom padding */
     table.display td:has(a) .pagination > li > a {
         padding: 6px 12px;
     }
