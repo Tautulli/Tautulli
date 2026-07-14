@@ -71,10 +71,10 @@ history_table_options = {
                     } else {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Unknown"><i class="fa fa-fw fa-question-circle"></i></span>';
                     }
-                    $(td).html('<div>' + state + '&nbsp;' + date + '</div>');
+                    $(td).html(state + '&nbsp;' + date);
                 } else if (rowData['group_count'] > 1) {
                     expand_history = '<span class="expand-history-tooltip" data-toggle="tooltip" title="Show Detailed History"><i class="fa fa-plus-circle fa-fw"></i></span>';
-                    $(td).html('<div><a href="#">' + expand_history + '&nbsp;' + date + '</a></div>');
+                    $(td).html('<a href="#">' + expand_history + '&nbsp;' + date + '</a>');
                 } else {
                     $(td).html('<i class="fa fa-plus-circle fa-fw fa-blank">&nbsp;</i>&nbsp;' + date);
                 }
@@ -153,7 +153,7 @@ history_table_options = {
                     } else if (rowData['transcode_decision'] === 'direct play') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
-                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal">' + transcode_dec + '&nbsp;' + cellData + '</a></div>');
+                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal">' + transcode_dec + '&nbsp;' + cellData + '</a>');
                 }
             },
             "width": "10%",

@@ -398,7 +398,17 @@ table.display td {
         width: 100%;
         height: 100%;
     }
+
+    /* Restores the z-index of the spans so they can be hovered. */
+    /* Things like the play icon, player tooltip, and poster thumbnails */
+    table.display td:has(a) a span { position: relative; z-index: 1; }
+
+    /* Restore Bootstrap pagination sizing inside expanded child rows. */
+    table.display td:has(a) .pagination > li > a {
+        padding: 6px 12px;
+    }
 }
+
 table[id^='history_child'] {
     margin-top: 0;
     opacity: .6;

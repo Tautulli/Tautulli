@@ -30,7 +30,7 @@ collections_table_options = {
                 if (cellData !== '') {
                     var smart = '<i class="fa fa-blank fa-fw"></i>';
                     if (rowData['smart']) {
-                        smart = '<span class="media-type-tooltip" data-toggle="tooltip" title="Smart Collection"><i class="fa fa-cog fa-fw"></i></span>&nbsp;'
+                        smart = '<span class="media-type-tooltip" data-toggle="tooltip" title="Smart Collection"><i class="fa fa-cog fa-fw"></i></span>'
                     }
                     console.log(rowData['subtype'])
                     if (rowData['subtype'] === 'artist' || rowData['subtype'] === 'album' || rowData['subtype'] === 'track') {
