@@ -1464,7 +1464,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     flex-wrap: nowrap;
     align-items: baseline;
     width: 100%;
-    padding: 2.5px 5px;
+    padding: 2.5px 8px 2.5px 5px;
     line-height: 14px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
     cursor: default;
@@ -1491,6 +1491,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     text-overflow: ellipsis;
     -webkit-flex-grow: 1;
     flex-grow: 1;
+    min-width: 0;
 }
 .dashboard-stats-info-item .sub-count {
     height: 100%;
@@ -1499,7 +1500,6 @@ a .dashboard-activity-metadata-user-thumb:hover {
     font-size: 12px;
     text-align: right;
     white-space: nowrap;
-    overflow: hidden;
     -webkit-flex-shrink: 0;
     flex-shrink: 0;
 }
@@ -1514,7 +1514,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
     flex-shrink: 0;
 }
 .dashboard-stats-info-item.expanded {
-    padding: 5px 5px;
+    padding: 5px 8px 5px 5px;
     line-height: 20px;
 }
 .dashboard-stats-info-item.expanded .sub-heading {
