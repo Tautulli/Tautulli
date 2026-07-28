@@ -62,6 +62,13 @@ from plexpy import users
 
 BROWSER_NOTIFIERS = {}
 
+# The push relay refuses a notification whose data object exceeds this, because
+# FCM caps the whole message at 4096 bytes.
+_RELAY_MAX_DATA_BYTES = 3800
+# Notifications are sent from a small shared worker pool, so a relay that accepts
+# the connection and never answers must not hold a worker open.
+_RELAY_TIMEOUT = 10
+
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
              'xbmc': 2,
@@ -4037,6 +4044,14 @@ class TAUTULLIREMOTEAPP(Notifier):
                           'rating_key': pretty_metadata.parameters.get('rating_key', ''),
                           'poster_thumb': pretty_metadata.parameters.get('poster_thumb', '')}
 
+        # Devices registered by app versions that use the push relay carry a push
+        # token; older devices are still delivered to through OneSignal.
+        push_token = device['push_token']
+        via_relay = bool(push_token) and push_token != mobile_app._PUSH_DISABLED
+
+        if via_relay:
+            self._trim_to_relay_limit(plaintext_data)
+
         #logger.debug("Plaintext data: {}".format(plaintext_data))
 
         if _CRYPTOGRAPHY:
@@ -4060,42 +4075,140 @@ class TAUTULLIREMOTEAPP(Notifier):
             #logger.debug("Nonce (base64): {}".format(base64.b64encode(nonce)))
             #logger.debug("Salt (base64): {}".format(base64.b64encode(salt)))
 
-            payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
-                       'include_subscription_ids': [device['onesignal_id']],
-                       'contents': {'en': 'Tautulli Notification'},
-                       'data': {'encrypted': True,
-                                'version': 2,
-                                'cipher_text': helpers.base64str(encrypted_data),
-                                'nonce': helpers.base64str(nonce),
-                                'salt': helpers.base64str(salt),
-                                'server_id': plexpy.CONFIG.PMS_UUID}
-                       }
+            data = {'encrypted': True,
+                    'version': 2,
+                    'cipher_text': helpers.base64str(encrypted_data),
+                    'nonce': helpers.base64str(nonce),
+                    'salt': helpers.base64str(salt),
+                    'server_id': plexpy.CONFIG.PMS_UUID}
         else:
             logger.warn("Tautulli Notifiers :: Cryptography library is missing. "
                         "Tautulli Remote app notifications will be sent unencrypted. "
                         "Install the library to encrypt the notifications.")
 
-            payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
-                       'include_subscription_ids': [device['onesignal_id']],
-                       'contents': {'en': 'Tautulli Notification'},
-                       'data': {'encrypted': False,
-                                'plain_text': plaintext_data,
-                                'server_id': plexpy.CONFIG.PMS_UUID}
-                       }
+            data = {'encrypted': False,
+                    'plain_text': plaintext_data,
+                    'server_id': plexpy.CONFIG.PMS_UUID}
 
-        #logger.debug("OneSignal payload: {}".format(payload))
+        #logger.debug("Notification data: {}".format(data))
 
         headers = {'Content-Type': 'application/json'}
 
+        if via_relay:
+            return self._send_via_relay(device, data, headers)
+
+        payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
+                   'include_subscription_ids': [device['onesignal_id']],
+                   'contents': {'en': 'Tautulli Notification'},
+                   'data': data
+                   }
+
         return self.make_request('https://api.onesignal.com/notifications', headers=headers, json=payload)
+
+    def _trim_to_relay_limit(self, plaintext_data):
+        """Shorten the notification body to what the relay will accept.
+
+        FCM caps a message at 4096 bytes, so the relay refuses a data object over
+        _RELAY_MAX_DATA_BYTES, and encryption inflates the plaintext by a base64
+        third plus a 16 byte tag. A long notification is worth delivering
+        shortened; failing it outright would drop it with no way for the user to
+        tell that the length was the reason.
+        """
+        # Everything the data object carries besides the ciphertext itself: the
+        # keys, the base64 nonce and salt (16 bytes each), and the server id.
+        envelope = {'encrypted': True, 'version': 2, 'cipher_text': '',
+                    'nonce': 'x' * 24, 'salt': 'x' * 24,
+                    'server_id': plexpy.CONFIG.PMS_UUID}
+        # base64 emits 4 characters per 3 bytes, rounding up, so invert that
+        # rather than scaling by three quarters: the two are not the same, and
+        # the difference is enough to land just over the limit.
+        room = _RELAY_MAX_DATA_BYTES - len(json.dumps(envelope))
+        budget = (room // 4) * 3 - 16
+
+        def encoded_length():
+            return len(json.dumps(plaintext_data).encode('utf-8'))
+
+        if encoded_length() <= budget:
+            return
+
+        body = plaintext_data['body']
+        low, high = 0, len(body)
+
+        while low < high:
+            mid = (low + high + 1) // 2
+            plaintext_data['body'] = body[:mid] + '…'
+            if encoded_length() <= budget:
+                low = mid
+            else:
+                high = mid - 1
+
+        plaintext_data['body'] = body[:low] + '…'
+        logger.warn("Tautulli Notifiers :: %s notification body shortened from %s to %s characters "
+                    "to fit the notification size limit." % (self.NAME, len(body), low))
+
+    def _send_via_relay(self, device, data, headers):
+        payload = {'token': device['push_token'],
+                   'platform': device['platform'] or 'android',
+                   'data': data}
+
+        url = '%s/v1/notify' % plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')
+        # Newlines would let a device name forge additional log entries.
+        device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
+
+        logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
+        # Without a timeout a stalled relay would hold one of the shared
+        # notification worker threads open indefinitely, and two of them would
+        # stop every notifier and newsletter Tautulli has.
+        response, err_msg, req_msg = request.request_response2(url, 'POST', auto_raise=False,
+                                                              headers=headers, json=payload,
+                                                              timeout=_RELAY_TIMEOUT)
+
+        if response is None:
+            logger.error("Tautulli Notifiers :: {name} notification failed.".format(name=self.NAME))
+            if err_msg:
+                logger.error("Tautulli Notifiers :: {}".format(err_msg))
+            return False
+
+        if response.status_code == 200:
+            logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
+            # Delivery proves the token is live, so a device whose validation was
+            # refused or interrupted heals itself here instead of needing to be
+            # registered again from the app.
+            mobile_app.set_official_from_delivery(device, 1)
+            return True
+
+        elif response.status_code == 410:
+            # The relay reports the device can never be delivered to again.
+            mobile_app.set_official_from_delivery(device, 0)
+            logger.error("Tautulli Notifiers :: {name} notification failed: the push token for device '{device}' "
+                         "is no longer valid. Open Tautulli Remote on the device to register it again."
+                         .format(name=self.NAME, device=device_name))
+
+        elif response.status_code == 429:
+            logger.error("Tautulli Notifiers :: {name} notification failed: the notification limit for device "
+                         "'{device}' has been reached. Retry after {retry} seconds."
+                         .format(name=self.NAME, device=device_name,
+                                 retry=response.headers.get('Retry-After', 'unknown')))
+
+        elif response.status_code == 413:
+            logger.error("Tautulli Notifiers :: {name} notification failed: the notification is too large to "
+                         "deliver. Shorten the notification text.".format(name=self.NAME))
+
+        else:
+            logger.error("Tautulli Notifiers :: {name} notification failed: the push relay returned status code "
+                         "{status}.".format(name=self.NAME, status=response.status_code))
+
+        logger.debug("Tautulli Notifiers :: Request response: {}".format(response.text))
+        return False
 
     def get_devices(self):
         db = database.MonitorDatabase()
 
         try:
             query = "SELECT * FROM mobile_devices WHERE official = 1 " \
-                    "AND onesignal_id IS NOT NULL AND onesignal_id != ''"
-            return db.select(query=query)
+                    "AND ((push_token IS NOT NULL AND push_token != '' AND push_token != ?) " \
+                    "OR (onesignal_id IS NOT NULL AND onesignal_id != ''))"
+            return db.select(query=query, args=[mobile_app._PUSH_DISABLED])
         except Exception as e:
             logger.warn("Tautulli Notifiers :: Unable to retrieve Tautulli Remote app devices list: %s." % e)
             return []
@@ -4123,22 +4236,19 @@ class TAUTULLIREMOTEAPP(Notifier):
                 'input_type': 'help'
             })
 
-        config_option[-1]['description'] += ('<br><br>Notifications are sent using '
-            '<a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank" rel="noreferrer">'
-            'OneSignal</a>. Some user data is collected and cannot be encrypted.<br>'
-            'Please read the <a href="' + helpers.anon_url(
-                'https://onesignal.com/privacy_policy') + '" target="_blank" rel="noreferrer">'
-            'OneSignal Privacy Policy</a> for more details.')
+        config_option[-1]['description'] += ('<br><br>Notifications are delivered through the Tautulli push relay '
+            'and Google Firebase Cloud Messaging. The relay stores no notification content and only forwards '
+            'the encrypted notification to your device.')
 
         devices = self.get_devices()
 
         if not devices:
             config_option.append({
                 'label': 'Device',
-                'description': 'No mobile devices registered with OneSignal. '
+                'description': 'No mobile devices registered for notifications. '
                                '<a data-tab-destination="remote_app" data-toggle="tab" data-dismiss="modal">'
                                'Get the Tautulli Remote App</a> and register a device.<br>'
-                               'Note: Only devices registered with a valid OneSignal ID will appear in the list.',
+                               'Note: Only devices registered for notifications will appear in the list.',
                 'input_type': 'help'
             })
         else:
@@ -4160,7 +4270,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                 'description': 'Select your mobile device or '
                                '<a data-tab-destination="remote_app" data-toggle="tab" data-dismiss="modal">'
                                'register a new device</a> with Tautulli.<br>'
-                               'Note: Only devices registered with a valid OneSignal ID will appear in the list.',
+                               'Note: Only devices registered for notifications will appear in the list.',
                 'input_type': 'select',
                 'select_options': device_select,
                 'refresh': True

@@ -811,7 +811,7 @@ def dbcheck():
         "CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, "
         "device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, "
         "platform TEXT, version TEXT, friendly_name TEXT, "
-        "onesignal_id TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)"
+        "onesignal_id TEXT, push_token TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)"
     )
 
     # tvmaze_lookup table :: This table keeps record of the TVmaze lookups
@@ -2398,6 +2398,15 @@ def dbcheck():
                 "SELECT device_id FROM mobile_devices WHERE official > 0").fetchall():
             c_db.execute("UPDATE mobile_devices SET platform = ? WHERE device_id = ?",
                          ["android", device_id])
+
+    # Upgrade mobile_devices table from earlier versions
+    try:
+        c_db.execute("SELECT push_token FROM mobile_devices")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table mobile_devices.")
+        c_db.execute(
+            "ALTER TABLE mobile_devices ADD COLUMN push_token TEXT"
+        )
 
     # Upgrade notifiers table from earlier versions
     try:

@@ -14,7 +14,7 @@ DOCUMENTATION :: END
     <li class="mobile-device pointer" data-id="${device['id']}" data-name="${device['device_name']}">
         <span>
             % if device['official'] == -1:
-                <span class="toggle-left official-tooltip" data-toggle="tooltip" data-placement="top" title="OneSignal Validation Failed"><i class="fa fa-lg fa-fw fa-exclamation-triangle"></i></span>
+                <span class="toggle-left official-tooltip" data-toggle="tooltip" data-placement="top" title="Notification Registration Validation Failed"><i class="fa fa-lg fa-fw fa-exclamation-triangle"></i></span>
             % elif device['official'] > 0:
                 <%
                     icon = 'mobile'
