@@ -4236,7 +4236,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                 'input_type': 'help'
             })
 
-        config_option[-1]['description'] += ('<br><br>Notifications are delivered through the Tautulli push relay '
+        config_option[-1]['description'] += ('<br><br>Notifications are delivered through the Tautulli Remote relay '
             'and Google Firebase Cloud Messaging. The relay stores no notification content and only forwards '
             'the encrypted notification to your device.')
 
