@@ -15,6 +15,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
 import requests
 import threading
 import time
@@ -35,6 +36,19 @@ _PUSH_DISABLED = 'push-disabled'
 _REVALIDATE_INTERVAL = 2
 
 TEMP_DEVICE_TOKENS = {}
+
+
+def relay_device_id(push_token):
+    """Return the identifier the push relay knows a device by.
+
+    The push token is a credential and is blacklisted from the logs, so it
+    cannot be used to say which device a log line is about. The relay derives
+    this same digest, and Tautulli Remote shows it on its data dump page, so
+    one string ties a user's report, this log and the relay's records together.
+    """
+    if not push_token or push_token == _PUSH_DISABLED:
+        return 'none'
+    return hashlib.sha256(push_token.encode()).hexdigest()[:16]
 
 
 def set_temp_device_token(token=None, remove=False, add=False, success=False):
@@ -137,6 +151,11 @@ def get_mobile_device_config(mobile_device_id=None):
 
     if result['push_token'] == _PUSH_DISABLED:
         result['push_token'] = ''
+
+    # Shown in place of the token itself, which is a credential the admin has no
+    # use for. This is the value the relay records and the app displays, so it is
+    # the one worth quoting in a bug report.
+    result['relay_device_id'] = relay_device_id(result['push_token']) if result['push_token'] else ''
 
     return result
 
@@ -270,12 +289,15 @@ def validate_push_token(push_token):
     headers = {'Content-Type': 'application/json'}
     payload = {'token': push_token}
 
-    logger.info("Tautulli MobileApp :: Validating push token")
+    device_id = relay_device_id(push_token)
+
+    logger.info("Tautulli MobileApp :: Validating push token for device %s", device_id)
     try:
         r = requests.post('%s/v1/validate' % plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/'),
                           headers=headers, json=payload, timeout=10)
         status_code = r.status_code
-        logger.info("Tautulli MobileApp :: Push token validation returned status code %s", status_code)
+        logger.info("Tautulli MobileApp :: Push token validation for device %s returned status code %s",
+                    device_id, status_code)
         if status_code == 200:
             return 1
         elif status_code == 410:
@@ -284,7 +306,7 @@ def validate_push_token(push_token):
         # the token itself, so do not mark the device as invalid.
         return -1
     except Exception as e:
-        logger.warn("Tautulli MobileApp :: Failed to validate push token: %s." % e)
+        logger.warn("Tautulli MobileApp :: Failed to validate push token for device %s: %s." % (device_id, e))
         return -1
 
 

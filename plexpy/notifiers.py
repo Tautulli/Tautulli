@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 #  This file is part of Tautulli.
 #
@@ -4154,6 +4154,9 @@ class TAUTULLIREMOTEAPP(Notifier):
         url = '%s/v1/notify' % plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')
         # Newlines would let a device name forge additional log entries.
         device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
+        # The name is what the user recognises; the relay id is what matches this
+        # log against the relay's own records and the app's data dump page.
+        device_id = mobile_app.relay_device_id(device['push_token'])
 
         logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
         # Without a timeout a stalled relay would hold one of the shared
@@ -4188,13 +4191,13 @@ class TAUTULLIREMOTEAPP(Notifier):
             mobile_app.set_official_from_delivery(device, 0)
             log_dead_token = logger.error if was_official else logger.debug
             log_dead_token("Tautulli Notifiers :: {name} notification failed: the push token for device '{device}' "
-                           "is no longer valid. Open Tautulli Remote on the device to register it again."
-                           .format(name=self.NAME, device=device_name))
+                           "({id}) is no longer valid. Open Tautulli Remote on the device to register it again."
+                           .format(name=self.NAME, device=device_name, id=device_id))
 
         elif response.status_code == 429:
             logger.error("Tautulli Notifiers :: {name} notification failed: the notification limit for device "
-                         "'{device}' has been reached. Retry after {retry} seconds."
-                         .format(name=self.NAME, device=device_name,
+                         "'{device}' ({id}) has been reached. Retry after {retry} seconds."
+                         .format(name=self.NAME, device=device_name, id=device_id,
                                  retry=response.headers.get('Retry-After', 'unknown')))
 
         elif response.status_code == 413:
@@ -4202,8 +4205,9 @@ class TAUTULLIREMOTEAPP(Notifier):
                          "deliver. Shorten the notification text.".format(name=self.NAME))
 
         else:
-            logger.error("Tautulli Notifiers :: {name} notification failed: the push relay returned status code "
-                         "{status}.".format(name=self.NAME, status=response.status_code))
+            logger.error("Tautulli Notifiers :: {name} notification failed for device {id}: the push relay "
+                         "returned status code {status}."
+                         .format(name=self.NAME, id=device_id, status=response.status_code))
 
         logger.debug("Tautulli Notifiers :: Request response: {}".format(request.server_message(response, True)))
         return False
