@@ -4159,9 +4159,9 @@ class TAUTULLIREMOTEAPP(Notifier):
         # Without a timeout a stalled relay would hold one of the shared
         # notification worker threads open indefinitely, and two of them would
         # stop every notifier and newsletter Tautulli has.
-        response, err_msg, req_msg = request.request_response2(url, 'POST', auto_raise=False,
-                                                              headers=headers, json=payload,
-                                                              timeout=_RELAY_TIMEOUT)
+        response, err_msg, _ = request.request_response2(url, 'POST', auto_raise=False,
+                                                        headers=headers, json=payload,
+                                                        timeout=_RELAY_TIMEOUT)
 
         if response is None:
             logger.error("Tautulli Notifiers :: {name} notification failed.".format(name=self.NAME))
@@ -4178,11 +4178,18 @@ class TAUTULLIREMOTEAPP(Notifier):
             return True
 
         elif response.status_code == 410:
-            # The relay reports the device can never be delivered to again.
+            # The relay reports the device can never be delivered to again. Clearing
+            # the official flag only removes it from the notifier config list, not
+            # from an agent already saved against it, so the sends keep coming. Say
+            # so at error level the first time and quietly thereafter, or a phone the
+            # user stopped using fills the log with one identical error per
+            # notification for as long as the agent stays configured.
+            was_official = device['official'] == 1
             mobile_app.set_official_from_delivery(device, 0)
-            logger.error("Tautulli Notifiers :: {name} notification failed: the push token for device '{device}' "
-                         "is no longer valid. Open Tautulli Remote on the device to register it again."
-                         .format(name=self.NAME, device=device_name))
+            log_dead_token = logger.error if was_official else logger.debug
+            log_dead_token("Tautulli Notifiers :: {name} notification failed: the push token for device '{device}' "
+                           "is no longer valid. Open Tautulli Remote on the device to register it again."
+                           .format(name=self.NAME, device=device_name))
 
         elif response.status_code == 429:
             logger.error("Tautulli Notifiers :: {name} notification failed: the notification limit for device "
@@ -4198,7 +4205,7 @@ class TAUTULLIREMOTEAPP(Notifier):
             logger.error("Tautulli Notifiers :: {name} notification failed: the push relay returned status code "
                          "{status}.".format(name=self.NAME, status=response.status_code))
 
-        logger.debug("Tautulli Notifiers :: Request response: {}".format(response.text))
+        logger.debug("Tautulli Notifiers :: Request response: {}".format(request.server_message(response, True)))
         return False
 
     def get_devices(self):
