@@ -4167,7 +4167,8 @@ class TAUTULLIREMOTEAPP(Notifier):
                                                         timeout=_RELAY_TIMEOUT)
 
         if response is None:
-            logger.error("Tautulli Notifiers :: {name} notification failed.".format(name=self.NAME))
+            logger.error("Tautulli Notifiers :: {name} notification to device {id} failed."
+                         .format(name=self.NAME, id=device_id))
             if err_msg:
                 logger.error("Tautulli Notifiers :: {}".format(err_msg))
             return False
@@ -4195,14 +4196,31 @@ class TAUTULLIREMOTEAPP(Notifier):
                            .format(name=self.NAME, device=device_name, id=device_id))
 
         elif response.status_code == 429:
-            logger.error("Tautulli Notifiers :: {name} notification failed: the notification limit for device "
-                         "'{device}' ({id}) has been reached. Retry after {retry} seconds."
-                         .format(name=self.NAME, device=device_name, id=device_id,
-                                 retry=response.headers.get('Retry-After', 'unknown')))
+            # Two different refusals share this status. The daily fair use cap is
+            # the only one the relay attaches rate limit details to, and it is the
+            # one worth wording carefully: nothing this device sends will succeed
+            # until the cap resets, and Tautulli does not retry.
+            try:
+                rate_limits = response.json().get('rateLimits') or {}
+            except ValueError:
+                rate_limits = {}
+
+            if rate_limits:
+                logger.error("Tautulli Notifiers :: {name} notification failed: the daily notification limit "
+                             "for device '{device}' ({id}) has been reached. Further notifications to this "
+                             "device will fail until the limit resets at {reset}."
+                             .format(name=self.NAME, device=device_name, id=device_id,
+                                     reset=rate_limits.get('resetsAt', 'the next reset')))
+            else:
+                logger.error("Tautulli Notifiers :: {name} notification to device {id} failed: notifications "
+                             "are being rate limited. Retry after {retry} seconds."
+                             .format(name=self.NAME, id=device_id,
+                                     retry=response.headers.get('Retry-After', 'unknown')))
 
         elif response.status_code == 413:
-            logger.error("Tautulli Notifiers :: {name} notification failed: the notification is too large to "
-                         "deliver. Shorten the notification text.".format(name=self.NAME))
+            logger.error("Tautulli Notifiers :: {name} notification to device {id} failed: the notification is "
+                         "too large to deliver. Shorten the notification text."
+                         .format(name=self.NAME, id=device_id))
 
         else:
             logger.error("Tautulli Notifiers :: {name} notification failed for device {id}: the push relay "

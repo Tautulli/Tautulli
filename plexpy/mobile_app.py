@@ -224,7 +224,11 @@ def set_official(device_id, onesignal_id, push_token=None):
                            + where,
                            args=[official, platform, device_id])
     except Exception as e:
-        logger.warn("Tautulli MobileApp :: Failed to set official flag for device: %s." % e)
+        # No device identifier here: this runs for both transports, and a
+        # OneSignal device has nothing loggable to name it by. Its device id and
+        # OneSignal id are both blacklisted, which is why the OneSignal
+        # validation lines carry no identifier either.
+        logger.warn("Tautulli MobileApp :: Failed to set official flag: %s." % e)
         return
 
 
@@ -246,7 +250,8 @@ def set_official_from_delivery(device, official):
         db.action("UPDATE mobile_devices SET official = ? WHERE device_id = ?",
                   args=[official, device['device_id']])
     except Exception as e:
-        logger.warn("Tautulli MobileApp :: Failed to set official flag for device: %s." % e)
+        logger.warn("Tautulli MobileApp :: Failed to set official flag for device %s: %s."
+                    % (relay_device_id(device['push_token']), e))
 
 
 def set_last_seen(device_token=None):
