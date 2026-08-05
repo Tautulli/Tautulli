@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 #  This file is part of Tautulli.
 #
@@ -61,13 +61,6 @@ from plexpy import users
 
 
 BROWSER_NOTIFIERS = {}
-
-# The push relay refuses a notification whose data object exceeds this, because
-# FCM caps the whole message at 4096 bytes.
-_RELAY_MAX_DATA_BYTES = 3800
-# Notifications are sent from a small shared worker pool, so a relay that accepts
-# the connection and never answers must not hold a worker open.
-_RELAY_TIMEOUT = 10
 
 AGENT_IDS = {'growl': 0,
              'prowl': 1,
@@ -4016,10 +4009,110 @@ class TAUTULLIREMOTEAPP(Notifier):
     Tautulli Remote app notifications
     """
     NAME = 'Tautulli Remote App'
+    MAX_DATA_BYTES = 3800  # the relay refuses a larger data object; FCM caps the message at 4096 bytes
+    TIMEOUT = 10  # notifications share a small worker pool, so a silent relay must not hold one open
     _DEFAULT_CONFIG = {'device_id': '',
                        'priority': 3,
                        'notification_type': 0
                        }
+
+    def _trim_to_relay_limit(self, plaintext_data):
+        # Everything but the ciphertext; a 16 byte nonce or salt is 24 base64 characters.
+        envelope = {'encrypted': True, 'version': 2, 'cipher_text': '',
+                    'nonce': 'x' * 24, 'salt': 'x' * 24,
+                    'server_id': plexpy.CONFIG.PMS_UUID}
+        # base64 emits 4 characters per 3 bytes rounding up, so invert that rather than scaling by three quarters.
+        room = self.MAX_DATA_BYTES - len(json.dumps(envelope))
+        budget = (room // 4) * 3 - 16
+
+        def encoded_length():
+            return len(json.dumps(plaintext_data).encode('utf-8'))
+
+        if encoded_length() <= budget:
+            return
+
+        body = plaintext_data['body']
+        low, high = 0, len(body)
+
+        while low < high:
+            mid = (low + high + 1) // 2
+            plaintext_data['body'] = body[:mid] + '...'
+            if encoded_length() <= budget:
+                low = mid
+            else:
+                high = mid - 1
+
+        plaintext_data['body'] = body[:low] + '...'
+        logger.warn("Tautulli Notifiers :: %s notification body shortened from %s to %s characters "
+                    "to fit the notification size limit." % (self.NAME, len(body), low))
+
+    def _send_via_relay(self, device, data, headers):
+        payload = {'token': device['push_token'],
+                   'platform': device['platform'] or 'android',
+                   'data': data}
+
+        url = '%s/v1/notify' % plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')
+        # Newlines would let a device name forge additional log entries.
+        device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
+        device_id = mobile_app.relay_device_id(device['push_token'])
+
+        logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
+        response, err_msg, _ = request.request_response2(url, 'POST', auto_raise=False,
+                                                        headers=headers, json=payload,
+                                                        timeout=self.TIMEOUT)
+
+        if response is None:
+            logger.error("Tautulli Notifiers :: {name} notification to device {id} failed.".format(name=self.NAME, id=device_id))
+            if err_msg:
+                logger.error("Tautulli Notifiers :: {}".format(err_msg))
+            return False
+
+        if response.status_code == 200:
+            logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
+            # Delivery proves the token is live, so a device whose validation was
+            # refused or interrupted heals itself here.
+            mobile_app.set_official_from_delivery(device, 1)
+            return True
+
+        elif response.status_code == 410:
+            # Clearing the flag only drops the device from the notifier config list,
+            # not from an agent already saved against it, so report this once.
+            was_official = device['official'] == 1
+            mobile_app.set_official_from_delivery(device, 0)
+            log_dead_token = logger.error if was_official else logger.debug
+            log_dead_token("Tautulli Notifiers :: {name} notification failed: the push token for device '{device}' "
+                           "({id}) is no longer valid. Open Tautulli Remote on the device to register it "
+                           "again.".format(name=self.NAME, device=device_name, id=device_id))
+
+        elif response.status_code == 429:
+            # Only the daily fair use cap carries rate limit details, and unlike a
+            # burst refusal it will not clear until it resets.
+            try:
+                rate_limits = response.json().get('rateLimits') or {}
+            except ValueError:
+                rate_limits = {}
+
+            if rate_limits:
+                logger.error("Tautulli Notifiers :: {name} notification failed: the daily notification limit "
+                             "for device '{device}' ({id}) has been reached. Further notifications to this "
+                             "device will fail until the limit resets at {reset}.".format(name=self.NAME, device=device_name,
+                                                                                          id=device_id,
+                                                                                          reset=rate_limits.get('resetsAt', 'the next reset')))
+            else:
+                logger.error("Tautulli Notifiers :: {name} notification to device {id} failed: notifications "
+                             "are being rate limited. Retry after {retry} seconds.".format(name=self.NAME, id=device_id,
+                                                                                           retry=response.headers.get('Retry-After', 'unknown')))
+
+        elif response.status_code == 413:
+            logger.error("Tautulli Notifiers :: {name} notification to device {id} failed: the notification is "
+                         "too large to deliver. Shorten the notification text.".format(name=self.NAME, id=device_id))
+
+        else:
+            logger.error("Tautulli Notifiers :: {name} notification failed for device {id}: the push relay "
+                         "returned status code {status}.".format(name=self.NAME, id=device_id, status=response.status_code))
+
+        logger.debug("Tautulli Notifiers :: Request response: {}".format(request.server_message(response, True)))
+        return False
 
     def agent_notify(self, subject='', body='', action='', notification_id=None, **kwargs):
         # Check mobile device is still registered
@@ -4044,8 +4137,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                           'rating_key': pretty_metadata.parameters.get('rating_key', ''),
                           'poster_thumb': pretty_metadata.parameters.get('poster_thumb', '')}
 
-        # Devices registered by app versions that use the push relay carry a push
-        # token; older devices are still delivered to through OneSignal.
+        # Devices registered with a push token go through the relay; older ones through OneSignal.
         push_token = device['push_token']
         via_relay = bool(push_token) and push_token != mobile_app._PUSH_DISABLED
 
@@ -4104,131 +4196,6 @@ class TAUTULLIREMOTEAPP(Notifier):
                    }
 
         return self.make_request('https://api.onesignal.com/notifications', headers=headers, json=payload)
-
-    def _trim_to_relay_limit(self, plaintext_data):
-        """Shorten the notification body to what the relay will accept.
-
-        FCM caps a message at 4096 bytes, so the relay refuses a data object over
-        _RELAY_MAX_DATA_BYTES, and encryption inflates the plaintext by a base64
-        third plus a 16 byte tag. A long notification is worth delivering
-        shortened; failing it outright would drop it with no way for the user to
-        tell that the length was the reason.
-        """
-        # Everything the data object carries besides the ciphertext itself: the
-        # keys, the base64 nonce and salt (16 bytes each), and the server id.
-        envelope = {'encrypted': True, 'version': 2, 'cipher_text': '',
-                    'nonce': 'x' * 24, 'salt': 'x' * 24,
-                    'server_id': plexpy.CONFIG.PMS_UUID}
-        # base64 emits 4 characters per 3 bytes, rounding up, so invert that
-        # rather than scaling by three quarters: the two are not the same, and
-        # the difference is enough to land just over the limit.
-        room = _RELAY_MAX_DATA_BYTES - len(json.dumps(envelope))
-        budget = (room // 4) * 3 - 16
-
-        def encoded_length():
-            return len(json.dumps(plaintext_data).encode('utf-8'))
-
-        if encoded_length() <= budget:
-            return
-
-        body = plaintext_data['body']
-        low, high = 0, len(body)
-
-        while low < high:
-            mid = (low + high + 1) // 2
-            plaintext_data['body'] = body[:mid] + '…'
-            if encoded_length() <= budget:
-                low = mid
-            else:
-                high = mid - 1
-
-        plaintext_data['body'] = body[:low] + '…'
-        logger.warn("Tautulli Notifiers :: %s notification body shortened from %s to %s characters "
-                    "to fit the notification size limit." % (self.NAME, len(body), low))
-
-    def _send_via_relay(self, device, data, headers):
-        payload = {'token': device['push_token'],
-                   'platform': device['platform'] or 'android',
-                   'data': data}
-
-        url = '%s/v1/notify' % plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')
-        # Newlines would let a device name forge additional log entries.
-        device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
-        # The name is what the user recognises; the relay id is what matches this
-        # log against the relay's own records and the app's data dump page.
-        device_id = mobile_app.relay_device_id(device['push_token'])
-
-        logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
-        # Without a timeout a stalled relay would hold one of the shared
-        # notification worker threads open indefinitely, and two of them would
-        # stop every notifier and newsletter Tautulli has.
-        response, err_msg, _ = request.request_response2(url, 'POST', auto_raise=False,
-                                                        headers=headers, json=payload,
-                                                        timeout=_RELAY_TIMEOUT)
-
-        if response is None:
-            logger.error("Tautulli Notifiers :: {name} notification to device {id} failed."
-                         .format(name=self.NAME, id=device_id))
-            if err_msg:
-                logger.error("Tautulli Notifiers :: {}".format(err_msg))
-            return False
-
-        if response.status_code == 200:
-            logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
-            # Delivery proves the token is live, so a device whose validation was
-            # refused or interrupted heals itself here instead of needing to be
-            # registered again from the app.
-            mobile_app.set_official_from_delivery(device, 1)
-            return True
-
-        elif response.status_code == 410:
-            # The relay reports the device can never be delivered to again. Clearing
-            # the official flag only removes it from the notifier config list, not
-            # from an agent already saved against it, so the sends keep coming. Say
-            # so at error level the first time and quietly thereafter, or a phone the
-            # user stopped using fills the log with one identical error per
-            # notification for as long as the agent stays configured.
-            was_official = device['official'] == 1
-            mobile_app.set_official_from_delivery(device, 0)
-            log_dead_token = logger.error if was_official else logger.debug
-            log_dead_token("Tautulli Notifiers :: {name} notification failed: the push token for device '{device}' "
-                           "({id}) is no longer valid. Open Tautulli Remote on the device to register it again."
-                           .format(name=self.NAME, device=device_name, id=device_id))
-
-        elif response.status_code == 429:
-            # Two different refusals share this status. The daily fair use cap is
-            # the only one the relay attaches rate limit details to, and it is the
-            # one worth wording carefully: nothing this device sends will succeed
-            # until the cap resets, and Tautulli does not retry.
-            try:
-                rate_limits = response.json().get('rateLimits') or {}
-            except ValueError:
-                rate_limits = {}
-
-            if rate_limits:
-                logger.error("Tautulli Notifiers :: {name} notification failed: the daily notification limit "
-                             "for device '{device}' ({id}) has been reached. Further notifications to this "
-                             "device will fail until the limit resets at {reset}."
-                             .format(name=self.NAME, device=device_name, id=device_id,
-                                     reset=rate_limits.get('resetsAt', 'the next reset')))
-            else:
-                logger.error("Tautulli Notifiers :: {name} notification to device {id} failed: notifications "
-                             "are being rate limited. Retry after {retry} seconds."
-                             .format(name=self.NAME, id=device_id,
-                                     retry=response.headers.get('Retry-After', 'unknown')))
-
-        elif response.status_code == 413:
-            logger.error("Tautulli Notifiers :: {name} notification to device {id} failed: the notification is "
-                         "too large to deliver. Shorten the notification text."
-                         .format(name=self.NAME, id=device_id))
-
-        else:
-            logger.error("Tautulli Notifiers :: {name} notification failed for device {id}: the push relay "
-                         "returned status code {status}."
-                         .format(name=self.NAME, id=device_id, status=response.status_code))
-
-        logger.debug("Tautulli Notifiers :: Request response: {}".format(request.server_message(response, True)))
-        return False
 
     def get_devices(self):
         db = database.MonitorDatabase()

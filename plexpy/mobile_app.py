@@ -30,21 +30,15 @@ _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 _ONESIGNAL_DISABLED = 'onesignal-disabled'
 _PUSH_DISABLED = 'push-disabled'
 
-# Seconds to wait between validations when revalidating the whole device list.
-# The push relay rate limits /v1/validate per client IP, so a server with a long
-# list has to pace itself or the tail of the sweep is refused.
-_REVALIDATE_INTERVAL = 2
+_REVALIDATE_INTERVAL = 2  # seconds; the relay rate limits /v1/validate per client IP
 
 TEMP_DEVICE_TOKENS = {}
 
 
 def relay_device_id(push_token):
-    """Return the identifier the push relay knows a device by.
-
-    The push token is a credential and is blacklisted from the logs, so it
-    cannot be used to say which device a log line is about. The relay derives
-    this same digest, and Tautulli Remote shows it on its data dump page, so
-    one string ties a user's report, this log and the relay's records together.
+    """
+    Return the identifier the relay records and Tautulli Remote shows on its
+    data dump page. The push token itself is blacklisted from the logs.
     """
     if not push_token or push_token == _PUSH_DISABLED:
         return 'none'
@@ -152,9 +146,6 @@ def get_mobile_device_config(mobile_device_id=None):
     if result['push_token'] == _PUSH_DISABLED:
         result['push_token'] = ''
 
-    # Shown in place of the token itself, which is a credential the admin has no
-    # use for. This is the value the relay records and the app displays, so it is
-    # the one worth quoting in a bug report.
     result['relay_device_id'] = relay_device_id(result['push_token']) if result['push_token'] else ''
 
     return result
@@ -199,9 +190,7 @@ def delete_mobile_device(mobile_device_id=None, device_id=None):
 def set_official(device_id, onesignal_id, push_token=None):
     db = database.MonitorDatabase()
 
-    # Devices registered by app versions that use the push relay send a push
-    # token; older versions only send a OneSignal ID. Validate whichever the
-    # device actually registered with.
+    # Newer app versions register a push token; older ones only send a OneSignal ID.
     if push_token:
         official = validate_push_token(push_token=push_token)
     else:
@@ -209,11 +198,8 @@ def set_official(device_id, onesignal_id, push_token=None):
 
     platform = 'android' if official > 0 else None
 
-    # An indeterminate result (rate limited, relay or FCM outage, network error)
-    # says nothing about the token itself, so it must not clear a device that has
-    # already validated: that would drop the device out of the notifier device
-    # list until the user re-registered it from the app by hand. Devices with no
-    # successful validation to lose still record the failure.
+    # An indeterminate result says nothing about the token, so don't let it
+    # clear a device that has already validated.
     where = "WHERE device_id = ?"
     if official == -1:
         where += " AND coalesce(official, 0) != 1"
@@ -221,26 +207,14 @@ def set_official(device_id, onesignal_id, push_token=None):
     try:
         result = db.action("UPDATE mobile_devices "
                            "SET official = ?, platform = coalesce(platform, ?) "
-                           + where,
+                           "%s" % where,
                            args=[official, platform, device_id])
     except Exception as e:
-        # No device identifier here: this runs for both transports, and a
-        # OneSignal device has nothing loggable to name it by. Its device id and
-        # OneSignal id are both blacklisted, which is why the OneSignal
-        # validation lines carry no identifier either.
         logger.warn("Tautulli MobileApp :: Failed to set official flag: %s." % e)
         return
 
 
 def set_official_from_delivery(device, official):
-    """Re-derive the official flag from the outcome of a real notification.
-
-    The relay accepting a notification (200) proves FCM holds the token, which is
-    exactly what /v1/validate checks, and a 410 proves it never will again. Using
-    the delivery itself as the signal costs no extra request and lets a device
-    left in a failed state — a validation that was rate limited or interrupted —
-    recover without the user having to re-register it.
-    """
     if device['official'] == official:
         return
 
@@ -316,11 +290,6 @@ def validate_push_token(push_token):
 
 
 def validates_remotely(device):
-    """Whether validating this device costs a request to the relay or OneSignal.
-
-    A device registered with a disabled sentinel, or with neither ID, is resolved
-    locally and so does not need to be paced.
-    """
     if device['push_token']:
         return device['push_token'] != _PUSH_DISABLED
     return bool(device['onesignal_id']) and device['onesignal_id'] != _ONESIGNAL_DISABLED
@@ -332,13 +301,8 @@ def revalidate_onesignal_ids():
 
 
 def _revalidate_devices():
-    """Re-check every device whose registration has not validated successfully.
-
-    Devices already marked official are skipped: the sweep exists to repair
-    unknown or failed state, and rechecking a healthy device list would only risk
-    tripping the relay's per-IP limit on /v1/validate and clearing the very flag
-    it is meant to confirm.
-    """
+    # Only repair unknown or failed state; re-checking healthy devices risks
+    # tripping the relay's per-IP limit on /v1/validate.
     devices = [d for d in get_mobile_devices() if d['official'] != 1]
 
     if not devices:
