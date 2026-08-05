@@ -296,14 +296,14 @@ def validates_remotely(device):
 
 
 def revalidate_onesignal_ids():
-    # One network round trip per device, called from the startup path.
+    # Runs on every startup; threaded so a blocked host cannot hold up boot.
     threading.Thread(target=_revalidate_devices).start()
 
 
 def _revalidate_devices():
-    # Only repair unknown or failed state; re-checking healthy devices risks
-    # tripping the relay's per-IP limit on /v1/validate.
-    devices = [d for d in get_mobile_devices() if d['official'] != 1]
+    # Re-validating a healthy device risks the relay's per-IP limit on
+    # /v1/validate, and a device that opted out has no registration to check.
+    devices = [d for d in get_mobile_devices() if d['official'] != 1 and validates_remotely(d)]
 
     if not devices:
         return
@@ -312,8 +312,7 @@ def _revalidate_devices():
 
     for device in devices:
         set_official(device['device_id'], device['onesignal_id'], device['push_token'])
-        if validates_remotely(device):
-            time.sleep(_REVALIDATE_INTERVAL)
+        time.sleep(_REVALIDATE_INTERVAL)
 
 
 def blacklist_logger():

@@ -260,6 +260,9 @@ def initialize(config_file):
         notifiers.blacklist_logger()
         mobile_app.blacklist_logger()
 
+        # Repair any device left unvalidated by an earlier outage
+        mobile_app.revalidate_onesignal_ids()
+
         # Check if Tautulli has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
             logger.debug("Generating UUID...")
@@ -2880,11 +2883,6 @@ def dbcheck():
 
 def upgrade():
     logger.info("Checking if the configurastion upgrades are required...")
-
-    if CONFIG.UPGRADE_FLAG == 0:
-        mobile_app.revalidate_onesignal_ids()
-        CONFIG.UPGRADE_FLAG = 1
-        CONFIG.write()
 
     logger.info("Configuration upgrade complete.")
 
