@@ -4092,10 +4092,12 @@ class TAUTULLIREMOTEAPP(Notifier):
         device_id = mobile_app.relay_device_id(device['push_token'])
 
         logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
-        # A 307 or 308 would re-post the push token to wherever Location points.
+        # A 307 or 308 would re-post the push token to wherever Location points. The relay
+        # is verified regardless of VERIFY_SSL_CERT, which is for the user's own server.
         response, err_msg, _ = request.request_response2(url, 'POST', auto_raise=False,
                                                         headers=headers, json=payload,
-                                                        timeout=self.TIMEOUT, allow_redirects=False)
+                                                        timeout=self.TIMEOUT,
+                                                        allow_redirects=False, verify=True)
 
         if response is None:
             logger.error("Tautulli Notifiers :: {name} notification to device {id} failed.".format(name=self.NAME, id=device_id))
