@@ -4017,34 +4017,62 @@ class TAUTULLIREMOTEAPP(Notifier):
                        }
 
     def _trim_to_relay_limit(self, plaintext_data):
-        # Everything but the ciphertext; a 16 byte nonce or salt is 24 base64 characters.
-        envelope = {'encrypted': True, 'version': 2, 'cipher_text': '',
-                    'nonce': 'x' * 24, 'salt': 'x' * 24,
-                    'server_id': plexpy.CONFIG.PMS_UUID}
-        # base64 emits 4 characters per 3 bytes rounding up, so invert that rather than scaling by three quarters.
-        room = self.MAX_DATA_BYTES - len(json.dumps(envelope))
-        budget = (room // 4) * 3 - 16
+        if _CRYPTOGRAPHY:
+            # Everything but the ciphertext; a 16 byte nonce or salt is 24 base64 characters.
+            envelope = {'encrypted': True, 'version': 2, 'cipher_text': '',
+                        'nonce': 'x' * 24, 'salt': 'x' * 24,
+                        'server_id': plexpy.CONFIG.PMS_UUID}
+            # base64 emits 4 characters per 3 bytes rounding up, so invert that rather than scaling by three quarters.
+            room = self.MAX_DATA_BYTES - len(json.dumps(envelope))
+            budget = (room // 4) * 3 - 16
+        else:
+            # Unencrypted, the plaintext is embedded as is and only pays for the keys around it.
+            envelope = {'encrypted': False, 'plain_text': '', 'server_id': plexpy.CONFIG.PMS_UUID}
+            budget = self.MAX_DATA_BYTES - len(json.dumps(envelope))
 
         def encoded_length():
             return len(json.dumps(plaintext_data).encode('utf-8'))
 
+        def trim(key):
+            text = plaintext_data[key]
+            low, high = 0, len(text)
+
+            while low < high:
+                mid = (low + high + 1) // 2
+                plaintext_data[key] = text[:mid] + '...'
+                if encoded_length() <= budget:
+                    low = mid
+                else:
+                    high = mid - 1
+
+            if low == len(text):
+                return None
+
+            plaintext_data[key] = text[:low] + '...'
+            return "%s shortened from %s to %s characters" % (key, len(text), low)
+
         if encoded_length() <= budget:
-            return
+            return True
 
-        body = plaintext_data['body']
-        low, high = 0, len(body)
-
-        while low < high:
-            mid = (low + high + 1) // 2
-            plaintext_data['body'] = body[:mid] + '...'
+        # The body goes first; the subject is the notification's headline, so it is
+        # only shortened when emptying the body was not enough.
+        trimmed = []
+        for key in ('body', 'subject'):
+            note = trim(key)
+            if note:
+                trimmed.append(note)
             if encoded_length() <= budget:
-                low = mid
-            else:
-                high = mid - 1
+                break
 
-        plaintext_data['body'] = body[:low] + '...'
-        logger.warn("Tautulli Notifiers :: %s notification body shortened from %s to %s characters "
-                    "to fit the notification size limit." % (self.NAME, len(body), low))
+        if encoded_length() > budget:
+            logger.error("Tautulli Notifiers :: %s notification is too large to send: %s bytes over the limit "
+                         "with no text left to remove. Shorten the notification text."
+                         % (self.NAME, encoded_length() - budget))
+            return False
+
+        logger.warn("Tautulli Notifiers :: %s notification %s to fit the notification size limit."
+                    % (self.NAME, ' and '.join(trimmed)))
+        return True
 
     def _send_via_relay(self, device, data, headers):
         payload = {'token': device['push_token'],
@@ -4141,8 +4169,8 @@ class TAUTULLIREMOTEAPP(Notifier):
         push_token = device['push_token']
         via_relay = bool(push_token) and push_token != mobile_app._PUSH_DISABLED
 
-        if via_relay:
-            self._trim_to_relay_limit(plaintext_data)
+        if via_relay and not self._trim_to_relay_limit(plaintext_data):
+            return False
 
         #logger.debug("Plaintext data: {}".format(plaintext_data))
 
