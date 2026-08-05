@@ -4016,6 +4016,13 @@ class TAUTULLIREMOTEAPP(Notifier):
                        'notification_type': 0
                        }
 
+    @staticmethod
+    def _via_relay(device):
+        # Devices registered with a push token go through the relay; older ones through
+        # OneSignal. A device that opted out holds the sentinel rather than an empty token.
+        push_token = device['push_token']
+        return bool(push_token) and push_token != mobile_app._PUSH_DISABLED
+
     def _trim_to_relay_limit(self, plaintext_data):
         if _CRYPTOGRAPHY:
             # Everything but the ciphertext; a 16 byte nonce or salt is 24 base64 characters.
@@ -4166,9 +4173,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                           'rating_key': pretty_metadata.parameters.get('rating_key', ''),
                           'poster_thumb': pretty_metadata.parameters.get('poster_thumb', '')}
 
-        # Devices registered with a push token go through the relay; older ones through OneSignal.
-        push_token = device['push_token']
-        via_relay = bool(push_token) and push_token != mobile_app._PUSH_DISABLED
+        via_relay = self._via_relay(device)
 
         if via_relay and not self._trim_to_relay_limit(plaintext_data):
             return False
@@ -4265,6 +4270,19 @@ class TAUTULLIREMOTEAPP(Notifier):
         config_option[-1]['description'] += ('<br><br>Notifications are delivered through the Tautulli Remote relay '
             'and Google Firebase Cloud Messaging. The relay stores no notification content and only forwards '
             'the notification to your device.')
+
+        # Resolved the way agent_notify resolves it, by device_id and without the
+        # official filter get_devices() applies, so the notice cannot go missing while
+        # this agent is still delivering through OneSignal.
+        selected = mobile_app.get_mobile_devices(device_id=self.config['device_id']) \
+            if self.config['device_id'] else []
+
+        if selected and not self._via_relay(selected[0]):
+            config_option[-1]['description'] += ('<br>This device was registered with an older app version and is '
+                'delivered through <a href="' + helpers.anon_url('https://onesignal.com') + '" target="_blank" '
+                'rel="noreferrer">OneSignal</a> instead. Some user data is collected and cannot be encrypted. '
+                'Please read the <a href="' + helpers.anon_url('https://onesignal.com/privacy_policy') + '" '
+                'target="_blank" rel="noreferrer">OneSignal Privacy Policy</a> for more details.')
 
         devices = self.get_devices()
 
