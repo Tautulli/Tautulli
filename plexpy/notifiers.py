@@ -4081,7 +4081,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                     % (self.NAME, ' and '.join(trimmed)))
         return True
 
-    def _send_via_relay(self, device, data, headers):
+    def _send_via_relay(self, device, data):
         payload = {'token': device['push_token'],
                    'platform': device['platform'] or 'android',
                    'data': data}
@@ -4094,8 +4094,7 @@ class TAUTULLIREMOTEAPP(Notifier):
         logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
         # A 307 or 308 would re-post the push token to wherever Location points. The relay
         # is verified regardless of VERIFY_SSL_CERT, which is for the user's own server.
-        response, err_msg, _ = request.request_response2(url, 'POST', auto_raise=False,
-                                                        headers=headers, json=payload,
+        response, err_msg, _ = request.request_response2(url, 'POST', auto_raise=False, json=payload,
                                                         timeout=self.TIMEOUT,
                                                         allow_redirects=False, verify=True)
 
@@ -4220,11 +4219,10 @@ class TAUTULLIREMOTEAPP(Notifier):
 
         #logger.debug("Notification data: {}".format(data))
 
-        headers = {'Content-Type': 'application/json'}
-
         if via_relay:
-            return self._send_via_relay(device, data, headers)
+            return self._send_via_relay(device, data)
 
+        headers = {'Content-Type': 'application/json'}
         payload = {'app_id': mobile_app._ONESIGNAL_APP_ID,
                    'include_subscription_ids': [device['onesignal_id']],
                    'contents': {'en': 'Tautulli Notification'},

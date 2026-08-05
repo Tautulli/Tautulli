@@ -261,7 +261,7 @@ def initialize(config_file):
         mobile_app.blacklist_logger()
 
         # Repair any device left unvalidated by an earlier outage
-        mobile_app.revalidate_onesignal_ids()
+        mobile_app.revalidate_devices()
 
         # Check if Tautulli has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:

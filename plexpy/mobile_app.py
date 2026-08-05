@@ -260,9 +260,7 @@ def validate_onesignal_id(onesignal_id):
 
 
 def validate_push_token(push_token):
-    if push_token is None:
-        return 0
-    elif push_token == _PUSH_DISABLED:
+    if push_token == _PUSH_DISABLED:
         return 2
 
     headers = {'Content-Type': 'application/json'}
@@ -298,7 +296,7 @@ def validates_remotely(device):
     return bool(device['onesignal_id']) and device['onesignal_id'] != _ONESIGNAL_DISABLED
 
 
-def revalidate_onesignal_ids():
+def revalidate_devices():
     # Runs on every startup; threaded so a blocked host cannot hold up boot.
     threading.Thread(target=_revalidate_devices).start()
 
