@@ -4261,9 +4261,10 @@ class TAUTULLIREMOTEAPP(Notifier):
                 'input_type': 'help'
             })
 
+        # Appended to either block above, so it must hold with or without encryption.
         config_option[-1]['description'] += ('<br><br>Notifications are delivered through the Tautulli Remote relay '
             'and Google Firebase Cloud Messaging. The relay stores no notification content and only forwards '
-            'the encrypted notification to your device.')
+            'the notification to your device.')
 
         devices = self.get_devices()
 
