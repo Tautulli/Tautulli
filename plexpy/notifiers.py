@@ -4090,6 +4090,8 @@ class TAUTULLIREMOTEAPP(Notifier):
         # Newlines would let a device name forge additional log entries.
         device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
         device_id = mobile_app.relay_device_id(device['push_token'])
+        # The id alone is a token hash, so name the device wherever one is recorded.
+        device_label = "'{}' ({})".format(device_name, device_id) if device_name else device_id
 
         logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
         # A 307 or 308 would re-post the push token to wherever Location points. The relay
@@ -4099,7 +4101,8 @@ class TAUTULLIREMOTEAPP(Notifier):
                                                         allow_redirects=False, verify=True)
 
         if response is None:
-            logger.error("Tautulli Notifiers :: {name} notification to device {id} failed.".format(name=self.NAME, id=device_id))
+            logger.error("Tautulli Notifiers :: {name} notification to device {device} failed.".format(
+                name=self.NAME, device=device_label))
             if err_msg:
                 logger.error("Tautulli Notifiers :: {}".format(err_msg))
             return False
@@ -4117,9 +4120,9 @@ class TAUTULLIREMOTEAPP(Notifier):
             was_official = device['official'] == 1
             mobile_app.set_official_from_delivery(device, 0)
             log_dead_token = logger.error if was_official else logger.debug
-            log_dead_token("Tautulli Notifiers :: {name} notification failed: the push token for device '{device}' "
-                           "({id}) is no longer valid. Open Tautulli Remote on the device to register it "
-                           "again.".format(name=self.NAME, device=device_name, id=device_id))
+            log_dead_token("Tautulli Notifiers :: {name} notification to device {device} failed: the push token is "
+                           "no longer valid. Open Tautulli Remote on the device to register it again.".format(
+                               name=self.NAME, device=device_label))
 
         elif response.status_code == 429:
             # Only the daily fair use cap carries rate limit details, and unlike a
@@ -4130,23 +4133,26 @@ class TAUTULLIREMOTEAPP(Notifier):
                 rate_limits = {}
 
             if rate_limits:
-                logger.error("Tautulli Notifiers :: {name} notification failed: the daily notification limit "
-                             "for device '{device}' ({id}) has been reached. Further notifications to this "
-                             "device will fail until the limit resets at {reset}.".format(name=self.NAME, device=device_name,
-                                                                                          id=device_id,
-                                                                                          reset=rate_limits.get('resetsAt', 'the next reset')))
+                logger.error("Tautulli Notifiers :: {name} notification to device {device} failed: the daily "
+                             "notification limit has been reached. Further notifications to this device will "
+                             "fail until the limit resets at {reset}.".format(
+                                 name=self.NAME, device=device_label,
+                                 reset=rate_limits.get('resetsAt', 'the next reset')))
             else:
-                logger.error("Tautulli Notifiers :: {name} notification to device {id} failed: notifications "
-                             "are being rate limited. Retry after {retry} seconds.".format(name=self.NAME, id=device_id,
-                                                                                           retry=response.headers.get('Retry-After', 'unknown')))
+                logger.error("Tautulli Notifiers :: {name} notification to device {device} failed: notifications "
+                             "are being rate limited. Retry after {retry} seconds.".format(
+                                 name=self.NAME, device=device_label,
+                                 retry=response.headers.get('Retry-After', 'unknown')))
 
         elif response.status_code == 413:
-            logger.error("Tautulli Notifiers :: {name} notification to device {id} failed: the notification is "
-                         "too large to deliver. Shorten the notification text.".format(name=self.NAME, id=device_id))
+            logger.error("Tautulli Notifiers :: {name} notification to device {device} failed: the notification is "
+                         "too large to deliver. Shorten the notification text.".format(
+                             name=self.NAME, device=device_label))
 
         else:
-            logger.error("Tautulli Notifiers :: {name} notification failed for device {id}: the push relay "
-                         "returned status code {status}.".format(name=self.NAME, id=device_id, status=response.status_code))
+            logger.error("Tautulli Notifiers :: {name} notification to device {device} failed: the push relay "
+                         "returned status code {status}.".format(
+                             name=self.NAME, device=device_label, status=response.status_code))
 
         logger.debug("Tautulli Notifiers :: Request response: {}".format(request.server_message(response, True)))
         return False
