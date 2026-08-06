@@ -269,11 +269,10 @@ def validate_push_token(push_token):
 
     logger.info("Tautulli MobileApp :: Validating push token for device %s", device_id)
     try:
-        # A 307 or 308 would re-post the push token to wherever Location points. The relay
-        # is verified regardless of VERIFY_SSL_CERT.
+        # A 307 or 308 would re-post the push token to wherever Location points.
         r = requests.post('%s/v1/validate' % plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/'),
                           json=payload, timeout=10,
-                          allow_redirects=False, verify=True)
+                          allow_redirects=False)
         status_code = r.status_code
         logger.info("Tautulli MobileApp :: Push token validation for device %s returned status code %s",
                     device_id, status_code)
