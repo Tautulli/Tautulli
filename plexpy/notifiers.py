@@ -4140,7 +4140,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                                  reset=rate_limits.get('resetsAt', 'the next reset')))
             else:
                 logger.error("Tautulli Notifiers :: {name} notification to device {device} failed: notifications "
-                             "are being rate limited. Retry after {retry} seconds.".format(
+                             "are being rate limited, so this one was dropped. Retry-After: {retry}.".format(
                                  name=self.NAME, device=device_label,
                                  retry=response.headers.get('Retry-After', 'unknown')))
 
@@ -4154,7 +4154,6 @@ class TAUTULLIREMOTEAPP(Notifier):
                          "returned status code {status}.".format(
                              name=self.NAME, device=device_label, status=response.status_code))
 
-        logger.debug("Tautulli Notifiers :: Request response: {}".format(request.server_message(response, True)))
         return False
 
     def agent_notify(self, subject='', body='', action='', notification_id=None, **kwargs):

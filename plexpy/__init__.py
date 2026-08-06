@@ -260,9 +260,6 @@ def initialize(config_file):
         notifiers.blacklist_logger()
         mobile_app.blacklist_logger()
 
-        # Repair any device left unvalidated by an earlier outage
-        mobile_app.revalidate_devices()
-
         # Check if Tautulli has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
             logger.debug("Generating UUID...")
@@ -546,6 +543,9 @@ def start():
         # Start background notification thread
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
         notifiers.check_browser_enabled()
+
+        # Repair any device left unvalidated by an earlier outage
+        mobile_app.revalidate_devices()
 
         # Schedule newsletters
         newsletter_handler.NEWSLETTER_SCHED.start()
