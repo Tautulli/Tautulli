@@ -270,7 +270,7 @@ def validate_push_token(push_token):
     logger.info("Tautulli MobileApp :: Validating push token for device %s", device_id)
     try:
         # A 307 or 308 would re-post the push token to wherever Location points.
-        r = requests.post('%s/v1/validate' % plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/'),
+        r = requests.post(f"{plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')}/v1/validate",
                           json=payload, timeout=10,
                           allow_redirects=False)
         status_code = r.status_code
