@@ -4056,7 +4056,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                 return None
 
             plaintext_data[key] = text[:low] + '...'
-            return "%s shortened from %s to %s characters" % (key, len(text), low)
+            return f"{key} shortened from {len(text)} to {low} characters"
 
         if encoded_length() <= budget:
             return True
@@ -4086,7 +4086,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                    'platform': device['platform'] or 'android',
                    'data': data}
 
-        url = '%s/v1/notify' % plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')
+        url = f"{plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')}/v1/notify"
         # Newlines would let a device name forge additional log entries.
         device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
         device_id = mobile_app.relay_device_id(device['push_token'])
