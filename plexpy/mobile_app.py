@@ -196,8 +196,6 @@ def set_official(device_id, onesignal_id, push_token=None):
     else:
         official = validate_onesignal_id(onesignal_id=onesignal_id)
 
-    platform = 'android' if official > 0 else None
-
     # An indeterminate result says nothing about the token, so don't let it
     # clear a device that has already validated.
     where = "WHERE device_id = ?"
@@ -206,9 +204,9 @@ def set_official(device_id, onesignal_id, push_token=None):
 
     try:
         result = db.action("UPDATE mobile_devices "
-                           "SET official = ?, platform = coalesce(platform, ?) "
+                           "SET official = ? "
                            "%s" % where,
-                           args=[official, platform, device_id])
+                           args=[official, device_id])
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to set official flag: %s." % e)
         return

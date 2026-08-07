@@ -4082,16 +4082,24 @@ class TAUTULLIREMOTEAPP(Notifier):
         return True
 
     def _send_via_relay(self, device, data):
-        payload = {'token': device['push_token'],
-                   'platform': device['platform'] or 'android',
-                   'data': data}
-
         url = f"{plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')}/v1/notify"
         # Newlines would let a device name forge additional log entries.
         device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
         device_id = mobile_app.relay_device_id(device['push_token'])
         # The id alone is a token hash, so name the device wherever one is recorded.
         device_label = "'{}' ({})".format(device_name, device_id) if device_name else device_id
+
+        # The relay builds a different message per platform, and an iOS device sent
+        # as android gets one its notification extension never runs, so it is never
+        # decrypted and nothing is shown. Refusing says so; guessing does not.
+        if device['platform'] not in ('android', 'ios'):
+            logger.error("Tautulli Notifiers :: {name} notification to device {device} failed: unknown platform. "
+                         "Re-register the device in Tautulli Remote.".format(name=self.NAME, device=device_label))
+            return False
+
+        payload = {'token': device['push_token'],
+                   'platform': device['platform'],
+                   'data': data}
 
         logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
         # A 307 or 308 would re-post the push token to wherever Location points. The relay
