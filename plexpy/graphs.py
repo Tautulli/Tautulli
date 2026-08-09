@@ -623,6 +623,7 @@ class Graphs(object):
                         "    GROUP BY %s) AS sh " \
                         "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
+                        "WHERE u.is_archived = 0 " \
                         "GROUP BY sh.user_id " \
                         "ORDER BY total_count DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -650,6 +651,7 @@ class Graphs(object):
                         "    GROUP BY %s) AS sh " \
                         "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
+                        "WHERE u.is_archived = 0 " \
                         "GROUP BY sh.user_id " \
                         "ORDER BY total_duration DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -1170,6 +1172,7 @@ class Graphs(object):
                         "    GROUP BY %s) AS sh " \
                         "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
+                        "WHERE u.is_archived = 0 " \
                         "GROUP BY u.user_id " \
                         "ORDER BY total_count DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -1192,6 +1195,7 @@ class Graphs(object):
                         "    GROUP BY %s) AS sh " \
                         "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
+                        "WHERE u.is_archived = 0 " \
                         "GROUP BY u.user_id " \
                         "ORDER BY total_duration DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)

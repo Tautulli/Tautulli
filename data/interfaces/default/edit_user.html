@@ -21,6 +21,7 @@ is_restricted       Returns bool value for whether the user account is restricte
 keep_history        Returns bool value for whether to keep history for the user.
 allow_guest         Returns bool value for whether to allow guest access for the user.
 deleted_user        Returns bool value for whether the user is marked as deleted.
+is_archived         Returns bool value for whether the user is archived.
 
 DOCUMENTATION :: END
 </%doc>
@@ -68,6 +69,12 @@ DOCUMENTATION :: END
                     </label>
                     <p class="help-block">Uncheck this if you do not want to allow this user to login to Tautulli.</p>
                 </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="is_archived" name="is_archived" value="1" ${helpers.checked(data['is_archived'])}> Archive user
+                    </label>
+                    <p class="help-block">Check this to hide the user from the users list, the history tables and the statistics. All history is kept and the user can be unarchived at any time.</p>
+                </div>
                 % if data['user_id']:
                 <div class="form-group">
                     <button class="btn btn-danger" id="delete-all-history">Purge</button>
@@ -102,11 +109,15 @@ DOCUMENTATION :: END
         var custom_thumb = $("#custom_avatar_url").val();
         var keep_history = 0;
         var allow_guest = 0;
+        var is_archived = 0;
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
         }
         if ($("#allow_guest").is(":checked")) {
             allow_guest = 1;
+        }
+        if ($("#is_archived").is(":checked")) {
+            is_archived = 1;
         }
 
         $.ajax({
@@ -117,7 +128,8 @@ DOCUMENTATION :: END
                 friendly_name: friendly_name,
                 custom_thumb: custom_thumb,
                 keep_history: keep_history,
-                allow_guest: allow_guest
+                allow_guest: allow_guest,
+                is_archived: is_archived
             },
             cache: false,
             async: true,

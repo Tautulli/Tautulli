@@ -43,7 +43,8 @@ class DataFactory(object):
     def __init__(self):
         pass
 
-    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=None, include_activity=None):
+    def get_datatables_history(self, kwargs=None, custom_where=None, grouping=None, include_activity=None,
+                               include_archived=False):
         data_tables = datatables.DataTables()
 
         if custom_where is None:
@@ -69,6 +70,13 @@ class DataFactory(object):
         # narrowing it to the session user.
         if session.get_session_user_id():
             custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
+
+        if not include_archived:
+            # Added after the session user filter above, which matches on any 'user_id' clause,
+            # and before the union where clause is derived from custom_where below
+            archived_user_ids = users.Users().get_archived_user_ids()
+            if archived_user_ids:
+                custom_where.append(['session_history.user_id NOT IN', archived_user_ids])
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
@@ -865,6 +873,7 @@ class DataFactory(object):
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id " \
+                            "WHERE IFNULL(u.is_archived, 0) = 0 " \
                             "GROUP BY sh.user_id " \
                             "ORDER BY %s DESC, sh.started DESC " \
                             "LIMIT %s OFFSET %s " % (where_timeframe[4:], where_id, group_by, sort_type, stats_count, stats_start)
@@ -1030,7 +1039,7 @@ class DataFactory(object):
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id " \
-                            "WHERE %s " \
+                            "WHERE IFNULL(u.is_archived, 0) = 0 AND %s " \
                             "GROUP BY sh.id " \
                             "ORDER BY last_watch DESC " \
                             "LIMIT %s OFFSET %s" % (watched_threshold,
@@ -1391,7 +1400,8 @@ class DataFactory(object):
                         "FROM session_history " \
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
-                        "WHERE (session_history.grandparent_rating_key IN (%s) " \
+                        "WHERE users.is_archived = 0 " \
+                        "AND (session_history.grandparent_rating_key IN (%s) " \
                         "OR session_history.parent_rating_key IN (%s) " \
                         "OR session_history.rating_key IN (%s)) " \
                         "GROUP BY users.user_id " \
@@ -1410,7 +1420,7 @@ class DataFactory(object):
                         "FROM session_history " \
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
-                        "WHERE session_history_metadata.guid = ? " \
+                        "WHERE users.is_archived = 0 AND session_history_metadata.guid = ? " \
                         "GROUP BY users.user_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % group_by
 

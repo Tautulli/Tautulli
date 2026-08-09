@@ -23,6 +23,11 @@
                 <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
             </div>
             % endif
+            <div class="btn-group">
+                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-users">
+                    <i class="fa fa-archive"></i> Show archived
+                </button>
+            </div>
             <div class="btn-group colvis-button-bar"></div>
         </div>
     </div>
@@ -86,13 +91,16 @@
 <script src="${http_root}js/dataTables.bootstrap.pagination.js"></script>
 <script src="${http_root}js/tables/users.js${cache_param}"></script>
 <script>
+    var include_archived = 0;
+
     $(document).ready(function () {
         users_list_table_options.ajax = {
             url: 'get_user_list',
             type: 'POST',
             data: function ( d ) {
                 return {
-                    json_data: JSON.stringify(d)
+                    json_data: JSON.stringify(d),
+                    include_archived: include_archived
                 };
             },
             error: function(xhr, error, thrown) {
@@ -105,6 +113,11 @@
         $(colvis.button()).appendTo('div.colvis-button-bar');
 
         clearSearchButton('users_list_table', users_list_table);
+
+        $('#show-archived-users').on('click', function () {
+            include_archived = $(this).hasClass('active') ? 0 : 1;
+            users_list_table.draw();
+        });
 
         % if _session['user_group'] == 'admin':
         $('#row-edit-mode').on('click', function () {

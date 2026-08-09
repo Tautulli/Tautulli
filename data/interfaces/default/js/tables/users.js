@@ -52,6 +52,7 @@ users_list_table_options = {
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + (rowData['allow_guest'] ? 'checked' : '') + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="is_archived-' + rowData['user_id'] + '" name="is_archived" value="1" ' + (rowData['is_archived'] ? 'checked' : '') + '><label class="edit-tooltip" for="is_archived-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Archived"><i class="fa fa-archive fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
             "width": "7%",
@@ -64,7 +65,8 @@ users_list_table_options = {
             "data": "user_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 var inactive = '';
-                if (!rowData['is_active']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
+                if (rowData['is_archived']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="Archived user"><i class="fa fa-archive"></i></span>'; }
+                else if (!rowData['is_active']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
                 $(td).html('<a href="' + page('user', rowData['user_id']) + '"" title="' + rowData['username'] + '"><div class="users-poster-face" style="background-image: url(' + page('pms_image_proxy', cellData, null, 80, 80, null, null, null, 'user') + ');">' + inactive + '</div></a>');
             },
             "orderable": false,
@@ -292,6 +294,9 @@ users_list_table_options = {
         showMsg(msg, false, false, 0)
     },
     "rowCallback": function (row, rowData) {
+        if (rowData['is_archived']) {
+            $(row).addClass('archived-user');
+        }
         if ($.inArray(rowData['user_id'], users_to_delete) !== -1) {
             $(row).find('button.delete-user[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
@@ -333,11 +338,15 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
 
     var keep_history = 0;
     var allow_guest = 0;
+    var is_archived = 0;
     if ($('#keep_history-' + rowData['user_id']).is(':checked')) {
         keep_history = 1;
     }
     if ($('#allow_guest-' + rowData['user_id']).is(':checked')) {
         allow_guest = 1;
+    }
+    if ($('#is_archived-' + rowData['user_id']).is(':checked')) {
+        is_archived = 1;
     }
 
     friendly_name = tr.find('td.edit-user-control > .edit-user-name > input').val();
@@ -349,13 +358,21 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
             user_id: rowData['user_id'],
             friendly_name: friendly_name,
             keep_history: keep_history,
-            allow_guest: allow_guest
+            allow_guest: allow_guest,
+            is_archived: is_archived
         },
         cache: false,
         async: true,
         success: function (data) {
             var msg = "User updated";
             showMsg(msg, false, true, 2000);
+            if (is_archived !== (rowData['is_archived'] ? 1 : 0)) {
+                // The redraw below removes this row, so hide its tooltip first. Tooltips are
+                // attached to the body and would otherwise outlive the element they belong to.
+                tr.find('label.edit-tooltip').tooltip('hide');
+                // Archiving hides the row unless archived users are shown
+                users_list_table.draw(false);
+            }
         }
     });
 });
