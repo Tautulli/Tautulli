@@ -948,6 +948,12 @@
                             </label>
                             <p class="help-block">Refresh the users list when Tautulli starts.</p>
                         </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="auto_unarchive_users" name="auto_unarchive_users" value="1" ${config['auto_unarchive_users']}> Automatically Unarchive Returning Users
+                            </label>
+                            <p class="help-block">Unarchive an archived user when they regain access to the Plex server. Users which never lost access stay archived.</p>
+                        </div>
 
                         <div class="form-group advanced-setting">
                             <label for="refresh_libraries_interval">Libraries List Refresh Interval</label>
