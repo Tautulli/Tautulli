@@ -15,9 +15,12 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
 import requests
 import threading
+import time
 
+import plexpy
 from plexpy import database
 from plexpy import helpers
 from plexpy import logger
@@ -25,8 +28,21 @@ from plexpy import logger
 
 _ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
 _ONESIGNAL_DISABLED = 'onesignal-disabled'
+_PUSH_DISABLED = 'push-disabled'
+
+_REVALIDATE_INTERVAL = 2  # seconds; the relay rate limits /v1/validate per client IP
 
 TEMP_DEVICE_TOKENS = {}
+
+
+def relay_device_id(push_token):
+    """
+    Return the identifier the relay records and Tautulli Remote shows on its
+    data dump page. The push token itself is blacklisted from the logs.
+    """
+    if not push_token or push_token == _PUSH_DISABLED:
+        return 'none'
+    return hashlib.sha256(push_token.encode()).hexdigest()[:16]
 
 
 def set_temp_device_token(token=None, remove=False, add=False, success=False):
@@ -81,7 +97,8 @@ def get_mobile_device_by_token(device_token=None):
 
 
 def add_mobile_device(device_id=None, device_name=None, device_token=None,
-                      platform=None, version=None, friendly_name=None, onesignal_id=None):
+                      platform=None, version=None, friendly_name=None, onesignal_id=None,
+                      push_token=None):
     db = database.MonitorDatabase()
 
     keys = {'device_id': device_id}
@@ -89,7 +106,8 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None,
               'device_token': device_token,
               'platform': platform,
               'version': version,
-              'onesignal_id': onesignal_id}
+              'onesignal_id': onesignal_id,
+              'push_token': push_token}
 
     if friendly_name:
         values['friendly_name'] = friendly_name
@@ -107,7 +125,7 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None,
         logger.info("Tautulli MobileApp :: Re-registered mobile device '%s' in the database." % device_name)
 
     set_last_seen(device_token=device_token)
-    threading.Thread(target=set_official, args=[device_id, onesignal_id]).start()
+    threading.Thread(target=set_official, args=[device_id, onesignal_id, push_token]).start()
     return True
 
 
@@ -124,6 +142,11 @@ def get_mobile_device_config(mobile_device_id=None):
 
     if result['onesignal_id'] == _ONESIGNAL_DISABLED:
         result['onesignal_id'] = ''
+
+    if result['push_token'] == _PUSH_DISABLED:
+        result['push_token'] = ''
+
+    result['relay_device_id'] = relay_device_id(result['push_token']) if result['push_token'] else ''
 
     return result
 
@@ -164,19 +187,43 @@ def delete_mobile_device(mobile_device_id=None, device_id=None):
         return False
 
 
-def set_official(device_id, onesignal_id):
+def set_official(device_id, onesignal_id, push_token=None):
     db = database.MonitorDatabase()
-    official = validate_onesignal_id(onesignal_id=onesignal_id)
-    platform = 'android' if official > 0 else None
+
+    # Newer app versions register a push token; older ones only send a OneSignal ID.
+    if push_token:
+        official = validate_push_token(push_token=push_token)
+    else:
+        official = validate_onesignal_id(onesignal_id=onesignal_id)
+
+    # An indeterminate result says nothing about the token, so don't let it
+    # clear a device that has already validated.
+    where = "WHERE device_id = ?"
+    if official == -1:
+        where += " AND coalesce(official, 0) != 1"
 
     try:
         result = db.action("UPDATE mobile_devices "
-                           "SET official = ?, platform = coalesce(platform, ?) "
-                           "WHERE device_id = ?",
-                           args=[official, platform, device_id])
+                           "SET official = ? "
+                           "%s" % where,
+                           args=[official, device_id])
     except Exception as e:
-        logger.warn("Tautulli MobileApp :: Failed to set official flag for device: %s." % e)
+        logger.warn("Tautulli MobileApp :: Failed to set official flag: %s." % e)
         return
+
+
+def set_official_from_delivery(device, official):
+    if device['official'] == official:
+        return
+
+    db = database.MonitorDatabase()
+
+    try:
+        db.action("UPDATE mobile_devices SET official = ? WHERE device_id = ?",
+                  args=[official, device['device_id']])
+    except Exception as e:
+        logger.warn("Tautulli MobileApp :: Failed to set official flag for device %s: %s."
+                    % (relay_device_id(device['push_token']), e))
 
 
 def set_last_seen(device_token=None):
@@ -210,9 +257,59 @@ def validate_onesignal_id(onesignal_id):
         return -1
 
 
-def revalidate_onesignal_ids():
-    for device in get_mobile_devices():
-        set_official(device['device_id'], device['onesignal_id'])
+def validate_push_token(push_token):
+    if push_token == _PUSH_DISABLED:
+        return 2
+
+    payload = {'token': push_token}
+
+    device_id = relay_device_id(push_token)
+
+    logger.info("Tautulli MobileApp :: Validating push token for device %s", device_id)
+    try:
+        # A 307 or 308 would re-post the push token to wherever Location points.
+        r = requests.post(f"{plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')}/v1/validate",
+                          json=payload, timeout=10,
+                          allow_redirects=False)
+        status_code = r.status_code
+        logger.info("Tautulli MobileApp :: Push token validation for device %s returned status code %s",
+                    device_id, status_code)
+        if status_code == 200:
+            return 1
+        elif status_code == 410:
+            return 0
+        # Anything else (rate limited, relay or FCM outage) says nothing about
+        # the token itself, so do not mark the device as invalid.
+        return -1
+    except Exception as e:
+        logger.warn("Tautulli MobileApp :: Failed to validate push token for device %s: %s." % (device_id, e))
+        return -1
+
+
+def validates_remotely(device):
+    if device['push_token']:
+        return device['push_token'] != _PUSH_DISABLED
+    return bool(device['onesignal_id']) and device['onesignal_id'] != _ONESIGNAL_DISABLED
+
+
+def revalidate_devices():
+    # Runs on every startup; threaded so a blocked host cannot hold up boot.
+    threading.Thread(target=_revalidate_devices).start()
+
+
+def _revalidate_devices():
+    # Re-validating a healthy device risks the relay's per-IP limit on
+    # /v1/validate, and a device that opted out has no registration to check.
+    devices = [d for d in get_mobile_devices() if d['official'] != 1 and validates_remotely(d)]
+
+    if not devices:
+        return
+
+    logger.info("Tautulli MobileApp :: Validating %s mobile device registration(s).", len(devices))
+
+    for device in devices:
+        set_official(device['device_id'], device['onesignal_id'], device['push_token'])
+        time.sleep(_REVALIDATE_INTERVAL)
 
 
 def blacklist_logger():

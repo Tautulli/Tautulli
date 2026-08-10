@@ -144,7 +144,8 @@ def request_response2(url, method="get", auto_raise=True,
 
     # Disable verification of SSL certificates if requested. Note: this could
     # pose a security issue!
-    kwargs['verify'] = bool(plexpy.CONFIG.VERIFY_SSL_CERT)
+    # A caller can pass verify to require it for a single request regardless.
+    kwargs.setdefault('verify', bool(plexpy.CONFIG.VERIFY_SSL_CERT))
     if not kwargs['verify']:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 

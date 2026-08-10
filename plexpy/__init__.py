@@ -544,6 +544,9 @@ def start():
         notification_handler.start_threads(num_threads=CONFIG.NOTIFICATION_THREADS)
         notifiers.check_browser_enabled()
 
+        # Repair any device left unvalidated by an earlier outage
+        mobile_app.revalidate_devices()
+
         # Schedule newsletters
         newsletter_handler.NEWSLETTER_SCHED.start()
         newsletter_handler.schedule_newsletters()
@@ -811,7 +814,7 @@ def dbcheck():
         "CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, "
         "device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, "
         "platform TEXT, version TEXT, friendly_name TEXT, "
-        "onesignal_id TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)"
+        "onesignal_id TEXT, push_token TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)"
     )
 
     # tvmaze_lookup table :: This table keeps record of the TVmaze lookups
@@ -2399,6 +2402,15 @@ def dbcheck():
             c_db.execute("UPDATE mobile_devices SET platform = ? WHERE device_id = ?",
                          ["android", device_id])
 
+    # Upgrade mobile_devices table from earlier versions
+    try:
+        c_db.execute("SELECT push_token FROM mobile_devices")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table mobile_devices.")
+        c_db.execute(
+            "ALTER TABLE mobile_devices ADD COLUMN push_token TEXT"
+        )
+
     # Upgrade notifiers table from earlier versions
     try:
         c_db.execute("SELECT custom_conditions FROM notifiers")
@@ -2871,11 +2883,6 @@ def dbcheck():
 
 def upgrade():
     logger.info("Checking if the configurastion upgrades are required...")
-
-    if CONFIG.UPGRADE_FLAG == 0:
-        mobile_app.revalidate_onesignal_ids()
-        CONFIG.UPGRADE_FLAG = 1
-        CONFIG.write()
 
     logger.info("Configuration upgrade complete.")
 
