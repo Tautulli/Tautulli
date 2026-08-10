@@ -185,6 +185,7 @@ _CONFIG_DEFINITIONS = {
     'REMOTE_APP_PUSH_URL': (str, 'Advanced', 'https://relay.tautulliremote.com'),
     'SESSION_DB_WRITE_ATTEMPTS': (int, 'Advanced', 5),
     'SHOW_ADVANCED_SETTINGS': (int, 'General', 0),
+    'STORAGE_PATH_MAPPINGS': (list, 'General', []),
     'SYNCHRONOUS_MODE': (str, 'Advanced', 'NORMAL'),
     'THEMOVIEDB_APIKEY': (str, 'General', 'e9a6655bae34bf694a0f3e33338dc28e'),
     'THEMOVIEDB_LOOKUP': (int, 'General', 0),
@@ -292,6 +293,7 @@ SETTINGS = [
     'REFRESH_LIBRARIES_INTERVAL',
     'REFRESH_USERS_INTERVAL',
     'SHOW_ADVANCED_SETTINGS',
+    'STORAGE_PATH_MAPPINGS',
     'TIME_FORMAT',
     'TV_WATCHED_PERCENT',
     'WATCHED_MARKER'
