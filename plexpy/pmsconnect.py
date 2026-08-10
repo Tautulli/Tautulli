@@ -2800,7 +2800,9 @@ class PmsConnect(object):
                                         'section_name': helpers.get_xml_attr(result, 'title'),
                                         'agent': helpers.get_xml_attr(result, 'agent'),
                                         'thumb': helpers.get_xml_attr(result, 'thumb'),
-                                        'art': helpers.get_xml_attr(result, 'art')
+                                        'art': helpers.get_xml_attr(result, 'art'),
+                                        'section_locations': [helpers.get_xml_attr(location, 'path') for location
+                                                              in result.getElementsByTagName('Location')]
                                         }
                     libraries_list.append(libraries_output)
 
