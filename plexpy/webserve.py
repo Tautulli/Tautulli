@@ -391,6 +391,44 @@ class WebInterface(object):
         return serve_template(template_name="storage_stats.html", title="Storage", data=storage_data)
 
     @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def get_storage_info(self, refresh=False, **kwargs):
+        """ Get the storage capacity of the filesystems used by the Plex libraries.
+
+            Libraries sharing a filesystem are only counted once. Library folders which
+            are not accessible to Tautulli, for example when Plex is running on another
+            machine or in another container, are grouped into a single entry with a
+            status of "unavailable".
+
+            ```
+            Required parameters:
+                None
+
+            Optional parameters:
+                refresh (bool):             Set to true to bypass the cached result
+
+            Returns:
+                json:
+                    [{"free_bytes": 11119794487296,
+                      "libraries": [{"section_id": 1, "section_name": "Movies", "section_type": "movie"},
+                                    {"section_id": 2, "section_name": "TV Shows", "section_type": "show"}
+                                    ],
+                      "mount_point": "/mnt/media",
+                      "paths": ["/mnt/media/movies", "/mnt/media/tv"],
+                      "percent_used": 76.8,
+                      "status": "ok",
+                      "total_bytes": 48003031040000,
+                      "used_bytes": 36883236552704
+                      },
+                     {...}
+                     ]
+            ```
+        """
+        return storage.get_library_storage(refresh=helpers.bool_true(refresh))
+
+    @cherrypy.expose
     @requireAuth()
     def get_recently_added(self, count='0', media_type='', **kwargs):
 
