@@ -575,7 +575,7 @@ The API endpoint is
 http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?cmd=$command
 ```
 
-The API key can be passed as an `X-Api-Key` header (in v2.17.3 or greater) or as an `apikey` parameter. The header is preferred for security reasons.
+The API key can be passed as an `X-Api-Key` header (in v2.18.0 or greater) or as an `apikey` parameter. The header is preferred for security reasons.
 ```
 http://IP_ADDRESS:PORT + [/HTTP_ROOT] + /api/v2?cmd=$command
 HEADER: X-Api-Key: $apikey
