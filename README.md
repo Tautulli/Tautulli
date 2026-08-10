@@ -132,6 +132,18 @@ This software includes Highsoft software libraries which you may freely distribu
 non-commercial use. Commercial users must licence this software, for more information visit
 https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
 
+## AI Disclosure (August 10, 2026)
+
+### How AI Tools Are Being Used:
+- Provide some context alongside an error message to better understand the source of the issue.
+- Create a plan for implementing new features.
+- Execute initial implementation/changes for features.
+- Ask to review code to look for issues or inefficiencies and provide recommendations.
+- All AI responses are thoroughly reviewed and verified by a human before being used in the codebase.
+
+### How AI Tools Are _Not_ Being Used:
+- No AI code has been used without thorough review.
+- No AI media generation of any kind.
 
 [Python]: https://python.org/downloads
 [DockerHub]: https://hub.docker.com/r/tautulli/tautulli
