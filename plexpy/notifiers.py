@@ -4017,6 +4017,14 @@ class TAUTULLIREMOTEAPP(Notifier):
                        }
 
     @staticmethod
+    def _device_label(device):
+        # Newlines would let a device name forge additional log entries.
+        device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
+        device_id = mobile_app.relay_device_id(device['push_token'])
+        # The id alone is a token hash, so name the device wherever one is recorded.
+        return f"'{device_name}' ({device_id})" if device_name else device_id     
+
+    @staticmethod
     def _via_relay(device):
         # Devices registered with a push token go through the relay; older ones through
         # OneSignal. A device that opted out holds the sentinel rather than an empty token.
@@ -4083,19 +4091,7 @@ class TAUTULLIREMOTEAPP(Notifier):
 
     def _send_via_relay(self, device, data):
         url = f"{plexpy.CONFIG.REMOTE_APP_PUSH_URL.rstrip('/')}/v1/notify"
-        # Newlines would let a device name forge additional log entries.
-        device_name = ' '.join((device['friendly_name'] or device['device_name'] or '').split())
-        device_id = mobile_app.relay_device_id(device['push_token'])
-        # The id alone is a token hash, so name the device wherever one is recorded.
-        device_label = "'{}' ({})".format(device_name, device_id) if device_name else device_id
-
-        # The relay builds a different message per platform, and an iOS device sent
-        # as android gets one its notification extension never runs, so it is never
-        # decrypted and nothing is shown. Refusing says so; guessing does not.
-        if device['platform'] not in ('android', 'ios'):
-            logger.error("Tautulli Notifiers :: {name} notification to device {device} failed: unknown platform. "
-                         "Re-register the device in Tautulli Remote.".format(name=self.NAME, device=device_label))
-            return False
+        device_label = self._device_label(device)
 
         payload = {'token': device['push_token'],
                    'platform': device['platform'],
@@ -4172,6 +4168,21 @@ class TAUTULLIREMOTEAPP(Notifier):
             return
         else:
             device = device[0]
+
+        device_label = self._device_label(device)
+
+        if device['push_token'] == mobile_app._PUSH_DISABLED:
+            logger.debug("Tautulli Notifiers :: %s notifications are disabled for this device %s.",
+                         self.NAME, device_label)
+            return False
+
+        # The relay builds a different message per platform, and an iOS device sent
+        # as android gets one its notification extension never runs, so it is never
+        # decrypted and nothing is shown. Refusing says so; guessing does not.
+        if device['platform'] not in ('android', 'ios'):
+            logger.error("Tautulli Notifiers :: %s notification to device %s failed: unknown platform. "
+                         "Re-register the device in Tautulli Remote.", self.NAME, device_label)
+            return False
 
         pretty_metadata = PrettyMetadata(kwargs.get('parameters'))
 
