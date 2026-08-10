@@ -1,0 +1,94 @@
+<%doc>
+USAGE DOCUMENTATION :: PLEASE LEAVE THIS AT THE TOP OF THIS FILE
+
+For Mako templating syntax documentation please visit: http://docs.makotemplates.org/en/latest/
+
+Filename:           storage_stats.html
+Version:            0.1
+Variable names:     data [array]
+
+data            Returns an array containing the storage info for each filesystem
+
+data[array_index] :: Usable parameters
+
+mount_point             Returns the mount point of the filesystem.
+paths                   Returns the list of Plex library folders on the filesystem.
+libraries               Returns the list of Plex libraries on the filesystem.
+total_bytes             Returns the total size of the filesystem in bytes.
+used_bytes              Returns the used space of the filesystem in bytes.
+free_bytes              Returns the free space of the filesystem in bytes.
+percent_used            Returns the percentage of the filesystem which is used.
+status                  Returns 'ok' or 'unavailable'.
+
+DOCUMENTATION :: END
+</%doc>
+
+% if data:
+<%
+    from plexpy.helpers import human_file_size, page
+%>
+% for filesystem in data:
+<%
+    percent_used = filesystem['percent_used'] or 0
+    if percent_used >= 95:
+        bar_class = 'critical'
+    elif percent_used >= 85:
+        bar_class = 'warning'
+    else:
+        bar_class = ''
+%>
+<div class="dashboard-stats-instance dashboard-storage-instance">
+    <div class="dashboard-stats-container">
+        <div class="dashboard-stats-background flat">
+            <div class="dashboard-storage-icon hidden-xs">
+                <i class="fa fa-hdd-o"></i>
+            </div>
+            <div class="dashboard-stats-info-container dashboard-storage-info-container">
+                <div class="dashboard-stats-info-title">
+                    % if filesystem['status'] == 'ok':
+                    <h4 title="${filesystem['mount_point']}">${filesystem['mount_point']}</h4>
+                    <span class="dashboard-stats-stats-units">${'{:.0f}'.format(percent_used)}%</span>
+                    % else:
+                    <h4 title="Tautulli cannot access these library folders">Unavailable</h4>
+                    % endif
+                </div>
+                <div class="dashboard-storage-body">
+                    % if filesystem['status'] == 'ok':
+                    <div class="dashboard-storage-usage">
+                        <div class="dashboard-storage-value">
+                            <h3>${human_file_size(filesystem['used_bytes'])}</h3>
+                            <p>Used</p>
+                        </div>
+                        <div class="dashboard-storage-value">
+                            <h3>${human_file_size(filesystem['free_bytes'])}</h3>
+                            <p>Free</p>
+                        </div>
+                        <div class="dashboard-storage-value">
+                            <h3>${human_file_size(filesystem['total_bytes'])}</h3>
+                            <p>Total</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-storage-progress">
+                        <div class="progress-bar ${bar_class}" style="width: ${percent_used}%;"></div>
+                    </div>
+                    % else:
+                    <div class="dashboard-storage-message">
+                        These library folders are not accessible from Tautulli. This is expected when Plex is
+                        running on another machine or in another container. A path mapping can be added in the
+                        <a href="settings#tabs_tabs-homepage">settings</a>.
+                    </div>
+                    % endif
+                    <div class="dashboard-storage-libraries" title="${', '.join(filesystem['paths'])}">
+                        % for library in filesystem['libraries']:
+                        <a href="${page('library', library['section_id'])}">${library['section_name']}</a>${'' if loop.last else ','}
+                        % endfor
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+% endfor
+% else:
+<div class="text-muted">No storage information to show.</div><br>
+% endif

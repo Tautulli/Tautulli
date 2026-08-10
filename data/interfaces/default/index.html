@@ -83,6 +83,22 @@
             </div>
         </div>
     </div>
+    % elif section == 'storage_stats' and _session['user_group'] == 'admin':
+    <div class="row">
+        <div class="col-md-12">
+            <div class="home-padded-header padded-header" id="storage-statistics-header">
+                <h3 class="pull-left">Storage</h3>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div id="storage-stats" class="library-platforms">
+                <div class="text-muted"><i class="fa fa-refresh fa-spin"></i>&nbsp; Loading storage capacity...</div>
+                <br>
+            </div>
+        </div>
+    </div>
     % elif section == 'recently_added':
     <div class="row">
         <div class="col-md-12">
@@ -931,6 +947,22 @@
         });
     }
     getLibraryStats();
+</script>
+% endif
+% if 'storage_stats' in config['home_sections'] and _session['user_group'] == 'admin':
+<script>
+    function getStorageStats() {
+        $.ajax({
+            url: 'storage_stats',
+            type: 'GET',
+            cache: false,
+            async: true,
+            complete: function (xhr, status) {
+                $("#storage-stats").html(xhr.responseText);
+            }
+        });
+    }
+    getStorageStats();
 </script>
 % endif
 % if 'recently_added' in config['home_sections']:

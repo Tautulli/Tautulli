@@ -1543,6 +1543,100 @@ a:hover .dashboard-stats-square {
     -moz-box-shadow: inset 0 0 0 2px #e9a049;
     box-shadow: inset 0 0 0 2px #e9a049;
 }
+.dashboard-storage-instance {
+    width: 500px;
+}
+.dashboard-storage-icon {
+    height: 100px;
+    width: 100px;
+    margin-top: 25px;
+    margin-right: 5px;
+    color: rgba(255,255,255,.15);
+    font-size: 72px;
+    line-height: 100px;
+    text-align: center;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+.dashboard-storage-info-container {
+    width: auto;
+    min-width: 0;
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
+}
+.dashboard-storage-body {
+    height: 120px;
+    width: 100%;
+    padding: 10px 10px 0 10px;
+    -webkit-flex-grow: 1;
+    flex-grow: 1;
+    overflow: hidden;
+}
+.dashboard-storage-usage {
+    display: -webkit-flex;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+.dashboard-storage-value {
+    width: 33.33%;
+    overflow: hidden;
+}
+.dashboard-storage-value h3 {
+    margin: 0;
+    color: #f9be03;
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 22px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dashboard-storage-value p {
+    margin: 0;
+    color: #aaa;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+.dashboard-storage-progress {
+    height: 8px;
+    width: 100%;
+    margin: 10px 0 8px 0;
+    background-color: rgba(255,255,255,.1);
+    position: relative;
+    overflow: hidden;
+}
+.dashboard-storage-progress .progress-bar {
+    height: 100%;
+    max-width: 100%;
+    background-color: #f9be03;
+    position: absolute;
+}
+.dashboard-storage-progress .progress-bar.warning {
+    background-color: #f89406;
+}
+.dashboard-storage-progress .progress-bar.critical {
+    background-color: #d9534f;
+}
+.dashboard-storage-libraries {
+    color: #aaa;
+    font-size: 12px;
+    line-height: 16px;
+    max-height: 32px;
+    overflow: hidden;
+}
+.dashboard-storage-libraries a {
+    color: #aaa;
+}
+.dashboard-storage-libraries a:hover {
+    color: #fff;
+}
+.dashboard-storage-message {
+    margin-bottom: 8px;
+    color: #aaa;
+    font-size: 12px;
+    line-height: 15px;
+}
 .dashboard-recent-media-row {
     width: 100%;
     margin: 0 auto;
@@ -3456,12 +3550,14 @@ pre::-webkit-scrollbar-thumb {
 }
 #currentActivity,
 #home-stats,
-#library-stats {
+#library-stats,
+#storage-stats {
     margin-left: -25px;
 }
 #currentActivity > *,
 #home-stats > *,
-#library-stats > * {
+#library-stats > *,
+#storage-stats > * {
     margin-left: 25px;
 }
 
@@ -3477,7 +3573,8 @@ pre::-webkit-scrollbar-thumb {
     }
     #currentActivity,
     #home-stats,
-    #library-stats {
+    #library-stats,
+    #storage-stats {
         margin-right: 25px;
     }
 }

@@ -71,6 +71,7 @@ from plexpy import plextv
 from plexpy import plexivity_import
 from plexpy import plexwatch_import
 from plexpy import pmsconnect
+from plexpy import storage
 from plexpy import users
 from plexpy import versioncheck
 from plexpy import web_socket
@@ -381,6 +382,13 @@ class WebInterface(object):
         stats_data = data_factory.get_library_stats(library_cards=library_cards)
 
         return serve_template(template_name="library_stats.html", title="Library Stats", data=stats_data)
+
+    @cherrypy.expose
+    @requireAuth(member_of("admin"))
+    def storage_stats(self, **kwargs):
+        storage_data = storage.get_library_storage()
+
+        return serve_template(template_name="storage_stats.html", title="Storage", data=storage_data)
 
     @cherrypy.expose
     @requireAuth()
@@ -3237,6 +3245,8 @@ class WebInterface(object):
         for key in ('home_sections', 'home_stats_cards', 'home_library_cards'):
             settings_dict[key] = json.dumps(settings_dict[key])
 
+        settings_dict['storage_path_mappings'] = '\n'.join(settings_dict['storage_path_mappings'])
+
         return serve_template(template_name="settings.html", title="Settings", config=settings_dict)
 
     @cherrypy.expose
@@ -3331,6 +3341,13 @@ class WebInterface(object):
                 if k.startswith('hlcard-'):
                     del kwargs[k]
             kwargs['home_library_cards'] = kwargs['home_library_cards'].split(',')
+
+        # Change storage_path_mappings from a newline separated string to a list
+        if 'storage_path_mappings' in kwargs:
+            kwargs['storage_path_mappings'] = [line.strip() for line in kwargs['storage_path_mappings'].splitlines()
+                                               if line.strip()]
+            if kwargs['storage_path_mappings'] != plexpy.CONFIG.STORAGE_PATH_MAPPINGS:
+                storage.clear_cache()
 
         # If we change the server, make sure we grab the new url and refresh libraries and users lists.
         if kwargs.pop('server_changed', None) or server_changed:

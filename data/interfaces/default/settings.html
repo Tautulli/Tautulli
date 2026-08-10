@@ -413,6 +413,12 @@
                                     <li class="card card-sortable">
                                         <div class="card-handle"><i class="fa fa-bars"></i></div>
                                         <label>
+                                            <input type="checkbox" id="hsec-storage_stats" name="hsec-storage_stats" value="storage_stats"> Storage
+                                        </label>
+                                    </li>
+                                    <li class="card card-sortable">
+                                        <div class="card-handle"><i class="fa fa-bars"></i></div>
+                                        <label>
                                             <input type="checkbox" id="hsec-recently_added" name="hsec-recently_added" value="recently_added"> Recently Added
                                         </label>
                                     </li>
@@ -520,6 +526,26 @@
                                     <input type="text" id="home_library_cards" name="home_library_cards" style="display: none;" />
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="padded-header">
+                            <h3>Storage</h3>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="storage_path_mappings">Storage Path Mappings</label>
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <textarea class="form-control" id="storage_path_mappings" name="storage_path_mappings"
+                                              rows="3">${config['storage_path_mappings']}</textarea>
+                                </div>
+                            </div>
+                            <p class="help-block">
+                                Optional. Only required when Tautulli cannot see the library folders reported by
+                                Plex, for example when Plex is running on another machine or in another container.
+                                Enter one mapping per line as the Plex path, a vertical bar, then the matching path
+                                on the Tautulli host. For example: <span class="inline-pre">/data/media|/mnt/media</span>
+                            </p>
                         </div>
 
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
