@@ -555,6 +555,8 @@ def start():
         exporter.cancel_exports()
 
         if CONFIG.SYSTEM_ANALYTICS:
+            logger.info("System analytics enabled. Sending analytics events...")
+            
             global TRACKER
             TRACKER = initialize_tracker()
 
@@ -566,6 +568,8 @@ def start():
                 analytics_event(name='update')
 
             analytics_event(name='start')
+        else:
+            logger.info("System analytics disabled. No analytics events will be sent.")
 
         _STARTED = True
 
@@ -3017,8 +3021,9 @@ def analytics_event(name, **kwargs):
     if TRACKER:
         try:
             TRACKER.send(events=[event])
+            logger.info("Sent analytics event for name '%s'", name)
         except Exception as e:
-            logger.warn("Failed to send analytics event for name '%s': %s" % (name, e))
+            logger.warn("Failed to send analytics event for name '%s': %s", name, e)
 
 
 def check_folder_writable(folder, fallback, name):
