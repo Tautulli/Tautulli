@@ -642,6 +642,8 @@ def api_sign_request(params_to_sign, api_secret, algorithm=SIGNATURE_SHA1, signa
         - Version 2+: Includes parameter encoding to prevent parameter smuggling
     :return: Computed signature
     """
+    if not api_secret:
+        raise ValueError("Must supply api_secret")
     to_sign = api_string_to_sign(params_to_sign, signature_version)
     return compute_hex_hash(to_sign + api_secret, algorithm)
 
@@ -875,6 +877,8 @@ def cloudinary_url(source, **options):
 
     signature = None
     if sign_url and (not auth_token or auth_token.pop('set_url_signature', False)):
+        if not api_secret:
+            raise ValueError("Must supply api_secret")
         to_sign = "/".join(__compact([transformation, source_to_sign]))
         if long_url_signature:
             # Long signature forces SHA256

@@ -183,7 +183,8 @@ class WebInterface(object):
             "pms_port": plexpy.CONFIG.PMS_PORT,
             "pms_ssl": plexpy.CONFIG.PMS_SSL,
             "pms_name": helpers.pms_name(),
-            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL
+            "logging_ignore_interval": plexpy.CONFIG.LOGGING_IGNORE_INTERVAL,
+            "system_analytics": plexpy.CONFIG.SYSTEM_ANALYTICS,
         }
 
         # The setup wizard just refreshes the page on submit so we must redirect to home if config set.

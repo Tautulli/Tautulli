@@ -1,5 +1,5 @@
 # ext/beaker_cache.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -20,7 +20,6 @@ _beaker_cache = None
 
 
 class BeakerCacheImpl(CacheImpl):
-
     """A :class:`.CacheImpl` provided for the Beaker caching system.
 
     This plugin is used by default, based on the default

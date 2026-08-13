@@ -144,7 +144,7 @@ class ElementFilter(object):
                 break
             if i:
                 if self.match(i, _known_rules=True):
-                    yield cast("_OneElement", i)
+                    yield i
 
     def find(self, generator: Iterator[PageElement]) -> _AtMostOneElement:
         """A lower-level equivalent of :py:meth:`Tag.find`.

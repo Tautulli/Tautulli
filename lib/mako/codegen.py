@@ -1,5 +1,5 @@
 # mako/codegen.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -17,7 +17,6 @@ from mako import filters
 from mako import parsetree
 from mako import util
 from mako.pygen import PythonPrinter
-
 
 MAGIC_NUMBER = 10
 
@@ -97,7 +96,6 @@ class _CompileContext:
 
 
 class _GenerateRenderMethod:
-
     """A template visitor object which generates the
     full module source for a template.
 
@@ -1023,7 +1021,6 @@ class _GenerateRenderMethod:
 
 
 class _Identifiers:
-
     """tracks the status of identifier names as template code is rendered."""
 
     def __init__(self, compiler, node=None, parent=None, nested=False):
@@ -1283,7 +1280,7 @@ def mangle_mako_loop(node, printer):
         if match:
             printer.writelines(
                 "loop = __M_loop._enter(%s)" % match.group(2),
-                "try:"
+                "try:",
                 # 'with __M_loop(%s) as loop:' % match.group(2)
             )
             text = "for %s in loop:" % match.group(1)
@@ -1295,7 +1292,6 @@ def mangle_mako_loop(node, printer):
 
 
 class LoopVariable:
-
     """A node visitor which looks for the name 'loop' within undeclared
     identifiers."""
 

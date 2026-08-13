@@ -1,13 +1,11 @@
 import logging
 import os
 import re
-import sys
 import warnings
+import zoneinfo
 from datetime import timezone
 
 from tzlocal import utils
-
-import zoneinfo
 
 _cache_tz = None
 _cache_tz_name = None
@@ -36,11 +34,7 @@ def _get_localzone_name(_root="/"):
         import subprocess
 
         try:
-            androidtz = (
-                subprocess.check_output(["getprop", "persist.sys.timezone"])
-                .strip()
-                .decode()
-            )
+            androidtz = subprocess.check_output(["getprop", "persist.sys.timezone"]).strip().decode()
             return androidtz
         except (OSError, subprocess.CalledProcessError):
             # proot environment or failed to getprop
@@ -56,7 +50,7 @@ def _get_localzone_name(_root="/"):
     for configfile in ("etc/timezone", "var/db/zoneinfo"):
         tzpath = os.path.join(_root, configfile)
         try:
-            with open(tzpath) as tzfile:
+            with open(tzpath, encoding="ascii") as tzfile:
                 data = tzfile.read()
                 log.debug(f"{tzpath} found, contents:\n {data}")
 
@@ -67,9 +61,9 @@ def _get_localzone_name(_root="/"):
                 for etctz in etctz.splitlines():
                     # Get rid of host definitions and comments:
                     if " " in etctz:
-                        etctz, dummy = etctz.split(" ", 1)
+                        etctz, _ = etctz.split(" ", 1)
                     if "#" in etctz:
-                        etctz, dummy = etctz.split("#", 1)
+                        etctz, _ = etctz.split("#", 1)
                     if not etctz:
                         continue
 
@@ -103,8 +97,13 @@ def _get_localzone_name(_root="/"):
                     match = timezone_re.match(line)
                 if match is not None:
                     # Some setting existed
-                    line = line[match.end() :]
-                    etctz = line[: end_re.search(line).start()]
+                    tzline = line[match.end() :]
+                    end_match = end_re.search(tzline)
+                    if end_match is None:
+                        # Syntax error. Ignore this line.
+                        warnings.warn(f"Syntax error in {tzpath}. Ignoring line: {line}")
+                        continue
+                    etctz = tzline[:end_match.start()]
 
                     # We found a timezone
                     found_configs[tzpath] = etctz.replace(" ", "_")
@@ -141,12 +140,14 @@ def _get_localzone_name(_root="/"):
             unique_tzs = _get_unique_tzs(found_configs, _root)
 
             if len(unique_tzs) != 1 and "etc/timezone" in str(found_configs.keys()):
-                # For some reason some distros are removing support for /etc/timezone, 
-                # which is bad, because that's the only place where the timezone is stated 
-                # in plain text, and what's worse, they don't delete it. So we can't trust 
+                # For some reason some distros are removing support for /etc/timezone,
+                # which is bad, because that's the only place where the timezone is stated
+                # in plain text, and what's worse, they don't delete it. So we can't trust
                 # it now, so when we have conflicting configs, we just ignore it, with a warning.
-                log.warning("/etc/timezone is deprecated in some distros, and no longer reliable. "
-                            "tzlocal is ignoring it, and you can likely delete it.")
+                log.warning(
+                    "/etc/timezone is deprecated in some distros, and no longer reliable. "
+                    "tzlocal is ignoring it, and you can likely delete it."
+                )
                 found_configs = {k: v for k, v in found_configs.items() if "etc/timezone" not in k}
                 unique_tzs = _get_unique_tzs(found_configs, _root)
 

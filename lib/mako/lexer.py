@@ -1,5 +1,5 @@
 # mako/lexer.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -71,7 +71,7 @@ class Lexer:
 
         match = reg.match(self.text, self.match_position)
         if match:
-            (start, end) = match.span()
+            start, end = match.span()
             self.match_position = end + 1 if end == start else end
             self.matched_lineno = self.lineno
             cp = mp - 1
@@ -83,6 +83,8 @@ class Lexer:
 
     def parse_until_text(self, watch_nesting, *text):
         startpos = self.match_position
+        startlineno = self.matched_lineno
+        startcharpos = self.matched_charpos
         text_re = r"|".join(text)
         brace_level = 0
         paren_level = 0
@@ -117,8 +119,17 @@ class Lexer:
                 bracket_level += match.group(1).count("[")
                 bracket_level -= match.group(1).count("]")
                 continue
+            # the scan consumes the remaining text looking for the
+            # closing token, so report the position the construct began
+            # at, rather than the position the scan gave up at
             raise exceptions.SyntaxException(
-                "Expected: %s" % ",".join(text), **self.exception_kwargs
+                "Expected: %s; unterminated tag or expression beginning"
+                % ",".join(text),
+                **{
+                    **self.exception_kwargs,
+                    "lineno": startlineno,
+                    "pos": startcharpos,
+                },
             )
 
     def append_node(self, nodecls, *args, **kwargs):

@@ -79,12 +79,12 @@ class Photoalbum(
             Parameters:
                 title (str): Title of the photo album to return.
         """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItem(key, Photoalbum, title__iexact=title)
 
     def albums(self, **kwargs):
         """ Returns a list of :class:`~plexapi.photo.Photoalbum` objects in the album. """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItems(key, Photoalbum, **kwargs)
 
     def photo(self, title):
@@ -93,12 +93,12 @@ class Photoalbum(
             Parameters:
                 title (str): Title of the photo to return.
         """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItem(key, Photo, title__iexact=title)
 
     def photos(self, **kwargs):
         """ Returns a list of :class:`~plexapi.photo.Photo` objects in the album. """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItems(key, Photo, **kwargs)
 
     def clip(self, title):
@@ -107,12 +107,12 @@ class Photoalbum(
             Parameters:
                 title (str): Title of the clip to return.
         """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItem(key, video.Clip, title__iexact=title)
 
     def clips(self, **kwargs):
         """ Returns a list of :class:`~plexapi.video.Clip` objects in the album. """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItems(key, video.Clip, **kwargs)
 
     def get(self, title):
@@ -250,7 +250,8 @@ class Photo(
 
     def photoalbum(self):
         """ Return the photo's :class:`~plexapi.photo.Photoalbum`. """
-        return self.fetchItem(self.parentKey)
+        key = self._buildQueryKey(self.parentKey)
+        return self.fetchItem(key)
 
     def section(self):
         """ Returns the :class:`~plexapi.library.LibrarySection` the item belongs to. """

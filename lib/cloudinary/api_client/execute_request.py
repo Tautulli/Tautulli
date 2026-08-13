@@ -41,14 +41,14 @@ class Response(dict):
 
 
 def execute_request(http_connector, method, params, headers, auth, api_url, **options):
-    # authentication
+    anonymous = auth.get("anonymous")
     key = auth.get("key")
     secret = auth.get("secret")
     oauth_token = auth.get("oauth_token")
-    req_headers = urllib3.make_headers(
-        user_agent=cloudinary.get_user_agent()
-    )
-    if oauth_token:
+    req_headers = urllib3.make_headers(user_agent=cloudinary.get_user_agent())
+    if anonymous:
+        pass
+    elif oauth_token:
         req_headers["authorization"] = "Bearer {}".format(oauth_token)
     else:
         req_headers.update(urllib3.make_headers(basic_auth="{0}:{1}".format(key, secret)))

@@ -1,6 +1,7 @@
 ﻿<%
     import plexpy
     from plexpy import common, helpers
+    from plexpy.helpers import anon_url, checked
 %>
 
 <!doctype html>
@@ -70,6 +71,23 @@
                         <p class="welcome-message">
                             This wizard will help you get set up, to continue press Next.
                         </p>
+                    </div>
+                    <div class="wizard-input-section">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" id="system_analytics" name="system_analytics" class="checkbox-toggle" value="1" ${checked(config['system_analytics'])}> Send Anonymous System Analytics
+                                    </label>
+                                </div>
+                                <p class="help-block">Enable anonymous system analytics to help improve Tautulli. No personal information is collected. Refer to the
+                                    <a href="${anon_url('https://github.com/%s/%s/wiki/Frequently-Asked-Questions#general-q21' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">
+                                        FAQ
+                                    </a>
+                                    to see what data is being collected. You can disable this in the settings at any time.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -152,7 +170,7 @@
                             <div class="col-xs-9">
                                 <div class="checkbox">
                                     <label>
-                                        <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${helpers.checked(config['pms_ssl'])}> Use Secure Connection
+                                        <input type="checkbox" id="pms_ssl_checkbox" class="checkbox-toggle pms-settings" data-id="pms_ssl" value="1" ${checked(config['pms_ssl'])}> Use Secure Connection
                                         <input type="hidden" id="pms_ssl" name="pms_ssl" value="${config['pms_ssl']}">
                                     </label>
                                 </div>
@@ -240,6 +258,8 @@
 <script src="${http_root}js/bootstrap.min.js"></script>
 <script src="${http_root}js/selectize.min.js"></script>
 <script src="${http_root}js/platform.min.js"></script>
+<script src="${http_root}js/moment-with-locales.min.js"></script>
+<script src="${http_root}js/moment-duration-format.min.js"></script>
 <script src="${http_root}js/script.js${cache_param}"></script>
 <script src="${http_root}js/bootstrap-wizard.min.js"></script>
 <script>

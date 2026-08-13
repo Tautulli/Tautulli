@@ -1,5 +1,5 @@
 # mako/parsetree.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -15,7 +15,6 @@ from mako import util
 
 
 class Node:
-
     """base class for a Node in the parse tree."""
 
     def __init__(self, source, lineno, pos, filename):
@@ -46,7 +45,6 @@ class Node:
 
 
 class TemplateNode(Node):
-
     """a 'container' node that stores the overall collection of nodes."""
 
     def __init__(self, filename):
@@ -65,7 +63,6 @@ class TemplateNode(Node):
 
 
 class ControlLine(Node):
-
     """defines a control line, a line-oriented python line or end tag.
 
     e.g.::

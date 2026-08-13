@@ -867,7 +867,7 @@ class BaseScheduler(metaclass=ABCMeta):
 
             return dct
 
-        jobstore = self._jobstores[jobstore]
+        jobstore_instance = self._jobstores[jobstore]
         with ExitStack() as stack:
             if not hasattr(infile, "read"):
                 infile = stack.enter_context(open(infile))
@@ -882,7 +882,9 @@ class BaseScheduler(metaclass=ABCMeta):
             for job_state in data["jobs"]:
                 job = object.__new__(Job)
                 job.__setstate__(job_state)
-                jobstore.add_job(job)
+                job._scheduler = self
+                job._jobstore_alias = jobstore
+                jobstore_instance.add_job(job)
 
     @abstractmethod
     def wakeup(self):
@@ -1253,7 +1255,7 @@ class BaseScheduler(metaclass=ABCMeta):
         else:
             now = datetime.now(self.timezone)
             wait_seconds = min(
-                max((next_wakeup_time - now).total_seconds(), 0), TIMEOUT_MAX
+                max((next_wakeup_time.timestamp() - now.timestamp()), 0), TIMEOUT_MAX
             )
             self._logger.debug(
                 "Next wakeup is due at %s (in %f seconds)",

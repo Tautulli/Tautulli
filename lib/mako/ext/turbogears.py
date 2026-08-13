@@ -1,5 +1,5 @@
 # ext/turbogears.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -10,7 +10,6 @@ from mako.template import Template
 
 
 class TGPlugin:
-
     """TurboGears compatible Template Plugin."""
 
     def __init__(self, extra_vars_func=None, options=None, extension="mak"):

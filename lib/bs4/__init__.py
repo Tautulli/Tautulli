@@ -15,8 +15,8 @@ documentation: http://www.crummy.com/software/BeautifulSoup/bs4/doc/
 """
 
 __author__ = "Leonard Richardson (leonardr@segfault.org)"
-__version__ = "4.14.3"
-__copyright__ = "Copyright (c) 2004-2025 Leonard Richardson"
+__version__ = "4.15.0"
+__copyright__ = "Copyright (c) 2004-2026 Leonard Richardson"
 # Use of this source code is governed by the MIT license.
 __license__ = "MIT"
 
@@ -533,6 +533,11 @@ class BeautifulSoup(Tag):
         self.builder.soup = self
         self.reset()
         self._feed()
+
+    @property
+    def _is_root(self):
+        """Yes, a BeautifulSoup object is the root of its parse tree. Used by the _root_object internal property."""
+        return True
 
     @classmethod
     @_deprecated(

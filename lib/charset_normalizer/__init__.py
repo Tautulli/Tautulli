@@ -15,7 +15,7 @@ Basic usage:
 
 Others methods and usages are available - see the full documentation
 at <https://github.com/Ousret/charset_normalizer>.
-:copyright: (c) 2021 by Ahmed TAHRI
+:copyright: (c) Ahmed TAHRI
 :license: MIT, see LICENSE for more details.
 """
 

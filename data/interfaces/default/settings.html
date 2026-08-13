@@ -360,6 +360,22 @@
                         </div>
                         % endif
 
+                        <div class="padded-header">
+                            <h3>System Analytics</h3>
+                        </div>
+
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="system_analytics" name="system_analytics" value="1" ${config['system_analytics']}> Send Anonymous System Analytics
+                            </label>
+                            <p class="help-block">Enable anonymous system analytics to help improve Tautulli. No personal information is collected. Refer to the
+                                <a href="${anon_url('https://github.com/%s/%s/wiki/Frequently-Asked-Questions#general-q21' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">
+                                    FAQ
+                                </a>
+                                to see what data is being collected. You can disable this at any time.
+                            </p>
+                        </div>
+
                         <p><input type="button" class="btn btn-bright save-button" value="Save" data-success="Changes saved successfully"></p>
 
                     </div>

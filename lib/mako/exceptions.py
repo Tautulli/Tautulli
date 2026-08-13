@@ -1,5 +1,5 @@
 # mako/exceptions.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -51,12 +51,10 @@ class SyntaxException(MakoException):
 
 
 class UnsupportedError(MakoException):
-
     """raised when a retired feature is used."""
 
 
 class NameConflictError(MakoException):
-
     """raised when a reserved word is used inappropriately"""
 
 
@@ -69,7 +67,6 @@ class TopLevelLookupException(TemplateLookupException):
 
 
 class RichTraceback:
-
     """Pull the current exception from the ``sys`` traceback and extracts
     Mako-specific template information.
 
@@ -158,7 +155,7 @@ class RichTraceback:
             if not line:
                 line = ""
             try:
-                (line_map, template_lines, template_filename) = mods[filename]
+                line_map, template_lines, template_filename = mods[filename]
             except KeyError:
                 try:
                     info = mako.template._get_module_info(filename)
@@ -247,8 +244,7 @@ def text_error_template(lookup=None):
     """
     import mako.template
 
-    return mako.template.Template(
-        r"""
+    return mako.template.Template(r"""
 <%page args="error=None, traceback=None"/>
 <%!
     from mako.exceptions import RichTraceback
@@ -262,8 +258,7 @@ Traceback (most recent call last):
     ${line | trim}
 % endfor
 ${tback.errorname}: ${tback.message}
-"""
-    )
+""")
 
 
 def _install_pygments():

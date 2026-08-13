@@ -95,60 +95,68 @@ encoding_res[str] = {
 }
 
 
-class EntitySubstitution(object):
-    """The ability to substitute XML or HTML entities for certain characters."""
+class EntitySubstitutionMeta(type):
+    """Provides lazy access to some data structures and regular
+    expressions used by EntitySubstitution which have a measurable
+    startup cost.
+    """
+    # Trigger for
+    _CLASS_VARIABLES_POPULATED: bool = False
 
-    #: A map of named HTML entities to the corresponding Unicode string.
-    #:
-    #: :meta hide-value:
-    HTML_ENTITY_TO_CHARACTER: Dict[str, str]
-
-    #: A map of Unicode strings to the corresponding named HTML entities;
-    #: the inverse of HTML_ENTITY_TO_CHARACTER.
-    #:
-    #: :meta hide-value:
-    CHARACTER_TO_HTML_ENTITY: Dict[str, str]
-
-    #: A regular expression that matches any character (or, in rare
-    #: cases, pair of characters) that can be replaced with a named
-    #: HTML entity.
-    #:
-    #: :meta hide-value:
-    CHARACTER_TO_HTML_ENTITY_RE: Pattern[str]
-
-    #: A very similar regular expression to
-    #: CHARACTER_TO_HTML_ENTITY_RE, but which also matches unescaped
-    #: ampersands. This is used by the 'html' formatted to provide
-    #: backwards-compatibility, even though the HTML5 spec allows most
-    #: ampersands to go unescaped.
-    #:
-    #: :meta hide-value:
-    CHARACTER_TO_HTML_ENTITY_WITH_AMPERSAND_RE: Pattern[str]
-
-    @classmethod
-    def _populate_class_variables(cls) -> None:
-        """Initialize variables used by this class to manage the plethora of
-        HTML5 named entities.
-
-        This function sets the following class variables:
-
-        CHARACTER_TO_HTML_ENTITY - A mapping of Unicode strings like "⦨" to
-        entity names like "angmsdaa". When a single Unicode string has
-        multiple entity names, we try to choose the most commonly-used
-        name.
-
-        HTML_ENTITY_TO_CHARACTER: A mapping of entity names like "angmsdaa" to
-        Unicode strings like "⦨".
-
-        CHARACTER_TO_HTML_ENTITY_RE: A regular expression matching (almost) any
-        Unicode string that corresponds to an HTML5 named entity.
-
-        CHARACTER_TO_HTML_ENTITY_WITH_AMPERSAND_RE: A very similar
-        regular expression to CHARACTER_TO_HTML_ENTITY_RE, but which
-        also matches unescaped ampersands. This is used by the 'html'
-        formatted to provide backwards-compatibility, even though the HTML5
-        spec allows most ampersands to go unescaped.
+    @property
+    def HTML_ENTITY_TO_CHARACTER(self) -> Dict[str, str]:
+        """A mapping of entity names like "angmsdaa" to Unicode
+        strings like "⦨".
         """
+        if not self._CLASS_VARIABLES_POPULATED:
+            self._populate_class_variables()
+        return self._HTML_ENTITY_TO_CHARACTER
+    _HTML_ENTITY_TO_CHARACTER: Dict[str, str]
+
+    @property
+    def CHARACTER_TO_HTML_ENTITY(self) -> Dict[str, str]:
+        """A mapping of Unicode strings like "⦨" to entity names like
+        "angmsdaa". When a single Unicode string has multiple entity
+        names, we try to choose the most commonly-used name.
+        """
+        if not self._CLASS_VARIABLES_POPULATED:
+            self._populate_class_variables()
+        return self._CHARACTER_TO_HTML_ENTITY
+    _CHARACTER_TO_HTML_ENTITY: Dict[str, str]
+
+    @property
+    def CHARACTER_TO_HTML_ENTITY_RE(self) -> Pattern[str]:
+        """A regular expression matching (almost) any Unicode string
+        that corresponds to an HTML5 named entity.
+        """
+
+        if not self._CLASS_VARIABLES_POPULATED:
+            self._populate_class_variables()
+        return self._CHARACTER_TO_HTML_ENTITY_RE
+    _CHARACTER_TO_HTML_ENTITY_RE: Pattern[str]
+
+    @property
+    def CHARACTER_TO_HTML_ENTITY_WITH_AMPERSAND_RE(self) -> Pattern[str]:
+        """A very similar regular expression to
+        CHARACTER_TO_HTML_ENTITY_RE, but which also matches unescaped
+        ampersands. This is used by the 'html' formatter to provide
+        backwards-compatibility, even though the HTML5 spec allows
+        most ampersands to go unescaped.
+        """
+        if not self._CLASS_VARIABLES_POPULATED:
+            self._populate_class_variables()
+        return self._CHARACTER_TO_HTML_ENTITY_WITH_AMPERSAND_RE
+    _CHARACTER_TO_HTML_ENTITY_WITH_AMPERSAND_RE: Pattern[str]
+
+    def _populate_class_variables(self) -> None:
+        """Initialize variables used by EntitySubstitution to manage the plethora of
+        HTML and HTML5 named entities.
+
+        This method populates the class variables necessary to make
+        the properties defined in the metaclass work.
+        """
+        if self._CLASS_VARIABLES_POPULATED:
+            return
         unicode_to_name = {}
         name_to_unicode = {}
 
@@ -250,12 +258,16 @@ class EntitySubstitution(object):
             character = chr(codepoint)
             unicode_to_name[character] = name
 
-        cls.CHARACTER_TO_HTML_ENTITY = unicode_to_name
-        cls.HTML_ENTITY_TO_CHARACTER = name_to_unicode
-        cls.CHARACTER_TO_HTML_ENTITY_RE = re.compile(re_definition)
-        cls.CHARACTER_TO_HTML_ENTITY_WITH_AMPERSAND_RE = re.compile(
+        self._CHARACTER_TO_HTML_ENTITY = unicode_to_name
+        self._HTML_ENTITY_TO_CHARACTER = name_to_unicode
+        self._CHARACTER_TO_HTML_ENTITY_RE = re.compile(re_definition)
+        self._CHARACTER_TO_HTML_ENTITY_WITH_AMPERSAND_RE = re.compile(
             re_definition_with_ampersand
         )
+        self._CLASS_VARIABLES_POPULATED = True
+
+class EntitySubstitution(metaclass=EntitySubstitutionMeta):
+    """The ability to substitute XML or HTML entities for certain characters."""
 
     #: A map of Unicode strings to the corresponding named XML entities.
     #:
@@ -477,9 +489,6 @@ class EntitySubstitution(object):
         s = cls.CHARACTER_TO_HTML_ENTITY_RE.sub(cls._substitute_html_entity, s)
 
         return s
-
-
-EntitySubstitution._populate_class_variables()
 
 
 class EncodingDetector:

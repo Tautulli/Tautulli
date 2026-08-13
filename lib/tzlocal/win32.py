@@ -93,18 +93,14 @@ def _get_localzone_name():
             return timezone
 
         if std_offset is None:
-            raise zoneinfo.ZoneInfoNotFoundError(
-                f"{tzkeyname} claims to not have a non-DST time!?"
-            )
+            raise zoneinfo.ZoneInfoNotFoundError(f"{tzkeyname} claims to not have a non-DST time!?")
 
         if std_offset % 3600:
             # I can't convert this to an hourly offset
-            raise zoneinfo.ZoneInfoNotFoundError(
-                f"tzlocal can't support disabling DST in the {timezone} zone."
-            )
+            raise zoneinfo.ZoneInfoNotFoundError(f"tzlocal can't support disabling DST in the {timezone} zone.")
 
         # This has whole hours as offset, return it as Etc/GMT
-        return f"Etc/GMT{-std_offset//3600:+.0f}"
+        return f"Etc/GMT{-std_offset // 3600:+.0f}"
 
     return timezone
 
