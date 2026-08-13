@@ -91,6 +91,7 @@ __all__ = [
     'overload',
     'override',
     'Protocol',
+    'sentinel',
     'Sentinel',
     'reveal_type',
     'runtime',
@@ -148,7 +149,6 @@ __all__ = [
     'ValuesView',
     'cast',
     'no_type_check',
-    'no_type_check_decorator',
 ]
 
 # for backward compatibility
@@ -160,17 +160,121 @@ _PEP_696_IMPLEMENTED = sys.version_info >= (3, 13, 0, "beta")
 # Added with bpo-45166 to 3.10.1+ and some 3.9 versions
 _FORWARD_REF_HAS_CLASS = "__forward_is_class__" in typing.ForwardRef.__slots__
 
+
+def _caller(depth=1, default='__main__'):
+    try:
+        return sys._getframemodulename(depth + 1) or default
+    except AttributeError:  # For platforms without _getframemodulename()
+        pass
+    try:
+        return sys._getframe(depth + 1).f_globals.get('__name__', default)
+    except (AttributeError, ValueError):  # For platforms without _getframe()
+        pass
+    return None
+
+
+# Placeholder for sentinel methods, because sentinels can not have their own sentinels
+_sentinel_placeholder = object()
+
+if hasattr(builtins, "sentinel"):  # 3.15+
+    sentinel = builtins.sentinel
+else:
+    class sentinel:
+        """Create a unique sentinel object.
+
+        *name* should be the name of the variable to which the return value
+        shall be assigned.
+        """
+
+        def __init__(
+            self,
+            __name: str = _sentinel_placeholder,
+            __repr: typing.Optional[str] = _sentinel_placeholder,
+            /,
+            *,
+            repr: typing.Optional[str] = None,
+            name: str = _sentinel_placeholder,
+        ) -> None:
+            if name is not _sentinel_placeholder:
+                warnings.warn(
+                    "Passing 'name' as a keyword argument is deprecated; "
+                    "pass it positionally instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                __name = name
+            if __name is _sentinel_placeholder:
+                raise TypeError("First parameter 'name' is required")
+            if __repr is not _sentinel_placeholder:
+                warnings.warn(
+                    "Passing 'repr' as a positional argument is deprecated; "
+                    "pass it by keyword instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                repr = __repr
+
+            self._name = __name
+            self._repr = repr if repr is not None else __name
+
+            # For pickling as a singleton:
+            self.__module__ = _caller()
+
+        def __init_subclass__(cls):
+            warnings.warn(
+                "Subclassing sentinel is deprecated "
+                "and will be disallowed in Python 3.15",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            super().__init_subclass__()
+
+        def __setattr__(self, attr: str, value: object) -> None:
+            if attr not in {"_name", "_repr", "__module__"}:
+                warnings.warn(
+                    f"Setting attribute {attr!r} on sentinel objects is deprecated "
+                    "and will be disallowed in Python 3.15.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+            super().__setattr__(attr, value)
+
+        @property
+        def __name__(self) -> str:
+            return self._name
+
+        @__name__.setter
+        def __name__(self, value: str) -> None:
+            self._name = value
+
+        def __repr__(self) -> str:
+            return self._repr
+
+        if sys.version_info < (3, 11):
+            # The presence of this method convinces typing._type_check
+            # that Sentinels are types.
+            def __call__(self, *args, **kwargs):
+                raise TypeError(f"{type(self).__name__!r} object is not callable")
+
+        # Breakpoint: https://github.com/python/cpython/pull/21515
+        if sys.version_info >= (3, 10):
+            def __or__(self, other):
+                return typing.Union[self, other]
+
+            def __ror__(self, other):
+                return typing.Union[other, self]
+
+        def __reduce__(self) -> str:
+            """Reduce this sentinel to a singleton."""
+            return self.__name__  # Module is taken from the __module__ attribute
+
+Sentinel = sentinel
+
+_marker = sentinel("sentinel")
+
+
 # The functions below are modified copies of typing internal helpers.
 # They are needed by _ProtocolMeta and they provide support for PEP 646.
-
-
-class _Sentinel:
-    def __repr__(self):
-        return "<sentinel>"
-
-
-_marker = _Sentinel()
-
 
 # Breakpoint: https://github.com/python/cpython/pull/27342
 if sys.version_info >= (3, 10):
@@ -524,7 +628,9 @@ else:
 
 
     class _SpecialGenericAlias(typing._SpecialGenericAlias, _root=True):
-        def __init__(self, origin, nparams, *, inst=True, name=None, defaults=()):
+        def __init__(self, origin, nparams, *, defaults, inst=True, name=None):
+            assert nparams > 0, "`nparams` must be a positive integer"
+            assert defaults, "Must always specify a non-empty sequence for `defaults`"
             super().__init__(origin, nparams, inst=inst, name=name)
             self._defaults = defaults
 
@@ -542,20 +648,14 @@ else:
             msg = "Parameters to generic types must be types."
             params = tuple(typing._type_check(p, msg) for p in params)
             if (
-                self._defaults
-                and len(params) < self._nparams
+                len(params) < self._nparams
                 and len(params) + len(self._defaults) >= self._nparams
             ):
                 params = (*params, *self._defaults[len(params) - self._nparams:])
             actual_len = len(params)
 
             if actual_len != self._nparams:
-                if self._defaults:
-                    expected = f"at least {self._nparams - len(self._defaults)}"
-                else:
-                    expected = str(self._nparams)
-                if not self._nparams:
-                    raise TypeError(f"{self} is not a generic class")
+                expected = f"at least {self._nparams - len(self._defaults)}"
                 raise TypeError(
                     f"Too {'many' if actual_len > self._nparams else 'few'}"
                     f" arguments for {self};"
@@ -587,10 +687,13 @@ else:
 _PROTO_ALLOWLIST = {
     'collections.abc': [
         'Callable', 'Awaitable', 'Iterable', 'Iterator', 'AsyncIterable',
-        'Hashable', 'Sized', 'Container', 'Collection', 'Reversible', 'Buffer',
+        'AsyncIterator', 'Hashable', 'Sized', 'Container', 'Collection',
+        'Reversible', 'Buffer',
     ],
     'contextlib': ['AbstractContextManager', 'AbstractAsyncContextManager'],
+    'io': ['Reader', 'Writer'],
     'typing_extensions': ['Buffer'],
+    'os': ['PathLike'],
 }
 
 
@@ -612,22 +715,12 @@ def _get_protocol_attrs(cls):
     return attrs
 
 
-def _caller(depth=1, default='__main__'):
-    try:
-        return sys._getframemodulename(depth + 1) or default
-    except AttributeError:  # For platforms without _getframemodulename()
-        pass
-    try:
-        return sys._getframe(depth + 1).f_globals.get('__name__', default)
-    except (AttributeError, ValueError):  # For platforms without _getframe()
-        pass
-    return None
-
-
 # `__match_args__` attribute was removed from protocol members in 3.13,
 # we want to backport this change to older Python versions.
-# Breakpoint: https://github.com/python/cpython/pull/110683
-if sys.version_info >= (3, 13):
+# 3.14 additionally added `io.Reader`, `io.Writer` and `os.PathLike` to
+# the list of allowed protocol allowlist.
+# https://github.com/python/cpython/issues/127647
+if sys.version_info >= (3, 14):
     Protocol = typing.Protocol
 else:
     def _allow_reckless_class_checks(depth=2):
@@ -1038,10 +1131,10 @@ if _NEEDS_SINGLETONMETA:
 
 
 # Update this to something like >=3.13.0b1 if and when
-# PEP 728 is implemented in CPython
-_PEP_728_IMPLEMENTED = False
+# PEP 764 is implemented in CPython
+_PEP_764_IMPLEMENTED = False
 
-if _PEP_728_IMPLEMENTED:
+if _PEP_764_IMPLEMENTED:
     # The standard library TypedDict in Python 3.9.0/1 does not honour the "total"
     # keyword with old-style TypedDict().  See https://bugs.python.org/issue42059
     # The standard library TypedDict below Python 3.11 does not store runtime
@@ -1051,7 +1144,8 @@ if _PEP_728_IMPLEMENTED:
     # to enable better runtime introspection.
     # On 3.13 we deprecate some odd ways of creating TypedDicts.
     # Also on 3.13, PEP 705 adds the ReadOnly[] qualifier.
-    # PEP 728 (still pending) makes more changes.
+    # PEP 728 (Python 3.15+) adds the `extra_items` and `closed` keywords.
+    # PEP 764 (still pending) allows the `TypedDict` special form to be subscripted.
     TypedDict = typing.TypedDict
     _TypedDictMeta = typing._TypedDictMeta
     is_typeddict = typing.is_typeddict
@@ -1155,8 +1249,14 @@ else:
 
                 if sys.version_info <= (3, 14):
                     annotations.update(base_dict.get('__annotations__', {}))
-                required_keys.update(base_dict.get('__required_keys__', ()))
-                optional_keys.update(base_dict.get('__optional_keys__', ()))
+                base_required = base_dict.get('__required_keys__', set())
+                required_keys |= base_required
+                optional_keys -= base_required
+
+                base_optional = base_dict.get('__optional_keys__', set())
+                required_keys -= base_optional
+                optional_keys |= base_optional
+
                 readonly_keys.update(base_dict.get('__readonly_keys__', ()))
                 mutable_keys.update(base_dict.get('__mutable_keys__', ()))
 
@@ -1184,13 +1284,19 @@ else:
                 qualifiers = set(_get_typeddict_qualifiers(annotation_type))
 
                 if Required in qualifiers:
-                    required_keys.add(annotation_key)
+                    is_required = True
                 elif NotRequired in qualifiers:
-                    optional_keys.add(annotation_key)
-                elif total:
+                    is_required = False
+                else:
+                    is_required = total
+
+                if is_required:
                     required_keys.add(annotation_key)
+                    optional_keys.discard(annotation_key)
                 else:
                     optional_keys.add(annotation_key)
+                    required_keys.discard(annotation_key)
+
                 if ReadOnly in qualifiers:
                     mutable_keys.discard(annotation_key)
                     readonly_keys.add(annotation_key)
@@ -1798,7 +1904,7 @@ elif hasattr(typing, 'ParamSpec'):
                 paramspec = typing.ParamSpec(name, bound=bound,
                                              covariant=covariant,
                                              contravariant=contravariant)
-                paramspec.__infer_variance__ = infer_variance
+                paramspec.__infer_variance__ = bool(infer_variance)
 
             _set_default(paramspec, default)
             _set_module(paramspec)
@@ -1894,10 +2000,7 @@ else:
             self.__covariant__ = bool(covariant)
             self.__contravariant__ = bool(contravariant)
             self.__infer_variance__ = bool(infer_variance)
-            if bound:
-                self.__bound__ = typing._type_check(bound, 'Bound must be a type.')
-            else:
-                self.__bound__ = None
+            self.__bound__ = bound
             _DefaultMixin.__init__(self, default)
 
             # for pickling:
@@ -1929,6 +2032,9 @@ else:
         def __call__(self, *args, **kwargs):
             pass
 
+        def __init_subclass__(cls) -> None:
+            raise TypeError(f"type '{__name__}.ParamSpec' is not an acceptable base type")
+
 
 # 3.9
 if not hasattr(typing, 'Concatenate'):
@@ -1956,7 +2062,9 @@ if not hasattr(typing, 'Concatenate'):
         __class__ = typing._GenericAlias
 
         def __init__(self, origin, args):
-            super().__init__(args)
+            # Cannot use `super().__init__` here because of the `__class__` assignment
+            # in the class body (https://github.com/python/typing_extensions/issues/661)
+            list.__init__(self, args)
             self.__origin__ = origin
             self.__args__ = args
 
@@ -2259,10 +2367,10 @@ else:
         return typing._GenericAlias(self, (item,))
 
 
-# 3.14+?
+# 3.15+?
 if hasattr(typing, 'TypeForm'):
     TypeForm = typing.TypeForm
-# <=3.13
+# <=3.14
 else:
     class _TypeFormForm(_ExtensionsSpecialForm, _root=True):
         # TypeForm(X) is equivalent to X but indicates to the type checker
@@ -2515,7 +2623,10 @@ else:  # <=3.11
         def __getitem__(self, args):
             if self.__typing_is_unpacked_typevartuple__:
                 return args
-            return super().__getitem__(args)
+            # Cannot use `super().__getitem__` here because of the `__class__` assignment
+            # in the class body on Python <=3.11
+            # (https://github.com/python/typing_extensions/issues/661)
+            return typing._GenericAlias.__getitem__(self, args)
 
     @_UnpackSpecialForm
     def Unpack(self, parameters):
@@ -2537,20 +2648,33 @@ def _unpack_args(*args):
     return newargs
 
 
-if _PEP_696_IMPLEMENTED:
+if sys.version_info >= (3, 15):
     from typing import TypeVarTuple
 
 elif hasattr(typing, "TypeVarTuple"):  # 3.11+
 
-    # Add default parameter - PEP 696
+    # Add default parameter - PEP 696 and bound/variance parameters
     class TypeVarTuple(metaclass=_TypeVarLikeMeta):
         """Type variable tuple."""
 
         _backported_typevarlike = typing.TypeVarTuple
 
-        def __new__(cls, name, *, default=NoDefault):
-            tvt = typing.TypeVarTuple(name)
-            _set_default(tvt, default)
+        def __new__(cls, name, *, bound=None,
+                    covariant=False, contravariant=False,
+                    infer_variance=False, default=NoDefault):
+
+            if _PEP_696_IMPLEMENTED:
+                # can pass default argument
+                tvt = typing.TypeVarTuple(name, default=default)
+            else:
+                tvt = typing.TypeVarTuple(name)
+                _set_default(tvt, default)
+
+            tvt.__bound__ = bound
+            tvt.__covariant__ = bool(covariant)
+            tvt.__contravariant__ = bool(contravariant)
+            tvt.__infer_variance__ = bool(infer_variance)
+
             _set_module(tvt)
 
             def _typevartuple_prepare_subst(alias, args):
@@ -2655,8 +2779,13 @@ else:  # <=3.10
         def __iter__(self):
             yield self.__unpacked__
 
-        def __init__(self, name, *, default=NoDefault):
+        def __init__(self, name, *, bound=None, covariant=False, contravariant=False,
+                     infer_variance=False, default=NoDefault):
             self.__name__ = name
+            self.__covariant__ = bool(covariant)
+            self.__contravariant__ = bool(contravariant)
+            self.__infer_variance__ = bool(infer_variance)
+            self.__bound__ = bound
             _DefaultMixin.__init__(self, default)
 
             # for pickling:
@@ -2667,7 +2796,15 @@ else:  # <=3.10
             self.__unpacked__ = Unpack[self]
 
         def __repr__(self):
-            return self.__name__
+            if self.__infer_variance__:
+                prefix = ''
+            elif self.__covariant__:
+                prefix = '+'
+            elif self.__contravariant__:
+                prefix = '-'
+            else:
+                prefix = '~'
+            return prefix + self.__name__
 
         def __hash__(self):
             return object.__hash__(self)
@@ -2873,9 +3010,9 @@ else:  # <=3.11
         return arg
 
 
-# Python 3.13.3+ contains a fix for the wrapped __new__
-# Breakpoint: https://github.com/python/cpython/pull/132160
-if sys.version_info >= (3, 13, 3):
+# Python 3.13.8+ and 3.14.1+ contain a fix for the wrapped __init_subclass__
+# Breakpoint: https://github.com/python/cpython/pull/138210
+if ((3, 13, 8) <= sys.version_info < (3, 14)) or sys.version_info >= (3, 14, 1):
     deprecated = warnings.deprecated
 else:
     _T = typing.TypeVar("_T")
@@ -2968,33 +3105,32 @@ else:
 
                 arg.__new__ = staticmethod(__new__)
 
-                original_init_subclass = arg.__init_subclass__
-                # We need slightly different behavior if __init_subclass__
-                # is a bound method (likely if it was implemented in Python)
-                if isinstance(original_init_subclass, MethodType):
-                    original_init_subclass = original_init_subclass.__func__
+                if "__init_subclass__" in arg.__dict__:
+                    # __init_subclass__ is directly present on the decorated class.
+                    # Synthesize a wrapper that calls this method directly.
+                    original_init_subclass = arg.__init_subclass__
+                    # We need slightly different behavior if __init_subclass__
+                    # is a bound method (likely if it was implemented in Python).
+                    # Otherwise, it likely means it's a builtin such as
+                    # object's implementation of __init_subclass__.
+                    if isinstance(original_init_subclass, MethodType):
+                        original_init_subclass = original_init_subclass.__func__
 
                     @functools.wraps(original_init_subclass)
                     def __init_subclass__(*args, **kwargs):
                         warnings.warn(msg, category=category, stacklevel=stacklevel + 1)
                         return original_init_subclass(*args, **kwargs)
-
-                    arg.__init_subclass__ = classmethod(__init_subclass__)
-                # Or otherwise, which likely means it's a builtin such as
-                # object's implementation of __init_subclass__.
                 else:
-                    @functools.wraps(original_init_subclass)
-                    def __init_subclass__(*args, **kwargs):
+                    def __init_subclass__(cls, *args, **kwargs):
                         warnings.warn(msg, category=category, stacklevel=stacklevel + 1)
-                        return original_init_subclass(*args, **kwargs)
+                        return super(arg, cls).__init_subclass__(*args, **kwargs)
 
-                    arg.__init_subclass__ = __init_subclass__
+                arg.__init_subclass__ = classmethod(__init_subclass__)
 
                 arg.__deprecated__ = __new__.__deprecated__ = msg
                 __init_subclass__.__deprecated__ = msg
                 return arg
             elif callable(arg):
-                import asyncio.coroutines
                 import functools
                 import inspect
 
@@ -3003,11 +3139,13 @@ else:
                     warnings.warn(msg, category=category, stacklevel=stacklevel + 1)
                     return arg(*args, **kwargs)
 
-                if asyncio.coroutines.iscoroutinefunction(arg):
+                if inspect.iscoroutinefunction(arg):
                     # Breakpoint: https://github.com/python/cpython/pull/99247
                     if sys.version_info >= (3, 12):
                         wrapper = inspect.markcoroutinefunction(wrapper)
                     else:
+                        import asyncio.coroutines
+
                         wrapper._is_coroutine = asyncio.coroutines._is_coroutine
 
                 arg.__deprecated__ = wrapper.__deprecated__ = msg
@@ -3579,14 +3717,14 @@ else:
                 return typing.Union[other, self]
 
 
-# Breakpoint: https://github.com/python/cpython/pull/124795
-if sys.version_info >= (3, 14):
+# Breakpoint: https://github.com/python/cpython/pull/149172
+if sys.version_info >= (3, 15):
     TypeAliasType = typing.TypeAliasType
-# <=3.13
+# <=3.14
 else:
     # Breakpoint: https://github.com/python/cpython/pull/103764
     if sys.version_info >= (3, 12):
-        # 3.12-3.13
+        # 3.12-3.14
         def _is_unionable(obj):
             """Corresponds to is_unionable() in unionobject.c in CPython."""
             return obj is None or isinstance(obj, (
@@ -3699,7 +3837,7 @@ else:
             self.__name__ = name
 
         def __setattr__(self, name: str, value: object, /) -> None:
-            if hasattr(self, "__name__"):
+            if hasattr(self, "__name__") and name != "__module__":
                 self._raise_attribute_error(name)
             super().__setattr__(name, value)
 
@@ -3710,7 +3848,7 @@ else:
             # Match the Python 3.12 error messages exactly
             if name == "__name__":
                 raise AttributeError("readonly attribute")
-            elif name in {"__value__", "__type_params__", "__parameters__", "__module__"}:
+            elif name in {"__value__", "__type_params__", "__parameters__"}:
                 raise AttributeError(
                     f"attribute '{name}' of 'typing.TypeAliasType' objects "
                     "is not writable"
@@ -3829,8 +3967,8 @@ else:
             >>> class P(Protocol):
             ...     def a(self) -> str: ...
             ...     b: int
-            >>> get_protocol_members(P)
-            frozenset({'a', 'b'})
+            >>> get_protocol_members(P) == frozenset({'a', 'b'})
+            True
 
         Raise a TypeError for arguments that are not Protocols.
         """
@@ -4207,44 +4345,6 @@ else:
             )
 
 
-class Sentinel:
-    """Create a unique sentinel object.
-
-    *name* should be the name of the variable to which the return value shall be assigned.
-
-    *repr*, if supplied, will be used for the repr of the sentinel object.
-    If not provided, "<name>" will be used.
-    """
-
-    def __init__(
-        self,
-        name: str,
-        repr: typing.Optional[str] = None,
-    ):
-        self._name = name
-        self._repr = repr if repr is not None else f'<{name}>'
-
-    def __repr__(self):
-        return self._repr
-
-    if sys.version_info < (3, 11):
-        # The presence of this method convinces typing._type_check
-        # that Sentinels are types.
-        def __call__(self, *args, **kwargs):
-            raise TypeError(f"{type(self).__name__!r} object is not callable")
-
-    # Breakpoint: https://github.com/python/cpython/pull/21515
-    if sys.version_info >= (3, 10):
-        def __or__(self, other):
-            return typing.Union[self, other]
-
-        def __ror__(self, other):
-            return typing.Union[other, self]
-
-    def __getstate__(self):
-        raise TypeError(f"Cannot pickle {type(self).__name__!r} object")
-
-
 if sys.version_info >= (3, 14, 0, "beta"):
     type_repr = annotationlib.type_repr
 else:
@@ -4302,11 +4402,16 @@ _typing_names = [
     "ValuesView",
     "cast",
     "no_type_check",
-    "no_type_check_decorator",
     # This is private, but it was defined by typing_extensions for a long time
     # and some users rely on it.
     "_AnnotatedAlias",
 ]
+
+# Breakpoint: https://github.com/python/cpython/pull/133602
+if sys.version_info < (3, 15, 0):
+    _typing_names.append("no_type_check_decorator")
+    __all__.append("no_type_check_decorator")
+
 globals().update(
     {name: getattr(typing, name) for name in _typing_names if hasattr(typing, name)}
 )
