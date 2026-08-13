@@ -1453,11 +1453,12 @@ class MyPlexResource(PlexObject):
             synced (bool): Unknown (possibly True if the resource has synced content?)
     """
     TAG = 'resource'
-    key = 'https://plex.tv/api/v2/resources?includeHttps=1&includeRelay=1'
+    key = 'https://plex.tv/api/v2/resources?includeHttps=1&includeRelay=1&includeIPv6=1'
 
     # Default order to prioritize available resource connections
     DEFAULT_LOCATION_ORDER = ['local', 'remote', 'relay']
     DEFAULT_SCHEME_ORDER = ['https', 'http']
+    DEFAULT_IP_ORDER = ['ipv4', 'ipv6']
 
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
@@ -1488,11 +1489,13 @@ class MyPlexResource(PlexObject):
     def connections(self):
         return self.findItems(self._data, ResourceConnection, rtag='connections')
 
-    def preferred_connections(
+    def preferred_connections(  # noqa: C901
         self,
         ssl=None,
+        ipv6=None,
         locations=None,
         schemes=None,
+        ipvs=None,
     ):
         """ Returns a sorted list of the available connection addresses for this resource.
             Often times there is more than one address specified for a server or client.
@@ -1502,37 +1505,70 @@ class MyPlexResource(PlexObject):
                 ssl (bool, optional): Set True to only connect to HTTPS connections. Set False to
                     only connect to HTTP connections. Set None (default) to connect to any
                     HTTP or HTTPS connection.
+                ipv6 (bool, optional): Set True to only connect to IPv6 connections. Set False to
+                    only connect to IPv4 connections. Set None (default) to connect to any
+                    IPv4 or IPv6 connection.
         """
         if locations is None:
             locations = self.DEFAULT_LOCATION_ORDER[:]
         if schemes is None:
             schemes = self.DEFAULT_SCHEME_ORDER[:]
+        if ipvs is None:
+            ipvs = self.DEFAULT_IP_ORDER[:]
 
-        connections_dict = {location: {scheme: [] for scheme in schemes} for location in locations}
+        # Create a copy to avoid mutating args
+        schemes = schemes[:]
+        ipvs = ipvs[:]
+
+        if ssl is True: schemes.remove('http')
+        elif ssl is False: schemes.remove('https')
+
+        if ipv6 is True: ipvs.remove('ipv4')
+        elif ipv6 is False: ipvs.remove('ipv6')
+
+        connections_dict = {
+            location: {
+                scheme: {
+                    ip: []
+                    for ip in ipvs
+                }
+                for scheme in schemes
+            }
+            for location in locations
+        }
+
         for connection in self.connections:
             # Only check non-local connections unless we own the resource
             if self.owned or (not self.owned and not connection.local):
+
                 location = 'relay' if connection.relay else ('local' if connection.local else 'remote')
                 if location not in locations:
                     continue
+
+                ipv = 'ipv6' if connection.ipv6 else 'ipv4'
+                if ipv not in ipvs:
+                    continue
+
                 if 'http' in schemes:
-                    connections_dict[location]['http'].append(connection.httpuri)
+                    connections_dict[location]['http'][ipv].append(connection.httpuri)
                 if 'https' in schemes:
-                    connections_dict[location]['https'].append(connection.uri)
-        if ssl is True: schemes.remove('http')
-        elif ssl is False: schemes.remove('https')
+                    connections_dict[location]['https'][ipv].append(connection.uri)
+
         connections = []
         for location in locations:
             for scheme in schemes:
-                connections.extend(connections_dict[location][scheme])
+                for ipv in ipvs:
+                    connections.extend(connections_dict[location][scheme][ipv])
         return connections
 
     def connect(
         self,
         ssl=None,
+        ipv6=None,
         timeout=None,
         locations=None,
         schemes=None,
+        ipvs=None,
     ):
         """ Returns a new :class:`~plexapi.server.PlexServer` or :class:`~plexapi.client.PlexClient` object.
             Uses `MyPlexResource.preferred_connections()` to generate the priority order of connection addresses.
@@ -1543,6 +1579,9 @@ class MyPlexResource(PlexObject):
                 ssl (bool, optional): Set True to only connect to HTTPS connections. Set False to
                     only connect to HTTP connections. Set None (default) to connect to any
                     HTTP or HTTPS connection.
+                ipv6 (bool, optional): Set True to only connect to IPv6 connections. Set False to
+                    only connect to IPv4 connections. Set None (default) to connect to any
+                    IPv4 or IPv6 connection.
                 timeout (int, optional): The timeout in seconds to attempt each connection.
 
             Raises:
@@ -1552,8 +1591,10 @@ class MyPlexResource(PlexObject):
             locations = self.DEFAULT_LOCATION_ORDER[:]
         if schemes is None:
             schemes = self.DEFAULT_SCHEME_ORDER[:]
+        if ipvs is None:
+            ipvs = self.DEFAULT_IP_ORDER[:]
 
-        connections = self.preferred_connections(ssl, locations, schemes)
+        connections = self.preferred_connections(ssl, ipv6, locations, schemes, ipvs)
         # Try connecting to all known resource connections in parallel, but
         # only return the first server (in order) that provides a response.
         cls = PlexServer if 'server' in self.provides else PlexClient

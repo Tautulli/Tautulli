@@ -156,14 +156,12 @@ class Audio(PlexPartialObject, PlayedUnplayedMixin):
         Returns:
             List[:class:`~plexapi.audio.Audio`]: list of sonically similar audio items.
         """
-
-        key = f"{self.key}/nearest"
         params: Dict[str, Any] = {}
         if limit is not None:
             params['limit'] = limit
         if maxDistance is not None:
             params['maxDistance'] = maxDistance
-        key += utils.joinArgs(params)
+        key = self._buildQueryKey(f"{self.key}/nearest", **params)
 
         return self.fetchItems(
             key,
@@ -280,7 +278,7 @@ class Artist(
             Raises:
                 :exc:`~plexapi.exceptions.BadRequest`: If title or album and track parameters are missing.
         """
-        key = f'{self.key}/allLeaves'
+        key = self._buildQueryKey(f'{self.key}/allLeaves')
         if title is not None:
             return self.fetchItem(key, Track, title__iexact=title)
         elif album is not None and track is not None:
@@ -289,7 +287,7 @@ class Artist(
 
     def tracks(self, **kwargs):
         """ Returns a list of :class:`~plexapi.audio.Track` objects by the artist. """
-        key = f'{self.key}/allLeaves'
+        key = self._buildQueryKey(f"{self.key}/allLeaves")
         return self.fetchItems(key, Track, **kwargs)
 
     def get(self, title=None, album=None, track=None):
@@ -329,7 +327,7 @@ class Artist(
 
     def station(self):
         """ Returns a :class:`~plexapi.playlist.Playlist` artist radio station or `None`. """
-        key = f'{self.key}?includeStations=1'
+        key = self._buildQueryKey(f'{self.key}', includeStations=1)
         return next(iter(self.fetchItems(key, cls=Playlist, rtag="Stations")), None)
 
     @property
@@ -440,7 +438,7 @@ class Album(
             Raises:
                 :exc:`~plexapi.exceptions.BadRequest`: If title or track parameter is missing.
         """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         if title is not None and not isinstance(title, int):
             return self.fetchItem(key, Track, title__iexact=title)
         elif track is not None or isinstance(title, int):
@@ -453,7 +451,7 @@ class Album(
 
     def tracks(self, **kwargs):
         """ Returns a list of :class:`~plexapi.audio.Track` objects in the album. """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItems(key, Track, **kwargs)
 
     def get(self, title=None, track=None):
@@ -462,7 +460,8 @@ class Album(
 
     def artist(self):
         """ Return the album's :class:`~plexapi.audio.Artist`. """
-        return self.fetchItem(self.parentKey)
+        key = self._buildQueryKey(self.parentKey)
+        return self.fetchItem(key)
 
     def download(self, savepath=None, keep_original_name=False, **kwargs):
         """ Download all tracks from the album. See :func:`~plexapi.base.Playable.download` for details.
@@ -609,11 +608,13 @@ class Track(
 
     def album(self):
         """ Return the track's :class:`~plexapi.audio.Album`. """
-        return self.fetchItem(self.parentKey)
+        key = self._buildQueryKey(self.parentKey)
+        return self.fetchItem(key)
 
     def artist(self):
         """ Return the track's :class:`~plexapi.audio.Artist`. """
-        return self.fetchItem(self.grandparentKey)
+        key = self._buildQueryKey(self.grandparentKey)
+        return self.fetchItem(key)
 
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """

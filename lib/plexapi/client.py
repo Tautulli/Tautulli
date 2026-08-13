@@ -481,8 +481,38 @@ class PlexClient(PlexObject):
         """
         self.setStreams(videoStreamID=videoStreamID, mtype=mtype)
 
+    def createPlayQueue(self, server, items, offset=0, paused=False, **params):
+        """ Create a playqueue and start playback of the specified media item.
+
+            Parameters:
+                server (:class:`~plexapi.server.PlexServer`): Server you are connected to.
+                items (:class:`~plexapi.base.PlexPartialObject`):
+                    A media item or a list of media items.
+                offset (int, optional): Number of milliseconds at which to start playing with zero
+                    representing the beginning (default 0).
+                paused (bool, optional): Set True to pause playback,
+                    default False to start playback immediately.
+                **params (dict): Additional options to apply to the playqueue.
+                    See :func:`~plexapi.playqueue.PlayQueue.create` for available parameters.
+        """
+        protocol, address, port = server._baseurl.split(':')
+        args = PlayQueue._createArgs(
+            server=server,
+            items=items,
+            offset=offset,
+            paused=int(bool(paused)),
+            protocol=protocol,
+            address=address.strip('/'),
+            port=port,
+            machineIdentifier=server.machineIdentifier,
+            source=server.machineIdentifier,
+            **params)
+        self.sendCommand("playback/createPlayQueue", **args)
+
     def playMedia(self, media, offset=0, **params):
-        """ Start playback of the specified media item. See also:
+        """ Start playback of the specified media item.
+            Note: This is a legacy command for older clients.
+            Use :func:`~plexapi.client.PlexClient.createPlayQueue` instead for modern clients.
 
             Parameters:
                 media (:class:`~plexapi.media.Media`): Media item to be played back

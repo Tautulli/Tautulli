@@ -1,5 +1,5 @@
 import re
-from typing import TYPE_CHECKING, Generic, Iterable, List, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Generic, Iterable, List, Optional, TypeVar, Union, overload
 import weakref
 from functools import cached_property
 from urllib.parse import parse_qsl, urlencode, urlparse
@@ -12,11 +12,13 @@ from plexapi.exceptions import BadRequest, NotFound, UnknownType, Unsupported
 if TYPE_CHECKING:
     from plexapi.server import PlexServer
 
-PlexObjectT = TypeVar("PlexObjectT", bound='PlexObject')
-MediaContainerT = TypeVar("MediaContainerT", bound="MediaContainer")
+_T = TypeVar('_T')
 
-USER_DONT_RELOAD_FOR_KEYS = set()
-_DONT_RELOAD_FOR_KEYS = {'key', 'sourceURI'}
+PlexObjectT = TypeVar('PlexObjectT', bound='PlexObject')
+MediaContainerT = TypeVar('MediaContainerT', bound='MediaContainer')
+
+USER_DONT_RELOAD_FOR_KEYS: set[str] = set()
+_DONT_RELOAD_FOR_KEYS: set[str] = {'centroid', 'key', 'sourceURI'}
 OPERATORS = {
     'exact': lambda v, q: v == q,
     'iexact': lambda v, q: v.lower() == q.lower(),
@@ -38,12 +40,15 @@ OPERATORS = {
 }
 
 
-class cached_data_property(cached_property):
+class cached_data_property(cached_property, Generic[_T]):
     """Caching for PlexObject data properties.
 
     This decorator creates properties that cache their values with
     automatic invalidation on data changes.
     """
+
+    def __init__(self, func: Callable[[Any], _T]) -> None:
+        super().__init__(func)
 
     def __set_name__(self, owner, name):
         """Register the annotated property in the parent class's _cached_data_properties set."""
@@ -51,6 +56,17 @@ class cached_data_property(cached_property):
         if not hasattr(owner, '_cached_data_properties'):
             owner._cached_data_properties = set()
         owner._cached_data_properties.add(name)
+
+    @overload
+    def __get__(self, instance: None, owner: type | None = None) -> "cached_data_property[_T]":
+        ...
+
+    @overload
+    def __get__(self, instance: object, owner: type | None = None) -> _T:
+        ...
+
+    def __get__(self, instance: object | None, owner: type | None = None) -> "cached_data_property[_T] | _T":
+        return super().__get__(instance, owner)
 
 
 class PlexObjectMeta(type):
@@ -191,9 +207,10 @@ class PlexObject(metaclass=PlexObjectMeta):
             return None
 
         args = {'includeGuids': 1, **kwargs}
-        params = utils.joinArgs(args)
+        params = utils.joinArgs(args).lstrip('?')
+        delim = '&' if '?' in key else '?'
 
-        return f"{key}{params}"
+        return f"{key}{delim}{params}"
 
     def _isChildOf(self, **kwargs):
         """ Returns True if this object is a child of the given attributes.
@@ -1139,7 +1156,7 @@ class PlexHistory:
 class MediaContainer(
     Generic[PlexObjectT],
     List[PlexObjectT],
-    PlexObject,
+    PlexObject
 ):
     """ Represents a single MediaContainer.
 
