@@ -1,4 +1,4 @@
-apscheduler==3.11.2
+apscheduler==3.11.3
 arrow==1.4.0
 beautifulsoup4==4.15.0
 bleach==6.4.0
@@ -26,7 +26,7 @@ PyJWT==2.13.0
 python-twitter==3.5
 requests==2.34.2
 rumps==0.4.0; platform_system == "Darwin"
-tzlocal==5.3.1
+tzlocal==5.4.4
 urllib3==2.7.0
 websocket-client==1.9.0
 xmltodict==1.0.4

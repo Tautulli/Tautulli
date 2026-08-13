@@ -126,6 +126,13 @@ class CronTrigger(BaseTrigger):
 
         See https://en.wikipedia.org/wiki/Cron for more information on the format accepted here.
 
+        .. warning:: Due to a historical mistake, there is a mismatch between weekday
+            numbers, as APScheduler treats 0 as Monday while the original crontab treats
+            it as Sunday. This has been rectified in the v4.x series but cannot be
+            changed in the 3.x series due to backwards compatibility. See
+            `issue 286 <https://github.com/agronholm/apscheduler/issues/286>`_ for more
+            information.
+
         :param expr: minute, hour, day of month, month, day of week
         :param datetime.tzinfo|str timezone: time zone to use for the date/time calculations (
             defaults to scheduler timezone)
