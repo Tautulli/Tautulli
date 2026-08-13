@@ -5,37 +5,37 @@ import logging
 import unicodedata
 from bisect import bisect_right
 from codecs import IncrementalDecoder
-from encodings.aliases import aliases
 from functools import lru_cache
-from re import findall
 from typing import Generator
-
-from _multibytecodec import (  # type: ignore[import-not-found,import]
-    MultibyteIncrementalDecoder,
-)
 
 from .constant import (
     ENCODING_MARKS,
     IANA_SUPPORTED_SIMILAR,
     RE_POSSIBLE_ENCODING_INDICATION,
     UNICODE_RANGES_COMBINED,
-    UNICODE_SECONDARY_RANGE_KEYWORD,
-    UTF8_MAXIMAL_ALLOCATION,
+    _SECONDARY_RANGE_NAMES,
     COMMON_CJK_CHARACTERS,
     _LATIN,
     _CJK,
     _HANGUL,
     _KATAKANA,
     _HIRAGANA,
+    _HALFWIDTH_KATAKANA,
     _THAI,
     _ARABIC,
     _ARABIC_ISOLATED_FORM,
+    _LIGATURE,
+    _SUPERSCRIPT,
+    _SENTENCE_OPEN_PUNCTUATION,
     _ACCENT_KEYWORDS,
     _ACCENTUATED,
+    _KNOWN_MB_DECODERS,
+    _KNOWN_MB_CLASSES,
+    _IANA_NAMES,
+    _MULTIBYTE_SEARCH_RADIUS,
 )
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def _character_flags(character: str) -> int:
     """Compute all name-based classification flags with a single unicodedata.name() call."""
     try:
@@ -53,6 +53,8 @@ def _character_flags(character: str) -> int:
         flags |= _HANGUL
     if "KATAKANA" in desc:
         flags |= _KATAKANA
+        if "HALFWIDTH" in desc:
+            flags |= _HALFWIDTH_KATAKANA
     if "HIRAGANA" in desc:
         flags |= _HIRAGANA
     if "THAI" in desc:
@@ -61,6 +63,12 @@ def _character_flags(character: str) -> int:
         flags |= _ARABIC
         if "ISOLATED FORM" in desc:
             flags |= _ARABIC_ISOLATED_FORM
+    if "LIGATURE" in desc or desc.endswith("LETTER AE"):
+        flags |= _LIGATURE
+    if "SUPERSCRIPT" in desc:
+        flags |= _SUPERSCRIPT
+    if desc in {"INVERTED QUESTION MARK", "INVERTED EXCLAMATION MARK"}:
+        flags |= _SENTENCE_OPEN_PUNCTUATION
 
     for kw in _ACCENT_KEYWORDS:
         if kw in desc:
@@ -70,12 +78,10 @@ def _character_flags(character: str) -> int:
     return flags
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_accentuated(character: str) -> bool:
     return bool(_character_flags(character) & _ACCENTUATED)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def remove_accent(character: str) -> str:
     decomposed: str = unicodedata.decomposition(character)
     if not decomposed:
@@ -95,12 +101,16 @@ _UNICODE_RANGES_SORTED: list[tuple[int, int, str]] = sorted(
 _UNICODE_RANGE_STARTS: list[int] = [e[0] for e in _UNICODE_RANGES_SORTED]
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def unicode_range(character: str) -> str | None:
     """
     Retrieve the Unicode range official name from a single character.
     """
     character_ord: int = ord(character)
+
+    if character_ord < 32:
+        return "Control character"
+    if character_ord < 128:
+        return "Basic Latin"
 
     # Binary search: find the rightmost range whose start <= character_ord
     idx = bisect_right(_UNICODE_RANGE_STARTS, character_ord) - 1
@@ -112,12 +122,10 @@ def unicode_range(character: str) -> str | None:
     return None
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_latin(character: str) -> bool:
     return bool(_character_flags(character) & _LATIN)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_punctuation(character: str) -> bool:
     character_category: str = unicodedata.category(character)
 
@@ -132,7 +140,6 @@ def is_punctuation(character: str) -> bool:
     return "Punctuation" in character_range
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_symbol(character: str) -> bool:
     character_category: str = unicodedata.category(character)
 
@@ -147,7 +154,6 @@ def is_symbol(character: str) -> bool:
     return "Forms" in character_range and character_category != "Lo"
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_emoticon(character: str) -> bool:
     character_range: str | None = unicode_range(character)
 
@@ -157,7 +163,6 @@ def is_emoticon(character: str) -> bool:
     return "Emoticons" in character_range or "Pictographs" in character_range
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_separator(character: str) -> bool:
     if character.isspace() or character in {"｜", "+", "<", ">"}:
         return True
@@ -167,61 +172,50 @@ def is_separator(character: str) -> bool:
     return "Z" in character_category or character_category in {"Po", "Pd", "Pc"}
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_case_variable(character: str) -> bool:
     return character.islower() != character.isupper()
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_cjk(character: str) -> bool:
     return bool(_character_flags(character) & _CJK)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_hiragana(character: str) -> bool:
     return bool(_character_flags(character) & _HIRAGANA)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_katakana(character: str) -> bool:
     return bool(_character_flags(character) & _KATAKANA)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_hangul(character: str) -> bool:
     return bool(_character_flags(character) & _HANGUL)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_thai(character: str) -> bool:
     return bool(_character_flags(character) & _THAI)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_arabic(character: str) -> bool:
     return bool(_character_flags(character) & _ARABIC)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_arabic_isolated_form(character: str) -> bool:
     return bool(_character_flags(character) & _ARABIC_ISOLATED_FORM)
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_cjk_uncommon(character: str) -> bool:
     return character not in COMMON_CJK_CHARACTERS
 
 
-@lru_cache(maxsize=len(UNICODE_RANGES_COMBINED))
 def is_unicode_range_secondary(range_name: str) -> bool:
-    return any(keyword in range_name for keyword in UNICODE_SECONDARY_RANGE_KEYWORD)
+    return range_name in _SECONDARY_RANGE_NAMES
 
 
-@lru_cache(maxsize=UTF8_MAXIMAL_ALLOCATION)
 def is_unprintable(character: str) -> bool:
     return (
-        character.isspace() is False  # includes \n \t \r \v
-        and character.isprintable() is False
+        not character.isspace()  # includes \n \t \r \v
+        and not character.isprintable()
         and character != "\x1a"  # Why? Its the ASCII substitute character.
         and character != "\ufeff"  # bug discovered in Python,
         # Zero Width No-Break Space located in 	Arabic Presentation Forms-B, Unicode 1.1 not acknowledged as space.
@@ -239,48 +233,46 @@ def any_specified_encoding(
 
     seq_len: int = len(sequence)
 
-    results: list[str] = findall(
-        RE_POSSIBLE_ENCODING_INDICATION,
-        sequence[: min(seq_len, search_zone)].decode("ascii", errors="ignore"),
-    )
-
-    if len(results) == 0:
+    # Cheap literal pre-filter.
+    search_bytes = sequence[: min(seq_len, search_zone)]
+    lowered_bytes = search_bytes.lower()
+    if b"coding" not in lowered_bytes and b"charset" not in lowered_bytes:
         return None
 
-    for specified_encoding in results:
-        specified_encoding = specified_encoding.lower().replace("-", "_")
+    decoded_zone: str = search_bytes.decode("ascii", errors="ignore")
 
-        encoding_alias: str
-        encoding_iana: str
-
-        for encoding_alias, encoding_iana in aliases.items():
-            if encoding_alias == specified_encoding:
-                return encoding_iana
-            if encoding_iana == specified_encoding:
-                return encoding_iana
+    for match in RE_POSSIBLE_ENCODING_INDICATION.finditer(decoded_zone):
+        specified_encoding = match.group(1).lower().replace("-", "_")
+        encoding_iana = _IANA_NAMES.get(specified_encoding)
+        if encoding_iana is not None:
+            return encoding_iana
 
     return None
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=None)
 def is_multi_byte_encoding(name: str) -> bool:
     """
     Verify is a specific encoding is a multi byte one based on it IANA name
     """
-    return name in {
-        "utf_8",
-        "utf_8_sig",
-        "utf_16",
-        "utf_16_be",
-        "utf_16_le",
-        "utf_32",
-        "utf_32_le",
-        "utf_32_be",
-        "utf_7",
-    } or issubclass(
-        importlib.import_module(f"encodings.{name}").IncrementalDecoder,
-        MultibyteIncrementalDecoder,
-    )
+    if name in _KNOWN_MB_DECODERS:
+        return True
+
+    # Besides the Unicode family above, every multibyte codec shipped with
+    # Python is implemented by _multibytecodec through exactly one of the six
+    # cjkcodecs providers below. Probing those providers directly (getcodec)
+    # classifies a name without importing its "encodings.<name>" module:
+    # classifying the whole IANA_SUPPORTED list would otherwise import many
+    # modules and dominate "import charset_normalizer" wall time.
+    # see https://github.com/jawah/charset_normalizer/issues/742
+    for provider in _KNOWN_MB_CLASSES:
+        try:
+            importlib.import_module(provider).getcodec(name)  # type: ignore[attr-defined]
+        except (ImportError, AttributeError, LookupError):  # Defensive: edge cases
+            continue
+        return True
+
+    return False
 
 
 def identify_sig_or_bom(sequence: bytes | bytearray) -> tuple[str | None, bytes]:
@@ -309,12 +301,9 @@ def iana_name(cp_name: str, strict: bool = True) -> str:
     """Returns the Python normalized encoding name (Not the IANA official name)."""
     cp_name = cp_name.lower().replace("-", "_")
 
-    encoding_alias: str
-    encoding_iana: str
-
-    for encoding_alias, encoding_iana in aliases.items():
-        if cp_name in [encoding_alias, encoding_iana]:
-            return encoding_iana
+    encoding_iana = _IANA_NAMES.get(cp_name)
+    if encoding_iana is not None:
+        return encoding_iana
 
     if strict:
         raise ValueError(f"Unable to retrieve IANA for '{cp_name}'")
@@ -376,13 +365,39 @@ def cut_sequence_chunks(
     sig_payload: bytes,
     is_multi_byte_decoder: bool,
     decoded_payload: str | None = None,
+    deferred_decoding: bool = False,
 ) -> Generator[str, None, None]:
-    if decoded_payload and is_multi_byte_decoder is False:
+    # iso2022 codec is stateful, generic mb cuter isn't going to cut it!
+    if decoded_payload and encoding_iana.startswith("iso2022_"):
+        decoded_length = len(decoded_payload)
+        sequence_length = len(sequences)
+        for i in offsets:
+            decoded_offset = i * decoded_length // sequence_length
+            chunk = decoded_payload[decoded_offset : decoded_offset + chunk_size]
+            if not chunk:
+                break
+            yield chunk
+    elif decoded_payload and not is_multi_byte_decoder:
         for i in offsets:
             chunk = decoded_payload[i : i + chunk_size]
             if not chunk:
                 break
             yield chunk
+    elif deferred_decoding:
+        # Deferred single-byte probing: the whole payload is not decoded
+        # yet. Single-byte codecs are stateless (1 byte == 1 char), hence
+        # decode(base)[i:j] == decode(base[i:j]): slicing the raw bytes
+        # yields exactly the chunks the branch above would have produced,
+        # short trailing chunks included, and raises UnicodeDecodeError on
+        # invalid bytes just like the whole-payload decode would.
+        base_bytes = (
+            sequences if not strip_sig_or_bom else sequences[len(sig_payload) :]
+        )
+        for i in offsets:
+            cut_sequence = base_bytes[i : i + chunk_size]
+            if not cut_sequence:
+                break
+            yield str(cut_sequence, encoding_iana)
     else:
         for i in offsets:
             chunk_end = i + chunk_size
@@ -391,7 +406,7 @@ def cut_sequence_chunks(
 
             cut_sequence = sequences[i : i + chunk_size]
 
-            if bom_or_sig_available and strip_sig_or_bom is False:
+            if bom_or_sig_available and not strip_sig_or_bom:
                 cut_sequence = sig_payload + cut_sequence
 
             chunk = cut_sequence.decode(
@@ -403,15 +418,30 @@ def cut_sequence_chunks(
             # not the cleanest way to perform that fix but clever enough for now.
             if is_multi_byte_decoder and i > 0:
                 chunk_partial_size_chk: int = min(chunk_size, 16)
+                chunk_prefix = chunk[:chunk_partial_size_chk]
+                found_nearby = False
+
+                if decoded_payload:
+                    decoded_length = len(decoded_payload)
+                    expected_offset = i * decoded_length // len(sequences)
+                    search_start = max(0, expected_offset - _MULTIBYTE_SEARCH_RADIUS)
+                    search_end = min(
+                        decoded_length, expected_offset + _MULTIBYTE_SEARCH_RADIUS
+                    )
+                    found_nearby = (
+                        decoded_payload.find(chunk_prefix, search_start, search_end)
+                        >= 0
+                    )
 
                 if (
                     decoded_payload
-                    and chunk[:chunk_partial_size_chk] not in decoded_payload
+                    and not found_nearby
+                    and chunk_prefix not in decoded_payload
                 ):
                     for j in range(i, i - 4, -1):
                         cut_sequence = sequences[j:chunk_end]
 
-                        if bom_or_sig_available and strip_sig_or_bom is False:
+                        if bom_or_sig_available and not strip_sig_or_bom:
                             cut_sequence = sig_payload + cut_sequence
 
                         chunk = cut_sequence.decode(encoding_iana, errors="ignore")

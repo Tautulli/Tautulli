@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import sys
 import typing
-from json import dumps
 from os.path import abspath, basename, dirname, join, realpath
 from platform import python_version
 from unicodedata import unidata_version
@@ -336,6 +335,8 @@ def cli_detect(argv: list[str] | None = None) -> int:
             my_file.close()
 
     if args.minimal is False:
+        from json import dumps
+
         print(
             dumps(
                 [el.__dict__ for el in x_] if len(x_) > 1 else x_[0].__dict__,
