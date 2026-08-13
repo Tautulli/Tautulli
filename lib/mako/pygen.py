@@ -1,5 +1,5 @@
 # mako/pygen.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
@@ -254,7 +254,7 @@ def adjust_whitespace(text):
     """remove the left-whitespace margin of a block of Python code."""
 
     state = [False, False]
-    (backslashed, triplequoted) = (0, 1)
+    backslashed, triplequoted = (0, 1)
 
     def in_multi_line(line):
         start_state = state[backslashed] or state[triplequoted]

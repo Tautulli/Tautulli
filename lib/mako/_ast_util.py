@@ -1,19 +1,18 @@
 # mako/_ast_util.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """
-    ast
-    ~~~
+ast
+~~~
 
-    This is a stripped down version of Armin Ronacher's ast module.
+This is a stripped down version of Armin Ronacher's ast module.
 
-    :copyright: Copyright 2008 by Armin Ronacher.
-    :license: Python License.
+:copyright: Copyright 2008 by Armin Ronacher.
+:license: Python License.
 """
-
 
 from _ast import Add
 from _ast import And
@@ -46,7 +45,6 @@ from _ast import RShift
 from _ast import Sub
 from _ast import UAdd
 from _ast import USub
-
 
 BOOLOP_SYMBOLS = {And: "and", Or: "or"}
 
@@ -102,7 +100,6 @@ def iter_fields(node):
 
 
 class NodeVisitor:
-
     """
     Walks the abstract syntax tree and call visitor functions for every node
     found.  The visitor functions may return values which will be forwarded
@@ -147,7 +144,6 @@ class NodeVisitor:
 
 
 class NodeTransformer(NodeVisitor):
-
     """
     Walks the abstract syntax tree and allows modifications of nodes.
 
@@ -207,7 +203,6 @@ class NodeTransformer(NodeVisitor):
 
 
 class SourceGenerator(NodeVisitor):
-
     """
     This visitor is able to transform a well formed syntax tree into python
     sourcecode.  For more details have a look at the docstring of the
@@ -521,22 +516,9 @@ class SourceGenerator(NodeVisitor):
     def visit_Name(self, node):
         self.write(node.id)
 
-    def visit_NameConstant(self, node):
-        self.write(str(node.value))
-
     def visit_arg(self, node):
         self.write(node.arg)
 
-    def visit_Str(self, node):
-        self.write(repr(node.s))
-
-    def visit_Bytes(self, node):
-        self.write(repr(node.s))
-
-    def visit_Num(self, node):
-        self.write(repr(node.n))
-
-    # newly needed in Python 3.8
     def visit_Constant(self, node):
         self.write(repr(node.value))
 
@@ -638,9 +620,6 @@ class SourceGenerator(NodeVisitor):
         self.signature(node.args)
         self.write(": ")
         self.visit(node.body)
-
-    def visit_Ellipsis(self, node):
-        self.write("Ellipsis")
 
     def generator_visit(left, right):
         def visit(self, node):
