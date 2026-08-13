@@ -4,7 +4,7 @@ class ExtrasMixin:
     def extras(self):
         """ Returns a list of :class:`~plexapi.video.Extra` objects. """
         from plexapi.video import Extra
-        key = f'{self.key}/extras'
+        key = self._buildQueryKey(f'{self.key}/extras')
         return self.fetchItems(key, cls=Extra)
 
 
@@ -14,5 +14,5 @@ class HubsMixin:
     def hubs(self):
         """ Returns a list of :class:`~plexapi.library.Hub` objects. """
         from plexapi.library import Hub
-        key = f'{self.key}/related'
+        key = self._buildQueryKey(f'{self.key}/related')
         return self.fetchItems(key, cls=Hub)

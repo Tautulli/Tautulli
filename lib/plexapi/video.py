@@ -512,16 +512,6 @@ class Movie(
         key = f'{self.key}?includeReviews=1'
         return self.fetchItems(key, cls=media.Review, rtag='Video')
 
-    def editions(self):
-        """ Returns a list of :class:`~plexapi.video.Movie` objects
-            for other editions of the same movie.
-        """
-        filters = {
-            'guid': self.guid,
-            'id!': self.ratingKey
-        }
-        return self.section().search(filters=filters)
-
     def removeFromContinueWatching(self):
         """ Remove the movie from continue watching. """
         key = '/actions/removeFromContinueWatching'
@@ -560,6 +550,7 @@ class Show(
             commonSenseMedia (:class:`~plexapi.media.CommonSenseMedia`): Common Sense Media object.
             contentRating (str) Content rating (PG-13; NR; TV-G).
             duration (int): Typical duration of the show episodes in milliseconds.
+            editionTitle (str): The edition title of the show (e.g. Director's Cut, Extended Edition, etc.).
             enableCreditsMarkerGeneration (int): Setting that indicates if credits markers detection is enabled.
                 (-1 = Library default, 0 = Disabled).
             episodeSort (int): Setting that indicates how episodes are sorted for the show
@@ -616,6 +607,7 @@ class Show(
         self.childCount = utils.cast(int, data.attrib.get('childCount'))
         self.contentRating = data.attrib.get('contentRating')
         self.duration = utils.cast(int, data.attrib.get('duration'))
+        self.editionTitle = data.attrib.get('editionTitle')
         self.enableCreditsMarkerGeneration = utils.cast(int, data.attrib.get('enableCreditsMarkerGeneration', '-1'))
         self.episodeSort = utils.cast(int, data.attrib.get('episodeSort', '-1'))
         self.flattenSeasons = utils.cast(int, data.attrib.get('flattenSeasons', '-1'))
@@ -697,7 +689,7 @@ class Show(
         """ Returns show's On Deck :class:`~plexapi.video.Video` object or `None`.
             If show is unwatched, return will likely be the first episode.
         """
-        key = f'{self.key}?includeOnDeck=1'
+        key = self._buildQueryKey(f'{self.key}', includeOnDeck=1)
         return next(iter(self.fetchItems(key, cls=Episode, rtag='OnDeck')), None)
 
     def season(self, title=None, season=None):
@@ -796,6 +788,7 @@ class Season(
             audienceRating (float): Audience rating.
             audioLanguage (str): Setting that indicates the preferred audio language.
             collections (List<:class:`~plexapi.media.Collection`>): List of collection objects.
+            editionTitle (str): The edition title of the show (e.g. Director's Cut, Extended Edition, etc.).
             guids (List<:class:`~plexapi.media.Guid`>): List of guid objects.
             index (int): Season number.
             key (str): API URL (/library/metadata/<ratingkey>).
@@ -828,6 +821,7 @@ class Season(
         Video._loadData(self, data)
         self.audienceRating = utils.cast(float, data.attrib.get('audienceRating'))
         self.audioLanguage = data.attrib.get('audioLanguage', '')
+        self.editionTitle = data.attrib.get('editionTitle')
         self.index = utils.cast(int, data.attrib.get('index'))
         self.key = self.key.replace('/children', '')  # FIX_BUG_50
         self.leafCount = utils.cast(int, data.attrib.get('leafCount'))
@@ -893,7 +887,7 @@ class Season(
         """ Returns season's On Deck :class:`~plexapi.video.Video` object or `None`.
             Will only return a match if the show's On Deck episode is in this season.
         """
-        key = f'{self.key}?includeOnDeck=1'
+        key = self._buildQueryKey(f'{self.key}', includeOnDeck=1)
         return next(iter(self.fetchItems(key, cls=Episode, rtag='OnDeck')), None)
 
     def episode(self, title=None, episode=None):
@@ -928,7 +922,8 @@ class Season(
 
     def show(self):
         """ Return the season's :class:`~plexapi.video.Show`. """
-        return self.fetchItem(self._buildQueryKey(self.parentKey))
+        key = self._buildQueryKey(self.parentKey)
+        return self.fetchItem(key)
 
     def watched(self):
         """ Returns list of watched :class:`~plexapi.video.Episode` objects. """
@@ -980,6 +975,7 @@ class Episode(
             contentRating (str) Content rating (PG-13; NR; TV-G).
             directors (List<:class:`~plexapi.media.Director`>): List of director objects.
             duration (int): Duration of the episode in milliseconds.
+            editionTitle (str): The edition title of the show (e.g. Director's Cut, Extended Edition, etc.).
             grandparentArt (str): URL to show artwork (/library/metadata/<grandparentRatingKey>/art/<artid>).
             grandparentGuid (str): Plex GUID for the show (plex://show/5d9c086fe9d5a1001f4d9fe6).
             grandparentKey (str): API URL of the show (/library/metadata/<grandparentRatingKey>).
@@ -1026,6 +1022,7 @@ class Episode(
         self.chapterSource = data.attrib.get('chapterSource')
         self.contentRating = data.attrib.get('contentRating')
         self.duration = utils.cast(int, data.attrib.get('duration'))
+        self.editionTitle = data.attrib.get('editionTitle')
         self.grandparentArt = data.attrib.get('grandparentArt')
         self.grandparentGuid = data.attrib.get('grandparentGuid')
         self.grandparentKey = data.attrib.get('grandparentKey')
@@ -1218,11 +1215,13 @@ class Episode(
 
     def season(self):
         """" Return the episode's :class:`~plexapi.video.Season`. """
-        return self.fetchItem(self._buildQueryKey(self.parentKey))
+        key = self._buildQueryKey(self.parentKey)
+        return self.fetchItem(key)
 
     def show(self):
         """" Return the episode's :class:`~plexapi.video.Show`. """
-        return self.fetchItem(self._buildQueryKey(self.grandparentKey))
+        key = self._buildQueryKey(self.grandparentKey)
+        return self.fetchItem(key)
 
     def _defaultSyncTitle(self):
         """ Returns str, default title for a new syncItem. """

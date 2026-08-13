@@ -136,7 +136,7 @@ class Library(PlexObject):
             if not isinstance(identifier, list):
                 identifier = [identifier]
             kwargs['identifier'] = ",".join(identifier)
-        key = f'/hubs{utils.joinArgs(kwargs)}'
+        key = self._buildQueryKey('/hubs', **kwargs)
         return self.fetchItems(key)
 
     def all(self, **kwargs):
@@ -151,11 +151,13 @@ class Library(PlexObject):
 
     def onDeck(self):
         """ Returns a list of all media items on deck. """
-        return self.fetchItems('/library/onDeck')
+        key = self._buildQueryKey('/library/onDeck')
+        return self.fetchItems(key)
 
     def recentlyAdded(self):
         """ Returns a list of all media items recently added. """
-        return self.fetchItems('/library/recentlyAdded')
+        key = self._buildQueryKey('/library/recentlyAdded')
+        return self.fetchItems(key)
 
     def search(self, title=None, libtype=None, **kwargs):
         """ Searching within a library section is much more powerful. It seems certain
@@ -173,7 +175,7 @@ class Library(PlexObject):
             args['type'] = utils.searchType(libtype)
         for attr, value in kwargs.items():
             args[attr] = value
-        key = f'/library/all{utils.joinArgs(args)}'
+        key = self._buildQueryKey('/library/all', **args)
         return self.fetchItems(key)
 
     def cleanBundles(self):
@@ -708,10 +710,19 @@ class LibrarySection(PlexObject):
         key = f'/hubs/sections/{self.key}/manage'
         self._server.query(key, method=self._server._session.delete)
 
-    def hubs(self):
+    def hubs(self, **kwargs):
         """ Returns a list of available :class:`~plexapi.library.Hub` for this library section.
+
+            Parameters:
+                **kwargs (dict): Optional query parameters to add to the request
+                    (e.g. ``count=10`` to limit the number of items per hub or
+                    ``includeMyMixes=True`` to include the personalized "Mixes For You" hub).
+                    ``includeStations`` is included by default and may be overridden
+                    with ``includeStations=False``.
         """
-        key = f'/hubs/sections/{self.key}?includeStations=1'
+        kwargs.setdefault('includeStations', 1)
+        kwargs = {k: int(v) if isinstance(v, bool) else v for k, v in kwargs.items()}
+        key = self._buildQueryKey(f'/hubs/sections/{self.key}', **kwargs)
         return self.fetchItems(key)
 
     def agents(self):
@@ -800,12 +811,12 @@ class LibrarySection(PlexObject):
 
     def onDeck(self):
         """ Returns a list of media items on deck from this library section. """
-        key = f'/library/sections/{self.key}/onDeck'
+        key = self._buildQueryKey(f'/library/sections/{self.key}/onDeck')
         return self.fetchItems(key)
 
     def continueWatching(self):
         """ Return a list of media items in the library's Continue Watching hub. """
-        key = f'/hubs/sections/{self.key}/continueWatching/items'
+        key = self._buildQueryKey(f'/hubs/sections/{self.key}/continueWatching/items')
         return self.fetchItems(key)
 
     def recentlyAdded(self, maxresults=50, libtype=None):
@@ -1955,7 +1966,7 @@ class MusicSection(LibrarySection, ArtistEditMixins, AlbumEditMixins, TrackEditM
 
     def albums(self):
         """ Returns a list of :class:`~plexapi.audio.Album` objects in this section. """
-        key = f'/library/sections/{self.key}/albums'
+        key = self._buildQueryKey(f'/library/sections/{self.key}/albums')
         return self.fetchItems(key)
 
     def stations(self):
@@ -2054,7 +2065,7 @@ class MusicSection(LibrarySection, ArtistEditMixins, AlbumEditMixins, TrackEditM
         startID = start if isinstance(start, int) else start.ratingKey
         endID = end if isinstance(end, int) else end.ratingKey
 
-        key = f"/library/sections/{self.key}/computePath?startID={startID}&endID={endID}"
+        key = self._buildQueryKey(f"/library/sections/{self.key}/computePath", startID=startID, endID=endID)
         return self.fetchItems(key, **kwargs)
 
 
@@ -2233,7 +2244,8 @@ class Hub(PlexObject):
     def _items(self):
         """ Cache for items. """
         if self.more and self.key:  # If there are more items to load, fetch them
-            items = self.fetchItems(self.key)
+            key = self._buildQueryKey(self.key)
+            items = self.fetchItems(key)
             self.more = False
             self.size = len(items)
             return items
@@ -2309,11 +2321,12 @@ class LibraryMediaTag(PlexObject):
         self.tagValue = utils.cast(int, data.attrib.get('tagValue'))
         self.thumb = data.attrib.get('thumb')
 
-    def items(self, *args, **kwargs):
+    def items(self):
         """ Return the list of items within this tag. """
         if not self.key:
             raise BadRequest(f'Key is not defined for this tag: {self.tag}')
-        return self.fetchItems(self.key)
+        key = self._buildQueryKey(self.key)
+        return self.fetchItems(key)
 
 
 @utils.registerPlexObject
@@ -2997,7 +3010,8 @@ class FilterChoice(PlexObject):
 
     def items(self):
         """ Returns a list of items for this filter choice. """
-        return self.fetchItems(self.fastKey)
+        key = self._buildQueryKey(self.fastKey)
+        return self.fetchItems(key)
 
 
 class ManagedHub(PlexObject):

@@ -755,7 +755,8 @@ class MediaTag(PlexObject):
         """ Return the list of items within this tag. """
         if not self.key:
             raise BadRequest(f'Key is not defined for this tag: {self.tag}. Reload the parent object.')
-        return self.fetchItems(self.key)
+        key = self._buildQueryKey(self.key)
+        return self.fetchItems(key)
 
 
 @utils.registerPlexObject

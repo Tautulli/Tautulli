@@ -196,7 +196,7 @@ class Collection(
     @cached_data_property
     def _items(self):
         """ Cache for the items. """
-        key = f'{self.key}/children'
+        key = self._buildQueryKey(f'{self.key}/children')
         return self.fetchItems(key)
 
     def items(self):
