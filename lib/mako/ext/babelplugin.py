@@ -1,10 +1,11 @@
 # ext/babelplugin.py
-# Copyright 2006-2025 the Mako authors and contributors <see AUTHORS file>
+# Copyright 2006-2026 the Mako authors and contributors <see AUTHORS file>
 #
 # This module is part of Mako and is released under
 # the MIT License: http://www.opensource.org/licenses/mit-license.php
 
 """gettext message extraction via Babel: https://pypi.org/project/Babel/"""
+
 from babel.messages.extract import extract_python
 
 from mako.ext.extract import MessageExtractor
