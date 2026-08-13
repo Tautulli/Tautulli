@@ -1,6 +1,7 @@
-from cloudinary.api_client.call_account_api import _call_account_api
+from cloudinary.api_client.call_account_api import _call_account_api, _call_public_account_api, ACCOUNT_SUB_PATH
 from cloudinary.utils import encode_list
 
+AGENTS_SUB_PATH = "agents"
 SUB_ACCOUNTS_SUB_PATH = "sub_accounts"
 USERS_SUB_PATH = "users"
 USER_GROUPS_SUB_PATH = "user_groups"
@@ -18,6 +19,45 @@ class Role(object):
     REPORTS = "reports"
     MEDIA_LIBRARY_ADMIN = "media_library_admin"
     MEDIA_LIBRARY_USER = "media_library_user"
+
+
+def create_agent_account(email, agent_framework, agent_llm_model, agent_goal, sdk_framework=None, **options):
+    """
+    Create a Cloudinary account on behalf of a human, intended for use by AI agents.
+
+    Creates a Free-plan account with a single, initially disabled product environment and sends a
+    verification email so the human can set a password and activate the account. The returned
+    credentials are inert until the email is verified.
+
+    This endpoint is public and unauthenticated, and is rate-limited per IP address.
+
+    :param email:           The email address of the human on whose behalf the account is created.
+                            A verification email is sent to this address.
+    :type email:            str
+    :param agent_framework: The name of the agent framework used to create the account.
+                            Must be between 2 and 100 characters.
+    :type agent_framework:  str
+    :param agent_llm_model: The LLM model powering the agent. Must be between 2 and 100 characters.
+    :type agent_llm_model:  str
+    :param agent_goal:      A short description of what the agent is trying to achieve.
+                            Must be between 2 and 300 characters.
+    :type agent_goal:       str
+    :param sdk_framework:   The Cloudinary SDK framework the agent intends to use.
+                            Must be between 2 and 100 characters.
+    :type sdk_framework:    str, optional
+    :param options:         Generic advanced options dict, see online documentation
+    :type options:          dict, optional
+    :return:                The created agent account, including inert credentials for its
+                            single product environment
+    :rtype:                 dict
+    """
+    uri = [AGENTS_SUB_PATH, ACCOUNT_SUB_PATH]
+    params = {"email": email,
+              "agent_framework": agent_framework,
+              "agent_llm_model": agent_llm_model,
+              "agent_goal": agent_goal,
+              "sdk_framework": sdk_framework}
+    return _call_public_account_api("POST", uri, params=params, **options)
 
 
 def sub_accounts(enabled=None, ids=None, prefix=None, **options):
