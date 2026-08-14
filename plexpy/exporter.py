@@ -445,6 +445,7 @@ class Export(object):
                 'contentRating': None,
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
+                'editionTitle': None,
                 'enableCreditsMarkerGeneration': None,
                 'episodeSort': None,
                 'fields': {
@@ -532,6 +533,7 @@ class Export(object):
                     'id': None,
                     'tag': None
                 },
+                'editionTitle': None,
                 'fields': {
                     'name': None,
                     'locked': None
@@ -618,6 +620,7 @@ class Export(object):
                 },
                 'duration': None,
                 'durationHuman': lambda o: helpers.human_duration(getattr(o, 'duration', 0)),
+                'editionTitle': None,
                 'episodeNumber': None,
                 'fields': {
                     'name': None,
@@ -1489,7 +1492,7 @@ class Export(object):
             _media_type = 'show'
             _metadata_levels = {
                 1: [
-                    'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'originalTitle', 'year', 'addedAt',
+                    'ratingKey', 'title', 'titleSort', 'originallyAvailableAt', 'originalTitle', 'editionTitle', 'year', 'addedAt',
                     'rating', 'audienceRating', 'audienceRatingImage', 'userRating', 'contentRating', 'network',
                     'studio', 'tagline', 'summary', 'guid', 'duration', 'durationHuman', 'type', 'childCount', 'seasonCount',
                     'seasons'
