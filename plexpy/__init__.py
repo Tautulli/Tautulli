@@ -556,18 +556,7 @@ def start():
 
         if CONFIG.SYSTEM_ANALYTICS:
             logger.info("System analytics enabled. Sending analytics events...")
-            
-            global TRACKER
-            TRACKER = initialize_tracker()
-
-            # Send system analytics events
-            if not CONFIG.FIRST_RUN_COMPLETE:
-                analytics_event(name='install')
-
-            elif _UPDATE:
-                analytics_event(name='update')
-
-            analytics_event(name='start')
+            threading.Thread(target=run_analytics).start()
         else:
             logger.info("System analytics disabled. No analytics events will be sent.")
 
@@ -2981,6 +2970,20 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
 
 def generate_uuid():
     return uuid.uuid4().hex
+
+
+def run_analytics():
+    global TRACKER
+    TRACKER = initialize_tracker()
+
+    # Send system analytics events
+    if not CONFIG.FIRST_RUN_COMPLETE:
+        analytics_event(name='install')
+
+    elif _UPDATE:
+        analytics_event(name='update')
+
+    analytics_event(name='start')
 
 
 def initialize_tracker():
