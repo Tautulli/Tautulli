@@ -319,7 +319,8 @@ object {
     background-color: #999;
 }
 .padded-header {
-    margin: 25px 0 25px 0;
+    margin: 25px 0 25px -10px;
+    padding-left: 10px;
 }
 .padded-header h1,h2,h3,h4,h5,h6 {
     color: #eee;
@@ -2488,6 +2489,7 @@ a .library-user-instance-box:hover {
 }
 .home-padded-header {
     margin: 25px 0;
+    padding: 0;
     height: 34px;
 }
 .home-padded-header h3 {
