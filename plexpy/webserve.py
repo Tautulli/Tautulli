@@ -4832,7 +4832,7 @@ class WebInterface(object):
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
-        if img and not img.startswith('http'):
+        if img and not img.lower().startswith('http'):
             parts = 5
             if img.startswith('/playlists'):
                 parts -= 1
@@ -4847,7 +4847,7 @@ class WebInterface(object):
         img_hash = notification_handler.set_hash_image_info(
             img=img, rating_key=rating_key, width=width, height=height,
             opacity=opacity, background=background, blur=blur, fallback=fallback,
-            add_to_db=(return_hash and not img.startswith('http'))
+            add_to_db=(return_hash and not img.lower().startswith('http'))
         )
 
         if return_hash:
