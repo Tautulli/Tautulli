@@ -3063,7 +3063,7 @@ class PmsConnect(object):
         height = height or 1500
 
         if img:
-            web_img = img.startswith('http')
+            web_img = img.lower().startswith('http')
             resource_img = img.startswith('/:/resources')
 
             if 'collection' in img and 'composite' in img:
