@@ -997,6 +997,10 @@ a .users-poster-face:hover {
     flex-grow: 1;
     z-index: 1;
 }
+.dashboard-activity-info-scroller.scroll-wrapper > .scroll-content {
+    width: 100% !important;
+    max-height: 100% !important;
+}
 .dashboard-activity-info-scroller.scrollbar-macosx > .scroll-element.scroll-y {
     left: 10px;
 }
@@ -1442,6 +1446,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
 }
 .dashboard-stats-info-scroller.scroll-wrapper > .scroll-content {
     width: 100% !important;
+    max-height: 100% !important;
 }
 .dashboard-stats-info-scroller.scrollbar-macosx > .scroll-element.scroll-y {
     left: 10px;
