@@ -339,8 +339,15 @@ def update():
         # Extract the tar to update folder
         logger.info('Extracting file: ' + tar_download_path)
         tar = tarfile.open(tar_download_path)
-        tar.extractall(update_dir)
-        tar.close()
+        try:
+            safe_extract(tar, update_dir)
+        except ValueError as e:
+            logger.error('Invalid update archive: %s', e)
+            tar.close()
+            os.remove(tar_download_path)
+            return
+        else:
+            tar.close()
 
         # Delete the tar.gz
         logger.info('Deleting file: ' + tar_download_path)
@@ -552,3 +559,14 @@ def clean_pyc():
                     os.remove(filepath)
                 except OSError as e:
                     logger.error('Failed to remove file %s: %s', filepath, e)
+
+
+def safe_extract(tar, path):
+    base_path = os.path.realpath(path)
+
+    for member in tar.getmembers():
+        member_path = os.path.realpath(os.path.join(base_path, member.name))
+        if not helpers.is_subdir(member_path, base_path):
+            raise ValueError(f"Path traversal detected: {member.name}")
+
+    tar.extractall(path)
