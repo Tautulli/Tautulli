@@ -554,11 +554,8 @@ def start():
         # Cancel processing exports
         exporter.cancel_exports()
 
-        if CONFIG.SYSTEM_ANALYTICS:
-            logger.info("System analytics enabled. Sending analytics events...")
-            threading.Thread(target=run_analytics).start()
-        else:
-            logger.info("System analytics disabled. No analytics events will be sent.")
+        if CONFIG.FIRST_RUN_COMPLETE:
+            run_analytics()
 
         _STARTED = True
 
@@ -2972,18 +2969,23 @@ def generate_uuid():
     return uuid.uuid4().hex
 
 
-def run_analytics():
+def run_analytics(first_run=False):
+    if not CONFIG.SYSTEM_ANALYTICS:
+        logger.info("System analytics disabled. No analytics events will be sent.")
+        return
+
+    logger.info("System analytics enabled. Sending analytics events...")
+
     global TRACKER
     TRACKER = initialize_tracker()
 
     # Send system analytics events
-    if not CONFIG.FIRST_RUN_COMPLETE:
-        analytics_event(name='install')
-
+    if first_run:
+        send_analytics(name='install')
     elif _UPDATE:
-        analytics_event(name='update')
+        send_analytics(name='update')
 
-    analytics_event(name='start')
+    send_analytics(name='start')
 
 
 def initialize_tracker():
@@ -2993,6 +2995,13 @@ def initialize_tracker():
         client_id=CONFIG.PMS_UUID
     )
     return tracker
+
+
+def send_analytics(name, **kwargs):
+    if not TRACKER:
+        return
+
+    threading.Thread(target=analytics_event, args=(name,), kwargs=kwargs).start()
 
 
 def analytics_event(name, **kwargs):

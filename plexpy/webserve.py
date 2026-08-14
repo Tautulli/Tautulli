@@ -3261,14 +3261,13 @@ class WebInterface(object):
             first_run = True
             server_changed = True
 
-        if not first_run:
-            for checked_config in config.CHECKED_SETTINGS:
-                checked_config = checked_config.lower()
-                if checked_config not in kwargs:
-                    # checked items should be zero or one. if they were not sent then the item was not checked
-                    kwargs[checked_config] = 0
-                else:
-                    kwargs[checked_config] = 1
+        for checked_config in config.CHECKED_SETTINGS:
+            checked_config = checked_config.lower()
+            if checked_config not in kwargs:
+                # checked items should be zero or one. if they were not sent then the item was not checked
+                kwargs[checked_config] = 0
+            else:
+                kwargs[checked_config] = 1
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password') == '    ':
@@ -3353,6 +3352,10 @@ class WebInterface(object):
 
         # Write the config
         plexpy.CONFIG.write()
+
+        # Send first run install analytics event
+        if first_run:
+            plexpy.run_analytics(first_run=True)
 
         # Enable or disable system startup
         if startup_changed:
