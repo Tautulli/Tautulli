@@ -2993,6 +2993,9 @@ def initialize_tracker():
 
 
 def analytics_event(name, **kwargs):
+    if not TRACKER:
+        return
+    
     event = TRACKER.create_new_event(name=name)
     event.set_event_param('name', common.PRODUCT)
     event.set_event_param('version', common.RELEASE)
@@ -3011,19 +3014,23 @@ def analytics_event(name, **kwargs):
     for key, value in kwargs.items():
         event.set_event_param(key, value)
 
-    plex_tv = plextv.PlexTV()
-    ip_address = plex_tv.get_public_ip(output_format='text')
-    geolocation = plex_tv.get_geoip_lookup(ip_address) or {}
+    try:
+        plex_tv = plextv.PlexTV()
+        ip_address = plex_tv.get_public_ip(output_format='text')
+        geolocation = plex_tv.get_geoip_lookup(ip_address) or {}
 
-    event.set_event_param('country', geolocation.get('country', 'Unknown'))
-    event.set_event_param('countryCode', geolocation.get('code', 'Unknown'))
+        event.set_event_param('country', geolocation.get('country', 'Unknown'))
+        event.set_event_param('countryCode', geolocation.get('code', 'Unknown'))
+    except Exception as e:
+        logger.warn("Failed to get country location information: %s", e)
+        event.set_event_param('country', 'Unknown')
+        event.set_event_param('countryCode', 'Unknown')
 
-    if TRACKER:
-        try:
-            TRACKER.send(events=[event])
-            logger.info("Sent analytics event for name '%s'", name)
-        except Exception as e:
-            logger.warn("Failed to send analytics event for name '%s': %s", name, e)
+    try:
+        TRACKER.send(events=[event])
+        logger.info("Sent analytics event for name '%s'", name)
+    except Exception as e:
+        logger.warn("Failed to send analytics event for name '%s': %s", name, e)
 
 
 def check_folder_writable(folder, fallback, name):
