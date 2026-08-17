@@ -19,7 +19,7 @@ IPy==1.01
 Mako==1.4.1
 musicbrainzngs==0.7.1
 paho-mqtt==2.1.0
-platformdirs==4.11.2
+platformdirs==4.11.3
 plexapi==4.18.2
 profilehooks==1.13.0
 PyJWT==2.13.0
