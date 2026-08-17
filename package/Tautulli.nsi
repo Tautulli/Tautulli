@@ -79,9 +79,12 @@ InstallDir "$PROGRAMFILES64\${APP_NAME}"
 
 Var /GLOBAL nolaunch
 Var /GLOBAL createDesktopShortcut
+Var /GLOBAL skipLaunch
 Var desktopShortcutCheckbox
 
 !include "MUI.nsh"
+!include "Util.nsh"
+!include "WinMessages.nsh"
 
 !define MUI_ABORTWARNING
 !define MUI_UNABORTWARNING
@@ -110,6 +113,7 @@ Page custom CustomizePage CustomizePageLeave
 
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${MAIN_APP_EXE}"
 !define MUI_FINISHPAGE_RUN_PARAMETERS $nolaunch
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW FinishPage_Show
 !insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -231,6 +235,19 @@ Function .onInit
   ; Set default value for desktop shortcut (1 = create, 0 = don't create)
   StrCpy $createDesktopShortcut 0
   
+  ; Set default value for skip launch (0 = launch, 1 = skip)
+  StrCpy $skipLaunch 0
+  
+  ; Check for /NOLAUNCH flag
+  ${GetParameters} $0
+  ${GetOptions} $0 "/NOLAUNCH" $1
+  ${If} ${Errors}
+    ; No /NOLAUNCH flag found
+  ${Else}
+    ; /NOLAUNCH flag found, skip launch
+    StrCpy $skipLaunch 1
+  ${EndIf}
+  
   IfSilent 0 +2
   StrCpy $nolaunch "--nolaunch"
   
@@ -289,6 +306,19 @@ FunctionEnd
 
 Function CustomizePageLeave
   ${NSD_GetState} $desktopShortcutCheckbox $createDesktopShortcut
+FunctionEnd
+
+######################################################################
+
+Function FinishPage_Show
+  ; If /NOLAUNCH flag was used, uncheck the "Run" checkbox
+  ${If} $skipLaunch == 1
+    FindWindow $0 "#32770" ""
+    GetDlgItem $1 $0 1203  ; 1203 is the ID for the "Run" checkbox
+    ${If} $1 != ""
+      SendMessage $1 ${BM_SETCHECK} 0 0  ; Uncheck the checkbox
+    ${EndIf}
+  ${EndIf}
 FunctionEnd
 
 ######################################################################
