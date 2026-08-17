@@ -78,6 +78,8 @@ InstallDir "$PROGRAMFILES64\${APP_NAME}"
 !include Sections.nsh
 
 Var /GLOBAL nolaunch
+Var /GLOBAL createDesktopShortcut
+Var desktopShortcutCheckbox
 
 !include "MUI.nsh"
 
@@ -101,6 +103,9 @@ Var /GLOBAL nolaunch
 !endif
 
 !insertmacro MUI_PAGE_DIRECTORY
+
+Page custom CustomizePage CustomizePageLeave
+
 !insertmacro MUI_PAGE_INSTFILES
 
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${MAIN_APP_EXE}"
@@ -139,7 +144,9 @@ WriteUninstaller "$INSTDIR\uninstall.exe"
 !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 CreateDirectory "$SMPROGRAMS\$SM_Folder"
 CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+${If} $createDesktopShortcut == 1
 CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+${EndIf}
 CreateShortCut "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
 
 !ifdef WEB_SITE
@@ -152,7 +159,9 @@ CreateShortCut "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk" "$INSTDIR\${APP_
 !ifndef REG_START_MENU
 CreateDirectory "$SMPROGRAMS\${APP_NAME}"
 CreateShortCut "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+${If} $createDesktopShortcut == 1
 CreateShortCut "$DESKTOP\${APP_NAME}.lnk" "$INSTDIR\${MAIN_APP_EXE}"
+${EndIf}
 CreateShortCut "$SMPROGRAMS\${APP_NAME}\Uninstall ${APP_NAME}.lnk" "$INSTDIR\uninstall.exe"
 
 !ifdef WEB_SITE
@@ -192,7 +201,9 @@ Delete "$SMPROGRAMS\$SM_Folder\Uninstall ${APP_NAME}.lnk"
 !ifdef WEB_SITE
 Delete "$SMPROGRAMS\$SM_Folder\${APP_NAME} Website.lnk"
 !endif
+${If} $createDesktopShortcut == 1
 Delete "$DESKTOP\${APP_NAME}.lnk"
+${EndIf}
 
 RmDir "$SMPROGRAMS\$SM_Folder"
 !endif
@@ -203,7 +214,9 @@ Delete "$SMPROGRAMS\${APP_NAME}\Uninstall ${APP_NAME}.lnk"
 !ifdef WEB_SITE
 Delete "$SMPROGRAMS\${APP_NAME}\${APP_NAME} Website.lnk"
 !endif
+${If} $createDesktopShortcut == 1
 Delete "$DESKTOP\${APP_NAME}.lnk"
+${EndIf}
 
 RmDir "$SMPROGRAMS\${APP_NAME}"
 !endif
@@ -215,6 +228,9 @@ SectionEnd
 ######################################################################
 
 Function .onInit
+  ; Set default value for desktop shortcut (1 = create, 0 = don't create)
+  StrCpy $createDesktopShortcut 0
+  
   IfSilent 0 +2
   StrCpy $nolaunch "--nolaunch"
   
@@ -253,6 +269,26 @@ Function UninstallPrevious
   ; Run the uninstaller silently.
   ExecWait '"$R0" /S _?=$INSTDIR'
   Done:
+FunctionEnd
+
+######################################################################
+
+Function CustomizePage
+  !include "MUI2.nsh"
+  !insertmacro MUI_HEADER_TEXT "Installation Options" "Choose installation options"
+  
+  nsDialogs::Create 1018
+  Pop $0
+  
+  ${NSD_CreateCheckbox} 10u 10u 90% 12u "Create Desktop Shortcut"
+  Pop $desktopShortcutCheckbox
+  ${NSD_SetState} $desktopShortcutCheckbox $createDesktopShortcut
+  
+  nsDialogs::Show
+FunctionEnd
+
+Function CustomizePageLeave
+  ${NSD_GetState} $desktopShortcutCheckbox $createDesktopShortcut
 FunctionEnd
 
 ######################################################################
