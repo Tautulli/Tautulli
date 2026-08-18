@@ -19,8 +19,8 @@ class XDGMixin(PlatformDirsABC):
 
     @property
     def _site_data_dirs(self) -> list[str]:
-        if xdg_dirs := os.environ.get("XDG_DATA_DIRS", "").strip():
-            return [self._append_app_name_and_version(p) for p in xdg_dirs.split(os.pathsep) if p.strip()]
+        if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
+            return [self._append_app_name_and_version(p) for p in xdg_dirs]
         return super()._site_data_dirs
 
     @property
@@ -38,8 +38,8 @@ class XDGMixin(PlatformDirsABC):
 
     @property
     def _site_config_dirs(self) -> list[str]:
-        if xdg_dirs := os.environ.get("XDG_CONFIG_DIRS", "").strip():
-            return [self._append_app_name_and_version(p) for p in xdg_dirs.split(os.pathsep) if p.strip()]
+        if xdg_dirs := _xdg_dir_list("XDG_CONFIG_DIRS"):
+            return [self._append_app_name_and_version(p) for p in xdg_dirs]
         return super()._site_config_dirs
 
     @property
@@ -155,8 +155,8 @@ class XDGMixin(PlatformDirsABC):
 
     @property
     def _site_applications_dirs(self) -> list[str]:
-        if xdg_dirs := os.environ.get("XDG_DATA_DIRS", "").strip():
-            return [os.path.join(p, "applications") for p in xdg_dirs.split(os.pathsep) if p.strip()]  # ruff:ignore[os-path-join]
+        if xdg_dirs := _xdg_dir_list("XDG_DATA_DIRS"):
+            return [os.path.join(p, "applications") for p in xdg_dirs]  # ruff:ignore[os-path-join]
         return super()._site_applications_dirs
 
     @property
@@ -164,6 +164,11 @@ class XDGMixin(PlatformDirsABC):
         """Applications directories shared by users, from ``$XDG_DATA_DIRS`` if set, else platform default."""
         dirs = self._site_applications_dirs
         return os.pathsep.join(dirs) if self.multipath else dirs[0]
+
+
+def _xdg_dir_list(env_var: str) -> list[str]:
+    """Stripped non-blank entries of ``env_var``, so a value of only separators and whitespace falls back like unset."""
+    return [stripped for path in os.environ.get(env_var, "").split(os.pathsep) if (stripped := path.strip())]
 
 
 __all__ = [
