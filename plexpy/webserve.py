@@ -4977,43 +4977,42 @@ class WebInterface(object):
         """ Download the Tautulli database file. """
         database_file = database.FILENAME
 
-        temp_path = None
+        # Write the copy to the cache directory rather than the system temp
+        # directory. The copy is as large as the database, and the system
+        # temp directory is a tmpfs on some systems and a private per-unit
+        # mount on others. The cache directory is checked for writability
+        # at startup.
+        with tempfile.NamedTemporaryFile(delete=False, dir=plexpy.CONFIG.CACHE_DIR,
+                                         suffix=f".{database_file}") as temp:
+            temp_path = temp.name
 
         try:
             db = database.MonitorDatabase()
-            db.connection.execute('begin immediate')
-
-            try:
-                with tempfile.NamedTemporaryFile(delete=False, mode='w+b', suffix=f".{database_file}") as temp:
-                    with open(plexpy.DB_FILE, 'rb') as f:
-                        temp.write(f.read())
-                        temp_path = temp.name
-            finally:
-                # The connection is this thread's persistent one; never
-                # leave the write transaction open on a failed copy or
-                # every writer in the process stalls indefinitely
-                db.connection.rollback()
-        except:
-            pass
-
-        # Remove tokens. Use a plain short-lived sqlite3 connection: the
-        # thread-local MonitorDatabase cache would otherwise hold a
-        # connection to this one-off temp file for the life of the
-        # worker thread.
-        try:
+            # Use a plain short-lived sqlite3 connection for the copy: the
+            # thread-local MonitorDatabase cache would otherwise hold a
+            # connection to this one-off temp file for the life of the
+            # worker thread.
             temp_db = sqlite3.connect(temp_path, timeout=20)
             try:
+                # Copy with the SQLite backup API, the same way make_backup()
+                # does. It copies page by page rather than holding the file
+                # in memory, and it includes the WAL contents, which a copy
+                # of the main database file alone leaves behind.
+                db.connection.backup(temp_db)
+                # Remove tokens
                 temp_db.execute('UPDATE users SET user_token = NULL, server_token = NULL')
                 temp_db.execute('UPDATE user_login SET jwt_token = NULL')
                 temp_db.commit()
             finally:
                 temp_db.close()
-        except:
-            logger.error('Failed to remove tokens from downloaded database.')
+        except Exception as e:
+            logger.error("Tautulli WebInterface :: Failed to export database: %s", e)
+            helpers.delete_file(temp_path)
             cherrypy.response.status = 500
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             return {'result': 'error', 'message': 'Error downloading database. Check the logs.'}
 
+        cherrypy.request.hooks.attach('on_end_request', helpers.delete_file, file_path=temp_path)
         return serve_download(temp_path, name=database_file)
 
     @cherrypy.expose
