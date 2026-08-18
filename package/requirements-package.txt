@@ -5,6 +5,6 @@ pyinstaller==6.19.0
 pyopenssl==26.4.0
 
 pyobjc-core==12.2.2; platform_system == "Darwin"
-pyobjc-framework-Cocoa==12.2.1; platform_system == "Darwin"
+pyobjc-framework-Cocoa==12.2.2; platform_system == "Darwin"
 
 pywin32==312; platform_system == "Windows"
