@@ -5012,6 +5012,9 @@ class WebInterface(object):
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             return {'result': 'error', 'message': 'Error downloading database. Check the logs.'}
 
+        # When cherrypy has tools.sessions.on: True, the body is not streamed.
+        # Explicitly set the response to stream so that the file is streamed to the client.
+        cherrypy.response.stream = True
         cherrypy.request.hooks.attach('on_end_request', helpers.delete_file, file_path=temp_path)
         return serve_download(temp_path, name=database_file)
 
