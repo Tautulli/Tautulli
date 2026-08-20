@@ -16,6 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import re
 
 import plexpy
 from plexpy import common
@@ -38,6 +39,194 @@ _UPDATE_METADATA_IDS = {
 
 # Cached get_total_duration results, invalidated when history changes
 _TOTAL_DURATION_CACHE = {'version': -1, 'values': {}}
+
+
+# Matches only the row that carries a group's date, so a scan of the
+# started index yields one row per group in date order.
+_HISTORY_GROUP_DATE = (
+    "NOT EXISTS (SELECT 1 FROM session_history AS g "
+    "WHERE g.reference_id = session_history.reference_id "
+    "AND (g.started > session_history.started "
+    "OR (g.started = session_history.started AND g.id > session_history.id)))"
+)
+
+
+# The draw inner joins the metadata table, so a history row without a
+# metadata row is not a row of the draw. The bound reads the same set.
+_HISTORY_BOUND_JOINS = (
+    " JOIN session_history_metadata ON session_history_metadata.id = session_history.id"
+)
+
+
+# How far the scan may walk before it gives up. A filter the started
+# index cannot serve never fills a page, so the scan would read the
+# whole table for nothing. Raising this keeps the bound on rarer
+# filters and costs more on filters that fill no page.
+_HISTORY_BOUND_WINDOW = 25000
+
+
+# The bound reads one row of a group and takes it to stand for the
+# group. That holds only for a filter with the same answer for every row
+# of the group. A group is consecutive plays of one item by one user, so
+# these columns hold across it.
+#
+# Every other filter runs unbounded. started splits a group by
+# definition. rating_key, guid and transcode_decision each vary within a
+# group, because a live group spans programmes and a resumed play can
+# change decision.
+_HISTORY_GROUP_INVARIANT = (
+    'session_history.user_id',
+    'session_history.user',
+    'session_history.section_id',
+    'session_history.media_type',
+    'session_history.reference_id',
+    'media_type_live',
+)
+
+
+def build_history_page_bound(parameters, grouping, where, args):
+    """Bound a history draw to the rows its page can hold.
+
+    A draw groups every history row and orders every group to return one
+    page, so both grow with the table. A draw ordered by date is a run of
+    the started index, so the date of the last group the page holds
+    bounds it. Read that date first and return it as a condition on the
+    group key.
+
+    Returns an empty list when the draw takes no bound. A search matches
+    a row of any date, and an order on another column is not a run of the
+    index.
+    """
+    order = parameters.get('order') or []
+    columns = parameters.get('columns') or []
+    if len(order) != 1 or (parameters.get('search') or {}).get('value'):
+        return []
+
+    column = helpers.cast_to_int(order[0].get('column'))
+    if not 0 <= column < len(columns) or columns[column].get('data') != 'date':
+        return []
+
+    start = helpers.cast_to_int(parameters.get('start', 0))
+    length = helpers.cast_to_int(parameters.get('length', -1))
+    if length < 1:
+        return []
+
+    # Take as many groups as the page ends at. An activity row can sort
+    # above a history row and push it down the page, never up it.
+    descending = order[0].get('dir') == 'desc'
+    scan_where = where
+    if grouping:
+        scan_where = (where + ' AND ' if where else 'WHERE ') + _HISTORY_GROUP_DATE
+    else:
+        scan_where = scan_where or 'WHERE 1'
+
+    # Hold the walk to the window. Reading its edge is a run of the
+    # started index on its own.
+    scan_where += (" AND session_history.started %s (SELECT %s(started) FROM "
+                   "(SELECT started FROM session_history ORDER BY started %s LIMIT %d))"
+                   % ('>=' if descending else '<=',
+                      'MIN' if descending else 'MAX',
+                      'DESC' if descending else 'ASC', _HISTORY_BOUND_WINDOW))
+
+    query = ("SELECT %s(started) AS cutoff, COUNT(*) AS found FROM "
+             "(SELECT started FROM session_history %s %s ORDER BY started %s LIMIT ?)"
+             % ('MIN' if descending else 'MAX', _HISTORY_BOUND_JOINS, scan_where,
+                'DESC' if descending else 'ASC'))
+
+    result = database.MonitorDatabase().select(query, args=args + [start + length])
+    cutoff = result[0]['cutoff'] if result else None
+    # A scan that stopped short ran out of window or out of table. Either
+    # way the page holds every group it found.
+    if cutoff is None or result[0]['found'] < start + length:
+        return []
+
+    if grouping:
+        # A group holds rows either side of the cutoff, so bound the group
+        # keys rather than the rows. The aggregates need the whole group.
+        condition = ("session_history.reference_id IN "
+                     "(SELECT reference_id FROM session_history %s %s started %s ?)"
+                     % (_HISTORY_BOUND_JOINS, where + ' AND' if where else 'WHERE',
+                        '>=' if descending else '<='))
+        return [[condition, args + [cutoff]]]
+
+    return [['session_history.started %s ?' % ('>=' if descending else '<='), cutoff]]
+
+
+
+# An aggregate has no value until the rows are grouped, so it cannot
+# appear in the WHERE that picks them.
+_AGGREGATE = re.compile(r'\b(?:SUM|COUNT|MAX|MIN|GROUP_CONCAT)\s*\(', re.IGNORECASE)
+
+# Shorter than this, a search term matches too much of the table for a
+# bound to save the draw any work.
+_HISTORY_SEARCH_MIN = 3
+
+_SEARCH_JOINS = (
+    ('users.', ' LEFT OUTER JOIN users ON session_history.user_id = users.user_id'),
+    ('session_history_metadata.',
+     ' JOIN session_history_metadata ON session_history.id = session_history_metadata.id'),
+    ('session_history_media_info.',
+     ' JOIN session_history_media_info ON session_history.id = session_history_media_info.id'),
+)
+
+
+def build_history_search_bound(parameters, grouping, columns):
+    """Prune a searched history draw to the groups that can match it.
+
+    A search is a LIKE on both ends, so no index bounds it by date. It
+    still bounds by group. A group whose every row fails the search holds
+    no row for the draw to return, so reading the matching group keys
+    first leaves the join and the grouping to run over those alone.
+
+    The bound names whole groups, so a group it keeps still aggregates
+    over all of its rows.
+    """
+    search = (parameters.get('search') or {}).get('value')
+    if not search:
+        return []
+
+    # The bound reads the whole table, which pays only while the term
+    # matches few groups. A table searches on every keystroke, so the
+    # first letters of a term match nearly everything.
+    if len(search) < _HISTORY_SEARCH_MIN:
+        return []
+
+    extracted = datatables.extract_columns(columns=columns)
+    literals = {name.lower(): literal for name, literal
+                in zip(extracted['column_named'], extracted['column_literal'])}
+
+    # The bound has to cover every column the draw's search covers. One
+    # column short and it prunes a group the search would return.
+    terms = []
+    args = []
+    for column in parameters.get('columns') or []:
+        if not column.get('searchable'):
+            continue
+        name = column.get('data')
+        if not name:
+            # The draw searches this column by position, which the bound
+            # cannot resolve to an expression.
+            return []
+        literal = literals.get(name.lower())
+        if literal is None:
+            # The draw drops a column it does not know, so drop it here.
+            continue
+        if _AGGREGATE.search(literal):
+            # An aggregate has no value until the rows are grouped.
+            return []
+        terms.append('%s LIKE ?' % literal)
+        args.append('%' + search + '%')
+
+    if not terms:
+        return []
+
+    joins = ''.join(join for prefix, join in _SEARCH_JOINS
+                    if any(prefix in term for term in terms))
+    key = 'session_history.reference_id' if grouping else 'session_history.id'
+
+    condition = ("%s IN (SELECT %s FROM session_history%s WHERE %s)"
+                 % (key, key, joins, ' OR '.join(terms)))
+    return [[condition, args]]
 
 
 class DataFactory(object):
@@ -233,22 +422,23 @@ class DataFactory(object):
         media_type_live_case = ("(CASE WHEN session_history.live = 1 "
                                 "THEN 'live' ELSE session_history.media_type END)")
         count_join_tables = set()
-        count_alias = ''
         for c_where in custom_where:
             if 'session_history_metadata.' in c_where[0]:
                 count_join_tables.add('session_history_metadata')
             elif 'session_history_media_info.' in c_where[0]:
                 count_join_tables.add('session_history_media_info')
-            elif c_where[0].startswith('media_type_live'):
-                count_alias = ', %s AS media_type_live' % media_type_live_case
         count_joins = ''.join('JOIN %s ON %s.id = session_history.id ' % (t, t)
                               for t in count_join_tables)
+        # media_type_live is an output alias of the draw. The queries below
+        # pick their own columns, so they name the expression instead.
         count_where, count_args = datatables.build_custom_where(
-            [[c[0], c[1]] for c in custom_where])
+            [[media_type_live_case + c[0][len('media_type_live'):]
+              if c[0].startswith('media_type_live') else c[0], c[1]]
+             for c in custom_where])
 
-        history_count = ("SELECT c FROM (SELECT COUNT(DISTINCT %s) AS c%s "
+        history_count = ("SELECT c FROM (SELECT COUNT(DISTINCT %s) AS c "
                          "FROM session_history %s%s)"
-                         % (group_by[0], count_alias, count_joins, count_where))
+                         % (group_by[0], count_joins, count_where))
 
         if include_activity:
             sessions_alias = ", (CASE WHEN live = 1 THEN 'live' ELSE media_type END) AS media_type_live"
@@ -262,12 +452,30 @@ class DataFactory(object):
             filtered_count_query = 'SELECT (%s) AS filtered_count' % history_count
             filtered_count_args = count_args
 
+        # An OR-joined filter takes no bound, because ANDing one on would
+        # bind to the last term alone. Only one bound ever applies, since
+        # a search is what stops the page bound.
         try:
+            # Reading a bound parses json_data and queries the database,
+            # so it belongs with the draw it serves.
+            draw = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
+            page_bound = search_bound = []
+            if not any(c[0].endswith(' OR') for c in custom_where):
+                # An ungrouped draw returns rows, not groups, so any
+                # filter bounds it.
+                groupwise = not grouping or all(
+                    any(c[0].startswith(column) for column in _HISTORY_GROUP_INVARIANT)
+                    for c in custom_where)
+                if groupwise:
+                    page_bound = build_history_page_bound(
+                        draw, grouping, count_where, count_args)
+                search_bound = build_history_search_bound(draw, grouping, columns)
+
             query = data_tables.ssp_query(table_name='session_history',
                                           table_name_union=table_name_union,
                                           columns=columns,
                                           columns_union=columns_union,
-                                          custom_where=custom_where,
+                                          custom_where=custom_where + page_bound + search_bound,
                                           custom_where_union=custom_where_union,
                                           group_by=group_by,
                                           group_by_union=group_by_union,

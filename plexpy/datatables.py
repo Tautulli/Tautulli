@@ -99,9 +99,9 @@ class DataTables(object):
             group_u = build_grouping(group_by_union)
             c_where_u, cwu_args = build_custom_where(custom_where_union)
             union = 'UNION ALL SELECT %s FROM %s %s %s' % (extracted_columns_union['column_string'],
-                                                       table_name_union,
-                                                       c_where_u,
-                                                       group_u)
+                                                           table_name_union,
+                                                           c_where_u,
+                                                           group_u)
         else:
             union = ''
             cwu_args = []
@@ -232,7 +232,11 @@ def build_custom_where(custom_where=None):
             and_or = ' OR ' if is_or[i + 1] else ') AND '
         w[0] = w[0].rstrip(' OR')
 
-        if w[0].endswith(' IN') and isinstance(w[1], (list, tuple)):
+        if '?' in w[0]:
+            # The condition already carries its own placeholders
+            c_where += w[0] + and_or
+            args += w[1] if isinstance(w[1], (list, tuple)) else [w[1]]
+        elif w[0].endswith(' IN') and isinstance(w[1], (list, tuple)):
             c_where += w[0] + ' (' + ','.join(['?'] * len(w[1])) + ')' + and_or
             args += w[1]
         elif isinstance(w[1], (list, tuple)) and len(w[1]):
