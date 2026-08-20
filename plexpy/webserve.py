@@ -2163,7 +2163,7 @@ class WebInterface(object):
         if 'transcode_decision' in kwargs:
             transcode_decision = helpers.split_strip(kwargs.pop('transcode_decision', ''))
             if transcode_decision and 'all' not in transcode_decision:
-                custom_where.append(['session_history_media_info.transcode_decision IN', transcode_decision])
+                custom_where.append(['session_history.transcode_decision IN', transcode_decision])
         if 'guid' in kwargs:
             guid = helpers.split_strip(kwargs.pop('guid', '').split('?')[0])
             if guid:

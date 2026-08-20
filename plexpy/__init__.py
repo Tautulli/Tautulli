@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -661,6 +661,7 @@ def dbcheck():
         "platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, "
         "bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER, "
         "parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, section_id INTEGER, "
+        "live INTEGER DEFAULT 0, transcode_decision TEXT, "
         "view_offset INTEGER DEFAULT 0)"
     )
 
@@ -1899,6 +1900,38 @@ def dbcheck():
         logger.debug("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN subtitle_forced INTEGER"
+        )
+
+    # Upgrade session_history table from earlier versions.
+    #
+    # Read the schema rather than a column, because a failed read says
+    # only that the read failed. A locked database and a bad disk raise
+    # the same error a missing column does.
+    session_history_columns = {
+        column[1] for column in c_db.execute("PRAGMA table_info(session_history)")
+    }
+    missing_columns = {'live', 'transcode_decision'} - session_history_columns
+
+    if missing_columns:
+        # The history table filters on these two, which used to live only
+        # in the side tables. Filtering on them read a wide side-table row
+        # for every history row. They are written once with the row and
+        # never updated, the same way section_id already is.
+        logger.debug("Altering database. Updating database table session_history.")
+        if 'live' in missing_columns:
+            c_db.execute(
+                "ALTER TABLE session_history ADD COLUMN live INTEGER DEFAULT 0"
+            )
+        if 'transcode_decision' in missing_columns:
+            c_db.execute(
+                "ALTER TABLE session_history ADD COLUMN transcode_decision TEXT"
+            )
+        c_db.execute(
+            "UPDATE session_history SET "
+            "live = COALESCE((SELECT live FROM session_history_metadata "
+            "WHERE session_history_metadata.id = session_history.id), 0), "
+            "transcode_decision = (SELECT transcode_decision FROM session_history_media_info "
+            "WHERE session_history_media_info.id = session_history.id)"
         )
 
     # Upgrade session_history table from earlier versions

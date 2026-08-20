@@ -1077,7 +1077,7 @@ class Libraries(object):
                         "session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, " \
                         "title, parent_title, grandparent_title, original_title, " \
                         "thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, " \
-                        "year, originally_available_at, added_at, live, started, user, content_rating, labels, section_id " \
+                        "year, originally_available_at, added_at, session_history_metadata.live, started, user, content_rating, labels, section_id " \
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
                         "WHERE section_id = ? %s" \

@@ -317,7 +317,9 @@ class ActivityProcessor(object):
                                   'view_offset': session['view_offset'],
                                   'section_id': metadata['section_id'],
                                   'secure': session['secure'],
-                                  'relayed': session['relayed']
+                                  'relayed': session['relayed'],
+                                  'live': session['live'],
+                                  'transcode_decision': session['transcode_decision']
                                   }
 
                         # logger.debug("Tautulli ActivityProcessor :: Writing sessionKey %s session_history transaction..."

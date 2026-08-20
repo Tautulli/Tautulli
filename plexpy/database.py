@@ -1,4 +1,4 @@
-﻿# This file is part of Tautulli.
+# This file is part of Tautulli.
 #
 #  Tautulli is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -184,14 +184,15 @@ def import_tautulli_db(database=None, method=None, backup=False):
                 db.action("UPDATE {table}_copy SET reference_id = reference_id + ?".format(table=table_name),
                           [session_history_rows])
 
+    if method == 'merge':
+        from_db_name = 'main'
+        copy = '_copy'
+    else:
+        from_db_name = 'import_db'
+        copy = ''
+
     # Migrate section_id from session_history_metadata to session_history
     if import_db_version < helpers.version_to_tuple('v2.7.0'):
-        if method == 'merge':
-            from_db_name = 'main'
-            copy = '_copy'
-        else:
-            from_db_name = 'import_db'
-            copy = ''
         db.action("ALTER TABLE {from_db}.session_history{copy} "
                   "ADD COLUMN section_id INTEGER".format(from_db=from_db_name,
                                                          copy=copy))
@@ -200,6 +201,28 @@ def import_tautulli_db(database=None, method=None, backup=False):
                   "WHERE {from_db}.session_history_metadata{copy}.id = "
                   "{from_db}.session_history{copy}.id)".format(from_db=from_db_name,
                                                                copy=copy))
+
+    # Migrate live and transcode_decision to session_history. An import
+    # carries over only the columns it already has, so without this the
+    # imported history reads as not live and matches no decision filter.
+    import_history_columns = [
+        c['name'] for c in
+        db.select("PRAGMA {from_db}.table_info(session_history{copy})".format(from_db=from_db_name,
+                                                                             copy=copy))
+    ]
+    for column, definition, from_table in (
+            ('live', 'INTEGER DEFAULT 0', 'session_history_metadata'),
+            ('transcode_decision', 'TEXT', 'session_history_media_info')):
+        if column in import_history_columns:
+            continue
+        db.action("ALTER TABLE {from_db}.session_history{copy} "
+                  "ADD COLUMN {column} {definition}".format(from_db=from_db_name, copy=copy,
+                                                            column=column, definition=definition))
+        db.action("UPDATE {from_db}.session_history{copy} SET {column} = ("
+                  "SELECT {column} FROM {from_db}.{from_table}{copy} "
+                  "WHERE {from_db}.{from_table}{copy}.id = "
+                  "{from_db}.session_history{copy}.id)".format(from_db=from_db_name, copy=copy,
+                                                               column=column, from_table=from_table))
 
     # Keep track of all table columns so that duplicates can be removed after importing
     table_columns = {}

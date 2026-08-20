@@ -100,11 +100,11 @@ def seed_history(app_db):
         app_db.action(
             "INSERT INTO session_history (id, reference_id, started, stopped, rating_key, "
             "user_id, user, ip_address, paused_counter, player, product, platform, "
-            "machine_id, location, secure, relayed, media_type, section_id) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "machine_id, location, secure, relayed, media_type, section_id, live, transcode_decision) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             [row_id, ref_id, started, stopped, rating_key, user_id, user,
              "10.0.0.%d" % user_id, paused, player, "Plex", player,
-             "mach%d" % row_id, "lan", 1, 0, media_type, 1],
+             "mach%d" % row_id, "lan", 1, 0, media_type, 1, live, transcode],
         )
         app_db.action(
             "INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, "
@@ -130,11 +130,12 @@ def insert_history_row(app_db, row_id, ref_id, user_id, user, started, stopped,
     app_db.action(
         "INSERT INTO session_history (id, reference_id, started, stopped, rating_key, "
         "user_id, user, ip_address, paused_counter, player, product, platform, "
-        "machine_id, location, secure, relayed, media_type, section_id, view_offset) "
-        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        "machine_id, location, secure, relayed, media_type, section_id, view_offset, "
+        "live, transcode_decision) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
         [row_id, ref_id, started, stopped, rating_key, user_id, user,
          "10.0.0.%d" % user_id, 0, platform, "Plex", platform,
-         "mach%d" % row_id, "lan", 1, 0, media_type, 1, view_offset],
+         "mach%d" % row_id, "lan", 1, 0, media_type, 1, view_offset, 0, "direct play"],
     )
     app_db.action(
         "INSERT INTO session_history_metadata (id, rating_key, parent_rating_key, "

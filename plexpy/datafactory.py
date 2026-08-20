@@ -121,7 +121,7 @@ class DataFactory(object):
             "secure",
             "relayed",
             "session_history.media_type",
-            "(CASE WHEN session_history_metadata.live = 1 THEN 'live' ELSE session_history.media_type END) \
+            "(CASE WHEN session_history.live = 1 THEN 'live' ELSE session_history.media_type END) \
              AS media_type_live",
             "session_history_metadata.rating_key",
             "session_history_metadata.parent_rating_key",
@@ -137,7 +137,7 @@ class DataFactory(object):
             "session_history_metadata.thumb",
             "session_history_metadata.parent_thumb",
             "session_history_metadata.grandparent_thumb",
-            "session_history_metadata.live",
+            "session_history.live",
             "session_history_metadata.added_at",
             "session_history_metadata.originally_available_at",
             "session_history_metadata.guid",
@@ -147,7 +147,7 @@ class DataFactory(object):
             "session_history_metadata.duration",
             "session_history_metadata.marker_credits_first",
             "session_history_metadata.marker_credits_final",
-            "session_history_media_info.transcode_decision",
+            "session_history.transcode_decision",
             "COUNT(*) AS group_count",
             "GROUP_CONCAT(session_history.id) AS group_ids",
             "NULL AS state",
@@ -230,7 +230,7 @@ class DataFactory(object):
         # grouped result a second time. Joins are added back only for
         # filters that reference the side tables (same pattern as
         # get_total_duration).
-        media_type_live_case = ("(CASE WHEN session_history_metadata.live = 1 "
+        media_type_live_case = ("(CASE WHEN session_history.live = 1 "
                                 "THEN 'live' ELSE session_history.media_type END)")
         count_join_tables = set()
         count_alias = ''
@@ -240,7 +240,6 @@ class DataFactory(object):
             elif 'session_history_media_info.' in c_where[0]:
                 count_join_tables.add('session_history_media_info')
             elif c_where[0].startswith('media_type_live'):
-                count_join_tables.add('session_history_metadata')
                 count_alias = ', %s AS media_type_live' % media_type_live_case
         count_joins = ''.join('JOIN %s ON %s.id = session_history.id ' % (t, t)
                               for t in count_join_tables)
@@ -273,14 +272,11 @@ class DataFactory(object):
                                           group_by=group_by,
                                           group_by_union=group_by_union,
                                           join_types=['LEFT OUTER JOIN',
-                                                      'JOIN',
                                                       'JOIN'],
                                           join_tables=['users',
-                                                       'session_history_metadata',
-                                                       'session_history_media_info'],
+                                                       'session_history_metadata'],
                                           join_evals=[['session_history.user_id', 'users.user_id'],
-                                                      ['session_history.id', 'session_history_metadata.id'],
-                                                      ['session_history.id', 'session_history_media_info.id']],
+                                                      ['session_history.id', 'session_history_metadata.id']],
                                           filtered_count_query=filtered_count_query,
                                           filtered_count_args=filtered_count_args,
                                           kwargs=kwargs)
@@ -1766,9 +1762,8 @@ class DataFactory(object):
             elif 'session_history_media_info.' in c_where[0]:
                 join_tables.add('session_history_media_info')
             elif c_where[0].startswith('media_type_live'):
-                join_tables.add('session_history_metadata')
                 media_type_live = (
-                    ", (CASE WHEN session_history_metadata.live = 1 THEN 'live' ELSE session_history.media_type END) "
+                    ", (CASE WHEN session_history.live = 1 THEN 'live' ELSE session_history.media_type END) "
                     "AS media_type_live"
                 )
 
