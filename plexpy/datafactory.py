@@ -560,6 +560,13 @@ class DataFactory(object):
             else:
                 user_thumb = common.DEFAULT_USER_THUMB
 
+            # GROUP_CONCAT emits its rows in whatever order the scan read
+            # them, which is not the same order once a draw is bounded.
+            # Sort so a group reads the same either way.
+            group_ids = item['group_ids']
+            if group_ids:
+                group_ids = ','.join(sorted(group_ids.split(','), key=helpers.cast_to_int))
+
             row = {'reference_id': item['reference_id'],
                    'row_id': item['row_id'],
                    'id': item['row_id'],
@@ -603,7 +610,7 @@ class DataFactory(object):
                    'percent_complete': int(round(item['percent_complete'])),
                    'watched_status': watched_status,
                    'group_count': item['group_count'],
-                   'group_ids': item['group_ids'],
+                   'group_ids': group_ids,
                    'state': item['state'],
                    'session_key': item['session_key']
                    }
