@@ -81,6 +81,7 @@ _HISTORY_GROUP_INVARIANT = (
     'session_history.media_type',
     'session_history.reference_id',
     'media_type_live',
+    'session_history.transcode_decision',
 )
 
 
