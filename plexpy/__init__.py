@@ -3018,6 +3018,7 @@ def analytics_event(name, **kwargs):
     event.set_event_param('platformVersion', common.PLATFORM_VERSION[:100])
     event.set_event_param('linuxDistro', common.PLATFORM_LINUX_DISTRO)
     event.set_event_param('pythonVersion', common.PYTHON_VERSION)
+    event.set_event_param('sqliteVersion', common.SQLITE_VERSION)
     event.set_event_param('language', SYS_LANGUAGE)
     event.set_event_param('encoding', SYS_ENCODING)
     event.set_event_param('timezone', str(SYS_TIMEZONE))
