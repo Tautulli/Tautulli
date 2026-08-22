@@ -1523,7 +1523,8 @@ class DataFactory(object):
                 pre_tautulli = 1
 
             stream_output = {'bitrate': item['bitrate'],
-                             'video_full_resolution': item['video_full_resolution'],
+                             'video_full_resolution': common.VIDEO_RESOLUTION_OVERRIDES.get(
+                                 item['video_full_resolution'], item['video_full_resolution']),
                              'optimized_version': item['optimized_version'],
                              'optimized_version_profile': item['optimized_version_profile'],
                              'optimized_version_title': item['optimized_version_title'],
@@ -1546,7 +1547,8 @@ class DataFactory(object):
                              'subtitle_forced': item['subtitle_forced'],
                              'subtitle_language': item['subtitle_language'],
                              'stream_bitrate': item['stream_bitrate'],
-                             'stream_video_full_resolution': item['stream_video_full_resolution'],
+                             'stream_video_full_resolution': common.VIDEO_RESOLUTION_OVERRIDES.get(
+                                 item['stream_video_full_resolution'], item['stream_video_full_resolution']),
                              'quality_profile': item['quality_profile'],
                              'stream_container_decision': item['stream_container_decision'],
                              'stream_container': item['stream_container'],
@@ -1643,7 +1645,8 @@ class DataFactory(object):
                            'bitrate': item['bitrate'],
                            'video_codec': item['video_codec'],
                            'video_resolution': item['video_resolution'],
-                           'video_full_resolution': item['video_full_resolution'],
+                           'video_full_resolution': common.VIDEO_RESOLUTION_OVERRIDES.get(
+                               item['video_full_resolution'], item['video_full_resolution']),
                            'video_framerate': item['video_framerate'],
                            'audio_codec': item['audio_codec'],
                            'audio_channels': item['audio_channels'],

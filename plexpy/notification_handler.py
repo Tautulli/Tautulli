@@ -1059,7 +1059,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'stream_video_dovi_level': notify_params['stream_video_dovi_level'],
         'stream_video_dovi_profile': notify_params['stream_video_dovi_profile'],
         'stream_video_framerate': notify_params['stream_video_framerate'],
-        'stream_video_full_resolution': notify_params['stream_video_full_resolution'],
+        'stream_video_full_resolution': common.VIDEO_RESOLUTION_OVERRIDES.get(
+            notify_params['stream_video_full_resolution'], notify_params['stream_video_full_resolution']),
         'stream_video_ref_frames': notify_params['stream_video_ref_frames'],
         'stream_video_resolution': notify_params['stream_video_resolution'],
         'stream_video_scan_type': notify_params['stream_video_scan_type'],
@@ -1197,7 +1198,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'video_dovi_level': notify_params['video_dovi_level'],
         'video_dovi_profile': notify_params['video_dovi_profile'],
         'video_framerate': notify_params['video_framerate'],
-        'video_full_resolution': notify_params['video_full_resolution'],
+        'video_full_resolution': common.VIDEO_RESOLUTION_OVERRIDES.get(
+            notify_params['video_full_resolution'], notify_params['video_full_resolution']),
         'video_ref_frames': notify_params['video_ref_frames'],
         'video_resolution': notify_params['video_resolution'],
         'video_scan_type': notify_params['video_scan_type'],

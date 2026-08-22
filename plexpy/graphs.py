@@ -944,7 +944,7 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(item['resolution'])
+            categories.append(common.VIDEO_RESOLUTION_OVERRIDES.get(item['resolution'], item['resolution']))
 
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])
@@ -1048,7 +1048,7 @@ class Graphs(object):
         series_3 = []
 
         for item in result:
-            categories.append(item['resolution'])
+            categories.append(common.VIDEO_RESOLUTION_OVERRIDES.get(item['resolution'], item['resolution']))
 
             series_1.append(item['dp_count'])
             series_2.append(item['ds_count'])

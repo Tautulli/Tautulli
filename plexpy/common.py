@@ -172,8 +172,8 @@ AUDIO_CODEC_OVERRIDES = {
 
 VIDEO_RESOLUTION_OVERRIDES = {
     'sd': 'SD',
-    '2k': '2k',
-    '4k': '4k'
+    '2k': '2K',
+    '4k': '4K'
 }
 
 AUDIO_CHANNELS = {
@@ -616,7 +616,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Audio Language', 'type': 'str', 'value': 'audio_language', 'description': 'The audio language of the original media.'},
              {'name': 'Audio Language Code', 'type': 'str', 'value': 'audio_language_code', 'description': 'The audio language code of the original media.'},
              {'name': 'Audio Profile', 'type': 'str', 'value': 'audio_profile', 'description': 'The audio profile of the original media.'},
-            {'name': 'Audio Atmos', 'type': 'int', 'value': 'audio_atmos', 'description': 'If Dolby Atmos is present in the original media.', 'example': '0 or 1'},
+             {'name': 'Audio Atmos', 'type': 'int', 'value': 'audio_atmos', 'description': 'If Dolby Atmos is present in the original media.', 'example': '0 or 1'},
              {'name': 'Subtitle Codec', 'type': 'str', 'value': 'subtitle_codec', 'description': 'The subtitle codec of the original media.'},
              {'name': 'Subtitle Container', 'type': 'str', 'value': 'subtitle_container', 'description': 'The subtitle container of the original media.'},
              {'name': 'Subtitle Format', 'type': 'str', 'value': 'subtitle_format', 'description': 'The subtitle format of the original media.'},
