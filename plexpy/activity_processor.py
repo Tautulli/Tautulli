@@ -599,6 +599,13 @@ class ActivityProcessor(object):
         return None
 
     def set_session_state(self, session_key=None, state=None, **kwargs):
+        """Update columns on an existing session row.
+
+        This is an UPDATE, never an upsert. Only write_session inserts the row.
+        A session key with no row means the session is already gone, and
+        inserting one here leaves a row without rating_key or media_type that
+        the history table cannot render.
+        """
         db = database.MonitorDatabase()
         if str(session_key).isdigit():
             values = {}
@@ -609,12 +616,9 @@ class ActivityProcessor(object):
             for k, v in kwargs.items():
                 values[k] = v
 
-            keys = {'session_key': session_key}
-            result = db.upsert('sessions', values, keys)
-
-            return result
-
-        return None
+            db.action("UPDATE sessions SET " + ", ".join(k + " = ?" for k in values) + " "
+                      "WHERE session_key = ?",
+                      list(values.values()) + [session_key])
 
     def delete_session(self, session_key=None, row_id=None):
         db = database.MonitorDatabase()
@@ -644,8 +648,7 @@ class ActivityProcessor(object):
             if paused_counter:
                 values['paused_counter'] = paused_counter
 
-            keys = {'session_key': session_key}
-            db.upsert('sessions', values, keys)
+            self.set_session_state(session_key=session_key, **values)
 
     def increment_session_buffer_count(self, session_key=None):
         db = database.MonitorDatabase()

@@ -306,7 +306,8 @@ class DataFactory(object):
             if item['live']:
                 item['percent_complete'] = 100
 
-            base_watched_value = watched_percent[item['media_type']] / 4.0
+            # A sessions row written by an older version can have no media_type
+            base_watched_value = watched_percent.get(item['media_type'], 0) / 4.0
 
             if item['live'] or helpers.check_watched(
                 item['media_type'], item['view_offset'], item['duration'],
