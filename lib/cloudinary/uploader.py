@@ -157,6 +157,8 @@ def upload(file, **options):
         If True, performs analysis for cinemagraph creation.
     :keyword bool accessibility_analysis:
         If True, performs accessibility (image alt text) analysis.
+    :keyword str batch_id:
+        The batch identifier used to retrieve notifications from a `poll://*` destination.
     :keyword int timestamp:
         A UNIX timestamp to sign the request. Defaults to now().
     :keyword dict or list transformation:
@@ -934,18 +936,27 @@ def call_api(action, params, http_headers=None, return_error=False, unsigned=Fal
     except socket.error as e:
         raise Error("Socket error: {0!r}".format(e))
 
+    request_id = response.headers.get("x-request-id")
+
     try:
         result = json.loads(response.data.decode('utf-8'))
     except Exception as e:
-        raise Error("Error parsing server response ({0}) - {1}. Got - {2}"
-                    .format(response.status, response.data, e))
+        message = "Error parsing server response ({0}) - {1}. Got - {2}".format(
+            response.status, response.data, e)
+        if request_id:
+            message += ". Request ID: {0}".format(request_id)
+        raise Error(message)
 
     if "error" in result:
         if return_error:
             result["error"]["http_code"] = response.status
+            result["error"]["request_id"] = request_id
             return result
 
         exception_class = EXCEPTION_CODES.get(response.status) or Error
         raise exception_class(result["error"]["message"])
+
+    if request_id:
+        result["request_id"] = request_id
 
     return result

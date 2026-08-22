@@ -2,6 +2,7 @@ from cloudinary.api_client.call_account_api import _call_account_api, _call_publ
 from cloudinary.utils import encode_list
 
 AGENTS_SUB_PATH = "agents"
+CLOUDS_SUB_PATH = "clouds"
 SUB_ACCOUNTS_SUB_PATH = "sub_accounts"
 USERS_SUB_PATH = "users"
 USER_GROUPS_SUB_PATH = "user_groups"
@@ -53,6 +54,61 @@ def create_agent_account(email, agent_framework, agent_llm_model, agent_goal, sd
     """
     uri = [AGENTS_SUB_PATH, ACCOUNT_SUB_PATH]
     params = {"email": email,
+              "agent_framework": agent_framework,
+              "agent_llm_model": agent_llm_model,
+              "agent_goal": agent_goal,
+              "sdk_framework": sdk_framework}
+    return _call_public_account_api("POST", uri, params=params, **options)
+
+
+def create_cloud(delivery_ips=None, email=None, agent_framework=None, agent_llm_model=None, agent_goal=None,
+                 sdk_framework=None, **options):
+    """
+    Create a Claimable Cloud, intended for use by AI agents.
+
+    Creates a temporary cloud whose credentials work immediately, with media delivery restricted
+    to an IP allow-list. No verification email is sent. Unless a human claims it via the returned
+    claim_url, the cloud is disabled when it expires; claiming makes it permanent, keeps the
+    credentials and assets, and lifts the IP restriction.
+
+    Creation only: a cloud cannot be read, updated or deleted, so the delivery IPs are fixed for
+    its lifetime. If they are wrong, create another cloud or claim this one.
+
+    The restriction covers media delivery only, not the Upload and Admin APIs, so it is not a
+    confidentiality control. Uploads succeeding while delivery fails with `x-cld-error: ACL deny`
+    is the expected symptom of it.
+
+    This endpoint is public and unauthenticated, and is rate-limited per IP address.
+
+    :param delivery_ips:    Up to three additional IP addresses permitted to deliver media, for
+                            hosts other than the caller. The caller's own resolved address is
+                            always appended, so omitting this is the usual call; the literal
+                            "requester_ip" is replaced by that address. IPv4 and IPv6 are
+                            accepted, CIDR ranges are not. Non-public addresses are dropped and
+                            the call fails unless at least one public address remains, so read
+                            delivery_ips back from the response rather than assuming the list
+                            sent was stored.
+    :type delivery_ips:     list[str], optional
+    :param email:           Email address to associate the claim with. Not verified, and no mail
+                            is sent to it; a placeholder is generated when omitted.
+    :type email:            str, optional
+    :param agent_framework: The name of the agent framework used to create the cloud.
+    :type agent_framework:  str, optional
+    :param agent_llm_model: The LLM model powering the agent.
+    :type agent_llm_model:  str, optional
+    :param agent_goal:      A short description of what the agent is trying to achieve.
+    :type agent_goal:       str, optional
+    :param sdk_framework:   The Cloudinary SDK framework the agent intends to use.
+    :type sdk_framework:    str, optional
+    :param options:         Generic advanced options dict, see online documentation
+    :type options:          dict, optional
+    :return:                The created Claimable Cloud, including working credentials,
+                            the claim URL and the expiry time
+    :rtype:                 dict
+    """
+    uri = [CLOUDS_SUB_PATH]
+    params = {"delivery_ips": delivery_ips,
+              "email": email,
               "agent_framework": agent_framework,
               "agent_llm_model": agent_llm_model,
               "agent_goal": agent_goal,
@@ -163,7 +219,7 @@ def update_sub_account(sub_account_id, name=None, cloud_name=None, custom_attrib
     return _call_account_api("put", uri, params=params, **options)
 
 
-def users(user_ids=None, sub_account_id=None, pending=None, prefix=None, last_login=None, from_date=None, to_date=None,
+def users(user_ids=None, sub_account_id=None, status=None, prefix=None, last_login=None, from_date=None, to_date=None,
           **options):
     """
     List all users
@@ -171,10 +227,10 @@ def users(user_ids=None, sub_account_id=None, pending=None, prefix=None, last_lo
     :type user_ids:         list, optional
     :param sub_account_id:  The id of a sub account
     :type sub_account_id:   str, optional
-    :param pending:         Limit results to pending users (True),
-                            users that are not pending (False),
-                            or all users (None, the default).
-    :type pending:          bool, optional
+    :param status:          Limit results to users of this status: "pending" for users who have not yet
+                            set a password, otherwise a user status such as "active". All users when
+                            omitted.
+    :type status:           str, optional
     :param prefix:          User prefix
     :type prefix:           str, optional
     :param last_login:      Return only users that last logged in in the specified range of dates (true), 
@@ -193,7 +249,7 @@ def users(user_ids=None, sub_account_id=None, pending=None, prefix=None, last_lo
     user_ids = encode_list(user_ids)
     params = {"ids": user_ids,
               "sub_account_id": sub_account_id,
-              "pending": pending,
+              "status": status,
               "prefix": prefix,
               "last_login": last_login,
               "from": from_date,

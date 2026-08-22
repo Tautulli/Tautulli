@@ -26,7 +26,8 @@ EXCEPTION_CODES = {
     409: AlreadyExists,
     420: RateLimited,
     429: RateLimited,
-    500: GeneralError
+    500: GeneralError,
+    503: GeneralError
 }
 
 
@@ -38,6 +39,7 @@ class Response(dict):
         self.rate_limit_allowed = safe_cast(response.headers.get("x-featureratelimit-limit"), int)
         self.rate_limit_reset_at = safe_cast(response.headers.get("x-featureratelimit-reset"), email.utils.parsedate)
         self.rate_limit_remaining = safe_cast(response.headers.get("x-featureratelimit-remaining"), int)
+        self.request_id = response.headers.get("x-request-id")
 
 
 def execute_request(http_connector, method, params, headers, auth, api_url, **options):
@@ -58,8 +60,9 @@ def execute_request(http_connector, method, params, headers, auth, api_url, **op
 
     api_url = smart_escape(unquote(api_url))
     kw = {}
-    if "timeout" in options:
-        kw["timeout"] = options["timeout"]
+    timeout = options.get("timeout", cloudinary.config().timeout)
+    if timeout is not None:
+        kw["timeout"] = timeout
     if "body" in options:
         kw["body"] = options["body"]
 
