@@ -1,7 +1,7 @@
 import cloudinary
 from cloudinary.api_client.execute_request import execute_request
 from cloudinary.provisioning.account_config import account_config
-from cloudinary.utils import get_http_connector, normalize_params
+from cloudinary.utils import get_http_connector, json_body, normalize_params
 
 PROVISIONING_SUB_PATH = "provisioning"
 ACCOUNT_SUB_PATH = "accounts"
@@ -46,9 +46,15 @@ def _execute_account_request(method, uri, auth, params=None, headers=None, **opt
     api_version = options.pop("api_version", cloudinary.API_VERSION)
     provisioning_api_url = "/".join([prefix, api_version, PROVISIONING_SUB_PATH] + uri)
 
+    params = normalize_params(params)
+
+    if method.upper() != "GET":
+        options["body"], headers = json_body(params, headers)
+        params = None
+
     return execute_request(http_connector=_http,
                            method=method,
-                           params=normalize_params(params),
+                           params=params,
                            headers=headers,
                            auth=auth,
                            api_url=provisioning_api_url,

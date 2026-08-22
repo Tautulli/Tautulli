@@ -2,7 +2,7 @@ import json
 
 import cloudinary
 from cloudinary.api_client.execute_request import execute_request
-from cloudinary.utils import get_http_connector, normalize_params
+from cloudinary.utils import get_http_connector, json_body, normalize_params
 
 logger = cloudinary.logger
 _http = get_http_connector(cloudinary.config(), cloudinary.CERT_KWARGS)
@@ -35,23 +35,50 @@ def call_metadata_rules_api(method, uri, params, **options):
 
 
 def call_json_api(method, uri, params, **options):
-    data=None
+    data = None
+    headers = {'Content-Type': 'application/json'}
     if method.upper() != 'GET':
-        data = json.dumps(params).encode('utf-8')
+        data, headers = json_body(params)
         params = None
 
-    return _call_api(method, uri, params=params, body=data, headers={'Content-Type': 'application/json'}, **options)
+    return _call_api(method, uri, params=params, body=data, headers=headers, **options)
 
 
-def _call_v2_api(method, uri, params, **options):
-    return call_json_api(method, uri, params=params, api_version='v2', **options)
+def _call_v2_api(method, uri, params, module=None, **options):
+    """Private function that assists with performing a v2 API call.
+
+    :param method: The HTTP method. Valid methods: get, post, put, delete
+    :param uri: REST endpoint of the API (without the module or the cloud name)
+    :param params: Query/body parameters passed to the method
+    :param module: The v2 module the endpoint belongs to, for module-first endpoints
+                   (`/v2/{module}/{cloud_name}/...`). Omit for context-first endpoints
+                   (`/v2/{cloud_name}/...`).
+    :param options: Additional options
+    :rtype: Response
+    """
+    return call_json_api(method, uri, params=params, api_version='v2', module=module, **options)
 
 
 def call_api(method, uri, params, **options):
     return _call_api(method, uri, params=params, **options)
 
 
-def _call_api(method, uri, params=None, body=None, headers=None, extra_headers=None, **options):
+def _call_api(method, uri, params=None, body=None, headers=None, extra_headers=None, module=None, **options):
+    """
+    Performs an API call.
+
+    :param method: The HTTP method. Valid methods: get, post, put, delete
+    :param uri: REST endpoint of the API, as a list of path segments
+    :param params: Query/body parameters passed to the method
+    :param body: An already serialized request body
+    :param headers: Request headers
+    :param extra_headers: Additional headers, merged into headers
+    :param module: The API module the endpoint belongs to. When given, the module precedes
+                   the cloud name in the URL (`/{api_version}/{module}/{cloud_name}/...`),
+                   which is the v2 API convention. When omitted, the cloud name comes first.
+    :param options: Additional options
+    :rtype: Response
+    """
     prefix = options.pop("upload_prefix",
                          cloudinary.config().upload_prefix) or "https://api.cloudinary.com"
     cloud_name = options.pop("cloud_name", cloudinary.config().cloud_name)
@@ -66,7 +93,7 @@ def _call_api(method, uri, params=None, body=None, headers=None, extra_headers=N
     auth = {"key": api_key, "secret": api_secret, "oauth_token": oauth_token}
 
     api_version = options.pop("api_version", cloudinary.API_VERSION)
-    api_url = "/".join([prefix, api_version, cloud_name] + uri)
+    api_url = "/".join(filter(None, [prefix, api_version, module, cloud_name] + uri))
 
     if body is not None:
         options["body"] = body

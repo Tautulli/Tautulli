@@ -1323,6 +1323,189 @@ def update_streaming_profile(name, **options):
     return call_json_api('PUT', uri, params, **options)
 
 
+def triggers(**options):
+    """
+    Lists all notification triggers.
+
+    :param options: Additional options.
+    :keyword str event_type: Restricts the list to triggers of a single event type.
+    :return: A dictionary with a "triggers" key and a "total" count.
+    :rtype: Response
+    """
+    params = {"event_type": options.pop("event_type", None)}
+    return call_json_api("get", ["triggers"], params, **options)
+
+
+def create_trigger(uri, event_type, uri_type=None, **options):
+    """
+    Creates a notification trigger.
+
+    :param uri: The destination of the notification. An https:// webhook URL, or a
+                poll:// destination when uri_type is "poll" - either "poll://<channel>"
+                for a named channel or "poll://*" for an anonymous one addressed by batch_id.
+    :type uri: str
+    :param event_type: The event that fires the trigger. One of:
+                       "all", "access_control_changed", "bulk_refresh_auto_fetch",
+                       "create_folder", "delete", "delete_by_token", "delete_folder",
+                       "eager", "error", "explode", "generate_archive", "info",
+                       "invalidate_custom_cdn", "moderation", "moderation_summary",
+                       "move", "move_or_rename_asset_folder", "multi", "publish",
+                       "rename", "report", "resource_context_changed",
+                       "resource_display_name_changed", "resource_metadata_changed",
+                       "resource_tags_changed", "restore_asset_version", "sprite",
+                       "upload".
+                       The server owns this list and may extend it; values are passed
+                       through unvalidated.
+    :type event_type: str
+    :param uri_type: How the notification is delivered:
+                     - "webhook" (the default): delivers the notification as an HTTP POST
+                       to the destination URL.
+                     - "flow": dispatches the notification to a Cloudinary flow.
+                     - "poll": buffers the notification for retrieval with `notifications`
+                       instead of an outbound HTTP request.
+    :type uri_type: str, optional
+    :param options: Additional options.
+    :return: The created trigger.
+    :rtype: Response
+    """
+    params = {"uri": uri, "event_type": event_type, "uri_type": uri_type}
+    return call_json_api("post", ["triggers"], params, **options)
+
+
+def update_trigger(trigger_id, new_uri, **options):
+    """
+    Updates the destination URI of an existing trigger.
+
+    :param trigger_id: The ID of the trigger to update.
+    :type trigger_id: str
+    :param new_uri: The new destination URI.
+    :type new_uri: str
+    :param options: Additional options.
+    :return: A dictionary with a "message" key.
+    :rtype: Response
+    """
+    return call_json_api("put", ["triggers", trigger_id], {"new_uri": new_uri}, **options)
+
+
+def delete_trigger(trigger_id, **options):
+    """
+    Deletes a notification trigger.
+
+    :param trigger_id: The ID of the trigger to delete.
+    :type trigger_id: str
+    :param options: Additional options.
+    :return: A dictionary with a "message" key.
+    :rtype: Response
+    """
+    return call_json_api("delete", ["triggers", trigger_id], {}, **options)
+
+
+def test_trigger(trigger_id, sample_data=None, **options):
+    """
+    Evaluates a trigger's filter against sample data, without delivering a notification.
+
+    :param trigger_id: The ID of the trigger to test.
+    :type trigger_id: str
+    :param sample_data: The sample notification payload to evaluate the filter against.
+    :type sample_data: dict, optional
+    :param options: Additional options.
+    :return: A dictionary with "trigger_id", "filter_present" and "filter_result" keys.
+    :rtype: Response
+    """
+    params = {"sample_data": sample_data}
+    return call_json_api("post", ["triggers", trigger_id, "test"], params, **options)
+
+
+def notifications(channel=None, batch_id=None, max_messages=None, wait_seconds=None,
+                  visibility_timeout=None, **options):
+    """
+    Gets notifications buffered for a poll destination.
+
+    Long-polls exactly one addressing dimension - a named channel or a batch_id. Holds the
+    connection up to wait_seconds, returning as soon as messages are claimed. A claimed
+    message stays invisible for visibility_timeout seconds and is then redelivered, unless
+    it is acknowledged with `ack_notifications` first.
+
+    Each message carries the parsed notification as "payload" and the byte-exact signed
+    bytes, base64url encoded, as "signed_payload". Verify signatures against
+    signed_payload, never against a re-serialization of payload::
+
+        raw = cloudinary.utils.base64url_decode(message["signed_payload"])
+        cloudinary.utils.verify_notification_signature(
+            raw, message["timestamp"], message["signature"])
+
+    :param channel: The named channel to drain ("poll://<channel>" destinations).
+                    Mutually exclusive with batch_id.
+    :type channel: str, optional
+    :param batch_id: The batch to drain ("poll://*" anonymous destinations).
+                     Mutually exclusive with channel.
+    :type batch_id: str, optional
+    :param max_messages: The maximum number of messages to return. 1-100, default 10.
+    :type max_messages: int, optional
+    :param wait_seconds: The maximum seconds to hold the long-poll open when empty.
+                         0-60, default 20.
+    :type wait_seconds: int, optional
+    :param visibility_timeout: The seconds a claimed message stays invisible before
+                               redelivery. 1-600, default 30.
+    :type visibility_timeout: int, optional
+    :param options: Additional options.
+    :keyword int timeout: The HTTP timeout, also configurable via `cloudinary.config(timeout=...)`.
+                          When set, it must exceed wait_seconds, or the long poll is cut off
+                          client-side before the server answers.
+    :return: Zero or more claimed messages, as {"messages": [...]}. The "messages" key is
+             absent when nothing is buffered - read it with .get("messages", []).
+    :rtype: Response
+    :raises ValueError: If neither or both of channel and batch_id are given.
+    """
+    if bool(channel) == bool(batch_id):
+        raise ValueError("Supply exactly one of 'channel' or 'batch_id'")
+
+    params = {
+        "channel": channel,
+        "batch_id": batch_id,
+        "max_messages": max_messages,
+        "wait_seconds": wait_seconds,
+        "visibility_timeout": visibility_timeout,
+    }
+
+    return __call_notifications_api("get", ["messages"], params, **options)
+
+
+def ack_notifications(receipt_handles, **options):
+    """
+    Acknowledges claimed notifications, deleting them from the buffer.
+
+    Unacknowledged notifications are redelivered once their visibility timeout expires.
+
+    :param receipt_handles: The receipt handles of the notifications to acknowledge, as
+                            returned by `notifications`. A single handle may be passed as a
+                            string. Maximum 100 per call.
+    :type receipt_handles: list[str] or str
+    :param options: Additional options.
+    :return: The result of the call.
+    :rtype: Response
+    """
+    if isinstance(receipt_handles, string_types):
+        receipt_handles = [receipt_handles]
+
+    return __call_notifications_api("post", ["messages", "ack"],
+                                    {"receipt_handles": receipt_handles}, **options)
+
+
+def __call_notifications_api(method, uri, params, **options):
+    """
+    Private function that assists with performing an API call to the notifications module.
+
+    :param method: The HTTP method. Valid methods: get, post, put, delete
+    :param uri: REST endpoint of the API (without 'notifications' or the cloud name)
+    :param params: Query/body parameters passed to the method
+    :param options: Additional options
+    :rtype: Response
+    :internal
+    """
+    return _call_v2_api(method, uri, params, module="notifications", **options)
+
+
 def only(source, *keys):
     """
     Returns a dictionary containing only the specified keys from the source.
@@ -1384,7 +1567,7 @@ def __delete_resource_params(options, **params):
     :internal
     """
     p = dict(transformations=utils.build_eager(options.get('transformations')),
-             **only(options, "keep_original", "next_cursor", "invalidate"))
+             **only(options, "keep_original", "next_cursor", "invalidate", "batch_id"))
     p.update(params)
     return p
 
