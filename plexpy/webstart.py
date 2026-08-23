@@ -253,6 +253,10 @@ def initialize(options):
             'tools.auth_basic.on': False,
             'tools.sessions.on': False,
         },
+        '/pms_image_proxy': {
+            # Slowest handler (Plex round-trip) but GET-only and never touches cherrypy.session, so nothing to lock.
+            'tools.sessions.locking': 'explicit',
+        },
         '/status': {
             'tools.auth_basic.on': False,
             'tools.sessions.on': True,
