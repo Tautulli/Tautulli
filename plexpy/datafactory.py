@@ -55,6 +55,13 @@ class DataFactory(object):
         if include_activity is None:
             include_activity = plexpy.CONFIG.HISTORY_TABLE_ACTIVITY
 
+        # The sessions table has no reference_id, so a draw filtered by
+        # group key holds no live session. Drop the union rather than
+        # filter a table on a column it does not have. This is the child
+        # table of an expanded history row.
+        if any(c[0].startswith('session_history.reference_id') for c in custom_where):
+            include_activity = False
+
         if session.get_session_user_id():
             session_user_id = str(session.get_session_user_id())
             added = False
