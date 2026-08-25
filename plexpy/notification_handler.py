@@ -2044,7 +2044,7 @@ class CustomFormatter(Formatter):
                 suffix = suffix_split[1].replace('\\n', '\n')
                 temp_format_string = suffix_split[0]
 
-            if prefix or suffix:
+            if prefix is not None or suffix is not None:
                 real_format_string = '{' + temp_format_string.format(*matches) + '}'
                 _, field_name, format_spec, conversion, _, _ = next(self.parse(real_format_string))
 
