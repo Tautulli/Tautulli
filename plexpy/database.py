@@ -497,6 +497,7 @@ class MonitorDatabase(object):
             try:
                 self.action(insert_query, list(value_dict.values()) + list(key_dict.values()))
             except sqlite3.IntegrityError:
+                trans_type = None
                 logger.info("Tautulli Database :: Queries failed: %s and %s", update_query, insert_query)
 
         # We want to know if it was an update or insert
