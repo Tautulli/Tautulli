@@ -198,6 +198,8 @@ FILTERS = [
     ('transcode', [['session_history.transcode_decision IN', ['transcode']]]),
     ('guid prefix', [['session_history_metadata.guid LIKE', ['plex://item/1%']]]),
     ('section_id', [['session_history.section_id IN', ['2']]]),
+    # The child table of an expanded history row
+    ('reference_id', [['session_history.reference_id IN', ['1']]]),
     ('media type and user', [['media_type_live IN', ['episode']],
                              ['session_history.user_id IN', ['2']]]),
     # started splits a group, so these take no page bound
