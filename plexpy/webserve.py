@@ -2909,13 +2909,15 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [["May 08, 2016 09:35:37",
-                      "DEBUG",
-                      "Auth: Came in with a super-token, authorization succeeded."
-                      ],
-                     [...],
-                     [...]
-                     ]
+                    {"data":
+                        [["May 08, 2016 09:35:37",
+                          "DEBUG",
+                          "Auth: Came in with a super-token, authorization succeeded."
+                          ],
+                          [...],
+                          [...]
+                        ]
+                    }
             ```
         """
         if not plexpy.CONFIG.PMS_LOGS_FOLDER:
