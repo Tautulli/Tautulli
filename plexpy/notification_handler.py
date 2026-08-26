@@ -1949,7 +1949,7 @@ class CustomFormatter(Formatter):
     def __init__(self, default='{{{0}}}'):
         self.default = default
         self.eval_regex = re.compile(r'`.*?`')
-        self.eval_replace_regex = re.compile(r'{.*(`.*?`).*}')
+        self.eval_replace_regex = re.compile(r'{.*?(`.*?`).*?}')
         self.eval_replace = {
             ':': '%%colon%%',
             '!': '%%exclamation%%'
@@ -2012,6 +2012,10 @@ class CustomFormatter(Formatter):
 
         for literal_text, field_name, format_spec, conversion in parsed:
             # Restore characters in eval expression
+            if literal_text:
+                for k, v in self.eval_replace.items():
+                    literal_text = literal_text.replace(v, k)
+
             if field_name:
                 for k, v in self.eval_replace.items():
                     field_name = field_name.replace(v, k)
