@@ -1949,7 +1949,7 @@ class CustomFormatter(Formatter):
     def __init__(self, default='{{{0}}}'):
         self.default = default
         self.eval_regex = re.compile(r'`.*?`')
-        self.eval_replace_regex = re.compile(r'{.*?(`.*?`).*?}')
+        self.eval_replace_regex = re.compile(r'{[^{}]*?(`.*?`)[^{}]*?}')
         self.eval_replace = {
             ':': '%%colon%%',
             '!': '%%exclamation%%'
