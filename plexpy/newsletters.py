@@ -237,11 +237,11 @@ def set_newsletter_config(newsletter_id=None, **kwargs):
     email_config = {k[len(email_config_prefix):]: kwargs.pop(k)
                     for k in list(kwargs.keys()) if k.startswith(email_config_prefix)}
 
-    for cfg, val in newsletter['config'].items():
+    for cfg in newsletter['config']:
         if cfg in newsletter_config:
             newsletter['config'][cfg] = newsletter_config[cfg]
 
-    for cfg, val in newsletter['email_config'].items():
+    for cfg in newsletter['email_config']:
         if cfg in email_config:
             # Check for a password config keys and a blank password from the HTML form
             # so we don't overwrite the existing password with a blank value

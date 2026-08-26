@@ -656,7 +656,7 @@ def set_notifier_config(notifier_id=None, **kwargs):
     notifier_config = {k[len(config_prefix):]: kwargs.pop(k)
                        for k in list(kwargs.keys()) if k.startswith(config_prefix)}
 
-    for cfg, val in notifier['config'].items():
+    for cfg in notifier['config']:
         if cfg in notifier_config:
             # Check for a password config keys and a blank password from the HTML form
             # so we don't overwrite the existing password with a blank value
