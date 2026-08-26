@@ -722,7 +722,7 @@ class Users(object):
                                            purge_only=purge_only))
             return all(success)
 
-        elif str(user_id).isdigit():
+        elif user_id is not None and str(user_id).isdigit():
             delete_success = database.delete_user_history(user_id=user_id)
 
             if purge_only:
@@ -745,7 +745,7 @@ class Users(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            if user_id and str(user_id).isdigit():
+            if user_id is not None and str(user_id).isdigit():
                 query = "SELECT * FROM users WHERE user_id = ?"
                 result = monitor_db.select(query=query, args=[user_id])
                 if result:
@@ -816,7 +816,7 @@ class Users(object):
             'server_token': ''
         }
 
-        if user_id:
+        if user_id is not None:
             try:
                 monitor_db = database.MonitorDatabase()
                 query = "SELECT allow_guest, user_token, server_token FROM users " \
@@ -936,7 +936,7 @@ class Users(object):
         if session.get_session_user_id():
             custom_where = [['user_login.user_id', session.get_session_user_id()]]
         else:
-            custom_where = [['user_login.user_id', user_id]] if user_id else []
+            custom_where = [['user_login.user_id', user_id]] if user_id is not None else []
 
         columns = ["user_login.id AS row_id",
                    "user_login.timestamp",
