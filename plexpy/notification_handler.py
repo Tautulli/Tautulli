@@ -1331,6 +1331,27 @@ def build_server_notify_params(notify_action=None, **kwargs):
     return available_params
 
 
+ALL_TAGS = (
+    r'<movie>.*?</movie>|'
+    r'<show>.*?</show>|'
+    r'<season>.*?</season>|'
+    r'<episode>.*?</episode>|'
+    r'<artist>.*?</artist>|'
+    r'<album>.*?</album>|'
+    r'<track>.*?</track>'
+)
+MEDIA_TAGS_REGEX = {
+    'movie': re.compile(ALL_TAGS.replace('<movie>.*?</movie>', '<movie>|</movie>'), re.IGNORECASE | re.DOTALL),
+    'show': re.compile(ALL_TAGS.replace('<show>.*?</show>', '<show>|</show>'), re.IGNORECASE | re.DOTALL),
+    'season': re.compile(ALL_TAGS.replace('<season>.*?</season>', '<season>|</season>'), re.IGNORECASE | re.DOTALL),
+    'episode': re.compile(ALL_TAGS.replace('<episode>.*?</episode>', '<episode>|</episode>'), re.IGNORECASE | re.DOTALL),
+    'artist': re.compile(ALL_TAGS.replace('<artist>.*?</artist>', '<artist>|</artist>'), re.IGNORECASE | re.DOTALL),
+    'album': re.compile(ALL_TAGS.replace('<album>.*?</album>', '<album>|</album>'), re.IGNORECASE | re.DOTALL),
+    'track': re.compile(ALL_TAGS.replace('<track>.*?</track>', '<track>|</track>'), re.IGNORECASE | re.DOTALL),
+    'default': re.compile(ALL_TAGS, re.IGNORECASE | re.DOTALL),
+}
+
+
 def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None, test=False, as_json=False):
     # Default subject and body text
     if agent_id == 15:
@@ -1349,28 +1370,7 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         body = default_body
 
     media_type = parameters.get('media_type')
-
-    all_tags = r'<movie>.*?</movie>|' \
-        '<show>.*?</show>|<season>.*?</season>|<episode>.*?</episode>|' \
-        '<artist>.*?</artist>|<album>.*?</album>|<track>.*?</track>'
-
-    # Check for exclusion tags
-    if media_type == 'movie':
-        pattern = re.compile(all_tags.replace('<movie>.*?</movie>', '<movie>|</movie>'), re.IGNORECASE | re.DOTALL)
-    elif media_type == 'show':
-        pattern = re.compile(all_tags.replace('<show>.*?</show>', '<show>|</show>'), re.IGNORECASE | re.DOTALL)
-    elif media_type == 'season':
-        pattern = re.compile(all_tags.replace('<season>.*?</season>', '<season>|</season>'), re.IGNORECASE | re.DOTALL)
-    elif media_type == 'episode':
-        pattern = re.compile(all_tags.replace('<episode>.*?</episode>', '<episode>|</episode>'), re.IGNORECASE | re.DOTALL)
-    elif media_type == 'artist':
-        pattern = re.compile(all_tags.replace('<artist>.*?</artist>', '<artist>|</artist>'), re.IGNORECASE | re.DOTALL)
-    elif media_type == 'album':
-        pattern = re.compile(all_tags.replace('<album>.*?</album>', '<album>|</album>'), re.IGNORECASE | re.DOTALL)
-    elif media_type == 'track':
-        pattern = re.compile(all_tags.replace('<track>.*?</track>', '<track>|</track>'), re.IGNORECASE | re.DOTALL)
-    else:
-        pattern = re.compile(all_tags, re.IGNORECASE | re.DOTALL)
+    pattern = MEDIA_TAGS_REGEX.get(media_type, MEDIA_TAGS_REGEX['default'])
 
     # Remove the unwanted tags and strip any unmatch tags too.
     subject = strip_tag(re.sub(pattern, '', subject), agent_id).strip(' \t\n\r')
@@ -1946,14 +1946,16 @@ def _check_names(code: types.CodeType, allowed_names: dict[str, Callable]):
 
 
 class CustomFormatter(Formatter):
+    EVAL_REGEX = re.compile(r'`.*?`')
+    EVAL_REPLACE_REGEX = re.compile(r'{[^{}]*?(`.*?`)[^{}]*?}')
+    EVAL_REPLACE = {
+        ':': '%%colon%%',
+        '!': '%%exclamation%%'
+    }
+    SLICE_REGEX = re.compile(r'\[(?P<start>-?\d*)(?P<slice>:?)(?P<end>-?\d*)\]')
+
     def __init__(self, default='{{{0}}}'):
         self.default = default
-        self.eval_regex = re.compile(r'`.*?`')
-        self.eval_replace_regex = re.compile(r'{[^{}]*?(`.*?`)[^{}]*?}')
-        self.eval_replace = {
-            ':': '%%colon%%',
-            '!': '%%exclamation%%'
-        }
 
     def convert_field(self, value, conversion):
         if conversion is None:
@@ -1973,8 +1975,7 @@ class CustomFormatter(Formatter):
 
     def format_field(self, value, format_spec):
         if format_spec.startswith('[') and format_spec.endswith(']'):
-            pattern = re.compile(r'\[(?P<start>-?\d*)(?P<slice>:?)(?P<end>-?\d*)\]')
-            match = re.match(pattern, format_spec)
+            match = re.match(self.SLICE_REGEX, format_spec)
             if value and match:
                 groups = match.groupdict()
                 items = [x.strip() for x in str(value).split(',')]
@@ -2002,9 +2003,9 @@ class CustomFormatter(Formatter):
 
     def parse(self, format_string):
         # Replace characters in eval expression
-        for match in re.findall(self.eval_replace_regex, format_string):
+        for match in re.findall(self.EVAL_REPLACE_REGEX, format_string):
             replaced = match
-            for k, v in self.eval_replace.items():
+            for k, v in self.EVAL_REPLACE.items():
                 replaced = replaced.replace(k, v)
             format_string = format_string.replace(match, replaced)
 
@@ -2013,11 +2014,11 @@ class CustomFormatter(Formatter):
         for literal_text, field_name, format_spec, conversion in parsed:
             # Restore characters in eval expression
             if literal_text:
-                for k, v in self.eval_replace.items():
+                for k, v in self.EVAL_REPLACE.items():
                     literal_text = literal_text.replace(v, k)
 
             if field_name:
-                for k, v in self.eval_replace.items():
+                for k, v in self.EVAL_REPLACE.items():
                     field_name = field_name.replace(v, k)
 
             real_format_string = ''
@@ -2031,8 +2032,8 @@ class CustomFormatter(Formatter):
             prefix = None
             suffix = None
 
-            matches = re.findall(self.eval_regex, real_format_string)
-            temp_format_string = re.sub(self.eval_regex, '{}', real_format_string)
+            matches = re.findall(self.EVAL_REGEX, real_format_string)
+            temp_format_string = re.sub(self.EVAL_REGEX, '{}', real_format_string)
 
             prefix_split = temp_format_string.split('<')
             if len(prefix_split) == 2:
