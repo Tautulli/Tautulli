@@ -690,12 +690,13 @@ class Config(object):
 
         if self.CONFIG_VERSION == 17:
             home_stats_cards = self.HOME_STATS_CARDS
-            if 'top_users' in home_stats_cards:
-                top_users_index = home_stats_cards.index('top_users')
-                home_stats_cards.insert(top_users_index, 'top_libraries')
-            else:
-                home_stats_cards.append('top_libraries')
-            self.HOME_STATS_CARDS = home_stats_cards
+            if 'top_libraries' not in home_stats_cards:
+                if 'top_users' in home_stats_cards:
+                    top_users_index = home_stats_cards.index('top_users')
+                    home_stats_cards.insert(top_users_index, 'top_libraries')
+                else:
+                    home_stats_cards.append('top_libraries')
+                self.HOME_STATS_CARDS = home_stats_cards
 
             self.CONFIG_VERSION = 18
 
