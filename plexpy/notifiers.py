@@ -660,7 +660,7 @@ def set_notifier_config(notifier_id=None, **kwargs):
         if cfg in notifier_config:
             # Check for a password config keys and a blank password from the HTML form
             # so we don't overwrite the existing password with a blank value
-            if 'password' in cfg and val == '    ':
+            if 'password' in cfg and notifier_config[cfg] == '    ':
                 continue
             notifier['config'][cfg] = notifier_config[cfg]
 

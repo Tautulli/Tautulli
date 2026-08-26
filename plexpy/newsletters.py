@@ -245,7 +245,7 @@ def set_newsletter_config(newsletter_id=None, **kwargs):
         if cfg in email_config:
             # Check for a password config keys and a blank password from the HTML form
             # so we don't overwrite the existing password with a blank value
-            if 'password' in cfg and val == '    ':
+            if 'password' in cfg and email_config[cfg] == '    ':
                 continue
             newsletter['email_config'][cfg] = email_config[cfg]
 
