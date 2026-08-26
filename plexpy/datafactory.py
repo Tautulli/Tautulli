@@ -2478,7 +2478,7 @@ class DataFactory(object):
     def get_user_devices(self, user_id='', history_only=True):
         monitor_db = database.MonitorDatabase()
 
-        if user_id:
+        if user_id is not None and user_id != '':
             if history_only:
                 query = "SELECT machine_id FROM session_history " \
                         "WHERE user_id = ? " \
