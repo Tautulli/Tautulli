@@ -1970,6 +1970,14 @@ class WebInterface(object):
                      }
             ```
         """
+        if user_id and not allow_session_user(user_id):
+            return {'recordsFiltered': 0,
+                    'recordsTotal': 0,
+                    'data': [],
+                    'draw': 0,
+                    'filter_duration': '0',
+                    'total_duration': '0'}
+
         # Check if datatables json_data was received.
         # If not, then build the minimal amount of json data for a query
         if not kwargs.get('json_data'):

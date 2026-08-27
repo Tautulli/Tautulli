@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -62,21 +62,13 @@ class DataFactory(object):
         if any(c[0].startswith('session_history.reference_id') for c in custom_where):
             include_activity = False
 
+        # A guest session may only ever read its own rows. Append the
+        # session user as its own ANDed clause. Merging it into a caller's
+        # user_id clause turned the filter into user_id IN (asked, session),
+        # which widened the result to the asked-for user instead of
+        # narrowing it to the session user.
         if session.get_session_user_id():
-            session_user_id = str(session.get_session_user_id())
-            added = False
-
-            for c_where in custom_where:
-                if 'user_id' in c_where[0]:
-                    if isinstance(c_where[1], list) and session_user_id not in c_where[1]:
-                        c_where[1].append(session_user_id)
-                    elif isinstance(c_where[1], str) and c_where[1] != session_user_id:
-                        c_where[1] = [c_where[1], session_user_id]
-                    added = True
-                    break
-
-            if not added:
-                custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
+            custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
