@@ -203,6 +203,7 @@ _CONFIG_DEFINITIONS = {
     'JWT_UPDATE_SECRET': (bool_int, 'Advanced', 0),
     'SYSTEM_ANALYTICS': (int, 'Advanced', 1),
     'SYS_TRAY_ICON': (int, 'General', 1),
+    'X_FRAME_OPTIONS': (str, 'Advanced', 'SAMEORIGIN'),
 }
 
 _BLACKLIST_KEYS = ['_APITOKEN', '_TOKEN', '_KEY', '_SECRET', '_PASSWORD', '_APIKEY', '_ID', '_HOOK']
@@ -690,12 +691,13 @@ class Config(object):
 
         if self.CONFIG_VERSION == 17:
             home_stats_cards = self.HOME_STATS_CARDS
-            if 'top_users' in home_stats_cards:
-                top_users_index = home_stats_cards.index('top_users')
-                home_stats_cards.insert(top_users_index, 'top_libraries')
-            else:
-                home_stats_cards.append('top_libraries')
-            self.HOME_STATS_CARDS = home_stats_cards
+            if 'top_libraries' not in home_stats_cards:
+                if 'top_users' in home_stats_cards:
+                    top_users_index = home_stats_cards.index('top_users')
+                    home_stats_cards.insert(top_users_index, 'top_libraries')
+                else:
+                    home_stats_cards.append('top_libraries')
+                self.HOME_STATS_CARDS = home_stats_cards
 
             self.CONFIG_VERSION = 18
 

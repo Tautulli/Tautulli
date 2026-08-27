@@ -1970,6 +1970,14 @@ class WebInterface(object):
                      }
             ```
         """
+        if user_id and not allow_session_user(user_id):
+            return {'recordsFiltered': 0,
+                    'recordsTotal': 0,
+                    'data': [],
+                    'draw': 0,
+                    'filter_duration': '0',
+                    'total_duration': '0'}
+
         # Check if datatables json_data was received.
         # If not, then build the minimal amount of json data for a query
         if not kwargs.get('json_data'):
@@ -2909,13 +2917,15 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [["May 08, 2016 09:35:37",
-                      "DEBUG",
-                      "Auth: Came in with a super-token, authorization succeeded."
-                      ],
-                     [...],
-                     [...]
-                     ]
+                    {"data":
+                        [["May 08, 2016 09:35:37",
+                          "DEBUG",
+                          "Auth: Came in with a super-token, authorization succeeded."
+                          ],
+                          [...],
+                          [...]
+                        ]
+                    }
             ```
         """
         if not plexpy.CONFIG.PMS_LOGS_FOLDER:
@@ -2928,7 +2938,7 @@ class WebInterface(object):
         logs = log_reader.get_log_tail(window=window, parsed=True, log_file=logfile)
 
         if logs:
-            return logs
+            return {'data': logs}
         else:
             logger.warn("Unable to retrieve Plex log file '%s'." % logfile)
             return {'result': 'error', 'message': "Plex log file '%s.log' not found." % logfile}

@@ -1,5 +1,53 @@
 # Changelog
 
+## v2.18.0 (2026-08-25)
+
+* Activity:
+  * Fix: Displaying 4K resolution on activity cards.
+  * New: Added Dolby Atmos to activity cards.
+* Notifications:
+  * New: Added Dolby Atmos notification parameters.
+  * New: Support for Tautulli Remote App notifications sent using a push relay instead of OneSignal. OneSignal notifications will be deprecated on Oct. 1, 2026. (#2772)
+* Exporter:
+  * New: Added editionTitle to export fields for shows, seasons, and episodes.
+* History:
+  * Fix: Double history table refresh on page load.
+  * Fix: Paginate datatables queries in SQL instead of Python. (#2728) (Thanks @stephenp)
+  * Fix: Various database optimizations to improve performance of history queries.
+* UI:
+  * Fix: Unable to edit users or libraries from the tables.
+  * Fix: Dashboard stats card overflow/clipping on Firefox 153.0.3. (#2776, #2787) (Thanks @maldis018)
+  * New: Added button to delete/restore users and libraries from the user/library profile pages.
+  * New: Added toggle for anonymous system analytics to the setup wizard and settings page. (#2781)
+* Other:
+  * Fix: Improve Plex log file parsing.
+  * Fix: Path traversal in update tarfile extraction. (CVE-2026-TBD) (Thanks @tonghuaroot)
+  * Fix: Plex token leakage in case-sensitive URL bypass in pms_image_proxy. (CVE-2026-TBD) (Thanks @Xiaoyiyi23)
+  * New: Build separate MacOS arm64 and x86_64 packages for Apple silicon and Intel Macs.
+  * New: Added security headers to cherrypy response headers.
+* API:
+  * Fix: get_home_stats API command before and after parameters not working.
+  * Fix: get_export_fields API command sub_media_type parameter not working.
+  * Fix: search API command limit parameter not being applied.
+  * Fix: delete_hosted_images API command return correct error response.
+  * Fix: notify API command notify_action parameter clobbering if provided.
+  * Fix: set_newsletter_config API command optional parameters subject/body/message.
+  * Fix: download_plex_log and get_plex_log API commands return correct error response.
+  * Fix: logout_user_session API command return correct error response when no row_id provided.
+  * Fix: get_logs API command search/regex/sort before slicing.
+  * Fix: get_recently_added API command response contained a blank section_id.
+  * Fix: get_metadata API command return error for invalid rating_key provided.
+  * Fix: sql API command making database backups on every query.
+  * Fix: API commands not returning correct 400 error response.
+  * New: Added Dolby Atmos info to the get_activity and get_metadata API command.
+  * New: Allow X-Api-Key header to be used instead of the API key parameter.
+  * New: Add API response to CORS preflight OPTIONS.
+  * Change: edit_user and edit_library API commands to only update provided parameters.
+  * Change: set_notifier_config and set_newsletter_config API commands to only update provided parameters.
+  * Change: Double nested data in get_plex_logs API command response.
+  * Removed: Deprecated delete_synced_item API command.
+
+
 ## v2.17.2 (2026-06-16)
 
 * Notifications:

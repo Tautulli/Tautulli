@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -55,21 +55,20 @@ class DataFactory(object):
         if include_activity is None:
             include_activity = plexpy.CONFIG.HISTORY_TABLE_ACTIVITY
 
+        # The sessions table has no reference_id, so a draw filtered by
+        # group key holds no live session. Drop the union rather than
+        # filter a table on a column it does not have. This is the child
+        # table of an expanded history row.
+        if any(c[0].startswith('session_history.reference_id') for c in custom_where):
+            include_activity = False
+
+        # A guest session may only ever read its own rows. Append the
+        # session user as its own ANDed clause. Merging it into a caller's
+        # user_id clause turned the filter into user_id IN (asked, session),
+        # which widened the result to the asked-for user instead of
+        # narrowing it to the session user.
         if session.get_session_user_id():
-            session_user_id = str(session.get_session_user_id())
-            added = False
-
-            for c_where in custom_where:
-                if 'user_id' in c_where[0]:
-                    if isinstance(c_where[1], list) and session_user_id not in c_where[1]:
-                        c_where[1].append(session_user_id)
-                    elif isinstance(c_where[1], str) and c_where[1] != session_user_id:
-                        c_where[1] = [c_where[1], session_user_id]
-                    added = True
-                    break
-
-            if not added:
-                custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
+            custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
@@ -299,7 +298,8 @@ class DataFactory(object):
             if item['live']:
                 item['percent_complete'] = 100
 
-            base_watched_value = watched_percent[item['media_type']] / 4.0
+            # A sessions row written by an older version can have no media_type
+            base_watched_value = watched_percent.get(item['media_type'], 0) / 4.0
 
             if item['live'] or helpers.check_watched(
                 item['media_type'], item['view_offset'], item['duration'],
@@ -2471,7 +2471,7 @@ class DataFactory(object):
     def get_user_devices(self, user_id='', history_only=True):
         monitor_db = database.MonitorDatabase()
 
-        if user_id:
+        if user_id is not None and user_id != '':
             if history_only:
                 query = "SELECT machine_id FROM session_history " \
                         "WHERE user_id = ? " \
