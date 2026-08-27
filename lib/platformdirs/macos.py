@@ -197,18 +197,15 @@ class _MacOSDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Runtime directory shared by users, same as `user_runtime_dir`."""
         return self.user_runtime_dir
 
-    def iter_config_dirs(self) -> Iterator[str]:
-        """:yield: all user and site configuration directories."""
+    def _iter_config_dirs(self) -> Iterator[str]:
         yield self.user_config_dir
         yield from self._site_config_dirs
 
-    def iter_data_dirs(self) -> Iterator[str]:
-        """:yield: all user and site data directories."""
+    def _iter_data_dirs(self) -> Iterator[str]:
         yield self.user_data_dir
         yield from self._site_data_dirs
 
-    def iter_cache_dirs(self) -> Iterator[str]:
-        """:yield: all user and site cache directories."""
+    def _iter_cache_dirs(self) -> Iterator[str]:
         yield self.user_cache_dir
         yield from self._site_cache_dirs
 
