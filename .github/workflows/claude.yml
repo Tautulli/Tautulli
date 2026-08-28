@@ -14,7 +14,9 @@ jobs:
   claude:
     name: Run Claude Code
     if: |
-      github.event.sender.type != 'Bot' && (
+      github.event.comment.user.type != 'Bot' && 
+      github.event.comment.user.login != 'claude[bot]' &&
+      github.event.comment.user.login != 'github-actions[bot]' && (
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
