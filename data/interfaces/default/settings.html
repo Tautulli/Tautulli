@@ -615,6 +615,19 @@
                             </label>
                             <p class="help-block">Respect the X-Forwarded-Proto header. Used for reverse proxies with SSL.</p>
                         </div>
+                        <div class="form-group advanced-setting">
+                            <label for="x_frame_options">Allow Frame Option</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <select class="form-control" id="x_frame_options" name="x_frame_options">
+                                        <option value="SAMEORIGIN" ${'selected' if config['x_frame_options'] == 'SAMEORIGIN' else ''}>SAMEORIGIN (Default)</option>
+                                        <option value="DENY" ${'selected' if config['x_frame_options'] == 'DENY' else ''}>DENY</option>
+                                        <option value="*" ${'selected' if config['x_frame_options'] == 'ALLOWALL' else ''}>ALLOWALL</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <p class="help-block">Sets the X-Frame-Options header to control whether the browser should allow Tautulli to be displayed inside a frame.</p>
+                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" class="http-settings" name="enable_https" id="enable_https" value="1" ${config['enable_https']} /> Enable HTTPS
