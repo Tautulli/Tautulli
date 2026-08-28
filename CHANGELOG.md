@@ -1,5 +1,22 @@
 # Changelog
 
+## v2.18.1 (2026-08-26)
+
+* Activity:
+  * Fix: Empty sessions row being added into the database.
+* History:
+  * Fix: Unable to expand detailed history when "Current Activity in History Tables" setting is enabled. (#2805)
+* Notifications:
+  * Fix: Email password being overwritten with a blank value when saving email notification settings. (#2804)
+  * Fix: New device notification retriggering for Local user. (#2795)
+  * Fix: Sentinel values appearing in notification text enclosed in backticks. (#2794)
+* Other:
+  * New: Added X-Frame-Options header to config file. (#2807)
+* API:
+  * Fix: Guest users being able to retrieve history of another user through the API.
+  * Change: Revert double nested data in get_plex_logs API command response. (#2806)
+
+
 ## v2.18.0 (2026-08-25)
 
 * Activity:

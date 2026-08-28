@@ -226,38 +226,34 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
         """Cache path shared by users. Only return the first item, even if ``multipath`` is set to ``True``."""
         return self._first_item_as_path_if_multipath(self.site_cache_dir)
 
-    def iter_config_dirs(self) -> Iterator[str]:
-        """:yield: all user and site configuration directories."""
+    def _iter_config_dirs(self) -> Iterator[str]:
+        # Under multipath the user dir is an os.pathsep-joined string that equals no single site entry, so the
+        # deduplication in iter_config_dirs cannot drop it. Skip it here instead.
         if not self._use_site:
             yield self.user_config_dir
         yield from self._site_config_dirs
 
-    def iter_data_dirs(self) -> Iterator[str]:
-        """:yield: all user and site data directories."""
+    def _iter_data_dirs(self) -> Iterator[str]:
         if not self._use_site:
             yield self.user_data_dir
         yield from self._site_data_dirs
 
-    def iter_cache_dirs(self) -> Iterator[str]:
-        """:yield: all user and site cache directories."""
+    def _iter_cache_dirs(self) -> Iterator[str]:
         if not self._use_site:
             yield self.user_cache_dir
         yield self.site_cache_dir
 
-    def iter_state_dirs(self) -> Iterator[str]:
-        """:yield: all user and site state directories."""
+    def _iter_state_dirs(self) -> Iterator[str]:
         if not self._use_site:
             yield self.user_state_dir
         yield self.site_state_dir
 
-    def iter_log_dirs(self) -> Iterator[str]:
-        """:yield: all user and site log directories."""
+    def _iter_log_dirs(self) -> Iterator[str]:
         if not self._use_site:
             yield self.user_log_dir
         yield self.site_log_dir
 
-    def iter_runtime_dirs(self) -> Iterator[str]:
-        """:yield: all user and site runtime directories."""
+    def _iter_runtime_dirs(self) -> Iterator[str]:
         if not self._use_site:
             yield self.user_runtime_dir
         yield self.site_runtime_dir
