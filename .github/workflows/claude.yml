@@ -12,6 +12,7 @@ on:
 
 jobs:
   claude:
+    name: Run Claude Code
     if: |
       github.event.sender.type != 'Bot' && (
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
