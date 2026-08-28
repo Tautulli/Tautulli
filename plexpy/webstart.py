@@ -386,5 +386,6 @@ def proxy():
 def set_security_headers():
     headers = cherrypy.response.headers
     headers['X-Content-Type-Options'] = 'nosniff'
-    headers['X-Frame-Options'] = plexpy.CONFIG.X_FRAME_OPTIONS
     headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    if plexpy.CONFIG.X_FRAME_OPTIONS not in ('', '*'):
+        headers['X-Frame-Options'] = plexpy.CONFIG.X_FRAME_OPTIONS
