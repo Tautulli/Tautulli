@@ -103,6 +103,8 @@ def serve_template(template_name, **kwargs):
     _session = get_session_info()
     _csrf_token = get_session_csrf_token()
 
+    cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+
     try:
         template = TEMPLATE_LOOKUP.get_template(template_name)
         return template.render(http_root=http_root, server_name=server_name, cache_param=cache_param,
