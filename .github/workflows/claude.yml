@@ -44,7 +44,7 @@ jobs:
         }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Full history so the verify step can check whether a later commit already
           # fixed the reported bug. The PR path deepens a shallow clone on its own.
