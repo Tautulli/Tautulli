@@ -332,19 +332,24 @@ class ActivityHandler(object):
             # Start our state checks
             if self.state != last_state:
                 if self.state == 'paused':
-                    self.on_pause()
+                    # Plex can flop states between paused and buffering.
+                    # If last_paused is already set then session is still paused even though it is buffering, do not fire a notification
+                    # otherwise last_paused is not set and it is a real pause event, and fire notification
+                    self.on_pause(still_paused=bool(last_paused))
                 elif last_paused and self.state == 'playing':
                     self.on_resume()
                 elif self.state == 'stopped':
                     self.on_stop()
                 elif self.state == 'error':
                     self.on_error()
+                elif self.state == 'buffering':
+                    self.on_buffer()
 
             elif self.state == 'paused':
                 # Update the session last_paused timestamp
                 self.on_pause(still_paused=True)
 
-            if self.state == 'buffering':
+            elif self.state == 'buffering':
                 self.on_buffer()
 
             if self.transcode_key != last_transcode_key and self.state != 'stopped':
