@@ -28,7 +28,7 @@ requests==2.34.2
 rumps==0.4.0; platform_system == "Darwin"
 tzlocal==5.4.4
 urllib3==2.7.0
-websocket-client==1.9.0
+websocket-client==1.9.2
 xmltodict==1.0.4
 
 # facebook-sdk==3.1.0  # Manually patched for Python 3.13
