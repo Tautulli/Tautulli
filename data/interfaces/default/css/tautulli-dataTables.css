@@ -83,9 +83,6 @@ table.display tfoot th {
 table.display tr.heading2 td {
 	border-bottom: 1px solid #aaa;
 }
-table.display td {
-	padding: 5px 0 5px 5px;
-}
 table.display td.title {
 	padding: 5px;
 	white-space: normal;
@@ -364,7 +361,7 @@ table.display tr.shown + tr .pagination > .active > a,
 table.display tr.shown + tr .pagination > .active > a:hover {
     color: #fff;
 }
-table.display tr.shown + tr table[id^='history_child'] td:hover a, 
+table.display tr.shown + tr table[id^='history_child'] td:hover a,
 table.display tr.shown + tr table[id^='history_child'] td:hover a .fa,
 table.display tr.shown + tr table[id^='media_info_child'] > tr > td:hover a,
 table.display tr.shown + tr table[id^='media_info_child'] tr.shown + tr table[id^='media_info_child'] td:hover a {
@@ -377,10 +374,43 @@ table.display tr.shown + tr .pagination > .disabled > a:hover {
 table.display tr.shown + tr .pagination > li > a:hover {
     color: #e9a049;
 }
-table.display tr.odd td,
-table.display tr.even td {
-    padding: 5px 10px !important;
+/* Fallback for browsers that don't support :has() */
+table.display td {
+    padding: 5px;
 }
+@supports selector(td:has(a)) {
+    /* On cells with anchors, remove the default padding and set the padding */
+    /* on the anchors themselves. */
+    table.display td:has(a) {
+        position: relative;
+        padding: 0;
+    }
+    table.display td:has(a) a {
+        display: block;
+        padding: 5px;
+    }
+
+    /* Invisible overlay to trigger anchor hover events */
+    table.display td:has(a) a::before {
+        content: '';
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* ...but then set the z-index of spans higher than the overlay *
+    /* so the play icon, player tooltip, and poster thumbnails can be hovered */
+    table.display td:has(a) a span { position: relative; z-index: 1; }
+
+    /* Bootstrap pagination within nested rows shouldn't have custom padding */
+    table.display td:has(a) .pagination > li > a {
+        padding: 6px 12px;
+    }
+}
+
 table[id^='history_child'] {
     margin-top: 0;
     opacity: .6;
