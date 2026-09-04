@@ -49,6 +49,10 @@ jobs:
           # Full history so the verify step can check whether a later commit already
           # fixed the reported bug. The PR path deepens a shallow clone on its own.
           fetch-depth: 0
+          # claude-code-action authenticates its own pushes with the app token.
+          # A persisted checkout credential outranks it and pushes as
+          # github-actions[bot], which has contents: read.
+          persist-credentials: false
 
       - name: Run Claude Code (PR review)
         uses: anthropics/claude-code-action@v1
