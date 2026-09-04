@@ -961,7 +961,7 @@ class Libraries(object):
                         "FROM session_history " \
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
-                        "WHERE section_id = ? " \
+                        "WHERE users.is_archived = 0 AND section_id = ? " \
                         "GROUP BY users.user_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % group_by
                 result = monitor_db.select(query, args=[section_id])

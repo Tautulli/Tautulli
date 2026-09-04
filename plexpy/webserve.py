@@ -1235,7 +1235,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi("get_users_table")
-    def get_user_list(self, grouping=None, **kwargs):
+    def get_user_list(self, grouping=None, include_archived=None, **kwargs):
         """ Get the data on Tautulli users table.
 
             ```
@@ -1244,6 +1244,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):                 0 or 1
+                include_archived (int):         0 or 1, include archived users in the list
                 order_column (str):             "user_thumb", "friendly_name", "last_seen", "ip_address", "platform",
                                                 "player", "last_played", "plays", "duration"
                 order_dir (str):                "desc" or "asc"
@@ -1265,6 +1266,7 @@ class WebInterface(object):
                           "history_row_id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "is_active": 1,
+                          "is_archived": 0,
                           "keep_history": 1,
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
@@ -1312,9 +1314,11 @@ class WebInterface(object):
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "friendly_name")
 
         grouping = helpers.bool_true(grouping, return_none=True)
+        include_archived = helpers.bool_true(include_archived)
 
         user_data = users.Users()
-        user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
+        user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping,
+                                                  include_archived=include_archived)
 
         if user_list is None:
             cherrypy.response.status = 500
@@ -1385,6 +1389,7 @@ class WebInterface(object):
                 custom_thumb (str):         The URL for the custom user thumbnail
                 keep_history (int):         0 or 1
                 allow_guest (int):          0 or 1
+                is_archived (int):          0 or 1
 
             Returns:
                 None
@@ -1394,6 +1399,7 @@ class WebInterface(object):
         custom_thumb = kwargs.get('custom_thumb')
         keep_history = kwargs.get('keep_history')
         allow_guest = kwargs.get('allow_guest')
+        is_archived = kwargs.get('is_archived')
 
         if user_id:
             try:
@@ -1402,7 +1408,8 @@ class WebInterface(object):
                                      friendly_name=friendly_name,
                                      custom_thumb=custom_thumb,
                                      keep_history=keep_history,
-                                     allow_guest=allow_guest)
+                                     allow_guest=allow_guest,
+                                     is_archived=is_archived)
                 status_message = "Successfully updated user."
                 return status_message
             except:
@@ -1658,6 +1665,7 @@ class WebInterface(object):
                      "is_active": 1,
                      "is_admin": 0,
                      "is_allow_sync": 1,
+                     "is_archived": 0,
                      "is_home_user": 1,
                      "is_restricted": 0,
                      "keep_history": 1,
@@ -1870,6 +1878,69 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Restored user with %s.' % msg}
         return {'result': 'error', 'message': 'Unable to restore user. Invalid user_id or username.'}
 
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def archive_user(self, user_id=None, row_ids=None, **kwargs):
+        """ Archive a user in Tautulli. The user is hidden from the users list, the history
+            tables and the statistics, but all history is kept.
+
+            ```
+            Required parameters:
+                user_id (str):          The id of the Plex user
+                or
+                row_ids (str):          Comma separated row ids to archive, e.g. "2,3,8"
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        if user_id or row_ids:
+            user_data = users.Users()
+            success = user_data.set_archived(user_id=user_id, row_ids=row_ids, is_archived=True)
+            if success:
+                return {'result': 'success', 'message': 'Archived user.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to archive user(s).'}
+        else:
+            return {'result': 'error', 'message': 'No user id or row ids received.'}
+
+    @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
+    @cherrypy.tools.json_out()
+    @requireAuth(member_of("admin"))
+    @addtoapi()
+    def unarchive_user(self, user_id=None, row_ids=None, **kwargs):
+        """ Unarchive a user in Tautulli.
+
+            ```
+            Required parameters:
+                user_id (str):          The id of the Plex user
+                or
+                row_ids (str):          Comma separated row ids to unarchive, e.g. "2,3,8"
+
+            Optional parameters:
+                None
+
+            Returns:
+                None
+            ```
+        """
+        if user_id or row_ids:
+            user_data = users.Users()
+            success = user_data.set_archived(user_id=user_id, row_ids=row_ids, is_archived=False)
+            if success:
+                return {'result': 'success', 'message': 'Unarchived user.'}
+            else:
+                return {'result': 'error', 'message': 'Failed to unarchive user(s).'}
+        else:
+            return {'result': 'error', 'message': 'No user id or row ids received.'}
+
 
     ##### History #####
 
@@ -1887,7 +1958,8 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi()
-    def get_history(self, user=None, user_id=None, grouping=None, include_activity=None, **kwargs):
+    def get_history(self, user=None, user_id=None, grouping=None, include_activity=None,
+                    include_archived=None, **kwargs):
         """ Get the Tautulli history.
 
             ```
@@ -1897,6 +1969,7 @@ class WebInterface(object):
             Optional parameters:
                 grouping (int):                 0 or 1
                 include_activity (int):         0 or 1
+                include_archived (int):         0 or 1, include history of archived users
                 user (str):                     "Jon Snow"
                 user_id (int):                  133788
                 rating_key (int):               4348
@@ -2000,6 +2073,7 @@ class WebInterface(object):
 
         grouping = helpers.bool_true(grouping, return_none=True)
         include_activity = helpers.bool_true(include_activity, return_none=True)
+        include_archived = helpers.bool_true(include_archived)
 
         custom_where = []
         if user_id:
@@ -2065,7 +2139,8 @@ class WebInterface(object):
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
-                                                      grouping=grouping, include_activity=include_activity)
+                                                      grouping=grouping, include_activity=include_activity,
+                                                      include_archived=include_archived)
 
         if history is None:
             cherrypy.response.status = 500
@@ -2218,7 +2293,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi()
-    def get_user_names(self, **kwargs):
+    def get_user_names(self, include_archived=None, **kwargs):
         """ Get a list of all user and user ids.
 
             ```
@@ -2226,7 +2301,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                None
+                include_archived (int):         0 or 1, include archived users in the list
 
             Returns:
                 json:
@@ -2237,8 +2312,10 @@ class WebInterface(object):
                     ]
             ```
         """
+        include_archived = helpers.bool_true(include_archived)
+
         user_data = users.Users()
-        user_names = user_data.get_user_names(kwargs=kwargs)
+        user_names = user_data.get_user_names(kwargs=kwargs, include_archived=include_archived)
 
         return user_names
 
@@ -6316,6 +6393,7 @@ class WebInterface(object):
                       "is_active": 1,
                       "is_admin": 0,
                       "is_allow_sync": 1,
+                      "is_archived": 0,
                       "is_home_user": 1,
                       "is_restricted": 0,
                       "keep_history": 1,

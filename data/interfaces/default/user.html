@@ -53,7 +53,11 @@ DOCUMENTATION :: END
                     <div class="table-card-back">
                         <div class="user-info-wrapper">
                             <div class="user-info-poster-face" style="background-image: url(${page('pms_image_proxy', data['user_thumb'], None, 80, 80, fallback='user')});">
-                                % if not data['is_active']:
+                                % if data['is_archived']:
+                                <span class="inactive-user-tooltip" data-toggle="tooltip" title="Archived user">
+                                    <i class="fa fa-2x fa-archive"></i>
+                                </span>
+                                % elif not data['is_active']:
                                 <span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server">
                                     <i class="fa fa-2x fa-exclamation-triangle"></i>
                                 </span>
