@@ -3,9 +3,9 @@
   "name": "cma-account-audit",
   "title": "CMA Account Audit",
   "description": "Project-scoped Tautulli account synchronization for Cameron-Media Account Administration.",
-  "version": "1.3.3",
+  "version": "1.3.5",
   "minYouTrackVersion": "2025.3.0",
-  "changeNotes": "Raise the advertised member-notification ceiling from 1 to 15 concurrent members in a rolling 24-hour window (notification policy version 2). The single-slot reservation is replaced by a multi-slot reservation list; any reservation already live under the previous single-slot policy is preserved and counted, not reopened. No other tickets, sends, review stages or scope boundaries change.",
+  "changeNotes": "Announce Access Retained only where a review genuinely existed. A ticket staged 'Active' for a previously Inactive account is a review awaiting its first notice and is unchanged; a newly onboarded member is also staged 'Active' but was never under review, so a first-ever stream no longer closes a review that never opened. Fixes the false retention notices sent to five members between 16 and 20 September 2026 (OPS-496). Supersedes 1.3.4, which over-corrected by removing the staged-review case entirely. No other tickets, sends, review stages, notification ceilings or scope boundaries change.",
   "vendor": {
     "name": "CamCore.au",
     "url": "https://camcore.au",

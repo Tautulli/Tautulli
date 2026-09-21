@@ -730,6 +730,42 @@ function testActivityRetainsAStagedTicketBeforeItsFirstNotice() {
   });
 }
 
+function testFirstEverStreamByANewMemberDoesNotCloseAReviewThatNeverOpened() {
+  // OPS-496. A newly onboarded member sits at Review Stage 'Active' with
+  // Account Status 'Never Used' - the same shape as a review ticket awaiting
+  // its first notice. When they stream for the first time they must NOT be
+  // told a review was closed: no review was ever opened and no notice was ever
+  // sent. The staged-review case (previous status 'Inactive') is covered by
+  // testActivityRetainsAStagedTicketBeforeItsFirstNotice and is unaffected.
+  resetRuntime();
+  const targetProject = project('CMA');
+  const existing = existingIssue(targetProject, {
+    stage: 'Active',
+    accountStatus: 'Never Used',
+    confirmedAt: 123
+  });
+  matchExisting(existing);
+
+  const ctx = context(validBody({
+    accountStatus: 'Active',
+    reviewNeeded: false
+  }), targetProject);
+  handler(ctx);
+
+  assert.strictEqual(ctx.response.payload.result, 'planned');
+  assert.strictEqual(ctx.response.payload.action, 'facts-only');
+  assert.strictEqual(existing.fields['Review Stage'].name, 'Active');
+  assert.strictEqual(existing.fields['Account Status'].name, 'Never Used');
+  assert.strictEqual(existing.fields['Account Audit Confirmed At'], 123);
+  assertReceipt(ctx.response.payload, {
+    mode: 'permit',
+    required: false,
+    reserved: false,
+    remaining: 15
+  });
+  assertNoMutation();
+}
+
 function testRetainedReviewNeedsANewActiveBaselineBeforeRestart() {
   resetRuntime();
   const targetProject = project('CMA');
@@ -1285,6 +1321,7 @@ try {
   testRepeatedDailySyncDoesNotRestartAnOpenReview();
   testActivityAutomaticallyRetainsAnOpenReview();
   testActivityRetainsAStagedTicketBeforeItsFirstNotice();
+  testFirstEverStreamByANewMemberDoesNotCloseAReviewThatNeverOpened();
   testRetainedReviewNeedsANewActiveBaselineBeforeRestart();
   testPermitModeNonCandidateIsCompletelyReadOnly();
   testSuppressDefersNewCandidateWithoutAnyMutation();

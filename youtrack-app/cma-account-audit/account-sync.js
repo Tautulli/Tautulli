@@ -333,8 +333,14 @@ function planReviewDecision(issue, body, previousAccountStatus) {
     };
   }
 
+  // Retention may only be announced where a review genuinely existed. A ticket
+  // staged 'Active' for a previously Inactive account is a review awaiting its
+  // first notice, so activity legitimately closes it. A newly onboarded member
+  // is ALSO staged 'Active' but was never under review - their prior status is
+  // 'Never Used'. Treating their first ever stream as a resolved review is what
+  // sent five members a false confirmation in September 2026 (OPS-496).
   const isStagedBeforeFirstNotice = currentStage === 'Active' &&
-    previousAccountStatus !== 'Active';
+    previousAccountStatus === 'Inactive';
   if (body.accountStatus === 'Active' &&
       (isStagedBeforeFirstNotice ||
        REVIEW_STAGES_IN_PROGRESS.indexOf(currentStage) !== -1)) {
