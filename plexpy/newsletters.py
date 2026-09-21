@@ -543,6 +543,13 @@ class Newsletter(object):
         newsletter_folder = plexpy.CONFIG.NEWSLETTER_DIR or os.path.join(plexpy.DATA_DIR, 'newsletters')
         newsletter_file_fp = os.path.join(newsletter_folder, newsletter_file)
 
+        if not helpers.is_subdir(newsletter_file_fp, newsletter_folder):
+            # Force newsletter file path into the newsletter folder
+            logger.warn("Tautulli Newsletters :: Newsletter file path is outside of the newsletter folder. "
+                        "Using default filename.")
+            newsletter_file = self.build_filename(self._DEFAULT_FILENAME)
+            newsletter_file_fp = os.path.join(newsletter_folder, newsletter_file)
+
         # In case the user has deleted it manually
         if not os.path.exists(newsletter_folder):
             os.makedirs(newsletter_folder)
@@ -668,17 +675,20 @@ class Newsletter(object):
 
         return subject, body, message
 
-    def build_filename(self):
+    def build_filename(self, filename=None):
         from plexpy.notification_handler import CustomFormatter
         custom_formatter = CustomFormatter()
 
+        if filename is None:
+            filename = self.filename
+
         try:
-            filename = custom_formatter.format(str(self.filename), **self.parameters)
+            filename = custom_formatter.format(str(filename), **self.parameters)
         except LookupError as e:
             logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter filename. Using fallback." % e)
             filename = str(self._DEFAULT_FILENAME).format(**self.parameters)
         except Exception as e:
-            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
+            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter filename: %s. Using fallback." % e)
             filename = str(self._DEFAULT_FILENAME).format(**self.parameters)
 
         return filename
