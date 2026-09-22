@@ -547,7 +547,8 @@ class Newsletter(object):
             # Force newsletter file path into the newsletter folder
             logger.warn("Tautulli Newsletters :: Newsletter file path is outside of the newsletter folder. "
                         "Using default filename.")
-            newsletter_file = self.build_filename(self._DEFAULT_FILENAME)
+            self.filename_formatted = self.build_filename(self._DEFAULT_FILENAME)
+            newsletter_file = self.filename_formatted
             newsletter_file_fp = os.path.join(newsletter_folder, newsletter_file)
 
         # In case the user has deleted it manually
