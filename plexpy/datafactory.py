@@ -2514,6 +2514,11 @@ class DataFactory(object):
         pms_connect = pmsconnect.PmsConnect()
         metadata = pms_connect.get_metadata_details(rating_key)
 
+        if not metadata:
+            logger.warn("Tautulli DataFactory :: Unable to retrieve metadata for recently added item %s.",
+                        rating_key)
+            return False
+
         keys = {'rating_key': metadata['rating_key']}
 
         values = {'added_at': metadata['added_at'],

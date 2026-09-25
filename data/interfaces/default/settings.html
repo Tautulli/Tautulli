@@ -1109,7 +1109,7 @@
                             </label>
                             <p class="help-block">
                                 Enable to only send one season or album notification when multiple episodes or tracks are added. Movies, single episodes, and single tracks are unaffected.<br />
-                                Note: An episode/track range can be shown (e.g. 01-12), but all other episode/track metadata will be unavailable.
+                                TV notification titles include the episodes added in the current batch. Scripts, webhooks, MQTT, IFTTT, Zapier, and JSON templates can use <code>{grouped_title}</code> to include these details. An episode/track range can also be shown with notification parameters (e.g. 01-12), but all other episode/track metadata will be unavailable.
                             </p>
                         </div>
                         <div class="checkbox">
@@ -1118,7 +1118,7 @@
                             </label>
                             <p class="help-block">
                                 Enable to only send one TV show or artist notification when multiple seasons or albums are added. Movies, single episodes, and single tracks are unaffected.<br />
-                                Note: A season range can be shown (e.g. 1-3), but all other season/episode/album/track metadata will be unavailable.
+                                TV notification titles include the episodes added in each season of the current batch. Scripts, webhooks, MQTT, IFTTT, Zapier, and JSON templates can use <code>{grouped_title}</code> to include these details. A season range can also be shown with notification parameters (e.g. 1-3), but individual season/episode/album/track metadata will be unavailable.
                             </p>
                         </div>
                         <div class="form-group">
