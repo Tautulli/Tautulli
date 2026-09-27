@@ -102,6 +102,18 @@ def reference_id_of(db, row_id):
     return row["reference_id"]
 
 
+def insert_metadata(db, row_id, guid=None, duration=DURATION, marker_credits_first=None):
+    """Write session_history_metadata for a non-live row group_history has
+    already processed, the order write_session_history uses, so a later
+    row's query can read it."""
+    db.action(
+        "INSERT INTO session_history_metadata "
+        "(id, rating_key, guid, duration, marker_credits_first, live, media_type) "
+        "VALUES (?, 100, ?, ?, ?, 0, ?)",
+        [row_id, guid, duration, marker_credits_first, MOVIE],
+    )
+
+
 def test_first_play_references_itself(db):
     ap = activity_processor.ActivityProcessor()
     insert_row(db, 1, user_id=1, rating_key=100, view_offset=500)
@@ -171,6 +183,31 @@ def test_group_join_decision(db, prev_offset, new_offset, joins_group):
 
     insert_row(db, 2, user_id=1, rating_key=100, view_offset=new_offset)
     ap.group_history(2, session_for(1, 100))
+
+    assert reference_id_of(db, 2) == (1 if joins_group else 2)
+
+
+# Plex can give a deleted item's rating_key to a new item. The guid tells
+# the two apart, and a missing guid leaves rating_key alone to decide.
+@pytest.mark.parametrize(
+    "prev_guid, new_guid, joins_group",
+    [
+        ("plex://movie/a", "plex://movie/a", True),   # same item resumed -> joins
+        ("plex://movie/a", "plex://movie/b", False),  # recycled rating_key, different item -> new group
+        ("", "plex://movie/b", True),                 # previous guid unknown (import) -> joins
+    ],
+)
+def test_guid_decides_join_for_shared_rating_key(db, prev_guid, new_guid, joins_group):
+    ap = activity_processor.ActivityProcessor()
+
+    insert_row(db, 1, user_id=1, rating_key=100, view_offset=500)
+    ap.group_history(1, session_for(1, 100))
+    insert_metadata(db, 1, guid=prev_guid)
+
+    insert_row(db, 2, user_id=1, rating_key=100, view_offset=600)
+    new_session = session_for(1, 100)
+    new_session['guid'] = new_guid
+    ap.group_history(2, new_session)
 
     assert reference_id_of(db, 2) == (1 if joins_group else 2)
 
