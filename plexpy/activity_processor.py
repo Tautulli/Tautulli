@@ -484,7 +484,6 @@ class ActivityProcessor(object):
     def group_history(self, last_id, session, metadata=None):
         new_session = prev_session = None
         prev_watched = None
-        session_guid = metadata['guid'] if metadata else session.get('guid')
 
         db = database.MonitorDatabase()
 
@@ -513,13 +512,11 @@ class ActivityProcessor(object):
                 prev_watched = False
 
         else:
-            # Check if we should group the session, select the last two rows from the user.
-            # For non-live media, also compare guid so regrouping won't merge unrelated
-            # history rows that happen to share a stale rating_key.
+            # Check if we should group the session, select the last two rows from the user
             query = "SELECT session_history.id, session_history.rating_key, session_history.view_offset, " \
                     "session_history.reference_id, session_history_metadata.guid " \
                     "FROM session_history " \
-                    "LEFT OUTER JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
+                    "LEFT JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
                     "WHERE session_history.id <= ? AND session_history.user_id = ? " \
                     "AND session_history.rating_key = ? ORDER BY session_history.id DESC LIMIT 2 "
 
@@ -531,7 +528,7 @@ class ActivityProcessor(object):
                 new_session = {'id': result[0]['id'],
                                'rating_key': result[0]['rating_key'],
                                'view_offset': helpers.cast_to_int(result[0]['view_offset']),
-                               'guid': session_guid,
+                               'guid': metadata['guid'] if metadata else session.get('guid'),
                                'reference_id': result[0]['reference_id']}
 
                 prev_session = {'id': result[1]['id'],
@@ -558,9 +555,8 @@ class ActivityProcessor(object):
         # then set the reference_id to the previous row,
         # else set the reference_id to the new id
         if prev_watched is False and (
-            not session['live'] and prev_session['guid'] and new_session['guid'] and
-            prev_session['guid'] == new_session['guid'] and
-            prev_session['view_offset'] <= new_session['view_offset'] or
+            not session['live'] and prev_session['view_offset'] <= new_session['view_offset'] and
+            not (prev_session['guid'] and new_session['guid'] and prev_session['guid'] != new_session['guid']) or
             session['live'] and prev_session['guid'] == new_session['guid']
         ):
             if metadata:
