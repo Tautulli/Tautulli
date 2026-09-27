@@ -1693,17 +1693,6 @@ def short_season(title):
     return title
 
 
-def get_first_final_marker(markers):
-    first = None
-    final = None
-    for marker in markers:
-        if marker['first']:
-            first = marker
-        if marker['final']:
-            final = marker
-    return first, final
-
-
 def check_watched(media_type, view_offset, duration, marker_credits_first=None, marker_credits_final=None):
     if isinstance(marker_credits_first, dict):
         marker_credits_first = marker_credits_first['start_time_offset']

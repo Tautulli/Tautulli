@@ -514,7 +514,8 @@ class ActivityProcessor(object):
         else:
             # Check if we should group the session, select the last two rows from the user
             query = "SELECT session_history.id, session_history.rating_key, session_history.view_offset, " \
-                    "session_history.reference_id, session_history_metadata.guid " \
+                    "session_history.reference_id, session_history_metadata.guid, session_history_metadata.duration, " \
+                    "session_history_metadata.marker_credits_first, session_history_metadata.marker_credits_final " \
                     "FROM session_history " \
                     "LEFT JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
                     "WHERE session_history.id <= ? AND session_history.user_id = ? " \
@@ -535,17 +536,15 @@ class ActivityProcessor(object):
                                 'rating_key': result[1]['rating_key'],
                                 'view_offset': helpers.cast_to_int(result[1]['view_offset']),
                                 'guid': result[1]['guid'],
+                                'duration': result[1]['duration'] or session['duration'],
+                                'marker_credits_first': result[1]['marker_credits_first'],
+                                'marker_credits_final': result[1]['marker_credits_final'],
                                 'reference_id': result[1]['reference_id']}
 
-                if metadata:
-                    marker_first, marker_final = helpers.get_first_final_marker(metadata['markers'])
-                else:
-                    marker_first = session['marker_credits_first']
-                    marker_final = session['marker_credits_final']
-
+                # Judge the previous play by its own duration and credits markers
                 prev_watched = helpers.check_watched(
-                    session['media_type'], prev_session['view_offset'], session['duration'],
-                    marker_first, marker_final
+                    session['media_type'], prev_session['view_offset'], prev_session['duration'],
+                    prev_session['marker_credits_first'], prev_session['marker_credits_final']
                 )
 
         query = "UPDATE session_history SET reference_id = ? WHERE id = ? "
