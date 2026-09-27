@@ -7,6 +7,7 @@ in place of the Plex metadata a live play would fetch.
 """
 
 import sqlite3
+import time
 
 import pytest
 
@@ -25,7 +26,8 @@ IMPORT_METADATA_BUG = (
     "the Plexivity importer builds import_metadata without 'section_id' and "
     "'markers', and write_session_history and group_history read both, so the "
     "import stops with a KeyError. Its float stop time also fails the isdigit "
-    "check, so the import time replaces it"
+    "check, so the import time replaces it, and a stream with no stop time "
+    "makes arrow.get(None) raise and stops the import"
 )
 
 
@@ -74,4 +76,28 @@ def test_import_writes_every_play_with_metadata(app_db, tmp_path, monkeypatch, p
         for play in range(1, plays + 1)
     ]
     assert [tuple(row.values()) for row in rows] == expected
+    assert database.IS_IMPORTING is False
+
+
+# An interrupted stream can leave Plexivity's stopped column NULL. The import
+# must go on past it. write_session_history gives an imported play with no
+# stop time the import time, as it does for a PlexWatch play.
+@pytest.mark.xfail(reason=IMPORT_METADATA_BUG)
+def test_import_continues_past_a_play_without_stop_time(app_db, tmp_path, monkeypatch):
+    monkeypatch.setattr(users, "refresh_users", lambda: None)
+    monkeypatch.setattr(database, "IS_IMPORTING", False)
+    path = str(tmp_path / "plexivity.db")
+    make_plexivity_db(path, 2)
+    connection = sqlite3.connect(path)
+    connection.execute("UPDATE stream SET stopped = NULL WHERE id = 1")
+    connection.commit()
+    connection.close()
+    before = int(time.time())
+
+    plexivity_import.import_from_plexivity(path, "stream", import_ignore_interval=0)
+
+    stops = [row["stopped"] for row in app_db.select("SELECT stopped FROM session_history ORDER BY id")]
+    assert len(stops) == 2
+    assert stops[0] >= before
+    assert stops[1] == 2000900
     assert database.IS_IMPORTING is False
