@@ -214,14 +214,14 @@ def test_marker_based_watched_flips_group_decision(db, marker_credits_first, joi
 
 def insert_live_row(db, row_id, user_id, started):
     """Insert a lean session_history row for the live-TV query: id,
-    user_id, started (the window comparison). reference_id left NULL, as
-    a real insert leaves it. No session_history_metadata row here -- see
+    user_id, started (the window comparison), and stopped, which every
+    real row has. reference_id left NULL, as a real insert leaves it. No session_history_metadata row here -- see
     the module docstring on why that must come after group_history runs
     on this id."""
     db.action(
-        "INSERT INTO session_history (id, reference_id, user_id, started) "
-        "VALUES (?, NULL, ?, ?)",
-        [row_id, user_id, started],
+        "INSERT INTO session_history (id, reference_id, user_id, started, stopped) "
+        "VALUES (?, NULL, ?, ?, ?)",
+        [row_id, user_id, started, started],
     )
 
 
@@ -336,3 +336,80 @@ def test_live_metadata_guid_drives_grouping(db):
     ap.group_history(2, session, metadata={"guid": "guid-A"})
 
     assert reference_id_of(db, 2) == 1
+
+
+# --- Regroup, live TV --------------------------------------------------
+#
+# regroup_history replays group_history over rows that already have their
+# metadata row, so it must rebuild the groups live logging built. The
+# margins (hours, days) are far wider than the 1-day window, as above.
+
+REGROUP_LIVE_BUG = (
+    "regroup_history cannot rebuild live TV groups: the live query matches "
+    "the row being regrouped, and it measures its 1-day window from the wall "
+    "clock, so every live TV play older than a day becomes its own group"
+)
+
+
+@pytest.fixture
+def regroup_db(db, monkeypatch):
+    monkeypatch.setattr(plexpy.database, "make_backup", lambda *args, **kwargs: True)
+    return db
+
+
+def insert_logged_live_play(db, row_id, started, guid, reference_id):
+    """A live TV play the way live logging leaves it: a one-hour
+    session_history row with reference_id already set, and its metadata
+    row."""
+    db.action(
+        "INSERT INTO session_history (id, reference_id, user_id, started, stopped) "
+        "VALUES (?, ?, 1, ?, ?)",
+        [row_id, reference_id, started, started + 3600],
+    )
+    insert_live_metadata(db, row_id, guid)
+
+
+def reference_ids(db):
+    return [row["reference_id"] for row in db.select("SELECT reference_id FROM session_history ORDER BY id")]
+
+
+@pytest.mark.parametrize(
+    "age",
+    [
+        pytest.param(3600, id="recent"),
+        pytest.param(3 * 24 * 3600, id="three-days-old", marks=pytest.mark.xfail(reason=REGROUP_LIVE_BUG)),
+    ],
+)
+def test_regroup_keeps_live_group(regroup_db, age):
+    start = int(time.time()) - age
+    insert_logged_live_play(regroup_db, 1, start, "guid-A", reference_id=1)
+    insert_logged_live_play(regroup_db, 2, start + 3600, "guid-A", reference_id=1)
+
+    activity_processor.ActivityProcessor().regroup_history()
+
+    assert reference_ids(regroup_db) == [1, 1]
+
+
+@pytest.mark.xfail(reason=REGROUP_LIVE_BUG)
+@pytest.mark.parametrize("age", [3600, 3 * 24 * 3600], ids=["recent", "three-days-old"])
+def test_regroup_rebuilds_wrong_live_group(regroup_db, age):
+    # Every row starts with a wrong reference_id. Rows 1 and 2 share a
+    # guid, row 3 is another program, so regroup must give [1, 1, 3].
+    start = int(time.time()) - age
+    insert_logged_live_play(regroup_db, 1, start, "guid-A", reference_id=99)
+    insert_logged_live_play(regroup_db, 2, start + 3600, "guid-A", reference_id=99)
+    insert_logged_live_play(regroup_db, 3, start + 2 * 3600, "guid-B", reference_id=99)
+
+    activity_processor.ActivityProcessor().regroup_history()
+
+    assert reference_ids(regroup_db) == [1, 1, 3]
+
+
+def test_regroup_splits_live_plays_more_than_a_day_apart(regroup_db):
+    start = int(time.time()) - 5 * 24 * 3600
+    insert_logged_live_play(regroup_db, 1, start, "guid-A", reference_id=1)
+    insert_logged_live_play(regroup_db, 2, start + 2 * 24 * 3600, "guid-A", reference_id=1)
+
+    activity_processor.ActivityProcessor().regroup_history()
+
+    assert reference_ids(regroup_db) == [1, 2]
