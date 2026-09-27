@@ -492,11 +492,11 @@ class ActivityProcessor(object):
             query = "SELECT session_history.id, session_history_metadata.guid, session_history.reference_id " \
                     "FROM session_history " \
                     "JOIN session_history_metadata ON session_history.id == session_history_metadata.id " \
-                    "WHERE session_history.id <= ? AND session_history.user_id = ? " \
-                    "AND datetime(session_history.started, 'unixepoch', 'localtime') > datetime('now', '-1 day') " \
+                    "WHERE session_history.id < ? AND session_history.user_id = ? " \
+                    "AND session_history.started > (SELECT stopped FROM session_history WHERE id = ?) - 24 * 60 * 60 " \
                     "ORDER BY session_history.id DESC LIMIT 1 "
 
-            args = [last_id, session['user_id']]
+            args = [last_id, session['user_id'], last_id]
 
             result = db.select(query=query, args=args)
 
