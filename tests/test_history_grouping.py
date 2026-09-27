@@ -344,13 +344,6 @@ def test_live_metadata_guid_drives_grouping(db):
 # metadata row, so it must rebuild the groups live logging built. The
 # margins (hours, days) are far wider than the 1-day window, as above.
 
-REGROUP_LIVE_BUG = (
-    "regroup_history cannot rebuild live TV groups: the live query matches "
-    "the row being regrouped, and it measures its 1-day window from the wall "
-    "clock, so every live TV play older than a day becomes its own group"
-)
-
-
 @pytest.fixture
 def regroup_db(db, monkeypatch):
     monkeypatch.setattr(plexpy.database, "make_backup", lambda *args, **kwargs: True)
@@ -373,13 +366,7 @@ def reference_ids(db):
     return [row["reference_id"] for row in db.select("SELECT reference_id FROM session_history ORDER BY id")]
 
 
-@pytest.mark.parametrize(
-    "age",
-    [
-        pytest.param(3600, id="recent"),
-        pytest.param(3 * 24 * 3600, id="three-days-old", marks=pytest.mark.xfail(reason=REGROUP_LIVE_BUG)),
-    ],
-)
+@pytest.mark.parametrize("age", [3600, 3 * 24 * 3600], ids=["recent", "three-days-old"])
 def test_regroup_keeps_live_group(regroup_db, age):
     start = int(time.time()) - age
     insert_logged_live_play(regroup_db, 1, start, "guid-A", reference_id=1)
@@ -390,7 +377,6 @@ def test_regroup_keeps_live_group(regroup_db, age):
     assert reference_ids(regroup_db) == [1, 1]
 
 
-@pytest.mark.xfail(reason=REGROUP_LIVE_BUG)
 @pytest.mark.parametrize("age", [3600, 3 * 24 * 3600], ids=["recent", "three-days-old"])
 def test_regroup_rebuilds_wrong_live_group(regroup_db, age):
     # Every row starts with a wrong reference_id. Rows 1 and 2 share a
