@@ -655,6 +655,11 @@
         createFilter: function(input) {
             var match, regex;
 
+            // allow undisclosed-recipients:; input (only in "To" field)
+            if (input === 'undisclosed-recipients:;' && this.$input.attr('id') === 'email_to') {
+                return !this.options.hasOwnProperty(input);
+            }
+
             // email@address.com
             regex = new RegExp('^' + REGEX_EMAIL + '$', 'i');
             match = input.match(regex);
@@ -668,6 +673,10 @@
             return false;
         },
         create: function(input) {
+            // undisclosed-recipients:; allowed (only in "To" field)
+            if (input === 'undisclosed-recipients:;' && this.$input.attr('id') === 'email_to') {
+                return {value: input};
+            }
             if ((new RegExp('^' + REGEX_EMAIL + '$', 'i')).test(input)) {
                 return {value: input};
             }

@@ -1367,7 +1367,9 @@ class EMAIL(Notifier):
             msg["In-Reply-To"] = reply_msg_id
             msg["References"] = reply_msg_id
 
-        recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
+
+        # Exclude undisclosed-recipients:; from the recipient list
+        recipients = [r for r in (self.config['to'] + self.config['cc'] + self.config['bcc']) if r != 'undisclosed-recipients:;']
 
         mailserver = None
         success = False
