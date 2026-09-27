@@ -24,7 +24,8 @@ XML = (
 IMPORT_METADATA_BUG = (
     "the Plexivity importer builds import_metadata without 'section_id' and "
     "'markers', and write_session_history and group_history read both, so the "
-    "import stops with a KeyError"
+    "import stops with a KeyError. Its float stop time also fails the isdigit "
+    "check, so the import time replaces it"
 )
 
 
@@ -63,9 +64,14 @@ def test_import_writes_every_play_with_metadata(app_db, tmp_path, monkeypatch, p
     plexivity_import.import_from_plexivity(path, "stream", import_ignore_interval=0)
 
     rows = app_db.select(
-        "SELECT session_history.user_id, session_history.rating_key, session_history.section_id, "
+        "SELECT session_history.started, session_history.stopped, "
+        "session_history.user_id, session_history.rating_key, session_history.section_id, "
         "session_history_metadata.title, session_history_metadata.guid, session_history_metadata.duration "
         "FROM session_history JOIN session_history_metadata ON session_history.id = session_history_metadata.id"
     )
-    assert [tuple(row.values()) for row in rows] == [(7, 200, 1, "Imported Movie", "plex://movie/b", 1000)] * plays
+    expected = [
+        (play * 1000000, play * 1000000 + 900, 7, 200, 1, "Imported Movie", "plex://movie/b", 1000)
+        for play in range(1, plays + 1)
+    ]
+    assert [tuple(row.values()) for row in rows] == expected
     assert database.IS_IMPORTING is False
