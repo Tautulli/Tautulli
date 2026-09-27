@@ -71,12 +71,12 @@ history_table_options = {
                     } else {
                         state = '<span class="current-activity-tooltip" data-toggle="tooltip" title="Unknown"><i class="fa fa-fw fa-question-circle"></i></span>';
                     }
-                    $(td).html('<div><div style="float: left;">' + state + '&nbsp;' + date + '</div></div>');
+                    $(td).html(state + '&nbsp;' + date);
                 } else if (rowData['group_count'] > 1) {
                     expand_history = '<span class="expand-history-tooltip" data-toggle="tooltip" title="Show Detailed History"><i class="fa fa-plus-circle fa-fw"></i></span>';
-                    $(td).html('<div><a href="#"><div style="float: left;">' + expand_history + '&nbsp;' + date + '</div></a></div>');
+                    $(td).html('<a href="#">' + expand_history + '&nbsp;' + date + '</a>');
                 } else {
-                    $(td).html('<div style="float: left;"><i class="fa fa-plus-circle fa-fw fa-blank">&nbsp;</i>&nbsp;' + date + '</div>');
+                    $(td).html('<i class="fa fa-plus-circle fa-fw fa-blank">&nbsp;</i>&nbsp;' + date);
                 }
             },
             "searchable": false,
@@ -153,7 +153,7 @@ history_table_options = {
                     } else if (rowData['transcode_decision'] === 'direct play') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
-                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp;' + cellData + '</div></a></div>');
+                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal">' + transcode_dec + '&nbsp;' + cellData + '</a>');
                 }
             },
             "width": "10%",
@@ -177,7 +177,7 @@ history_table_options = {
                         if (rowData['year']) { parent_info = ' (' + rowData['year'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="' + icon_title + '"><i class="fa ' + icon + ' fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, fallback) + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], history, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], history, rowData['live']) + '">' + media_type + '&nbsp;' + thumb_popover + '</a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         icon = (rowData['live']) ? 'fa-broadcast-tower' : 'fa-television';
                         icon_title = (rowData['live']) ? 'Live TV' : 'Episode';
@@ -185,16 +185,16 @@ history_table_options = {
                         else if (rowData['live'] && rowData['originally_available_at']) { parent_info = ' (' + rowData['originally_available_at'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="' + icon_title + '"><i class="fa ' + icon + ' fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, fallback) + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], history, rowData['live']) + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], history, rowData['live']) + '">' + media_type + '&nbsp;' + thumb_popover + '</a></div>');
                     } else if (rowData['media_type'] === 'track') {
                         if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 300, null, null, null, 'cover') + '" data-height="80" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], history, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], history, rowData['live']) + '">' + media_type + '&nbsp;' + thumb_popover + '</a></div>');
                     } else if (rowData['media_type'] === 'clip') {
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Clip"><i class="fa fa-video-camera fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, fallback) + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></div>');
+                        $(td).html('<div class="history-title">' + media_type + '&nbsp;' + thumb_popover + '</div>');
                     } else {
                         $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                     }
@@ -446,7 +446,7 @@ $('.history_table').on('click', '> tbody > tr > td.expand-history a', function (
     var tr = $(this).closest('tr');
     var row = history_table.row(tr);
     var rowData = row.data();
-    
+
     $(this).find('i.fa').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
 
     if (row.child.isShown()) {
@@ -621,4 +621,3 @@ function createChildTable(row, rowData) {
         });
     });
 }
-

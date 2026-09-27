@@ -2719,10 +2719,6 @@ def dbcheck():
         "ON session_history (stopped)"
     )
     c_db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_session_history_media_type "
-        "ON session_history (media_type)"
-    )
-    c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_media_type_stopped "
         "ON session_history (media_type, stopped ASC)"
     )
@@ -2743,8 +2739,8 @@ def dbcheck():
         "ON session_history (user)"
     )
     c_db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_session_history_user_id "
-        "ON session_history (user_id)"
+        "CREATE INDEX IF NOT EXISTS idx_session_history_user_id_started "
+        "ON session_history (user_id, started ASC)"
     )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_user_id_stopped "
@@ -2755,8 +2751,8 @@ def dbcheck():
         "ON session_history (user_id, rating_key)"
     )
     c_db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_session_history_section_id "
-        "ON session_history (section_id)"
+        "CREATE INDEX IF NOT EXISTS idx_session_history_section_id_started "
+        "ON session_history (section_id, started ASC)"
     )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_section_id_stopped "
@@ -2766,6 +2762,14 @@ def dbcheck():
         "CREATE INDEX IF NOT EXISTS idx_session_history_reference_id "
         "ON session_history (reference_id ASC)"
     )
+
+    # Drop redundant single-column indices that are fully covered by a
+    # composite index with the same leading column; they served no query
+    # the composites cannot, but added three extra B-tree updates to
+    # every session_history write
+    c_db.execute("DROP INDEX IF EXISTS idx_session_history_media_type")
+    c_db.execute("DROP INDEX IF EXISTS idx_session_history_user_id")
+    c_db.execute("DROP INDEX IF EXISTS idx_session_history_section_id")
 
     # Create session_history_metadata table indices
     c_db.execute(
@@ -2779,6 +2783,14 @@ def dbcheck():
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_live "
         "ON session_history_metadata (live)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_parent_rating_key "
+        "ON session_history_metadata (parent_rating_key)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_grandparent_rating_key "
+        "ON session_history_metadata (grandparent_rating_key)"
     )
 
     # Create session_history_media_info table indices
@@ -2799,6 +2811,28 @@ def dbcheck():
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_notify_log_action_tag "
         "ON notify_log (notify_action, tag)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_notify_log_notifier_id "
+        "ON notify_log (notifier_id, timestamp)"
+    )
+
+    # Create user_login table indices
+    # jwt_token is looked up on every authenticated web request, and
+    # ip_address is scanned by the sign-in rate limiter
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_user_login_jwt_token "
+        "ON user_login (jwt_token)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_user_login_ip_address "
+        "ON user_login (ip_address, timestamp)"
+    )
+
+    # Create recently_added table indices
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_recently_added_rating_key "
+        "ON recently_added (rating_key)"
     )
 
     # Create lookup table indices
@@ -2832,6 +2866,14 @@ def dbcheck():
     )
 
     logger.info("Database indices created.")
+
+    # Refresh the query planner statistics (bounded by analysis_limit).
+    # This cannot be left to the scheduled "PRAGMA optimize": before
+    # SQLite 3.46 that pragma only considers tables already queried on
+    # the same connection, so on a fresh connection it is a no-op and
+    # sqlite_stat1 may otherwise never be populated.
+    c_db.execute("PRAGMA analysis_limit=400")
+    c_db.execute("ANALYZE")
 
     # Set database version
     result = c_db.execute("SELECT value FROM version_info WHERE key = 'version'").fetchone()

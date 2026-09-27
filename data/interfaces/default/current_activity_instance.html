@@ -309,7 +309,7 @@ DOCUMENTATION :: END
                         <ul class="list-unstyled dashboard-activity-info-list">
                             <li class="dashboard-activity-info-item">
                                 <div class="sub-heading">Location</div>
-                                <div class="sub-value time-right">
+                                <div class="sub-value time-right location-value">
                                     % if data['secure'] is not None:
                                     % if data['secure']:
                                     <span data-toggle="tooltip" title="Secure Connection"><i class="fa fa-lock"></i></span>
@@ -317,13 +317,9 @@ DOCUMENTATION :: END
                                     <span data-toggle="tooltip" title="Insecure Connection"><i class="fa fa-unlock"></i></span>
                                     % endif
                                     % endif
-                                    <span id="location-${sk}">${data['location'].upper()}</span>:
+                                    <span><span id="location-${sk}">${data['location'].upper()}</span>:</span>
                                     % if data['ip_address'] != 'N/A':
-                                        % if len(data['ip_address']) > 20:
                                         <span class="ip-container"><span class="ip-address" data-toggle="tooltip" title="${data['ip_address']}">${data['ip_address']}</span></span>
-                                        % else:
-                                        <span class="ip-container"><span class="ip-address">${data['ip_address']}</span></span>
-                                        % endif
                                         % if data['relayed']:
                                         <span data-toggle="tooltip" title="Plex Relay"><i class="fa fa-exclamation-circle"></i></span>
                                         % else:
@@ -372,7 +368,7 @@ DOCUMENTATION :: END
                 % if data['media_type'] != 'photo':
                 <div class="dashboard-activity-info-time">
                     % if data['live']:
-                    <br /><span class="thumb-tooltip dashboard-activity-info-channel" data-toggle="popover" data-img="${data['channel_thumb']}" data-height="40" data-width="40">${data['channel_title'] or (data['channel_vcn'] + ' ' + data['channel_call_sign'])}</span>
+                    <span class="thumb-tooltip dashboard-activity-info-channel" data-toggle="popover" data-img="${data['channel_thumb']}" data-height="40" data-width="40">${data['channel_title'] or (data['channel_vcn'] + ' ' + data['channel_call_sign'])}</span>
                     % elif data['view_offset']:
                     ETA:
                     <span id="stream-eta-${sk}">

@@ -871,6 +871,7 @@ a .users-poster-face:hover {
     height: 235px;
     width: 100%;
     padding: 5px;
+    position: relative;
     overflow: hidden;
     -webkit-transition: background 1s linear;
     transition: background 1s linear;
@@ -1000,6 +1001,7 @@ a .users-poster-face:hover {
 .dashboard-activity-info-scroller.scroll-wrapper > .scroll-content {
     width: 100% !important;
     max-height: 100% !important;
+    scrollbar-width: none;
 }
 .dashboard-activity-info-scroller.scrollbar-macosx > .scroll-element.scroll-y {
     left: 10px;
@@ -1056,30 +1058,37 @@ a .users-poster-face:hover {
     white-space: nowrap;
 }
 .dashboard-activity-info-item .sub-value.time-right {
-    margin-right: 60px;
+    margin-right: 87px;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
 }
+.dashboard-activity-info-item .sub-value.location-value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
 .dashboard-activity-info-item .sub-value .ip-container {
     display: inline-flex;
+    min-width: 0;
 }
 .dashboard-activity-info-item .sub-value .ip-address {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 125px;
 }
 .dashboard-activity-info-time {
     position: absolute;
-    top: 200px;
+    bottom: 6px;
     right: 10px;
     text-align: right;
     font-size: 10px;
     z-index: 2;
 }
 .dashboard-activity-info-channel {
-    display: inline-block;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     max-width: 75px;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -1447,6 +1456,7 @@ a .dashboard-activity-metadata-user-thumb:hover {
 .dashboard-stats-info-scroller.scroll-wrapper > .scroll-content {
     width: 100% !important;
     max-height: 100% !important;
+    scrollbar-width: none;
 }
 .dashboard-stats-info-scroller.scrollbar-macosx > .scroll-element.scroll-y {
     left: 10px;

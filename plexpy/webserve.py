@@ -4989,12 +4989,12 @@ class WebInterface(object):
         """ Download the Tautulli database file. """
         database_file = database.FILENAME
 
-        # Write the copy to the cache directory rather than the system temp
+        # Write the copy to the data directory rather than the system temp
         # directory. The copy is as large as the database, and the system
         # temp directory is a tmpfs on some systems and a private per-unit
-        # mount on others. The cache directory is checked for writability
-        # at startup.
-        with tempfile.NamedTemporaryFile(delete=False, dir=plexpy.CONFIG.CACHE_DIR,
+        # mount on others. The data directory is checked for writability
+        # at startup and stores the original database.
+        with tempfile.NamedTemporaryFile(delete=False, dir=plexpy.DATA_DIR,
                                          suffix=f".{database_file}") as temp:
             temp_path = temp.name
 

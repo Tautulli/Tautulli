@@ -15,6 +15,7 @@
 
 import os
 import sqlite3
+import tempfile
 import threading
 import time
 import zipfile
@@ -198,7 +199,7 @@ def import_tautulli_db(database=None, method=None, backup=False):
         for table_name in session_history_tables:
             db.action("DROP TABLE {table}_copy".format(table=table_name))
 
-    vacuum()
+    optimize_db()
 
     logger.info("Tautulli Database :: Tautulli database import complete.")
     set_is_importing(False)
@@ -321,7 +322,12 @@ def optimize():
 
     logger.info("Tautulli Database :: Optimizing database.")
     try:
-        monitor_db.action("PRAGMA optimize")
+        monitor_db.action("PRAGMA analysis_limit=400")
+        # The 0x10000 bit makes optimize examine all tables, not just the
+        # ones queried on this connection (which is none for a fresh
+        # connection); it is ignored by SQLite < 3.46, where the boot-time
+        # ANALYZE in dbcheck() covers statistics instead
+        monitor_db.action("PRAGMA optimize(0x10002)")
     except Exception as e:
         logger.error("Tautulli Database :: Failed to optimize database: %s" % e)
 
@@ -360,19 +366,26 @@ def make_backup(cleanup=False, scheduler=False):
     if not os.path.exists(backup_folder):
         os.makedirs(backup_folder)
 
-    snapshot = os.path.join(backup_folder, 'tautulli.snapshot.db')
-    dest = sqlite3.connect(snapshot)
-    db = MonitorDatabase()
-    db.connection.backup(dest)
-    dest.close()
-
-    with zipfile.ZipFile(backup_file_fp, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        zipf.write(snapshot, arcname=FILENAME)
+    with tempfile.NamedTemporaryFile(delete=False, dir=plexpy.DATA_DIR, suffix=f".{FILENAME}") as temp:
+        temp_path = temp.name
 
     try:
-        os.remove(snapshot)
-    except OSError as e:
-        logger.error("Tautulli Database :: Failed to delete %s from the backup folder: %s" % (snapshot, e))
+        db = MonitorDatabase()
+        temp_db = sqlite3.connect(temp_path, timeout=20)
+        try:
+            db.connection.backup(temp_db)
+        finally:
+            temp_db.close()
+
+        with zipfile.ZipFile(backup_file_fp, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(temp_path, arcname=FILENAME)
+
+    except Exception as e:
+        logger.error("Tautulli Database :: Failed to backup database: %s", e)
+        return False
+
+    finally:
+        helpers.delete_file(temp_path)
 
     # Only cleanup if the database integrity is okay
     if cleanup and integrity:
