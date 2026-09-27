@@ -212,20 +212,25 @@ def test_guid_decides_join_for_shared_rating_key(db, prev_guid, new_guid, joins_
     assert reference_id_of(db, 2) == (1 if joins_group else 2)
 
 
+WATCHED_CHECK_BUG = (
+    "group_history judges the previous play with the new play's duration and "
+    "credits markers, so a play of a different length can flip the watched check"
+)
+
+
 # check_watched (called from group_history for the non-live path) has a
 # marker-based branch: with WATCHED_MARKER = 3 (the db fixture's default)
-# and a real marker_credits_first on the *new* play's session dict, a
+# and a marker_credits_first on the previous play's metadata row, a
 # previous view_offset past the marker but below the percent threshold
 # still counts as watched, via `view_offset >= min(threshold, marker_first)`.
-# Every other test in this file passes marker_credits_first=None (via
-# session_for), so that branch never fires. threshold here is 900 (90% of
-# DURATION=1000); prev_offset=250 is below it, so only the marker -- not
-# the percent threshold -- can flip prev_watched to True.
+# threshold here is 900 (90% of DURATION=1000). prev_offset=250 is below
+# it, so only the marker can flip prev_watched to True. The marker is the
+# previous play's own, the one the history table uses for that row.
 @pytest.mark.parametrize(
     "marker_credits_first, joins_group",
     [
-        (None, True),   # no marker -> percent check only (250 < 900) -> not watched -> joins
-        (200, False),   # marker: 250 >= min(900, 200) -> watched -> new group
+        (None, True),  # no marker -> percent check only (250 < 900) -> not watched -> joins
+        pytest.param(200, False, marks=pytest.mark.xfail(reason=WATCHED_CHECK_BUG)),  # 250 >= 200 -> watched
     ],
 )
 def test_marker_based_watched_flips_group_decision(db, marker_credits_first, joins_group):
@@ -233,10 +238,35 @@ def test_marker_based_watched_flips_group_decision(db, marker_credits_first, joi
 
     insert_row(db, 1, user_id=1, rating_key=100, view_offset=250)
     ap.group_history(1, session_for(1, 100))
+    insert_metadata(db, 1, marker_credits_first=marker_credits_first)
 
     insert_row(db, 2, user_id=1, rating_key=100, view_offset=300)
+    ap.group_history(2, session_for(1, 100))
+
+    assert reference_id_of(db, 2) == (1 if joins_group else 2)
+
+
+# The previous play is judged against its own duration. Row 1 stops at 950.
+# A new play of the same rating_key with a different duration must not
+# change whether row 1 counts as watched.
+@pytest.mark.xfail(reason=WATCHED_CHECK_BUG)
+@pytest.mark.parametrize(
+    "prev_duration, new_duration, joins_group",
+    [
+        (DURATION, 2 * DURATION, False),  # 950 of 1000 is watched, though only 47% of 2000
+        (2 * DURATION, DURATION, True),   # 950 of 2000 is unfinished, though 95% of 1000
+    ],
+)
+def test_previous_play_judged_by_its_own_duration(db, prev_duration, new_duration, joins_group):
+    ap = activity_processor.ActivityProcessor()
+
+    insert_row(db, 1, user_id=1, rating_key=100, view_offset=950)
+    ap.group_history(1, session_for(1, 100))
+    insert_metadata(db, 1, duration=prev_duration)
+
+    insert_row(db, 2, user_id=1, rating_key=100, view_offset=990)
     new_session = session_for(1, 100)
-    new_session['marker_credits_first'] = marker_credits_first
+    new_session['duration'] = new_duration
     ap.group_history(2, new_session)
 
     assert reference_id_of(db, 2) == (1 if joins_group else 2)
