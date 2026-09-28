@@ -342,11 +342,11 @@ def test_upgrade_adds_the_archive_column(app_db):
     assert app_db.select_single("SELECT is_archived FROM users WHERE user_id = 0") == {"is_archived": 0}
 
 
-SHOW_ARCHIVED = 'id="show-archived-history"'
+SHOW_ARCHIVED = '<i class="fa fa-archive"></i> Show archived'
 
 
 @pytest.fixture
-def history_pages(library, monkeypatch):
+def web_pages(library, monkeypatch):
     # Render the real templates. serve_template needs the repo root and a
     # CSRF token from the CherryPy session. The info page falls back to
     # history metadata when the Plex server has no match.
@@ -355,21 +355,55 @@ def history_pages(library, monkeypatch):
     monkeypatch.setattr(webserve, "get_session_csrf_token", lambda: "")
     monkeypatch.setattr(pmsconnect.PmsConnect, "get_metadata_details", lambda self, **kwargs: {})
     library.action("UPDATE session_history_metadata SET summary = ''")
-    web = webserve.WebInterface()
-    return lambda: [web.history(), web.library(section_id=1), web.info(rating_key=202, source="history")]
+    return webserve.WebInterface()
 
 
-def test_show_archived_button_on_every_history_page(history_pages):
-    assert not any(SHOW_ARCHIVED in page for page in history_pages())
+def show_archived_pages(web):
+    return [web.history(), web.library(section_id=1), web.info(rating_key=202, source="history"), web.graphs()]
+
+
+def test_show_archived_button_on_every_page(web_pages):
+    assert not any(SHOW_ARCHIVED in page for page in show_archived_pages(web_pages))
 
     archive_bob()
 
-    assert all(SHOW_ARCHIVED in page for page in history_pages())
+    assert all(SHOW_ARCHIVED in page for page in show_archived_pages(web_pages))
 
 
-def test_show_archived_button_is_admin_only(history_pages, monkeypatch):
+def test_show_archived_button_is_admin_only(web_pages, monkeypatch):
     monkeypatch.setattr(webserve, "get_session_info",
                         lambda: {"user_id": "1", "user": "alice", "user_group": "guest", "exp": None})
     archive_bob()
 
-    assert not any(SHOW_ARCHIVED in page for page in history_pages())
+    assert not any(SHOW_ARCHIVED in page for page in show_archived_pages(web_pages))
+
+
+def test_graph_popup_keeps_the_show_archived_state(web_pages):
+    # A click on a graph passes the button state to the history popup,
+    # which passes it on to get_history.
+    shown = web_pages.history_table_modal(user_id="", start_date="1970-01-01", include_archived="1")
+    default = web_pages.history_table_modal(user_id="", start_date="1970-01-01")
+
+    assert 'include_archived: "1"' in shown
+    assert 'include_archived: "0"' in default
+
+
+GRAPH_ENDPOINTS = [
+    "get_plays_by_date", "get_plays_by_dayofweek", "get_plays_by_hourofday", "get_plays_per_month",
+    "get_plays_by_top_10_platforms", "get_plays_by_top_10_users", "get_plays_by_stream_type",
+    "get_concurrent_streams_by_stream_type", "get_plays_by_source_resolution",
+    "get_plays_by_stream_resolution", "get_stream_type_by_top_10_users", "get_stream_type_by_top_10_platforms",
+]
+
+
+@pytest.mark.parametrize("name", GRAPH_ENDPOINTS)
+def test_graph_show_archived_matches_the_unarchived_graph(late_bob, library, name):
+    graph = getattr(webserve.WebInterface(), name)
+    # The seed rows are from 1970. The per month graph counts months.
+    time_range = "1200" if name == "get_plays_per_month" else "36500"
+    before = graph(time_range=time_range)
+
+    archive_bob()
+
+    assert graph(time_range=time_range) != before
+    assert graph(time_range=time_range, include_archived="1") == before
