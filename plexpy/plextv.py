@@ -634,6 +634,14 @@ class PlexTV(object):
                     if server.get('connections'):
                         break
 
+        # A token copied from the server's Preferences.xml makes plex.tv store Tautulli's version on the server.
+        # plex.tv echoes the caller's token as an owned server's accessToken, so a token compare cannot detect it.
+        if server.get('pms_version') == common.RELEASE:
+            logger.error("Tautulli PlexTV :: plex.tv lists Plex Media Server '%s' with Tautulli's version %s. "
+                         "The Plex token in Tautulli is probably the server's own token (PlexOnlineToken). "
+                         "Use Settings > Plex Media Server > Fetch New Token to give Tautulli its own token.",
+                         server['pms_name'], common.RELEASE)
+
         return server
 
     def get_server_times(self):
