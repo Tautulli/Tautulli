@@ -160,6 +160,7 @@ class Export(object):
                 'artProvider': lambda o: self.get_resource_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
+                'canNormalizeLoudness': None,
                 'chapters': {
                     'id': None,
                     'tag': None,
@@ -341,11 +342,18 @@ class Export(object):
                             'audioChannelLayout': None,
                             'bitDepth': None,
                             'bitrateMode': None,
+                            'canNormalizeLoudness': None,
                             'channels': None,
                             'duration': None,
+                            'gainOffset': None,
+                            'loudness': None,
+                            'loudnessAnalysisVersion': None,
+                            'lra': None,
+                            'peak': None,
                             'profile': None,
                             'samplingRate': None,
                             'streamIdentifier': None,
+                            'threshold': None,
                             'visualImpaired': None
                         },
                         'subtitleStreams': {
@@ -600,6 +608,7 @@ class Export(object):
                 'artProvider': lambda o: self.get_resource_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
+                'canNormalizeLoudness': None,
                 'chapters': {
                     'id': None,
                     'tag': None,
@@ -782,11 +791,18 @@ class Export(object):
                             'audioChannelLayout': None,
                             'bitDepth': None,
                             'bitrateMode': None,
+                            'canNormalizeLoudness': None,
                             'channels': None,
                             'duration': None,
+                            'gainOffset': None,
+                            'loudness': None,
+                            'loudnessAnalysisVersion': None,
+                            'lra': None,
+                            'peak': None,
                             'profile': None,
                             'samplingRate': None,
                             'streamIdentifier': None,
+                            'threshold': None,
                             'visualImpaired': None
                         },
                         'subtitleStreams': {
@@ -1441,7 +1457,8 @@ class Export(object):
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails', 'hasVoiceActivity'
+                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt',
+                    'hasPreviewThumbnails', 'hasVoiceActivity', 'canNormalizeLoudness',
                 ],
                 9: self._get_all_metadata_attrs(_media_type)
             }
@@ -1554,7 +1571,8 @@ class Export(object):
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails', 'hasVoiceActivity',
+                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt',
+                    'hasPreviewThumbnails', 'hasVoiceActivity', 'canNormalizeLoudness',
                     'parentThumb', 'parentKey',
                     'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
                 ],

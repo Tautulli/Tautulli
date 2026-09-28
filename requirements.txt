@@ -20,7 +20,7 @@ Mako==1.4.1
 musicbrainzngs==0.7.1
 paho-mqtt==2.1.0
 platformdirs==4.11.4
-plexapi==4.18.2
+plexapi==4.18.3
 profilehooks==1.13.0
 PyJWT==2.13.0
 python-twitter==3.5

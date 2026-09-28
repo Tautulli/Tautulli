@@ -610,7 +610,9 @@ class WebInterface(object):
             logger.debug("Library page requested but no section_id received.")
             return serve_template(template_name="library.html", title="Library", data=None, config=config)
 
-        return serve_template(template_name="library.html", title="Library", data=library_details, config=config)
+        has_archived = bool(users.Users().get_archived_user_ids())
+        return serve_template(template_name="library.html", title="Library", data=library_details, config=config,
+                              has_archived=has_archived)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -1228,14 +1230,15 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def users(self, **kwargs):
-        return serve_template(template_name="users.html", title="Users")
+        has_archived = bool(users.Users().get_archived_user_ids())
+        return serve_template(template_name="users.html", title="Users", has_archived=has_archived)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @sanitize_out()
     @addtoapi("get_users_table")
-    def get_user_list(self, grouping=None, **kwargs):
+    def get_user_list(self, grouping=None, include_archived=None, **kwargs):
         """ Get the data on Tautulli users table.
 
             ```
@@ -1244,6 +1247,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):                 0 or 1
+                include_archived (int):         0 or 1, include archived users in the list
                 order_column (str):             "user_thumb", "friendly_name", "last_seen", "ip_address", "platform",
                                                 "player", "last_played", "plays", "duration"
                 order_dir (str):                "desc" or "asc"
@@ -1265,6 +1269,7 @@ class WebInterface(object):
                           "history_row_id": 1121,
                           "ip_address": "xxx.xxx.xxx.xxx",
                           "is_active": 1,
+                          "is_archived": 0,
                           "keep_history": 1,
                           "last_played": "Game of Thrones - The Red Woman",
                           "last_seen": 1462591869,
@@ -1312,9 +1317,11 @@ class WebInterface(object):
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "friendly_name")
 
         grouping = helpers.bool_true(grouping, return_none=True)
+        include_archived = helpers.bool_true(include_archived)
 
         user_data = users.Users()
-        user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
+        user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping,
+                                                  include_archived=include_archived)
 
         if user_list is None:
             cherrypy.response.status = 500
@@ -1385,6 +1392,7 @@ class WebInterface(object):
                 custom_thumb (str):         The URL for the custom user thumbnail
                 keep_history (int):         0 or 1
                 allow_guest (int):          0 or 1
+                is_archived (int):          0 or 1
 
             Returns:
                 None
@@ -1394,6 +1402,7 @@ class WebInterface(object):
         custom_thumb = kwargs.get('custom_thumb')
         keep_history = kwargs.get('keep_history')
         allow_guest = kwargs.get('allow_guest')
+        is_archived = kwargs.get('is_archived')
 
         if user_id:
             try:
@@ -1402,7 +1411,8 @@ class WebInterface(object):
                                      friendly_name=friendly_name,
                                      custom_thumb=custom_thumb,
                                      keep_history=keep_history,
-                                     allow_guest=allow_guest)
+                                     allow_guest=allow_guest,
+                                     is_archived=is_archived)
                 status_message = "Successfully updated user."
                 return status_message
             except:
@@ -1658,6 +1668,7 @@ class WebInterface(object):
                      "is_active": 1,
                      "is_admin": 0,
                      "is_allow_sync": 1,
+                     "is_archived": 0,
                      "is_home_user": 1,
                      "is_restricted": 0,
                      "keep_history": 1,
@@ -1879,15 +1890,18 @@ class WebInterface(object):
         config = {
             "database_is_importing": database.IS_IMPORTING,
         }
+        has_archived = bool(users.Users().get_archived_user_ids())
 
-        return serve_template(template_name="history.html", title="History", config=config)
+        return serve_template(template_name="history.html", title="History", config=config,
+                              has_archived=has_archived)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @sanitize_out()
     @addtoapi()
-    def get_history(self, user=None, user_id=None, grouping=None, include_activity=None, **kwargs):
+    def get_history(self, user=None, user_id=None, grouping=None, include_activity=None,
+                    include_archived=None, **kwargs):
         """ Get the Tautulli history.
 
             ```
@@ -1897,6 +1911,7 @@ class WebInterface(object):
             Optional parameters:
                 grouping (int):                 0 or 1
                 include_activity (int):         0 or 1
+                include_archived (int):         0 or 1, include history of archived users
                 user (str):                     "Jon Snow"
                 user_id (int):                  133788
                 rating_key (int):               4348
@@ -1934,6 +1949,7 @@ class WebInterface(object):
                           "group_ids": "1124",
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "ip_address": "xxx.xxx.xxx.xxx",
+                          "is_archived": 0,
                           "live": 0,
                           "location": "wan",
                           "machine_id": "lmd93nkn12k29j2lnm",
@@ -2000,6 +2016,7 @@ class WebInterface(object):
 
         grouping = helpers.bool_true(grouping, return_none=True)
         include_activity = helpers.bool_true(include_activity, return_none=True)
+        include_archived = helpers.bool_true(include_archived)
 
         custom_where = []
         if user_id:
@@ -2065,7 +2082,8 @@ class WebInterface(object):
 
         data_factory = datafactory.DataFactory()
         history = data_factory.get_datatables_history(kwargs=kwargs, custom_where=custom_where,
-                                                      grouping=grouping, include_activity=include_activity)
+                                                      grouping=grouping, include_activity=include_activity,
+                                                      include_archived=include_archived)
 
         if history is None:
             cherrypy.response.status = 500
@@ -2211,14 +2229,15 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def graphs(self, **kwargs):
-        return serve_template(template_name="graphs.html", title="Graphs")
+        has_archived = bool(users.Users().get_archived_user_ids())
+        return serve_template(template_name="graphs.html", title="Graphs", has_archived=has_archived)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
     @sanitize_out()
     @addtoapi()
-    def get_user_names(self, **kwargs):
+    def get_user_names(self, include_archived=None, **kwargs):
         """ Get a list of all user and user ids.
 
             ```
@@ -2226,7 +2245,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                None
+                include_archived (int):         0 or 1, include archived users in the list
 
             Returns:
                 json:
@@ -2237,8 +2256,10 @@ class WebInterface(object):
                     ]
             ```
         """
+        include_archived = helpers.bool_true(include_archived)
+
         user_data = users.Users()
-        user_names = user_data.get_user_names(kwargs=kwargs)
+        user_names = user_data.get_user_names(kwargs=kwargs, include_archived=include_archived)
 
         return user_names
 
@@ -2246,7 +2267,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_plays_by_date(self, time_range='30', user_id=None, y_axis='plays', grouping=None,
+                          include_archived=None, **kwargs):
         """ Get graph data by date.
 
             ```
@@ -2257,6 +2279,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2274,7 +2297,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_per_day(time_range=time_range,
                                                y_axis=y_axis,
                                                user_id=user_id,
@@ -2290,7 +2313,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_plays_by_dayofweek(self, time_range='30', user_id=None, y_axis='plays', grouping=None,
+                               include_archived=None, **kwargs):
         """ Get graph data by day of the week.
 
             ```
@@ -2301,6 +2325,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2318,7 +2343,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_per_dayofweek(time_range=time_range,
                                                      y_axis=y_axis,
                                                      user_id=user_id,
@@ -2334,7 +2359,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', grouping=None, **kwargs):
+    def get_plays_by_hourofday(self, time_range='30', user_id=None, y_axis='plays', grouping=None,
+                               include_archived=None, **kwargs):
         """ Get graph data by hour of the day.
 
             ```
@@ -2345,6 +2371,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2362,7 +2389,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_per_hourofday(time_range=time_range,
                                                      y_axis=y_axis,
                                                      user_id=user_id,
@@ -2378,7 +2405,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_per_month(self, time_range='12', y_axis='plays', user_id=None, grouping=None,
+                            include_archived=None, **kwargs):
         """ Get graph data by month.
 
             ```
@@ -2389,6 +2417,7 @@ class WebInterface(object):
                 time_range (str):       The number of months of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2406,7 +2435,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_per_month(time_range=time_range,
                                                  y_axis=y_axis,
                                                  user_id=user_id,
@@ -2422,7 +2451,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None,
+                                      include_archived=None, **kwargs):
         """ Get graph data by top 10 platforms.
 
             ```
@@ -2433,6 +2463,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2450,7 +2481,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_by_top_10_platforms(time_range=time_range,
                                                            y_axis=y_axis,
                                                            user_id=user_id,
@@ -2466,7 +2497,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None,
+                                  include_archived=None, **kwargs):
         """ Get graph data by top 10 users.
 
             ```
@@ -2477,6 +2509,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2494,7 +2527,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_by_top_10_users(time_range=time_range,
                                                        y_axis=y_axis,
                                                        user_id=user_id,
@@ -2510,7 +2543,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_stream_type(self, time_range='30', y_axis='plays', user_id=None, grouping=None,
+                                 include_archived=None, **kwargs):
         """ Get graph data by stream type by date.
 
             ```
@@ -2521,6 +2555,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2537,7 +2572,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_per_stream_type(time_range=time_range,
                                                        y_axis=y_axis,
                                                        user_id=user_id,
@@ -2553,7 +2588,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_concurrent_streams_by_stream_type(self, time_range='30', user_id=None, **kwargs):
+    def get_concurrent_streams_by_stream_type(self, time_range='30', user_id=None,
+                                              include_archived=None, **kwargs):
         """ Get graph data for concurrent streams by stream type by date.
 
             ```
@@ -2563,6 +2599,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
 
             Returns:
                 json:
@@ -2578,7 +2615,7 @@ class WebInterface(object):
             ```
         """
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_concurrent_streams_per_stream_type(time_range=time_range, user_id=user_id)
 
         if result:
@@ -2591,7 +2628,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_source_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None,
+                                       include_archived=None, **kwargs):
         """ Get graph data by source resolution.
 
             ```
@@ -2602,6 +2640,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2618,7 +2657,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_by_source_resolution(time_range=time_range,
                                                             y_axis=y_axis,
                                                             user_id=user_id,
@@ -2634,7 +2673,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_plays_by_stream_resolution(self, time_range='30', y_axis='plays', user_id=None, grouping=None,
+                                       include_archived=None, **kwargs):
         """ Get graph data by stream resolution.
 
             ```
@@ -2645,6 +2685,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2661,7 +2702,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_total_plays_by_stream_resolution(time_range=time_range,
                                                             y_axis=y_axis,
                                                             user_id=user_id,
@@ -2677,7 +2718,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_stream_type_by_top_10_users(self, time_range='30', y_axis='plays', user_id=None, grouping=None,
+                                        include_archived=None, **kwargs):
         """ Get graph data by stream type by top 10 users.
 
             ```
@@ -2688,6 +2730,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2704,7 +2747,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_stream_type_by_top_10_users(time_range=time_range,
                                                        y_axis=y_axis,
                                                        user_id=user_id,
@@ -2720,7 +2763,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth()
     @addtoapi()
-    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None, **kwargs):
+    def get_stream_type_by_top_10_platforms(self, time_range='30', y_axis='plays', user_id=None, grouping=None,
+                                            include_archived=None, **kwargs):
         """ Get graph data by stream type by top 10 platforms.
 
             ```
@@ -2731,6 +2775,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
+                include_archived (int): 0 or 1, include archived users
                 grouping (int):         0 or 1
 
             Returns:
@@ -2747,7 +2792,7 @@ class WebInterface(object):
         """
         grouping = helpers.bool_true(grouping, return_none=True)
 
-        graph = graphs.Graphs()
+        graph = graphs.Graphs(include_archived=helpers.bool_true(include_archived))
         result = graph.get_stream_type_by_top_10_platforms(time_range=time_range,
                                                            y_axis=y_axis,
                                                            user_id=user_id,
@@ -4480,8 +4525,9 @@ class WebInterface(object):
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
+            has_archived = bool(users.Users().get_archived_user_ids())
             return serve_template(template_name="info.html", metadata=metadata, title="Info",
-                                  config=config, source=source, user_info=user_info)
+                                  config=config, source=source, user_info=user_info, has_archived=has_archived)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
@@ -5691,6 +5737,7 @@ class WebInterface(object):
                              "Jeremy Podeswa"
                           ],
                           "duration": "2998290",
+                          "edition_title": "",
                           "full_title": "Game of Thrones - The Red Woman",
                           "genres": [
                              "Adventure",
@@ -6316,6 +6363,7 @@ class WebInterface(object):
                       "is_active": 1,
                       "is_admin": 0,
                       "is_allow_sync": 1,
+                      "is_archived": 0,
                       "is_home_user": 1,
                       "is_restricted": 0,
                       "keep_history": 1,

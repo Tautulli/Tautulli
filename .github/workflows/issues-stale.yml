@@ -46,3 +46,21 @@ jobs:
           only-labels: 'invalid:template-incomplete'
           days-before-stale: 0
           days-before-close: 5
+
+      - name: AI Generated
+        uses: actions/stale@v11
+        with:
+          stale-issue-message: >
+            AI generated issue.
+          close-issue-message: >
+            This issue was closed because the the issue was not rewritten after 5 days.
+          stale-issue-label: 'invalid:ai-generated'
+          stale-pr-message: >
+            AI generated PR.
+          close-pr-message: >
+            This PR was closed because the the PR was not rewritten after 5 days.
+          stale-pr-label: 'invalid:ai-generated'
+          exempt-pr-labels: 'status:in-progress,status:in-review,dependencies'
+          only-labels: 'invalid:ai-generated'
+          days-before-stale: 0
+          days-before-close: 5

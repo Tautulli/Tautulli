@@ -358,6 +358,10 @@ history_table_options = {
         if (rowData['state'] !== null) {
             $(row).addClass('current-activity-row');
         }
+
+        if (rowData['is_archived']) {
+            $(row).addClass('archived-user');
+        }
     }
 };
 
@@ -479,7 +483,9 @@ function childTableOptions(rowData) {
             return {
                 json_data: JSON.stringify(d),
                 grouping: false,
-                reference_id: rowData['reference_id']
+                reference_id: rowData['reference_id'],
+                // The parent row is already shown, so show its plays even if the user is archived
+                include_archived: 1
             };
         },
         error: function(xhr, error, thrown) {
