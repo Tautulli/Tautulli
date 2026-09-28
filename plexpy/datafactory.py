@@ -72,8 +72,7 @@ class DataFactory(object):
             custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
 
         if not include_archived:
-            # Added after the session user filter above, which matches on any 'user_id' clause,
-            # and before the union where clause is derived from custom_where below
+            # Added before the union where clause is derived from custom_where below
             archived_user_ids = users.Users().get_archived_user_ids()
             if archived_user_ids:
                 custom_where.append(['session_history.user_id NOT IN', archived_user_ids])
