@@ -633,6 +633,7 @@ class PmsConnect(object):
                                'grandparent_title': helpers.get_xml_attr(m, 'grandparentTitle'),
                                'original_title': helpers.get_xml_attr(m, 'originalTitle'),
                                'sort_title': helpers.get_xml_attr(m, 'titleSort'),
+                               'edition_title': helpers.get_xml_attr(m, 'editionTitle'),
                                'media_index': helpers.get_xml_attr(m, 'index'),
                                'parent_media_index': helpers.get_xml_attr(m, 'parentIndex'),
                                'studio': helpers.get_xml_attr(m, 'studio'),
