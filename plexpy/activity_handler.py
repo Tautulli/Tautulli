@@ -668,21 +668,17 @@ def clear_recently_added_queue(rating_key, title):
     logger.debug("Tautulli TimelineHandler :: Starting callback for library item '%s' (%s) after delay.",
                  title, str(rating_key))
 
-    child_keys = RECENTLY_ADDED_QUEUE[rating_key].copy()
+    child_keys = RECENTLY_ADDED_QUEUE[rating_key]
 
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
-        grandchild_keys = set()
-        for child_key in child_keys:
-            grandchild_keys.update(RECENTLY_ADDED_QUEUE.get(child_key, set()))
-        on_created(rating_key, child_keys=child_keys,
-                   grandchild_keys=grandchild_keys)
+        on_created(rating_key, child_keys=child_keys)
 
     elif child_keys:
         for child_key in child_keys:
             grandchild_keys = RECENTLY_ADDED_QUEUE.get(child_key, [])
 
             if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and len(grandchild_keys) > 1:
-                on_created(child_key, child_keys=grandchild_keys.copy())
+                on_created(child_key, child_keys=grandchild_keys)
 
             elif grandchild_keys:
                 for grandchild_key in grandchild_keys:
@@ -703,11 +699,6 @@ def on_created(rating_key, **kwargs):
     metadata = pms_connect.get_metadata_details(rating_key)
 
     if metadata:
-        # Only TV show summaries need the queued episode metadata. Preserve
-        # existing artist/album notification behavior without fetching tracks.
-        if metadata['media_type'] != 'show':
-            kwargs.pop('grandchild_keys', None)
-
         logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) added to Plex.",
                      metadata['full_title'], str(rating_key))
 

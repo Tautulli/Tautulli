@@ -879,18 +879,26 @@ class PrettyMetadata(object):
         return 'View on ' + provider_name
 
     def get_title(self, divider='-'):
-        if (self.parameters.get('action') == 'created'
-                and self.media_type in ('show', 'season')
-                and self.parameters.get('grouped_title')):
-            return self.parameters['grouped_title']
-
+        # Grouped TV parameters clear episode_name; ungrouped ones retain it.
+        grouped = (self.parameters.get('action') == 'created'
+                   and self.parameters.get('episode_name') == '')
         title = ''
         if self.media_type == 'movie':
             title = '%s (%s)' % (self.parameters['title'], self.parameters['year'])
         elif self.media_type == 'show':
             title = '%s (%s)' % (self.parameters['show_name'], self.parameters['year'])
+            season_num = self.parameters.get('season_num')
+            season_count = self.parameters.get('season_count', 0)
+            if grouped and season_num and season_count > 0:
+                label = 'Season' if season_count == 1 else 'Seasons'
+                title += ' - %s %s' % (label, season_num)
         elif self.media_type == 'season':
             title = '%s - %s' % (self.parameters['show_name'], self.parameters['season_name'])
+            episode_num = self.parameters.get('episode_num')
+            episode_count = self.parameters.get('episode_count', 0)
+            if grouped and episode_num and episode_count > 0:
+                label = 'Episode' if episode_count == 1 else 'Episodes'
+                title += ' - %s %s' % (label, episode_num)
         elif self.media_type == 'episode':
             season = helpers.short_season(self.parameters['season_name'])
             title = '%s - %s (%s %s E%s)' % (self.parameters['show_name'],
@@ -1184,7 +1192,7 @@ class DISCORD(Notifier):
             plex_url = pretty_metadata.get_plex_url()
 
             # Build Discord post attachment
-            attachment = {'title': title[:253] + '...' if len(title) > 256 else title,
+            attachment = {'title': title,
                           'timestamp': pretty_metadata.parameters['utctime']
                           }
 
@@ -1217,14 +1225,6 @@ class DISCORD(Notifier):
                 attachment['fields'] = fields
 
             data['embeds'] = [attachment]
-
-        if kwargs.get('parameters', {}).get('grouped_title') and len(text) > 2000:
-            # Preserve exact episode details when a batch exceeds Discord's
-            # message limit, including when the rich card is disabled.
-            suffix = '\n\nFull notification attached.'
-            data['content'] = text[:2000 - len(suffix) - 3] + '...' + suffix
-            files['files[%d]' % len(files)] = (
-                'recently-added.txt', text.encode('utf-8'), 'text/plain')
 
         params = {'wait': True}
 
@@ -3846,27 +3846,16 @@ class SLACK(Notifier):
             description = pretty_metadata.get_description()
             plex_url = pretty_metadata.get_plex_url()
 
-            # Image descriptions allow 2000 characters. Keep the complete
-            # episode summary in the message body, and shorten only the card.
-            title = title[:1997] + '...' if len(title) > 2000 else title
-
-            # Reserve space for the entire link before shortening its label.
-            # Slicing the assembled mrkdwn can remove the closing link markup.
-            title_limit = 3000 - len(provider_link) - 5
-            if provider_link and title_limit >= 3:
-                link_title = (title[:title_limit - 3] + '...'
-                              if len(title) > title_limit else title)
-                text = f"*<{provider_link}|{link_title}>*"
+            if provider_link:
+                text = f"*<{provider_link}|{title}>*"
             else:
                 text = f"*{title}*"
 
             if self.config['incl_description']:
-                # A section allows 3000 characters, including its heading.
-                description_limit = 3000 - len(text) - 1
-                if description_limit >= 3:
-                    description = (description[:description_limit - 3] + '...'
-                                   if len(description) > description_limit else description)
-                    text = f'{text}\n{description}'
+                text = f'{text}\n{description}'
+
+            # Max length of text is 3000 characters
+            text = (text[:2997] + (text[2997:] and '...'))
 
             section = {
                 'type': 'section',
@@ -3888,13 +3877,13 @@ class SLACK(Notifier):
                 'type': 'mrkdwn',
                 'text': 'View Details',
             }
-            if provider_link and len(f'<{provider_link}|{provider_name}>') <= 2000:
+            if provider_link:
                 fields.append(field_title)
                 fields.append({
                     'type': 'mrkdwn',
                     'text': f'<{provider_link}|{provider_name}>',
                 })
-            if self.config['incl_pmslink'] and len(f'<{plex_url}|Plex Web>') <= 2000:
+            if self.config['incl_pmslink']:
                 fields.append(field_title)
                 fields.append({
                     'type': 'mrkdwn',

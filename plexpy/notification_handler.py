@@ -561,28 +561,17 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     notify_params.update(media_info)
     notify_params.update(media_part_info)
 
-    pms_connect = pmsconnect.PmsConnect()
-    metadata = pms_connect.get_metadata_details(rating_key=rating_key)
+    metadata = pmsconnect.PmsConnect().get_metadata_details(rating_key=rating_key)
 
-    child_keys = kwargs.pop('child_keys', [])
-    grandchild_keys = kwargs.pop('grandchild_keys', [])
-    grouped_tv = (notify_action == 'on_created' and not manual_trigger
-                  and notify_params['media_type'] in ('show', 'season')
-                  and bool(child_keys))
-
-    if grouped_tv:
-        child_metadata, grandchild_metadata = get_grouped_tv_metadata(
-            pms_connect, rating_key, notify_params['media_type'],
-            child_keys, grandchild_keys)
-    else:
-        child_metadata = {}
-        grandchild_metadata = {}
-        for key in child_keys:
-            child = pms_connect.get_metadata_details(rating_key=key)
-            child_metadata[str(key)] = child or {}
-        for key in grandchild_keys:
-            grandchild = pms_connect.get_metadata_details(rating_key=key)
-            grandchild_metadata[str(key)] = grandchild or {}
+    child_metadata = grandchild_metadata = []
+    for key in kwargs.pop('child_keys', []):
+        child = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
+        if child:
+            child_metadata.append(child)
+    for key in kwargs.pop('grandchild_keys', []):
+        grandchild = pmsconnect.PmsConnect().get_metadata_details(rating_key=key)
+        if grandchild:
+            grandchild_metadata.append(grandchild)
 
     # Session values
     session = session or {}
@@ -884,15 +873,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         track_name = ''
 
         child_num = [helpers.cast_to_int(
-            d.get('media_index')) for d in child_metadata.values()
-            if d.get('parent_rating_key') == rating_key]
-        if grouped_tv:
-            child_num = sorted({int(d['media_index'])
-                                for d in child_metadata.values()
-                                if d.get('parent_rating_key') == rating_key
-                                and str(d.get('media_index', '')).isdecimal()})
-        num, num00 = (format_group_index(child_num)
-                      if child_num or not grouped_tv else ('', ''))
+            d['media_index']) for d in child_metadata if d['parent_rating_key'] == rating_key]
+        num, num00 = format_group_index(child_num)
         season_num, season_num00 = num, num00
 
         episode_num, episode_num00 = '', ''
@@ -917,15 +899,8 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         season_num00 = str(notify_params['media_index']).zfill(2)
 
         grandchild_num = [helpers.cast_to_int(
-            d.get('media_index')) for d in child_metadata.values()
-            if d.get('parent_rating_key') == rating_key]
-        if grouped_tv:
-            grandchild_num = sorted({int(d['media_index'])
-                                     for d in child_metadata.values()
-                                     if d.get('parent_rating_key') == rating_key
-                                     and str(d.get('media_index', '')).isdecimal()})
-        num, num00 = (format_group_index(grandchild_num)
-                      if grandchild_num or not grouped_tv else ('', ''))
+            d['media_index']) for d in child_metadata if d['parent_rating_key'] == rating_key]
+        num, num00 = format_group_index(grandchild_num)
         episode_num, episode_num00 = num, num00
         track_num, track_num00 = num, num00
 
@@ -1266,11 +1241,6 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'poster_thumb': poster_thumb
         }
 
-    available_params['grouped_title'] = ''
-    if grouped_tv:
-        available_params['grouped_title'] = format_grouped_tv_title(
-            notify_params, child_metadata, grandchild_metadata)
-
     notify_params.update(available_params)
     return notify_params
 
@@ -1383,14 +1353,6 @@ MEDIA_TAGS_REGEX = {
 
 
 def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None, test=False, as_json=False):
-    # Enrich displayed titles without changing saved templates or the metadata
-    # used to evaluate custom notification conditions. Automation integrations
-    # and JSON templates opt in with {grouped_title} to preserve their payloads.
-    if (notify_action == 'on_created' and parameters.get('grouped_title')
-            and agent_id not in (12, 15, 23, 24, 25) and not as_json):
-        parameters = parameters.copy()
-        parameters['title'] = parameters['grouped_title']
-
     # Default subject and body text
     if agent_id == 15:
         default_subject = default_body = ''
@@ -1525,118 +1487,6 @@ def strip_tag(data, agent_id=None):
 
     # Resubstitute temporary tokens for < and > in parameter prefix and suffix
     return data.replace('%temp_lt_token%', '<').replace('%temp_gt_token%', '>')
-
-
-def get_grouped_tv_metadata(pms_connect, rating_key, media_type, child_keys, grandchild_keys):
-    """Read batch metadata with one children request per parent, not per episode."""
-    child_metadata = {str(key): {} for key in child_keys}
-    grandchild_metadata = {str(key): {} for key in grandchild_keys}
-
-    def read_children(parent_key, expected_type, queued_metadata):
-        parent_key = str(parent_key)
-        try:
-            result = pms_connect.get_item_children(rating_key=parent_key) or {}
-        except Exception as e:
-            logger.warn("Tautulli NotificationHandler :: Unable to retrieve grouped TV children "
-                        "for rating_key %s: %s.", parent_key, e)
-            return
-
-        for child in result.get('children_list', []):
-            key = str(child.get('rating_key', ''))
-            parent = str(child.get('parent_rating_key') or '')
-            if (key not in queued_metadata or child.get('media_type') != expected_type
-                    or parent not in ('', parent_key)):
-                continue
-
-            # The endpoint identifies the parent even when Plex omits it from
-            # a child. Never include library items outside the queued batch.
-            child = child.copy()
-            child['rating_key'] = key
-            child['parent_rating_key'] = parent_key
-            queued_metadata[key] = child
-
-    if media_type == 'season':
-        read_children(rating_key, 'episode', child_metadata)
-    else:
-        read_children(rating_key, 'season', child_metadata)
-        # Query missing seasons too: their episodes can still supply the
-        # parent title and number when the show children listing is incomplete.
-        for season_key in sorted(child_metadata):
-            read_children(season_key, 'episode', grandchild_metadata)
-
-    return child_metadata, grandchild_metadata
-
-
-def format_grouped_tv_title(metadata, child_metadata, grandchild_metadata):
-    """Describe only the episodes in an automatic recently added batch.
-
-    Metadata dictionaries are keyed by the queued rating keys. Empty values
-    preserve failed lookups, so an incomplete summary can be labelled honestly.
-    """
-    if metadata['media_type'] == 'season':
-        seasons = {str(metadata['rating_key']): metadata}
-        episodes = child_metadata
-    else:
-        seasons = child_metadata
-        episodes = grandchild_metadata
-
-    episodes_by_season = defaultdict(list)
-    missing_details = False
-    for episode in episodes.values():
-        parent_key = str(episode.get('parent_rating_key', ''))
-        if parent_key in seasons:
-            episodes_by_season[parent_key].append(episode)
-        else:
-            missing_details = True
-
-    summaries = []
-    has_episode_numbers = False
-    has_incomplete_summary = False
-    for key, season in seasons.items():
-        season_episodes = episodes_by_season[key]
-        # Episode metadata can still identify a season whose lookup failed.
-        fallback = next(iter(season_episodes), {})
-        season_index = season.get('media_index',
-                                  fallback.get('parent_media_index', ''))
-        season_name = season.get('title') or fallback.get('parent_title')
-        if not season_name:
-            season_name = ('Season %s' % season_index
-                           if str(season_index).isdecimal()
-                           else 'Season (details unavailable)')
-
-        numbers = set()
-        incomplete = not season_episodes
-        for episode in season_episodes:
-            index = str(episode.get('media_index', ''))
-            if index.isdecimal():
-                numbers.add(int(index))
-            else:
-                incomplete = True
-
-        if numbers:
-            has_episode_numbers = True
-            ranges, _ = format_group_index(numbers)
-            episode_text = '%s %s' % (
-                'Episode' if len(numbers) == 1 else 'Episodes',
-                ranges.replace(',', ', '))
-            if incomplete:
-                episode_text += ' (additional episode details unavailable)'
-                has_incomplete_summary = True
-        else:
-            episode_text = 'Episodes (details unavailable)'
-
-        order = int(season_index) if str(season_index).isdecimal() else float('inf')
-        summaries.append((order, season_name, episode_text))
-
-    if metadata['media_type'] == 'season':
-        title = '%s - %s' % (metadata['full_title'], summaries[0][2])
-    else:
-        title = '%s - %s' % (metadata['full_title'], '; '.join(
-            '%s: %s' % (name, episodes)
-            for _, name, episodes in sorted(summaries)))
-    if missing_details and has_episode_numbers and not has_incomplete_summary:
-        title += ' (additional episode details unavailable)'
-    return title
 
 
 def format_group_index(group_keys):
