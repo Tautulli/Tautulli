@@ -6,6 +6,7 @@ body:
     attributes:
       value: |
         **THIS IS NOT THE PLACE TO ASK FOR SUPPORT!** Please use [Discord](https://tautulli.com/discord) for support issues.
+        **DO NO POST AI GENERATED BUG REPORTS!** Please do not use AI to generate bug reports. You may use AI to assist and provide context, but the report must be written in your own words.
   - type: textarea
     id: description
     attributes:

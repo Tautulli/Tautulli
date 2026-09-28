@@ -6,6 +6,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to help improve Tautulli!
+        **DO NO POST AI GENERATED FEATURE REQUESTS!** Please do not use AI to generate feature requests. You may use AI to assist and provide context, but the request must be written in your own words.
   - type: textarea
     id: problem
     attributes:
