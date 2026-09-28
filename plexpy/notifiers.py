@@ -879,13 +879,26 @@ class PrettyMetadata(object):
         return 'View on ' + provider_name
 
     def get_title(self, divider='-'):
+        # Grouped TV parameters clear episode_name; ungrouped ones retain it.
+        grouped = (self.parameters.get('action') == 'created'
+                   and self.parameters.get('episode_name') == '')
         title = ''
         if self.media_type == 'movie':
             title = '%s (%s)' % (self.parameters['title'], self.parameters['year'])
         elif self.media_type == 'show':
             title = '%s (%s)' % (self.parameters['show_name'], self.parameters['year'])
+            season_num = self.parameters.get('season_num')
+            season_count = self.parameters.get('season_count', 0)
+            if grouped and season_num and season_count > 0:
+                label = 'Season' if season_count == 1 else 'Seasons'
+                title += ' - %s %s' % (label, season_num)
         elif self.media_type == 'season':
             title = '%s - %s' % (self.parameters['show_name'], self.parameters['season_name'])
+            episode_num = self.parameters.get('episode_num')
+            episode_count = self.parameters.get('episode_count', 0)
+            if grouped and episode_num and episode_count > 0:
+                label = 'Episode' if episode_count == 1 else 'Episodes'
+                title += ' - %s %s' % (label, episode_num)
         elif self.media_type == 'episode':
             season = helpers.short_season(self.parameters['season_name'])
             title = '%s - %s (%s %s E%s)' % (self.parameters['show_name'],
@@ -897,6 +910,11 @@ class PrettyMetadata(object):
             title = self.parameters['artist_name']
         elif self.media_type == 'album':
             title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
+            track_num = self.parameters.get('track_num')
+            track_count = self.parameters.get('track_count', 0)
+            if grouped and track_num and track_count > 0:
+                label = 'Track' if track_count == 1 else 'Tracks'
+                title += ' - %s %s' % (label, track_num)
         elif self.media_type == 'track':
             title = '%s - %s' % (self.parameters['track_name'], self.parameters['track_artist'])
         return title
