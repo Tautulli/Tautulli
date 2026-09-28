@@ -3310,6 +3310,10 @@ tr.archived-user > td {
 tr.archived-user:hover > td {
     opacity: 1;
 }
+/* An expanded history group is already dimmed, and its parent row shows the archive state */
+table[id^='history_child'] tr.archived-user > td {
+    opacity: 1;
+}
 .sign-out-tooltip:hover {
     color: #E5A00D;
     cursor: pointer;
