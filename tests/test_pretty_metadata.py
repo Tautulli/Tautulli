@@ -9,10 +9,6 @@ from plexpy.notifiers import PrettyMetadata
 # PrettyMetadata.get_title builds the card title for Discord, Slack, Teams, and
 # LunaSea. A grouped recently added notification carries the added season,
 # episode, or track numbers in the existing *_num and *_count parameters.
-GROUPED_TITLE_BUG = (
-    "get_title ignores the grouped season, episode, and track ranges, so a "
-    "grouped recently added card reads as if the whole season or album arrived"
-)
 
 # The parameter prefix that holds the grouped range for each media type.
 RANGE_KEY = {"show": "season", "season": "episode", "album": "track"}
@@ -49,7 +45,6 @@ def title(parameters, divider="-"):
     return result
 
 
-@pytest.mark.xfail(reason=GROUPED_TITLE_BUG)
 @pytest.mark.parametrize("media_type, numbers, count, expected", [
     ("show", "1-3,5", 4, "Lanterns (2026) - Seasons 1-3,5"),
     ("show", "2", 1, "Lanterns (2026) - Season 2"),
@@ -105,10 +100,7 @@ def test_other_media_titles_are_unchanged(media_type, divider, expected):
     assert title(params(media_type), divider) == expected
 
 
-@pytest.mark.parametrize("grouping", [
-    False,
-    pytest.param(True, marks=pytest.mark.xfail(reason=GROUPED_TITLE_BUG)),
-])
+@pytest.mark.parametrize("grouping", [False, True])
 @pytest.mark.parametrize("media_type, item_title, parent_title, suffix", [
     ("show", "Lanterns", "", " - Seasons 2,4"),
     ("season", "Season 1", "Lanterns", " - Episodes 2,4"),

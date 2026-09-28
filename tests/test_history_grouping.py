@@ -212,12 +212,6 @@ def test_guid_decides_join_for_shared_rating_key(db, prev_guid, new_guid, joins_
     assert reference_id_of(db, 2) == (1 if joins_group else 2)
 
 
-WATCHED_CHECK_BUG = (
-    "group_history judges the previous play with the new play's duration and "
-    "credits markers, so a play of a different length can flip the watched check"
-)
-
-
 # check_watched (called from group_history for the non-live path) has a
 # marker-based branch: with WATCHED_MARKER = 3 (the db fixture's default)
 # and a marker_credits_first on the previous play's metadata row, a
@@ -230,7 +224,7 @@ WATCHED_CHECK_BUG = (
     "marker_credits_first, joins_group",
     [
         (None, True),  # no marker -> percent check only (250 < 900) -> not watched -> joins
-        pytest.param(200, False, marks=pytest.mark.xfail(reason=WATCHED_CHECK_BUG)),  # 250 >= 200 -> watched
+        (200, False),  # 250 >= 200 -> watched
     ],
 )
 def test_marker_based_watched_flips_group_decision(db, marker_credits_first, joins_group):
@@ -249,7 +243,6 @@ def test_marker_based_watched_flips_group_decision(db, marker_credits_first, joi
 # The previous play is judged against its own duration. Row 1 stops at 950.
 # A new play of the same rating_key with a different duration must not
 # change whether row 1 counts as watched.
-@pytest.mark.xfail(reason=WATCHED_CHECK_BUG)
 @pytest.mark.parametrize(
     "prev_duration, new_duration, joins_group",
     [

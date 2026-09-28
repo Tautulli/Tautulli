@@ -18,14 +18,6 @@ from plexpy import datafactory, graphs, libraries, plextv, pmsconnect, users, we
 from tests.test_history_table import build_draw, call_history, insert_history_row, seed_history
 
 
-ARCHIVE_PENDING = (
-    "users have no archive flag, so a user that left the server stays in "
-    "the users list, the history table, and every statistic"
-)
-
-pytestmark = pytest.mark.xfail(reason=ARCHIVE_PENDING)
-
-
 @pytest.fixture
 def seeded(app_db):
     seed_history(app_db)

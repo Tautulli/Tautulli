@@ -6,15 +6,8 @@ logout_user_session API command trusts that value, so it answered
 "Unable to logout user session." after it had cleared the token.
 """
 
-import pytest
-
 from plexpy.users import Users
 from plexpy import webserve
-
-LOGOUT_RESULT_BUG = (
-    "clear_user_login_token returns False even when it clears a token, so "
-    "the logout_user_session API reports an error after a successful logout"
-)
 
 
 def insert_login(app_db, jwt_token, user_id=0, user="Local"):
@@ -34,7 +27,6 @@ def token_for(app_db, row_id):
     )["jwt_token"]
 
 
-@pytest.mark.xfail(reason=LOGOUT_RESULT_BUG)
 def test_logout_user_session_returns_success_and_clears_the_token(app_db):
     row_id = insert_login(app_db, "token-row")
 
@@ -44,7 +36,6 @@ def test_logout_user_session_returns_success_and_clears_the_token(app_db):
     assert token_for(app_db, row_id) is None
 
 
-@pytest.mark.xfail(reason=LOGOUT_RESULT_BUG)
 def test_clear_user_login_token_by_jwt_token_returns_true(app_db):
     row_id = insert_login(app_db, "token-jwt")
 
