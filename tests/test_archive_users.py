@@ -12,7 +12,7 @@ import json
 import pytest
 
 import plexpy
-from plexpy import datafactory, graphs, libraries, plextv, users, webserve
+from plexpy import datafactory, graphs, libraries, plextv, users, webauth, webserve
 
 from tests.test_history_table import build_draw, call_history, seed_history
 
@@ -214,3 +214,28 @@ def test_refresh_users_keeps_a_user_that_is_still_gone_archived(seeded, monkeypa
 
     assert seeded.select_single(
         "SELECT is_archived FROM users WHERE user_id = 2") == {"is_archived": 1}
+
+
+class FakeGuestPlexTV:
+    def __init__(self, token=None, headers=None):
+        pass
+
+    def get_plex_account_details(self):
+        return {"user_id": "2"}
+
+    def get_server_token(self):
+        return "server-token"
+
+
+def test_archived_guest_cannot_log_in_until_unarchived(seeded, monkeypatch):
+    plexpy.CONFIG.ALLOW_GUEST_ACCESS = 1
+    seeded.action("UPDATE users SET allow_guest = 1 WHERE user_id = 2")
+    monkeypatch.setattr(webauth, "PlexTV", FakeGuestPlexTV)
+    monkeypatch.setattr(webauth, "refresh_users", lambda: None)
+
+    users.Users().archive(user_id=2)
+    assert webauth.plex_user_login(token="user-token") is None
+
+    # Archiving leaves allow_guest alone, so unarchiving restores the login.
+    users.Users().unarchive(user_id=2)
+    assert webauth.plex_user_login(token="user-token")[1] == "guest"
