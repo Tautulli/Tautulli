@@ -257,6 +257,41 @@ def test_refresh_users_keeps_a_user_that_is_still_gone_archived(seeded, monkeypa
         "SELECT is_archived FROM users WHERE user_id = 2") == {"is_archived": 1}
 
 
+TOKENS = {"tok-alice", "tok-bob", "tok-bob-admin"}
+
+
+@pytest.fixture
+def logins(seeded):
+    # alice and bob each have a guest session. bob also has an admin session.
+    for user_id, group, token in ((1, "guest", "tok-alice"), (2, "guest", "tok-bob"), (2, "admin", "tok-bob-admin")):
+        seeded.action("INSERT INTO user_login (timestamp, user_id, user_group, success, jwt_token) "
+                      "VALUES (?, ?, ?, ?, ?)", [1700000000, user_id, group, 1, token])
+    return seeded
+
+
+def live_tokens():
+    # check_jwt_token rejects a token that get_user_login no longer finds.
+    return {token for token in TOKENS if users.Users().get_user_login(jwt_token=token)}
+
+
+def test_archive_logs_out_the_guest(logins):
+    web = webserve.WebInterface()
+
+    web.edit_user(user_id="2", friendly_name="Bob", is_archived="0")
+    assert live_tokens() == TOKENS
+
+    web.edit_user(user_id="2", is_archived="1")
+    assert live_tokens() == {"tok-alice", "tok-bob-admin"}
+
+
+def test_delete_logs_out_the_guest_and_purge_does_not(logins):
+    users.Users().delete(user_id=2, purge_only=True)
+    assert live_tokens() == TOKENS
+
+    users.Users().delete(user_id=2)
+    assert live_tokens() == {"tok-alice", "tok-bob-admin"}
+
+
 class FakeGuestPlexTV:
     def __init__(self, token=None, headers=None):
         pass
