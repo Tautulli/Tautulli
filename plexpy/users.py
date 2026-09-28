@@ -905,6 +905,7 @@ class Users(object):
                 monitor_db.action("UPDATE user_login SET jwt_token = NULL "
                                   "WHERE jwt_token = ?",
                                   [jwt_token])
+                return True
             except Exception as e:
                 logger.error("Tautulli Users :: Unable to clear user JWT token: %s.", e)
                 return False
@@ -916,6 +917,7 @@ class Users(object):
                 monitor_db.action("UPDATE user_login SET jwt_token = NULL "
                                   "WHERE id in ({})".format(",".join(["?"] * len(row_ids))),
                                   row_ids)
+                return True
             except Exception as e:
                 logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
                 return False
