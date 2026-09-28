@@ -6,7 +6,7 @@
   * Fix: IPv6 address overlapping the ETA on activity cards.
   * Fix: Live channel name overflowing the activity card.
 * History:
-  * Fix: Require matching guid when grouping non-live history. (#2769, #2768) (Thanks @vefilippo)
+  * Fix: Require matching guid when grouping non-live history. (#2768, #2769) (Thanks @vefilippo)
   * Fix: Regrouping history splitting live TV.
   * Fix: Regrouping history based on previous durations and markers.
     * Note: Regrouping existing history will use the new logic and split history based on guid.
@@ -14,14 +14,14 @@
   * Fix: Recently added notifications crashing if the item is removed from Plex before the notification is sent. (#2751) (Thanks @TowyTowy)
   * Fix: Paused notifications sending repeatedly when a stream is buffering.
   * New: Allow "undisclosed-recipients:;" in Email/newsletter to field. (#2763, #2837) (Thanks @thePFLy)
-  * New: Include season, episode, and track ranges in grouped titles for rich metadata cards. (#2836) (Thanks @herikwebb)
+  * New: Include season, episode, and track ranges in grouped titles for rich metadata cards. (#2835, #2836) (Thanks @herikwebb)
 * Newsletters:
   * Fix: Path traversal in newsletter filename. (CVE-2026-TBD) (Thanks @router0mail)
   * New: Added edition_title to newsletter JSON data. (#2840)
 * Exporter:
   * New: Added loudness normalization info to export fields for movie and episode audio streams.
 * UI:
-  * Fix: Prevent caching of server-rendered HTML templates. (#2811, #2810)
+  * Fix: Prevent caching of server-rendered HTML templates. (#2810, #2811)
   * Fix: Dashboard stats card overflow/clipping on Firefox 155.0. (#2821)
   * New: Added X-Frame-Options header to settings page.
   * New: Make links inside table cells easier to target. (#2754) (Thanks @stephenp)
