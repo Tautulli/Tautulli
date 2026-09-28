@@ -21,7 +21,7 @@
                 </label>
             </div>
             % endif
-            <div class="btn-group" style="margin-right: 2px;" data-toggle="buttons" id="yaxis-selection">
+            <div class="btn-group" data-toggle="buttons" id="yaxis-selection">
                 <label class="btn btn-dark btn-filter">
                     <input type="radio" name="yaxis-options" id="yaxis-plays" value="plays" autocomplete="off"> Play Count
                 </label>
@@ -29,16 +29,18 @@
                     <input type="radio" name="yaxis-options" id="yaxis-duration" value="duration" autocomplete="off"> Play Duration
                 </label>
             </div>
-            <div class="input-group pull-right" style="width: 1px;" id="days-selection">
-                <span class="input-group-addon btn-dark inactive">Last</span>
-                <input type="number" class="form-control number-input" name="graph-days" id="graph-days" value="30" min="1" data-default="7" data-toggle="tooltip" title="Min: 1 day" />
-                <span class="input-group-addon btn-dark inactive">days</span>
+            <div class="btn-group">
+                <div class="input-group" style="width: 1px;" id="days-selection">
+                    <span class="input-group-addon btn-dark inactive">Last</span>
+                    <input type="number" class="form-control number-input" name="graph-days" id="graph-days" value="30" min="1" data-default="7" data-toggle="tooltip" title="Min: 1 day" />
+                    <span class="input-group-addon btn-dark inactive">days</span>
+                </div>
+                <div class="input-group" style="width: 1px;" id="months-selection">
+                    <span class="input-group-addon btn-dark inactive">Last</span>
+                    <input type="number" class="form-control number-input" name="graph-months" id="graph-months" value="12" min="1" data-default="12" data-toggle="tooltip" title="Min: 1 month" />
+                    <span class="input-group-addon btn-dark inactive">months</span>
+			    </div>
             </div>
-            <div class="input-group pull-right" style="width: 1px;" id="months-selection">
-                <span class="input-group-addon btn-dark inactive">Last</span>
-                <input type="number" class="form-control number-input" name="graph-months" id="graph-months" value="12" min="1" data-default="12" data-toggle="tooltip" title="Min: 1 month" />
-                <span class="input-group-addon btn-dark inactive">months</span>
-			</div>
         </div>
     </div>
     <div class="table-card-back">
