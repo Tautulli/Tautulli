@@ -73,7 +73,7 @@ DOCUMENTATION :: END
                     <label>
                         <input type="checkbox" id="is_archived" name="is_archived" value="1" ${helpers.checked(data['is_archived'])}> Archive user
                     </label>
-                    <p class="help-block">Check this to hide the user from the users list, the history tables and the statistics. All history is kept and the user can be unarchived at any time.</p>
+                    <p class="help-block">Check this to hide the user from the users list, the history tables and the statistics. All history is kept and the user can be unarchived at any time. An archived user cannot log in as a guest.</p>
                 </div>
                 % if data['user_id']:
                 <div class="form-group">
