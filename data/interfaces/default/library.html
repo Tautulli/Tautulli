@@ -226,6 +226,13 @@ DOCUMENTATION :: END
                                                     <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
                                                 </label>
                                             </div>
+                                            % if _session['user_group'] == 'admin' and has_archived:
+                                            <div class="btn-group">
+                                                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-history">
+                                                    <i class="fa fa-archive"></i> Show archived
+                                                </button>
+                                            </div>
+                                            % endif
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
                                             </div>
@@ -566,6 +573,8 @@ DOCUMENTATION :: END
 
     $(".inactive-library-tooltip").tooltip();
 
+    var include_archived = 0;
+
     function loadHistoryTable(transcode_decision) {
         // Build watch history table
         history_table_options.ajax = {
@@ -576,7 +585,8 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     section_id: section_id,
                     user_id: "${history_user_id}",
-                    transcode_decision: transcode_decision
+                    transcode_decision: transcode_decision,
+                    include_archived: include_archived
                 };
             },
             error: function(xhr, error, thrown) {
@@ -614,6 +624,11 @@ DOCUMENTATION :: END
     });
 
     $("#refresh-history-list").click(function () {
+        history_table.draw();
+    });
+
+    $('#show-archived-history').on('click', function () {
+        include_archived = $(this).hasClass('active') ? 0 : 1;
         history_table.draw();
     });
 </script>

@@ -610,7 +610,9 @@ class WebInterface(object):
             logger.debug("Library page requested but no section_id received.")
             return serve_template(template_name="library.html", title="Library", data=None, config=config)
 
-        return serve_template(template_name="library.html", title="Library", data=library_details, config=config)
+        has_archived = bool(users.Users().get_archived_user_ids())
+        return serve_template(template_name="library.html", title="Library", data=library_details, config=config,
+                              has_archived=has_archived)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -4497,8 +4499,9 @@ class WebInterface(object):
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
+            has_archived = bool(users.Users().get_archived_user_ids())
             return serve_template(template_name="info.html", metadata=metadata, title="Info",
-                                  config=config, source=source, user_info=user_info)
+                                  config=config, source=source, user_info=user_info, has_archived=has_archived)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
