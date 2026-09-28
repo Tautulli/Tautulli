@@ -397,6 +397,8 @@ class Users(object):
 
             try:
                 monitor_db.upsert('users', value_dict, key_dict)
+                if value_dict.get('is_archived'):
+                    self.clear_user_login_token(user_id=user_id)
             except Exception as e:
                 logger.warn("Tautulli Users :: Unable to execute database query for set_config: %s." % e)
 
@@ -768,6 +770,7 @@ class Users(object):
                     monitor_db.action("UPDATE users "
                                       "SET deleted_user = 1, keep_history = 0 "
                                       "WHERE user_id = ?", [user_id])
+                    self.clear_user_login_token(user_id=user_id)
                     return delete_success
                 except Exception as e:
                     logger.warn("Tautulli Users :: Unable to execute database query for delete: %s." % e)
@@ -948,7 +951,7 @@ class Users(object):
                                           [jwt_token])
         return result
 
-    def clear_user_login_token(self, jwt_token=None, row_ids=None):
+    def clear_user_login_token(self, jwt_token=None, row_ids=None, user_id=None):
         monitor_db = database.MonitorDatabase()
 
         if jwt_token:
@@ -968,6 +971,17 @@ class Users(object):
                 monitor_db.action("UPDATE user_login SET jwt_token = NULL "
                                   "WHERE id in ({})".format(",".join(["?"] * len(row_ids))),
                                   row_ids)
+            except Exception as e:
+                logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
+                return False
+
+        elif str(user_id).isdigit():
+            # Log out a guest who was archived or deleted. Admin logins are left alone.
+            logger.debug("Tautulli Users :: Clearing guest JWT tokens for user_id %s.", user_id)
+            try:
+                monitor_db.action("UPDATE user_login SET jwt_token = NULL "
+                                  "WHERE user_id = ? AND user_group = 'guest'",
+                                  [user_id])
             except Exception as e:
                 logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
                 return False
