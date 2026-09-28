@@ -161,6 +161,15 @@ def test_home_stats_skip_archived(seeded):
     assert [row["user_id"] for row in stats[0]["rows"]] == [1]
 
 
+def test_home_stats_return_an_archived_user_asked_for_by_id(seeded):
+    archive_bob()
+
+    stats = datafactory.DataFactory().get_home_stats(stats_cards=["top_users"], after="1970-01-01",
+                                                     user_id="2")
+
+    assert [row["user_id"] for row in stats[0]["rows"]] == [2]
+
+
 def test_item_user_stats_skip_archived(seeded):
     archive_bob()
 
@@ -170,14 +179,22 @@ def test_item_user_stats_skip_archived(seeded):
     assert [row["user_id"] for row in stats] == [1]
 
 
-@pytest.mark.parametrize("user_id", [None, "1,2"])
-def test_graphs_skip_archived(seeded, user_id):
+def test_graphs_skip_archived(seeded):
     archive_bob()
 
     # A 100 year window reaches the 1970 seed rows.
-    result = graphs.Graphs().get_total_plays_by_top_10_users(time_range=36500, user_id=user_id)
+    result = graphs.Graphs().get_total_plays_by_top_10_users(time_range=36500)
 
     assert result["categories"] == ["Alice"]
+
+
+@pytest.mark.parametrize("user_id, categories", [("2", ["bob"]), ("1,2", ["Alice", "bob"])])
+def test_graphs_return_an_archived_user_asked_for_by_id(seeded, user_id, categories):
+    archive_bob()
+
+    result = graphs.Graphs().get_total_plays_by_top_10_users(time_range=36500, user_id=user_id)
+
+    assert result["categories"] == categories
 
 
 def test_library_stats_skip_archived(library):
