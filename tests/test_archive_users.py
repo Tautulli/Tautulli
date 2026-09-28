@@ -8,11 +8,12 @@ tests archive bob.
 """
 
 import json
+import os
 
 import pytest
 
 import plexpy
-from plexpy import datafactory, graphs, libraries, plextv, users, webauth, webserve
+from plexpy import datafactory, graphs, libraries, plextv, pmsconnect, users, webauth, webserve
 
 from tests.test_history_table import build_draw, call_history, insert_history_row, seed_history
 
@@ -58,7 +59,11 @@ def history_user_ids(include_archived):
 
 
 def test_archive_keeps_history_and_unarchive_restores(seeded):
-    assert users.Users().archive(user_id=2) is True
+    web = webserve.WebInterface()
+
+    web.edit_user(user_id="2", is_archived="1")
+    # An edit that leaves out is_archived keeps the user archived.
+    web.edit_user(user_id="2", friendly_name="Bob")
 
     assert seeded.select_single(
         "SELECT is_archived, keep_history, deleted_user FROM users WHERE user_id = 2"
@@ -66,18 +71,9 @@ def test_archive_keeps_history_and_unarchive_restores(seeded):
     assert seeded.select_single(
         "SELECT COUNT(*) AS plays FROM session_history WHERE user_id = 2") == {"plays": 2}
 
-    assert users.Users().unarchive(user_id=2) is True
+    web.edit_user(user_id="2", is_archived="0")
     assert seeded.select_single(
         "SELECT is_archived FROM users WHERE user_id = 2") == {"is_archived": 0}
-
-
-def test_archive_by_row_ids(seeded):
-    row_ids = ",".join(str(row["id"]) for row in seeded.select(
-        "SELECT id FROM users WHERE user_id IN (1, 2)"))
-
-    assert users.Users().archive(row_ids=row_ids) is True
-
-    assert users.Users().get_archived_user_ids() == [1, 2]
 
 
 def test_users_table_hides_archived_until_asked(seeded):
@@ -264,11 +260,11 @@ def test_archived_guest_cannot_log_in_until_unarchived(seeded, monkeypatch):
     monkeypatch.setattr(webauth, "PlexTV", FakeGuestPlexTV)
     monkeypatch.setattr(webauth, "refresh_users", lambda: None)
 
-    users.Users().archive(user_id=2)
+    archive_bob()
     assert webauth.plex_user_login(token="user-token") is None
 
     # Archiving leaves allow_guest alone, so unarchiving restores the login.
-    users.Users().unarchive(user_id=2)
+    users.Users().set_config(user_id=2, is_archived=0)
     assert webauth.plex_user_login(token="user-token")[1] == "guest"
 
 
@@ -344,3 +340,36 @@ def test_upgrade_adds_the_archive_column(app_db):
     plexpy.dbcheck()
 
     assert app_db.select_single("SELECT is_archived FROM users WHERE user_id = 0") == {"is_archived": 0}
+
+
+SHOW_ARCHIVED = 'id="show-archived-history"'
+
+
+@pytest.fixture
+def history_pages(library, monkeypatch):
+    # Render the real templates. serve_template needs the repo root and a
+    # CSRF token from the CherryPy session. The info page falls back to
+    # history metadata when the Plex server has no match.
+    monkeypatch.setattr(plexpy, "PROG_DIR", os.path.dirname(os.path.dirname(plexpy.__file__)))
+    monkeypatch.setattr(webserve, "TEMPLATE_LOOKUP", None)
+    monkeypatch.setattr(webserve, "get_session_csrf_token", lambda: "")
+    monkeypatch.setattr(pmsconnect.PmsConnect, "get_metadata_details", lambda self, **kwargs: {})
+    library.action("UPDATE session_history_metadata SET summary = ''")
+    web = webserve.WebInterface()
+    return lambda: [web.history(), web.library(section_id=1), web.info(rating_key=202, source="history")]
+
+
+def test_show_archived_button_on_every_history_page(history_pages):
+    assert not any(SHOW_ARCHIVED in page for page in history_pages())
+
+    archive_bob()
+
+    assert all(SHOW_ARCHIVED in page for page in history_pages())
+
+
+def test_show_archived_button_is_admin_only(history_pages, monkeypatch):
+    monkeypatch.setattr(webserve, "get_session_info",
+                        lambda: {"user_id": "1", "user": "alice", "user_group": "guest", "exp": None})
+    archive_bob()
+
+    assert not any(SHOW_ARCHIVED in page for page in history_pages())
