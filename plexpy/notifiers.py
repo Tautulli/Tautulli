@@ -910,6 +910,11 @@ class PrettyMetadata(object):
             title = self.parameters['artist_name']
         elif self.media_type == 'album':
             title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
+            track_num = self.parameters.get('track_num')
+            track_count = self.parameters.get('track_count', 0)
+            if grouped and track_num and track_count > 0:
+                label = 'Track' if track_count == 1 else 'Tracks'
+                title += ' - %s %s' % (label, track_num)
         elif self.media_type == 'track':
             title = '%s - %s' % (self.parameters['track_name'], self.parameters['track_artist'])
         return title

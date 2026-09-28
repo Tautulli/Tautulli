@@ -18,7 +18,7 @@ class PrettyMetadataTitleTest(unittest.TestCase):
             'episode_num': '7', 'episode_count': 1,
             'season_num': '1', 'season_count': 1, 'artist_name': 'An Artist',
             'album_name': 'An Album', 'track_name': 'A Track',
-            'track_artist': 'An Artist',
+            'track_artist': 'An Artist', 'track_num': '7', 'track_count': 1,
         }
         parameters.update(overrides)
         return parameters
@@ -45,6 +45,18 @@ class PrettyMetadataTitleTest(unittest.TestCase):
                     prefix + '_num': numbers, prefix + '_count': count})
                 self.assert_title(parameters, expected)
 
+    def test_created_album_group_titles_use_existing_track_ranges_and_counts(self):
+        cases = (
+            ('2-4,7', 4, 'An Artist - An Album - Tracks 2-4,7'),
+            ('7', 1, 'An Artist - An Album - Track 7'),
+            ('0', 1, 'An Artist - An Album - Track 0'),
+        )
+        for numbers, count, expected in cases:
+            with self.subTest(numbers=numbers):
+                parameters = self.parameters('album', episode_name='',
+                                             track_num=numbers, track_count=count)
+                self.assert_title(parameters, expected)
+
     def test_missing_group_details_do_not_invent_episode_or_season_zero(self):
         for media_type, expected in (('show', 'Lanterns (2026)'),
                                      ('season', 'Lanterns - Season 1')):
@@ -64,10 +76,23 @@ class PrettyMetadataTitleTest(unittest.TestCase):
             parameters.pop('episode_name')
             self.assert_title(parameters, expected)
 
+    def test_missing_album_group_details_do_not_invent_track_zero(self):
+        for numbers, count in (('0', 0), ('1-2', 0), ('', 2),
+                               (None, 2), ('1-2', None)):
+            with self.subTest(numbers=numbers, count=count):
+                parameters = self.parameters('album', episode_name='')
+                for key, value in (('track_num', numbers), ('track_count', count)):
+                    if value is None:
+                        parameters.pop(key)
+                    else:
+                        parameters[key] = value
+                self.assert_title(parameters, 'An Artist - An Album')
+
     def test_other_actions_keep_original_group_titles(self):
         for action in ('play', 'watched', None):
             for media_type, expected in (('show', 'Lanterns (2026)'),
-                                         ('season', 'Lanterns - Season 1')):
+                                         ('season', 'Lanterns - Season 1'),
+                                         ('album', 'An Artist - An Album')):
                 with self.subTest(action=action, media_type=media_type):
                     parameters = self.parameters(media_type, action=action)
                     if action is None:
@@ -125,6 +150,51 @@ class PrettyMetadataTitleTest(unittest.TestCase):
                         if enabled:
                             expected += suffix
                         self.assert_title(parameters, expected)
+
+    def test_actual_notification_parameters_distinguish_album_grouping(self):
+        settings = SimpleNamespace(**{
+            name: definition[2]
+            for name, definition in config._CONFIG_DEFINITIONS.items()
+        })
+        with patch.object(plexpy, 'CONFIG', settings), \
+                patch.object(notification_handler.pmsconnect,
+                             'PmsConnect') as pms, \
+                patch.object(notification_handler.activity_processor,
+                             'ActivityProcessor') as activity, \
+                patch.object(notification_handler.helpers,
+                             'get_img_service', return_value=''), \
+                patch.object(notification_handler.helpers,
+                             'pms_name', return_value='Example Server'):
+            activity.return_value.get_sessions.return_value = []
+            for enabled in (False, True):
+                settings.NOTIFY_GROUP_RECENTLY_ADDED_PARENT = enabled
+                settings.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT = enabled
+                with self.subTest(grouping=enabled):
+                    metadata = {
+                        'rating_key': 'parent', 'media_type': 'album',
+                        'title': 'An Album',
+                        'full_title': 'An Artist - An Album', 'year': 2026,
+                        'parent_title': 'An Artist', 'media_index': '1',
+                    }
+                    details = {'parent': metadata}
+                    children = ['child-2', 'child-4']
+                    for key, number in zip(children, ('2', '4')):
+                        details[key] = {'rating_key': key,
+                                        'parent_rating_key': 'parent',
+                                        'media_index': number}
+                    pms.return_value.get_metadata_details.side_effect = (
+                        lambda rating_key: details.get(rating_key))
+                    build = notification_handler.build_media_notify_params
+                    parameters = build(
+                        notify_action='on_created', timeline=metadata,
+                        child_keys=children)
+                    expected = '%s - %s' % (parameters['artist_name'],
+                                            parameters['album_name'])
+                    self.assertEqual(parameters['episode_name'],
+                                     '' if enabled else metadata['title'])
+                    if enabled:
+                        expected += ' - Tracks 2,4'
+                    self.assert_title(parameters, expected)
 
     def test_other_media_titles_and_episode_divider_are_unchanged(self):
         cases = (
