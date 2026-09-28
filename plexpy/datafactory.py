@@ -438,6 +438,7 @@ class DataFactory(object):
         if user_id:
             where_id += 'AND session_history.user_id = ? '
             where_id_args.append(user_id)
+        where_id += users.archived_user_cond()
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
         sort_type = 'total_duration' if stats_type == 'duration' else 'total_plays'
@@ -873,7 +874,6 @@ class DataFactory(object):
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id " \
-                            "WHERE IFNULL(u.is_archived, 0) = 0 " \
                             "GROUP BY sh.user_id " \
                             "ORDER BY %s DESC, sh.started DESC " \
                             "LIMIT %s OFFSET %s " % (where_timeframe[4:], where_id, group_by, sort_type, stats_count, stats_start)
@@ -1039,7 +1039,7 @@ class DataFactory(object):
                             "   GROUP BY %s) AS sh " \
                             "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                             "LEFT OUTER JOIN users AS u ON sh.user_id = u.user_id " \
-                            "WHERE IFNULL(u.is_archived, 0) = 0 AND %s " \
+                            "WHERE %s " \
                             "GROUP BY sh.id " \
                             "ORDER BY last_watch DESC " \
                             "LIMIT %s OFFSET %s" % (watched_threshold,
@@ -1132,7 +1132,8 @@ class DataFactory(object):
                     base_query = "SELECT sh.started, sh.stopped " \
                                  "FROM session_history AS sh " \
                                  "JOIN session_history_media_info AS shmi ON sh.id = shmi.id " \
-                                 "WHERE %s " % where_timeframe[4:].replace('session_history.', 'sh.')
+                                 "WHERE %s %s " % (where_timeframe[4:].replace('session_history.', 'sh.'),
+                                                   users.archived_user_cond(column='sh.user_id'))
 
                     title = 'Concurrent Streams'
                     query = base_query
@@ -1194,11 +1195,13 @@ class DataFactory(object):
                     "shm.art, sh.media_type, shm.content_rating, shm.labels, shm.live, shm.guid, " \
                     "MAX(sh.started) AS last_watch " \
                     "FROM library_sections AS ls " \
-                    "LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id " \
+                    "LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id %s" \
                     "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id " \
                     "WHERE ls.section_id IN (%s) AND ls.deleted_section = 0 " \
                     "GROUP BY ls.id " \
-                    "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC " % ",".join(library_cards)
+                    "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC " % (
+                        users.archived_user_cond(column='sh.user_id'), ",".join(library_cards)
+                    )
             result = monitor_db.select(query)
         except Exception as e:
             logger.warn("Tautulli DataFactory :: Unable to execute database query for get_library_stats: %s." % e)
@@ -1285,6 +1288,7 @@ class DataFactory(object):
             rating_keys = [rating_key]
 
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
+        archived_cond = users.archived_user_cond()
 
         for days in query_days:
             timestamp_query = timestamp - days * 24 * 60 * 60
@@ -1300,8 +1304,8 @@ class DataFactory(object):
                                 "WHERE stopped >= ? " \
                                 "AND (session_history.grandparent_rating_key IN (%s) " \
                                 "OR session_history.parent_rating_key IN (%s) " \
-                                "OR session_history.rating_key IN (%s))" % (
-                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                                "OR session_history.rating_key IN (%s)) %s" % (
+                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg, archived_cond
                                 )
                         
                         result = monitor_db.select(query, args=[timestamp_query] + rating_keys * 3)
@@ -1312,7 +1316,7 @@ class DataFactory(object):
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE stopped >= ? " \
-                                "AND session_history_metadata.guid = ? " % group_by
+                                "AND session_history_metadata.guid = ? %s" % (group_by, archived_cond)
 
                         result = monitor_db.select(query, args=[timestamp_query, guid])
                     else:
@@ -1326,8 +1330,8 @@ class DataFactory(object):
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE (session_history.grandparent_rating_key IN (%s) " \
                                 "OR session_history.parent_rating_key IN (%s) " \
-                                "OR session_history.rating_key IN (%s))" % (
-                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                                "OR session_history.rating_key IN (%s)) %s" % (
+                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg, archived_cond
                                 )
                         
                         result = monitor_db.select(query, args=rating_keys * 3)
@@ -1337,7 +1341,7 @@ class DataFactory(object):
                                 "COUNT(DISTINCT %s) AS total_plays, section_id " \
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE session_history_metadata.guid = ? " % group_by
+                                "WHERE session_history_metadata.guid = ? %s" % (group_by, archived_cond)
 
                         result = monitor_db.select(query, args=[guid])
                     else:
@@ -1388,6 +1392,7 @@ class DataFactory(object):
             rating_keys = [rating_key]
 
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
+        archived_cond = users.archived_user_cond()
 
         try:
             if str(rating_key).isdigit():
@@ -1400,13 +1405,12 @@ class DataFactory(object):
                         "FROM session_history " \
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
-                        "WHERE users.is_archived = 0 " \
-                        "AND (session_history.grandparent_rating_key IN (%s) " \
+                        "WHERE (session_history.grandparent_rating_key IN (%s) " \
                         "OR session_history.parent_rating_key IN (%s) " \
-                        "OR session_history.rating_key IN (%s)) " \
+                        "OR session_history.rating_key IN (%s)) %s" \
                         "GROUP BY users.user_id " \
                         "ORDER BY total_plays DESC, total_time DESC" % (
-                            group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg
+                            group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg, archived_cond
                         )
 
                 result = monitor_db.select(query, args=rating_keys * 3)
@@ -1420,9 +1424,9 @@ class DataFactory(object):
                         "FROM session_history " \
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
-                        "WHERE users.is_archived = 0 AND session_history_metadata.guid = ? " \
+                        "WHERE session_history_metadata.guid = ? %s" \
                         "GROUP BY users.user_id " \
-                        "ORDER BY total_plays DESC, total_time DESC" % group_by
+                        "ORDER BY total_plays DESC, total_time DESC" % (group_by, archived_cond)
 
                 result = monitor_db.select(query, args=[guid])
             else:

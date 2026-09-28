@@ -31,6 +31,10 @@ from plexpy import plextv
 from plexpy import session
 
 
+def archived_user_cond(column='session_history.user_id', cond_prefix='AND'):
+    return "%s %s NOT IN (SELECT user_id FROM users WHERE is_archived = 1) " % (cond_prefix, column)
+
+
 def refresh_users():
     logger.info("Tautulli Users :: Requesting users list refresh...")
     result = plextv.PlexTV().get_full_users_list()
@@ -802,16 +806,16 @@ class Users(object):
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for undelete: %s." % e)
 
-    def set_archived(self, user_id=None, row_ids=None, is_archived=True):
-        """Archive or unarchive a user.
-
-        Archiving only hides the user from the users list, the history
-        tables and the statistics. The user's history is left untouched,
-        unlike delete().
-
-        Accepts either a single user_id or a comma separated string of row_ids.
-        Returns True on success, False otherwise.
+    def archive(self, user_id=None, row_ids=None):
+        """Hide a user from the users list, the history tables and all statistics.
+        The user's history is left untouched, unlike delete().
         """
+        return self._set_archived(user_id=user_id, row_ids=row_ids, is_archived=True)
+
+    def unarchive(self, user_id=None, row_ids=None):
+        return self._set_archived(user_id=user_id, row_ids=row_ids, is_archived=False)
+
+    def _set_archived(self, user_id=None, row_ids=None, is_archived=True):
         monitor_db = database.MonitorDatabase()
 
         if row_ids and row_ids is not None:
@@ -823,8 +827,8 @@ class Users(object):
 
             success = []
             for user in result:
-                success.append(self.set_archived(user_id=user['user_id'],
-                                                 is_archived=is_archived))
+                success.append(self._set_archived(user_id=user['user_id'],
+                                                  is_archived=is_archived))
             return all(success)
 
         elif str(user_id).isdigit():
@@ -837,7 +841,8 @@ class Users(object):
                                   "WHERE user_id = ?", [int(is_archived), user_id])
                 return True
             except Exception as e:
-                logger.warn("Tautulli Users :: Unable to execute database query for set_archived: %s." % e)
+                logger.warn("Tautulli Users :: Unable to execute database query for %s: %s."
+                            % ('archive' if is_archived else 'unarchive', e))
                 return False
 
         else:

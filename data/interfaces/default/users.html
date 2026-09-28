@@ -23,11 +23,13 @@
                 <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
             </div>
             % endif
+            % if _session['user_group'] == 'admin' and has_archived:
             <div class="btn-group">
                 <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-users">
                     <i class="fa fa-archive"></i> Show archived
                 </button>
             </div>
+            % endif
             <div class="btn-group colvis-button-bar"></div>
         </div>
     </div>

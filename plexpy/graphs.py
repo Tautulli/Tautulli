@@ -26,6 +26,7 @@ from plexpy import helpers
 from plexpy import logger
 from plexpy import libraries
 from plexpy import session
+from plexpy import users
 
 
 class Graphs(object):
@@ -623,7 +624,6 @@ class Graphs(object):
                         "    GROUP BY %s) AS sh " \
                         "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
-                        "WHERE u.is_archived = 0 " \
                         "GROUP BY sh.user_id " \
                         "ORDER BY total_count DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -651,7 +651,6 @@ class Graphs(object):
                         "    GROUP BY %s) AS sh " \
                         "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
-                        "WHERE u.is_archived = 0 " \
                         "GROUP BY sh.user_id " \
                         "ORDER BY total_duration DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -1172,7 +1171,6 @@ class Graphs(object):
                         "    GROUP BY %s) AS sh " \
                         "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
-                        "WHERE u.is_archived = 0 " \
                         "GROUP BY u.user_id " \
                         "ORDER BY total_count DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -1195,7 +1193,6 @@ class Graphs(object):
                         "    GROUP BY %s) AS sh " \
                         "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
-                        "WHERE u.is_archived = 0 " \
                         "GROUP BY u.user_id " \
                         "ORDER BY total_duration DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -1245,4 +1242,4 @@ class Graphs(object):
             user_ids = helpers.split_strip(user_id)
             if all(id.isdigit() for id in user_ids):
                 user_cond = cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
-        return user_cond
+        return user_cond + users.archived_user_cond(cond_prefix='AND' if user_cond else cond_prefix)

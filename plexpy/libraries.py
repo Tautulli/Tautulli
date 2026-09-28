@@ -353,7 +353,8 @@ class Libraries(object):
                                           join_tables=['session_history',
                                                        'session_history_metadata',
                                                        'session_history_media_info'],
-                                          join_evals=[['session_history.section_id', 'library_sections.section_id'],
+                                          join_evals=[['session_history.section_id',
+                                                       'library_sections.section_id ' + users.archived_user_cond()],
                                                       ['session_history.id', 'session_history_metadata.id'],
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
@@ -475,8 +476,8 @@ class Libraries(object):
             query = "SELECT MAX(started) AS last_played, COUNT(DISTINCT %s) AS play_count, " \
                     "rating_key, parent_rating_key, grandparent_rating_key " \
                     "FROM session_history " \
-                    "WHERE section_id = ? " \
-                    "GROUP BY %s " % (count_by, group_by)
+                    "WHERE section_id = ? %s" \
+                    "GROUP BY %s " % (count_by, users.archived_user_cond(), group_by)
             result = monitor_db.select(query, args=[section_id])
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
@@ -902,7 +903,7 @@ class Libraries(object):
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE stopped >= %s " \
-                                "AND section_id = ?" % (group_by, timestamp_query)
+                                "AND section_id = ? %s" % (group_by, timestamp_query, users.archived_user_cond())
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
@@ -913,7 +914,7 @@ class Libraries(object):
                                 "COUNT(DISTINCT %s) AS total_plays " \
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE section_id = ?" % group_by
+                                "WHERE section_id = ? %s" % (group_by, users.archived_user_cond())
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
@@ -961,9 +962,9 @@ class Libraries(object):
                         "FROM session_history " \
                         "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
-                        "WHERE users.is_archived = 0 AND section_id = ? " \
+                        "WHERE section_id = ? %s" \
                         "GROUP BY users.user_id " \
-                        "ORDER BY total_plays DESC, total_time DESC" % group_by
+                        "ORDER BY total_plays DESC, total_time DESC" % (group_by, users.archived_user_cond())
                 result = monitor_db.select(query, args=[section_id])
             else:
                 result = []
@@ -1009,9 +1010,9 @@ class Libraries(object):
                         "year, originally_available_at, added_at, live, started, user, content_rating, labels, section_id " \
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
-                        "WHERE section_id = ? " \
+                        "WHERE section_id = ? %s" \
                         "GROUP BY session_history.rating_key " \
-                        "ORDER BY MAX(started) DESC LIMIT ?"
+                        "ORDER BY MAX(started) DESC LIMIT ?" % users.archived_user_cond()
                 result = monitor_db.select(query, args=[section_id, limit])
             else:
                 result = []

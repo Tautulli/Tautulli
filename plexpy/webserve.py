@@ -1228,7 +1228,8 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def users(self, **kwargs):
-        return serve_template(template_name="users.html", title="Users")
+        has_archived = bool(users.Users().get_archived_user_ids())
+        return serve_template(template_name="users.html", title="Users", has_archived=has_archived)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1902,7 +1903,7 @@ class WebInterface(object):
         """
         if user_id or row_ids:
             user_data = users.Users()
-            success = user_data.set_archived(user_id=user_id, row_ids=row_ids, is_archived=True)
+            success = user_data.archive(user_id=user_id, row_ids=row_ids)
             if success:
                 return {'result': 'success', 'message': 'Archived user.'}
             else:
@@ -1933,14 +1934,13 @@ class WebInterface(object):
         """
         if user_id or row_ids:
             user_data = users.Users()
-            success = user_data.set_archived(user_id=user_id, row_ids=row_ids, is_archived=False)
+            success = user_data.unarchive(user_id=user_id, row_ids=row_ids)
             if success:
                 return {'result': 'success', 'message': 'Unarchived user.'}
             else:
                 return {'result': 'error', 'message': 'Failed to unarchive user(s).'}
         else:
             return {'result': 'error', 'message': 'No user id or row ids received.'}
-
 
     ##### History #####
 
@@ -1950,8 +1950,10 @@ class WebInterface(object):
         config = {
             "database_is_importing": database.IS_IMPORTING,
         }
+        has_archived = bool(users.Users().get_archived_user_ids())
 
-        return serve_template(template_name="history.html", title="History", config=config)
+        return serve_template(template_name="history.html", title="History", config=config,
+                              has_archived=has_archived)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
