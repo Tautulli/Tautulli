@@ -14,7 +14,7 @@ import pytest
 import plexpy
 from plexpy import datafactory, graphs, libraries, plextv, users, webauth, webserve
 
-from tests.test_history_table import build_draw, call_history, seed_history
+from tests.test_history_table import build_draw, call_history, insert_history_row, seed_history
 
 
 ARCHIVE_PENDING = (
@@ -29,6 +29,22 @@ pytestmark = pytest.mark.xfail(reason=ARCHIVE_PENDING)
 def seeded(app_db):
     seed_history(app_db)
     return app_db
+
+
+@pytest.fixture
+def late_bob(seeded):
+    # bob's row 7 overlaps alice's last play (row 6, 5000 to 5900) and ends
+    # after it. rating_key 204 is an item only bob played.
+    insert_history_row(seeded, 7, 15, 2, "bob", 5100, 6100, 204, "Delta Movie", "movie")
+    return seeded
+
+
+@pytest.fixture
+def library(seeded):
+    plexpy.CONFIG.PMS_IDENTIFIER = "server"
+    seeded.action("INSERT INTO library_sections (server_id, section_id, section_name, section_type) "
+                  "VALUES ('server', 1, 'Mixed', 'movie')")
+    return seeded
 
 
 def archive_bob():
@@ -164,9 +180,7 @@ def test_graphs_skip_archived(seeded, user_id):
     assert result["categories"] == ["Alice"]
 
 
-def test_library_stats_skip_archived(seeded):
-    seeded.action("INSERT INTO library_sections (server_id, section_id, section_name, section_type) "
-                  "VALUES ('server', 1, 'Mixed', 'movie')")
+def test_library_stats_skip_archived(library):
     archive_bob()
 
     library = webserve.WebInterface().get_library_list(grouping=0)["data"][0]
@@ -239,3 +253,77 @@ def test_archived_guest_cannot_log_in_until_unarchived(seeded, monkeypatch):
     # Archiving leaves allow_guest alone, so unarchiving restores the login.
     users.Users().unarchive(user_id=2)
     assert webauth.plex_user_login(token="user-token")[1] == "guest"
+
+
+def test_most_concurrent_skips_archived(late_bob):
+    archive_bob()
+
+    stats = datafactory.DataFactory().get_home_stats(stats_cards=["most_concurrent"], after="1970-01-01")
+
+    assert stats[0]["rows"][0]["count"] == 1
+
+
+def test_stream_type_graph_skips_archived(late_bob):
+    archive_bob()
+
+    # With no user_id, the archived filter is the query's only WHERE clause.
+    result = graphs.Graphs().get_total_concurrent_streams_per_stream_type(time_range=36500)
+
+    assert max(result["series"][3]["data"]) == 1
+
+
+def test_library_card_and_last_accessed_skip_archived(late_bob, library):
+    archive_bob()
+
+    card = datafactory.DataFactory().get_library_stats(library_cards=["1"])["movie"][0]
+    details = libraries.Libraries().get_library_details(section_id=1, include_last_accessed=True)
+
+    assert card["row_id"] == 6
+    assert details["last_accessed"] == 5000
+
+
+def test_library_watch_time_and_recently_watched_skip_archived(late_bob):
+    archive_bob()
+
+    # Day 0 is all time. 36500 days reaches the 1970 seed rows.
+    watch_time = libraries.Libraries().get_watch_time_stats(section_id=1, grouping=False,
+                                                            query_days="0,36500")
+    recent = libraries.Libraries().get_recently_watched(section_id=1)
+
+    assert [row["total_plays"] for row in watch_time] == [4, 4]
+    assert {row["user"] for row in recent} == {"alice"}
+
+
+def test_item_watch_time_skips_archived(late_bob):
+    archive_bob()
+    factory = datafactory.DataFactory()
+
+    # bob's row 3 and alice's row 6 played rating_key 202, which has guid-202.
+    by_key = factory.get_watch_time_stats(rating_key=202, grouping=False, query_days="0,36500")
+    by_guid = factory.get_watch_time_stats(guid="guid-202", grouping=False, query_days="0,36500")
+    users_by_guid = factory.get_user_stats(guid="guid-202", grouping=False)
+
+    assert [row["total_plays"] for row in by_key] == [1, 1]
+    assert [row["total_plays"] for row in by_guid] == [1, 1]
+    assert [row["user_id"] for row in users_by_guid] == [1]
+
+
+def test_media_info_play_count_skips_archived(library, monkeypatch):
+    # A stub media info cache stands in for the Plex server.
+    rows = [{"rating_key": "202", "sort_title": "Beta Movie", "file_size": "", "media_index": ""}]
+    monkeypatch.setattr(libraries.Libraries, "_load_media_info_cache",
+                        lambda self, section_id=None, rating_key=None: (0, rows, 1))
+    archive_bob()
+
+    result = webserve.WebInterface().get_library_media_info(section_id=1)
+
+    # bob's row 3 and alice's row 6 both played rating_key 202.
+    assert result["data"][0]["play_count"] == 1
+
+
+def test_upgrade_adds_the_archive_column(app_db):
+    app_db.action("ALTER TABLE users DROP COLUMN is_archived")
+
+    plexpy.dbcheck()
+
+    assert app_db.select_single("SELECT is_archived FROM users WHERE user_id = 0") == {"is_archived": 0}
