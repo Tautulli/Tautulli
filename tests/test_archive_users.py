@@ -437,6 +437,37 @@ def test_graph_popup_keeps_the_show_archived_state(web_pages):
     assert 'include_archived: "0"' in default
 
 
+def test_show_archived_sits_next_to_the_user_picker(web_pages):
+    archive_bob()
+
+    def in_order(page, *ids):
+        positions = [page.index('id="%s"' % i) for i in ids]
+        return positions == sorted(positions)
+
+    assert in_order(web_pages.history(), "history-user", "show-archived-history", "media_type-selection")
+    assert in_order(web_pages.graphs(), "graph-user", "show-archived-graphs", "yaxis-selection")
+    # The users page has no picker. The button sits left of Refresh users.
+    assert in_order(web_pages.users(), "row-edit-mode", "show-archived-users", "refresh-users-list")
+
+
+def activity_session(session_key, user_id, **extra):
+    return dict({"session_key": session_key, "user_id": user_id, "username": "user%d" % user_id,
+                 "friendly_name": "User %d" % user_id, "user_thumb": "", "media_type": "movie",
+                 "state": "playing", "rating_key": "202", "section_id": "1", "live": 0}, **extra)
+
+
+def test_activity_card_badges_an_archived_user(web_pages, monkeypatch):
+    # PmsConnect copies is_archived into each session from the user details.
+    # A session without the flag must not read as archived.
+    sessions = [activity_session("1", 1, is_archived=0), activity_session("2", 2, is_archived=1),
+                activity_session("3", 3)]
+    monkeypatch.setattr(pmsconnect.PmsConnect, "get_current_activity", lambda self: {"sessions": sessions})
+
+    cards = {key: web_pages.get_current_activity_instance(session_key=key) for key in ("1", "2", "3")}
+
+    assert {key for key, card in cards.items() if 'title="Archived user"' in card} == {"2"}
+
+
 GRAPH_ENDPOINTS = [
     "get_plays_by_date", "get_plays_by_dayofweek", "get_plays_by_hourofday", "get_plays_per_month",
     "get_plays_by_top_10_platforms", "get_plays_by_top_10_users", "get_plays_by_stream_type",
