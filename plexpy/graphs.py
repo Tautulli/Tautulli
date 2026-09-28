@@ -31,8 +31,8 @@ from plexpy import users
 
 class Graphs(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, include_archived=False):
+        self.include_archived = include_archived
 
     def get_total_plays_per_day(self, time_range='30', y_axis='plays', user_id=None, grouping=None):
         monitor_db = database.MonitorDatabase()
@@ -1242,4 +1242,6 @@ class Graphs(object):
             user_ids = helpers.split_strip(user_id)
             if all(id.isdigit() for id in user_ids):
                 user_cond = cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
-        return user_cond or users.archived_user_cond(cond_prefix=cond_prefix)
+        if user_cond or self.include_archived:
+            return user_cond
+        return users.archived_user_cond(cond_prefix=cond_prefix)

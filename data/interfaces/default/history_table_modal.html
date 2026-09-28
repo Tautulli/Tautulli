@@ -58,6 +58,7 @@
                     start_date: "${data['start_date']}",
                     media_type: "${data.get('media_type') or 'all'}",
                     transcode_decision: "${data.get('transcode_decision')}",
+                    include_archived: "${data.get('include_archived', 0)}",
                     include_activity: false
                 };
             },
