@@ -437,7 +437,7 @@ def test_graph_popup_keeps_the_show_archived_state(web_pages):
     assert 'include_archived: "0"' in default
 
 
-def test_show_archived_sits_next_to_the_user_picker(web_pages):
+def test_show_archived_position(web_pages):
     archive_bob()
 
     def in_order(page, *ids):
@@ -446,8 +446,10 @@ def test_show_archived_sits_next_to_the_user_picker(web_pages):
 
     assert in_order(web_pages.history(), "history-user", "show-archived-history", "media_type-selection")
     assert in_order(web_pages.graphs(), "graph-user", "show-archived-graphs", "yaxis-selection")
-    # The users page has no picker. The button sits left of Refresh users.
+    # Pages without a picker put the button right after the edit or delete mode button.
     assert in_order(web_pages.users(), "row-edit-mode", "show-archived-users", "refresh-users-list")
+    for page in (web_pages.library(section_id=1), web_pages.info(rating_key=202, source="history")):
+        assert in_order(page, "row-edit-mode", "show-archived-history", "transcode_decision-selection")
 
 
 def activity_session(session_key, user_id, **extra):
