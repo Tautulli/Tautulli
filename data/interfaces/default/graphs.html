@@ -20,6 +20,13 @@
                     </select>
                 </label>
             </div>
+            % if has_archived:
+            <div class="btn-group">
+                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-graphs">
+                    <i class="fa fa-archive"></i> Show archived
+                </button>
+            </div>
+            % endif
             % endif
             <div class="btn-group" data-toggle="buttons" id="yaxis-selection">
                 <label class="btn btn-dark btn-filter">
@@ -250,6 +257,7 @@
 
 <script>
     var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
+    var include_archived = 0;
 
     // Modal popup dialog
     function selectHandler(selectedDate, selectedSeries) {
@@ -282,7 +290,8 @@
                     user_id: selected_user_id,
                     start_date: dateString,
                     media_type: media_type,
-                    transcode_decision: transcode_decision
+                    transcode_decision: transcode_decision,
+                    include_archived: include_archived
                 },
                 complete: function(xhr, status) {
                     $("#history-modal").html(xhr.responseText);
@@ -395,43 +404,57 @@
         $('.days').text(current_day_range);
         $('.months').text(current_month_range);
         
+        var user_select_initialized = false;
+        var user_names_by_id = {};
+
         // Load user ids and names (for the selector)
-        $.ajax({
-            url: 'get_user_names',
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                let select = $('#graph-user');
-                let by_id = {};
-                data.sort(function (a, b) {
-                    return a.friendly_name.localeCompare(b.friendly_name);
-                });
-                data.forEach(function (item) {
-                    select.append('<option value="' + item.user_id + '">' +
-                        item.friendly_name + '</option>');
-                    by_id[item.user_id] = item.friendly_name;
-                });
-                select.selectpicker({
-                    countSelectedText: function(sel, total) {
-                        if (sel === 0 || sel === total) {
-                            return 'All users';
-                        } else if (sel > 1) {
-                            return sel + ' users';
-                        } else {
-                            return select.val().map(function(id) {
-                                return by_id[id];
-                            }).join(', ');
-                        }
-                    },
-                    style: 'btn-dark',
-                    actionsBox: true,
-                    selectedTextFormat: 'count',
-                    noneSelectedText: 'All users'
-                });
-                select.selectpicker('render');
-                select.selectpicker('selectAll');
-            }
-        });
+        function loadUserNames() {
+            $.ajax({
+                url: 'get_user_names',
+                type: 'GET',
+                data: { include_archived: include_archived },
+                dataType: 'json',
+                success: function (data) {
+                    let select = $('#graph-user');
+                    data.sort(function (a, b) {
+                        return a.friendly_name.localeCompare(b.friendly_name);
+                    });
+                    user_names_by_id = {};
+                    select.empty();
+                    data.forEach(function (item) {
+                        select.append('<option value="' + item.user_id + '">' +
+                            item.friendly_name + '</option>');
+                        user_names_by_id[item.user_id] = item.friendly_name;
+                    });
+                    if (user_select_initialized) {
+                        select.selectpicker('refresh');
+                    } else {
+                        select.selectpicker({
+                            countSelectedText: function(sel, total) {
+                                if (sel === 0 || sel === total) {
+                                    return 'All users';
+                                } else if (sel > 1) {
+                                    return sel + ' users';
+                                } else {
+                                    return select.val().map(function(id) {
+                                        return user_names_by_id[id];
+                                    }).join(', ');
+                                }
+                            },
+                            style: 'btn-dark',
+                            actionsBox: true,
+                            selectedTextFormat: 'count',
+                            noneSelectedText: 'All users'
+                        });
+                        user_select_initialized = true;
+                    }
+                    select.selectpicker('render');
+                    select.selectpicker('selectAll');
+                }
+            });
+        }
+
+        loadUserNames();
 
         function dataSecondsToHours(data) {
             $.each(data.series, function (i, series) {
@@ -450,7 +473,7 @@
             $.ajax({
                 url: "get_plays_by_date",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
@@ -478,7 +501,7 @@
             $.ajax({
                 url: "get_plays_by_dayofweek",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -492,7 +515,7 @@
             $.ajax({
                 url: "get_plays_by_hourofday",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -506,7 +529,7 @@
             $.ajax({
                 url: "get_plays_by_top_10_platforms",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -520,7 +543,7 @@
             $.ajax({
                 url: "get_plays_by_top_10_users",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id  },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -543,7 +566,7 @@
             $.ajax({
                 url: "get_plays_by_stream_type",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
@@ -571,7 +594,7 @@
             $.ajax({
                 url: "get_concurrent_streams_by_stream_type",
                 type: 'get',
-                data: { time_range: time_range, user_id: selected_user_id },
+                data: { time_range: time_range, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     var dateArray = [];
@@ -598,7 +621,7 @@
             $.ajax({
                 url: "get_plays_by_source_resolution",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -612,7 +635,7 @@
             $.ajax({
                 url: "get_plays_by_stream_resolution",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -626,7 +649,7 @@
             $.ajax({
                 url: "get_stream_type_by_top_10_platforms",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -640,7 +663,7 @@
             $.ajax({
                 url: "get_stream_type_by_top_10_users",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -663,7 +686,7 @@
             $.ajax({
                 url: "get_plays_per_month",
                 type: 'get',
-                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id },
+                data: { time_range: time_range, y_axis: yaxis, user_id: selected_user_id, include_archived: include_archived },
                 dataType: "json",
                 success: function(data) {
                     if (yaxis === 'duration') { dataSecondsToHours(data); }
@@ -742,6 +765,16 @@
             if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
         });
         
+        // Show archived toggled
+        $('#show-archived-graphs').on('click', function () {
+            include_archived = $(this).hasClass('active') ? 0 : 1;
+            // Reload the user selector so archived users can be filtered on as well
+            loadUserNames();
+            if (current_tab === '#tabs-plays') { loadGraphsTab1(current_day_range, yaxis); }
+            if (current_tab === '#tabs-stream') { loadGraphsTab2(current_day_range, yaxis); }
+            if (current_tab === '#tabs-total') { loadGraphsTab3(current_month_range, yaxis); }
+        });
+
         // Y-axis changed
         $('#yaxis-selection').on('change', function() {
             yaxis = $('input[name=yaxis-options]:checked', '#yaxis-selection').val();

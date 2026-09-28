@@ -31,6 +31,10 @@ from plexpy import plextv
 from plexpy import session
 
 
+def archived_user_cond(column='session_history.user_id', cond_prefix='AND'):
+    return "%s %s NOT IN (SELECT user_id FROM users WHERE is_archived = 1) " % (cond_prefix, column)
+
+
 def refresh_users():
     logger.info("Tautulli Users :: Requesting users list refresh...")
     result = plextv.PlexTV().get_full_users_list()
@@ -46,6 +50,14 @@ def refresh_users():
         # Keep track of user_id to update is_active status
         user_ids = [0]  # Local user always considered active
         new_users = []
+
+        # Snapshot the archived users which are currently inactive. The upsert below sets
+        # is_active = 1 for every user returned by Plex, so this has to be read up front.
+        inactive_archived = []
+        if plexpy.CONFIG.AUTO_UNARCHIVE_USERS:
+            inactive_archived = [item['user_id'] for item in
+                                 monitor_db.select("SELECT user_id FROM users "
+                                                   "WHERE is_archived = 1 AND is_active = 0")]
 
         for item in result:
             if item.get('shared_libraries'):
@@ -85,6 +97,17 @@ def refresh_users():
             if result == 'insert':
                 new_users.append(item['username'])
 
+        # Unarchive users which became active again on the Plex server. Only users which were
+        # inactive before this refresh are unarchived, so manually archived users which never
+        # left the server stay archived.
+        returning_users = [user_id for user_id in inactive_archived if user_id in user_ids]
+        if returning_users:
+            logger.info("Tautulli Users :: Unarchiving %s user(s) which returned to the Plex server."
+                        % len(returning_users))
+            query = "UPDATE users SET is_archived = 0 WHERE user_id IN ({})".format(
+                ", ".join(["?"] * len(returning_users)))
+            monitor_db.action(query=query, args=returning_users)
+
         query = "UPDATE users SET is_active = 0 WHERE user_id NOT IN ({})".format(", ".join(["?"] * len(user_ids)))
         monitor_db.action(query=query, args=user_ids)
 
@@ -103,10 +126,13 @@ class Users(object):
     def __init__(self):
         pass
 
-    def get_datatables_list(self, kwargs=None, grouping=None):
+    def get_datatables_list(self, kwargs=None, grouping=None, include_archived=False):
         data_tables = datatables.DataTables()
 
         custom_where = [['users.deleted_user', 0]]
+
+        if not include_archived:
+            custom_where.append(['users.is_archived', 0])
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -154,7 +180,8 @@ class Users(object):
                    "session_history_media_info.transcode_decision",
                    "users.keep_history AS keep_history",
                    "users.allow_guest AS allow_guest",
-                   "users.is_active AS is_active"
+                   "users.is_active AS is_active",
+                   "users.is_archived AS is_archived"
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
@@ -224,7 +251,8 @@ class Users(object):
                    'transcode_decision': item['transcode_decision'],
                    'keep_history': item['keep_history'],
                    'allow_guest': item['allow_guest'],
-                   'is_active': item['is_active']
+                   'is_active': item['is_active'],
+                   'is_archived': item['is_archived']
                    }
 
             rows.append(row)
@@ -344,7 +372,8 @@ class Users(object):
 
         return dict
 
-    def set_config(self, user_id=None, friendly_name=None, custom_thumb=None, keep_history=None, allow_guest=None):
+    def set_config(self, user_id=None, friendly_name=None, custom_thumb=None, keep_history=None, allow_guest=None,
+                   is_archived=None):
         if str(user_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
@@ -363,9 +392,13 @@ class Users(object):
                 value_dict['keep_history'] = int(helpers.bool_true(keep_history))
             if allow_guest is not None:
                 value_dict['allow_guest'] = int(helpers.bool_true(allow_guest))
+            if is_archived is not None:
+                value_dict['is_archived'] = int(helpers.bool_true(is_archived))
 
             try:
                 monitor_db.upsert('users', value_dict, key_dict)
+                if value_dict.get('is_archived'):
+                    self.clear_user_login_token(user_id=user_id)
             except Exception as e:
                 logger.warn("Tautulli Users :: Unable to execute database query for set_config: %s." % e)
 
@@ -384,6 +417,7 @@ class Users(object):
                           'keep_history': 1,
                           'allow_guest': 0,
                           'deleted_user': 0,
+                          'is_archived': 0,
                           'shared_libraries': (),
                           'last_seen': None
                           }
@@ -441,7 +475,7 @@ class Users(object):
             query = "SELECT users.id AS row_id, users.user_id, username, friendly_name, " \
                     "thumb AS user_thumb, custom_avatar_url AS custom_thumb, " \
                     "email, is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
-                    "keep_history, deleted_user, " \
+                    "keep_history, deleted_user, is_archived, " \
                     "allow_guest, shared_libraries, %s AS last_seen " \
                     "FROM users %s " \
                     "WHERE %s COLLATE NOCASE" % (last_seen, join, where)
@@ -482,6 +516,7 @@ class Users(object):
                                 'is_restricted': item['is_restricted'],
                                 'keep_history': item['keep_history'],
                                 'deleted_user': item['deleted_user'],
+                                'is_archived': item['is_archived'],
                                 'allow_guest': item['allow_guest'],
                                 'shared_libraries': shared_libraries,
                                 'last_seen': item['last_seen']
@@ -670,7 +705,7 @@ class Users(object):
         try:
             query = "SELECT id AS row_id, user_id, username, friendly_name, thumb, custom_avatar_url, email, " \
                     "is_active, is_admin, is_home_user, is_allow_sync, is_restricted, " \
-                    "keep_history, allow_guest, shared_libraries, " \
+                    "keep_history, allow_guest, is_archived, shared_libraries, " \
                     "filter_all, filter_movies, filter_tv, filter_music, filter_photos " \
                     "FROM users %s" % where
             result = monitor_db.select(query=query)
@@ -695,6 +730,7 @@ class Users(object):
                     'is_restricted': item['is_restricted'],
                     'keep_history': item['keep_history'],
                     'allow_guest': item['allow_guest'],
+                    'is_archived': item['is_archived'],
                     'shared_libraries': shared_libraries,
                     'filter_all': item['filter_all'],
                     'filter_movies': item['filter_movies'],
@@ -734,6 +770,7 @@ class Users(object):
                     monitor_db.action("UPDATE users "
                                       "SET deleted_user = 1, keep_history = 0 "
                                       "WHERE user_id = ?", [user_id])
+                    self.clear_user_login_token(user_id=user_id)
                     return delete_success
                 except Exception as e:
                     logger.warn("Tautulli Users :: Unable to execute database query for delete: %s." % e)
@@ -772,6 +809,21 @@ class Users(object):
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for undelete: %s." % e)
 
+    def get_archived_user_ids(self):
+        """Return the user_ids of all archived users.
+
+        Returns an empty list if the query fails.
+        """
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            result = monitor_db.select("SELECT user_id FROM users WHERE is_archived = 1")
+        except Exception as e:
+            logger.warn("Tautulli Users :: Unable to execute database query for get_archived_user_ids: %s." % e)
+            return []
+
+        return [item['user_id'] for item in result]
+
     # Keep method for PlexWatch/Plexivity import
     def get_user_id(self, user=None):
         if user:
@@ -788,12 +840,15 @@ class Users(object):
 
         return None
 
-    def get_user_names(self, kwargs=None):
+    def get_user_names(self, kwargs=None, include_archived=False):
         monitor_db = database.MonitorDatabase()
 
         user_cond = ''
         if session.get_session_user_id():
             user_cond = "AND user_id = %s " % session.get_session_user_id()
+
+        if not include_archived:
+            user_cond += "AND is_archived = 0 "
 
         try:
             query = "SELECT user_id, " \
@@ -896,7 +951,7 @@ class Users(object):
                                           [jwt_token])
         return result
 
-    def clear_user_login_token(self, jwt_token=None, row_ids=None):
+    def clear_user_login_token(self, jwt_token=None, row_ids=None, user_id=None):
         monitor_db = database.MonitorDatabase()
 
         if jwt_token:
@@ -918,6 +973,17 @@ class Users(object):
                                   "WHERE id in ({})".format(",".join(["?"] * len(row_ids))),
                                   row_ids)
                 return True
+            except Exception as e:
+                logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
+                return False
+
+        elif str(user_id).isdigit():
+            # Log out a guest who was archived or deleted. Admin logins are left alone.
+            logger.debug("Tautulli Users :: Clearing guest JWT tokens for user_id %s.", user_id)
+            try:
+                monitor_db.action("UPDATE user_login SET jwt_token = NULL "
+                                  "WHERE user_id = ? AND user_group = 'guest'",
+                                  [user_id])
             except Exception as e:
                 logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
                 return False

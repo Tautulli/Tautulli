@@ -1246,7 +1246,6 @@ a:hover .dashboard-activity-cover {
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    overflow: hidden;
     float: right;
 }
 a .dashboard-activity-metadata-user-thumb:hover {
@@ -3303,6 +3302,16 @@ div.dataTables_info {
     right: 0;
     bottom: 0;
     text-shadow: 0 0 2px rgba(0,0,0,.5);
+}
+tr.archived-user > td {
+    opacity: .5;
+}
+tr.archived-user:hover > td {
+    opacity: 1;
+}
+/* An expanded history group is already dimmed, and its parent row shows the archive state */
+table[id^='history_child'] tr.archived-user > td {
+    opacity: 1;
 }
 .sign-out-tooltip:hover {
     color: #E5A00D;
