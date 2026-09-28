@@ -1949,6 +1949,7 @@ class WebInterface(object):
                           "group_ids": "1124",
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "ip_address": "xxx.xxx.xxx.xxx",
+                          "is_archived": 0,
                           "live": 0,
                           "location": "wan",
                           "machine_id": "lmd93nkn12k29j2lnm",

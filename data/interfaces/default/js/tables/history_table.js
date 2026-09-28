@@ -358,6 +358,10 @@ history_table_options = {
         if (rowData['state'] !== null) {
             $(row).addClass('current-activity-row');
         }
+
+        if (rowData['is_archived']) {
+            $(row).addClass('archived-user');
+        }
     }
 };
 
