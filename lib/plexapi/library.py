@@ -1072,7 +1072,7 @@ class LibrarySection(PlexObject):
         """ Validates a filter field and values are available as a custom filter for the library.
             Returns the validated field and values as a URL encoded parameter string.
         """
-        match = re.match(r'(?:([a-zA-Z]*)\.)?([a-zA-Z]+)([!<>=&]*)', field)
+        match = re.fullmatch(r'(?:([a-zA-Z]*)\.)?([a-zA-Z0-9]+)([!<>=&]*)', field)
         if not match:
             raise BadRequest(f'Invalid filter field: {field}')
         _libtype, field, operator = match.groups()
