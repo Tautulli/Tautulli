@@ -1879,68 +1879,6 @@ class WebInterface(object):
             return {'result': 'success', 'message': 'Restored user with %s.' % msg}
         return {'result': 'error', 'message': 'Unable to restore user. Invalid user_id or username.'}
 
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=['POST'])
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def archive_user(self, user_id=None, row_ids=None, **kwargs):
-        """ Archive a user in Tautulli. The user is hidden from the users list, the history
-            tables and the statistics, but all history is kept.
-
-            ```
-            Required parameters:
-                user_id (str):          The id of the Plex user
-                or
-                row_ids (str):          Comma separated row ids to archive, e.g. "2,3,8"
-
-            Optional parameters:
-                None
-
-            Returns:
-                None
-            ```
-        """
-        if user_id or row_ids:
-            user_data = users.Users()
-            success = user_data.archive(user_id=user_id, row_ids=row_ids)
-            if success:
-                return {'result': 'success', 'message': 'Archived user.'}
-            else:
-                return {'result': 'error', 'message': 'Failed to archive user(s).'}
-        else:
-            return {'result': 'error', 'message': 'No user id or row ids received.'}
-
-    @cherrypy.expose
-    @cherrypy.tools.allow(methods=['POST'])
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    @addtoapi()
-    def unarchive_user(self, user_id=None, row_ids=None, **kwargs):
-        """ Unarchive a user in Tautulli.
-
-            ```
-            Required parameters:
-                user_id (str):          The id of the Plex user
-                or
-                row_ids (str):          Comma separated row ids to unarchive, e.g. "2,3,8"
-
-            Optional parameters:
-                None
-
-            Returns:
-                None
-            ```
-        """
-        if user_id or row_ids:
-            user_data = users.Users()
-            success = user_data.unarchive(user_id=user_id, row_ids=row_ids)
-            if success:
-                return {'result': 'success', 'message': 'Unarchived user.'}
-            else:
-                return {'result': 'error', 'message': 'Failed to unarchive user(s).'}
-        else:
-            return {'result': 'error', 'message': 'No user id or row ids received.'}
 
     ##### History #####
 

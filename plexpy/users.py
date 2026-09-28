@@ -806,48 +806,6 @@ class Users(object):
         except Exception as e:
             logger.warn("Tautulli Users :: Unable to execute database query for undelete: %s." % e)
 
-    def archive(self, user_id=None, row_ids=None):
-        """Hide a user from the users list, the history tables and all statistics.
-        The user's history is left untouched, unlike delete().
-        """
-        return self._set_archived(user_id=user_id, row_ids=row_ids, is_archived=True)
-
-    def unarchive(self, user_id=None, row_ids=None):
-        return self._set_archived(user_id=user_id, row_ids=row_ids, is_archived=False)
-
-    def _set_archived(self, user_id=None, row_ids=None, is_archived=True):
-        monitor_db = database.MonitorDatabase()
-
-        if row_ids and row_ids is not None:
-            row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
-
-            # Get the user_ids corresponding to the row_ids
-            result = monitor_db.select("SELECT user_id FROM users "
-                                       "WHERE id IN ({})".format(",".join(["?"] * len(row_ids))), row_ids)
-
-            success = []
-            for user in result:
-                success.append(self._set_archived(user_id=user['user_id'],
-                                                  is_archived=is_archived))
-            return all(success)
-
-        elif str(user_id).isdigit():
-            logger.info("Tautulli Users :: %s user with user_id %s."
-                        % ('Archiving' if is_archived else 'Unarchiving', user_id))
-            try:
-                # Note: history is intentionally left untouched, archiving only hides the user
-                monitor_db.action("UPDATE users "
-                                  "SET is_archived = ? "
-                                  "WHERE user_id = ?", [int(is_archived), user_id])
-                return True
-            except Exception as e:
-                logger.warn("Tautulli Users :: Unable to execute database query for %s: %s."
-                            % ('archive' if is_archived else 'unarchive', e))
-                return False
-
-        else:
-            return False
-
     def get_archived_user_ids(self):
         """Return the user_ids of all archived users.
 
