@@ -36,6 +36,13 @@
                     </select>
                 </label>
             </div>
+            % if has_archived:
+            <div class="btn-group">
+                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-history">
+                    <i class="fa fa-archive"></i> Show archived
+                </button>
+            </div>
+            % endif
             % endif
             <div class="btn-group" data-toggle="buttons" id="media_type-selection">
                 <label class="btn btn-dark btn-filter">
@@ -62,13 +69,6 @@
                     <input type="checkbox" name="transcode_decision-filter" id="history-transcode_decision-transcode" value="transcode" autocomplete="off"><i class="fa fa-server"></i> Transcode
                 </label>
             </div>
-            % if _session['user_group'] == 'admin' and has_archived:
-            <div class="btn-group">
-                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-history">
-                    <i class="fa fa-archive"></i> Show archived
-                </button>
-            </div>
-            % endif
             <div class="btn-group">
                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
             </div>

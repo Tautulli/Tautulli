@@ -20,6 +20,13 @@
                     </select>
                 </label>
             </div>
+            % if has_archived:
+            <div class="btn-group">
+                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-graphs">
+                    <i class="fa fa-archive"></i> Show archived
+                </button>
+            </div>
+            % endif
             % endif
             <div class="btn-group" style="margin-right: 2px;" data-toggle="buttons" id="yaxis-selection">
                 <label class="btn btn-dark btn-filter">
@@ -29,13 +36,6 @@
                     <input type="radio" name="yaxis-options" id="yaxis-duration" value="duration" autocomplete="off"> Play Duration
                 </label>
             </div>
-            % if _session['user_group'] == 'admin' and has_archived:
-            <div class="btn-group">
-                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-graphs">
-                    <i class="fa fa-archive"></i> Show archived
-                </button>
-            </div>
-            % endif
             <div class="input-group pull-right" style="width: 1px;" id="days-selection">
                 <span class="input-group-addon btn-dark inactive">Last</span>
                 <input type="number" class="form-control number-input" name="graph-days" id="graph-days" value="30" min="1" data-default="7" data-toggle="tooltip" title="Min: 1 day" />
