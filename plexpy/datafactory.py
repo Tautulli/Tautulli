@@ -437,7 +437,8 @@ class DataFactory(object):
         if user_id:
             where_id += 'AND session_history.user_id = ? '
             where_id_args.append(user_id)
-        where_id += users.archived_user_cond()
+        else:
+            where_id += users.archived_user_cond()
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
         sort_type = 'total_duration' if stats_type == 'duration' else 'total_plays'
