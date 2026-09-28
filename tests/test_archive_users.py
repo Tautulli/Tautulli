@@ -129,6 +129,20 @@ def test_history_activity_union_skips_archived(seeded):
     assert result["recordsFiltered"] == 4
 
 
+def test_history_rows_flag_archived_users(seeded):
+    # The history tables dim a row by this flag. Session 99 is bob's live stream.
+    seeded.action("INSERT INTO sessions (session_key, user_id, user, started, media_type, state) "
+                  "VALUES (?, ?, ?, ?, ?, ?)", [99, 2, "bob", 6000, "movie", "playing"])
+    archive_bob()
+
+    result = datafactory.DataFactory().get_datatables_history(
+        kwargs={"json_data": json.dumps(build_draw())},
+        grouping=False, include_activity=True, include_archived=True)
+
+    flags = {(row["user_id"], row["state"]): row["is_archived"] for row in result["data"]}
+    assert flags == {(1, None): 0, (2, None): 1, (2, "playing"): 1}
+
+
 def test_guest_history_is_unchanged_by_another_users_archive(seeded, monkeypatch):
     monkeypatch.setattr(plexpy.session, "get_session_user_id", lambda: "1")
     archive_bob()
