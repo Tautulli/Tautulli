@@ -815,6 +815,7 @@ class Libraries(object):
         if include_last_accessed:
             last_accessed = "MAX(session_history.started)"
             join = "LEFT OUTER JOIN session_history ON library_sections.section_id = session_history.section_id " \
+                   + users.archived_user_cond()
 
         monitor_db = database.MonitorDatabase()
 
