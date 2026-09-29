@@ -996,7 +996,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_watch_time_stats(self, section_id=None, grouping=None, query_days=None, **kwargs):
+    def get_library_watch_time_stats(self, section_id=None, grouping=None, query_days=None, include_archived=None,
+                                     **kwargs):
         """ Get a library's watch time statistics.
 
             ```
@@ -1006,6 +1007,7 @@ class WebInterface(object):
             Optional parameters:
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
+                include_archived (int): 0 or 1, include archived users
 
             Returns:
                 json:
@@ -1033,7 +1035,8 @@ class WebInterface(object):
         if section_id:
             library_data = libraries.Libraries()
             result = library_data.get_watch_time_stats(section_id=section_id, grouping=grouping,
-                                                       query_days=query_days)
+                                                       query_days=query_days,
+                                                       include_archived=helpers.bool_true(include_archived))
             if result:
                 return result
             else:
@@ -1046,7 +1049,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_user_stats(self, section_id=None, grouping=None, **kwargs):
+    def get_library_user_stats(self, section_id=None, grouping=None, include_archived=None, **kwargs):
         """ Get a library's user statistics.
 
             ```
@@ -1055,6 +1058,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
+                include_archived (int): 0 or 1, include archived users
 
             Returns:
                 json:
@@ -1081,7 +1085,8 @@ class WebInterface(object):
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_user_stats(section_id=section_id, grouping=grouping)
+            result = library_data.get_user_stats(section_id=section_id, grouping=grouping,
+                                                 include_archived=helpers.bool_true(include_archived))
             if result:
                 return result
             else:

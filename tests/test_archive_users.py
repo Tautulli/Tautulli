@@ -657,3 +657,25 @@ def test_library_recently_watched_includes_archived_when_asked(late_bob, web_pag
     assert 204 in {row["rating_key"] for row in shown}
     assert "Delta Movie" in page_shown
     assert "Delta Movie" not in page_hidden
+
+
+def test_library_user_stats_api_takes_include_archived(library):
+    archive_bob()
+    web = webserve.WebInterface()
+
+    shown = web.get_library_user_stats(section_id=1, grouping=0, include_archived="1")
+    hidden = web.get_library_user_stats(section_id=1, grouping=0, include_archived="0")
+
+    assert {row["user_id"] for row in shown} == {1, 2}
+    assert {row["user_id"] for row in hidden} == {1}
+
+
+def test_library_watch_time_stats_api_takes_include_archived(library):
+    archive_bob()
+    web = webserve.WebInterface()
+
+    shown = web.get_library_watch_time_stats(section_id=1, grouping=0, query_days="0", include_archived="1")
+    hidden = web.get_library_watch_time_stats(section_id=1, grouping=0, query_days="0", include_archived="0")
+
+    assert shown[0]["total_plays"] == 6
+    assert hidden[0]["total_plays"] == 4
