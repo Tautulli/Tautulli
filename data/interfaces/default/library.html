@@ -630,6 +630,7 @@ DOCUMENTATION :: END
     $('#show-archived-history').on('click', function () {
         include_archived = $(this).hasClass('active') ? 0 : 1;
         history_table.draw();
+        loadLibraryStats();
     });
 </script>
 % if data['section_type'] != 'photo':
@@ -757,11 +758,17 @@ DOCUMENTATION :: END
             window.location.hash = e.target.hash.replace("#", "#" + prefix);
         });
 
+        loadLibraryStats();
+
+    });
+
+    // Show archived on the history tab reloads the stats
+    function loadLibraryStats() {
         // Populate watch time stats
         $.ajax({
             url: 'library_watch_time_stats',
             async: true,
-            data: { section_id: section_id },
+            data: { section_id: section_id, include_archived: include_archived },
             complete: function(xhr, status) {
                 $("#library-time-stats").html(xhr.responseText);
             }
@@ -771,13 +778,12 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'library_user_stats',
             async: true,
-            data: { section_id: section_id },
+            data: { section_id: section_id, include_archived: include_archived },
             complete: function(xhr, status) {
                 $("#library-user-stats").html(xhr.responseText);
             }
         });
-
-    });
+    }
 </script>
 % if _session['user_group'] == 'admin':
 <script>

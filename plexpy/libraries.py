@@ -872,7 +872,7 @@ class Libraries(object):
                                    }
         return library_details
 
-    def get_watch_time_stats(self, section_id=None, grouping=None, query_days=None):
+    def get_watch_time_stats(self, section_id=None, grouping=None, query_days=None, include_archived=False):
         if not session.allow_session_library(section_id):
             return []
 
@@ -891,6 +891,7 @@ class Libraries(object):
         library_watch_time_stats = []
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+        archived_cond = '' if include_archived else users.archived_user_cond()
 
         for days in query_days:
             timestamp_query = timestamp - days * 24 * 60 * 60
@@ -904,7 +905,7 @@ class Libraries(object):
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                                 "WHERE stopped >= %s " \
-                                "AND section_id = ? %s" % (group_by, timestamp_query, users.archived_user_cond())
+                                "AND section_id = ? %s" % (group_by, timestamp_query, archived_cond)
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
@@ -915,7 +916,7 @@ class Libraries(object):
                                 "COUNT(DISTINCT %s) AS total_plays " \
                                 "FROM session_history " \
                                 "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE section_id = ? %s" % (group_by, users.archived_user_cond())
+                                "WHERE section_id = ? %s" % (group_by, archived_cond)
                         result = monitor_db.select(query, args=[section_id])
                     else:
                         result = []
@@ -940,7 +941,7 @@ class Libraries(object):
 
         return library_watch_time_stats
 
-    def get_user_stats(self, section_id=None, grouping=None):
+    def get_user_stats(self, section_id=None, grouping=None, include_archived=False):
         if not session.allow_session_library(section_id):
             return []
 
@@ -965,7 +966,8 @@ class Libraries(object):
                         "JOIN users ON users.user_id = session_history.user_id " \
                         "WHERE section_id = ? %s" \
                         "GROUP BY users.user_id " \
-                        "ORDER BY total_plays DESC, total_time DESC" % (group_by, users.archived_user_cond())
+                        "ORDER BY total_plays DESC, total_time DESC" % (
+                            group_by, '' if include_archived else users.archived_user_cond())
                 result = monitor_db.select(query, args=[section_id])
             else:
                 result = []

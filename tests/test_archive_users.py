@@ -611,3 +611,34 @@ def test_item_watch_time_stats_api_takes_include_archived(seeded):
 
     assert shown[0]["total_plays"] == 2
     assert hidden[0]["total_plays"] == 1
+
+
+def test_library_stats_include_archived_when_asked(library):
+    archive_bob()
+    library_data = libraries.Libraries()
+
+    # Day 0 is all time. 36500 days reaches the 1970 seed rows.
+    watch_time = library_data.get_watch_time_stats(section_id=1, grouping=False, query_days="0,36500",
+                                                   include_archived=True)
+    user_stats = library_data.get_user_stats(section_id=1, include_archived=True)
+
+    assert [row["total_plays"] for row in watch_time] == [6, 6]
+    assert [row["user_id"] for row in user_stats] == [1, 2]
+
+
+def test_library_stats_pages_take_include_archived(web_pages):
+    # The library page asks for its stats again when Show archived changes.
+    # It sends include_archived as 0 or 1.
+    archive_bob()
+
+    users_shown = web_pages.library_user_stats(section_id=1, include_archived="1")
+    users_hidden = web_pages.library_user_stats(section_id=1, include_archived="0")
+    plays_shown = web_pages.library_watch_time_stats(section_id=1, include_archived="1")
+    plays_hidden = web_pages.library_watch_time_stats(section_id=1, include_archived="0")
+
+    assert 'title="bob"' in users_shown
+    assert 'title="bob"' not in users_hidden
+    # Grouped plays. alice has 3 and bob has 2.
+    all_time = r"All Time</h4>\s*<h3>(\d+)</h3>"
+    assert re.search(all_time, plays_shown).group(1) == "5"
+    assert re.search(all_time, plays_hidden).group(1) == "3"

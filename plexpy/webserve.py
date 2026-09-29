@@ -667,13 +667,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library_watch_time_stats(self, section_id=None, **kwargs):
+    def library_watch_time_stats(self, section_id=None, include_archived=None, **kwargs):
         if not allow_session_library(section_id):
             return serve_template(template_name="user_watch_time_stats.html", data=None, title="Watch Stats")
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_watch_time_stats(section_id=section_id)
+            result = library_data.get_watch_time_stats(section_id=section_id,
+                                                       include_archived=helpers.bool_true(include_archived))
         else:
             result = None
 
@@ -685,13 +686,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library_user_stats(self, section_id=None, **kwargs):
+    def library_user_stats(self, section_id=None, include_archived=None, **kwargs):
         if not allow_session_library(section_id):
             return serve_template(template_name="library_user_stats.html", data=None, title="Player Stats")
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_user_stats(section_id=section_id)
+            result = library_data.get_user_stats(section_id=section_id,
+                                                 include_archived=helpers.bool_true(include_archived))
         else:
             result = None
 
