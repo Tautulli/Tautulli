@@ -116,6 +116,14 @@ def user_names(page):
         "inputs => inputs.map(input => input.value)")
 
 
+def toggle_show_archived(page):
+    # The hover plugin opens the menu when the pointer lands on the link's edge.
+    # The cog icon covers its center. A click on the link opens the settings page.
+    page.hover("a.dropdown-toggle", position={"x": 2, "y": 2})
+    with page.expect_navigation():
+        page.click("#nav-show-archived")
+
+
 def test_archiving_in_edit_mode_keeps_the_row(server, db, page):
     page.goto(server["url"] + "/users")
     page.locator("#users_list_table td.edit-user-control input").first.wait_for(state="attached")
@@ -154,7 +162,7 @@ def test_unarchiving_in_edit_mode_undims_the_row(server, db, page):
     db.action("UPDATE users SET is_archived = 1 WHERE user_id = 1")
     page.goto(server["url"] + "/users")
     with page.expect_response("**/get_user_list"):
-        page.click("#show-archived-users")
+        toggle_show_archived(page)
     page.click("#row-edit-mode")
 
     with page.expect_response("**/edit_user"):
@@ -176,11 +184,11 @@ def test_info_page_stats_follow_show_archived(server, db, page):
     sync_api.expect(all_time_plays).to_have_text("1")
     assert "bob" not in user_stats.inner_text()
 
-    page.click("#show-archived-history")
+    toggle_show_archived(page)
     sync_api.expect(user_stats).to_contain_text("bob")
     sync_api.expect(all_time_plays).to_have_text("2")
 
-    page.click("#show-archived-history")
+    toggle_show_archived(page)
     sync_api.expect(user_stats).not_to_contain_text("bob")
     sync_api.expect(all_time_plays).to_have_text("1")
 
@@ -197,13 +205,11 @@ def test_library_stats_follow_show_archived(server, db, page):
     sync_api.expect(all_time_plays).to_have_text("3")
     assert "bob" not in user_stats.inner_text()
 
-    # The button is on the history tab. The stats are on the profile tab.
-    page.click("#nav-tabs-history")
-    page.click("#show-archived-history")
+    toggle_show_archived(page)
     sync_api.expect(user_stats).to_contain_text("bob")
     sync_api.expect(all_time_plays).to_have_text("5")
 
-    page.click("#show-archived-history")
+    toggle_show_archived(page)
     sync_api.expect(user_stats).not_to_contain_text("bob")
     sync_api.expect(all_time_plays).to_have_text("3")
 
@@ -218,9 +224,42 @@ def test_library_recently_played_follows_show_archived(server, db, page):
     sync_api.expect(recently_played).to_contain_text("Beta Movie")
     assert "Delta Movie" not in recently_played.text_content()
 
-    page.click("#nav-tabs-history")
-    page.click("#show-archived-history")
+    toggle_show_archived(page)
     sync_api.expect(recently_played).to_contain_text("Delta Movie")
 
-    page.click("#show-archived-history")
+    toggle_show_archived(page)
     sync_api.expect(recently_played).not_to_contain_text("Delta Movie")
+
+
+@pytest.mark.parametrize("path, endpoint", [("/history", "get_history"), ("/graphs", "get_plays_by_date")])
+def test_history_and_graphs_send_show_archived(server, db, page, path, endpoint):
+    # get_history is a POST and the graphs use GET, so check the body and the URL.
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    page.add_init_script("localStorage.setItem('include_archived', '1')")
+
+    with page.expect_request(lambda r: endpoint in r.url) as request:
+        page.goto(server["url"] + path)
+
+    assert "include_archived=1" in (request.value.post_data or "") + request.value.url
+
+
+def test_show_archived_carries_to_the_next_page(server, db, page):
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    user_stats = page.locator("#library-user-stats")
+    indicator = page.locator("#nav-archived-indicator")
+
+    page.goto(server["url"] + "/info?rating_key=202&source=history")
+    sync_api.expect(indicator).to_be_hidden()
+    toggle_show_archived(page)
+    sync_api.expect(indicator).to_be_visible()
+
+    page.goto(server["url"] + "/library?section_id=1")
+    sync_api.expect(user_stats).to_contain_text("bob")
+    sync_api.expect(page.locator("#nav-show-archived i")).to_have_class("fa fa-fw fa-check-square-o")
+
+    # A click on the indicator hides archived users again.
+    with page.expect_navigation():
+        page.click("#nav-archived-indicator a")
+    sync_api.expect(user_stats).to_contain_text("Alice")
+    sync_api.expect(indicator).to_be_hidden()
+    assert "bob" not in user_stats.inner_text()
