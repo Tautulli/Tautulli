@@ -398,7 +398,7 @@ class DataFactory(object):
 
     def get_home_stats(self, grouping=None, time_range=30, stats_type='plays',
                        stats_start=0, stats_count=10, stat_id='', stats_cards=None,
-                       section_id=None, user_id=None, before=None, after=None):
+                       section_id=None, user_id=None, before=None, after=None, include_archived=False):
         monitor_db = database.MonitorDatabase()
 
         time_range = helpers.cast_to_int(time_range)
@@ -443,7 +443,7 @@ class DataFactory(object):
         if user_id:
             where_id += 'AND session_history.user_id = ? '
             where_id_args.append(user_id)
-        else:
+        elif not include_archived:
             where_id += users.archived_user_cond()
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
@@ -1139,7 +1139,7 @@ class DataFactory(object):
                                  "FROM session_history AS sh " \
                                  "JOIN session_history_media_info AS shmi ON sh.id = shmi.id " \
                                  "WHERE %s %s " % (where_timeframe[4:].replace('session_history.', 'sh.'),
-                                                   users.archived_user_cond(column='sh.user_id'))
+                                                   '' if include_archived else users.archived_user_cond(column='sh.user_id'))
 
                     title = 'Concurrent Streams'
                     query = base_query
@@ -1179,7 +1179,7 @@ class DataFactory(object):
             return home_stats[0]
         return home_stats
 
-    def get_library_stats(self, library_cards=None):
+    def get_library_stats(self, library_cards=None, include_archived=False):
         if library_cards is None:
             library_cards = []
 
@@ -1206,7 +1206,7 @@ class DataFactory(object):
                     "WHERE ls.section_id IN (%s) AND ls.deleted_section = 0 " \
                     "GROUP BY ls.id " \
                     "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC " % (
-                        users.archived_user_cond(column='sh.user_id'), ",".join(library_cards)
+                        '' if include_archived else users.archived_user_cond(column='sh.user_id'), ",".join(library_cards)
                     )
             result = monitor_db.select(query)
         except Exception as e:

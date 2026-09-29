@@ -687,3 +687,33 @@ def test_library_watch_time_stats_api_takes_include_archived(library):
 
     assert shown[0]["total_plays"] == 6
     assert hidden[0]["total_plays"] == 4
+
+
+def test_home_stats_include_archived_when_asked(late_bob, library):
+    archive_bob()
+    data_factory = datafactory.DataFactory()
+
+    top_users = data_factory.get_home_stats(stats_cards=["top_users"], after="1970-01-01", include_archived=True)
+    concurrent = data_factory.get_home_stats(stats_cards=["most_concurrent"], after="1970-01-01",
+                                             include_archived=True)
+    card = data_factory.get_library_stats(library_cards=["1"], include_archived=True)
+
+    assert {row["user_id"] for row in top_users[0]["rows"]} == {1, 2}
+    assert concurrent[0]["rows"][0]["count"] == 2
+    # Row 7 is bob's last play.
+    assert card["movie"][0]["row_id"] == 7
+
+
+def test_home_page_stats_take_include_archived(late_bob, web_pages):
+    # The home page sends include_archived as 0 or 1. A library card shows
+    # the thumb of the library's last play. Row 7 is bob's last play.
+    late_bob.action("UPDATE session_history_metadata SET thumb = '/thumb/' || id")
+    plexpy.CONFIG.HOME_STATS_CARDS = ["top_users"]
+    plexpy.CONFIG.HOME_LIBRARY_CARDS = ["1"]
+    archive_bob()
+
+    # 36500 days reaches the 1970 seed rows.
+    assert "bob" in web_pages.home_stats(time_range=36500, include_archived="1")
+    assert "bob" not in web_pages.home_stats(time_range=36500, include_archived="0")
+    assert 'data-thumb="/thumb/7"' in web_pages.library_stats(include_archived="1")
+    assert 'data-thumb="/thumb/6"' in web_pages.library_stats(include_archived="0")

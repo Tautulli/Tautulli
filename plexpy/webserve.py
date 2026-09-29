@@ -366,22 +366,24 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def home_stats(self, time_range=30, stats_type='plays', stats_count=10, **kwargs):
+    def home_stats(self, time_range=30, stats_type='plays', stats_count=10, include_archived=None, **kwargs):
         data_factory = datafactory.DataFactory()
         stats_data = data_factory.get_home_stats(time_range=time_range,
                                                  stats_type=stats_type,
-                                                 stats_count=stats_count)
+                                                 stats_count=stats_count,
+                                                 include_archived=helpers.bool_true(include_archived))
 
         return serve_template(template_name="home_stats.html", title="Stats", data=stats_data)
 
     @cherrypy.expose
     @requireAuth()
-    def library_stats(self, **kwargs):
+    def library_stats(self, include_archived=None, **kwargs):
         data_factory = datafactory.DataFactory()
 
         library_cards = plexpy.CONFIG.HOME_LIBRARY_CARDS
 
-        stats_data = data_factory.get_library_stats(library_cards=library_cards)
+        stats_data = data_factory.get_library_stats(library_cards=library_cards,
+                                                    include_archived=helpers.bool_true(include_archived))
 
         return serve_template(template_name="library_stats.html", title="Library Stats", data=stats_data)
 

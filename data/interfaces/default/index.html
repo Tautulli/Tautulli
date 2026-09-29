@@ -860,7 +860,8 @@
             async: true,
             data: {
                 time_range: time_range,
-                stats_type: stats_type
+                stats_type: stats_type,
+                include_archived: include_archived
             },
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
@@ -903,7 +904,7 @@
             type: 'GET',
             cache: false,
             async: true,
-            data: { },
+            data: { include_archived: include_archived },
             complete: function (xhr, status) {
                 $("#library-stats").html(xhr.responseText);
                 statsCardCallback();
