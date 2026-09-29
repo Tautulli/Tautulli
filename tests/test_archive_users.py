@@ -588,3 +588,26 @@ def test_item_stats_pages_take_include_archived(web_pages):
     all_time = r"All Time</h4>\s*<h3>(\d+)</h3>"
     assert re.search(all_time, plays_shown).group(1) == "2"
     assert re.search(all_time, plays_default).group(1) == "1"
+
+
+def test_item_user_stats_api_takes_include_archived(seeded):
+    # The API dispatcher passes the query parameters to the method as kwargs.
+    archive_bob()
+    web = webserve.WebInterface()
+
+    shown = web.get_item_user_stats(rating_key=202, grouping=0, include_archived="1")
+    hidden = web.get_item_user_stats(rating_key=202, grouping=0, include_archived="0")
+
+    assert {row["user_id"] for row in shown} == {1, 2}
+    assert {row["user_id"] for row in hidden} == {1}
+
+
+def test_item_watch_time_stats_api_takes_include_archived(seeded):
+    archive_bob()
+    web = webserve.WebInterface()
+
+    shown = web.get_item_watch_time_stats(rating_key=202, grouping=0, query_days="0", include_archived="1")
+    hidden = web.get_item_watch_time_stats(rating_key=202, grouping=0, query_days="0", include_archived="0")
+
+    assert shown[0]["total_plays"] == 2
+    assert hidden[0]["total_plays"] == 1

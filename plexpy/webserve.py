@@ -4596,7 +4596,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None, **kwargs):
+    def get_item_watch_time_stats(self, rating_key=None, media_type=None, grouping=None, query_days=None,
+                                  include_archived=None, **kwargs):
         """  Get the watch time stats for the media item.
 
             ```
@@ -4607,6 +4608,7 @@ class WebInterface(object):
                 media_type (str):       Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
+                include_archived (int): 0 or 1, include archived users
 
             Returns:
                 json:
@@ -4641,7 +4643,8 @@ class WebInterface(object):
             result = item_data.get_watch_time_stats(rating_key=rating_key,
                                                     media_type=media_type,
                                                     grouping=grouping,
-                                                    query_days=query_days)
+                                                    query_days=query_days,
+                                                    include_archived=helpers.bool_true(include_archived))
             if result:
                 return result
             else:
@@ -4654,7 +4657,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_item_user_stats(self, rating_key=None, media_type=None, grouping=None, **kwargs):
+    def get_item_user_stats(self, rating_key=None, media_type=None, grouping=None, include_archived=None, **kwargs):
         """  Get the user stats for the media item.
 
             ```
@@ -4664,6 +4667,7 @@ class WebInterface(object):
             Optional parameters:
                 media_type (str):       Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
+                include_archived (int): 0 or 1, include archived users
 
             Returns:
                 json:
@@ -4693,7 +4697,8 @@ class WebInterface(object):
             item_data = datafactory.DataFactory()
             result = item_data.get_user_stats(rating_key=rating_key,
                                               media_type=media_type,
-                                              grouping=grouping)
+                                              grouping=grouping,
+                                              include_archived=helpers.bool_true(include_archived))
             if result:
                 return result
             else:
