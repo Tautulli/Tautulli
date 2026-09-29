@@ -17,13 +17,24 @@ jobs:
       matrix:
         python-version: ['3.10', '3.13']
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v5
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Set Up Python      
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
-      - run: pip install -r requirements-dev.txt
-      - run: ruff check --select=E9,F63,F7,F82 plexpy
-      - run: pytest
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run Linter
+        run: ruff check --select=E9,F63,F7,F82 plexpy
+
+      - name: Run Tests
+        run: pytest
 
   # Single stable check name for branch protection. Require this one
   # instead of the per-version matrix names, which change with the matrix.
@@ -32,4 +43,19 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - run: test "${{ needs.test.result }}" = "success"
+      - name: Check Test Results
+        run: test "${{ needs.test.result }}" = "success"
+
+  discord:
+    name: Discord Notification
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post Status to Discord
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ needs.test.result == 'success' && 'success' || contains(needs.*.result, 'failure') && 'failure' || 'cancelled' }}
+          title: ${{ github.workflow }}
+          nofail: true
