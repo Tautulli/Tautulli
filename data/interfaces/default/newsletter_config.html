@@ -422,7 +422,7 @@
                                         <label for="message">Message</label>
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <div class="editor-container">
+                                                <div class="editor-container" id="message-editor-container" style="display: none;">
                                                     <div class="editor-controls">
                                                         <button type="button" class="btn btn-dark btn-edit editor-control-btn" id="format-code" title="Beautify HTML Code">
                                                             <i class="fa fa-magic"></i>
@@ -434,9 +434,9 @@
                                                             <i class="fa fa-list-ol"></i>
                                                         </button>
                                                     </div>
-                                                    <div id="message-editor" style="width: 100%; height: 300px;"></div>
-                                                    <textarea class="form-control" id="message" name="message" autocomplete="off" style="display: none;">${newsletter['message']}</textarea>
+                                                    <div id="message-editor"></div>
                                                 </div>
+                                                <textarea class="form-control" id="message" name="message" autocomplete="off">${newsletter['message']}</textarea>
                                             </div>
                                         </div>
                                         <p class="help-block">
@@ -490,208 +490,39 @@
 <script src="${http_root}js/beautify-html.min.js"></script>
 <script>
 
-    // Initialize Ace Editor for the message field
-    var messageEditor;
-    
-    function initMessageEditor() {
-        if (messageEditor) {
-            messageEditor.destroy();
-        }
-        
-        try {
-            // Check if Ace editor is available
-            if (typeof ace === 'undefined') {
-                throw new Error('Ace editor not loaded');
-            }
-            
-            messageEditor = ace.edit('message-editor');
-            messageEditor.setTheme('ace/theme/tautulli');
-            messageEditor.session.setMode('ace/mode/html');
-            messageEditor.setOptions({
-                showPrintMargin: false,
-                showGutter: true,
-                fontSize: '14px',
-                tabSize: 2,
-                wrap: true,
-                highlightActiveLine: true
-            });
-            
-            // Set initial value from the hidden textarea
-            var initialValue = $('#message').val() || '';
-            messageEditor.setValue(initialValue);
-            messageEditor.clearSelection();
-            
-            var session = messageEditor.getSession();
-            
-            // Sync Ace editor content with hidden textarea on change
-            session.on('change', function() {
-                $('#message').val(messageEditor.getValue());
-            });
-            
-            // Filter out HTML annotations
-            session.on('changeAnnotation', function () {
-                var annotations = session.getAnnotations() || [], i = len = annotations.length;
-                while (i--) {
-                    if (/doctype first\. Expected/.test(annotations[i].text)) {
-                        annotations.splice(i, 1);
-                    }
-                    else if (/Unexpected End of file\. Expected/.test(annotations[i].text)) {
-                        annotations.splice(i, 1);
-                    }
-                }
-                if (len > annotations.length) {
-                    session.setAnnotations(annotations);
-                }
-            });
-            
-            // Resize editor to fit content
-            messageEditor.resize();
-            
-            // Set up event handlers for editor controls
-            setupEditorControls();
-            
-        } catch (error) {
-            console.error('Failed to initialize Ace editor:', error);
-            // Fallback to regular textarea if Ace editor fails
-            $('#message-editor').hide();
-            $('.editor-controls').hide();
-            $('.editor-container').css({
-                'border': 'none',
-            });
-            $('#message').show().removeAttr('style').css({
-                'height': '300px',
-                'font-family': 'Monaco, Menlo, Ubuntu Mono, monospace'
-            });
-        }
-    }
-    
-    function setupEditorControls() {
-        // Format code button
-        $('#format-code').off('click').on('click', function() {
-            if (messageEditor) {
-                var $btn = $(this);
-                var originalIcon = $btn.find('i').attr('class');
-                var originalTitle = $btn.attr('title');
-                
-                // Show loading state
-                $btn.find('i').attr('class', 'fa fa-spinner fa-spin');
-                $btn.attr('title', 'Formatting...');
-                $btn.prop('disabled', true);
-                
-                try {
-                    var content = messageEditor.getValue();
-                    if (content.trim()) {
-                        content = formatHTML(content);
-                        messageEditor.setValue(content);
-                        messageEditor.clearSelection();
-                        
-                        // Show success feedback
-                        $btn.find('i').attr('class', 'fa fa-check');
-                        $btn.attr('title', 'Code formatted successfully!');
-                        setTimeout(function() {
-                            $btn.find('i').attr('class', originalIcon);
-                            $btn.attr('title', originalTitle);
-                        }, 1500);
-                    } else {
-                        // Show warning for empty content
-                        $btn.find('i').attr('class', 'fa fa-exclamation-triangle');
-                        $btn.attr('title', 'No content to format');
-                        setTimeout(function() {
-                            $btn.find('i').attr('class', originalIcon);
-                            $btn.attr('title', originalTitle);
-                        }, 1500);
-                    }
-                } catch (error) {
-                    console.error('Error formatting code:', error);
-                    // Show error state
-                    $btn.find('i').attr('class', 'fa fa-times');
-                    $btn.attr('title', 'Formatting failed');
-                    setTimeout(function() {
-                        $btn.find('i').attr('class', originalIcon);
-                        $btn.attr('title', originalTitle);
-                    }, 2000);
-                } finally {
-                    $btn.prop('disabled', false);
-                }
-            }
-        });
-        
-        // Toggle word wrap button
-        $('#toggle-wrap').off('click').on('click', function() {
-            if (messageEditor) {
-                var currentWrap = messageEditor.getSession().getUseWrapMode();
-                messageEditor.getSession().setUseWrapMode(!currentWrap);
-            }
-        });
-        
-        // Toggle gutter button
-        $('#toggle-gutter').off('click').on('click', function() {
-            if (messageEditor) {
-                var currentGutter = messageEditor.renderer.getShowGutter();
-                messageEditor.renderer.setShowGutter(!currentGutter);
-            }
-        });
-    }
-    
+    // Replace the message textarea with an Ace editor when the Newsletter Text tab first opens.
+    // The hidden textarea keeps the value that the form saves.
+    var destroyEditor = $.noop;
+    $('#newsletter-text-tab').one('shown.bs.tab', function () {
+        if (!window.ace) return;
+        var textarea = $('#message').hide();
+        $('#message-editor-container').show();
+        var editor = ace.edit('message-editor');
+        editor.setTheme('ace/theme/tautulli');
+        editor.session.setMode('ace/mode/html');
+        editor.setOptions({ showPrintMargin: false, fontSize: '14px', tabSize: 2, wrap: true });
+        editor.session.setValue(textarea.val());
+        editor.on('change', function () { textarea.val(editor.getValue()); });
 
-    
-    function formatHTML(html) {
-        // Clean up the input first
-        var cleanHtml = html.trim();
-        if (!cleanHtml) {
-            return cleanHtml;
-        }
-        
-        try {
-            // Check if content looks like HTML
-            if (cleanHtml.includes('<') && cleanHtml.includes('>')) {
-                return html_beautify(cleanHtml, {
-                    indent_size: 4,
-                    indent_char: ' ',
-                    max_preserve_newlines: 5,
-                    preserve_newlines: true,
-                    keep_array_indentation: false,
-                    break_chained_methods: false,
-                    indent_scripts: 'normal',
-                    brace_style: 'collapse',
-                    space_before_conditional: true,
-                    unescape_strings: false,
-                    jslint_happy: false,
-                    end_with_newline: false,
-                    wrap_line_length: 0,
-                    indent_inner_html: false,
-                    comma_first: false,
-                    e4x: false,
-                    indent_empty_lines: false
-                });
-            } else {
-                // If it's not HTML, try to format as plain text
-                return html_beautify('<div>' + cleanHtml + '</div>', {
-                    indent_size: 2,
-                    indent_char: ' ',
-                    max_preserve_newlines: 2,
-                    preserve_newlines: true
-                }).replace(/^<div>/, '').replace(/<\/div>$/, '');
-            }
-        } catch (error) {
-            console.warn('js-beautify failed', error);
-        }
-    }
+        // The message is an HTML fragment, so drop the warnings that expect a full document.
+        editor.session.on('changeAnnotation', function () {
+            var annotations = editor.session.getAnnotations();
+            var kept = annotations.filter(function (a) {
+                return !/doctype first\. Expected|Unexpected End of file\. Expected/.test(a.text);
+            });
+            if (kept.length < annotations.length) editor.session.setAnnotations(kept);
+        });
 
-    
-    $(document).ready(function() {
-        // Initialize Ace editor when the modal is shown
-        $('#newsletter-text-tab').one('shown.bs.tab', function() {
-            initMessageEditor();
+        $('#format-code').click(function () {
+            var html = html_beautify(editor.getValue().trim(), { max_preserve_newlines: 5 });
+            editor.setValue(html, 1);
         });
-        
-        // Clean up editor when modal is hidden - tab isn't hidden, so have to use modal instead
-        $('#newsletter-config-modal').on('hidden.bs.modal', function() {
-            if (messageEditor) {
-                messageEditor.destroy();
-                messageEditor = null;
-            }
-        });
+        $('#toggle-wrap').click(function () { editor.session.setUseWrapMode(!editor.session.getUseWrapMode()); });
+        $('#toggle-gutter').click(function () { editor.renderer.setShowGutter(!editor.renderer.getShowGutter()); });
+
+        // Destroy the editor on close or reload so its HTML worker stops.
+        destroyEditor = function () { editor.destroy(); };
+        $('#newsletter-config-modal').one('hidden.bs.modal', destroyEditor);
     });
 
     $('#newsletter-config-modal').unbind('hidden.bs.modal');
@@ -901,6 +732,7 @@
             cache: false,
             async: true,
             complete: function (xhr, status) {
+                destroyEditor();
                 $('#newsletter-config-modal').html(xhr.responseText);
             }
         });
@@ -941,11 +773,6 @@
     }
 
     function saveNewsletter() {
-        // Sync Ace editor content before saving
-        if (messageEditor) {
-            $('#message').val(messageEditor.getValue());
-        }
-        
         // Trim all text inputs before saving
         $('input[type=text]').val(function(_, value) {
             return $.trim(value);

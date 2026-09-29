@@ -4711,7 +4711,6 @@ a.donate-with-crypto::after {
 
 /* Ace Editor Styles */
 #message-editor {
-    width: 100%;
     height: 300px;
 }
 /* Custom CSS to reduce Ace editor gutter width */
@@ -4740,12 +4739,7 @@ a.donate-with-crypto::after {
 }
 /* Responsive design for editor controls */
 @media (max-width: 768px) {
-    .editor-controls .text-left {
-        text-align: left !important;
-    }
     .editor-control-btn {
         margin-right: 6px;
-        width: 32px;
-        height: 32px;
     }
 }
