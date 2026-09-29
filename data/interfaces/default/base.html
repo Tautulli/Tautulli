@@ -358,6 +358,8 @@ ${next.modalIncludes()}
         setLocalStorage('include_archived', 1 - include_archived, false);
         location.reload();
     });
+    % elif _session['user_group'] == 'admin':
+    setLocalStorage('include_archived', 0, false);
     % endif
 
     % if _session['user_group'] == 'admin':

@@ -432,6 +432,21 @@ def test_show_archived_is_admin_only(web_pages, monkeypatch):
         assert "getLocalStorage('include_archived'" not in page
 
 
+def test_show_archived_resets_while_no_user_is_archived(web_pages, monkeypatch):
+    # The next archive then starts with archived users hidden. A guest page
+    # leaves the admin's choice alone.
+    reset = "setLocalStorage('include_archived', 0, false);"
+    assert all(reset in page for page in show_archived_pages(web_pages))
+
+    archive_bob()
+    assert not any(reset in page for page in show_archived_pages(web_pages))
+
+    users.Users().set_config(user_id=2, is_archived=0)
+    monkeypatch.setattr(webserve, "get_session_info",
+                        lambda: {"user_id": "1", "user": "alice", "user_group": "guest", "exp": None})
+    assert not any(reset in page for page in show_archived_pages(web_pages))
+
+
 def test_graph_popup_keeps_the_show_archived_state(web_pages):
     # A graph click sends include_archived to the history popup. The popup
     # sends it to get_history.
