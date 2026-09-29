@@ -268,9 +268,6 @@ def initialize(options):
         '/interfaces': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces",
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
@@ -280,9 +277,6 @@ def initialize(options):
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces/default/images",
             'tools.staticdir.content_types': {'svg': 'image/svg+xml'},
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
@@ -291,9 +285,6 @@ def initialize(options):
         '/css': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces/default/css",
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
@@ -302,9 +293,6 @@ def initialize(options):
         '/fonts': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces/default/fonts",
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
@@ -313,9 +301,6 @@ def initialize(options):
         '/js': {
             'tools.staticdir.on': True,
             'tools.staticdir.dir': "interfaces/default/js",
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
@@ -325,9 +310,6 @@ def initialize(options):
             'tools.staticfile.on': True,
             'tools.staticfile.filename': os.path.abspath(os.path.join(
                 plexpy.PROG_DIR, 'data/interfaces/default/images/favicon/favicon.ico')),
-            'tools.caching.on': True,
-            'tools.caching.force': True,
-            'tools.caching.delay': 0,
             'tools.expires.on': True,
             'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
             'tools.sessions.on': False,
