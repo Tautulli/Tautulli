@@ -349,3 +349,19 @@ def test_media_info_child_rows_follow_show_archived(server, db, page):
         assert "include_archived=1" in request.value.post_data
     finally:
         os.remove(cache)
+
+
+def test_show_archived_resets_while_no_user_is_archived(server, db, page):
+    user_stats = page.locator("#library-user-stats")
+    page.goto(server["url"] + "/library?section_id=1")
+    page.evaluate("localStorage.setItem('include_archived', '1')")
+
+    page.reload()
+    assert page.evaluate("localStorage.getItem('include_archived')") == "0"
+
+    # The next archive starts with archived users hidden.
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    page.reload()
+    sync_api.expect(user_stats).to_contain_text("Alice")
+    sync_api.expect(page.locator("#nav-archived-indicator")).to_be_hidden()
+    assert "bob" not in user_stats.inner_text()
