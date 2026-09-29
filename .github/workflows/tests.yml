@@ -1,10 +1,10 @@
 name: Tests
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [nightly]
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,6 +12,7 @@ concurrency:
 
 jobs:
   test:
+    name: Run Tests (${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -39,6 +40,7 @@ jobs:
   # Single stable check name for branch protection. Require this one
   # instead of the per-version matrix names, which change with the matrix.
   tests-passed:
+    name: Check Test Results
     needs: test
     if: always()
     runs-on: ubuntu-latest
@@ -49,7 +51,7 @@ jobs:
   discord:
     name: Discord Notification
     needs: test
-    if: always()
+    if: always() && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Post Status to Discord
