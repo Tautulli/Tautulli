@@ -955,7 +955,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library(self, section_id=None, include_last_accessed=False, **kwargs):
+    def get_library(self, section_id=None, include_last_accessed=False, include_archived=None, **kwargs):
         """ Get a library's details.
 
             ```
@@ -964,6 +964,7 @@ class WebInterface(object):
 
             Optional parameters:
                 include_last_accessed (bool):   True to include the last_accessed value for the library.
+                include_archived (int):         0 or 1, include archived users
 
             Returns:
                 json:
@@ -988,7 +989,8 @@ class WebInterface(object):
         if section_id:
             library_data = libraries.Libraries()
             library_details = library_data.get_details(section_id=section_id,
-                                                       include_last_accessed=include_last_accessed)
+                                                       include_last_accessed=include_last_accessed,
+                                                       include_archived=helpers.bool_true(include_archived))
             if library_details:
                 return library_details
             else:

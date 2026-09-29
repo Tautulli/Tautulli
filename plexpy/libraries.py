@@ -761,7 +761,8 @@ class Libraries(object):
             except Exception as e:
                 logger.warn("Tautulli Libraries :: Unable to execute database query for set_config: %s." % e)
 
-    def get_details(self, section_id=None, server_id=None, include_last_accessed=False):
+    def get_details(self, section_id=None, server_id=None, include_last_accessed=False,
+                    include_archived=False):
         default_return = {'row_id': 0,
                           'server_id': '',
                           'section_id': 0,
@@ -785,7 +786,8 @@ class Libraries(object):
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
 
         library_details = self.get_library_details(section_id=section_id, server_id=server_id,
-                                                   include_last_accessed=include_last_accessed)
+                                                   include_last_accessed=include_last_accessed,
+                                                   include_archived=include_archived)
 
         if library_details:
             return library_details
@@ -797,7 +799,8 @@ class Libraries(object):
             refresh_libraries()
 
             library_details = self.get_library_details(section_id=section_id, server_id=server_id,
-                                                       include_last_accessed=include_last_accessed)
+                                                       include_last_accessed=include_last_accessed,
+                                                       include_archived=include_archived)
 
             if library_details:
                 return library_details
@@ -808,7 +811,8 @@ class Libraries(object):
                 # If there is no library data we must return something
                 return default_return
 
-    def get_library_details(self, section_id=None, server_id=None, include_last_accessed=False):
+    def get_library_details(self, section_id=None, server_id=None, include_last_accessed=False,
+                            include_archived=False):
         if server_id is None:
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
 
@@ -817,7 +821,7 @@ class Libraries(object):
         if include_last_accessed:
             last_accessed = "MAX(session_history.started)"
             join = "LEFT OUTER JOIN session_history ON library_sections.section_id = session_history.section_id " \
-                   + users.archived_user_cond()
+                   + ('' if include_archived else users.archived_user_cond())
 
         monitor_db = database.MonitorDatabase()
 

@@ -757,3 +757,14 @@ def test_media_info_play_count_includes_archived_when_asked(library, monkeypatch
     hidden = web.get_library_media_info(section_id=1, include_archived="0")["data"][0]["play_count"]
 
     assert (shown, hidden) == (2, 1)
+
+
+def test_get_library_api_takes_include_archived(late_bob, library):
+    # Row 7 is bob's last play. It starts at 5100, after alice's at 5000.
+    archive_bob()
+    web = webserve.WebInterface()
+
+    shown = web.get_library(section_id=1, include_last_accessed=1, include_archived="1")
+    hidden = web.get_library(section_id=1, include_last_accessed=1, include_archived="0")
+
+    assert (shown["last_accessed"], hidden["last_accessed"]) == (5100, 5000)
