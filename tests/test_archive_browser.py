@@ -21,7 +21,7 @@ import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
-from tests.test_history_table import seed_history
+from tests.test_history_table import insert_history_row, seed_history
 
 pytestmark = pytest.mark.slow
 
@@ -87,10 +87,11 @@ def db(server):
     db.action("DELETE FROM library_sections")
     seed_history(db)
     # The info page reads an item's metadata from history when there is no
-    # Plex server. It needs the library and a summary.
+    # Plex server. It needs the library and a summary. Recently Played needs
+    # a parent title.
     db.action("INSERT INTO library_sections (server_id, section_id, section_name, section_type) "
               "VALUES ('', 1, 'Movies', 'movie')")
-    db.action("UPDATE session_history_metadata SET summary = ''")
+    db.action("UPDATE session_history_metadata SET summary = '', parent_title = ''")
     yield db
     db.connection.close()
 
@@ -205,3 +206,21 @@ def test_library_stats_follow_show_archived(server, db, page):
     page.click("#show-archived-history")
     sync_api.expect(user_stats).not_to_contain_text("bob")
     sync_api.expect(all_time_plays).to_have_text("3")
+
+
+def test_library_recently_played_follows_show_archived(server, db, page):
+    # Only bob played Delta Movie.
+    insert_history_row(db, 7, 15, 2, "bob", 5100, 6100, 204, "Delta Movie", "movie")
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    recently_played = page.locator("#library-recently-watched")
+
+    page.goto(server["url"] + "/library?section_id=1")
+    sync_api.expect(recently_played).to_contain_text("Beta Movie")
+    assert "Delta Movie" not in recently_played.text_content()
+
+    page.click("#nav-tabs-history")
+    page.click("#show-archived-history")
+    sync_api.expect(recently_played).to_contain_text("Delta Movie")
+
+    page.click("#show-archived-history")
+    sync_api.expect(recently_played).not_to_contain_text("Delta Movie")
