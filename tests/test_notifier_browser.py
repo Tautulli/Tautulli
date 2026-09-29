@@ -60,7 +60,7 @@ def test_the_editor_shows_the_saved_text(page, notifier):
 
 
 def test_the_editor_looks_like_the_newsletter_editor(page, notifier):
-    editor = page.locator(".editor-container.ace_editor")
+    editor = page.locator(".editor-container .ace_editor")
 
     assert "ace-tautulli" in editor.get_attribute("class")
     assert editor.evaluate("el => getComputedStyle(el).fontSize") == "14px"
@@ -116,6 +116,31 @@ def test_required_still_applies_to_an_empty_body(page, notifier):
     type_in_editor(page, "")
 
     assert not page.evaluate("() => $('#set_notifier_config').parsley().isValid()")
+
+
+def test_the_buttons_toggle_word_wrap_and_the_gutter(page, notifier):
+    assert page.evaluate("() => ace.edit($('.editor-container .ace_editor')[0]).session.getUseWrapMode()")
+    assert page.locator(".editor-container .ace_gutter").is_visible()
+
+    page.click('.editor-container button[title="Toggle Word Wrap"]')
+    page.click('.editor-container button[title="Toggle Gutter"]')
+
+    assert not page.evaluate("() => ace.edit($('.editor-container .ace_editor')[0]).session.getUseWrapMode()")
+    assert page.locator(".editor-container .ace_gutter").is_hidden()
+
+
+def test_the_test_body_editor_sends_its_text(page, notifier):
+    page.click('a[href="#tabs-test_notifications"]')
+    page.wait_for_selector("#tabs-test_notifications .ace_line")
+    assert page.locator("#test_body").is_hidden()
+
+    page.locator("#tabs-test_notifications textarea.ace_text-input").focus()
+    page.keyboard.press("Control+A")
+    page.keyboard.type("Hello from Ace")
+
+    with page.expect_request("**/send_notification") as request:
+        page.click("#test_notifier")
+    assert "body=Hello+from+Ace" in request.value.post_data
 
 
 def test_a_failed_ace_load_leaves_the_textarea(server, page):
