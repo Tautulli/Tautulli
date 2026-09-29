@@ -834,7 +834,8 @@ class Libraries(object):
                     "custom_art_url AS custom_art, is_active, " \
                     "keep_history, deleted_section, %s AS last_accessed " \
                     "FROM library_sections %s " \
-                    "WHERE %s AND server_id = ? " % (last_accessed, join, where)
+                    "WHERE %s AND server_id = ? " \
+                    "GROUP BY library_sections.id" % (last_accessed, join, where)
             result = monitor_db.select(query, args=args + [server_id])
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_library_details: %s." % e)
