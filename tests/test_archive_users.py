@@ -717,3 +717,14 @@ def test_home_page_stats_take_include_archived(late_bob, web_pages):
     assert "bob" not in web_pages.home_stats(time_range=36500, include_archived="0")
     assert 'data-thumb="/thumb/7"' in web_pages.library_stats(include_archived="1")
     assert 'data-thumb="/thumb/6"' in web_pages.library_stats(include_archived="0")
+
+
+def test_home_stats_api_takes_include_archived(seeded):
+    archive_bob()
+    web = webserve.WebInterface()
+
+    shown = web.get_home_stats(stat_id="top_users", after="1970-01-01", include_archived="1")
+    hidden = web.get_home_stats(stat_id="top_users", after="1970-01-01", include_archived="0")
+
+    assert {row["user_id"] for row in shown["rows"]} == {1, 2}
+    assert {row["user_id"] for row in hidden["rows"]} == {1}
