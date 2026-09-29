@@ -260,6 +260,18 @@ def test_build_custom_where_brackets_the_or_group(before, after, expected_where,
     assert args == expected_args
 
 
+def test_build_custom_where_leaves_the_callers_list_alone():
+    # get_datatables_history passes the same list to the page query and
+    # then to get_total_duration. Stripping the OR markers on the first
+    # call turned the second into three ANDed rating key clauses.
+    custom_where = [list(w) for w in COLLECTION_WHERE]
+
+    first = build_custom_where(custom_where)
+
+    assert custom_where == COLLECTION_WHERE
+    assert build_custom_where(custom_where) == first
+
+
 @pytest.mark.parametrize("second_filter,expected_where,expected_args", [
     # Plain scalar equality following an IN clause.
     (

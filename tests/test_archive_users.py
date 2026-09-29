@@ -516,6 +516,12 @@ def test_collection_history_keeps_the_other_filters(collection):
     assert result["recordsFiltered"] == 2
 
 
+def test_collection_history_total_duration(collection):
+    # Rows 3, 4, and 6 play 600, 200, and 900 seconds. The total duration
+    # query used to get the three rating key clauses ANDed and summed nothing.
+    assert collection_history()["total_duration"] == "28 mins 20 secs"
+
+
 def test_guest_collection_history_shows_only_their_rows(collection, monkeypatch):
     # alice's session filter came after the rating key clauses too, so a
     # guest saw bob's row 3.

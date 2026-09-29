@@ -218,6 +218,9 @@ def build_custom_where(custom_where=None):
     c_where = ''
     args = []
 
+    # The loop strips the OR markers, so work on a copy. Callers reuse the list.
+    custom_where = [list(w) for w in custom_where]
+
     # Adjacent OR columns are one filter. Brackets AND it with the other filters.
     is_or = [w[0].endswith('OR') for w in custom_where] + [False]
 
