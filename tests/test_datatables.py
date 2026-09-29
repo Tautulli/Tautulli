@@ -175,6 +175,8 @@ def test_build_where_no_search_value_is_first_draw():
     # Single-value IN (webserve.py: ?user_id=1).
     ([['session_history.user_id IN', ['1']]], "WHERE session_history.user_id IN (?)", ['1']),
     ([['media_type_live IN', ['movie']]], "WHERE media_type_live IN (?)", ['movie']),
+    # An empty IN list matches nothing (webserve.py: a collection with no items).
+    ([['session_history.rating_key IN', []]], "WHERE session_history.rating_key IN ()", []),
     # Multi-value IN (webserve.py: ?section_id=1,2,3).
     (
         [['session_history.section_id IN', ['1', '2', '3']]],

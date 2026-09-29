@@ -232,7 +232,7 @@ def build_custom_where(custom_where=None):
             and_or = ' OR ' if is_or[i + 1] else ') AND '
         w[0] = w[0].rstrip(' OR')
 
-        if w[0].endswith(' IN') and isinstance(w[1], (list, tuple)) and len(w[1]):
+        if w[0].endswith(' IN') and isinstance(w[1], (list, tuple)):
             c_where += w[0] + ' (' + ','.join(['?'] * len(w[1])) + ')' + and_or
             args += w[1]
         elif isinstance(w[1], (list, tuple)) and len(w[1]):

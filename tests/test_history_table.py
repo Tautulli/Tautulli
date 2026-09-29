@@ -1,8 +1,12 @@
 import json
 
+import pytest
+
 import plexpy
 from plexpy import common
 from plexpy import datafactory
+from plexpy import pmsconnect
+from plexpy import webserve
 
 
 # ---------------------------------------------------------------------------
@@ -511,3 +515,18 @@ def test_episode_thumb_falls_back_to_parent_thumb(app_db):
     # media_type == episode with parent_thumb set: parent_thumb wins over
     # grandparent_thumb.
     assert result["data"][0]["thumb"] == "/parent/thumb"
+
+
+@pytest.mark.parametrize("include_activity", [0, 1])
+def test_empty_collection_history_is_empty(app_db, monkeypatch, include_activity):
+    # A collection with no items gives no rating keys. So does a Plex server
+    # that cannot be reached. The history must be empty, and the query must run.
+    seed_history(app_db)
+    monkeypatch.setattr(pmsconnect.PmsConnect, "get_item_children",
+                        lambda self, rating_key=None, media_type=None: {"children_count": 0, "children_list": []})
+
+    result = webserve.WebInterface().get_history(media_type="collection", rating_key="900", grouping=0,
+                                                 include_activity=include_activity)
+
+    assert result["data"] == []
+    assert result["recordsFiltered"] == 0
