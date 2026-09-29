@@ -10,6 +10,7 @@ The seed is the shared six-row history from test_history_table. alice
 (user_id 1) and bob (user_id 2) both played rating_key 202.
 """
 
+import json
 import os
 import socket
 import sqlite3
@@ -33,6 +34,8 @@ http_host = 127.0.0.1
 launch_browser = 0
 check_github = 0
 check_github_on_startup = 0
+home_library_cards = 1,
+update_show_changelog = 0
 [PMS]
 # Nothing listens on port 1, so a Plex server on this machine stays out of the test
 pms_port = 1
@@ -263,3 +266,86 @@ def test_show_archived_carries_to_the_next_page(server, db, page):
     sync_api.expect(user_stats).to_contain_text("Alice")
     sync_api.expect(indicator).to_be_hidden()
     assert "bob" not in user_stats.inner_text()
+
+
+def test_home_page_follows_show_archived(server, db, page):
+    # Only bob played Delta Movie, an hour ago. The watch statistics cover the
+    # last 30 days. A library card shows the thumb of the library's last play.
+    now = int(time.time())
+    insert_history_row(db, 7, 15, 2, "bob", now - 3600, now - 3000, 204, "Delta Movie", "movie")
+    db.action("UPDATE session_history_metadata SET thumb = '/thumb/' || id")
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    home_stats = page.locator("#home-stats")
+    card = page.locator("#library-stats li.dashboard-stats-info-item").first
+
+    page.goto(server["url"] + "/home")
+    sync_api.expect(home_stats).to_contain_text("No stats to show")
+    sync_api.expect(card).to_have_attribute("data-thumb", "/thumb/6")
+
+    toggle_show_archived(page)
+    sync_api.expect(home_stats).to_contain_text("Delta Movie")
+    sync_api.expect(card).to_have_attribute("data-thumb", "/thumb/7")
+
+
+def test_libraries_table_follows_show_archived(server, db, page):
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    # Grouped plays. alice has 3 and bob has 2.
+    plays = "plays => $('#libraries_list_table').DataTable().row(0).data()?.plays === plays"
+
+    page.goto(server["url"] + "/libraries")
+    page.wait_for_function(plays, arg=3)
+
+    toggle_show_archived(page)
+    page.wait_for_function(plays, arg=5)
+
+
+def test_media_info_table_follows_show_archived(server, db, page):
+    # With no Plex server, the media info tab reads the library items from its
+    # cache file. alice and bob both played rating_key 202.
+    cache = os.path.join(os.path.dirname(server["db"]), "cache", "media_info_1.json")
+    row = {"section_id": 1, "section_type": "movie", "added_at": "0", "media_type": "movie",
+           "rating_key": "202", "parent_rating_key": "", "grandparent_rating_key": "", "title": "Beta Movie",
+           "sort_title": "Beta Movie", "year": "2020", "media_index": "", "parent_media_index": "", "thumb": "",
+           "container": "", "bitrate": "", "video_codec": "", "video_resolution": "", "video_framerate": "",
+           "audio_codec": "", "audio_channels": "", "file_size": ""}
+    with open(cache, "w") as f:
+        json.dump({"last_refreshed": 0, "rows": [row]}, f)
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    play_count = "count => media_info_table.row(0).data()?.play_count === count"
+
+    try:
+        page.goto(server["url"] + "/library?section_id=1")
+        page.click("#nav-tabs-mediainfo")
+        page.wait_for_function(play_count, arg=1)
+
+        # The reload keeps the tab open through the page URL.
+        toggle_show_archived(page)
+        page.wait_for_function(play_count, arg=2)
+    finally:
+        os.remove(cache)
+
+
+def test_media_info_child_rows_follow_show_archived(server, db, page):
+    # Only show and artist libraries have child rows. The expander asks
+    # get_library_media_info for the row's children.
+    cache = os.path.join(os.path.dirname(server["db"]), "cache", "media_info_1.json")
+    row = {"section_id": 1, "section_type": "show", "added_at": "0", "media_type": "show",
+           "rating_key": "202", "parent_rating_key": "", "grandparent_rating_key": "", "title": "Beta Show",
+           "sort_title": "Beta Show", "year": "2020", "media_index": "", "parent_media_index": "", "thumb": "",
+           "container": "", "bitrate": "", "video_codec": "", "video_resolution": "", "video_framerate": "",
+           "audio_codec": "", "audio_channels": "", "file_size": ""}
+    with open(cache, "w") as f:
+        json.dump({"last_refreshed": 0, "rows": [row]}, f)
+    db.action("UPDATE library_sections SET section_type = 'show' WHERE section_id = 1")
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+
+    try:
+        page.goto(server["url"] + "/library?section_id=1")
+        toggle_show_archived(page)
+        page.click("#nav-tabs-mediainfo")
+        with page.expect_request(lambda r: "get_library_media_info" in r.url
+                                 and "rating_key=202" in (r.post_data or "")) as request:
+            page.click("td.expand-media-info a")
+        assert "include_archived=1" in request.value.post_data
+    finally:
+        os.remove(cache)
