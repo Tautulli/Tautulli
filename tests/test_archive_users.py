@@ -741,3 +741,19 @@ def test_libraries_table_includes_archived_when_asked(late_bob, library):
 
     assert (shown["plays"], shown["last_accessed"], shown["last_played"]) == (7, 5100, "Delta Movie")
     assert (hidden["plays"], hidden["last_accessed"], hidden["last_played"]) == (4, 5000, "Beta Movie")
+
+
+def test_media_info_play_count_includes_archived_when_asked(library, monkeypatch):
+    # The library page sends include_archived as 0 or 1. So do the child
+    # tables under each row.
+    rows = [{"rating_key": "202", "sort_title": "Beta Movie", "file_size": "", "media_index": ""}]
+    monkeypatch.setattr(libraries.Libraries, "_load_media_info_cache",
+                        lambda self, section_id=None, rating_key=None: (0, rows, 1))
+    archive_bob()
+    web = webserve.WebInterface()
+
+    # Each call writes play_count into the same stub row, so read it right away.
+    shown = web.get_library_media_info(section_id=1, include_archived="1")["data"][0]["play_count"]
+    hidden = web.get_library_media_info(section_id=1, include_archived="0")["data"][0]["play_count"]
+
+    assert (shown, hidden) == (2, 1)

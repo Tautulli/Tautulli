@@ -427,7 +427,8 @@ class Libraries(object):
 
         return dict
 
-    def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, refresh=False, kwargs=None):
+    def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, refresh=False, kwargs=None,
+                                  include_archived=False):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
@@ -478,7 +479,7 @@ class Libraries(object):
                     "rating_key, parent_rating_key, grandparent_rating_key " \
                     "FROM session_history " \
                     "WHERE section_id = ? %s" \
-                    "GROUP BY %s " % (count_by, users.archived_user_cond(), group_by)
+                    "GROUP BY %s " % (count_by, '' if include_archived else users.archived_user_cond(), group_by)
             result = monitor_db.select(query, args=[section_id])
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)

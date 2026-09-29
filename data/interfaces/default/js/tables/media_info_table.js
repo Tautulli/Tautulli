@@ -374,7 +374,8 @@ function childTableOptionsMedia(rowData) {
                 section_id: rowData['section_id'],
                 section_type: section_type,
                 rating_key: rowData['rating_key'],
-                refresh: refresh_child_tables
+                refresh: refresh_child_tables,
+                include_archived: include_archived
             };
         },
         error: function(xhr, error, thrown) {

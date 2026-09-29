@@ -746,7 +746,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='', **kwargs):
+    def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='',
+                               include_archived=None, **kwargs):
         """ Get the data on the Tautulli media info tables.
 
             ```
@@ -764,6 +765,7 @@ class WebInterface(object):
                 length (int):                   Number of items to return, 25
                 search (str):                   A string to search for, "Thrones"
                 refresh (str):                  "true" to refresh the media info table
+                include_archived (int):         0 or 1, include archived users
 
             Returns:
                 json:
@@ -836,7 +838,8 @@ class WebInterface(object):
                                                         section_type=section_type,
                                                         rating_key=rating_key,
                                                         refresh=refresh,
-                                                        kwargs=kwargs)
+                                                        kwargs=kwargs,
+                                                        include_archived=helpers.bool_true(include_archived))
 
         return result
 
