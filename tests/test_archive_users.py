@@ -528,3 +528,27 @@ def test_guest_collection_history_shows_only_their_rows(collection, monkeypatch)
     monkeypatch.setattr(plexpy.session, "get_session_user_id", lambda: "1")
 
     assert {row["row_id"] for row in collection_history()["data"]} == {4, 6}
+
+
+@pytest.mark.parametrize("kwargs, row_ids", [
+    ({"user_id": "2"}, {3, 5}),
+    ({"user_id": "1,2"}, {1, 2, 3, 4, 5, 6}),
+    ({"user": "bob"}, {3, 5}),
+])
+def test_history_returns_an_archived_user_asked_for_by_name_or_id(seeded, kwargs, row_ids):
+    # The same rule as the graphs and home stats. A named user wins over
+    # the archived filter.
+    archive_bob()
+
+    result = webserve.WebInterface().get_history(grouping=0, include_activity=0, **kwargs)
+
+    assert {row["row_id"] for row in result["data"]} == row_ids
+
+
+def test_archived_guest_history_shows_their_own_rows(seeded, monkeypatch):
+    # The guest session names its own user, so the archived filter does
+    # not apply to it.
+    monkeypatch.setattr(plexpy.session, "get_session_user_id", lambda: "2")
+    archive_bob()
+
+    assert {row["row_id"] for row in call_history(grouping=False)["data"]} == {3, 5}

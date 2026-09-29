@@ -71,7 +71,10 @@ class DataFactory(object):
         if session.get_session_user_id():
             custom_where.append(['session_history.user_id', [session.get_session_user_id()]])
 
-        if not include_archived:
+        # A named user's rows show even when that user is archived, the same
+        # as the graphs. The guest session above names its own user.
+        user_columns = ('session_history.user_id', 'session_history.user_id IN', 'session_history.user IN')
+        if not include_archived and not any(c[0] in user_columns for c in custom_where):
             # Added before the union where clause is derived from custom_where below
             archived_user_ids = users.Users().get_archived_user_ids()
             if archived_user_ids:
