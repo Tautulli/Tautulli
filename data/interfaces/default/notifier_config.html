@@ -945,13 +945,16 @@
         $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
     });
 
-    // Replace the text boxes of a trigger with Ace editors when its section first opens.
-    // The hidden textarea keeps the value that the form saves.
-    $('#accordion-notify_text .link').one('click', function () {
+    // Replace text boxes with Ace editors. The hidden textarea keeps the value that the form saves.
+    function addAceEditors(textareas) {
         if (!window.ace) return;
-        $(this).next('.submenu').find('textarea').each(function () {
+        textareas.each(function () {
             var textarea = $(this).hide();
-            var editor = ace.edit($('<div class="editor-container"></div>').insertBefore(textarea)[0]);
+            var container = $('<div class="editor-container"><div class="editor-controls">' +
+                '<button type="button" class="btn btn-dark btn-edit editor-control-btn" title="Toggle Word Wrap"><i class="fa fa-arrows-h"></i></button> ' +
+                '<button type="button" class="btn btn-dark btn-edit editor-control-btn" title="Toggle Gutter"><i class="fa fa-list-ol"></i></button>' +
+                '</div><div></div></div>').insertBefore(textarea);
+            var editor = ace.edit(container.children().last()[0]);
             editor.setTheme('ace/theme/tautulli');
             editor.setOptions({
                 showPrintMargin: false, fontSize: '14px', wrap: true, minLines: 3, maxLines: 15,
@@ -959,7 +962,18 @@
             });
             editor.session.setValue(textarea.val());
             editor.on('change', function () { textarea.val(editor.getValue()); });
+            var buttons = container.find('button');
+            buttons.eq(0).click(function () { editor.session.setUseWrapMode(!editor.session.getUseWrapMode()); });
+            buttons.eq(1).click(function () { editor.renderer.setShowGutter(!editor.renderer.getShowGutter()); });
         });
+    }
+
+    // The editors appear when a trigger section or the test tab first opens.
+    $('#accordion-notify_text .link').one('click', function () {
+        addAceEditors($(this).next('.submenu').find('textarea'));
+    });
+    $('a[href="#tabs-test_notifications"]').one('shown.bs.tab', function () {
+        addAceEditors($('#tabs-test_notifications textarea'));
     });
 
     toggleRevealTokens();
