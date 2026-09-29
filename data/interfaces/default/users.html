@@ -186,6 +186,8 @@
                     $('#row-edit-mode-alert').fadeOut(200);
                 });
                 toggleEditNames();
+                // Drops the users archived in edit mode
+                users_list_table.draw(false);
             } else {
                 $(this).tooltip({
                     container: '.body-container',

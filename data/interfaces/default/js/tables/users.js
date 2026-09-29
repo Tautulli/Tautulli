@@ -366,13 +366,9 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
         success: function (data) {
             var msg = "User updated";
             showMsg(msg, false, true, 2000);
-            if (is_archived !== (rowData['is_archived'] ? 1 : 0)) {
-                // The redraw below removes this row, so hide its tooltip first. Tooltips are
-                // attached to the body and would otherwise outlive the element they belong to.
-                tr.find('label.edit-tooltip').tooltip('hide');
-                // Archiving hides the row unless archived users are shown
-                users_list_table.draw(false);
-            }
+            // The row stays until edit mode ends. A redraw here moved the rows under the
+            // cursor and left the tooltip of a replaced row on the page.
+            tr.toggleClass('archived-user', is_archived === 1);
         }
     });
 });
