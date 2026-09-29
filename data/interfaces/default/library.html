@@ -214,13 +214,6 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-trash-o"></i> Delete mode
                                                 </button>
                                             </div>
-                                            % if has_archived:
-                                            <div class="btn-group">
-                                                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-history">
-                                                    <i class="fa fa-archive"></i> Show archived
-                                                </button>
-                                            </div>
-                                            % endif
                                             % endif
                                             <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
                                                 <label class="btn btn-dark btn-filter">
@@ -573,8 +566,6 @@ DOCUMENTATION :: END
 
     $(".inactive-library-tooltip").tooltip();
 
-    var include_archived = 0;
-
     function loadHistoryTable(transcode_decision) {
         // Build watch history table
         history_table_options.ajax = {
@@ -625,13 +616,6 @@ DOCUMENTATION :: END
 
     $("#refresh-history-list").click(function () {
         history_table.draw();
-    });
-
-    $('#show-archived-history').on('click', function () {
-        include_archived = $(this).hasClass('active') ? 0 : 1;
-        history_table.draw();
-        loadLibraryStats();
-        recentlyWatched();
     });
 </script>
 % if data['section_type'] != 'photo':
@@ -764,7 +748,6 @@ DOCUMENTATION :: END
 
     });
 
-    // Show archived on the history tab reloads the stats
     function loadLibraryStats() {
         // Populate watch time stats
         $.ajax({

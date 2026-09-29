@@ -610,9 +610,7 @@ class WebInterface(object):
             logger.debug("Library page requested but no section_id received.")
             return serve_template(template_name="library.html", title="Library", data=None, config=config)
 
-        has_archived = bool(users.Users().get_archived_user_ids())
-        return serve_template(template_name="library.html", title="Library", data=library_details, config=config,
-                              has_archived=has_archived)
+        return serve_template(template_name="library.html", title="Library", data=library_details, config=config)
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
@@ -1238,8 +1236,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def users(self, **kwargs):
-        has_archived = bool(users.Users().get_archived_user_ids())
-        return serve_template(template_name="users.html", title="Users", has_archived=has_archived)
+        return serve_template(template_name="users.html", title="Users")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -1898,10 +1895,8 @@ class WebInterface(object):
         config = {
             "database_is_importing": database.IS_IMPORTING,
         }
-        has_archived = bool(users.Users().get_archived_user_ids())
 
-        return serve_template(template_name="history.html", title="History", config=config,
-                              has_archived=has_archived)
+        return serve_template(template_name="history.html", title="History", config=config)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -2237,8 +2232,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth()
     def graphs(self, **kwargs):
-        has_archived = bool(users.Users().get_archived_user_ids())
-        return serve_template(template_name="graphs.html", title="Graphs", has_archived=has_archived)
+        return serve_template(template_name="graphs.html", title="Graphs")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -4533,9 +4527,8 @@ class WebInterface(object):
             if metadata['section_id'] and not allow_session_library(metadata['section_id']):
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)
 
-            has_archived = bool(users.Users().get_archived_user_ids())
             return serve_template(template_name="info.html", metadata=metadata, title="Info",
-                                  config=config, source=source, user_info=user_info, has_archived=has_archived)
+                                  config=config, source=source, user_info=user_info)
         else:
             if get_session_user_id():
                 raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT)

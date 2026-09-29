@@ -384,7 +384,8 @@ def test_upgrade_adds_the_archive_column(app_db):
     assert app_db.select_single("SELECT is_archived FROM users WHERE user_id = 0") == {"is_archived": 0}
 
 
-SHOW_ARCHIVED = '<i class="fa fa-archive"></i> Show archived'
+SHOW_ARCHIVED = 'id="nav-show-archived"'
+ARCHIVED_INDICATOR = 'id="nav-archived-indicator"'
 
 
 @pytest.fixture
@@ -401,28 +402,39 @@ def web_pages(library, monkeypatch):
 
 
 def show_archived_pages(web):
-    return [web.history(), web.library(section_id=1), web.info(rating_key=202, source="history"), web.graphs()]
+    # The settings menu is in base.html, so every full page has it.
+    return [web.home(), web.users(), web.history(), web.library(section_id=1),
+            web.info(rating_key=202, source="history"), web.graphs()]
 
 
-def test_show_archived_button_on_every_page(web_pages):
-    assert not any(SHOW_ARCHIVED in page for page in show_archived_pages(web_pages))
+def test_show_archived_is_in_the_settings_menu_on_every_page(web_pages):
+    # With no archived user, the pages also ignore the stored choice.
+    assert not any(SHOW_ARCHIVED in page or ARCHIVED_INDICATOR in page
+                   or "getLocalStorage('include_archived'" in page
+                   for page in show_archived_pages(web_pages))
 
     archive_bob()
 
-    assert all(SHOW_ARCHIVED in page for page in show_archived_pages(web_pages))
+    assert all(SHOW_ARCHIVED in page and ARCHIVED_INDICATOR in page
+               for page in show_archived_pages(web_pages))
 
 
-def test_show_archived_button_is_admin_only(web_pages, monkeypatch):
+def test_show_archived_is_admin_only(web_pages, monkeypatch):
+    # A guest page still defines include_archived, because the page scripts send it.
     monkeypatch.setattr(webserve, "get_session_info",
                         lambda: {"user_id": "1", "user": "alice", "user_group": "guest", "exp": None})
     archive_bob()
 
-    assert not any(SHOW_ARCHIVED in page for page in show_archived_pages(web_pages))
+    for page in show_archived_pages(web_pages):
+        assert SHOW_ARCHIVED not in page
+        assert ARCHIVED_INDICATOR not in page
+        assert "var include_archived = 0;" in page
+        assert "getLocalStorage('include_archived'" not in page
 
 
 def test_graph_popup_keeps_the_show_archived_state(web_pages):
-    # A click on a graph passes the button state to the history popup,
-    # which passes it on to get_history.
+    # A graph click sends include_archived to the history popup. The popup
+    # sends it to get_history.
     shown = web_pages.history_table_modal(user_id="", start_date="1970-01-01", include_archived="1")
     default = web_pages.history_table_modal(user_id="", start_date="1970-01-01")
 
@@ -432,17 +444,15 @@ def test_graph_popup_keeps_the_show_archived_state(web_pages):
 
 def test_show_archived_position(web_pages):
     archive_bob()
+    page = web_pages.history()
 
-    def in_order(page, *ids):
-        positions = [page.index('id="%s"' % i) for i in ids]
+    def in_order(*needles):
+        positions = [page.index(n) for n in needles]
         return positions == sorted(positions)
 
-    assert in_order(web_pages.history(), "history-user", "show-archived-history", "media_type-selection")
-    assert in_order(web_pages.graphs(), "graph-user", "show-archived-graphs", "yaxis-selection")
-    # Pages without a picker put the button right after the edit or delete mode button.
-    assert in_order(web_pages.users(), "row-edit-mode", "show-archived-users", "refresh-users-list")
-    for page in (web_pages.library(section_id=1), web_pages.info(rating_key=202, source="history")):
-        assert in_order(page, "row-edit-mode", "show-archived-history", "transcode_decision-selection")
+    # The indicator sits left of the settings menu. The menu item comes right after Settings.
+    assert in_order('<a href="graphs">', ARCHIVED_INDICATOR, 'id="settings-dropdown-menu"',
+                    '<a href="settings">', SHOW_ARCHIVED, '<a href="logs">')
 
 
 def activity_session(session_key, user_id, **extra):
@@ -573,8 +583,7 @@ def test_item_stats_include_archived_when_asked(late_bob):
 
 
 def test_item_stats_pages_take_include_archived(web_pages):
-    # The info page asks for its stats again when Show archived changes.
-    # It sends include_archived as 0 or 1.
+    # The info page sends include_archived as 0 or 1.
     archive_bob()
 
     users_shown = web_pages.item_user_stats(rating_key=202, include_archived="1")
@@ -627,8 +636,7 @@ def test_library_stats_include_archived_when_asked(library):
 
 
 def test_library_stats_pages_take_include_archived(web_pages):
-    # The library page asks for its stats again when Show archived changes.
-    # It sends include_archived as 0 or 1.
+    # The library page sends include_archived as 0 or 1.
     archive_bob()
 
     users_shown = web_pages.library_user_stats(section_id=1, include_archived="1")

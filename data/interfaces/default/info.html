@@ -659,13 +659,6 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-trash-o"></i> Delete mode
                                                 </button>
                                             </div>
-                                            % if has_archived:
-                                            <div class="btn-group">
-                                                <button class="btn btn-dark btn-filter" data-toggle="button" aria-pressed="false" autocomplete="off" id="show-archived-history">
-                                                    <i class="fa fa-archive"></i> Show archived
-                                                </button>
-                                            </div>
-                                            % endif
                                             % endif
                                             <div class="btn-group" data-toggle="buttons" id="transcode_decision-selection">
                                                 <label class="btn btn-dark btn-filter">
@@ -874,8 +867,6 @@ DOCUMENTATION :: END
 <script src="${http_root}js/tables/export_table.js${cache_param}"></script>
 % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
 <script>
-    var include_archived = 0;
-
     function loadHistoryTable(transcode_decision) {
         // Build watch history table
         history_table_options.ajax = {
@@ -935,12 +926,6 @@ DOCUMENTATION :: END
     $("#refresh-history-list").click(function () {
         history_table.draw();
     });
-
-    $('#show-archived-history').on('click', function () {
-        include_archived = $(this).hasClass('active') ? 0 : 1;
-        history_table.draw();
-        loadItemStats();
-    });
 </script>
 % endif
 % if data['media_type'] in ('show', 'season', 'artist', 'album', 'photo_album', 'collection', 'playlist'):
@@ -961,7 +946,6 @@ DOCUMENTATION :: END
 % endif
 % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
 <script>
-    // Show archived on the history table reloads the stats
     function loadItemStats() {
         // Populate watch time stats
         $.ajax({

@@ -1,8 +1,10 @@
 <%
     import plexpy
-    from plexpy import version
+    from plexpy import users, version
     from plexpy.helpers import anon_url
     from plexpy.notifiers import BROWSER_NOTIFIERS
+
+    has_archived = _session['user_group'] == 'admin' and bool(users.Users().get_archived_user_ids())
 %>
 <!doctype html>
 
@@ -125,6 +127,9 @@
                     % else:
                     <li><a href="graphs">Graphs</a></li>
                     % endif
+                    % if has_archived:
+                    <li id="nav-archived-indicator" style="display: none;"><a href="#" title="Showing archived users. Click to hide them."><i class="fa fa-lg fa-archive"></i></a></li>
+                    % endif
                     % if title == "Settings":
                     <li class="dropdown active">
                     % else:
@@ -135,6 +140,9 @@
                         <ul class="dropdown-menu" id="settings-dropdown-menu">
                             % if _session['user_group'] == 'admin':
                             <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
+                            % if has_archived:
+                            <li><a href="#" id="nav-show-archived"><i class="fa fa-fw fa-square-o"></i> Show archived users</a></li>
+                            % endif
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
                             <li><a href="${anon_url('https://github.com/%s/%s/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
@@ -337,6 +345,21 @@ ${next.modalIncludes()}
 <script src="${http_root}js/ajaxNotifications.js"></script>
 <script src="${http_root}js/kjua.min.js"></script>
 <script>
+    // Every page sends this with its stats. The browser keeps it across pages.
+    var include_archived = 0;
+    % if has_archived:
+    include_archived = getLocalStorage('include_archived', 0, false) === '1' ? 1 : 0;
+    if (include_archived) {
+        $('#nav-show-archived i').toggleClass('fa-square-o fa-check-square-o');
+        $('#nav-archived-indicator').show();
+    }
+    $('#nav-show-archived, #nav-archived-indicator a').click(function (e) {
+        e.preventDefault();
+        setLocalStorage('include_archived', 1 - include_archived, false);
+        location.reload();
+    });
+    % endif
+
     % if _session['user_group'] == 'admin':
     $('body').on('click', '#updateDismiss', function() {
         $('#updatebar').fadeOut();
