@@ -36,6 +36,10 @@ jobs:
 
       - name: Run Tests
         run: pytest
+        env:
+          # The browser tests use the runner's Google Chrome. They skip
+          # where Playwright is not installed.
+          BROWSER_CHANNEL: chrome
 
   # Single stable check name for branch protection. Require this one
   # instead of the per-version matrix names, which change with the matrix.

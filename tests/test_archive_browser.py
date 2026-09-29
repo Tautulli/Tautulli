@@ -3,7 +3,8 @@
 The tests start Tautulli in a subprocess with an empty data directory and
 drive it with Playwright. They skip when Playwright is not installed. To
 run them, install it with `pip install playwright` and
-`playwright install chromium`.
+`playwright install chromium`. CI sets BROWSER_CHANNEL=chrome to use the
+Google Chrome that the runner already has.
 
 The seed is the shared six-row history from test_history_table. alice
 (user_id 1) and bob (user_id 2) both played rating_key 202.
@@ -97,7 +98,7 @@ def db(server):
 @pytest.fixture(scope="module")
 def browser():
     with sync_api.sync_playwright() as playwright:
-        browser = playwright.chromium.launch()
+        browser = playwright.chromium.launch(channel=os.environ.get("BROWSER_CHANNEL"))
         yield browser
         browser.close()
 
