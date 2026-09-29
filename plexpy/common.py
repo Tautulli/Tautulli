@@ -28,7 +28,13 @@ PRODUCT = 'Tautulli'
 PLATFORM = platform.system()
 PLATFORM_RELEASE = platform.release()
 PLATFORM_VERSION = platform.version()
-PLATFORM_LINUX_DISTRO = ' '.join(x for x in distro.linux_distribution() if x)
+# Same fields as the deprecated distro.linux_distribution(). Its codename prefers
+# release_codename, so Ubuntu reports "Jammy Jellyfish" instead of "jammy".
+PLATFORM_LINUX_DISTRO = ' '.join(x for x in (
+    distro.name(),
+    distro.version(),
+    distro.os_release_attr('release_codename') or distro.codename()
+) if x)
 PLATFORM_DEVICE_NAME = platform.node()
 PYTHON_VERSION = platform.python_version()
 SQLITE_VERSION = sqlite3.sqlite_version
