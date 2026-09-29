@@ -664,16 +664,16 @@ def set_notifier_config(notifier_id=None, **kwargs):
                 continue
             notifier['config'][cfg] = notifier_config[cfg]
 
-    if friendly_name := kwargs.get('friendly_name'):
-        notifier['friendly_name'] = friendly_name
+    if 'friendly_name' in kwargs:
+        notifier['friendly_name'] = kwargs['friendly_name']
     if custom_conditions := kwargs.get('custom_conditions'):
         if validated_conditions := validate_conditions(custom_conditions):
             notifier['custom_conditions'] = validated_conditions
         else:
             logger.error("Tautulli Notifiers :: Unable to update notification agent: Invalid custom conditions.")
             return False
-    if custom_conditions_logic := kwargs.get('custom_conditions_logic'):
-        notifier['custom_conditions_logic'] = custom_conditions_logic
+    if 'custom_conditions_logic' in kwargs:
+        notifier['custom_conditions_logic'] = kwargs['custom_conditions_logic']
 
     keys = {'id': notifier_id}
     values = {

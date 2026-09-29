@@ -81,3 +81,49 @@ def test_a_real_password_replaces_the_saved_newsletter_password(newsletter):
 
     email_config = newsletters.get_newsletter_config(newsletter_id=newsletter)['email_config']
     assert email_config['smtp_password'] == 'correcthorse'
+
+
+# The settings form posts every text field, and a blank field means the user
+# cleared it. set_newsletter_config and set_notifier_config used to skip any
+# falsy value, so a cleared field kept its old text.
+
+NEWSLETTER_TEXT = ('id_name', 'friendly_name', 'subject', 'body', 'message')
+NOTIFIER_TEXT = ('friendly_name', 'custom_conditions_logic')
+
+
+def saved_row(db, table, row_id):
+    return db.select_single('SELECT * FROM %s WHERE id = ?' % table, args=[row_id])
+
+
+@pytest.mark.parametrize('key', NEWSLETTER_TEXT)
+def test_a_blank_field_clears_the_saved_newsletter_text(newsletter, app_db, key):
+    newsletters.set_newsletter_config(newsletter_id=newsletter, **{key: 'old'})
+    assert saved_row(app_db, 'newsletters', newsletter)[key] == 'old'
+
+    assert newsletters.set_newsletter_config(newsletter_id=newsletter, **{key: ''}) is True
+    assert saved_row(app_db, 'newsletters', newsletter)[key] == ''
+
+
+def test_an_omitted_field_keeps_the_saved_newsletter_text(newsletter, app_db):
+    newsletters.set_newsletter_config(newsletter_id=newsletter, **dict.fromkeys(NEWSLETTER_TEXT, 'old'))
+    newsletters.set_newsletter_config(newsletter_id=newsletter)
+
+    row = saved_row(app_db, 'newsletters', newsletter)
+    assert [row[key] for key in NEWSLETTER_TEXT] == ['old'] * len(NEWSLETTER_TEXT)
+
+
+@pytest.mark.parametrize('key', NOTIFIER_TEXT)
+def test_a_blank_field_clears_the_saved_notifier_text(email_notifier, app_db, key):
+    notifiers.set_notifier_config(notifier_id=email_notifier, **{key: 'old'})
+    assert saved_row(app_db, 'notifiers', email_notifier)[key] == 'old'
+
+    assert notifiers.set_notifier_config(notifier_id=email_notifier, **{key: ''}) is True
+    assert saved_row(app_db, 'notifiers', email_notifier)[key] == ''
+
+
+def test_an_omitted_field_keeps_the_saved_notifier_text(email_notifier, app_db):
+    notifiers.set_notifier_config(notifier_id=email_notifier, **dict.fromkeys(NOTIFIER_TEXT, 'old'))
+    notifiers.set_notifier_config(notifier_id=email_notifier)
+
+    row = saved_row(app_db, 'notifiers', email_notifier)
+    assert [row[key] for key in NOTIFIER_TEXT] == ['old'] * len(NOTIFIER_TEXT)

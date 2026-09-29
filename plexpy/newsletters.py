@@ -250,16 +250,16 @@ def set_newsletter_config(newsletter_id=None, **kwargs):
             newsletter['email_config'][cfg] = email_config[cfg]
 
 
-    if id_name := kwargs.get('id_name'):
-        newsletter['id_name'] = id_name
-    if friendly_name := kwargs.get('friendly_name'):
-        newsletter['friendly_name'] = friendly_name
-    if subject := kwargs.get('subject'):
-        newsletter['subject'] = subject
-    if body := kwargs.get('body'):
-        newsletter['body'] = body
-    if message := kwargs.get('message'):
-        newsletter['message'] = message
+    if 'id_name' in kwargs:
+        newsletter['id_name'] = kwargs['id_name']
+    if 'friendly_name' in kwargs:
+        newsletter['friendly_name'] = kwargs['friendly_name']
+    if 'subject' in kwargs:
+        newsletter['subject'] = kwargs['subject']
+    if 'body' in kwargs:
+        newsletter['body'] = kwargs['body']
+    if 'message' in kwargs:
+        newsletter['message'] = kwargs['message']
     if cron := kwargs.get('cron'):
         newsletter['cron'] = cron
     if active := kwargs.get('active'):
