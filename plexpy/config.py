@@ -15,6 +15,7 @@
 
 import os
 import re
+import shutil
 import time
 import threading
 import zipfile
@@ -227,6 +228,8 @@ _DO_NOT_DOWNLOAD_KEYS = [
 
 IS_IMPORTING = False
 IMPORT_THREAD = None
+# A signal handler runs shutdown(), which writes the config on the thread that may be writing
+WRITE_LOCK = threading.RLock()
 
 SETTINGS = [
     'ANON_REDIRECT',
@@ -551,10 +554,25 @@ class Config(object):
         # Write it to file
         logger.info("Tautulli Config :: Writing configuration to file")
 
-        try:
-            new_config.write()
-        except IOError as e:
-            logger.error("Tautulli Config :: Error writing configuration file: %s", e)
+        # Write a temp file and swap it in, so a crash never leaves a half written config
+        config_file = os.path.realpath(self._config_file)
+        temp_file = config_file + '.tmp'
+        with WRITE_LOCK:
+            try:
+                with open(temp_file, 'wb') as f:
+                    if os.path.exists(config_file):
+                        shutil.copymode(config_file, temp_file)
+                    new_config.write(f)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(temp_file, config_file)
+            except OSError as e:
+                # A locked or bind mounted file cannot be replaced, so write it in place
+                logger.debug("Tautulli Config :: Unable to replace configuration file, writing in place: %s", e)
+                try:
+                    new_config.write()
+                except IOError as e:
+                    logger.error("Tautulli Config :: Error writing configuration file: %s", e)
 
         self._blacklist()
 
