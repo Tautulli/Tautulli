@@ -86,7 +86,8 @@
             type: 'POST',
             data: function ( d ) {
                 return { 
-                    json_data: JSON.stringify(d)
+                    json_data: JSON.stringify(d),
+                    include_archived: include_archived
                 };
             },
             error: function(xhr, error, thrown) {

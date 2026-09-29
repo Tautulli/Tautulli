@@ -292,7 +292,7 @@ class Libraries(object):
     def __init__(self):
         pass
 
-    def get_datatables_list(self, kwargs=None, grouping=None):
+    def get_datatables_list(self, kwargs=None, grouping=None, include_archived=False):
         data_tables = datatables.DataTables()
 
         custom_where = [['library_sections.deleted_section', 0]]
@@ -354,7 +354,8 @@ class Libraries(object):
                                                        'session_history_metadata',
                                                        'session_history_media_info'],
                                           join_evals=[['session_history.section_id',
-                                                       'library_sections.section_id ' + users.archived_user_cond()],
+                                                       'library_sections.section_id ' +
+                                                       ('' if include_archived else users.archived_user_cond())],
                                                       ['session_history.id', 'session_history_metadata.id'],
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)

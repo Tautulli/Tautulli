@@ -728,3 +728,16 @@ def test_home_stats_api_takes_include_archived(seeded):
 
     assert {row["user_id"] for row in shown["rows"]} == {1, 2}
     assert {row["user_id"] for row in hidden["rows"]} == {1}
+
+
+def test_libraries_table_includes_archived_when_asked(late_bob, library):
+    # The libraries page sends include_archived as 0 or 1. Row 7 is bob's
+    # last play, Delta Movie at 5100. Row 6 is alice's, Beta Movie at 5000.
+    archive_bob()
+    web = webserve.WebInterface()
+
+    shown = web.get_library_list(grouping=0, include_archived="1")["data"][0]
+    hidden = web.get_library_list(grouping=0, include_archived="0")["data"][0]
+
+    assert (shown["plays"], shown["last_accessed"], shown["last_played"]) == (7, 5100, "Delta Movie")
+    assert (hidden["plays"], hidden["last_accessed"], hidden["last_played"]) == (4, 5000, "Beta Movie")

@@ -458,7 +458,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi("get_libraries_table")
-    def get_library_list(self, grouping=None, **kwargs):
+    def get_library_list(self, grouping=None, include_archived=None, **kwargs):
         """ Get the data on the Tautulli libraries table.
 
             ```
@@ -473,6 +473,7 @@ class WebInterface(object):
                 start (int):                    Row to start from, 0
                 length (int):                   Number of items to return, 25
                 search (str):                   A string to search for, "Movies"
+                include_archived (int):         0 or 1, include archived users
 
             Returns:
                 json:
@@ -535,7 +536,8 @@ class WebInterface(object):
         grouping = helpers.bool_true(grouping, return_none=True)
 
         library_data = libraries.Libraries()
-        library_list = library_data.get_datatables_list(kwargs=kwargs, grouping=grouping)
+        library_list = library_data.get_datatables_list(kwargs=kwargs, grouping=grouping,
+                                                        include_archived=helpers.bool_true(include_archived))
 
         if library_list is None:
             cherrypy.response.status = 500
