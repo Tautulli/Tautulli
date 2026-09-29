@@ -182,3 +182,26 @@ def test_info_page_stats_follow_show_archived(server, db, page):
     page.click("#show-archived-history")
     sync_api.expect(user_stats).not_to_contain_text("bob")
     sync_api.expect(all_time_plays).to_have_text("1")
+
+
+def test_library_stats_follow_show_archived(server, db, page):
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    user_stats = page.locator("#library-user-stats")
+    # Grouped plays. alice has 3 and bob has 2.
+    all_time_plays = page.locator("#library-time-stats .user-overview-stats-instance",
+                                  has_text="All Time").locator("h3").first
+
+    page.goto(server["url"] + "/library?section_id=1")
+    sync_api.expect(user_stats).to_contain_text("Alice")
+    sync_api.expect(all_time_plays).to_have_text("3")
+    assert "bob" not in user_stats.inner_text()
+
+    # The button is on the history tab. The stats are on the profile tab.
+    page.click("#nav-tabs-history")
+    page.click("#show-archived-history")
+    sync_api.expect(user_stats).to_contain_text("bob")
+    sync_api.expect(all_time_plays).to_have_text("5")
+
+    page.click("#show-archived-history")
+    sync_api.expect(user_stats).not_to_contain_text("bob")
+    sync_api.expect(all_time_plays).to_have_text("3")
