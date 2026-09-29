@@ -481,3 +481,44 @@ def test_graph_show_archived_matches_the_unarchived_graph(late_bob, library, nam
 
     assert graph(time_range=time_range) != before
     assert graph(time_range=time_range, include_archived="1") == before
+
+
+@pytest.fixture
+def collection(seeded, monkeypatch):
+    # The collection holds rating_key 202. The seed sets parent_rating_key
+    # to rating_key - 1, so it matches bob's row 3 and alice's row 6 by
+    # rating_key and alice's row 4 (rating_key 203) by parent_rating_key.
+    monkeypatch.setattr(pmsconnect.PmsConnect, "get_item_children",
+                        lambda self, rating_key=None, media_type=None: {"children_list": [{"rating_key": "202"}]})
+    return seeded
+
+
+def collection_history(**kwargs):
+    return webserve.WebInterface().get_history(media_type="collection", rating_key="900", grouping=0,
+                                               include_activity=0, **kwargs)
+
+
+def test_collection_history_skips_archived(collection):
+    # The archived filter came after the three rating key clauses and became
+    # a fourth OR, which returned every play of every user not archived.
+    archive_bob()
+
+    assert {row["row_id"] for row in collection_history()["data"]} == {4, 6}
+    assert {row["row_id"] for row in collection_history(include_archived=1)["data"]} == {3, 4, 6}
+
+
+def test_collection_history_keeps_the_other_filters(collection):
+    # Rows 3 and 6 were transcoded, row 4 was direct play. Row 2 is a
+    # transcode outside the collection.
+    result = collection_history(transcode_decision="transcode")
+
+    assert {row["row_id"] for row in result["data"]} == {3, 6}
+    assert result["recordsFiltered"] == 2
+
+
+def test_guest_collection_history_shows_only_their_rows(collection, monkeypatch):
+    # alice's session filter came after the rating key clauses too, so a
+    # guest saw bob's row 3.
+    monkeypatch.setattr(plexpy.session, "get_session_user_id", lambda: "1")
+
+    assert {row["row_id"] for row in collection_history()["data"]} == {4, 6}

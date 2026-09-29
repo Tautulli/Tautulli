@@ -218,8 +218,15 @@ def build_custom_where(custom_where=None):
     c_where = ''
     args = []
 
-    for w in custom_where:
-        and_or = ' OR ' if w[0].endswith('OR') else ' AND '
+    # Adjacent OR columns are one filter. Brackets AND it with the other filters.
+    is_or = [w[0].endswith('OR') for w in custom_where] + [False]
+
+    for i, w in enumerate(custom_where):
+        and_or = ' AND '
+        if is_or[i]:
+            if i == 0 or not is_or[i - 1]:
+                c_where += '('
+            and_or = ' OR ' if is_or[i + 1] else ') AND '
         w[0] = w[0].rstrip(' OR')
 
         if w[0].endswith(' IN') and isinstance(w[1], (list, tuple)) and len(w[1]):

@@ -217,25 +217,47 @@ def test_build_custom_where_ands_multiple_filters():
     assert args == ['1', 'movie']
 
 
+COLLECTION_KEYS = ['100', '200']
+COLLECTION_WHERE = [
+    ['session_history_metadata.rating_key IN OR', COLLECTION_KEYS],
+    ['session_history_metadata.parent_rating_key IN OR', COLLECTION_KEYS],
+    ['session_history_metadata.grandparent_rating_key IN OR', COLLECTION_KEYS],
+]
+COLLECTION_SQL = (
+    "(session_history_metadata.rating_key IN (?,?) "
+    "OR session_history_metadata.parent_rating_key IN (?,?) "
+    "OR session_history_metadata.grandparent_rating_key IN (?,?))"
+)
+
+
 def test_build_custom_where_rating_key_in_or_triple():
     # webserve.py get_history: a collection/playlist filter expands to a
     # rating key that could match the item itself, its parent, or its
     # grandparent, so the three IN clauses are OR'd rather than AND'd.
-    rating_keys = ['100', '200']
-    custom_where = [
-        ['session_history_metadata.rating_key IN OR', rating_keys],
-        ['session_history_metadata.parent_rating_key IN OR', rating_keys],
-        ['session_history_metadata.grandparent_rating_key IN OR', rating_keys],
-    ]
+    where, args = build_custom_where([list(w) for w in COLLECTION_WHERE])
 
-    where, args = build_custom_where(custom_where)
+    assert where == "WHERE " + COLLECTION_SQL
+    assert args == COLLECTION_KEYS * 3
 
-    assert where == (
-        "WHERE session_history_metadata.rating_key IN (?,?) "
-        "OR session_history_metadata.parent_rating_key IN (?,?) "
-        "OR session_history_metadata.grandparent_rating_key IN (?,?)"
-    )
-    assert args == ['100', '200', '100', '200', '100', '200']
+
+@pytest.mark.parametrize("before, after, expected_where, expected_args", [
+    # get_datatables_history appends the archived filter after the
+    # collection filter. Unbracketed, it became a fourth OR and returned
+    # every play of every user who is not archived.
+    ([], [['session_history.user_id NOT IN', [5]]],
+     "WHERE " + COLLECTION_SQL + " AND session_history.user_id NOT IN (?)", COLLECTION_KEYS * 3 + [5]),
+    # The guest session filter comes after it too.
+    ([], [['session_history.user_id', ['2']]],
+     "WHERE " + COLLECTION_SQL + " AND (session_history.user_id = ?)", COLLECTION_KEYS * 3 + ['2']),
+    # A filter before the group stays ANDed with the whole group.
+    ([['media_type_live IN', ['movie']]], [],
+     "WHERE media_type_live IN (?) AND " + COLLECTION_SQL, ['movie'] + COLLECTION_KEYS * 3),
+])
+def test_build_custom_where_brackets_the_or_group(before, after, expected_where, expected_args):
+    where, args = build_custom_where(before + [list(w) for w in COLLECTION_WHERE] + after)
+
+    assert where == expected_where
+    assert args == expected_args
 
 
 @pytest.mark.parametrize("second_filter,expected_where,expected_args", [
