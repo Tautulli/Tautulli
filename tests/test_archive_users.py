@@ -642,3 +642,18 @@ def test_library_stats_pages_take_include_archived(web_pages):
     all_time = r"All Time</h4>\s*<h3>(\d+)</h3>"
     assert re.search(all_time, plays_shown).group(1) == "5"
     assert re.search(all_time, plays_hidden).group(1) == "3"
+
+
+def test_library_recently_watched_includes_archived_when_asked(late_bob, web_pages):
+    # rating_key 204 is Delta Movie, which only bob played. The page template
+    # reads parent_title, which the seed leaves NULL.
+    late_bob.action("UPDATE session_history_metadata SET parent_title = ''")
+    archive_bob()
+
+    shown = libraries.Libraries().get_recently_watched(section_id=1, include_archived=True)
+    page_shown = web_pages.library_recently_watched(section_id=1, include_archived="1")
+    page_hidden = web_pages.library_recently_watched(section_id=1, include_archived="0")
+
+    assert 204 in {row["rating_key"] for row in shown}
+    assert "Delta Movie" in page_shown
+    assert "Delta Movie" not in page_hidden

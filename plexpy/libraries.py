@@ -994,7 +994,7 @@ class Libraries(object):
 
         return session.mask_session_info(user_stats, mask_metadata=False)
 
-    def get_recently_watched(self, section_id=None, limit='10'):
+    def get_recently_watched(self, section_id=None, limit='10', include_archived=False):
         if not session.allow_session_library(section_id):
             return []
 
@@ -1015,7 +1015,7 @@ class Libraries(object):
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
                         "WHERE section_id = ? %s" \
                         "GROUP BY session_history.rating_key " \
-                        "ORDER BY MAX(started) DESC LIMIT ?" % users.archived_user_cond()
+                        "ORDER BY MAX(started) DESC LIMIT ?" % ('' if include_archived else users.archived_user_cond())
                 result = monitor_db.select(query, args=[section_id, limit])
             else:
                 result = []

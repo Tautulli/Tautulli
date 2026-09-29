@@ -705,13 +705,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def library_recently_watched(self, section_id=None, limit='10', **kwargs):
+    def library_recently_watched(self, section_id=None, limit='10', include_archived=None, **kwargs):
         if not allow_session_library(section_id):
             return serve_template(template_name="user_recently_watched.html", data=None, title="Recently Watched")
 
         if section_id:
             library_data = libraries.Libraries()
-            result = library_data.get_recently_watched(section_id=section_id, limit=limit)
+            result = library_data.get_recently_watched(section_id=section_id, limit=limit,
+                                                       include_archived=helpers.bool_true(include_archived))
         else:
             result = None
 

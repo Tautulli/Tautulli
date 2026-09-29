@@ -631,6 +631,7 @@ DOCUMENTATION :: END
         include_archived = $(this).hasClass('active') ? 0 : 1;
         history_table.draw();
         loadLibraryStats();
+        recentlyWatched();
     });
 </script>
 % if data['section_type'] != 'photo':
@@ -710,7 +711,8 @@ DOCUMENTATION :: END
             async: true,
             data: {
                 section_id: section_id,
-                limit: 50
+                limit: 50,
+                include_archived: include_archived
             },
             complete: function(xhr, status) {
                 $("#library-recently-watched").html(xhr.responseText);
