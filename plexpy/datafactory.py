@@ -1264,7 +1264,8 @@ class DataFactory(object):
 
         return library_stats
 
-    def get_watch_time_stats(self, rating_key=None, guid=None, media_type=None, grouping=None, query_days=None):
+    def get_watch_time_stats(self, rating_key=None, guid=None, media_type=None, grouping=None, query_days=None,
+                             include_archived=False):
         if rating_key is None and guid is None:
             return []
 
@@ -1294,7 +1295,7 @@ class DataFactory(object):
             rating_keys = [rating_key]
 
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
-        archived_cond = users.archived_user_cond()
+        archived_cond = '' if include_archived else users.archived_user_cond()
 
         for days in query_days:
             timestamp_query = timestamp - days * 24 * 60 * 60
@@ -1378,7 +1379,7 @@ class DataFactory(object):
 
         return item_watch_time_stats
 
-    def get_user_stats(self, rating_key=None, guid=None, media_type=None, grouping=None):
+    def get_user_stats(self, rating_key=None, guid=None, media_type=None, grouping=None, include_archived=False):
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
@@ -1398,7 +1399,7 @@ class DataFactory(object):
             rating_keys = [rating_key]
 
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
-        archived_cond = users.archived_user_cond()
+        archived_cond = '' if include_archived else users.archived_user_cond()
 
         try:
             if str(rating_key).isdigit():

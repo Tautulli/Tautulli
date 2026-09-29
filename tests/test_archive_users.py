@@ -9,6 +9,7 @@ tests archive bob.
 
 import json
 import os
+import re
 
 import pytest
 
@@ -552,3 +553,38 @@ def test_archived_guest_history_shows_their_own_rows(seeded, monkeypatch):
     archive_bob()
 
     assert {row["row_id"] for row in call_history(grouping=False)["data"]} == {3, 5}
+
+
+def test_item_stats_include_archived_when_asked(late_bob):
+    archive_bob()
+    factory = datafactory.DataFactory()
+
+    # bob's row 3 and alice's row 6 played rating_key 202, which has guid-202.
+    by_key = factory.get_watch_time_stats(rating_key=202, grouping=False, query_days="0",
+                                          include_archived=True)
+    by_guid = factory.get_watch_time_stats(guid="guid-202", grouping=False, query_days="0",
+                                           include_archived=True)
+    users_by_key = factory.get_user_stats(rating_key=202, grouping=False, include_archived=True)
+    users_by_guid = factory.get_user_stats(guid="guid-202", grouping=False, include_archived=True)
+
+    assert [row["total_plays"] for row in by_key + by_guid] == [2, 2]
+    assert [row["user_id"] for row in users_by_key] == [1, 2]
+    assert [row["user_id"] for row in users_by_guid] == [1, 2]
+
+
+def test_item_stats_pages_take_include_archived(web_pages):
+    # The info page asks for its stats again when Show archived changes.
+    # It sends include_archived as 0 or 1.
+    archive_bob()
+
+    users_shown = web_pages.item_user_stats(rating_key=202, include_archived="1")
+    users_default = web_pages.item_user_stats(rating_key=202, include_archived="0")
+    plays_shown = web_pages.item_watch_time_stats(rating_key=202, include_archived="1")
+    plays_default = web_pages.item_watch_time_stats(rating_key=202, include_archived="0")
+
+    assert 'title="bob"' in users_shown
+    assert 'title="bob"' not in users_default
+    # bob adds a second play of rating_key 202.
+    all_time = r"All Time</h4>\s*<h3>(\d+)</h3>"
+    assert re.search(all_time, plays_shown).group(1) == "2"
+    assert re.search(all_time, plays_default).group(1) == "1"

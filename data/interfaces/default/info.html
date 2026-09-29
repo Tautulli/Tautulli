@@ -939,6 +939,7 @@ DOCUMENTATION :: END
     $('#show-archived-history').on('click', function () {
         include_archived = $(this).hasClass('active') ? 0 : 1;
         history_table.draw();
+        loadItemStats();
     });
 </script>
 % endif
@@ -960,38 +961,44 @@ DOCUMENTATION :: END
 % endif
 % if data['media_type'] in ('movie', 'show', 'season', 'episode', 'artist', 'album', 'track', 'collection', 'playlist'):
 <script>
-    // Populate watch time stats
-    $.ajax({
-        url: 'item_watch_time_stats',
-        async: true,
-        data: { 
-            % if data['live']:
-            guid: "${data['guid']}"
-            % else:
-            rating_key: "${data['rating_key']}",
-            media_type: "${data['media_type']}"
-            % endif
-        },
-        complete: function(xhr, status) {
-            $("#watch-time-stats").html(xhr.responseText);
-        }
-    });
-    // Populate user stats
-    $.ajax({
-        url: 'item_user_stats',
-        async: true,
-        data: { 
-            % if data['live']:
-            guid: "${data['guid']}"
-            % else:
-            rating_key: "${data['rating_key']}",
-            media_type: "${data['media_type']}"
-            % endif
-        },
-        complete: function(xhr, status) {
-            $("#user-stats").html(xhr.responseText);
-        }
-    });
+    // Show archived on the history table reloads the stats
+    function loadItemStats() {
+        // Populate watch time stats
+        $.ajax({
+            url: 'item_watch_time_stats',
+            async: true,
+            data: {
+                % if data['live']:
+                guid: "${data['guid']}",
+                % else:
+                rating_key: "${data['rating_key']}",
+                media_type: "${data['media_type']}",
+                % endif
+                include_archived: include_archived
+            },
+            complete: function(xhr, status) {
+                $("#watch-time-stats").html(xhr.responseText);
+            }
+        });
+        // Populate user stats
+        $.ajax({
+            url: 'item_user_stats',
+            async: true,
+            data: {
+                % if data['live']:
+                guid: "${data['guid']}",
+                % else:
+                rating_key: "${data['rating_key']}",
+                media_type: "${data['media_type']}",
+                % endif
+                include_archived: include_archived
+            },
+            complete: function(xhr, status) {
+                $("#user-stats").html(xhr.responseText);
+            }
+        });
+    }
+    loadItemStats();
 </script>
 % endif
 % if data['media_type'] == 'collection':
