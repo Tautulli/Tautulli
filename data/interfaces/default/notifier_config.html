@@ -425,6 +425,7 @@
 </div>
 
 <script src="${http_root}js/filterer.jquery.js"></script>
+<script src="${http_root}js/ace/ace.js"></script>
 <script>
 
     $('#notifier-config-modal').unbind('hidden.bs.modal');
@@ -942,6 +943,23 @@
             modal_body.scrollTop(modal_offset);
         };
         $(this).on('focus keyup input', function () { resizeTextarea(this); }).removeAttr('data-autoresize');
+    });
+
+    // Replace the text boxes of a trigger with Ace editors when its section first opens.
+    // The hidden textarea keeps the value that the form saves.
+    $('#accordion-notify_text .link').one('click', function () {
+        if (!window.ace) return;
+        $(this).next('.submenu').find('textarea').each(function () {
+            var textarea = $(this).hide();
+            var editor = ace.edit($('<div class="editor-container"></div>').insertBefore(textarea)[0]);
+            editor.setTheme('ace/theme/tautulli');
+            editor.setOptions({
+                showPrintMargin: false, fontSize: '14px', wrap: true, minLines: 3, maxLines: 15,
+                enableKeyboardAccessibility: true
+            });
+            editor.session.setValue(textarea.val());
+            editor.on('change', function () { textarea.val(editor.getValue()); });
+        });
     });
 
     toggleRevealTokens();
