@@ -365,3 +365,114 @@ def test_show_archived_resets_while_no_user_is_archived(server, db, page):
     sync_api.expect(user_stats).to_contain_text("Alice")
     sync_api.expect(page.locator("#nav-archived-indicator")).to_be_hidden()
     assert "bob" not in user_stats.inner_text()
+
+
+@pytest.fixture
+def other_library(db):
+    # bob's rows 3 and 5 move to a second library, which stays unarchived
+    # until a test archives it.
+    db.action("INSERT INTO library_sections (server_id, section_id, section_name, section_type) "
+              "VALUES ('', 2, 'Other', 'movie')")
+    db.action("UPDATE session_history SET section_id = 2 WHERE id IN (3, 5)")
+    return db
+
+
+def library_rows(page):
+    return page.locator("#libraries_list_table tbody tr")
+
+
+def test_libraries_table_follows_show_archived_data(server, other_library, page):
+    other_library.action("UPDATE library_sections SET is_archived = 1 WHERE section_id = 2")
+
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(library_rows(page)).to_have_count(1)
+    sync_api.expect(library_rows(page).first).to_contain_text("Movies")
+
+    toggle_show_archived(page)
+    sync_api.expect(library_rows(page)).to_have_count(2)
+    other = library_rows(page).filter(has_text="Other")
+    assert "archived-library" in other.get_attribute("class")
+    assert "archived-library" not in library_rows(page).filter(has_text="Movies").get_attribute("class")
+    sync_api.expect(other.locator(".inactive-library-tooltip")).to_have_count(1)
+
+
+def test_archiving_a_library_in_edit_mode_keeps_the_row(server, other_library, page):
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(library_rows(page)).to_have_count(2)
+    page.click("#row-edit-mode")
+
+    with page.expect_response("**/edit_library"):
+        page.click('label[for="is_archived-2"]')
+    other = library_rows(page).filter(has=page.locator('label[for="is_archived-2"]'))
+    page.wait_for_timeout(200)
+    assert "archived-library" in other.get_attribute("class")
+    assert other_library.connection.execute(
+        "SELECT is_archived FROM library_sections WHERE section_id = 2").fetchone() == (1,)
+
+    # Leaving edit mode drops the archived row.
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    sync_api.expect(library_rows(page)).to_have_count(1)
+
+
+def test_show_archived_data_shows_while_only_a_library_is_archived(server, other_library, page):
+    other_library.action("UPDATE library_sections SET is_archived = 1 WHERE section_id = 2")
+
+    page.goto(server["url"] + "/home")
+    page.hover("a.dropdown-toggle", position={"x": 2, "y": 2})
+    sync_api.expect(page.locator("#nav-show-archived")).to_contain_text("Show Archived Data")
+
+    # The choice resets after the last library is unarchived.
+    page.evaluate("localStorage.setItem('include_archived', '1')")
+    other_library.action("UPDATE library_sections SET is_archived = 0 WHERE section_id = 2")
+    page.reload()
+    assert page.evaluate("localStorage.getItem('include_archived')") == "0"
+    sync_api.expect(page.locator("#nav-archived-indicator")).to_have_count(0)
+
+
+def test_library_modal_saves_the_archive_checkbox(server, db, page):
+    page.goto(server["url"] + "/library?section_id=1")
+    page.click("#toggle-edit-library-modal")
+    box = page.locator("#edit-library-modal #is_archived")
+    box.wait_for()
+    assert not box.is_checked()
+    box.check()
+    with page.expect_response("**/edit_library"):
+        with page.expect_navigation():
+            page.click("#save_library")
+    assert db.connection.execute("SELECT is_archived FROM library_sections WHERE section_id = 1").fetchone() == (1,)
+
+    # The modal shows the saved state, and a save without the box unarchives.
+    page.click("#toggle-edit-library-modal")
+    box = page.locator("#edit-library-modal #is_archived")
+    box.wait_for()
+    assert box.is_checked()
+    box.uncheck()
+    with page.expect_navigation():
+        page.click("#save_library")
+    assert db.connection.execute("SELECT is_archived FROM library_sections WHERE section_id = 1").fetchone() == (0,)
+
+
+USER_PAGE_REQUESTS = ("get_history", "get_user_ips", "get_user_recently_watched", "user_watch_time_stats",
+                      "user_player_stats")
+
+
+@pytest.mark.parametrize("shown", ["1", "0"])
+def test_user_page_requests_send_show_archived(server, db, page, shown):
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 2")
+    page.add_init_script("localStorage.setItem('include_archived', '%s')" % shown)
+    seen = {}
+
+    def note(request):
+        for name in USER_PAGE_REQUESTS:
+            if name in request.url.split("?")[0]:
+                seen[name] = request.url + (request.post_data or "")
+
+    page.on("request", note)
+    page.goto(server["url"] + "/user?user_id=1")
+    page.click("#nav-tabs-history")
+    page.click("#nav-tabs-ipaddresses")
+    page.wait_for_timeout(2500)
+    assert set(seen) == set(USER_PAGE_REQUESTS)
+    for name, sent in seen.items():
+        assert "include_archived=%s" % shown in sent, name
