@@ -12,7 +12,7 @@ class FakePrettyMetadata:
 
 
 @pytest.fixture
-def requests(monkeypatch):
+def fake_requests(monkeypatch):
     sent = []
     responses = {}
 
@@ -30,20 +30,20 @@ def telegram(**config):
     return notifiers.TELEGRAM(config={'bot_token': 'token', 'chat_id': '123', 'incl_poster': 1, **config})
 
 
-@pytest.mark.parametrize('photo_sent', [True, False])
-def test_poster_with_caption_returns_the_photo_result(requests, photo_sent):
-    sent, responses = requests
-    responses['sendPhoto'] = photo_sent
+@pytest.mark.parametrize('photo_result', [True, False])
+def test_poster_with_caption_returns_the_photo_result(fake_requests, photo_result):
+    sent, responses = fake_requests
+    responses['sendPhoto'] = photo_result
 
     result = telegram().agent_notify(subject='Subject', body='Body', parameters={'media_type': 'movie'})
 
-    assert result is photo_sent
+    assert result is photo_result
     assert sent == ['sendPhoto']
 
 
 @pytest.mark.parametrize('message_sent', [True, False])
-def test_poster_with_long_text_returns_the_message_result(requests, message_sent):
-    sent, responses = requests
+def test_poster_with_long_text_returns_the_message_result(fake_requests, message_sent):
+    sent, responses = fake_requests
     responses['sendMessage'] = message_sent
 
     result = telegram().agent_notify(subject='Subject', body='x' * 1100, parameters={'media_type': 'movie'})
@@ -53,8 +53,8 @@ def test_poster_with_long_text_returns_the_message_result(requests, message_sent
 
 
 @pytest.mark.parametrize('message_sent', [True, False])
-def test_no_poster_returns_the_message_result(requests, message_sent):
-    sent, responses = requests
+def test_no_poster_returns_the_message_result(fake_requests, message_sent):
+    sent, responses = fake_requests
     responses['sendMessage'] = message_sent
 
     result = telegram(incl_poster=0).agent_notify(subject='Subject', body='Body', parameters={'media_type': 'movie'})

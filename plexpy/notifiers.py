@@ -4440,11 +4440,11 @@ class TELEGRAM(Notifier):
                     if self.config['silent_notification']:
                         data['disable_notification'] = True
 
-                photo_sent = self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
-                                               data=data, files=files)
+                photo_result = self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
+                                                 data=data, files=files)
 
                 if 'caption' in data:
-                    return photo_sent
+                    return photo_result
 
                 data.pop('disable_notification', None)
 
