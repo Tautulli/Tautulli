@@ -130,7 +130,10 @@ def toggle_show_archived(page):
 def test_archiving_in_edit_mode_keeps_the_row(server, db, page):
     page.goto(server["url"] + "/users")
     page.locator("#users_list_table td.edit-user-control input").first.wait_for(state="attached")
-    page.click("#row-edit-mode")
+    # Edit mode reloads the table with the archived and deleted users
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    page.wait_for_timeout(200)
     before = user_names(page)
 
     # Hold any table redraw, so it lands while the admin already hovers
@@ -166,7 +169,9 @@ def test_unarchiving_in_edit_mode_undims_the_row(server, db, page):
     page.goto(server["url"] + "/users")
     with page.expect_response("**/get_user_list"):
         toggle_show_archived(page)
-    page.click("#row-edit-mode")
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    page.wait_for_timeout(200)
 
     with page.expect_response("**/edit_user"):
         page.click('label[for="is_archived-1"]')
@@ -476,3 +481,232 @@ def test_user_page_requests_send_show_archived(server, db, page, shown):
     assert set(seen) == set(USER_PAGE_REQUESTS)
     for name, sent in seen.items():
         assert "include_archived=%s" % shown in sent, name
+
+
+def edit_row(page, table, key):
+    return page.locator("#%s tr" % table, has=page.locator('label[for="keep_history-%s"]' % key))
+
+
+def test_restoring_a_deleted_user_in_edit_mode(server, db, page):
+    db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    assert edit_row(page, "users_list_table", 2).count() == 0
+
+    with page.expect_response(lambda r: "get_user_list" in r.url):
+        page.click("#row-edit-mode")
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+
+    # A deleted row is dimmed, has the Deleted user icon, and offers Restore only.
+    assert "deleted-user" in bob.get_attribute("class")
+    assert bob.locator(".inactive-user-tooltip").get_attribute("title") == "Deleted user"
+    sync_api.expect(bob.locator("button.restore-user")).to_be_visible()
+    sync_api.expect(bob.locator("button.delete-user")).to_be_hidden()
+    sync_api.expect(bob.locator("button.purge-user")).to_be_hidden()
+
+    # Restore saves at once, with no confirm modal, and the row stays in place.
+    with page.expect_response("**/undelete_user"):
+        bob.locator("button.restore-user").click()
+    page.wait_for_timeout(200)
+    assert "deleted-user" not in bob.get_attribute("class")
+    sync_api.expect(bob.locator("button.restore-user")).to_be_hidden()
+    sync_api.expect(bob.locator("button.delete-user")).to_be_visible()
+    sync_api.expect(bob.locator("#keep_history-2")).to_be_checked()
+    sync_api.expect(page.locator("#confirm-modal-delete")).to_be_hidden()
+
+    # Leaving edit mode keeps the restored user and drops a deleted one.
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    page.wait_for_timeout(200)
+    assert edit_row(page, "users_list_table", 2).count() == 1
+
+
+def test_deleted_user_row_leaves_with_edit_mode(server, db, page):
+    db.action("UPDATE users SET deleted_user = 1 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    edit_row(page, "users_list_table", 2).wait_for()
+
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    page.wait_for_timeout(200)
+    assert edit_row(page, "users_list_table", 2).count() == 0
+
+
+def test_restoring_a_deleted_library_in_edit_mode(server, db, page):
+    db.action("UPDATE library_sections SET deleted_section = 1, keep_history = 0")
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(page.locator("#libraries_list_table")).to_contain_text("No matching records found")
+
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies = edit_row(page, "libraries_list_table", 1)
+    movies.wait_for()
+
+    assert "deleted-library" in movies.get_attribute("class")
+    assert movies.locator(".inactive-library-tooltip").get_attribute("title") == "Deleted library"
+    sync_api.expect(movies.locator("button.restore-library")).to_be_visible()
+    sync_api.expect(movies.locator("button.delete-library")).to_be_hidden()
+    sync_api.expect(movies.locator("button.purge-library")).to_be_hidden()
+
+    with page.expect_response("**/undelete_library"):
+        movies.locator("button.restore-library").click()
+    page.wait_for_timeout(200)
+    assert "deleted-library" not in movies.get_attribute("class")
+    sync_api.expect(movies.locator("button.restore-library")).to_be_hidden()
+    sync_api.expect(movies.locator("button.delete-library")).to_be_visible()
+    sync_api.expect(movies.locator("#keep_history-1")).to_be_checked()
+    sync_api.expect(page.locator("#confirm-modal-delete")).to_be_hidden()
+
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    page.wait_for_timeout(200)
+    assert edit_row(page, "libraries_list_table", 1).count() == 1
+
+
+def test_deleted_library_row_leaves_with_edit_mode(server, db, page):
+    db.action("UPDATE library_sections SET deleted_section = 1")
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(page.locator("#libraries_list_table")).to_contain_text("No matching records found")
+
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    edit_row(page, "libraries_list_table", 1).wait_for()
+
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    page.wait_for_timeout(200)
+    assert edit_row(page, "libraries_list_table", 1).count() == 0
+
+
+def test_edit_mode_lists_an_archived_library_with_its_box_checked(server, other_library, page):
+    other_library.action("UPDATE library_sections SET is_archived = 1 WHERE section_id = 2")
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(library_rows(page)).to_have_count(1)
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    other = library_rows(page).filter(has=page.locator('label[for="is_archived-2"]'))
+    other.wait_for()
+    sync_api.expect(other.locator("#is_archived-2")).to_be_checked()
+    sync_api.expect(library_rows(page).filter(has=page.locator('label[for="is_archived-1"]'))
+                    .locator("#is_archived-1")).not_to_be_checked()
+    assert other.locator(".inactive-library-tooltip").get_attribute("title") == "Archived library"
+
+    # Unarchiving in edit mode undims the row.
+    with page.expect_response("**/edit_library"):
+        page.click('label[for="is_archived-2"]')
+    page.wait_for_timeout(200)
+    assert "archived-library" not in other.get_attribute("class")
+
+
+def td_opacity(row):
+    return row.locator("td").nth(1).evaluate("td => getComputedStyle(td).opacity")
+
+
+def test_archived_and_deleted_rows_are_dimmed_until_hovered(server, db, other_library, page):
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 1")
+    db.action("UPDATE users SET deleted_user = 1 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    edit_row(page, "users_list_table", 2).wait_for()
+    for key in (1, 2):
+        row = edit_row(page, "users_list_table", key)
+        assert td_opacity(row) == "0.5"
+        row.hover()
+        page.wait_for_timeout(100)
+        assert td_opacity(row) == "1"
+        page.mouse.move(0, 0)
+
+    db.action("UPDATE library_sections SET is_archived = 1 WHERE section_id = 1")
+    db.action("UPDATE library_sections SET deleted_section = 1 WHERE section_id = 2")
+    page.goto(server["url"] + "/libraries")
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    edit_row(page, "libraries_list_table", 2).wait_for()
+    for key in (1, 2):
+        row = edit_row(page, "libraries_list_table", key)
+        assert td_opacity(row) == "0.5"
+        row.hover()
+        page.wait_for_timeout(100)
+        assert td_opacity(row) == "1"
+        page.mouse.move(0, 0)
+
+
+def test_restore_button_error_keeps_the_user_row_deleted(server, db, page):
+    db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+    page.route("**/undelete_user", lambda route: route.fulfill(
+        status=200, content_type="application/json",
+        body='{"result": "error", "message": "Unable to restore user."}'))
+    with page.expect_response("**/undelete_user"):
+        bob.locator("button.restore-user").click()
+    page.wait_for_timeout(300)
+    sync_api.expect(page.locator("#ajaxMsg")).to_have_css("background-color", "rgba(255, 0, 0, 0.5)")
+    assert "deleted-user" in bob.get_attribute("class")
+    sync_api.expect(bob.locator("button.restore-user")).to_be_visible()
+    sync_api.expect(bob.locator("#keep_history-2")).not_to_be_checked()
+
+
+def test_restoring_a_library_removes_its_icon_and_a_failure_keeps_the_row(server, db, page):
+    db.action("UPDATE library_sections SET deleted_section = 1, keep_history = 0")
+    page.goto(server["url"] + "/libraries")
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies = edit_row(page, "libraries_list_table", 1)
+    movies.wait_for()
+    page.route("**/undelete_library", lambda route: route.fulfill(
+        status=200, content_type="application/json",
+        body='{"result": "error", "message": "Unable to restore library."}'))
+    with page.expect_response("**/undelete_library"):
+        movies.locator("button.restore-library").click()
+    page.wait_for_timeout(300)
+    sync_api.expect(page.locator("#ajaxMsg")).to_have_css("background-color", "rgba(255, 0, 0, 0.5)")
+    assert "deleted-library" in movies.get_attribute("class")
+    sync_api.expect(movies.locator("#keep_history-1")).not_to_be_checked()
+    assert movies.locator(".inactive-library-tooltip").count() == 1
+    page.unroute("**/undelete_library")
+
+    with page.expect_response("**/undelete_library"):
+        movies.locator("button.restore-library").click()
+    page.wait_for_timeout(300)
+    assert movies.locator(".inactive-library-tooltip").count() == 0
+
+
+def test_edit_mode_lists_an_archived_user_and_a_deleted_archived_user_shows_the_trash(server, db, page):
+    db.action("UPDATE users SET is_archived = 1 WHERE user_id = 1")
+    db.action("UPDATE users SET is_archived = 1, deleted_user = 1 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    alice = edit_row(page, "users_list_table", 1)
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+    sync_api.expect(alice.locator("#is_archived-1")).to_be_checked()
+    assert alice.locator(".inactive-user-tooltip").get_attribute("title") == "Archived user"
+    assert bob.locator(".inactive-user-tooltip").get_attribute("title") == "Deleted user"
+
+
+def test_restoring_a_user_removes_its_icon(server, db, page):
+    db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+    with page.expect_response("**/undelete_user"):
+        bob.locator("button.restore-user").click()
+    page.wait_for_timeout(300)
+    assert bob.locator(".inactive-user-tooltip").count() == 0
