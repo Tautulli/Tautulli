@@ -804,6 +804,42 @@ def test_archived_and_deleted_rows_are_dimmed_until_hovered(server, db, other_li
         page.mouse.move(0, 0)
 
 
+def test_history_rows_of_an_archived_library_are_dimmed(server, db, other_library, page):
+    db.action("UPDATE library_sections SET is_archived = 1 WHERE section_id = 2")
+    page.add_init_script("localStorage.setItem('include_archived', '1')")
+    page.goto(server["url"] + "/history")
+    rows = page.locator("#history_table tbody tr")
+    archived = page.locator("#history_table tbody tr.archived-library")
+    normal = page.locator("#history_table tbody tr:not(.archived-library)")
+    rows.first.wait_for()
+    page.mouse.move(0, 0)
+
+    assert archived.count() > 0
+    assert normal.count() > 0
+    assert {td_opacity(archived.nth(i)) for i in range(archived.count())} == {"0.5"}
+    assert {td_opacity(normal.nth(i)) for i in range(normal.count())} == {"1"}
+
+
+def test_history_group_of_an_archived_library_shows_its_plays_undimmed(server, db, other_library, page):
+    db.action("UPDATE session_history SET section_id = 2 WHERE id IN (1, 2)")
+    db.action("UPDATE library_sections SET is_archived = 1 WHERE section_id = 2")
+    page.add_init_script("localStorage.setItem('include_archived', '1')")
+    page.goto(server["url"] + "/history")
+    parent = page.locator("#history_table > tbody > tr", has=page.locator("td.expand-history a"))
+    parent.wait_for()
+
+    with page.expect_response("**/get_history"):
+        parent.locator("td.expand-history a").click()
+    child = page.locator("table[id^='history_child'] tbody tr")
+    child.first.wait_for()
+    page.mouse.move(0, 0)
+
+    assert "archived-library" in parent.get_attribute("class")
+    assert td_opacity(parent) == "0.5"
+    assert child.count() == 2
+    assert {td_opacity(child.nth(i)) for i in range(2)} == {"1"}
+
+
 def test_restore_button_error_keeps_the_user_row_deleted(server, db, page):
     db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id = 2")
     page.goto(server["url"] + "/users")
