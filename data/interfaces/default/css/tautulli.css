@@ -3334,7 +3334,8 @@ tr.deleted-library .restore-library {
     top: 3px;
 }
 /* An expanded history group is already dimmed, and its parent row shows the archive state */
-table[id^='history_child'] tr.archived-user > td {
+table[id^='history_child'] tr.archived-user > td,
+table[id^='history_child'] tr.archived-library > td {
     opacity: 1;
 }
 .sign-out-tooltip:hover {

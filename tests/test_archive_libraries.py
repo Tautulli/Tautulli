@@ -201,6 +201,44 @@ def test_history_activity_union_skips_archived_library(two_libraries):
     assert 99 in {row["session_key"] for row in shown["data"] if row["session_key"]}
 
 
+def library_flags_by_row():
+    result = webserve.WebInterface().get_history(grouping=0, include_activity=0, include_archived=1)
+    return {row["row_id"]: row["library_is_archived"] for row in result["data"]}
+
+
+def test_history_rows_carry_the_library_archive_flag(two_libraries):
+    assert set(library_flags_by_row().values()) == {0}
+
+    archive_other()
+
+    assert library_flags_by_row() == {1: 0, 2: 0, 3: 1, 4: 0, 5: 1, 6: 0}
+
+
+def test_history_activity_row_carries_the_library_archive_flag(two_libraries):
+    for key, user_id, user, section_id in ((99, 2, "bob", 2), (98, 1, "alice", 1)):
+        two_libraries.action("INSERT INTO sessions (session_key, user_id, user, started, media_type, state, section_id) "
+                             "VALUES (?, ?, ?, ?, ?, ?, ?)", [key, user_id, user, 6000, "movie", "playing", section_id])
+    archive_other()
+    two_libraries.action("INSERT INTO library_sections (server_id, section_id, section_name, section_type) "
+                         "VALUES ('other', 2, 'Other', 'movie')")
+
+    result = webserve.WebInterface().get_history(grouping=0, include_activity=1, include_archived=1)
+
+    flags = {row["session_key"]: row["library_is_archived"] for row in result["data"] if row["session_key"]}
+    assert flags == {99: 1, 98: 0}
+
+
+def test_history_rows_do_not_repeat_for_a_section_id_on_two_servers(two_libraries):
+    archive_other()
+    two_libraries.action("INSERT INTO library_sections (server_id, section_id, section_name, section_type) "
+                         "VALUES ('other', 2, 'Other', 'movie')")
+
+    result = webserve.WebInterface().get_history(grouping=0, include_activity=0, include_archived=1)
+
+    assert sorted(row["row_id"] for row in result["data"]) == [1, 2, 3, 4, 5, 6]
+    assert library_flags_by_row()[3] == 1
+
+
 def test_user_and_library_filters_are_independent(two_libraries):
     # alice is archived and library 2 is archived. No row is left.
     archive_other()

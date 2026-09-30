@@ -106,6 +106,8 @@ class DataFactory(object):
             "users.thumb AS user_thumb",
             "users.custom_avatar_url AS custom_thumb",
             "users.is_archived",
+            "(SELECT MAX(is_archived) FROM library_sections "
+            "WHERE library_sections.section_id = session_history.section_id) AS library_is_archived",
             "platform",
             "product",
             "player",
@@ -171,6 +173,8 @@ class DataFactory(object):
                 "NULL AS user_thumb",
                 "NULL AS custom_thumb",
                 "(SELECT is_archived FROM users WHERE users.user_id = sessions.user_id) AS is_archived",
+                "(SELECT MAX(is_archived) FROM library_sections "
+                "WHERE library_sections.section_id = sessions.section_id) AS library_is_archived",
                 "platform",
                 "product",
                 "player",
@@ -358,6 +362,7 @@ class DataFactory(object):
                    'friendly_name': item['friendly_name'],
                    'user_thumb': user_thumb,
                    'is_archived': item['is_archived'],
+                   'library_is_archived': item['library_is_archived'],
                    'platform': platform,
                    'product': item['product'],
                    'player': item['player'],

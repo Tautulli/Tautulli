@@ -362,6 +362,10 @@ history_table_options = {
         if (rowData['is_archived']) {
             $(row).addClass('archived-user');
         }
+
+        if (rowData['library_is_archived']) {
+            $(row).addClass('archived-library');
+        }
     }
 };
 
