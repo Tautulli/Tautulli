@@ -840,6 +840,27 @@ def test_history_group_of_an_archived_library_shows_its_plays_undimmed(server, d
     assert {td_opacity(child.nth(i)) for i in range(2)} == {"1"}
 
 
+def test_home_library_cards_picker_marks_an_archived_library(server, db, other_library, page):
+    db.action("UPDATE library_sections SET is_archived = 1 WHERE section_id = 2")
+    page.goto(server["url"] + "/settings")
+    page.click("#nav-tabs-homepage")
+    cards = page.locator("#sortable_home_library_cards li.card")
+    cards.first.wait_for()
+    archived = cards.filter(has_text="Other")
+    normal = cards.filter(has_text="Movies")
+    icon = archived.locator("i.fa-archive")
+    page.locator("#sortable_home_library_cards").screenshot(
+        path="/var/tmp/claude/claude-1001/-home-phernandez-orca-workspaces-Tautulli-archive-undelete-hide-lib/"
+             "dc5ac4fe-ab3f-4582-9d7d-bf7bb1a1c383/scratchpad/home-library-cards-picker.png")
+
+    assert icon.count() == 1
+    assert normal.locator("i.fa-archive").count() == 0
+    assert archived.locator("span[title='Archived library']").count() == 1
+    card_box, icon_box = archived.bounding_box(), icon.bounding_box()
+    assert 0 <= card_box["x"] + card_box["width"] - (icon_box["x"] + icon_box["width"]) <= 25
+    assert abs((icon_box["y"] + icon_box["height"] / 2) - (card_box["y"] + card_box["height"] / 2)) <= 3
+
+
 def test_restore_button_error_keeps_the_user_row_deleted(server, db, page):
     db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id = 2")
     page.goto(server["url"] + "/users")
