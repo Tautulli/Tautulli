@@ -784,7 +784,7 @@ class Users(object):
                             % user_id)
                 try:
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 1, keep_history = 0 "
+                                      "SET deleted_user = 1, keep_history = 0, is_archived = 0 "
                                       "WHERE user_id = ?", [user_id])
                     self.clear_user_login_token(user_id=user_id)
                     return delete_success
@@ -804,7 +804,7 @@ class Users(object):
                 if result:
                     logger.info("Tautulli Users :: Restoring user with id %s to database." % user_id)
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 0, keep_history = 1 "
+                                      "SET deleted_user = 0, keep_history = 1, is_archived = 0 "
                                       "WHERE user_id = ?", [user_id])
                     return True
                 else:
@@ -816,7 +816,7 @@ class Users(object):
                 if result:
                     logger.info("Tautulli Users :: Restoring user with username %s to database." % username)
                     monitor_db.action("UPDATE users "
-                                      "SET deleted_user = 0, keep_history = 1 "
+                                      "SET deleted_user = 0, keep_history = 1, is_archived = 0 "
                                       "WHERE username = ?", [username])
                     return True
                 else:

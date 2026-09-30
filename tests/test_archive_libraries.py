@@ -60,6 +60,43 @@ def test_archive_keeps_history_and_unarchive_restores(two_libraries):
         "SELECT is_archived FROM library_sections WHERE section_id = 2") == {"is_archived": 0}
 
 
+def library_flags(db):
+    return db.select_single("SELECT is_archived, deleted_section FROM library_sections WHERE section_id = 2")
+
+
+def library_list_ids():
+    rows = webserve.WebInterface().get_library_list(grouping=0)["data"]
+    return {row["section_id"] for row in rows}
+
+
+def test_delete_clears_the_archive_flag_and_undelete_lists_the_library(two_libraries):
+    archive_other()
+
+    libraries.Libraries().delete(section_id=2, server_id="server")
+
+    assert library_flags(two_libraries) == {"is_archived": 0, "deleted_section": 1}
+    libraries.Libraries().undelete(section_id=2)
+    assert 2 in library_list_ids()
+
+
+def test_purge_keeps_the_library_archive_flag(two_libraries):
+    archive_other()
+
+    libraries.Libraries().delete(section_id=2, server_id="server", purge_only=True)
+
+    assert library_flags(two_libraries)["is_archived"] == 1
+
+
+@pytest.mark.parametrize("kwargs", [{"section_id": 2}, {"section_name": "Other"}])
+def test_undelete_clears_the_archive_flag_of_a_deleted_library(two_libraries, kwargs):
+    # Set the flags directly, like a library deleted before delete cleared is_archived.
+    two_libraries.action("UPDATE library_sections SET deleted_section = 1, is_archived = 1 WHERE section_id = 2")
+
+    assert libraries.Libraries().undelete(**kwargs) is True
+
+    assert library_flags(two_libraries) == {"is_archived": 0, "deleted_section": 0}
+
+
 def test_get_library_returns_the_archive_flag(two_libraries):
     archive_other()
     web = webserve.WebInterface()

@@ -80,6 +80,40 @@ def test_users_table_hides_archived_until_asked(seeded):
     assert bob["is_archived"] == 1
 
 
+def user_flags(db):
+    return db.select_single("SELECT is_archived, allow_guest, deleted_user FROM users WHERE user_id = 2")
+
+
+def test_delete_clears_the_archive_flag_and_undelete_lists_the_user(seeded):
+    seeded.action("UPDATE users SET allow_guest = 1 WHERE user_id = 2")
+    archive_bob()
+
+    users.Users().delete(user_id=2)
+
+    assert user_flags(seeded) == {"is_archived": 0, "allow_guest": 1, "deleted_user": 1}
+    users.Users().undelete(user_id=2)
+    assert 2 in {row["user_id"] for row in webserve.WebInterface().get_user_list()["data"]}
+
+
+def test_purge_keeps_the_archive_flag(seeded):
+    archive_bob()
+
+    users.Users().delete(user_id=2, purge_only=True)
+
+    assert user_flags(seeded)["is_archived"] == 1
+
+
+@pytest.mark.parametrize("kwargs", [{"user_id": 2}, {"username": "bob"}])
+def test_undelete_clears_the_archive_flag_of_a_deleted_user(seeded, kwargs):
+    # Set the flags directly, like a user deleted before delete cleared is_archived.
+    seeded.action("UPDATE users SET deleted_user = 1, is_archived = 1 WHERE user_id = 2")
+
+    assert users.Users().undelete(**kwargs) is True
+
+    assert user_flags(seeded)["is_archived"] == 0
+    assert user_flags(seeded)["deleted_user"] == 0
+
+
 def test_history_table_hides_archived_until_asked(seeded):
     archive_bob()
 

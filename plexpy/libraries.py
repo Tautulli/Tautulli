@@ -1153,7 +1153,7 @@ class Libraries(object):
                             % (server_id, section_id))
                 try:
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 1, keep_history = 0 "
+                                      "SET deleted_section = 1, keep_history = 0, is_archived = 0 "
                                       "WHERE server_id = ? AND section_id = ?", [server_id, section_id])
                     return delete_success
                 except Exception as e:
@@ -1172,7 +1172,7 @@ class Libraries(object):
                 if result:
                     logger.info("Tautulli Libraries :: Restoring library with id %s to database." % section_id)
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 0, keep_history = 1 "
+                                      "SET deleted_section = 0, keep_history = 1, is_archived = 0 "
                                       "WHERE section_id = ?",
                                       [section_id])
                     return True
@@ -1185,7 +1185,7 @@ class Libraries(object):
                 if result:
                     logger.info("Tautulli Libraries :: Restoring library with name %s to database." % section_name)
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 0, keep_history = 1 "
+                                      "SET deleted_section = 0, keep_history = 1, is_archived = 0 "
                                       "WHERE section_name = ?",
                                       [section_name])
                     return True
