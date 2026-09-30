@@ -93,7 +93,8 @@
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify(d),
-                    include_archived: include_archived
+                    include_archived: include_archived || users_edit_mode,
+                    include_deleted: users_edit_mode
                 };
             },
             error: function(xhr, error, thrown) {
@@ -172,7 +173,8 @@
                     $('#row-edit-mode-alert').fadeOut(200);
                 });
                 toggleEditNames();
-                // Drops the users archived in edit mode
+                // Drops the users archived and deleted in edit mode
+                users_edit_mode = 0;
                 users_list_table.draw(false);
             } else {
                 $(this).tooltip({
@@ -189,6 +191,9 @@
                     $(this).removeClass('hidden');
                 });
                 toggleEditNames();
+                // Lists the archived and deleted users too
+                users_edit_mode = 1;
+                users_list_table.draw(false);
             }
         });
         % endif

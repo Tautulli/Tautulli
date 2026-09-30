@@ -3,6 +3,7 @@ import json
 import pytest
 
 from plexpy.datafactory import DataFactory
+from plexpy import webserve
 from plexpy.users import Users
 
 
@@ -123,3 +124,34 @@ def test_get_user_devices_without_a_user_id_returns_nothing(local_user, user_id)
     local_user.action("INSERT INTO session_history (user_id, machine_id) VALUES (?, ?)", [0, "machine-a"])
 
     assert DataFactory().get_user_devices(user_id=user_id) == []
+
+
+@pytest.fixture
+def deleted_bob(app_db):
+    app_db.action("INSERT INTO users (user_id, username, deleted_user) VALUES (1, 'alice', 0)")
+    app_db.action("INSERT INTO users (user_id, username, deleted_user) VALUES (2, 'bob', 1)")
+    return app_db
+
+
+def user_list_ids(**kwargs):
+    # The database seeds a local user, user_id 0
+    rows = webserve.WebInterface().get_user_list(**kwargs)["data"]
+    return {row["user_id"] for row in rows} - {0}
+
+
+def test_users_table_lists_deleted_users_when_asked(deleted_bob):
+    assert user_list_ids() == {1}
+    assert user_list_ids(include_deleted="0") == {1}
+    assert user_list_ids(include_deleted="1") == {1, 2}
+
+
+def test_users_table_flags_deleted_users(deleted_bob):
+    rows = webserve.WebInterface().get_user_list(include_deleted="1")["data"]
+
+    assert {row["user_id"]: row["deleted_user"] for row in rows if row["user_id"]} == {1: 0, 2: 1}
+
+
+def test_users_table_hides_deleted_users_from_a_guest(deleted_bob, monkeypatch):
+    monkeypatch.setattr("plexpy.session.get_session_user_id", lambda: "2")
+
+    assert user_list_ids(include_deleted="1") == set()

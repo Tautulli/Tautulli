@@ -1,5 +1,6 @@
 var users_to_delete = [];
 var users_to_purge = [];
+var users_edit_mode = 0;
 
 function toggleEditNames() {
     if ($('.edit-control').hasClass('hidden')) {
@@ -50,6 +51,7 @@ users_list_table_options = {
                 $(td).html('<div class="edit-user-toggles">' +
                     '<button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
+                    '<button class="btn btn-xs btn-warning restore-user"><i class="fa fa-undo fa-fw"></i> Restore</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + (rowData['allow_guest'] ? 'checked' : '') + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="is_archived-' + rowData['user_id'] + '" name="is_archived" value="1" ' + (rowData['is_archived'] ? 'checked' : '') + '><label class="edit-tooltip" for="is_archived-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Archived"><i class="fa fa-archive fa-lg fa-fw"></i></label>&nbsp' +
@@ -65,7 +67,8 @@ users_list_table_options = {
             "data": "user_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 var inactive = '';
-                if (rowData['is_archived']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="Archived user"><i class="fa fa-archive"></i></span>'; }
+                if (rowData['deleted_user']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="Deleted user"><i class="fa fa-trash-o"></i></span>'; }
+                else if (rowData['is_archived']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="Archived user"><i class="fa fa-archive"></i></span>'; }
                 else if (!rowData['is_active']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
                 $(td).html('<a href="' + page('user', rowData['user_id']) + '"" title="' + rowData['username'] + '"><div class="users-poster-face" style="background-image: url(' + page('pms_image_proxy', cellData, null, 80, 80, null, null, null, 'user') + ');">' + inactive + '</div></a>');
             },
@@ -297,6 +300,9 @@ users_list_table_options = {
         if (rowData['is_archived']) {
             $(row).addClass('archived-user');
         }
+        if (rowData['deleted_user']) {
+            $(row).addClass('deleted-user');
+        }
         if ($.inArray(rowData['user_id'], users_to_delete) !== -1) {
             $(row).find('button.delete-user[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
@@ -413,4 +419,27 @@ $('#users_list_table').on('click', 'td.edit-control > .edit-user-toggles > butto
         }
     }
     $(this).toggleClass('btn-warning').toggleClass('btn-danger');
+});
+
+$('#users_list_table').on('click', 'td.edit-control > .edit-user-toggles > button.restore-user', function () {
+    var tr = $(this).parents('tr');
+    var row = users_list_table.row(tr);
+    var rowData = row.data();
+
+    $.ajax({
+        url: 'undelete_user',
+        type: 'POST',
+        data: { user_id: rowData['user_id'] },
+        cache: false,
+        async: true,
+        success: function (data) {
+            showMsg(data.message, false, true, 2000, data.result !== 'success');
+            if (data.result === 'success') {
+                // Restoring turns keep_history on. The row stays until edit mode ends.
+                tr.removeClass('deleted-user');
+                tr.find('input[name="keep_history"]').prop('checked', true);
+                tr.find('.inactive-user-tooltip').remove();
+            }
+        }
+    });
 });

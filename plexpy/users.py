@@ -126,10 +126,14 @@ class Users(object):
     def __init__(self):
         pass
 
-    def get_datatables_list(self, kwargs=None, grouping=None, include_archived=False):
+    def get_datatables_list(self, kwargs=None, grouping=None, include_archived=False, include_deleted=False):
         data_tables = datatables.DataTables()
 
-        custom_where = [['users.deleted_user', 0]]
+        custom_where = []
+
+        # A guest never sees deleted users
+        if not include_deleted or session.get_session_user_id():
+            custom_where.append(['users.deleted_user', 0])
 
         if not include_archived:
             custom_where.append(['users.is_archived', 0])
@@ -181,7 +185,8 @@ class Users(object):
                    "users.keep_history AS keep_history",
                    "users.allow_guest AS allow_guest",
                    "users.is_active AS is_active",
-                   "users.is_archived AS is_archived"
+                   "users.is_archived AS is_archived",
+                   "users.deleted_user AS deleted_user"
                    ]
         try:
             query = data_tables.ssp_query(table_name='users',
@@ -254,7 +259,8 @@ class Users(object):
                    'keep_history': item['keep_history'],
                    'allow_guest': item['allow_guest'],
                    'is_active': item['is_active'],
-                   'is_archived': item['is_archived']
+                   'is_archived': item['is_archived'],
+                   'deleted_user': item['deleted_user']
                    }
 
             rows.append(row)

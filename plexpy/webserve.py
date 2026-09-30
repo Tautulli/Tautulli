@@ -1257,7 +1257,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi("get_users_table")
-    def get_user_list(self, grouping=None, include_archived=None, **kwargs):
+    def get_user_list(self, grouping=None, include_archived=None, include_deleted=None, **kwargs):
         """ Get the data on Tautulli users table.
 
             ```
@@ -1267,6 +1267,7 @@ class WebInterface(object):
             Optional parameters:
                 grouping (int):                 0 or 1
                 include_archived (int):         0 or 1, include archived users and libraries
+                include_deleted (int):          0 or 1, include deleted users in the list
                 order_column (str):             "user_thumb", "friendly_name", "last_seen", "ip_address", "platform",
                                                 "player", "last_played", "plays", "duration"
                 order_dir (str):                "desc" or "asc"
@@ -1281,6 +1282,7 @@ class WebInterface(object):
                      "recordsFiltered": 10,
                      "data":
                         [{"allow_guest": 1,
+                          "deleted_user": 0,
                           "duration": 2998290,
                           "email": "Jon.Snow.1337@CastleBlack.com",
                           "friendly_name": "Jon Snow",
@@ -1337,10 +1339,12 @@ class WebInterface(object):
 
         grouping = helpers.bool_true(grouping, return_none=True)
         include_archived = helpers.bool_true(include_archived)
+        include_deleted = helpers.bool_true(include_deleted)
 
         user_data = users.Users()
         user_list = user_data.get_datatables_list(kwargs=kwargs, grouping=grouping,
-                                                  include_archived=include_archived)
+                                                  include_archived=include_archived,
+                                                  include_deleted=include_deleted)
 
         if user_list is None:
             cherrypy.response.status = 500
