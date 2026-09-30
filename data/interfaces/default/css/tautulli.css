@@ -3317,12 +3317,21 @@ tr.deleted-library:hover > td {
 }
 /* A deleted row offers Restore in place of Delete and Purge */
 tr:not(.deleted-user) .restore-user,
+tr:not(.deleted-library) .restore-library {
+    display: none;
+}
+/* The hidden buttons keep their space and Restore takes the place of Delete, so the toggles line up */
 tr.deleted-user .delete-user,
 tr.deleted-user .purge-user,
-tr:not(.deleted-library) .restore-library,
 tr.deleted-library .delete-library,
 tr.deleted-library .purge-library {
-    display: none;
+    visibility: hidden;
+}
+tr.deleted-user .restore-user,
+tr.deleted-library .restore-library {
+    position: absolute;
+    left: 0;
+    top: 3px;
 }
 /* An expanded history group is already dimmed, and its parent row shows the archive state */
 table[id^='history_child'] tr.archived-user > td {
@@ -3391,6 +3400,7 @@ table[id^='history_child'] tr.archived-user > td {
 }
 .edit-user-toggles,
 .edit-library-toggles {
+    position: relative;
     padding-right: 10px;
 }
 .edit-user-toggles > input[type='checkbox'],
