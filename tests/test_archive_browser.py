@@ -710,3 +710,90 @@ def test_restoring_a_user_removes_its_icon(server, db, page):
         bob.locator("button.restore-user").click()
     page.wait_for_timeout(300)
     assert bob.locator(".inactive-user-tooltip").count() == 0
+
+
+OFF = "rgb(68, 68, 68)"
+ON = "rgb(238, 238, 238)"
+
+
+def toggle_colors(row, names, key):
+    return [row.locator('label[for="%s-%s"]' % (name, key)).evaluate("label => getComputedStyle(label).color")
+            for name in names]
+
+
+def test_a_deleted_users_toggles_are_disabled_until_restore(server, db, page):
+    names = ("keep_history", "allow_guest", "is_archived")
+    # allow_guest and is_archived stay set in the database while the user is deleted.
+    db.action("UPDATE users SET deleted_user = 1, keep_history = 0, allow_guest = 1, is_archived = 1 "
+              "WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response(lambda r: "get_user_list" in r.url):
+        page.click("#row-edit-mode")
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+
+    for name in names:
+        sync_api.expect(bob.locator("#%s-2" % name)).to_be_disabled()
+    sync_api.expect(bob.locator("#allow_guest-2")).to_be_checked()
+    assert toggle_colors(bob, names, 2) == [OFF, OFF, OFF]
+    assert bob.locator('label[for="allow_guest-2"]').evaluate("label => getComputedStyle(label).cursor") == "default"
+
+    # A click on a disabled toggle changes nothing and saves nothing.
+    saved = []
+    page.on("request", lambda request: saved.append(request.url) if "edit_user" in request.url else None)
+    bob.locator('label[for="allow_guest-2"]').click(force=True)
+    bob.locator('label[for="keep_history-2"]').click(force=True)
+    page.wait_for_timeout(300)
+    sync_api.expect(bob.locator("#allow_guest-2")).to_be_checked()
+    sync_api.expect(bob.locator("#keep_history-2")).not_to_be_checked()
+    assert saved == []
+
+    with page.expect_response("**/undelete_user"):
+        bob.locator("button.restore-user").click()
+    page.wait_for_timeout(200)
+
+    for name in names:
+        sync_api.expect(bob.locator("#%s-2" % name)).to_be_enabled()
+    sync_api.expect(bob.locator("#keep_history-2")).to_be_checked()
+    sync_api.expect(bob.locator("#allow_guest-2")).to_be_checked()
+    sync_api.expect(bob.locator("#is_archived-2")).not_to_be_checked()
+    assert "archived-user" not in bob.get_attribute("class")
+    assert toggle_colors(bob, names, 2) == [ON, ON, OFF]
+
+
+def test_a_deleted_librarys_toggles_are_disabled_until_restore(server, db, page):
+    names = ("keep_history", "is_archived")
+    db.action("UPDATE library_sections SET deleted_section = 1, keep_history = 0, is_archived = 1")
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(page.locator("#libraries_list_table")).to_contain_text("No matching records found")
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies = edit_row(page, "libraries_list_table", 1)
+    movies.wait_for()
+
+    for name in names:
+        sync_api.expect(movies.locator("#%s-1" % name)).to_be_disabled()
+    sync_api.expect(movies.locator("#is_archived-1")).to_be_checked()
+    assert toggle_colors(movies, names, 1) == [OFF, OFF]
+    assert movies.locator('label[for="is_archived-1"]').evaluate("label => getComputedStyle(label).cursor") == "default"
+
+    saved = []
+    page.on("request", lambda request: saved.append(request.url) if "edit_library" in request.url else None)
+    movies.locator('label[for="is_archived-1"]').click(force=True)
+    movies.locator('label[for="keep_history-1"]').click(force=True)
+    page.wait_for_timeout(300)
+    sync_api.expect(movies.locator("#is_archived-1")).to_be_checked()
+    sync_api.expect(movies.locator("#keep_history-1")).not_to_be_checked()
+    assert saved == []
+
+    with page.expect_response("**/undelete_library"):
+        movies.locator("button.restore-library").click()
+    page.wait_for_timeout(200)
+
+    for name in names:
+        sync_api.expect(movies.locator("#%s-1" % name)).to_be_enabled()
+    sync_api.expect(movies.locator("#keep_history-1")).to_be_checked()
+    sync_api.expect(movies.locator("#is_archived-1")).not_to_be_checked()
+    assert "archived-library" not in movies.get_attribute("class")
+    assert toggle_colors(movies, names, 1) == [ON, OFF]
