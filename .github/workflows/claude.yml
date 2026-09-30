@@ -54,6 +54,31 @@ jobs:
           # github-actions[bot], which has contents: read.
           persist-credentials: false
 
+      # The general step runs pytest, and the runner has no Python packages.
+      # The other steps do not run tests, so they skip the install.
+      - name: Set Up Python
+        uses: actions/setup-python@v7
+        if: env.MODE == 'general'
+        with:
+          python-version: '3.13'
+
+      - name: Install Dependencies
+        if: env.MODE == 'general'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      # A fork PR gets no test tools. pytest runs the branch's own code, conftest.py
+      # included, and this job holds the OAuth token and the app token even for a fork.
+      - name: Check Whether the PR Is From a Fork
+        id: pr
+        if: env.MODE == 'general' && (github.event.issue.pull_request != null || github.event.pull_request != null)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cross=$(gh pr view "${{ github.event.pull_request.number || github.event.issue.number }}" --repo "${{ github.repository }}" --json isCrossRepository --jq .isCrossRepository)
+          echo "cross=$cross" >> "$GITHUB_OUTPUT"
+
       - name: Run Claude Code (PR review)
         uses: anthropics/claude-code-action@v1
         id: claude_review
@@ -154,7 +179,12 @@ jobs:
         uses: anthropics/claude-code-action@v1
         id: claude
         if: env.MODE == 'general'
+        env:
+          BROWSER_CHANNEL: chrome
+          # Remove the OAuth token and other secrets from the env that pytest sees.
+          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           additional_permissions: |
             actions: read
+          claude_args: ${{ (steps.pr.outputs.cross == 'false' || (github.event.issue.pull_request == null && github.event.pull_request == null)) && '--allowedTools "Bash(pytest:*),Bash(python -m pytest:*),Bash(ruff check:*)"' || '' }}
