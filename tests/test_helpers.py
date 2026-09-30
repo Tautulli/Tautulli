@@ -1,4 +1,5 @@
 from datetime import datetime
+import sqlite3
 
 import pytest
 
@@ -309,3 +310,10 @@ def test_ymd_to_timestamp_works_at_the_epoch_on_windows(monkeypatch):
     monkeypatch.setattr(helpers, "datetime", WindowsDatetime)
     assert helpers.YMD_to_timestamp("1970-01-01") == 0
     assert helpers.YMD_to_timestamp("2024-03-10") == 1710028800
+
+
+def test_timezone_is_pinned_to_utc():
+    # conftest pins TZ, so local time is UTC in Python and in SQLite.
+    assert helpers.YMD_to_timestamp("1970-01-01") == 0
+    local = sqlite3.connect(":memory:").execute("SELECT datetime(0, 'unixepoch', 'localtime')").fetchone()[0]
+    assert local == "1970-01-01 00:00:00"

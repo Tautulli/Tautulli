@@ -1,10 +1,15 @@
 import os
+import sys
 import time
 
 # Pin timezone before anything else touches it.
 os.environ["TZ"] = "UTC"
 if hasattr(time, "tzset"):
     time.tzset()
+elif sys.platform == "win32":
+    # Windows has no time.tzset. The C runtime reads TZ again in _tzset.
+    import ctypes
+    ctypes.cdll.ucrtbase._tzset()
 
 import pytest
 
