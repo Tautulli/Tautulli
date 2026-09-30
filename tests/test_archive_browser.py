@@ -80,6 +80,9 @@ class Database:
     def action(self, query, args=None):
         self.connection.execute(query, args or [])
 
+    def value(self, query):
+        return self.connection.execute(query).fetchone()[0]
+
 
 @pytest.fixture
 def db(server):
@@ -487,6 +490,22 @@ def edit_row(page, table, key):
     return page.locator("#%s tr" % table, has=page.locator('label[for="keep_history-%s"]' % key))
 
 
+def queue_restore_and_exit(page, row, kind):
+    row.locator("button.restore-%s" % kind).click()
+    page.click("#row-edit-mode")
+    sync_api.expect(page.locator("#confirm-modal-delete")).to_be_visible()
+
+
+def confirm_restore(page, kind):
+    with page.expect_response("**/undelete_%s" % kind):
+        page.click("#confirm-delete")
+    page.wait_for_timeout(300)
+
+
+def is_green(button):
+    return "btn-success" in button.get_attribute("class")
+
+
 def test_restoring_a_deleted_user_in_edit_mode(server, db, page):
     db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id = 2")
     page.goto(server["url"] + "/users")
@@ -505,21 +524,107 @@ def test_restoring_a_deleted_user_in_edit_mode(server, db, page):
     sync_api.expect(bob.locator("button.delete-user")).to_be_hidden()
     sync_api.expect(bob.locator("button.purge-user")).to_be_hidden()
 
-    # Restore saves at once, with no confirm modal, and the row stays in place.
-    with page.expect_response("**/undelete_user"):
-        bob.locator("button.restore-user").click()
-    page.wait_for_timeout(200)
-    assert "deleted-user" not in bob.get_attribute("class")
-    sync_api.expect(bob.locator("button.restore-user")).to_be_hidden()
-    sync_api.expect(bob.locator("button.delete-user")).to_be_visible()
-    sync_api.expect(bob.locator("#keep_history-2")).to_be_checked()
+    # Restore queues the user and turns the button green. A second click unqueues it.
+    # The tooltip names restore. A second click unqueues the user, so leaving edit mode opens no popup.
+    sync_api.expect(page.locator(".tooltip-inner")).to_contain_text("restore")
+    restore = bob.locator("button.restore-user")
+    restore.click()
+    assert is_green(restore)
+    restore.click()
+    assert not is_green(restore)
+    page.click("#row-edit-mode")
+    page.wait_for_timeout(500)
     sync_api.expect(page.locator("#confirm-modal-delete")).to_be_hidden()
-
-    # Leaving edit mode keeps the restored user and drops a deleted one.
     with page.expect_response("**/get_user_list"):
         page.click("#row-edit-mode")
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+
+    restore = bob.locator("button.restore-user")
+    restore.click()
+    assert is_green(restore)
+    sync_api.expect(page.locator("#confirm-modal-delete")).to_be_hidden()
+    assert db.value("SELECT deleted_user FROM users WHERE user_id = 2") == 1
+
+    # A redraw keeps the queued button green.
+    with page.expect_response("**/get_user_list"):
+        page.evaluate("users_list_table.draw(false)")
     page.wait_for_timeout(200)
+    assert is_green(bob.locator("button.restore-user"))
+
+    # Leaving edit mode with only a restore queued opens the popup. Cancel restores nothing.
+    saved = []
+    page.on("request", lambda request: saved.append(request.url) if "undelete_user" in request.url else None)
+    page.click("#row-edit-mode")
+    popup = page.locator("#confirm-modal-delete")
+    sync_api.expect(popup).to_be_visible()
+    sync_api.expect(popup.locator("#users-to-restore")).to_contain_text("bob")
+    sync_api.expect(popup.locator("#users-permanent")).to_be_hidden()
+    popup.locator("button", has_text="Cancel").click()
+    sync_api.expect(popup).to_be_hidden()
+    page.wait_for_timeout(200)
+    assert saved == []
+    assert db.value("SELECT deleted_user FROM users WHERE user_id = 2") == 1
+
+    # The next edit mode starts with an empty queue.
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+    page.click("#row-edit-mode")
+    page.wait_for_timeout(500)
+    sync_api.expect(popup).to_be_hidden()
+
+    # The popup lists a name once each time it opens.
+    with page.expect_response("**/get_user_list"):
+        page.click("#row-edit-mode")
+    bob.locator("button.restore-user").click()
+    page.click("#row-edit-mode")
+    sync_api.expect(popup).to_be_visible()
+    sync_api.expect(popup.locator("#users-to-restore li")).to_have_count(1)
+    sync_api.expect(popup.locator(".modal-title")).to_contain_text("Restore")
+
+
+def test_confirming_a_queued_restore_restores_the_user(server, db, page):
+    db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response(lambda r: "get_user_list" in r.url):
+        page.click("#row-edit-mode")
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+
+    queue_restore_and_exit(page, bob, "user")
+    confirm_restore(page, "user")
+
+    assert db.value("SELECT deleted_user FROM users WHERE user_id = 2") == 0
+    assert db.value("SELECT keep_history FROM users WHERE user_id = 2") == 1
+    # The redraw lists bob as a normal row.
     assert edit_row(page, "users_list_table", 2).count() == 1
+    assert "deleted-user" not in edit_row(page, "users_list_table", 2).get_attribute("class")
+    assert edit_row(page, "users_list_table", 2).locator(".inactive-user-tooltip").count() == 0
+
+
+def test_queued_restore_is_pressed_and_resets_on_exit(server, db, page):
+    db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response(lambda r: "get_user_list" in r.url):
+        page.click("#row-edit-mode")
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+    restore = bob.locator("button.restore-user")
+    restore.click()
+    assert "active" in restore.get_attribute("class")
+
+    # Hold the redraw, so the old row is still there when edit mode ends.
+    held = []
+    page.route("**/get_user_list", lambda route: held.append(route))
+    page.click("#row-edit-mode")
+    sync_api.expect(page.locator("#confirm-modal-delete")).to_be_visible()
+    assert not is_green(restore)
+    for route in held:
+        route.continue_()
 
 
 def test_deleted_user_row_leaves_with_edit_mode(server, db, page):
@@ -553,19 +658,80 @@ def test_restoring_a_deleted_library_in_edit_mode(server, db, page):
     sync_api.expect(movies.locator("button.delete-library")).to_be_hidden()
     sync_api.expect(movies.locator("button.purge-library")).to_be_hidden()
 
-    with page.expect_response("**/undelete_library"):
-        movies.locator("button.restore-library").click()
-    page.wait_for_timeout(200)
-    assert "deleted-library" not in movies.get_attribute("class")
-    sync_api.expect(movies.locator("button.restore-library")).to_be_hidden()
-    sync_api.expect(movies.locator("button.delete-library")).to_be_visible()
-    sync_api.expect(movies.locator("#keep_history-1")).to_be_checked()
+    # The tooltip names restore. A second click unqueues the user, so leaving edit mode opens no popup.
+    sync_api.expect(page.locator(".tooltip-inner")).to_contain_text("restore")
+    restore = movies.locator("button.restore-library")
+    restore.click()
+    assert is_green(restore)
+    restore.click()
+    assert not is_green(restore)
+    page.click("#row-edit-mode")
+    page.wait_for_timeout(500)
     sync_api.expect(page.locator("#confirm-modal-delete")).to_be_hidden()
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies = edit_row(page, "libraries_list_table", 1)
+    movies.wait_for()
+
+    restore = movies.locator("button.restore-library")
+    restore.click()
+    assert is_green(restore)
+    sync_api.expect(page.locator("#confirm-modal-delete")).to_be_hidden()
+    assert db.value("SELECT deleted_section FROM library_sections WHERE section_id = 1") == 1
+
+    with page.expect_response("**/get_library_list"):
+        page.evaluate("libraries_list_table.draw(false)")
+    page.wait_for_timeout(200)
+    assert is_green(movies.locator("button.restore-library"))
+
+    saved = []
+    page.on("request", lambda request: saved.append(request.url) if "undelete_library" in request.url else None)
+    page.click("#row-edit-mode")
+    popup = page.locator("#confirm-modal-delete")
+    sync_api.expect(popup).to_be_visible()
+    sync_api.expect(popup.locator("#libraries-to-restore")).to_contain_text("Movies")
+    sync_api.expect(popup.locator("#libraries-permanent")).to_be_hidden()
+    popup.locator("button", has_text="Cancel").click()
+    sync_api.expect(popup).to_be_hidden()
+    page.wait_for_timeout(200)
+    assert saved == []
+    assert db.value("SELECT deleted_section FROM library_sections WHERE section_id = 1") == 1
 
     with page.expect_response("**/get_library_list"):
         page.click("#row-edit-mode")
-    page.wait_for_timeout(200)
+    movies = edit_row(page, "libraries_list_table", 1)
+    movies.wait_for()
+    page.click("#row-edit-mode")
+    page.wait_for_timeout(500)
+    sync_api.expect(popup).to_be_hidden()
+
+    # The popup lists a name once each time it opens.
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies.locator("button.restore-library").click()
+    page.click("#row-edit-mode")
+    sync_api.expect(popup).to_be_visible()
+    sync_api.expect(popup.locator("#libraries-to-restore li")).to_have_count(1)
+    sync_api.expect(popup.locator(".modal-title")).to_contain_text("Restore")
+
+
+def test_confirming_a_queued_restore_restores_the_library(server, db, page):
+    db.action("UPDATE library_sections SET deleted_section = 1, keep_history = 0")
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(page.locator("#libraries_list_table")).to_contain_text("No matching records found")
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies = edit_row(page, "libraries_list_table", 1)
+    movies.wait_for()
+
+    queue_restore_and_exit(page, movies, "library")
+    confirm_restore(page, "library")
+
+    assert db.value("SELECT deleted_section FROM library_sections WHERE section_id = 1") == 0
+    assert db.value("SELECT keep_history FROM library_sections WHERE section_id = 1") == 1
     assert edit_row(page, "libraries_list_table", 1).count() == 1
+    assert "deleted-library" not in edit_row(page, "libraries_list_table", 1).get_attribute("class")
+    assert edit_row(page, "libraries_list_table", 1).locator(".inactive-library-tooltip").count() == 0
 
 
 def test_deleted_library_row_leaves_with_edit_mode(server, db, page):
@@ -649,13 +815,10 @@ def test_restore_button_error_keeps_the_user_row_deleted(server, db, page):
     page.route("**/undelete_user", lambda route: route.fulfill(
         status=200, content_type="application/json",
         body='{"result": "error", "message": "Unable to restore user."}'))
-    with page.expect_response("**/undelete_user"):
-        bob.locator("button.restore-user").click()
-    page.wait_for_timeout(300)
+    queue_restore_and_exit(page, bob, "user")
+    confirm_restore(page, "user")
     sync_api.expect(page.locator("#ajaxMsg")).to_have_css("background-color", "rgba(255, 0, 0, 0.5)")
-    assert "deleted-user" in bob.get_attribute("class")
-    sync_api.expect(bob.locator("button.restore-user")).to_be_visible()
-    sync_api.expect(bob.locator("#keep_history-2")).not_to_be_checked()
+    assert db.value("SELECT deleted_user FROM users WHERE user_id = 2") == 1
 
 
 def test_restoring_a_library_removes_its_icon_and_a_failure_keeps_the_row(server, db, page):
@@ -668,18 +831,19 @@ def test_restoring_a_library_removes_its_icon_and_a_failure_keeps_the_row(server
     page.route("**/undelete_library", lambda route: route.fulfill(
         status=200, content_type="application/json",
         body='{"result": "error", "message": "Unable to restore library."}'))
-    with page.expect_response("**/undelete_library"):
-        movies.locator("button.restore-library").click()
-    page.wait_for_timeout(300)
+    queue_restore_and_exit(page, movies, "library")
+    confirm_restore(page, "library")
     sync_api.expect(page.locator("#ajaxMsg")).to_have_css("background-color", "rgba(255, 0, 0, 0.5)")
-    assert "deleted-library" in movies.get_attribute("class")
-    sync_api.expect(movies.locator("#keep_history-1")).not_to_be_checked()
-    assert movies.locator(".inactive-library-tooltip").count() == 1
+    assert db.value("SELECT deleted_section FROM library_sections WHERE section_id = 1") == 1
     page.unroute("**/undelete_library")
 
-    with page.expect_response("**/undelete_library"):
-        movies.locator("button.restore-library").click()
-    page.wait_for_timeout(300)
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies = edit_row(page, "libraries_list_table", 1)
+    movies.wait_for()
+    assert movies.locator(".inactive-library-tooltip").count() == 1
+    queue_restore_and_exit(page, movies, "library")
+    confirm_restore(page, "library")
     assert movies.locator(".inactive-library-tooltip").count() == 0
 
 
@@ -706,9 +870,9 @@ def test_restoring_a_user_removes_its_icon(server, db, page):
         page.click("#row-edit-mode")
     bob = edit_row(page, "users_list_table", 2)
     bob.wait_for()
-    with page.expect_response("**/undelete_user"):
-        bob.locator("button.restore-user").click()
-    page.wait_for_timeout(300)
+    assert bob.locator(".inactive-user-tooltip").count() == 1
+    queue_restore_and_exit(page, bob, "user")
+    confirm_restore(page, "user")
     assert bob.locator(".inactive-user-tooltip").count() == 0
 
 
@@ -749,9 +913,8 @@ def test_a_deleted_users_toggles_are_disabled_until_restore(server, db, page):
     sync_api.expect(bob.locator("#keep_history-2")).not_to_be_checked()
     assert saved == []
 
-    with page.expect_response("**/undelete_user"):
-        bob.locator("button.restore-user").click()
-    page.wait_for_timeout(200)
+    queue_restore_and_exit(page, bob, "user")
+    confirm_restore(page, "user")
 
     for name in names:
         sync_api.expect(bob.locator("#%s-2" % name)).to_be_enabled()
@@ -787,9 +950,8 @@ def test_a_deleted_librarys_toggles_are_disabled_until_restore(server, db, page)
     sync_api.expect(movies.locator("#keep_history-1")).not_to_be_checked()
     assert saved == []
 
-    with page.expect_response("**/undelete_library"):
-        movies.locator("button.restore-library").click()
-    page.wait_for_timeout(200)
+    queue_restore_and_exit(page, movies, "library")
+    confirm_restore(page, "library")
 
     for name in names:
         sync_api.expect(movies.locator("#%s-1" % name)).to_be_enabled()
