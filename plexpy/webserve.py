@@ -1993,7 +1993,6 @@ class WebInterface(object):
                           "group_ids": "1124",
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "ip_address": "xxx.xxx.xxx.xxx",
-                          "is_archived": 0,
                           "library_is_archived": 0,
                           "live": 0,
                           "location": "wan",
@@ -2024,6 +2023,7 @@ class WebInterface(object):
                           "transcode_decision": "transcode",
                           "user": "DanyKhaleesi69",
                           "user_id": 8008135,
+                          "user_is_archived": 0,
                           "watched_status": 0,
                           "year": 2016
                           },

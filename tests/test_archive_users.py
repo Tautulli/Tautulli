@@ -186,7 +186,7 @@ def test_history_rows_flag_archived_users(seeded):
         kwargs={"json_data": json.dumps(build_draw())},
         grouping=False, include_activity=True, include_archived=True)
 
-    flags = {(row["user_id"], row["state"]): row["is_archived"] for row in result["data"]}
+    flags = {(row["user_id"], row["state"]): row["user_is_archived"] for row in result["data"]}
     assert flags == {(1, None): 0, (2, None): 1, (2, "playing"): 1}
 
 

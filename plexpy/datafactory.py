@@ -105,7 +105,7 @@ class DataFactory(object):
              THEN users.username ELSE users.friendly_name END) AS friendly_name",
             "users.thumb AS user_thumb",
             "users.custom_avatar_url AS custom_thumb",
-            "users.is_archived",
+            "users.is_archived AS user_is_archived",
             "(SELECT MAX(is_archived) FROM library_sections "
             "WHERE library_sections.section_id = session_history.section_id) AS library_is_archived",
             "platform",
@@ -172,7 +172,7 @@ class DataFactory(object):
                  THEN user ELSE friendly_name END) AS friendly_name",
                 "NULL AS user_thumb",
                 "NULL AS custom_thumb",
-                "(SELECT is_archived FROM users WHERE users.user_id = sessions.user_id) AS is_archived",
+                "(SELECT is_archived FROM users WHERE users.user_id = sessions.user_id) AS user_is_archived",
                 "(SELECT MAX(is_archived) FROM library_sections "
                 "WHERE library_sections.section_id = sessions.section_id) AS library_is_archived",
                 "platform",
@@ -361,7 +361,7 @@ class DataFactory(object):
                    'user': item['user'],
                    'friendly_name': item['friendly_name'],
                    'user_thumb': user_thumb,
-                   'is_archived': item['is_archived'],
+                   'user_is_archived': item['user_is_archived'],
                    'library_is_archived': item['library_is_archived'],
                    'platform': platform,
                    'product': item['product'],

@@ -359,7 +359,7 @@ history_table_options = {
             $(row).addClass('current-activity-row');
         }
 
-        if (rowData['is_archived']) {
+        if (rowData['user_is_archived']) {
             $(row).addClass('archived-user');
         }
 
