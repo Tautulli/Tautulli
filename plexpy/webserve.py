@@ -458,7 +458,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi("get_libraries_table")
-    def get_library_list(self, grouping=None, include_archived=None, **kwargs):
+    def get_library_list(self, grouping=None, include_archived=None, include_deleted=None, **kwargs):
         """ Get the data on the Tautulli libraries table.
 
             ```
@@ -474,6 +474,7 @@ class WebInterface(object):
                 length (int):                   Number of items to return, 25
                 search (str):                   A string to search for, "Movies"
                 include_archived (int):         0 or 1, include archived users and libraries
+                include_deleted (int):          0 or 1, include deleted libraries in the list
 
             Returns:
                 json:
@@ -484,6 +485,7 @@ class WebInterface(object):
                         [{"child_count": 3745,
                           "content_rating": "TV-MA",
                           "count": 62,
+                          "deleted_section": 0,
                           "duration": 1578037,
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "histroy_row_id": 1128,
@@ -538,7 +540,8 @@ class WebInterface(object):
 
         library_data = libraries.Libraries()
         library_list = library_data.get_datatables_list(kwargs=kwargs, grouping=grouping,
-                                                        include_archived=helpers.bool_true(include_archived))
+                                                        include_archived=helpers.bool_true(include_archived),
+                                                        include_deleted=helpers.bool_true(include_deleted))
 
         if library_list is None:
             cherrypy.response.status = 500

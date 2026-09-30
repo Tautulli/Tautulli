@@ -87,7 +87,8 @@
             data: function ( d ) {
                 return { 
                     json_data: JSON.stringify(d),
-                    include_archived: include_archived
+                    include_archived: include_archived || libraries_edit_mode,
+                    include_deleted: libraries_edit_mode
                 };
             },
             error: function(xhr, error, thrown) {
@@ -165,7 +166,8 @@
                     $(this).addClass('hidden');
                     $('#row-edit-mode-alert').fadeOut(200);
                 });
-                // Drops the libraries archived in edit mode
+                // Drops the libraries archived and deleted in edit mode
+                libraries_edit_mode = 0;
                 libraries_list_table.draw(false);
             } else {
                 $(this).tooltip({
@@ -181,6 +183,9 @@
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
                     $(this).removeClass('hidden');
                 });
+                // Lists the archived and deleted libraries too
+                libraries_edit_mode = 1;
+                libraries_list_table.draw(false);
             }
         });
         % endif

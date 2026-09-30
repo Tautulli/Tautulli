@@ -3305,18 +3305,23 @@ div.dataTables_info {
 }
 tr.archived-user > td,
 tr.archived-library > td,
-tr.deleted-user > td {
+tr.deleted-user > td,
+tr.deleted-library > td {
     opacity: .5;
 }
 tr.archived-user:hover > td,
 tr.archived-library:hover > td,
-tr.deleted-user:hover > td {
+tr.deleted-user:hover > td,
+tr.deleted-library:hover > td {
     opacity: 1;
 }
 /* A deleted row offers Restore in place of Delete and Purge */
 tr:not(.deleted-user) .restore-user,
 tr.deleted-user .delete-user,
-tr.deleted-user .purge-user {
+tr.deleted-user .purge-user,
+tr:not(.deleted-library) .restore-library,
+tr.deleted-library .delete-library,
+tr.deleted-library .purge-library {
     display: none;
 }
 /* An expanded history group is already dimmed, and its parent row shows the archive state */

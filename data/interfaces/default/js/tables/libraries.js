@@ -1,5 +1,6 @@
 var libraries_to_delete = [];
 var libraries_to_purge = [];
+var libraries_edit_mode = 0;
 
 libraries_list_table_options = {
     "language": {
@@ -33,6 +34,7 @@ libraries_list_table_options = {
                 $(td).html('<div class="edit-library-toggles">' +
                     '<button class="btn btn-xs btn-warning delete-library" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-library" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
+                    '<button class="btn btn-xs btn-warning restore-library"><i class="fa fa-undo fa-fw"></i> Restore</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['section_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
                     '<input type="checkbox" id="is_archived-' + rowData['section_id'] + '" name="is_archived" value="1" ' + (rowData['is_archived'] ? 'checked' : '') + '><label class="edit-tooltip" for="is_archived-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle Archived"><i class="fa fa-archive fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
@@ -47,7 +49,8 @@ libraries_list_table_options = {
             "data": "library_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 var inactive = '';
-                if (rowData['is_archived']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Archived library"><i class="fa fa-archive"></i></span>'; }
+                if (rowData['deleted_section']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Deleted library"><i class="fa fa-trash-o"></i></span>'; }
+                else if (rowData['is_archived']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Archived library"><i class="fa fa-archive"></i></span>'; }
                 else if (!rowData['is_active']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
                 if (cellData !== null && cellData !== '') {
                     if (rowData['library_thumb'].substring(0, 4) == "http") {
@@ -244,6 +247,9 @@ libraries_list_table_options = {
         if (rowData['is_archived']) {
             $(row).addClass('archived-library');
         }
+        if (rowData['deleted_section']) {
+            $(row).addClass('deleted-library');
+        }
         if ($.inArray(rowData['row_id'], libraries_to_delete) !== -1) {
             $(row).find('button.delete-library[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
@@ -332,4 +338,27 @@ $('#libraries_list_table').on('click', 'td.edit-control > .edit-library-toggles 
         }
     }
     $(this).toggleClass('btn-warning').toggleClass('btn-danger');
+});
+
+$('#libraries_list_table').on('click', 'td.edit-control > .edit-library-toggles > button.restore-library', function () {
+    var tr = $(this).parents('tr');
+    var row = libraries_list_table.row(tr);
+    var rowData = row.data();
+
+    $.ajax({
+        url: 'undelete_library',
+        type: 'POST',
+        data: { section_id: rowData['section_id'] },
+        cache: false,
+        async: true,
+        success: function (data) {
+            showMsg(data.message, false, true, 2000, data.result !== 'success');
+            if (data.result === 'success') {
+                // Restoring turns keep_history on. The row stays until edit mode ends.
+                tr.removeClass('deleted-library');
+                tr.find('input[name="keep_history"]').prop('checked', true);
+                tr.find('.inactive-library-tooltip').remove();
+            }
+        }
+    });
 });

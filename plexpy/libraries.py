@@ -296,10 +296,14 @@ class Libraries(object):
     def __init__(self):
         pass
 
-    def get_datatables_list(self, kwargs=None, grouping=None, include_archived=False):
+    def get_datatables_list(self, kwargs=None, grouping=None, include_archived=False, include_deleted=False):
         data_tables = datatables.DataTables()
 
-        custom_where = [['library_sections.deleted_section', 0]]
+        custom_where = []
+
+        # A guest never sees deleted libraries
+        if not include_deleted or session.get_session_user_id():
+            custom_where.append(['library_sections.deleted_section', 0])
 
         if not include_archived:
             custom_where.append(['library_sections.is_archived', 0])
@@ -348,7 +352,8 @@ class Libraries(object):
                    "session_history_metadata.guid",
                    "library_sections.keep_history",
                    "library_sections.is_active",
-                   "library_sections.is_archived AS is_archived"
+                   "library_sections.is_archived AS is_archived",
+                   "library_sections.deleted_section"
                    ]
         try:
             query = data_tables.ssp_query(table_name='library_sections',
@@ -423,7 +428,8 @@ class Libraries(object):
                    'guid': item['guid'],
                    'keep_history': item['keep_history'],
                    'is_active': item['is_active'],
-                   'is_archived': item['is_archived']
+                   'is_archived': item['is_archived'],
+                   'deleted_section': item['deleted_section']
                    }
 
             rows.append(row)
