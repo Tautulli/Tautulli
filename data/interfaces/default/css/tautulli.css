@@ -3435,8 +3435,10 @@ table[id^='history_child'] tr.archived-library > td {
 }
 #users-to-delete > li,
 #users-to-purge > li,
+#users-to-restore > li,
 #libraries-to-delete > li,
-#libraries-to-purge > li {
+#libraries-to-purge > li,
+#libraries-to-restore > li {
     color: #e9a049;
 }
 #updatebar, #token_error_bar  {
