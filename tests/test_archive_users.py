@@ -488,6 +488,19 @@ def test_activity_card_badges_an_archived_user(web_pages, monkeypatch):
     assert {key for key, card in cards.items() if 'title="Archived user"' in card} == {"2"}
 
 
+def test_activity_card_badges_a_deleted_user(web_pages, monkeypatch):
+    # A deleted user shows the trash badge alone, even when also archived.
+    sessions = [activity_session("1", 1, deleted_user=1), activity_session("2", 2, deleted_user=1, is_archived=1),
+                activity_session("3", 3, deleted_user=0), activity_session("4", 4)]
+    monkeypatch.setattr(pmsconnect.PmsConnect, "get_current_activity", lambda self: {"sessions": sessions})
+
+    cards = {key: web_pages.get_current_activity_instance(session_key=key) for key in ("1", "2", "3", "4")}
+
+    assert {key for key, card in cards.items() if 'title="Deleted user"' in card} == {"1", "2"}
+    assert 'fa-trash-o' in cards["2"] and 'title="Archived user"' not in cards["2"]
+    assert all('title="Deleted user"' not in cards[key] for key in ("3", "4"))
+
+
 GRAPH_ENDPOINTS = [
     "get_plays_by_date", "get_plays_by_dayofweek", "get_plays_by_hourofday", "get_plays_per_month",
     "get_plays_by_top_10_platforms", "get_plays_by_top_10_users", "get_plays_by_stream_type",

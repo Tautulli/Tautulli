@@ -25,6 +25,7 @@ machine_id                  Returns the machine id of the players being used.
 friendly_name               Returns the friendlly name of the user owning the session.
 user_thumb                  Returns the profile picture of the user owning the session.
 is_archived                 Returns bool value for whether the user owning the session is archived.
+deleted_user                Returns bool value for whether the user owning the session is deleted.
 state                       Returns the state of the current session. Either 'playing', 'paused' or 'buffering'.
 title                       Returns the name of the episode, movie or music track.
 year                        Returns the year of the episode, movie, or clip.
@@ -411,7 +412,9 @@ DOCUMENTATION :: END
     <div class="dashboard-activity-metadata-wrapper">
         <a href="${user_href}" title="${data['username']}">
             <div class="dashboard-activity-metadata-user-thumb" style="background-image: url(${page('pms_image_proxy', data['user_thumb'], None, 80, 80, fallback='user')});">
-                % if data['is_archived'] == 1:
+                % if data['deleted_user'] == 1:
+                <span class="inactive-user-tooltip" data-toggle="tooltip" title="Deleted user"><i class="fa fa-trash-o"></i></span>
+                % elif data['is_archived'] == 1:
                 <span class="inactive-user-tooltip" data-toggle="tooltip" title="Archived user"><i class="fa fa-archive"></i></span>
                 % endif
             </div>
