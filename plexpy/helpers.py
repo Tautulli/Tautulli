@@ -226,7 +226,8 @@ def now(sep=False):
 
 
 def YMD_to_timestamp(ymd):
-    return datetime.strptime(ymd, "%Y-%m-%d").astimezone().timestamp()
+    # datetime also converts the day before, which Windows rejects near the epoch.
+    return time.mktime(datetime.strptime(ymd, "%Y-%m-%d").timetuple())
 
 
 def timestamp_to_YMDHMS(ts, sep=False, ymd=False):

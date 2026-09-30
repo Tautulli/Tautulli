@@ -1,5 +1,8 @@
+from datetime import datetime
+
 import pytest
 
+from plexpy import helpers
 from plexpy.helpers import (
     bool_true,
     cast_to_float,
@@ -287,3 +290,22 @@ def test_eval_logic_groups_to_bool(logic, eval_conds, expected):
 ])
 def test_format_group_index(group_keys, expected):
     assert format_group_index(group_keys) == expected
+
+
+# ---------------------------------------------------------------------------
+# YMD_to_timestamp
+# ---------------------------------------------------------------------------
+
+class WindowsDatetime(datetime):
+    # Windows raises this when datetime converts a local time near the epoch.
+    def astimezone(self, tz=None):
+        raise OSError(22, "Invalid argument")
+
+    def timestamp(self):
+        raise OSError(22, "Invalid argument")
+
+
+def test_ymd_to_timestamp_works_at_the_epoch_on_windows(monkeypatch):
+    monkeypatch.setattr(helpers, "datetime", WindowsDatetime)
+    assert helpers.YMD_to_timestamp("1970-01-01") == 0
+    assert helpers.YMD_to_timestamp("2024-03-10") == 1710028800
