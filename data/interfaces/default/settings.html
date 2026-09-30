@@ -2926,6 +2926,7 @@ $(document).ready(function() {
                         '<label>' + 
                             '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + title + 
                         '</label>' + 
+                        (libraries_list[i].is_archived ? '<span class="pull-right" title="Archived library"><i class="fa fa-archive"></i></span>' : '') +
                     '</li>'
                 );
             }

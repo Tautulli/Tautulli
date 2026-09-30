@@ -239,6 +239,15 @@ def test_history_rows_do_not_repeat_for_a_section_id_on_two_servers(two_librarie
     assert library_flags_by_row()[3] == 1
 
 
+def test_library_sections_return_the_archive_flag(two_libraries):
+    archive_other()
+
+    flags = {item["section_id"]: item["is_archived"] for item in libraries.Libraries().get_sections()}
+    api_flags = {item["section_id"]: item["is_archived"] for item in webserve.WebInterface().get_library_sections()}
+
+    assert flags == api_flags == {1: 0, 2: 1}
+
+
 def test_user_and_library_filters_are_independent(two_libraries):
     # alice is archived and library 2 is archived. No row is left.
     archive_other()

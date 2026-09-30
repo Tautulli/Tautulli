@@ -1102,7 +1102,7 @@ class Libraries(object):
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = "SELECT section_id, section_name, section_type, agent " \
+            query = "SELECT section_id, section_name, section_type, agent, is_archived " \
                     "FROM library_sections WHERE deleted_section = 0"
             result = monitor_db.select(query=query)
         except Exception as e:
@@ -1114,7 +1114,8 @@ class Libraries(object):
             library = {'section_id': item['section_id'],
                        'section_name': item['section_name'],
                        'section_type': item['section_type'],
-                       'agent': item['agent']
+                       'agent': item['agent'],
+                       'is_archived': item['is_archived']
                        }
             libraries.append(library)
 
