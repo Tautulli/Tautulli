@@ -473,7 +473,7 @@ class WebInterface(object):
                 start (int):                    Row to start from, 0
                 length (int):                   Number of items to return, 25
                 search (str):                   A string to search for, "Movies"
-                include_archived (int):         0 or 1, include archived users
+                include_archived (int):         0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -488,6 +488,7 @@ class WebInterface(object):
                           "guid": "com.plexapp.agents.thetvdb://121361/6/1?lang=en",
                           "histroy_row_id": 1128,
                           "is_active": 1,
+                          "is_archived": 0,
                           "keep_history": 1,
                           "labels": [],
                           "last_accessed": 1462693216,
@@ -646,6 +647,7 @@ class WebInterface(object):
                 custom_thumb (str):         The URL for the custom library thumbnail
                 custom_art (str):           The URL for the custom library background art
                 keep_history (int):         0 or 1
+                is_archived (int):          0 or 1
 
             Returns:
                 None
@@ -654,6 +656,7 @@ class WebInterface(object):
         custom_thumb = kwargs.get('custom_thumb')
         custom_art = kwargs.get('custom_art')
         keep_history = kwargs.get('keep_history')
+        is_archived = kwargs.get('is_archived')
 
         if section_id:
             try:
@@ -661,7 +664,8 @@ class WebInterface(object):
                 library_data.set_config(section_id=section_id,
                                         custom_thumb=custom_thumb,
                                         custom_art=custom_art,
-                                        keep_history=keep_history)
+                                        keep_history=keep_history,
+                                        is_archived=is_archived)
 
                 return "Successfully updated library."
             except:
@@ -964,7 +968,7 @@ class WebInterface(object):
 
             Optional parameters:
                 include_last_accessed (bool):   True to include the last_accessed value for the library.
-                include_archived (int):         0 or 1, include archived users
+                include_archived (int):         0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -972,6 +976,7 @@ class WebInterface(object):
                      "count": 887,
                      "deleted_section": 0,
                      "is_active": 1,
+                     "is_archived": 0,
                      "keep_history": 1,
                      "last_accessed": 1462693216,
                      "library_art": "/:/resources/movie-fanart.jpg",

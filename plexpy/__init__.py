@@ -722,7 +722,7 @@ def dbcheck():
         "thumb TEXT, custom_thumb_url TEXT, art TEXT, custom_art_url TEXT, "
         "count INTEGER, parent_count INTEGER, child_count INTEGER, is_active INTEGER DEFAULT 1, "
         "do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, "
-        "deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))"
+        "deleted_section INTEGER DEFAULT 0, is_archived INTEGER DEFAULT 0, UNIQUE(server_id, section_id))"
     )
 
     # user_login table :: This table keeps record of the Tautulli guest logins
@@ -2289,6 +2289,15 @@ def dbcheck():
         logger.debug("Altering database. Updating database table library_sections.")
         c_db.execute(
             "ALTER TABLE library_sections ADD COLUMN is_active INTEGER DEFAULT 1"
+        )
+
+    # Upgrade library_sections table from earlier versions
+    try:
+        c_db.execute("SELECT is_archived FROM library_sections")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table library_sections.")
+        c_db.execute(
+            "ALTER TABLE library_sections ADD COLUMN is_archived INTEGER DEFAULT 0"
         )
 
     # Upgrade library_sections table from earlier versions

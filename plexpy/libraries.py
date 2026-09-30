@@ -297,6 +297,9 @@ class Libraries(object):
 
         custom_where = [['library_sections.deleted_section', 0]]
 
+        if not include_archived:
+            custom_where.append(['library_sections.is_archived', 0])
+
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
@@ -340,7 +343,8 @@ class Libraries(object):
                    "session_history_metadata.originally_available_at",
                    "session_history_metadata.guid",
                    "library_sections.keep_history",
-                   "library_sections.is_active"
+                   "library_sections.is_active",
+                   "library_sections.is_archived AS is_archived"
                    ]
         try:
             query = data_tables.ssp_query(table_name='library_sections',
@@ -414,7 +418,8 @@ class Libraries(object):
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
                    'keep_history': item['keep_history'],
-                   'is_active': item['is_active']
+                   'is_active': item['is_active'],
+                   'is_archived': item['is_archived']
                    }
 
             rows.append(row)
@@ -742,7 +747,7 @@ class Libraries(object):
             except IOError as e:
                 logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
 
-    def set_config(self, section_id=None, custom_thumb=None, custom_art=None, keep_history=None):
+    def set_config(self, section_id=None, custom_thumb=None, custom_art=None, keep_history=None, is_archived=None):
         if str(section_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
@@ -755,6 +760,8 @@ class Libraries(object):
                 value_dict['custom_art_url'] = custom_art
             if keep_history is not None:
                 value_dict['keep_history'] = int(helpers.bool_true(keep_history))
+            if is_archived is not None:
+                value_dict['is_archived'] = int(helpers.bool_true(is_archived))
 
             try:
                 monitor_db.upsert('library_sections', value_dict, key_dict)
@@ -776,6 +783,7 @@ class Libraries(object):
                           'is_active': 1,
                           'keep_history': 1,
                           'deleted_section': 0,
+                          'is_archived': 0,
                           'last_accessed': None,
                           }
 
@@ -838,7 +846,7 @@ class Libraries(object):
                     "library_sections.thumb AS library_thumb, custom_thumb_url AS custom_thumb, " \
                     "library_sections.art AS library_art, " \
                     "custom_art_url AS custom_art, is_active, " \
-                    "keep_history, deleted_section, %s AS last_accessed " \
+                    "keep_history, deleted_section, is_archived, %s AS last_accessed " \
                     "FROM library_sections %s " \
                     "WHERE %s AND server_id = ? " \
                     "GROUP BY library_sections.id" % (last_accessed, join, where)
@@ -875,6 +883,7 @@ class Libraries(object):
                                    'is_active': item['is_active'],
                                    'keep_history': item['keep_history'],
                                    'deleted_section': item['deleted_section'],
+                                   'is_archived': item['is_archived'],
                                    'last_accessed': item['last_accessed']
                                    }
         return library_details

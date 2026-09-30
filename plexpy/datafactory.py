@@ -1203,10 +1203,11 @@ class DataFactory(object):
                     "FROM library_sections AS ls " \
                     "LEFT OUTER JOIN session_history AS sh ON ls.section_id = sh.section_id %s" \
                     "LEFT OUTER JOIN session_history_metadata AS shm ON sh.id = shm.id " \
-                    "WHERE ls.section_id IN (%s) AND ls.deleted_section = 0 " \
+                    "WHERE ls.section_id IN (%s) AND ls.deleted_section = 0 %s" \
                     "GROUP BY ls.id " \
                     "ORDER BY ls.section_type, ls.count DESC, ls.parent_count DESC, ls.child_count DESC " % (
-                        '' if include_archived else users.archived_user_cond(column='sh.user_id'), ",".join(library_cards)
+                        '' if include_archived else users.archived_user_cond(column='sh.user_id'), ",".join(library_cards),
+                        '' if include_archived else "AND ls.is_archived = 0 "
                     )
             result = monitor_db.select(query)
         except Exception as e:
