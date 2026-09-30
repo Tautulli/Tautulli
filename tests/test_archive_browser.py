@@ -17,6 +17,7 @@ import sqlite3
 import subprocess
 import sys
 import time
+from urllib.parse import parse_qs
 
 import pytest
 
@@ -490,16 +491,20 @@ def edit_row(page, table, key):
     return page.locator("#%s tr" % table, has=page.locator('label[for="keep_history-%s"]' % key))
 
 
-def queue_restore_and_exit(page, row, kind):
-    row.locator("button.restore-%s" % kind).click()
+def queue_restore_and_exit(page, row, kind, *more_rows):
+    for queued in (row,) + more_rows:
+        queued.locator("button.restore-%s" % kind).click()
     page.click("#row-edit-mode")
     sync_api.expect(page.locator("#confirm-modal-delete")).to_be_visible()
 
 
 def confirm_restore(page, kind):
+    sent = []
+    page.on("request", lambda request: sent.append(request.post_data) if "undelete_%s" % kind in request.url else None)
     with page.expect_response("**/undelete_%s" % kind):
         page.click("#confirm-delete")
     page.wait_for_timeout(300)
+    return sent
 
 
 def is_green(button):
@@ -603,6 +608,48 @@ def test_confirming_a_queued_restore_restores_the_user(server, db, page):
     assert edit_row(page, "users_list_table", 2).count() == 1
     assert "deleted-user" not in edit_row(page, "users_list_table", 2).get_attribute("class")
     assert edit_row(page, "users_list_table", 2).locator(".inactive-user-tooltip").count() == 0
+
+
+def test_confirming_two_queued_restores_sends_one_undelete_user_call(server, db, page):
+    db.action("UPDATE users SET deleted_user = 1, keep_history = 0 WHERE user_id IN (1, 2)")
+    row_ids = [str(db.value("SELECT id FROM users WHERE user_id = %d" % user_id)) for user_id in (1, 2)]
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response(lambda r: "get_user_list" in r.url):
+        page.click("#row-edit-mode")
+    alice = edit_row(page, "users_list_table", 1)
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+
+    queue_restore_and_exit(page, alice, "user", bob)
+    sent = confirm_restore(page, "user")
+
+    assert len(sent) == 1
+    assert sorted(parse_qs(sent[0])["row_ids"][0].split(",")) == sorted(row_ids)
+    assert db.value("SELECT COUNT(*) FROM users WHERE user_id IN (1, 2) AND deleted_user = 0 "
+                    "AND keep_history = 1") == 2
+    assert "deleted-user" not in edit_row(page, "users_list_table", 1).get_attribute("class")
+    assert "deleted-user" not in edit_row(page, "users_list_table", 2).get_attribute("class")
+
+
+def test_confirming_a_purge_sends_no_undelete_user_call(server, db, page):
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response(lambda r: "get_user_list" in r.url):
+        page.click("#row-edit-mode")
+    row = edit_row(page, "users_list_table", 1)
+    row.wait_for()
+    sent = []
+    page.on("request", lambda request: sent.append(request.url) if "undelete_user" in request.url else None)
+
+    row.locator("button.purge-user").click()
+    page.click("#row-edit-mode")
+    sync_api.expect(page.locator("#confirm-modal-delete")).to_be_visible()
+    with page.expect_response("**/delete_all_user_history"):
+        page.click("#confirm-delete")
+    page.wait_for_timeout(300)
+
+    assert sent == []
 
 
 def test_queued_restore_is_pressed_and_resets_on_exit(server, db, page):
@@ -732,6 +779,49 @@ def test_confirming_a_queued_restore_restores_the_library(server, db, page):
     assert edit_row(page, "libraries_list_table", 1).count() == 1
     assert "deleted-library" not in edit_row(page, "libraries_list_table", 1).get_attribute("class")
     assert edit_row(page, "libraries_list_table", 1).locator(".inactive-library-tooltip").count() == 0
+
+
+def test_confirming_two_queued_restores_sends_one_undelete_library_call(server, other_library, page):
+    other_library.action("UPDATE library_sections SET deleted_section = 1, keep_history = 0")
+    row_ids = [str(other_library.value("SELECT id FROM library_sections WHERE section_id = %d" % section_id))
+               for section_id in (1, 2)]
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(page.locator("#libraries_list_table")).to_contain_text("No matching records found")
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies = edit_row(page, "libraries_list_table", 1)
+    other = edit_row(page, "libraries_list_table", 2)
+    other.wait_for()
+
+    queue_restore_and_exit(page, movies, "library", other)
+    sent = confirm_restore(page, "library")
+
+    assert len(sent) == 1
+    assert sorted(parse_qs(sent[0])["row_ids"][0].split(",")) == sorted(row_ids)
+    assert other_library.value("SELECT COUNT(*) FROM library_sections WHERE deleted_section = 0 "
+                               "AND keep_history = 1") == 2
+    assert "deleted-library" not in edit_row(page, "libraries_list_table", 1).get_attribute("class")
+    assert "deleted-library" not in edit_row(page, "libraries_list_table", 2).get_attribute("class")
+
+
+def test_confirming_a_purge_sends_no_undelete_library_call(server, db, page):
+    page.goto(server["url"] + "/libraries")
+    sync_api.expect(page.locator("#libraries_list_table")).to_contain_text("Movies")
+    with page.expect_response(lambda r: "get_library_list" in r.url):
+        page.click("#row-edit-mode")
+    row = edit_row(page, "libraries_list_table", 1)
+    row.wait_for()
+    sent = []
+    page.on("request", lambda request: sent.append(request.url) if "undelete_library" in request.url else None)
+
+    row.locator("button.purge-library").click()
+    page.click("#row-edit-mode")
+    sync_api.expect(page.locator("#confirm-modal-delete")).to_be_visible()
+    with page.expect_response("**/delete_all_library_history"):
+        page.click("#confirm-delete")
+    page.wait_for_timeout(300)
+
+    assert sent == []
 
 
 def test_deleted_library_row_leaves_with_edit_mode(server, db, page):
