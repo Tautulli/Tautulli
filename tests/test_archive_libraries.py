@@ -11,9 +11,10 @@ section 1.
 import pytest
 
 import plexpy
-from plexpy import datafactory, libraries, webserve
+from plexpy import database, datafactory, graphs, libraries, users, webserve
 
-from tests.test_history_table import seed_history
+from tests.test_archive_users import GRAPH_ENDPOINTS
+from tests.test_history_table import insert_history_row, seed_history
 
 
 @pytest.fixture
@@ -25,6 +26,15 @@ def two_libraries(app_db):
                       "VALUES ('server', ?, ?, 'movie')", [section_id, name])
     app_db.action("UPDATE session_history SET section_id = 2 WHERE id IN (3, 5)")
     return app_db
+
+
+@pytest.fixture
+def late_bob(two_libraries):
+    # bob's row 7 overlaps alice's last play (row 6, 5000 to 5900) and ends
+    # after it. It is in section 2.
+    insert_history_row(two_libraries, 7, 15, 2, "bob", 5100, 6100, 204, "Delta Movie", "movie")
+    two_libraries.action("UPDATE session_history SET section_id = 2 WHERE id = 7")
+    return two_libraries
 
 
 def archive_other():
@@ -94,3 +104,242 @@ def test_upgrade_adds_the_archive_column(app_db):
 
     app_db.action("INSERT INTO library_sections (server_id, section_id) VALUES ('server', 1)")
     assert app_db.select_single("SELECT is_archived FROM library_sections") == {"is_archived": 0}
+
+
+def history_row_ids(**kwargs):
+    result = webserve.WebInterface().get_history(grouping=0, include_activity=0, **kwargs)
+    return {row["row_id"] for row in result["data"]}
+
+
+def test_history_hides_archived_library_until_asked(two_libraries):
+    archive_other()
+
+    assert history_row_ids() == {1, 2, 4, 6}
+    assert history_row_ids(include_archived=1) == {1, 2, 3, 4, 5, 6}
+
+
+def test_history_returns_an_archived_library_asked_for_by_id(two_libraries):
+    archive_other()
+
+    assert history_row_ids(section_id="2") == {3, 5}
+    assert history_row_ids(section_id="1,2") == {1, 2, 3, 4, 5, 6}
+
+
+def test_history_count_and_total_duration_skip_archived_library(two_libraries):
+    archive_other()
+
+    result = webserve.WebInterface().get_history(grouping=0, include_activity=0)
+
+    assert result["recordsFiltered"] == 4
+    # alice plays 1950 seconds. bob adds 1000 more.
+    assert result["total_duration"] == "32 mins 30 secs"
+
+
+def test_history_activity_union_skips_archived_library(two_libraries):
+    two_libraries.action("INSERT INTO sessions (session_key, user_id, user, started, media_type, state, section_id) "
+                         "VALUES (?, ?, ?, ?, ?, ?, ?)", [99, 2, "bob", 6000, "movie", "playing", 2])
+    archive_other()
+
+    hidden = webserve.WebInterface().get_history(grouping=0, include_activity=1)
+    shown = webserve.WebInterface().get_history(grouping=0, include_activity=1, include_archived=1)
+
+    assert {row["user_id"] for row in hidden["data"]} == {1}
+    assert 99 in {row["session_key"] for row in shown["data"] if row["session_key"]}
+
+
+def test_user_and_library_filters_are_independent(two_libraries):
+    # alice is archived and library 2 is archived. No row is left.
+    archive_other()
+    users.Users().set_config(user_id=1, is_archived=1)
+
+    assert history_row_ids() == set()
+    assert history_row_ids(section_id="2") == {3, 5}
+    assert history_row_ids(user_id="1") == {1, 2, 4, 6}
+    assert history_row_ids(include_archived=1) == {1, 2, 3, 4, 5, 6}
+
+
+def test_archived_user_own_history_drops_archived_library_rows(two_libraries):
+    # The user page asks for its own user with the global include_archived.
+    archive_other()
+    users.Users().set_config(user_id=1, is_archived=1)
+    two_libraries.action("UPDATE session_history SET section_id = 2 WHERE id = 6")
+
+    assert history_row_ids(user_id="1", include_archived=0) == {1, 2, 4}
+    assert history_row_ids(user_id="1", include_archived=1) == {1, 2, 4, 6}
+
+
+def test_home_stats_skip_archived_library(two_libraries):
+    archive_other()
+    factory = datafactory.DataFactory()
+
+    # The seed rows are from 1970, so anchor the stats window at the epoch.
+    stats = factory.get_home_stats(stats_cards=["top_users"], after="1970-01-01")
+    named = factory.get_home_stats(stats_cards=["top_users"], after="1970-01-01", section_id="2")
+    everyone = factory.get_home_stats(stats_cards=["top_users"], after="1970-01-01", include_archived=True)
+
+    assert [row["user_id"] for row in stats[0]["rows"]] == [1]
+    assert [row["user_id"] for row in named[0]["rows"]] == [2]
+    assert [row["user_id"] for row in everyone[0]["rows"]] == [1, 2]
+
+
+def test_most_concurrent_skips_archived_library(late_bob):
+    archive_other()
+
+    stats = datafactory.DataFactory().get_home_stats(stats_cards=["most_concurrent"], after="1970-01-01")
+
+    assert stats[0]["rows"][0]["count"] == 1
+
+
+def test_item_stats_skip_archived_library(two_libraries):
+    archive_other()
+    factory = datafactory.DataFactory()
+
+    # bob's row 3 and alice's row 6 played rating_key 202.
+    by_key = factory.get_watch_time_stats(rating_key=202, grouping=False, query_days="0")
+    shown = factory.get_watch_time_stats(rating_key=202, grouping=False, query_days="0", include_archived=True)
+    by_user = factory.get_user_stats(rating_key=202, grouping=False)
+    shown_by_user = factory.get_user_stats(rating_key=202, grouping=False, include_archived=True)
+
+    assert [row["total_plays"] for row in by_key] == [1]
+    assert [row["total_plays"] for row in shown] == [2]
+    assert [row["user_id"] for row in by_user] == [1]
+    assert [row["user_id"] for row in shown_by_user] == [1, 2]
+
+
+@pytest.mark.parametrize("name", GRAPH_ENDPOINTS)
+def test_graph_show_archived_matches_the_unarchived_graph(late_bob, name):
+    graph = getattr(webserve.WebInterface(), name)
+    # The seed rows are from 1970. The per month graph counts months.
+    time_range = "1200" if name == "get_plays_per_month" else "36500"
+    before = graph(time_range=time_range)
+
+    archive_other()
+
+    assert graph(time_range=time_range) != before
+    assert graph(time_range=time_range, include_archived="1") == before
+
+
+def test_stream_type_graph_skips_archived_library(late_bob):
+    archive_other()
+
+    # With no user_id, the archived filters are the query's only WHERE clause.
+    result = graphs.Graphs().get_total_concurrent_streams_per_stream_type(time_range=36500)
+
+    assert max(result["series"][3]["data"]) == 1
+
+
+def test_users_table_counts_skip_archived_library(two_libraries):
+    archive_other()
+    web = webserve.WebInterface()
+
+    def plays(**kwargs):
+        return {row["user_id"]: row["plays"] for row in web.get_user_list(grouping=0, **kwargs)["data"]}
+
+    assert (plays()[1], plays()[2]) == (4, 0)
+    assert (plays(include_archived=1)[1], plays(include_archived=1)[2]) == (4, 2)
+
+
+def test_user_page_stats_skip_archived_library(two_libraries):
+    archive_other()
+    user_data = users.Users()
+
+    def all_time(include_archived):
+        result = user_data.get_watch_time_stats(user_id=2, grouping=False, query_days="0",
+                                                include_archived=include_archived)
+        return result[0]["total_plays"]
+
+    assert all_time(False) == 0
+    assert all_time(True) == 2
+    assert user_data.get_player_stats(user_id=2) == []
+    assert len(user_data.get_player_stats(user_id=2, include_archived=True)) == 1
+    assert user_data.get_recently_watched(user_id=2) == []
+    assert len(user_data.get_recently_watched(user_id=2, include_archived=True)) == 2
+
+
+def test_user_page_ips_and_last_seen_skip_archived_library(two_libraries):
+    archive_other()
+    web = webserve.WebInterface()
+
+    assert web.get_user_ips(user_id="2")["data"] == []
+    assert len(web.get_user_ips(user_id="2", include_archived="1")["data"]) == 1
+    assert web.get_user(user_id="2", include_last_seen=True)["last_seen"] is None
+    assert web.get_user(user_id="2", include_last_seen=True, include_archived="1")["last_seen"] == 4000
+
+
+def test_library_page_shows_an_archived_library_own_data(two_libraries):
+    archive_other()
+    library_data = libraries.Libraries()
+
+    user_stats = library_data.get_user_stats(section_id=2)
+    watch_time = library_data.get_watch_time_stats(section_id=2, grouping=False, query_days="0")
+    recent = library_data.get_recently_watched(section_id=2)
+    details = library_data.get_library_details(section_id=2, include_last_accessed=True)
+
+    assert [row["user_id"] for row in user_stats] == [2]
+    assert watch_time[0]["total_plays"] == 2
+    assert {row["user"] for row in recent} == {"bob"}
+    assert details["last_accessed"] == 4000
+
+
+def test_user_watch_time_recent_window_skips_archived_library(two_libraries):
+    # The timed branch (query_days > 0) has its own copy of the filter.
+    archive_other()
+    user_data = users.Users()
+
+    hidden = user_data.get_watch_time_stats(user_id=2, grouping=False, query_days="36500")
+    shown = user_data.get_watch_time_stats(user_id=2, grouping=False, query_days="36500", include_archived=True)
+
+    assert hidden[0]["total_plays"] == 0
+    assert shown[0]["total_plays"] == 2
+
+
+def test_user_api_endpoints_pass_include_archived(two_libraries):
+    archive_other()
+    web = webserve.WebInterface()
+
+    assert web.get_user_watch_time_stats(user_id="2", grouping=0, query_days="0")[0]["total_plays"] == 0
+    assert web.get_user_watch_time_stats(user_id="2", grouping=0, query_days="0",
+                                         include_archived="1")[0]["total_plays"] == 2
+    assert web.get_user_watch_time_stats(user_id="2", grouping=0, query_days="36500",
+                                         include_archived="1")[0]["total_plays"] == 2
+    assert web.get_user_player_stats(user_id="2", grouping=0) == []
+    assert len(web.get_user_player_stats(user_id="2", grouping=0, include_archived="1")) == 1
+
+
+def test_user_page_fragments_pass_include_archived(two_libraries, monkeypatch):
+    archive_other()
+    monkeypatch.setattr(webserve, "serve_template", lambda **kwargs: kwargs["data"])
+    web = webserve.WebInterface()
+
+    assert web.user_watch_time_stats(user_id="2")[-1]["total_plays"] == 0
+    assert web.user_watch_time_stats(user_id="2", include_archived="1")[-1]["total_plays"] == 2
+    assert web.user_player_stats(user_id="2") is None
+    assert web.user_player_stats(user_id="2", include_archived="1")
+    assert web.get_user_recently_watched(user_id="2") is None
+    assert web.get_user_recently_watched(user_id="2", include_archived="1")
+
+
+def test_history_survives_a_failing_archived_section_query(two_libraries, monkeypatch):
+    # get_archived_section_ids must return a list on error, not None.
+    archive_other()
+    real = database.MonitorDatabase.select
+
+    def select(self, query, args=None):
+        if "WHERE is_archived = 1" in query and "library_sections" in query:
+            raise Exception("boom")
+        return real(self, query, args)
+
+    monkeypatch.setattr(database.MonitorDatabase, "select", select)
+
+    assert libraries.Libraries().get_archived_section_ids() == []
+    assert history_row_ids() == {1, 2, 3, 4, 5, 6}
+
+
+def test_collection_history_keeps_the_archived_library_filter_apart(two_libraries, monkeypatch):
+    # The rating_key OR clauses must not merge with the library filter.
+    from plexpy import pmsconnect
+    archive_other()
+    monkeypatch.setattr(pmsconnect.PmsConnect, "get_item_children",
+                        lambda self, rating_key=None, media_type=None: {"children_list": [{"rating_key": 101}]})
+
+    assert history_row_ids(rating_key="9", media_type="collection") == set()

@@ -22,6 +22,7 @@ from plexpy import common
 from plexpy import database
 from plexpy import datatables
 from plexpy import helpers
+from plexpy import libraries
 from plexpy import logger
 from plexpy import pmsconnect
 from plexpy import session
@@ -79,6 +80,12 @@ class DataFactory(object):
             archived_user_ids = users.Users().get_archived_user_ids()
             if archived_user_ids:
                 custom_where.append(['session_history.user_id NOT IN', archived_user_ids])
+
+        # A named library's rows show even when that library is archived.
+        if not include_archived and not any(c[0] == 'session_history.section_id IN' for c in custom_where):
+            archived_section_ids = libraries.Libraries().get_archived_section_ids()
+            if archived_section_ids:
+                custom_where.append(['session_history.section_id NOT IN', archived_section_ids])
 
         group_by = ['session_history.reference_id'] if grouping else ['session_history.id']
 
@@ -440,6 +447,8 @@ class DataFactory(object):
         if section_id:
             where_id += 'AND session_history.section_id = ? '
             where_id_args.append(section_id)
+        elif not include_archived:
+            where_id += libraries.archived_library_cond()
         if user_id:
             where_id += 'AND session_history.user_id = ? '
             where_id_args.append(user_id)
@@ -1139,7 +1148,9 @@ class DataFactory(object):
                                  "FROM session_history AS sh " \
                                  "JOIN session_history_media_info AS shmi ON sh.id = shmi.id " \
                                  "WHERE %s %s " % (where_timeframe[4:].replace('session_history.', 'sh.'),
-                                                   '' if include_archived else users.archived_user_cond(column='sh.user_id'))
+                                                   '' if include_archived else
+                                                   users.archived_user_cond(column='sh.user_id') +
+                                                   libraries.archived_library_cond(column='sh.section_id'))
 
                     title = 'Concurrent Streams'
                     query = base_query
@@ -1296,7 +1307,7 @@ class DataFactory(object):
             rating_keys = [rating_key]
 
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
-        archived_cond = '' if include_archived else users.archived_user_cond()
+        archived_cond = '' if include_archived else users.archived_user_cond() + libraries.archived_library_cond()
 
         for days in query_days:
             timestamp_query = timestamp - days * 24 * 60 * 60
@@ -1400,7 +1411,7 @@ class DataFactory(object):
             rating_keys = [rating_key]
 
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
-        archived_cond = '' if include_archived else users.archived_user_cond()
+        archived_cond = '' if include_archived else users.archived_user_cond() + libraries.archived_library_cond()
 
         try:
             if str(rating_key).isdigit():

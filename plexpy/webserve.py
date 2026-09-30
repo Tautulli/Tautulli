@@ -769,7 +769,7 @@ class WebInterface(object):
                 length (int):                   Number of items to return, 25
                 search (str):                   A string to search for, "Thrones"
                 refresh (str):                  "true" to refresh the media info table
-                include_archived (int):         0 or 1, include archived users
+                include_archived (int):         0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -1019,7 +1019,7 @@ class WebInterface(object):
             Optional parameters:
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -1070,7 +1070,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -1266,7 +1266,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):                 0 or 1
-                include_archived (int):         0 or 1, include archived users in the list
+                include_archived (int):         0 or 1, include archived users and libraries
                 order_column (str):             "user_thumb", "friendly_name", "last_seen", "ip_address", "platform",
                                                 "player", "last_played", "plays", "duration"
                 order_dir (str):                "desc" or "asc"
@@ -1440,13 +1440,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def user_watch_time_stats(self, user=None, user_id=None, **kwargs):
+    def user_watch_time_stats(self, user=None, user_id=None, include_archived=None, **kwargs):
         if not allow_session_user(user_id):
             return serve_template(template_name="user_watch_time_stats.html", data=None, title="Watch Stats")
 
         if user_id or user:
             user_data = users.Users()
-            result = user_data.get_watch_time_stats(user_id=user_id)
+            result = user_data.get_watch_time_stats(user_id=user_id,
+                                                    include_archived=helpers.bool_true(include_archived))
         else:
             result = None
 
@@ -1458,13 +1459,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def user_player_stats(self, user=None, user_id=None, **kwargs):
+    def user_player_stats(self, user=None, user_id=None, include_archived=None, **kwargs):
         if not allow_session_user(user_id):
             return serve_template(template_name="user_player_stats.html", data=None, title="Player Stats")
 
         if user_id or user:
             user_data = users.Users()
-            result = user_data.get_player_stats(user_id=user_id)
+            result = user_data.get_player_stats(user_id=user_id,
+                                                include_archived=helpers.bool_true(include_archived))
         else:
             result = None
 
@@ -1476,13 +1478,14 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth()
-    def get_user_recently_watched(self, user=None, user_id=None, limit='10', **kwargs):
+    def get_user_recently_watched(self, user=None, user_id=None, limit='10', include_archived=None, **kwargs):
         if not allow_session_user(user_id):
             return serve_template(template_name="user_recently_watched.html", data=None, title="Recently Watched")
 
         if user_id or user:
             user_data = users.Users()
-            result = user_data.get_recently_watched(user_id=user_id, limit=limit)
+            result = user_data.get_recently_watched(user_id=user_id, limit=limit,
+                                                    include_archived=helpers.bool_true(include_archived))
         else:
             result = None
 
@@ -1497,7 +1500,7 @@ class WebInterface(object):
     @requireAuth()
     @sanitize_out()
     @addtoapi()
-    def get_user_ips(self, user_id=None, **kwargs):
+    def get_user_ips(self, user_id=None, include_archived=None, **kwargs):
         """ Get the data on Tautulli users IP table.
 
             ```
@@ -1511,6 +1514,7 @@ class WebInterface(object):
                 start (int):                    Row to start from, 0
                 length (int):                   Number of items to return, 25
                 search (str):                   A string to search for, "xxx.xxx.xxx.xxx"
+                include_archived (int):         0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -1560,7 +1564,8 @@ class WebInterface(object):
             kwargs['json_data'] = build_datatables_json(kwargs, dt_columns, "last_seen")
 
         user_data = users.Users()
-        history = user_data.get_datatables_unique_ips(user_id=user_id, kwargs=kwargs)
+        history = user_data.get_datatables_unique_ips(user_id=user_id, kwargs=kwargs,
+                                                      include_archived=helpers.bool_true(include_archived))
 
         if history is None:
             cherrypy.response.status = 500
@@ -1668,7 +1673,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user(self, user_id=None, include_last_seen=False, **kwargs):
+    def get_user(self, user_id=None, include_last_seen=False, include_archived=None, **kwargs):
         """ Get a user's details.
 
             ```
@@ -1677,6 +1682,7 @@ class WebInterface(object):
 
             Optional parameters:
                 include_last_seen (bool):   True to include the last_seen value for the user.
+                include_archived (int):     0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -1704,7 +1710,8 @@ class WebInterface(object):
         if user_id:
             user_data = users.Users()
             user_details = user_data.get_details(user_id=user_id,
-                                                 include_last_seen=include_last_seen)
+                                                 include_last_seen=include_last_seen,
+                                                 include_archived=helpers.bool_true(include_archived))
             if user_details:
                 return user_details
             else:
@@ -1717,7 +1724,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user_watch_time_stats(self, user_id=None, grouping=None, query_days=None, **kwargs):
+    def get_user_watch_time_stats(self, user_id=None, grouping=None, query_days=None, include_archived=None,
+                                  **kwargs):
         """ Get a user's watch time statistics.
 
             ```
@@ -1727,6 +1735,7 @@ class WebInterface(object):
             Optional parameters:
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
+                include_archived (int): 0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -1753,7 +1762,8 @@ class WebInterface(object):
 
         if user_id:
             user_data = users.Users()
-            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping, query_days=query_days)
+            result = user_data.get_watch_time_stats(user_id=user_id, grouping=grouping, query_days=query_days,
+                                                    include_archived=helpers.bool_true(include_archived))
             if result:
                 return result
             else:
@@ -1766,7 +1776,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_user_player_stats(self, user_id=None, grouping=None, **kwargs):
+    def get_user_player_stats(self, user_id=None, grouping=None, include_archived=None, **kwargs):
         """ Get a user's player statistics.
 
             ```
@@ -1775,6 +1785,7 @@ class WebInterface(object):
 
             Optional parameters:
                 grouping (int):         0 or 1
+                include_archived (int): 0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -1801,7 +1812,8 @@ class WebInterface(object):
 
         if user_id:
             user_data = users.Users()
-            result = user_data.get_player_stats(user_id=user_id, grouping=grouping)
+            result = user_data.get_player_stats(user_id=user_id, grouping=grouping,
+                                                include_archived=helpers.bool_true(include_archived))
             if result:
                 return result
             else:
@@ -1928,7 +1940,7 @@ class WebInterface(object):
             Optional parameters:
                 grouping (int):                 0 or 1
                 include_activity (int):         0 or 1
-                include_archived (int):         0 or 1, include history of archived users
+                include_archived (int):         0 or 1, include history of archived users and libraries
                 user (str):                     "Jon Snow"
                 user_id (int):                  133788
                 rating_key (int):               4348
@@ -2295,7 +2307,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2341,7 +2353,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2387,7 +2399,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2433,7 +2445,7 @@ class WebInterface(object):
                 time_range (str):       The number of months of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2479,7 +2491,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2525,7 +2537,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2571,7 +2583,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2615,7 +2627,7 @@ class WebInterface(object):
             Optional parameters:
                 time_range (str):       The number of days of data to return
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -2656,7 +2668,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2701,7 +2713,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2746,7 +2758,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -2791,7 +2803,7 @@ class WebInterface(object):
                 time_range (str):       The number of days of data to return
                 y_axis (str):           "plays" or "duration"
                 user_id (str):          Comma separated list of user id to filter the data
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
                 grouping (int):         0 or 1
 
             Returns:
@@ -4623,7 +4635,7 @@ class WebInterface(object):
                 media_type (str):       Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
                 query_days (str):       Comma separated days, e.g. "1,7,30,0"
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -4682,7 +4694,7 @@ class WebInterface(object):
             Optional parameters:
                 media_type (str):       Media type of the item (only required for a collection)
                 grouping (int):         0 or 1
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
 
             Returns:
                 json:
@@ -6504,7 +6516,7 @@ class WebInterface(object):
                 user_id (int):          The id of the Plex user
                 before (str):           Stats before and including the date, "YYYY-MM-DD"
                 after (str):            Stats after and including the date, "YYYY-MM-DD"
-                include_archived (int): 0 or 1, include archived users
+                include_archived (int): 0 or 1, include archived users and libraries
 
             Returns:
                 json:

@@ -493,7 +493,7 @@ DOCUMENTATION :: END
                     user_id: user_id,
                     media_type: media_type,
                     transcode_decision: transcode_decision,
-                    include_archived: 1
+                    include_archived: include_archived
                 };
             },
             error: function(xhr, error, thrown) {
@@ -592,7 +592,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    user_id: user_id
+                    user_id: user_id,
+                    include_archived: include_archived
                 };
             },
             error: function(xhr, error, thrown) {
@@ -658,7 +659,8 @@ DOCUMENTATION :: END
             async: true,
             data: {
                 user_id: user_id,
-                limit: 50
+                limit: 50,
+                include_archived: include_archived
             },
             complete: function(xhr, status) {
                 $("#user-recently-watched").html(xhr.responseText);
@@ -687,7 +689,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'user_watch_time_stats',
             async: true,
-            data: { user_id: user_id, user: username },
+            data: { user_id: user_id, user: username, include_archived: include_archived },
             complete: function(xhr, status) {
                 $("#user-time-stats").html(xhr.responseText);
             }
@@ -697,7 +699,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'user_player_stats',
             async: true,
-            data: { user_id: user_id, user: username },
+            data: { user_id: user_id, user: username, include_archived: include_archived },
             complete: function(xhr, status) {
                 $("#user-player-stats").html(xhr.responseText);
             }

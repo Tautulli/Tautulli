@@ -194,7 +194,9 @@ class Users(object):
                                           join_tables=['session_history',
                                                        'session_history_metadata',
                                                        'session_history_media_info'],
-                                          join_evals=[['session_history.user_id', 'users.user_id'],
+                                          join_evals=[['session_history.user_id',
+                                                       'users.user_id ' +
+                                                       ('' if include_archived else libraries.archived_library_cond())],
                                                       ['session_history.id', 'session_history_metadata.id'],
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
@@ -265,7 +267,7 @@ class Users(object):
 
         return dict
 
-    def get_datatables_unique_ips(self, user_id=None, kwargs=None):
+    def get_datatables_unique_ips(self, user_id=None, kwargs=None, include_archived=False):
         if not session.allow_session_user(user_id):
             return {
                 'recordsFiltered': 0,
@@ -317,7 +319,9 @@ class Users(object):
                                           join_tables=['users',
                                                        'session_history_metadata',
                                                        'session_history_media_info'],
-                                          join_evals=[['session_history.user_id', 'users.user_id'],
+                                          join_evals=[['session_history.user_id',
+                                                       'users.user_id ' +
+                                                       ('' if include_archived else libraries.archived_library_cond())],
                                                       ['session_history.id', 'session_history_metadata.id'],
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
@@ -402,7 +406,7 @@ class Users(object):
             except Exception as e:
                 logger.warn("Tautulli Users :: Unable to execute database query for set_config: %s." % e)
 
-    def get_details(self, user_id=None, user=None, email=None, include_last_seen=False):
+    def get_details(self, user_id=None, user=None, email=None, include_last_seen=False, include_archived=False):
         default_return = {'row_id': 0,
                           'user_id': 0,
                           'username': 'Local',
@@ -426,7 +430,8 @@ class Users(object):
             return default_return
 
         user_details = self.get_user_details(user_id=user_id, user=user, email=email,
-                                             include_last_seen=include_last_seen)
+                                             include_last_seen=include_last_seen,
+                                             include_archived=include_archived)
 
         if user_details:
             return user_details
@@ -450,12 +455,14 @@ class Users(object):
                 # Use "Local" user to retain compatibility with PlexWatch database value
                 return default_return
 
-    def get_user_details(self, user_id=None, user=None, email=None, include_last_seen=False):
+    def get_user_details(self, user_id=None, user=None, email=None, include_last_seen=False,
+                         include_archived=False):
         last_seen = 'NULL'
         join = ''
         if include_last_seen:
             last_seen = "MAX(session_history.started)"
-            join = "LEFT OUTER JOIN session_history ON users.user_id = session_history.user_id"
+            join = "LEFT OUTER JOIN session_history ON users.user_id = session_history.user_id " \
+                   + ('' if include_archived else libraries.archived_library_cond())
 
         monitor_db = database.MonitorDatabase()
 
@@ -523,7 +530,7 @@ class Users(object):
                                 }
         return user_details
 
-    def get_watch_time_stats(self, user_id=None, grouping=None, query_days=None):
+    def get_watch_time_stats(self, user_id=None, grouping=None, query_days=None, include_archived=False):
         if not session.allow_session_user(user_id):
             return []
 
@@ -542,6 +549,7 @@ class Users(object):
         user_watch_time_stats = []
 
         group_by = 'reference_id' if grouping else 'id'
+        archived_cond = '' if include_archived else libraries.archived_library_cond(column='section_id')
 
         for days in query_days:
             timestamp_query = timestamp - days * 24 * 60 * 60
@@ -554,7 +562,7 @@ class Users(object):
                                 "COUNT(DISTINCT %s) AS total_plays " \
                                 "FROM session_history " \
                                 "WHERE stopped >= %s " \
-                                "AND user_id = ? " % (group_by, timestamp_query)
+                                "AND user_id = ? %s" % (group_by, timestamp_query, archived_cond)
                         result = monitor_db.select(query, args=[user_id])
                     else:
                         result = []
@@ -564,7 +572,7 @@ class Users(object):
                                 "   SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
                                 "COUNT(DISTINCT %s) AS total_plays " \
                                 "FROM session_history " \
-                                "WHERE user_id = ? " % group_by
+                                "WHERE user_id = ? %s" % (group_by, archived_cond)
                         result = monitor_db.select(query, args=[user_id])
                     else:
                         result = []
@@ -589,7 +597,7 @@ class Users(object):
 
         return user_watch_time_stats
 
-    def get_player_stats(self, user_id=None, grouping=None):
+    def get_player_stats(self, user_id=None, grouping=None, include_archived=False):
         if not session.allow_session_user(user_id):
             return []
 
@@ -609,9 +617,10 @@ class Users(object):
                         "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
                         "platform " \
                         "FROM session_history " \
-                        "WHERE user_id = ? " \
+                        "WHERE user_id = ? %s" \
                         "GROUP BY player " \
-                        "ORDER BY total_plays DESC, total_time DESC" % group_by
+                        "ORDER BY total_plays DESC, total_time DESC" % (
+                            group_by, '' if include_archived else libraries.archived_library_cond(column='section_id'))
                 result = monitor_db.select(query, args=[user_id])
             else:
                 result = []
@@ -636,7 +645,7 @@ class Users(object):
 
         return player_stats
 
-    def get_recently_watched(self, user_id=None, limit='10'):
+    def get_recently_watched(self, user_id=None, limit='10', include_archived=False):
         if not session.allow_session_user(user_id):
             return []
 
@@ -655,10 +664,11 @@ class Users(object):
                         "year, originally_available_at, added_at, live, started, user " \
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
-                        "WHERE user_id = ? " \
+                        "WHERE user_id = ? %s" \
                         "GROUP BY (CASE WHEN session_history.media_type = 'track' THEN session_history.parent_rating_key " \
                         "   ELSE session_history.rating_key END) " \
-                        "ORDER BY MAX(started) DESC LIMIT ?"
+                        "ORDER BY MAX(started) DESC LIMIT ?" % (
+                            '' if include_archived else libraries.archived_library_cond())
                 result = monitor_db.select(query, args=[user_id, limit])
             else:
                 result = []

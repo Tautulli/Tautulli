@@ -31,6 +31,10 @@ from plexpy import users
 from plexpy.plex import Plex
 
 
+def archived_library_cond(column='session_history.section_id', cond_prefix='AND'):
+    return "%s %s NOT IN (SELECT section_id FROM library_sections WHERE is_archived = 1) " % (cond_prefix, column)
+
+
 def refresh_libraries():
     logger.info("Tautulli Libraries :: Requesting libraries list refresh...")
 
@@ -1072,6 +1076,21 @@ class Libraries(object):
                 recently_watched.append(recent_output)
 
         return session.mask_session_info(recently_watched)
+
+    def get_archived_section_ids(self):
+        """Return the section_ids of all archived libraries.
+
+        Returns an empty list if the query fails.
+        """
+        monitor_db = database.MonitorDatabase()
+
+        try:
+            result = monitor_db.select("SELECT section_id FROM library_sections WHERE is_archived = 1")
+        except Exception as e:
+            logger.warn("Tautulli Libraries :: Unable to execute database query for get_archived_section_ids: %s." % e)
+            return []
+
+        return [item['section_id'] for item in result]
 
     def get_sections(self):
         monitor_db = database.MonitorDatabase()

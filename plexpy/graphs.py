@@ -1242,6 +1242,8 @@ class Graphs(object):
             user_ids = helpers.split_strip(user_id)
             if all(id.isdigit() for id in user_ids):
                 user_cond = cond_prefix + ' session_history.user_id IN (%s) ' % ','.join(user_ids)
-        if user_cond or self.include_archived:
-            return user_cond
-        return users.archived_user_cond(cond_prefix=cond_prefix)
+        if not user_cond and not self.include_archived:
+            user_cond = users.archived_user_cond(cond_prefix=cond_prefix)
+        if not self.include_archived:
+            user_cond += libraries.archived_library_cond()
+        return user_cond
