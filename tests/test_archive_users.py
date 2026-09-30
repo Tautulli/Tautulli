@@ -190,6 +190,15 @@ def test_history_rows_flag_archived_users(seeded):
     assert flags == {(1, None): 0, (2, None): 1, (2, "playing"): 1}
 
 
+def test_user_names_return_the_archive_flag(late_bob):
+    archive_bob()
+
+    flags = {item["user_id"]: item["is_archived"] for item in users.Users().get_user_names(include_archived=1)}
+    api_flags = {item["user_id"]: item["is_archived"] for item in webserve.WebInterface().get_user_names(include_archived=1)}
+
+    assert flags == api_flags == {0: 0, 1: 0, 2: 1}
+
+
 def test_guest_history_is_unchanged_by_another_users_archive(seeded, monkeypatch):
     monkeypatch.setattr(plexpy.session, "get_session_user_id", lambda: "1")
     archive_bob()

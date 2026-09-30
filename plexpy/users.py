@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 
 # This file is part of Tautulli.
 #
@@ -866,7 +866,7 @@ class Users(object):
 
         return None
 
-    def get_user_names(self, kwargs=None, include_archived=False):
+    def get_user_names(self, include_archived=False):
         monitor_db = database.MonitorDatabase()
 
         user_cond = ''
@@ -877,7 +877,7 @@ class Users(object):
             user_cond += "AND is_archived = 0 "
 
         try:
-            query = "SELECT user_id, " \
+            query = "SELECT user_id, is_archived, " \
                     "(CASE WHEN users.friendly_name IS NULL OR TRIM(users.friendly_name) = '' \
                     THEN users.username ELSE users.friendly_name END) AS friendly_name " \
                     "FROM users " \

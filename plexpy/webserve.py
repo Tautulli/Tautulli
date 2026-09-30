@@ -2293,9 +2293,9 @@ class WebInterface(object):
 
             Returns:
                 json:
-                    [{"friendly_name": "Jon Snow", "user_id": 133788},
-                     {"friendly_name": "DanyKhaleesi69", "user_id": 8008135},
-                     {"friendly_name": "Tyrion Lannister", "user_id": 696969},
+                    [{"friendly_name": "Jon Snow", "user_id": 133788, "is_archived": 0},
+                     {"friendly_name": "DanyKhaleesi69", "user_id": 8008135, "is_archived": 0},
+                     {"friendly_name": "Tyrion Lannister", "user_id": 696969, "is_archived": 0},
                      {...},
                     ]
             ```
@@ -2303,7 +2303,7 @@ class WebInterface(object):
         include_archived = helpers.bool_true(include_archived)
 
         user_data = users.Users()
-        user_names = user_data.get_user_names(kwargs=kwargs, include_archived=include_archived)
+        user_names = user_data.get_user_names(include_archived=include_archived)
 
         return user_names
 
