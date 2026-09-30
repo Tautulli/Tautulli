@@ -1163,19 +1163,33 @@ class Libraries(object):
         else:
             return False
 
-    def undelete(self, section_id=None, section_name=None):
+    def undelete(self, server_id=None, section_id=None, section_name=None, row_ids=None):
         monitor_db = database.MonitorDatabase()
 
         try:
-            if section_id and str(section_id).isdigit():
-                query = "SELECT * FROM library_sections WHERE section_id = ?"
-                result = monitor_db.select(query=query, args=[section_id])
+            if row_ids:
+                row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
+
+                # Get the section_ids corresponding to the row_ids
+                result = monitor_db.select("SELECT server_id, section_id FROM library_sections "
+                                           "WHERE id IN ({})".format(",".join(["?"] * len(row_ids))), row_ids)
+
+                success = [self.undelete(server_id=library['server_id'], section_id=library['section_id'])
+                           for library in result]
+                return bool(success) and all(success)
+
+            elif section_id and str(section_id).isdigit():
+                # A server_id limits the restore to that one library row
+                server_sql = " AND server_id = ?" if server_id else ""
+                args = [section_id, server_id] if server_id else [section_id]
+                query = "SELECT * FROM library_sections WHERE section_id = ?" + server_sql
+                result = monitor_db.select(query=query, args=args)
                 if result:
                     logger.info("Tautulli Libraries :: Restoring library with id %s to database." % section_id)
                     monitor_db.action("UPDATE library_sections "
                                       "SET deleted_section = 0, keep_history = 1, is_archived = 0 "
-                                      "WHERE section_id = ?",
-                                      [section_id])
+                                      "WHERE section_id = ?" + server_sql,
+                                      args)
                     return True
                 else:
                     return False

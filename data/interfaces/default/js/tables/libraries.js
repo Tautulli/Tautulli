@@ -257,7 +257,7 @@ libraries_list_table_options = {
         if ($.inArray(rowData['row_id'], libraries_to_purge) !== -1) {
             $(row).find('button.purge-library[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
-        if ($.inArray(rowData['section_id'], libraries_to_restore) !== -1) {
+        if ($.inArray(rowData['row_id'], libraries_to_restore) !== -1) {
             $(row).find('button.restore-library').toggleClass('btn-warning').toggleClass('btn-success');
         }
     }
@@ -349,10 +349,10 @@ $('#libraries_list_table').on('click', 'td.edit-control > .edit-library-toggles 
     var row = libraries_list_table.row(tr);
     var rowData = row.data();
 
-    var index_restore = $.inArray(rowData['section_id'], libraries_to_restore);
+    var index_restore = $.inArray(rowData['row_id'], libraries_to_restore);
 
     if (index_restore === -1) {
-        libraries_to_restore.push(rowData['section_id']);
+        libraries_to_restore.push(rowData['row_id']);
     } else {
         libraries_to_restore.splice(index_restore, 1);
     }

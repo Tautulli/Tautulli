@@ -495,3 +495,48 @@ def test_library_page_badges_the_deleted_archived_and_inactive_library(seeded, w
 
     assert ("library-info-poster-face svg-icon" in page) == (thumb == "")
     assert page_badges(page, "inactive-library-tooltip") == badges
+
+
+def test_undelete_restores_several_libraries_by_row_ids_in_one_call(two_libraries):
+    two_libraries.action("UPDATE library_sections SET deleted_section = 1, keep_history = 0, is_archived = 1")
+    row_ids = ",".join(str(row["id"]) for row in two_libraries.select("SELECT id FROM library_sections"))
+
+    result = webserve.WebInterface().undelete_library(row_ids=row_ids)
+
+    assert result == {"result": "success", "message": "Restored library with row_ids %s." % row_ids}
+    assert two_libraries.select("SELECT section_id, deleted_section, keep_history, is_archived "
+                                "FROM library_sections ORDER BY section_id") == [
+        {"section_id": 1, "deleted_section": 0, "keep_history": 1, "is_archived": 0},
+        {"section_id": 2, "deleted_section": 0, "keep_history": 1, "is_archived": 0}]
+
+
+def test_undelete_row_ids_restores_only_that_library_row(two_libraries):
+    # A second server has a library with the same section_id. Its row stays deleted.
+    two_libraries.action("INSERT INTO library_sections (server_id, section_id, section_name, section_type) "
+                         "VALUES ('other', 2, 'Other', 'movie')")
+    two_libraries.action("UPDATE library_sections SET deleted_section = 1 WHERE section_id = 2")
+    row_id = two_libraries.select_single(
+        "SELECT id FROM library_sections WHERE server_id = 'server' AND section_id = 2")["id"]
+
+    assert libraries.Libraries().undelete(row_ids=str(row_id)) is True
+
+    assert two_libraries.select("SELECT server_id FROM library_sections WHERE deleted_section = 1") == [
+        {"server_id": "other"}]
+
+
+def test_undelete_library_with_an_unknown_row_id_is_an_error(two_libraries):
+    two_libraries.action("UPDATE library_sections SET deleted_section = 1 WHERE section_id = 2")
+
+    assert libraries.Libraries().undelete(row_ids="9999") is False
+    assert webserve.WebInterface().undelete_library(row_ids="9999")["result"] == "error"
+    assert library_flags(two_libraries)["deleted_section"] == 1
+
+
+def test_undelete_library_still_restores_every_row_of_a_section_id(two_libraries):
+    two_libraries.action("INSERT INTO library_sections (server_id, section_id, section_name, section_type) "
+                         "VALUES ('other', 2, 'Other', 'movie')")
+    two_libraries.action("UPDATE library_sections SET deleted_section = 1 WHERE section_id = 2")
+
+    assert webserve.WebInterface().undelete_library(section_id="2")["result"] == "success"
+
+    assert two_libraries.select("SELECT id FROM library_sections WHERE deleted_section = 1") == []

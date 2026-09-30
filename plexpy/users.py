@@ -794,11 +794,21 @@ class Users(object):
         else:
             return False
 
-    def undelete(self, user_id=None, username=None):
+    def undelete(self, user_id=None, username=None, row_ids=None):
         monitor_db = database.MonitorDatabase()
 
         try:
-            if user_id is not None and str(user_id).isdigit():
+            if row_ids:
+                row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
+
+                # Get the user_ids corresponding to the row_ids
+                result = monitor_db.select("SELECT user_id FROM users "
+                                           "WHERE id IN ({})".format(",".join(["?"] * len(row_ids))), row_ids)
+
+                success = [self.undelete(user_id=user['user_id']) for user in result]
+                return bool(success) and all(success)
+
+            elif user_id is not None and str(user_id).isdigit():
                 query = "SELECT * FROM users WHERE user_id = ?"
                 result = monitor_db.select(query=query, args=[user_id])
                 if result:

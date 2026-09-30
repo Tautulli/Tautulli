@@ -146,17 +146,17 @@
                     if (users_to_restore.length > 0) {
                         $('#users-to-restore').prepend('<p>Are you sure you want to restore the following users:</p>');
                         for (var i = 0; i < users_to_restore.length; i++) {
-                            $('#users-to-restore').append('<li>' + $('#keep_history-' + users_to_restore[i]).closest('tr').find('div.edit-user-name > input').val() + '</li>');
+                            $('#users-to-restore').append('<li>' + $('div[data-id=' + users_to_restore[i] + '] > input').val() + '</li>');
                         }
                     }
 
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < users_to_restore.length; i++) {
+                        if (users_to_restore.length > 0) {
                             $.ajax({
                                 url: 'undelete_user',
                                 type: 'POST',
-                                data: { user_id: users_to_restore[i] },
+                                data: { row_ids: users_to_restore.join(',') },
                                 cache: false,
                                 async: true,
                                 success: function (data) {

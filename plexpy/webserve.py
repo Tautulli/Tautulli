@@ -1176,13 +1176,15 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def undelete_library(self, section_id=None, section_name=None, **kwargs):
+    def undelete_library(self, section_id=None, section_name=None, row_ids=None, **kwargs):
         """ Restore a deleted library section to Tautulli.
 
             ```
             Required parameters:
                 section_id (str):       The id of the Plex library section
                 section_name (str):     The name of the Plex library section
+                or
+                row_ids (str):          Comma separated row ids to restore, e.g. "2,3,8"
 
             Optional parameters:
                 None
@@ -1192,14 +1194,16 @@ class WebInterface(object):
             ```
         """
         library_data = libraries.Libraries()
-        result = library_data.undelete(section_id=section_id, section_name=section_name)
+        result = library_data.undelete(section_id=section_id, section_name=section_name, row_ids=row_ids)
         if result:
-            if section_id:
+            if row_ids:
+                msg = 'row_ids %s' % row_ids
+            elif section_id:
                 msg ='section_id %s' % section_id
             elif section_name:
                 msg = 'section_name %s' % section_name
             return {'result': 'success', 'message': 'Restored library with %s.' % msg}
-        return {'result': 'error', 'message': 'Unable to restore library. Invalid section_id or section_name.'}
+        return {'result': 'error', 'message': 'Unable to restore library. Invalid section_id, section_name or row_ids.'}
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
@@ -1894,13 +1898,15 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def undelete_user(self, user_id=None, username=None, **kwargs):
+    def undelete_user(self, user_id=None, username=None, row_ids=None, **kwargs):
         """ Restore a deleted user to Tautulli.
 
             ```
             Required parameters:
                 user_id (str):          The id of the Plex user
                 username (str):         The username of the Plex user
+                or
+                row_ids (str):          Comma separated row ids to restore, e.g. "2,3,8"
 
             Optional parameters:
                 None
@@ -1910,14 +1916,16 @@ class WebInterface(object):
             ```
         """
         user_data = users.Users()
-        result = user_data.undelete(user_id=user_id, username=username)
+        result = user_data.undelete(user_id=user_id, username=username, row_ids=row_ids)
         if result:
-            if user_id:
+            if row_ids:
+                msg = 'row_ids %s' % row_ids
+            elif user_id:
                 msg ='user_id %s' % user_id
             elif username:
                 msg = 'username %s' % username
             return {'result': 'success', 'message': 'Restored user with %s.' % msg}
-        return {'result': 'error', 'message': 'Unable to restore user. Invalid user_id or username.'}
+        return {'result': 'error', 'message': 'Unable to restore user. Invalid user_id, username or row_ids.'}
 
 
     ##### History #####

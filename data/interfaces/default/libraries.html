@@ -140,17 +140,17 @@
                     if (libraries_to_restore.length > 0) {
                         $('#libraries-to-restore').prepend('<p>Are you sure you want to restore the following libraries:</p>');
                         for (var i = 0; i < libraries_to_restore.length; i++) {
-                            $('#libraries-to-restore').append('<li>' + $('#keep_history-' + libraries_to_restore[i]).closest('tr').find('div[data-id]').text() + '</li>');
+                            $('#libraries-to-restore').append('<li>' + $('div[data-id=' + libraries_to_restore[i] + ']').text() + '</li>');
                         }
                     }
 
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        for (var i = 0; i < libraries_to_restore.length; i++) {
+                        if (libraries_to_restore.length > 0) {
                             $.ajax({
                                 url: 'undelete_library',
                                 type: 'POST',
-                                data: { section_id: libraries_to_restore[i] },
+                                data: { row_ids: libraries_to_restore.join(',') },
                                 cache: false,
                                 async: true,
                                 success: function (data) {

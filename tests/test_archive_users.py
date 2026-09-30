@@ -870,3 +870,41 @@ def test_user_page_badges_the_deleted_archived_and_inactive_user(seeded, web_pag
     seeded.action("UPDATE users SET %s WHERE user_id = 2" % flags)
 
     assert page_badges(web_pages.user(user_id="2"), "inactive-user-tooltip") == badges
+
+
+def test_undelete_restores_several_users_by_row_ids_in_one_call(seeded):
+    seeded.action("UPDATE users SET deleted_user = 1, keep_history = 0, is_archived = 1 WHERE user_id IN (1, 2)")
+    row_ids = ",".join(str(row["id"]) for row in seeded.select("SELECT id FROM users WHERE user_id IN (1, 2)"))
+
+    result = webserve.WebInterface().undelete_user(row_ids=row_ids)
+
+    assert result == {"result": "success", "message": "Restored user with row_ids %s." % row_ids}
+    assert seeded.select("SELECT user_id, deleted_user, keep_history, is_archived FROM users "
+                         "WHERE user_id IN (1, 2) ORDER BY user_id") == [
+        {"user_id": 1, "deleted_user": 0, "keep_history": 1, "is_archived": 0},
+        {"user_id": 2, "deleted_user": 0, "keep_history": 1, "is_archived": 0}]
+
+
+def test_undelete_row_ids_leaves_other_users_deleted(seeded):
+    seeded.action("UPDATE users SET deleted_user = 1 WHERE user_id IN (1, 2)")
+    bob_row_id = seeded.select_single("SELECT id FROM users WHERE user_id = 2")["id"]
+
+    assert users.Users().undelete(row_ids=str(bob_row_id)) is True
+
+    assert seeded.select("SELECT user_id FROM users WHERE deleted_user = 1") == [{"user_id": 1}]
+
+
+def test_undelete_user_with_an_unknown_row_id_is_an_error(seeded):
+    seeded.action("UPDATE users SET deleted_user = 1 WHERE user_id = 2")
+
+    assert users.Users().undelete(row_ids="9999") is False
+    assert webserve.WebInterface().undelete_user(row_ids="9999")["result"] == "error"
+    assert user_flags(seeded)["deleted_user"] == 1
+
+
+def test_undelete_user_still_takes_a_user_id(seeded):
+    seeded.action("UPDATE users SET deleted_user = 1 WHERE user_id = 2")
+
+    assert webserve.WebInterface().undelete_user(user_id="2")["result"] == "success"
+
+    assert user_flags(seeded)["deleted_user"] == 0
