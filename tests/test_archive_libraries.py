@@ -13,7 +13,7 @@ import pytest
 import plexpy
 from plexpy import database, datafactory, graphs, libraries, users, webserve
 
-from tests.test_archive_users import (ARCHIVED_INDICATOR, GRAPH_ENDPOINTS, SHOW_ARCHIVED, library, seeded,  # noqa: F401
+from tests.test_archive_users import (ARCHIVED_INDICATOR, checkbox_tag, GRAPH_ENDPOINTS, SHOW_ARCHIVED, library, seeded,  # noqa: F401
                                       show_archived_pages, web_pages)
 from tests.test_history_table import insert_history_row, seed_history
 
@@ -95,6 +95,22 @@ def test_undelete_clears_the_archive_flag_of_a_deleted_library(two_libraries, kw
     assert libraries.Libraries().undelete(**kwargs) is True
 
     assert library_flags(two_libraries) == {"is_archived": 0, "deleted_section": 0}
+
+
+def test_edit_library_dialog_disables_the_checkboxes_of_a_deleted_library(web_pages):
+    ids = ("keep_history", "is_archived")
+
+    def disabled():
+        dialog = web_pages.edit_library_dialog(section_id="1")
+        return [("disabled" in checkbox_tag(dialog, name)) for name in ids]
+
+    assert disabled() == [False, False]
+
+    libraries.Libraries().delete(section_id=1, server_id="server")
+    assert disabled() == [True, True]
+
+    libraries.Libraries().undelete(section_id=1)
+    assert disabled() == [False, False]
 
 
 def test_get_library_returns_the_archive_flag(two_libraries):

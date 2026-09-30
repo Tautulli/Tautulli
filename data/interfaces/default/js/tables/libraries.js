@@ -35,8 +35,8 @@ libraries_list_table_options = {
                     '<button class="btn btn-xs btn-warning delete-library" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-library" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<button class="btn btn-xs btn-warning restore-library"><i class="fa fa-undo fa-fw"></i> Restore</button>&nbsp&nbsp&nbsp' +
-                    '<input type="checkbox" id="keep_history-' + rowData['section_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
-                    '<input type="checkbox" id="is_archived-' + rowData['section_id'] + '" name="is_archived" value="1" ' + (rowData['is_archived'] ? 'checked' : '') + '><label class="edit-tooltip" for="is_archived-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle Archived"><i class="fa fa-archive fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="keep_history-' + rowData['section_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + (rowData['deleted_section'] ? ' disabled' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="is_archived-' + rowData['section_id'] + '" name="is_archived" value="1" ' + (rowData['is_archived'] ? 'checked' : '') + (rowData['deleted_section'] ? ' disabled' : '') + '><label class="edit-tooltip" for="is_archived-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle Archived"><i class="fa fa-archive fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
             "width": "7%",
@@ -354,9 +354,12 @@ $('#libraries_list_table').on('click', 'td.edit-control > .edit-library-toggles 
         success: function (data) {
             showMsg(data.message, false, true, 2000, data.result !== 'success');
             if (data.result === 'success') {
-                // Restoring turns keep_history on. The row stays until edit mode ends.
+                // Restoring turns keep_history on and is_archived off. The row stays until edit mode ends.
                 tr.removeClass('deleted-library');
                 tr.find('input[name="keep_history"]').prop('checked', true);
+                tr.find('.edit-library-toggles > input').prop('disabled', false);
+                tr.find('input[name="is_archived"]').prop('checked', false);
+                tr.removeClass('archived-library');
                 tr.find('.inactive-library-tooltip').remove();
             }
         }

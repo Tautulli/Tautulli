@@ -59,19 +59,19 @@ DOCUMENTATION :: END
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
+                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])} ${'disabled' if data['deleted_user'] else ''}> Keep history
                     </label>
                     <p class="help-block">Uncheck this if you do not want to keep any history on this user's activity.</p>
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="allow_guest" name="allow_guest" value="1" ${helpers.checked(data['allow_guest'])}> Allow Guest Access
+                        <input type="checkbox" id="allow_guest" name="allow_guest" value="1" ${helpers.checked(data['allow_guest'])} ${'disabled' if data['deleted_user'] else ''}> Allow Guest Access
                     </label>
                     <p class="help-block">Uncheck this if you do not want to allow this user to login to Tautulli.</p>
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="is_archived" name="is_archived" value="1" ${helpers.checked(data['is_archived'])}> Archive user
+                        <input type="checkbox" id="is_archived" name="is_archived" value="1" ${helpers.checked(data['is_archived'])} ${'disabled' if data['deleted_user'] else ''}> Archive user
                     </label>
                     <p class="help-block">Check this to hide the user from the users list, the history tables and the statistics. All history is kept and the user can be unarchived at any time. An archived user cannot log in as a guest.</p>
                 </div>

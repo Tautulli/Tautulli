@@ -114,6 +114,26 @@ def test_undelete_clears_the_archive_flag_of_a_deleted_user(seeded, kwargs):
     assert user_flags(seeded)["deleted_user"] == 0
 
 
+def checkbox_tag(dialog, checkbox_id):
+    start = dialog.index('id="%s"' % checkbox_id)
+    return dialog[start:dialog.index(">", start)]
+
+
+def test_edit_user_dialog_disables_the_checkboxes_of_a_deleted_user(web_pages):
+    ids = ("keep_history", "allow_guest", "is_archived")
+
+    dialog = web_pages.edit_user_dialog(user_id="2")
+    assert not any("disabled" in checkbox_tag(dialog, name) for name in ids)
+
+    users.Users().delete(user_id=2)
+    dialog = web_pages.edit_user_dialog(user_id="2")
+    assert all("disabled" in checkbox_tag(dialog, name) for name in ids)
+
+    users.Users().undelete(user_id=2)
+    dialog = web_pages.edit_user_dialog(user_id="2")
+    assert not any("disabled" in checkbox_tag(dialog, name) for name in ids)
+
+
 def test_history_table_hides_archived_until_asked(seeded):
     archive_bob()
 

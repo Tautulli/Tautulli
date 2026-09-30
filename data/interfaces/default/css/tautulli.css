@@ -3407,6 +3407,11 @@ table[id^='history_child'] tr.archived-user > td {
     color: #eee;
     cursor: pointer;
 }
+.edit-user-toggles > input[type='checkbox']:disabled + label,
+.edit-library-toggles > input[type='checkbox']:disabled + label {
+    color: #444;
+    cursor: default;
+}
 .edit-user-name > input[type='text'] {
     margin: 0;
 }

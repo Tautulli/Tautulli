@@ -59,13 +59,13 @@ DOCUMENTATION :: END
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
+                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])} ${'disabled' if data['deleted_section'] else ''}> Keep history
                     </label>
                     <p class="help-block">Uncheck this if you do not want to keep any history on this library's activity.</p>
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="is_archived" name="is_archived" value="1" ${helpers.checked(data['is_archived'])}> Archive library
+                        <input type="checkbox" id="is_archived" name="is_archived" value="1" ${helpers.checked(data['is_archived'])} ${'disabled' if data['deleted_section'] else ''}> Archive library
                     </label>
                     <p class="help-block">Check this to hide the library from the libraries list, the history tables and the statistics. All history is kept and the library can be unarchived at any time.</p>
                 </div>
