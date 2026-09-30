@@ -13,8 +13,8 @@ import pytest
 import plexpy
 from plexpy import database, datafactory, graphs, libraries, users, webserve
 
-from tests.test_archive_users import (ARCHIVED_INDICATOR, checkbox_tag, GRAPH_ENDPOINTS, SHOW_ARCHIVED, library, seeded,  # noqa: F401
-                                      show_archived_pages, web_pages)
+from tests.test_archive_users import (ARCHIVED_INDICATOR, checkbox_tag, GRAPH_ENDPOINTS, library, page_badges,  # noqa: F401
+                                      SHOW_ARCHIVED, seeded, show_archived_pages, web_pages)
 from tests.test_history_table import insert_history_row, seed_history
 
 
@@ -430,3 +430,21 @@ def test_show_archived_resets_while_no_library_is_archived(web_pages):
 
     libraries.Libraries().set_config(section_id=1, is_archived=0)
     assert all(reset in page for page in show_archived_pages(web_pages))
+
+
+@pytest.mark.parametrize("thumb", ["http://plex/thumb.jpg", ""], ids=["http thumb", "svg icon"])
+@pytest.mark.parametrize("flags, badges", [
+    ("deleted_section = 1, is_archived = 1, is_active = 0", [("Deleted library", "fa-trash-o")]),
+    ("deleted_section = 1", [("Deleted library", "fa-trash-o")]),
+    ("is_archived = 1, is_active = 0", [("Archived library", "fa-archive")]),
+    ("is_archived = 1", [("Archived library", "fa-archive")]),
+    ("is_active = 0", [("Library not on Plex server", "fa-exclamation-triangle")]),
+    ("is_active = 1", []),
+])
+def test_library_page_badges_the_deleted_archived_and_inactive_library(seeded, web_pages, flags, badges, thumb):
+    seeded.action("UPDATE library_sections SET thumb = ?, %s WHERE section_id = 1" % flags, [thumb])
+
+    page = web_pages.library(section_id="1")
+
+    assert ("library-info-poster-face svg-icon" in page) == (thumb == "")
+    assert page_badges(page, "inactive-library-tooltip") == badges

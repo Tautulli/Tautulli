@@ -62,7 +62,15 @@ DOCUMENTATION :: END
                         <div class="user-info-wrapper">
                             % if data['library_thumb'].startswith('http'):
                             <div class="library-info-poster-face" style="background-image: url(${page('pms_image_proxy', data['library_thumb'], None, 80, 80)});">
-                                % if not data['is_active']:
+                                % if data['deleted_section']:
+                                <span class="inactive-library-tooltip" data-toggle="tooltip" title="Deleted library">
+                                    <i class="fa fa-2x fa-trash-o"></i>
+                                </span>
+                                % elif data['is_archived']:
+                                <span class="inactive-library-tooltip" data-toggle="tooltip" title="Archived library">
+                                    <i class="fa fa-2x fa-archive"></i>
+                                </span>
+                                % elif not data['is_active']:
                                 <span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server">
                                     <i class="fa fa-2x fa-exclamation-triangle"></i>
                                 </span>
@@ -70,7 +78,15 @@ DOCUMENTATION :: END
                             </div>
                             % else:
                             <div class="library-info-poster-face svg-icon library-${data['section_type']}">
-                                % if not data['is_active']:
+                                % if data['deleted_section']:
+                                <span class="inactive-library-tooltip" data-toggle="tooltip" title="Deleted library">
+                                    <i class="fa fa-2x fa-trash-o"></i>
+                                </span>
+                                % elif data['is_archived']:
+                                <span class="inactive-library-tooltip" data-toggle="tooltip" title="Archived library">
+                                    <i class="fa fa-2x fa-archive"></i>
+                                </span>
+                                % elif not data['is_active']:
                                 <span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server">
                                     <i class="fa fa-2x fa-exclamation-triangle"></i>
                                 </span>

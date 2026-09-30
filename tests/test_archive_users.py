@@ -850,3 +850,23 @@ def test_get_library_api_takes_include_archived(late_bob, library):
     hidden = web.get_library(section_id=1, include_last_accessed=1, include_archived="0")
 
     assert (shown["last_accessed"], hidden["last_accessed"]) == (5100, 5000)
+
+
+def page_badges(page, tooltip_class):
+    # The (title, icon) pairs of the status badges on the page header.
+    return re.findall(r'class="%s" data-toggle="tooltip" title="([^"]*)">\s*<i class="fa fa-2x ([\w-]+)"' % tooltip_class,
+                      page)
+
+
+@pytest.mark.parametrize("flags, badges", [
+    ("deleted_user = 1, is_archived = 1, is_active = 0", [("Deleted user", "fa-trash-o")]),
+    ("deleted_user = 1", [("Deleted user", "fa-trash-o")]),
+    ("is_archived = 1, is_active = 0", [("Archived user", "fa-archive")]),
+    ("is_archived = 1", [("Archived user", "fa-archive")]),
+    ("is_active = 0", [("User not on Plex server", "fa-exclamation-triangle")]),
+    ("is_active = 1", []),
+])
+def test_user_page_badges_the_deleted_archived_and_inactive_user(seeded, web_pages, flags, badges):
+    seeded.action("UPDATE users SET %s WHERE user_id = 2" % flags)
+
+    assert page_badges(web_pages.user(user_id="2"), "inactive-user-tooltip") == badges
