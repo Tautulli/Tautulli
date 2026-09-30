@@ -797,3 +797,45 @@ def test_a_deleted_librarys_toggles_are_disabled_until_restore(server, db, page)
     sync_api.expect(movies.locator("#is_archived-1")).not_to_be_checked()
     assert "archived-library" not in movies.get_attribute("class")
     assert toggle_colors(movies, names, 1) == [ON, OFF]
+
+
+def box(row, selector):
+    return row.locator(selector).bounding_box()
+
+
+def test_a_deleted_users_toggles_line_up_with_the_rows_above(server, db, page):
+    db.action("UPDATE users SET deleted_user = 1 WHERE user_id = 2")
+    page.goto(server["url"] + "/users")
+    page.locator("#users_list_table td.edit-user-control a").first.wait_for(state="attached")
+    with page.expect_response(lambda r: "get_user_list" in r.url):
+        page.click("#row-edit-mode")
+    alice = edit_row(page, "users_list_table", 1)
+    bob = edit_row(page, "users_list_table", 2)
+    bob.wait_for()
+
+    assert abs(box(bob, 'label[for="keep_history-2"]')["x"] - box(alice, 'label[for="keep_history-1"]')["x"]) <= 1
+    # Restore sits where Delete sits, on the same line.
+    delete = box(alice, "button.delete-user")
+    restore = box(bob, "button.restore-user")
+    assert abs(restore["x"] - delete["x"]) <= 1
+    assert abs(restore["y"] - box(bob, "button.delete-user")["y"]) <= 1
+    sync_api.expect(bob.locator("button.delete-user")).not_to_be_visible()
+    sync_api.expect(bob.locator("button.purge-user")).not_to_be_visible()
+
+
+def test_a_deleted_librarys_toggles_line_up_with_the_rows_above(server, other_library, page):
+    other_library.action("UPDATE library_sections SET deleted_section = 1 WHERE section_id = 2")
+    page.goto(server["url"] + "/libraries")
+    with page.expect_response("**/get_library_list"):
+        page.click("#row-edit-mode")
+    movies = edit_row(page, "libraries_list_table", 1)
+    other = edit_row(page, "libraries_list_table", 2)
+    other.wait_for()
+
+    assert abs(box(other, 'label[for="keep_history-2"]')["x"] - box(movies, 'label[for="keep_history-1"]')["x"]) <= 1
+    delete = box(movies, "button.delete-library")
+    restore = box(other, "button.restore-library")
+    assert abs(restore["x"] - delete["x"]) <= 1
+    assert abs(restore["y"] - box(other, "button.delete-library")["y"]) <= 1
+    sync_api.expect(other.locator("button.delete-library")).not_to_be_visible()
+    sync_api.expect(other.locator("button.purge-library")).not_to_be_visible()
