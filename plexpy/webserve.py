@@ -554,7 +554,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     @sanitize_out()
     @addtoapi("get_library_names")
-    def get_library_sections(self, **kwargs):
+    def get_library_sections(self, include_archived=None, **kwargs):
         """ Get a list of library sections and ids on the PMS.
 
             ```
@@ -562,7 +562,7 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                None
+                include_archived (int):         0 or 1, include archived libraries in the list
 
             Returns:
                 json:
@@ -573,8 +573,10 @@ class WebInterface(object):
                      ]
             ```
         """
+        include_archived = helpers.bool_true(include_archived)
+
         library_data = libraries.Libraries()
-        result = library_data.get_sections()
+        result = library_data.get_sections(include_archived=include_archived)
 
         if result:
             return result

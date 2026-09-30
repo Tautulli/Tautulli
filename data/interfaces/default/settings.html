@@ -2912,7 +2912,7 @@ $(document).ready(function() {
 
     $.ajax({
         url: 'get_library_sections',
-        data: { },
+        data: { include_archived: 1 },  // Always include archived libraries
         async: true,
         complete: function (data) {
             libraries_list = $.parseJSON(data.responseText);

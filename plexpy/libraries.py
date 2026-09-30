@@ -1098,12 +1098,16 @@ class Libraries(object):
 
         return [item['section_id'] for item in result]
 
-    def get_sections(self):
+    def get_sections(self, include_archived=None):
         monitor_db = database.MonitorDatabase()
+
+        library_cond = ''
+        if not include_archived:
+            library_cond = "AND is_archived = 0 "
 
         try:
             query = "SELECT section_id, section_name, section_type, agent, is_archived " \
-                    "FROM library_sections WHERE deleted_section = 0"
+                    "FROM library_sections WHERE deleted_section = 0 %s" % library_cond
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_sections: %s." % e)

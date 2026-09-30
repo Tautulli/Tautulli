@@ -135,7 +135,7 @@ def test_library_names_list_an_archived_library(two_libraries):
     # The settings page picks the home library cards from this list.
     archive_other()
 
-    names = webserve.WebInterface().get_library_sections()
+    names = webserve.WebInterface().get_library_sections(include_archived=1)
 
     assert {row["section_id"] for row in names} == {1, 2}
 
@@ -242,8 +242,8 @@ def test_history_rows_do_not_repeat_for_a_section_id_on_two_servers(two_librarie
 def test_library_sections_return_the_archive_flag(two_libraries):
     archive_other()
 
-    flags = {item["section_id"]: item["is_archived"] for item in libraries.Libraries().get_sections()}
-    api_flags = {item["section_id"]: item["is_archived"] for item in webserve.WebInterface().get_library_sections()}
+    flags = {item["section_id"]: item["is_archived"] for item in libraries.Libraries().get_sections(include_archived=1)}
+    api_flags = {item["section_id"]: item["is_archived"] for item in webserve.WebInterface().get_library_sections(include_archived=1)}
 
     assert flags == api_flags == {1: 0, 2: 1}
 
