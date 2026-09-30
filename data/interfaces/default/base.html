@@ -1,10 +1,11 @@
 <%
     import plexpy
-    from plexpy import users, version
+    from plexpy import libraries, users, version
     from plexpy.helpers import anon_url
     from plexpy.notifiers import BROWSER_NOTIFIERS
 
-    has_archived = _session['user_group'] == 'admin' and bool(users.Users().get_archived_user_ids())
+    has_archived = _session['user_group'] == 'admin' and bool(users.Users().get_archived_user_ids() or
+                                                              libraries.Libraries().get_archived_section_ids())
 %>
 <!doctype html>
 
@@ -128,7 +129,7 @@
                     <li><a href="graphs">Graphs</a></li>
                     % endif
                     % if has_archived:
-                    <li class="active" id="nav-archived-indicator" style="display: none;"><a href="#" title="Showing archived users. Click to hide them."><i class="fa fa-lg fa-archive"></i></a></li>
+                    <li class="active" id="nav-archived-indicator" style="display: none;"><a href="#" title="Showing archived users and libraries. Click to hide them."><i class="fa fa-lg fa-archive"></i></a></li>
                     % endif
                     % if title == "Settings":
                     <li class="dropdown active">
@@ -141,7 +142,7 @@
                             % if _session['user_group'] == 'admin':
                             <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
                             % if has_archived:
-                            <li><a href="#" id="nav-show-archived"><i class="fa fa-fw fa-square-o"></i> Show Archived Users</a></li>
+                            <li><a href="#" id="nav-show-archived"><i class="fa fa-fw fa-square-o"></i> Show Archived Data</a></li>
                             % endif
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>

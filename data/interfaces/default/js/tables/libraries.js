@@ -34,6 +34,7 @@ libraries_list_table_options = {
                     '<button class="btn btn-xs btn-warning delete-library" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-library" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
                     '<input type="checkbox" id="keep_history-' + rowData['section_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="is_archived-' + rowData['section_id'] + '" name="is_archived" value="1" ' + (rowData['is_archived'] ? 'checked' : '') + '><label class="edit-tooltip" for="is_archived-' + rowData['section_id'] + '" data-toggle="tooltip" title="Toggle Archived"><i class="fa fa-archive fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
             "width": "7%",
@@ -46,7 +47,8 @@ libraries_list_table_options = {
             "data": "library_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 var inactive = '';
-                if (!rowData['is_active']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
+                if (rowData['is_archived']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Archived library"><i class="fa fa-archive"></i></span>'; }
+                else if (!rowData['is_active']) { inactive = '<span class="inactive-library-tooltip" data-toggle="tooltip" title="Library not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
                 if (cellData !== null && cellData !== '') {
                     if (rowData['library_thumb'].substring(0, 4) == "http") {
                         $(td).html('<a href="' + page('library', rowData['section_id']) + '"><div class="libraries-poster-face" style="background-image: url(' + rowData['library_thumb'] + ');">' + inactive + '</div></a>');
@@ -239,6 +241,9 @@ libraries_list_table_options = {
         showMsg(msg, false, false, 0)
     },
     "rowCallback": function (row, rowData) {
+        if (rowData['is_archived']) {
+            $(row).addClass('archived-library');
+        }
         if ($.inArray(rowData['row_id'], libraries_to_delete) !== -1) {
             $(row).find('button.delete-library[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
@@ -254,8 +259,12 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
     var rowData = row.data();
 
     var keep_history = 0;
+    var is_archived = 0;
     if ($('#keep_history-' + rowData['section_id']).is(':checked')) {
         keep_history = 1;
+    }
+    if ($('#is_archived-' + rowData['section_id']).is(':checked')) {
+        is_archived = 1;
     }
     if (rowData['custom_thumb']) {
         custom_thumb = rowData['custom_thumb']
@@ -269,6 +278,7 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
         data: {
             section_id: rowData['section_id'],
             keep_history: keep_history,
+            is_archived: is_archived,
             custom_thumb: custom_thumb
         },
         cache: false,
@@ -276,6 +286,8 @@ $('#libraries_list_table').on('change', 'td.edit-control > .edit-library-toggles
         success: function (data) {
             var msg = "Library updated";
             showMsg(msg, false, true, 2000);
+            // The row stays until edit mode ends, the same as on the users table.
+            tr.toggleClass('archived-library', is_archived === 1);
         }
     });
 });

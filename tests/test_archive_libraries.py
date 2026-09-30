@@ -13,7 +13,8 @@ import pytest
 import plexpy
 from plexpy import database, datafactory, graphs, libraries, users, webserve
 
-from tests.test_archive_users import GRAPH_ENDPOINTS
+from tests.test_archive_users import (ARCHIVED_INDICATOR, GRAPH_ENDPOINTS, SHOW_ARCHIVED, library, seeded,  # noqa: F401
+                                      show_archived_pages, web_pages)
 from tests.test_history_table import insert_history_row, seed_history
 
 
@@ -343,3 +344,36 @@ def test_collection_history_keeps_the_archived_library_filter_apart(two_librarie
                         lambda self, rating_key=None, media_type=None: {"children_list": [{"rating_key": 101}]})
 
     assert history_row_ids(rating_key="9", media_type="collection") == set()
+
+
+def test_edit_library_dialog_has_the_archive_checkbox(web_pages):
+    dialog = web_pages.edit_library_dialog(section_id="1")
+    assert 'id="is_archived"' in dialog
+    assert "Archive library" in dialog
+    assert "Checked" not in dialog[dialog.index('id="is_archived"'):].split(">")[0]
+
+    libraries.Libraries().set_config(section_id=1, is_archived=1)
+
+    dialog = web_pages.edit_library_dialog(section_id="1")
+    assert "Checked" in dialog[dialog.index('id="is_archived"'):].split(">")[0]
+
+
+def test_show_archived_data_shows_for_an_archived_library(web_pages):
+    # No user is archived in this test.
+    assert not any(SHOW_ARCHIVED in page for page in show_archived_pages(web_pages))
+
+    libraries.Libraries().set_config(section_id=1, is_archived=1)
+    pages = show_archived_pages(web_pages)
+
+    assert all(SHOW_ARCHIVED in page and ARCHIVED_INDICATOR in page for page in pages)
+    assert all("Show Archived Data" in page and "Show Archived Users" not in page for page in pages)
+    assert all("Showing archived users and libraries." in page for page in pages)
+
+
+def test_show_archived_resets_while_no_library_is_archived(web_pages):
+    reset = "setLocalStorage('include_archived', 0, false);"
+    libraries.Libraries().set_config(section_id=1, is_archived=1)
+    assert not any(reset in page for page in show_archived_pages(web_pages))
+
+    libraries.Libraries().set_config(section_id=1, is_archived=0)
+    assert all(reset in page for page in show_archived_pages(web_pages))

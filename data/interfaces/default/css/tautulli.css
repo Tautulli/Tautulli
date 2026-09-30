@@ -3303,10 +3303,12 @@ div.dataTables_info {
     bottom: 0;
     text-shadow: 0 0 2px rgba(0,0,0,.5);
 }
-tr.archived-user > td {
+tr.archived-user > td,
+tr.archived-library > td {
     opacity: .5;
 }
-tr.archived-user:hover > td {
+tr.archived-user:hover > td,
+tr.archived-library:hover > td {
     opacity: 1;
 }
 /* An expanded history group is already dimmed, and its parent row shows the archive state */
