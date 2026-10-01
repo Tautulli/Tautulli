@@ -68,6 +68,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
+      # CLAUDE_CODE_SUBPROCESS_ENV_SCRUB needs bubblewrap and socat on Linux.
+      # Without them Claude Code exits at start. The runner image ships neither.
+      # Ubuntu 24.04 blocks the user namespaces that bubblewrap uses, so lift that.
+      - name: Install Sandbox Tools
+        if: env.MODE == 'general'
+        run: |
+          sudo apt-get -o Acquire::Retries=3 update -qq
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends bubblewrap socat
+          if [ -f /proc/sys/kernel/apparmor_restrict_unprivileged_userns ]; then
+            sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          fi
+          # The sandbox leaves these as empty files in the checkout. Keep them out of commits.
+          # The list matches Claude Code 2.1.286. Add a name if a new placeholder shows up.
+          printf '%s\n' .env '.env.*' .gitmodules .npmrc .yarnrc .yarnrc.yml bunfig.toml \
+            package.json package-lock.json pnpm-lock.yaml yarn.lock >> .git/info/exclude
+
       # A fork PR gets no test tools. pytest runs the branch's own code, conftest.py
       # included, and this job holds the OAuth token and the app token even for a fork.
       - name: Check Whether the PR Is From a Fork
