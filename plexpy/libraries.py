@@ -1073,6 +1073,19 @@ class Libraries(object):
 
         try:
             if str(section_id).isdigit():
+                # Find each item's most recent history row over the narrow
+                # table first, then join the wide metadata table for only
+                # the returned rows
+                last_rows = monitor_db.select(
+                    "SELECT session_history.id, MAX(started) AS last_started "
+                    "FROM session_history "
+                    "WHERE section_id = ? %s"
+                    "GROUP BY rating_key "
+                    "ORDER BY last_started DESC LIMIT ?" % (
+                        '' if include_archived else users.archived_user_cond()),
+                    args=[section_id, limit])
+                last_ids = [row['id'] for row in last_rows]
+
                 query = "SELECT session_history.id, session_history.media_type, guid, " \
                         "session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, " \
                         "title, parent_title, grandparent_title, original_title, " \
@@ -1080,10 +1093,9 @@ class Libraries(object):
                         "year, originally_available_at, added_at, session_history_metadata.live, started, user, content_rating, labels, section_id " \
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
-                        "WHERE section_id = ? %s" \
-                        "GROUP BY session_history.rating_key " \
-                        "ORDER BY MAX(started) DESC LIMIT ?" % ('' if include_archived else users.archived_user_cond())
-                result = monitor_db.select(query, args=[section_id, limit])
+                        "WHERE session_history.id IN (%s) " \
+                        "ORDER BY started DESC" % ",".join(["?"] * len(last_ids))
+                result = monitor_db.select(query, args=last_ids) if last_ids else []
             else:
                 result = []
         except Exception as e:

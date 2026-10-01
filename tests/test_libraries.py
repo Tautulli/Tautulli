@@ -3,6 +3,8 @@
 import plexpy
 from plexpy import libraries, webserve
 
+from tests.test_history_table import insert_history_row
+
 
 def test_get_library_refreshes_a_missing_library_with_last_accessed(app_db, monkeypatch):
     # With no GROUP BY, the MAX() for last_accessed returned one row of NULLs
@@ -51,3 +53,20 @@ def test_libraries_table_hides_deleted_libraries_from_a_guest(app_db, monkeypatc
     monkeypatch.setattr(plexpy.session, "mask_session_info", lambda rows: rows)
 
     assert library_list_ids(include_deleted="1") == {1}
+
+
+def test_recently_watched_lists_each_item_once_by_its_latest_play(app_db):
+    # Item 301 has two plays. Row 5 is in another section.
+    insert_history_row(app_db, 1, 1, 1, "alice", 1000, 1600, 301, "First Movie", "movie")
+    insert_history_row(app_db, 2, 2, 1, "alice", 2000, 2600, 302, "Second Movie", "movie")
+    insert_history_row(app_db, 3, 3, 1, "alice", 3000, 3600, 301, "First Movie", "movie")
+    insert_history_row(app_db, 4, 4, 1, "alice", 4000, 4600, 303, "Third Movie", "movie")
+    insert_history_row(app_db, 5, 5, 1, "alice", 5000, 5600, 304, "Other Section", "movie")
+    app_db.action("UPDATE session_history SET section_id = 2 WHERE id = 5")
+
+    recent = libraries.Libraries().get_recently_watched(section_id=1)
+    latest_two = libraries.Libraries().get_recently_watched(section_id=1, limit="2")
+
+    assert [(row["row_id"], row["title"]) for row in recent] == [
+        (4, "Third Movie"), (3, "First Movie"), (2, "Second Movie")]
+    assert [row["row_id"] for row in latest_two] == [4, 3]
