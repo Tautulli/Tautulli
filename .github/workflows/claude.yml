@@ -85,6 +85,16 @@ jobs:
           printf '%s\n' .env '.env.*' .gitmodules .npmrc .yarnrc .yarnrc.yml bunfig.toml \
             package.json package-lock.json pnpm-lock.yaml yarn.lock >> .git/info/exclude
 
+      # Run the newest Claude Code. The action pins the version it shipped with.
+      - name: Install Claude Code
+        id: cli
+        timeout-minutes: 3
+        # bash adds pipefail, so a failed download fails the step.
+        shell: bash
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s -- latest
+          echo "path=$HOME/.local/bin/claude" >> "$GITHUB_OUTPUT"
+
       # A fork PR gets no test tools. pytest runs the branch's own code, conftest.py
       # included, and this job holds the OAuth token and the app token even for a fork.
       - name: Check Whether the PR Is From a Fork
@@ -102,6 +112,7 @@ jobs:
         if: env.MODE == 'review'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          path_to_claude_code_executable: ${{ steps.cli.outputs.path }}
           additional_permissions: |
             actions: read
           track_progress: true
@@ -130,6 +141,7 @@ jobs:
         if: env.MODE == 'verify'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          path_to_claude_code_executable: ${{ steps.cli.outputs.path }}
           # Read the code on nightly. Fixes land there first, so master would show a
           # bug as unfixed after it was already resolved.
           base_branch: nightly
@@ -168,6 +180,7 @@ jobs:
         if: env.MODE == 'fix'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          path_to_claude_code_executable: ${{ steps.cli.outputs.path }}
           # CONTRIBUTING.md: every pull request is based on nightly. The action fetches
           # and checks out this branch before it creates the working branch.
           base_branch: nightly
@@ -201,6 +214,7 @@ jobs:
         if: env.MODE == 'general'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          path_to_claude_code_executable: ${{ steps.cli.outputs.path }}
           additional_permissions: |
             actions: read
           claude_args: ${{ (steps.pr.outputs.cross == 'false' || (github.event.issue.pull_request == null && github.event.pull_request == null)) && format('--allowedTools "{0}"', env.TEST_TOOLS) || '' }}
