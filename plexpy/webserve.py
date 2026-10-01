@@ -5059,8 +5059,18 @@ class WebInterface(object):
                 if result and result[0]:
                     cherrypy.response.headers['Content-type'] = result[1]
                     if plexpy.CONFIG.CACHE_IMAGES and 'indexes' not in img:
-                        with open(ffp, 'wb') as f:
+                        # A request serving the cached file reads its size first and its
+                        # bytes later. Writing in place let it read a half written file.
+                        # Write a temp file and swap in the whole image instead.
+                        tmp = '%s.%d.tmp' % (ffp, threading.get_ident())
+                        with open(tmp, 'wb') as f:
                             f.write(result[0])
+                        try:
+                            os.replace(tmp, ffp)
+                        except OSError:
+                            # Windows refuses to replace a file another request has open.
+                            # That request serves the same image.
+                            os.remove(tmp)
 
                     return result[0]
                 else:
