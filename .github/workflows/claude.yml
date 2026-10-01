@@ -42,6 +42,11 @@ jobs:
         || contains(github.event.comment.body || format('{0} {1}', github.event.issue.title, github.event.issue.body), '@claude verify') && 'verify')
         || 'general'
         }}
+      # Every step can run the tests. The fork check below keeps them from a fork PR.
+      TEST_TOOLS: Bash(pytest:*),Bash(python -m pytest:*),Bash(ruff check:*)
+      BROWSER_CHANNEL: chrome
+      # Remove the OAuth token and other secrets from the env that pytest sees.
+      CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -54,16 +59,13 @@ jobs:
           # github-actions[bot], which has contents: read.
           persist-credentials: false
 
-      # The general step runs pytest, and the runner has no Python packages.
-      # The other steps do not run tests, so they skip the install.
+      # Every step can run pytest. The runner has no Python packages.
       - name: Set Up Python
         uses: actions/setup-python@v7
-        if: env.MODE == 'general'
         with:
           python-version: '3.13'
 
       - name: Install Dependencies
-        if: env.MODE == 'general'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
@@ -72,7 +74,6 @@ jobs:
       # Without them Claude Code exits at start. The runner image ships neither.
       # Ubuntu 24.04 blocks the user namespaces that bubblewrap uses, so lift that.
       - name: Install Sandbox Tools
-        if: env.MODE == 'general'
         run: |
           sudo apt-get -o Acquire::Retries=3 update -qq
           sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends bubblewrap socat
@@ -88,7 +89,7 @@ jobs:
       # included, and this job holds the OAuth token and the app token even for a fork.
       - name: Check Whether the PR Is From a Fork
         id: pr
-        if: env.MODE == 'general' && (github.event.issue.pull_request != null || github.event.pull_request != null)
+        if: github.event.issue.pull_request != null || github.event.pull_request != null
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -113,6 +114,7 @@ jobs:
             - Potential bugs or issues
             - Security implications
             - Performance considerations
+            - Test failures from `pytest`. Fork PRs get no test tools.
 
             Note: The PR branch is already checked out in the current working directory.
 
@@ -120,7 +122,7 @@ jobs:
             Use `mcp__github_inline_comment__create_inline_comment` (with `confirmed: true`) to highlight specific code issues.
             Only post GitHub comments - don't submit review text as messages.
           claude_args: |
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)${{ steps.pr.outputs.cross == 'false' && format(',{0}', env.TEST_TOOLS) || '' }}"
 
       - name: Run Claude Code (Issue verify)
         uses: anthropics/claude-code-action@v1
@@ -150,6 +152,7 @@ jobs:
             - Say whether the report still reproduces on nightly, or whether a later
               commit already fixed it. The reporter's commit hash is in the template.
             - If it is a real bug, propose the fix as a diff in your comment.
+            - Run `pytest` to check your claim where a test can show the bug.
 
             Do not commit, push a branch, or open a pull request. Do not add, remove, or
             change labels, and do not close the issue. A maintainer acts on your findings.
@@ -157,7 +160,7 @@ jobs:
             End with one line: a maintainer can comment "@claude fix" to turn your diff
             into a draft pull request.
           claude_args: |
-            --allowedTools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh search issues:*)"
+            --allowedTools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh search issues:*),${{ env.TEST_TOOLS }}"
 
       - name: Run Claude Code (Issue fix)
         uses: anthropics/claude-code-action@v1
@@ -177,6 +180,7 @@ jobs:
 
             - Fix the cause, not the symptom. Grep every caller of a function you change.
             - Keep the change as small as the bug allows. Match the surrounding style.
+            - Run `pytest` and `ruff check plexpy` before you commit. Fix what your change broke.
             - Commit and push, then run `gh pr create --draft --base nightly`.
             - Write the PR body against .github/PULL_REQUEST_TEMPLATE.md. Keep its
               headings and put `- Fixes #<issue number>` under Description.
@@ -189,18 +193,14 @@ jobs:
             Stop and report instead if the cause is unclear or the fix spans more than a
             few files. Say what you found and what you would change.
           claude_args: |
-            --allowedTools "Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh issue view:*)"
+            --allowedTools "Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh issue view:*),${{ env.TEST_TOOLS }}"
 
       - name: Run Claude Code (General)
         uses: anthropics/claude-code-action@v1
         id: claude
         if: env.MODE == 'general'
-        env:
-          BROWSER_CHANNEL: chrome
-          # Remove the OAuth token and other secrets from the env that pytest sees.
-          CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           additional_permissions: |
             actions: read
-          claude_args: ${{ (steps.pr.outputs.cross == 'false' || (github.event.issue.pull_request == null && github.event.pull_request == null)) && '--allowedTools "Bash(pytest:*),Bash(python -m pytest:*),Bash(ruff check:*)"' || '' }}
+          claude_args: ${{ (steps.pr.outputs.cross == 'false' || (github.event.issue.pull_request == null && github.event.pull_request == null)) && format('--allowedTools "{0}"', env.TEST_TOOLS) || '' }}
