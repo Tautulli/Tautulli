@@ -531,3 +531,77 @@ def test_empty_collection_history_is_empty(app_db, monkeypatch, include_activity
 
     assert result["data"] == []
     assert result["recordsFiltered"] == 0
+
+
+# ---------------------------------------------------------------------------
+# A history row without a metadata row. Older versions wrote the history
+# tables one statement at a time, so a stop between them left one behind.
+# ---------------------------------------------------------------------------
+
+def insert_row_without_metadata(app_db, row_id, ref_id, started, stopped,
+                                player="Orphanbox", view_offset=0):
+    app_db.action(
+        "INSERT INTO session_history (id, reference_id, started, stopped, rating_key, "
+        "user_id, user, ip_address, paused_counter, player, product, platform, "
+        "machine_id, location, secure, relayed, media_type, section_id, view_offset, "
+        "live, transcode_decision) "
+        "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        [row_id, ref_id, started, stopped, 201, 1, "alice", "10.0.0.1", 0, player,
+         "Plex", player, "mach%d" % row_id, "lan", 1, 0, "episode", 1, view_offset,
+         0, "direct play"],
+    )
+
+
+@pytest.mark.parametrize("grouping, total", [(True, 6), (False, 7)])
+def test_row_without_metadata_fills_the_last_page(app_db, grouping, total):
+    # The count reads session_history alone. The draw has to return every
+    # row it counts, or the last pages come back empty.
+    seed_history(app_db)
+    insert_row_without_metadata(app_db, row_id=7, ref_id=15, started=500, stopped=600)
+
+    result = call_history(grouping=grouping, draw=build_draw(start=total - 1, length=5))
+
+    assert result["recordsFiltered"] == total
+    assert [row["row_id"] for row in result["data"]] == [7]
+    assert result["data"][0]["full_title"] is None
+    assert result["data"][0]["percent_complete"] == 0
+
+
+def test_row_without_metadata_keeps_its_group_title(app_db):
+    # The row joins its group's totals. Its huge view_offset would win
+    # MAX(percent_complete) and blank the group's title if it had a percent.
+    seed_history(app_db)
+    insert_row_without_metadata(app_db, row_id=7, ref_id=10, started=1950, stopped=2100,
+                                view_offset=600000)
+
+    result = call_history(grouping=True, custom_where=[["session_history.reference_id IN", [10]]])
+
+    group = result["data"][0]
+    assert group["full_title"] == "Alpha Show - Episode 1"
+    assert group["group_count"] == 3
+    assert group["group_ids"] == "1,2,7"
+    assert group["play_duration"] == 300 + 600 - 50 + 150
+
+
+def test_page_bound_reads_rows_without_metadata(app_db):
+    # The first page is bounded to the newest groups. The bound has to see
+    # the newest row even when it has no metadata row.
+    seed_history(app_db)
+    insert_row_without_metadata(app_db, row_id=7, ref_id=15, started=9000, stopped=9100)
+
+    result = call_history(grouping=True, draw=build_draw(length=2))
+
+    assert [row["row_id"] for row in result["data"]] == [7, 6]
+    assert result["recordsFiltered"] == 6
+
+
+def test_search_bound_reads_rows_without_metadata(app_db):
+    # The search covers the title, so the search bound joins the metadata
+    # table. The row matches on its player.
+    seed_history(app_db)
+    insert_row_without_metadata(app_db, row_id=7, ref_id=15, started=500, stopped=600)
+
+    result = call_history(grouping=True, draw=build_draw(search="Orphanbox"))
+
+    assert [row["row_id"] for row in result["data"]] == [7]
+    assert result["recordsFiltered"] == 1

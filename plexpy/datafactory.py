@@ -51,10 +51,10 @@ _HISTORY_GROUP_DATE = (
 )
 
 
-# The draw inner joins the metadata table, so a history row without a
-# metadata row is not a row of the draw. The bound reads the same set.
+# The draw left joins the metadata table, so a history row without a
+# metadata row is still a row of the draw. The bound reads the same set.
 _HISTORY_BOUND_JOINS = (
-    " JOIN session_history_metadata ON session_history_metadata.id = session_history.id"
+    " LEFT OUTER JOIN session_history_metadata ON session_history_metadata.id = session_history.id"
 )
 
 
@@ -165,7 +165,7 @@ _HISTORY_SEARCH_MIN = 3
 _SEARCH_JOINS = (
     ('users.', ' LEFT OUTER JOIN users ON session_history.user_id = users.user_id'),
     ('session_history_metadata.',
-     ' JOIN session_history_metadata ON session_history.id = session_history_metadata.id'),
+     ' LEFT OUTER JOIN session_history_metadata ON session_history.id = session_history_metadata.id'),
     ('session_history_media_info.',
      ' JOIN session_history_media_info ON session_history.id = session_history_media_info.id'),
 )
@@ -331,8 +331,12 @@ class DataFactory(object):
             "session_history_metadata.added_at",
             "session_history_metadata.originally_available_at",
             "session_history_metadata.guid",
+            # A row without metadata has no percent. SQLite takes the bare
+            # columns from the row that sets MAX(), so a NULL here keeps the
+            # group's title on a row that has one.
             "MAX((CASE WHEN (view_offset IS NULL OR view_offset = '') THEN 0.1 ELSE view_offset * 1.0 END) / \
-             (CASE WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = '') \
+             (CASE WHEN session_history_metadata.id IS NULL THEN NULL \
+             WHEN (session_history_metadata.duration IS NULL OR session_history_metadata.duration = '') \
              THEN 1.0 ELSE session_history_metadata.duration * 1.0 END) * 100) AS percent_complete",
             "session_history_metadata.duration",
             "session_history_metadata.marker_credits_first",
@@ -481,7 +485,7 @@ class DataFactory(object):
                                           group_by=group_by,
                                           group_by_union=group_by_union,
                                           join_types=['LEFT OUTER JOIN',
-                                                      'JOIN'],
+                                                      'LEFT OUTER JOIN'],
                                           join_tables=['users',
                                                        'session_history_metadata'],
                                           join_evals=[['session_history.user_id', 'users.user_id'],
@@ -530,8 +534,8 @@ class DataFactory(object):
             if item['live']:
                 item['percent_complete'] = 100
             elif item['percent_complete'] is None:
-                # A metadata duration of 0 makes the SQL percent
-                # expression divide by zero and yield NULL
+                # A metadata duration of 0 or a missing metadata row
+                # makes the SQL percent expression yield NULL
                 item['percent_complete'] = 0
 
             # A sessions row written by an older version can have no media_type

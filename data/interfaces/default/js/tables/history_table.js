@@ -163,7 +163,7 @@ history_table_options = {
             "targets": [7],
             "data": "full_title",
             "createdCell": function (td, cellData, rowData, row, col) {
-                if (cellData !== '') {
+                if (cellData) {
                     var icon = '';
                     var icon_title = '';
                     var parent_info = '';

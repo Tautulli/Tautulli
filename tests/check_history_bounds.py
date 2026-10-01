@@ -129,9 +129,9 @@ def build_database(groups=120):
 
     check_reference_id(db, row)
 
-    # write_session_history writes the tables one statement at a time, so
-    # a stop between them leaves a row the draw's inner join drops. These
-    # sit newest, where a bound reads them first.
+    # Older versions wrote the tables one statement at a time, so a stop
+    # between them left a history row without its side rows. The draw
+    # still shows that row. These sit newest, where a bound reads them first.
     for offset, missing in enumerate(('metadata', 'media_info')):
         row += 1
         started = base + groups * 1000 + 5000 + offset
