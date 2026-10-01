@@ -70,3 +70,13 @@ def test_recently_watched_lists_each_item_once_by_its_latest_play(app_db):
     assert [(row["row_id"], row["title"]) for row in recent] == [
         (4, "Third Movie"), (3, "First Movie"), (2, "Second Movie")]
     assert [row["row_id"] for row in latest_two] == [4, 3]
+
+
+def test_library_user_stats_count_a_play_without_metadata(app_db):
+    insert_history_row(app_db, 1, 1, 1, "alice", 1000, 1600, 301, "First Movie", "movie")
+    app_db.action("DELETE FROM session_history_metadata WHERE id = 1")
+    app_db.action("INSERT INTO users (user_id, username) VALUES (1, 'alice')")
+
+    stats = libraries.Libraries().get_user_stats(section_id=1, grouping=False)
+
+    assert [(row["user_id"], row["total_plays"]) for row in stats] == [(1, 1)]

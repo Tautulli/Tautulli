@@ -1029,7 +1029,6 @@ class Libraries(object):
                         "COUNT(DISTINCT %s) AS total_plays, (SUM(stopped - started) - " \
                         "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time " \
                         "FROM session_history " \
-                        "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
                         "WHERE section_id = ? %s" \
                         "GROUP BY users.user_id " \
