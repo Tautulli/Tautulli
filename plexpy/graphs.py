@@ -50,29 +50,28 @@ class Graphs(object):
         try:
             if y_axis == 'plays':
                 query = "SELECT sh.date_played, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
-                        "SUM(shm.live) AS live_count " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(sh.live) AS live_count " \
                         "FROM (SELECT *," \
                         "      date(started, 'unixepoch', 'localtime') AS date_played " \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY date_played, %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY sh.date_played " \
                         "ORDER BY sh.started" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
                 query = "SELECT sh.date_played, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS music_count, " \
-                        "SUM(CASE WHEN shm.live = 1 " \
+                        "SUM(CASE WHEN sh.live = 1 " \
                         "  THEN sh.d ELSE 0 END) AS live_count " \
                         "FROM (SELECT *," \
                         "      date(started, 'unixepoch', 'localtime') AS date_played," \
@@ -82,7 +81,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s" \
                         "    GROUP BY date_played, %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY sh.date_played " \
                         "ORDER BY sh.started" % (timestamp, user_cond, group_by)
 
@@ -173,16 +171,15 @@ class Graphs(object):
                         "  WHEN 4 THEN 'Thursday' " \
                         "  WHEN 5 THEN 'Friday' " \
                         "  ELSE 'Saturday' END) AS dayofweek, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
-                        "SUM(shm.live) AS live_count " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(sh.live) AS live_count " \
                         "FROM (SELECT *, " \
                         "      CAST(strftime('%%w', date(started, 'unixepoch', 'localtime')) AS INTEGER) AS daynumber" \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY daynumber, %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY dayofweek " \
                         "ORDER BY sh.daynumber" % (timestamp, user_cond, group_by)
 
@@ -197,13 +194,13 @@ class Graphs(object):
                         "  WHEN 4 THEN 'Thursday' " \
                         "  WHEN 5 THEN 'Friday' " \
                         "  ELSE 'Saturday' END) AS dayofweek, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS music_count, " \
-                        "SUM(CASE WHEN shm.live = 1 " \
+                        "SUM(CASE WHEN sh.live = 1 " \
                         "  THEN sh.d ELSE 0 END) AS live_count " \
                         "FROM (SELECT *, " \
                         "      CAST(strftime('%%w', date(started, 'unixepoch', 'localtime')) AS INTEGER) AS daynumber, " \
@@ -213,7 +210,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s" \
                         "    GROUP BY daynumber, %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY dayofweek " \
                         "ORDER BY sh.daynumber" % (timestamp, user_cond, group_by)
 
@@ -291,29 +287,28 @@ class Graphs(object):
         try:
             if y_axis == 'plays':
                 query = "SELECT sh.hourofday, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
-                        "SUM(shm.live) AS live_count " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(sh.live) AS live_count " \
                         "FROM (SELECT *, " \
                         "      strftime('%%H', datetime(started, 'unixepoch', 'localtime')) AS hourofday" \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY hourofday, %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY sh.hourofday " \
                         "ORDER BY sh.hourofday" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
                 query = "SELECT sh.hourofday, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS music_count, " \
-                        "SUM(CASE WHEN shm.live = 1 " \
+                        "SUM(CASE WHEN sh.live = 1 " \
                         "  THEN sh.d ELSE 0 END) AS live_count " \
                         "FROM (SELECT *, " \
                         "      strftime('%%H', datetime(started, 'unixepoch', 'localtime')) AS hourofday, " \
@@ -323,7 +318,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s" \
                         "    GROUP BY hourofday, %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY sh.hourofday " \
                         "ORDER BY sh.hourofday" % (timestamp, user_cond, group_by)
 
@@ -399,29 +393,28 @@ class Graphs(object):
         try:
             if y_axis == 'plays':
                 query = "SELECT sh.datestring, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
-                        "SUM(shm.live) AS live_count " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(sh.live) AS live_count " \
                         "FROM (SELECT *, " \
                         "      strftime('%%Y-%%m', datetime(started, 'unixepoch', 'localtime')) AS datestring" \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY datestring, %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY sh.datestring " \
                         "ORDER BY sh.datestring" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
                 query = "SELECT sh.datestring, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS music_count, " \
-                        "SUM(CASE WHEN shm.live = 1 " \
+                        "SUM(CASE WHEN sh.live = 1 " \
                         "  THEN sh.d ELSE 0 END) AS live_count " \
                         "FROM (SELECT *, " \
                         "      strftime('%%Y-%%m', datetime(started, 'unixepoch', 'localtime')) AS datestring, " \
@@ -431,7 +424,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s" \
                         "    GROUP BY datestring, %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY sh.datestring " \
                         "ORDER BY sh.datestring" % (timestamp, user_cond, group_by)
 
@@ -515,16 +507,15 @@ class Graphs(object):
         try:
             if y_axis == 'plays':
                 query = "SELECT sh.platform, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
-                        "SUM(shm.live) AS live_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(sh.live) AS live_count, " \
                         "COUNT(sh.id) AS total_count " \
                         "FROM (SELECT * " \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY sh.platform " \
                         "ORDER BY total_count DESC, sh.platform ASC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -532,13 +523,13 @@ class Graphs(object):
                 result = monitor_db.select(query)
             else:
                 query = "SELECT sh.platform, " \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS music_count, " \
-                        "SUM(CASE WHEN shm.live = 1 " \
+                        "SUM(CASE WHEN sh.live = 1 " \
                         "  THEN sh.d ELSE 0 END) AS live_count, " \
                         "SUM(sh.d) AS total_duration " \
                         "FROM (SELECT *, " \
@@ -548,7 +539,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s" \
                         "    GROUP BY %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "GROUP BY sh.platform " \
                         "ORDER BY total_duration DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -613,16 +603,15 @@ class Graphs(object):
                 query = "SELECT u.user_id, u.username, " \
                         "(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = '' " \
                         "  THEN u.username ELSE u.friendly_name END) AS friendly_name," \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
-                        "SUM(shm.live) AS live_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 THEN 1 ELSE 0 END) AS tv_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 THEN 1 ELSE 0 END) AS movie_count, " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 THEN 1 ELSE 0 END) AS music_count, " \
+                        "SUM(sh.live) AS live_count, " \
                         "COUNT(sh.id) AS total_count " \
                         "FROM (SELECT * " \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
                         "GROUP BY sh.user_id " \
                         "ORDER BY total_count DESC " \
@@ -633,13 +622,13 @@ class Graphs(object):
                 query = "SELECT u.user_id, u.username, " \
                         "(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = '' " \
                         " THEN u.username ELSE u.friendly_name END) AS friendly_name," \
-                        "SUM(CASE WHEN sh.media_type = 'episode' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'episode' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS tv_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'movie' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'movie' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS movie_count, " \
-                        "SUM(CASE WHEN sh.media_type = 'track' AND shm.live = 0 " \
+                        "SUM(CASE WHEN sh.media_type = 'track' AND sh.live = 0 " \
                         "  THEN sh.d ELSE 0 END) AS music_count, " \
-                        "SUM(CASE WHEN shm.live = 1 " \
+                        "SUM(CASE WHEN sh.live = 1 " \
                         "  THEN sh.d ELSE 0 END) AS live_count, " \
                         "SUM(sh.d) AS total_duration " \
                         "FROM (SELECT *, " \
@@ -649,7 +638,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s" \
                         "    GROUP BY %s) AS sh " \
-                        "JOIN session_history_metadata AS shm ON shm.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
                         "GROUP BY sh.user_id " \
                         "ORDER BY total_duration DESC " \
@@ -718,24 +706,23 @@ class Graphs(object):
         try:
             if y_axis == 'plays':
                 query = "SELECT sh.date_played, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count " \
                         "FROM (SELECT *, " \
                         "      date(started, 'unixepoch', 'localtime') AS date_played " \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY date_played, %s) AS sh " \
-                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "GROUP BY sh.date_played " \
                         "ORDER BY sh.started" % (timestamp, user_cond, group_by)
 
                 result = monitor_db.select(query)
             else:
                 query = "SELECT sh.date_played, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count " \
                         "FROM (SELECT *, " \
                         "      date(started, 'unixepoch', 'localtime') AS date_played," \
                         "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
@@ -744,7 +731,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s" \
                         "    GROUP BY date_played, %s) AS sh " \
-                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "GROUP BY sh.date_played " \
                         "ORDER BY sh.started" % (timestamp, user_cond, group_by)
 
@@ -827,9 +813,8 @@ class Graphs(object):
             # recorded. The + on started stops SQLite from walking the
             # started index to skip the sort, which reads every row too.
             query = "SELECT date(session_history.started, 'unixepoch', 'localtime') AS date_played, " \
-                    "session_history.started, session_history.stopped, shmi.transcode_decision " \
+                    "session_history.started, session_history.stopped, session_history.transcode_decision " \
                     "FROM session_history " \
-                    "JOIN session_history_media_info AS shmi ON session_history.id = shmi.id " \
                     "WHERE session_history.stopped >= %s %s " \
                     "ORDER BY +session_history.started" % (timestamp, user_cond)
 
@@ -1085,15 +1070,14 @@ class Graphs(object):
         try:
             if y_axis == 'plays':
                 query = "SELECT sh.platform, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count, " \
                         "COUNT(sh.id) AS total_count " \
                         "FROM (SELECT * " \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY %s) AS sh " \
-                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "GROUP BY sh.platform " \
                         "ORDER BY total_count DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -1101,9 +1085,9 @@ class Graphs(object):
                 result = monitor_db.select(query)
             else:
                 query = "SELECT sh.platform, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count, " \
                         "SUM(sh.d) AS total_duration " \
                         "FROM (SELECT *, " \
                         "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
@@ -1112,7 +1096,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY %s) AS sh " \
-                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "GROUP BY sh.platform " \
                         "ORDER BY total_duration DESC " \
                         "LIMIT 10" % (timestamp, user_cond, group_by)
@@ -1164,15 +1147,14 @@ class Graphs(object):
                 query = "SELECT u.user_id, u.username, " \
                         "(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = '' " \
                         "  THEN u.username ELSE u.friendly_name END) AS friendly_name," \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'direct play' THEN 1 ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'copy' THEN 1 ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'transcode' THEN 1 ELSE 0 END) AS tc_count, " \
                         "COUNT(sh.id) AS total_count " \
                         "FROM (SELECT * " \
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY %s) AS sh " \
-                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
                         "GROUP BY u.user_id " \
                         "ORDER BY total_count DESC " \
@@ -1183,9 +1165,9 @@ class Graphs(object):
                 query = "SELECT u.user_id, u.username, " \
                         "(CASE WHEN u.friendly_name IS NULL OR TRIM(u.friendly_name) = '' " \
                         "  THEN u.username ELSE u.friendly_name END) AS friendly_name," \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
-                        "SUM(CASE WHEN shmi.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'direct play' THEN sh.d ELSE 0 END) AS dp_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'copy' THEN sh.d ELSE 0 END) AS ds_count, " \
+                        "SUM(CASE WHEN sh.transcode_decision = 'transcode' THEN sh.d ELSE 0 END) AS tc_count, " \
                         "SUM(sh.d) AS total_duration " \
                         "FROM (SELECT *, " \
                         "      SUM(CASE WHEN stopped > 0 THEN (stopped - started) - " \
@@ -1194,7 +1176,6 @@ class Graphs(object):
                         "    FROM session_history " \
                         "    WHERE session_history.stopped >= %s %s " \
                         "    GROUP BY %s) AS sh " \
-                        "JOIN session_history_media_info AS shmi ON shmi.id = sh.id " \
                         "JOIN users AS u ON u.user_id = sh.user_id " \
                         "GROUP BY u.user_id " \
                         "ORDER BY total_duration DESC " \
