@@ -1503,7 +1503,7 @@ class DataFactory(object):
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         if query_days and query_days is not None:
-            query_days = map(helpers.cast_to_int, str(query_days).split(','))
+            query_days = list(map(helpers.cast_to_int, str(query_days).split(',')))
         else:
             query_days = [1, 7, 30, 0]
 
@@ -1512,8 +1512,6 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         item_watch_time_stats = []
-
-        section_ids = set()
 
         group_by = 'session_history.reference_id' if grouping else 'session_history.id'
 
@@ -1527,83 +1525,65 @@ class DataFactory(object):
         rating_keys_arg = ','.join(['?'] * len(rating_keys))
         archived_cond = '' if include_archived else users.archived_user_cond() + libraries.archived_library_cond()
 
-        for days in query_days:
-            timestamp_query = timestamp - days * 24 * 60 * 60
+        if str(rating_key).isdigit():
+            join = ''
+            where = "(session_history.grandparent_rating_key IN (%s) " \
+                    "OR session_history.parent_rating_key IN (%s) " \
+                    "OR session_history.rating_key IN (%s)) " % (rating_keys_arg, rating_keys_arg, rating_keys_arg)
+            args = rating_keys * 3
+        elif guid:
+            join = "JOIN session_history_metadata ON session_history_metadata.id = session_history.id "
+            where = "session_history_metadata.guid = ? "
+            args = [guid]
+        else:
+            return []
 
-            try:
-                if days > 0:
-                    if str(rating_key).isdigit():
-                        query = "SELECT (SUM(stopped - started) - " \
-                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                                "COUNT(DISTINCT %s) AS total_plays, section_id " \
-                                "FROM session_history " \
-                                "WHERE stopped >= ? " \
-                                "AND (session_history.grandparent_rating_key IN (%s) " \
-                                "OR session_history.parent_rating_key IN (%s) " \
-                                "OR session_history.rating_key IN (%s)) %s" % (
-                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg, archived_cond
-                                )
-                        
-                        result = monitor_db.select(query, args=[timestamp_query] + rating_keys * 3)
-                    elif guid:
-                        query = "SELECT (SUM(stopped - started) - " \
-                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                                "COUNT(DISTINCT %s) AS total_plays, section_id " \
-                                "FROM session_history " \
-                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE stopped >= ? " \
-                                "AND session_history_metadata.guid = ? %s" % (group_by, archived_cond)
+        # Compute every requested window with conditional aggregation
+        # in a single pass over the item's history
+        select_parts = []
+        for i, days in enumerate(query_days):
+            if days > 0:
+                timestamp_query = timestamp - days * 24 * 60 * 60
+                select_parts.append(
+                    "SUM(CASE WHEN stopped >= %(ts)d THEN (stopped - started) - "
+                    "(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) "
+                    "AS total_time_%(i)d, "
+                    "COUNT(DISTINCT CASE WHEN stopped >= %(ts)d THEN %(group_by)s END) "
+                    "AS total_plays_%(i)d" % {'ts': timestamp_query, 'i': i, 'group_by': group_by})
+            else:
+                select_parts.append(
+                    "(SUM(stopped - started) - "
+                    "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) "
+                    "AS total_time_%(i)d, "
+                    "COUNT(DISTINCT %(group_by)s) AS total_plays_%(i)d" % {'i': i, 'group_by': group_by})
 
-                        result = monitor_db.select(query, args=[timestamp_query, guid])
-                    else:
-                        result = []
-                else:
-                    if str(rating_key).isdigit():
-                        query = "SELECT (SUM(stopped - started) - " \
-                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                                "COUNT(DISTINCT %s) AS total_plays, section_id " \
-                                "FROM session_history " \
-                                "WHERE (session_history.grandparent_rating_key IN (%s) " \
-                                "OR session_history.parent_rating_key IN (%s) " \
-                                "OR session_history.rating_key IN (%s)) %s" % (
-                                    group_by, rating_keys_arg, rating_keys_arg, rating_keys_arg, archived_cond
-                                )
-                        
-                        result = monitor_db.select(query, args=rating_keys * 3)
-                    elif guid:
-                        query = "SELECT (SUM(stopped - started) - " \
-                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                                "COUNT(DISTINCT %s) AS total_plays, section_id " \
-                                "FROM session_history " \
-                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE session_history_metadata.guid = ? %s" % (group_by, archived_cond)
+        try:
+            query = "SELECT " + ", ".join(select_parts) + ", GROUP_CONCAT(DISTINCT section_id) AS section_ids " \
+                    "FROM session_history " + join + "WHERE " + where + archived_cond
+            result = monitor_db.select_single(query, args=args)
+        except Exception as e:
+            logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
+            return []
 
-                        result = monitor_db.select(query, args=[guid])
-                    else:
-                        result = []
-            except Exception as e:
-                logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
-                result = []
-
-            for item in result:
-                section_ids.add(item['section_id'])
-
-                if item['total_time']:
-                    total_time = item['total_time']
-                    total_plays = item['total_plays']
-                else:
-                    total_time = 0
-                    total_plays = 0
-
-                row = {'query_days': days,
-                       'total_time': total_time,
-                       'total_plays': total_plays
-                       }
-
-                item_watch_time_stats.append(row)
-
+        # Every library the item was played in must be shared with a guest
+        section_ids = result['section_ids'].split(',') if result['section_ids'] else [None]
         if any(not session.allow_session_library(section_id) for section_id in section_ids):
             return []
+
+        for i, days in enumerate(query_days):
+            total_time = result.get('total_time_%d' % i)
+            if total_time:
+                total_plays = result.get('total_plays_%d' % i) or 0
+            else:
+                total_time = 0
+                total_plays = 0
+
+            row = {'query_days': days,
+                   'total_time': total_time,
+                   'total_plays': total_plays
+                   }
+
+            item_watch_time_stats.append(row)
 
         return item_watch_time_stats
 
