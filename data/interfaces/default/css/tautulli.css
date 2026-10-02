@@ -3329,7 +3329,8 @@ div.dataTables_info {
 }
 .inactive-library-tooltip,
 .inactive-user-tooltip {
-    display: inline-block;
+    display: block;
+    overflow: hidden;
     position: relative;
     width: 100%;
     height: 100%;
