@@ -376,9 +376,15 @@
                         var session_id = s.session_id;
                         var instance = $('#activity-instance-' + key);
 
+                        // Hold the new card's place at the card's size, so the cards keep the session order
+                        // and do not move whichever request finishes first.
+                        if (!(instance.length)) {
+                            $('#currentActivity').append('<div id="activity-instance-' + key + '" class="dashboard-activity-instance updated-temp" style="width: 100%;"></div>');
+                        }
+
                         // Create a new instance if it doesn't exist or recreate the entire instance
                         // if the rating key changed (for movies or episodes) of guid changed (for live tv) with the same session key
-                        if (!(instance.length) ||
+                        if (!(instance.data('key')) ||
                                 (s.media_type !== 'track' && s.rating_key !== instance.data('rating_key').toString()) ||
                                 (s.live === 1 && s.guid !== instance.data('guid'))) {
                             create_instances.push(key);
