@@ -17,7 +17,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           target: "master beta"
-          exclude: "nightly"
+          exclude: nightly
           change-to: nightly
           comment: |
             Pull requests must be made to the `nightly` branch.
