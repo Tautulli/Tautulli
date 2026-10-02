@@ -267,6 +267,11 @@ object {
 .include-archived #nav-archived-indicator {
     display: block;
 }
+/* Opacity, because visibility would start the nav links' transition: all, and WebKit then
+   keeps the links hidden for one more frame. */
+.fonts-loading body {
+    opacity: 0;
+}
 .nav > li > a {
     color: #999;
     -webkit-transition: all 0.3s ease;

@@ -30,6 +30,22 @@
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.all.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.v4-shims.min.css" rel="stylesheet">
+    <script>
+        // Browsers lay out the first frame in a fallback font, then move the nav and headings when the
+        // web fonts arrive, even from cache. Keep the page hidden until the fonts are ready, at most 1 s.
+        // The browser keeps showing the previous page meanwhile.
+        if (document.fonts) {
+            var showPage = function () { document.documentElement.classList.remove('fonts-loading'); };
+            Promise.race([
+                Promise.all(['400 1em "Open Sans"', '600 1em "Open Sans"', '900 1em "Font Awesome 5 Free"'].map(function (font) {
+                    return document.fonts.load(font);
+                })),
+                new Promise(function (resolve) { setTimeout(resolve, 1000); })
+            ]).then(showPage, showPage);
+            // Hide last, so an error above never leaves the page hidden.
+            document.documentElement.classList.add('fonts-loading');
+        }
+    </script>
     ${next.headIncludes()}
 
     <!-- Favicons -->
