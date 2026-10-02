@@ -3066,6 +3066,16 @@ a .home-platforms-list-cover-face:hover
 .table-card-back > table.display:not(.dataTable) {
     visibility: hidden;
 }
+/* bootstrap-select draws the user picker once the user names load. Until then hide the bare
+   list box and hold the picker's fixed 220px, so the header keeps its size. */
+#graph-user,
+#history-user {
+    display: none;
+}
+#user-selection:has(#graph-user, #history-user) {
+    min-width: 220px;
+    min-height: 34px;
+}
 .refresh-users-button,
 .refresh-libraries-button {
     /*margin-right: 5px;*/
