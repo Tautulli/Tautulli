@@ -8,6 +8,7 @@
 <% from plexpy import PLEX_SERVER_UP %>
 <div class="container-fluid">
     % for section in config['home_sections']:
+    <div class="home-section">
     % if section == 'current_activity':
     <div class="row">
         <div class="col-md-12">
@@ -134,6 +135,7 @@
         </div>
     </div>
     % endif
+    </div>
     % endfor
 </div>
 </%def>
@@ -254,9 +256,21 @@
 
     var error_msg = 'There was an error communicating with your Plex Server.' + msg_settings;
 
+    // Show the sections top-down. A section shows once every section above it has loaded, so a
+    // late section never pushes visible content down. A spinner or an empty card slot means loading.
+    function showLoadedHomeSections() {
+        $('.home-section').each(function () {
+            $(this).show();
+            return !$(this).find('.fa-spin, [id^=activity-instance-]:not([data-key])').length;
+        });
+    }
+    $(document).on('ajaxComplete', showLoadedHomeSections);
+    // Show them all after 3 s, so a slow Plex server never hides the stats.
+    setTimeout(function () { $('.home-section').show(); }, 3000);
+
     % if 'current_activity' in config['home_sections'] or 'recently_added' in config['home_sections']:
     var server_status;
-    server_status = setInterval(function() {
+    function checkServerStatus() {
         $.getJSON('server_status', function (data) {
             if (data.connected === true) {
                 clearInterval(server_status);
@@ -278,7 +292,10 @@
                 % endif
             }
         });
-    }, 1000);
+    }
+    // Check once the page has run its scripts, or the activity waits a second to start loading.
+    $(document).ready(checkServerStatus);
+    server_status = setInterval(checkServerStatus, 1000);
     % endif
 </script>
 % if 'current_activity' in config['home_sections']:

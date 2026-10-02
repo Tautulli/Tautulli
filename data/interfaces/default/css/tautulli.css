@@ -3058,6 +3058,10 @@ a .home-platforms-list-cover-face:hover
 .refresh-libraries-button {
     /*float: right;*/
 }
+/* The home page shows its sections top-down as they load. Only the first shows at first paint. */
+.home-section + .home-section {
+    display: none;
+}
 .refresh-users-button,
 .refresh-libraries-button {
     /*margin-right: 5px;*/
