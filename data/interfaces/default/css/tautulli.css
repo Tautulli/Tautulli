@@ -261,6 +261,12 @@ object {
 .navbar-brand {
     padding: 3px 3px;
 }
+#nav-archived-indicator {
+    display: none;
+}
+.include-archived #nav-archived-indicator {
+    display: block;
+}
 .nav > li > a {
     color: #999;
     -webkit-transition: all 0.3s ease;
