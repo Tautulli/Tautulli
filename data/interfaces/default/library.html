@@ -245,7 +245,7 @@ DOCUMENTATION :: END
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-history"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -308,7 +308,7 @@ DOCUMENTATION :: END
                                                 % endif
                                             </div>
                                             % endif
-                                            <div class="btn-group colvis-button-bar" id="button-bar-media-info"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-media-info"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -365,7 +365,7 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-refresh"></i> Refresh collections
                                                 </button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-collections"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-collections"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -414,7 +414,7 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-refresh"></i> Refresh playlists
                                                 </button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-playlists"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-playlists"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -459,7 +459,7 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-refresh"></i> Refresh exports
                                                 </button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-export"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -603,7 +603,7 @@ DOCUMENTATION :: END
         history_table = $('#history_table-SID-${data["section_id"]}').DataTable(history_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
-        $(colvis.button()).appendTo('#button-bar-history');
+        $('#button-bar-history').empty().append(colvis.button());
 
         clearSearchButton('history_table-SID-${data["section_id"]}', history_table);
 
@@ -654,7 +654,7 @@ DOCUMENTATION :: END
         collections_table = $('#collections_table-SID-${data["section_id"]}').DataTable(collections_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(collections_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-collections');
+        $('#button-bar-collections').empty().append(colvis.button());
 
         clearSearchButton('collections_table-SID-${data["section_id"]}', collections_table);
     }
@@ -689,7 +689,7 @@ DOCUMENTATION :: END
         playlists_table = $('#playlists_table-SID-${data["section_id"]}').DataTable(playlists_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-playlists');
+        $('#button-bar-playlists').empty().append(colvis.button());
 
         clearSearchButton('playlists_table-SID-${data["section_id"]}', playlists_table);
     }
@@ -808,7 +808,7 @@ DOCUMENTATION :: END
         media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
 
         var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-media-info');
+        $('#button-bar-media-info').empty().append(colvis.button());
 
         clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
     }
@@ -846,7 +846,7 @@ DOCUMENTATION :: END
         export_table.columns([7]).visible(false);
 
         var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-export');
+        $('#button-bar-export').empty().append(colvis.button());
 
         clearSearchButton('export_table-SID-${data["section_id"]}', export_table);
     }

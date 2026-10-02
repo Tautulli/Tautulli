@@ -65,7 +65,7 @@
             <div class="btn-group">
                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
             </div>
-            <div class="btn-group colvis-button-bar"></div>
+            <div class="btn-group colvis-button-bar"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
         </div>
     </div>
     <div class="table-card-back">
@@ -207,7 +207,7 @@
                 buttonClass: 'btn btn-dark',
                 exclude: [0, 12]
             });
-            $(colvis.button()).appendTo('div.colvis-button-bar');
+            $('div.colvis-button-bar').empty().append(colvis.button());
 
             clearSearchButton('history_table', history_table);
 

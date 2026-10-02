@@ -23,7 +23,7 @@
                 <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
             </div>
             % endif
-            <div class="btn-group colvis-button-bar"></div>
+            <div class="btn-group colvis-button-bar"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -105,7 +105,7 @@
 
         users_list_table = $('#users_list_table').DataTable(users_list_table_options);
         var colvis = new $.fn.dataTable.ColVis(users_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1] });
-        $(colvis.button()).appendTo('div.colvis-button-bar');
+        $('div.colvis-button-bar').empty().append(colvis.button());
 
         clearSearchButton('users_list_table', users_list_table);
 

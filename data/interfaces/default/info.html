@@ -674,7 +674,7 @@ DOCUMENTATION :: END
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-history"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -726,7 +726,7 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-refresh"></i> Refresh exports
                                                 </button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-export"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -898,7 +898,7 @@ DOCUMENTATION :: END
         }
         history_table = $('#history_table-RK-${data["rating_key"]}').DataTable(history_table_options);
         var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
-        $(colvis.button()).appendTo('#button-bar-history');
+        $('#button-bar-history').empty().append(colvis.button());
 
         clearSearchButton('history_table-RK-${data["rating_key"]}', history_table);
 
@@ -1092,7 +1092,7 @@ DOCUMENTATION :: END
         export_table.columns([2, 7]).visible(false);
 
         var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-export');
+        $('#button-bar-export').empty().append(colvis.button());
 
         clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);
     }

@@ -3062,6 +3062,10 @@ a .home-platforms-list-cover-face:hover
 .home-section + .home-section {
     display: none;
 }
+/* DataTables builds the table after the first paint. Hide the bare table until then. */
+.table-card-back > table.display:not(.dataTable) {
+    visibility: hidden;
+}
 .refresh-users-button,
 .refresh-libraries-button {
     /*margin-right: 5px;*/
