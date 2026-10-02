@@ -1681,7 +1681,7 @@ class DataFactory(object):
         monitor_db = database.MonitorDatabase()
 
         user_cond = ''
-        table = 'session_history' if row_id else 'sessions'
+        table = 'sh' if row_id else 'sessions'
         if session.get_session_user_id():
             user_cond = "AND %s.user_id = %s " % (table, session.get_session_user_id())
 
