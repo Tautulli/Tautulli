@@ -3053,6 +3053,13 @@ a .home-platforms-list-cover-face:hover
 .button-bar {
     float: right;
 }
+@media only screen and (min-width: 1281px) {
+    .button-bar:has(> .btn-group, > .btn) {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 3px;
+    }
+}
 .colvis-button-bar,
 .refresh-users-button,
 .refresh-libraries-button {
