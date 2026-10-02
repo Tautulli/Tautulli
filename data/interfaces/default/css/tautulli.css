@@ -2977,6 +2977,9 @@ a .home-platforms-list-cover-face:hover
 .circle-full {
     background: #eeeeee;
 }
+table.dataTable tbody td.watched-status {
+    padding-right: 10px;
+}
 #graph-tabs {
     padding-bottom: 10px;
     float: none;

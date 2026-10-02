@@ -277,7 +277,7 @@ history_table_options = {
             },
             "searchable": false,
             "orderable": false,
-            "className": "no-wrap",
+            "className": "no-wrap watched-status",
             "width": "2%"
         },
     ],
