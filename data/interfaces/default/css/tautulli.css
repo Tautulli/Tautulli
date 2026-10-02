@@ -3561,6 +3561,7 @@ table[id^='history_child'] tr.archived-library > td {
 }
 ::-webkit-scrollbar {
     width: 15px;
+    height: 15px;
 }
 ::-webkit-scrollbar-track {
     background-color: rgba(0,0,0,.2);
