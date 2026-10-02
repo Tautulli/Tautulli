@@ -281,6 +281,7 @@ function resetFilters(text) {
     }
 }
 
+// Callers use done and fail. In jQuery 3, then fills the cell after DataTables sizes the header.
 function isPrivateIP(ip_address) {
     var defer = $.Deferred();
 

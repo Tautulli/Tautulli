@@ -105,9 +105,9 @@ history_table_options = {
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
-                    isPrivateIP(cellData).then(function () {
+                    isPrivateIP(cellData).done(function () {
                         $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">'+ cellData + '</a>');
-                    }, function () {
+                    }).fail(function () {
                         external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
                         $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">'+ external_ip + cellData + '</a>');
                     });
