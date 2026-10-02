@@ -1700,14 +1700,14 @@ class DataFactory(object):
                     "stream_audio_language, stream_audio_language_code, " \
                     "subtitles, stream_subtitle_decision, stream_subtitle_codec, stream_subtitle_forced, stream_subtitle_language, " \
                     "transcode_hw_decoding, transcode_hw_encoding, " \
-                    "video_decision, audio_decision, transcode_decision, width, height, container, " \
+                    "video_decision, audio_decision, shmi.transcode_decision, width, height, container, " \
                     "transcode_container, transcode_video_codec, transcode_audio_codec, transcode_audio_channels, " \
                     "transcode_width, transcode_height, " \
-                    "session_history_metadata.media_type, title, grandparent_title, original_title " \
-                    "FROM session_history_media_info " \
-                    "JOIN session_history ON session_history_media_info.id = session_history.id " \
-                    "JOIN session_history_metadata ON session_history_media_info.id = session_history_metadata.id " \
-                    "WHERE session_history_media_info.id = ? %s" % user_cond
+                    "shm.media_type, title, grandparent_title, original_title " \
+                    "FROM session_history_media_info AS shmi " \
+                    "JOIN session_history AS sh ON shmi.id = sh.id " \
+                    "JOIN session_history_metadata AS shm ON shmi.id = shm.id " \
+                    "WHERE shmi.id = ? %s" % user_cond
             result = monitor_db.select(query, args=[row_id])
         elif session_key:
             query = "SELECT bitrate, video_full_resolution, " \
