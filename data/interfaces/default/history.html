@@ -205,7 +205,8 @@
             var colvis = new $.fn.dataTable.ColVis(history_table, {
                 buttonText: '<i class="fa fa-columns"></i> Select columns',
                 buttonClass: 'btn btn-dark',
-                exclude: [0, 12]
+                exclude: [0, 12],
+                sAlign: 'right'
             });
             $('div.colvis-button-bar').empty().append(colvis.button());
 

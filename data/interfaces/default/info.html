@@ -897,7 +897,7 @@ DOCUMENTATION :: END
             }
         }
         history_table = $('#history_table-RK-${data["rating_key"]}').DataTable(history_table_options);
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12], sAlign: 'right' });
         $('#button-bar-history').empty().append(colvis.button());
 
         clearSearchButton('history_table-RK-${data["rating_key"]}', history_table);
@@ -1091,7 +1091,7 @@ DOCUMENTATION :: END
         export_table = $('#export_table-RK-${data["rating_key"]}').DataTable(export_table_options);
         export_table.columns([2, 7]).visible(false);
 
-        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
         $('#button-bar-export').empty().append(colvis.button());
 
         clearSearchButton('export_table-RK-${data["rating_key"]}', export_table);

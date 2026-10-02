@@ -984,5 +984,25 @@ $(window).on('resize', function () {
     clearTimeout(adjustTablesTimeout);
     adjustTablesTimeout = setTimeout(function () {
         if ($.fn.dataTable) $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+        if ($.fn.dataTable && $.fn.dataTable.ColVis) {
+            // Move an open Select columns menu to its button without a new fade.
+            $.each($.fn.dataTable.ColVis.aInstances, function (i, colvis) {
+                if (colvis.s.hidden) return;
+                colvis._fnCollectionShow();
+                $(colvis.dom.collection).stop(true).css('opacity', 1);
+                $(colvis.dom.background).stop(true).css('opacity', 0.1);
+            });
+            keepColVisInWindow();
+        }
     }, 100);
 });
+
+// A menu wider than the space left of its button would start outside the window.
+function keepColVisInWindow() {
+    $.each($.fn.dataTable.ColVis.aInstances, function (i, colvis) {
+        if (!colvis.s.hidden && parseInt(colvis.dom.collection.style.left, 10) < 0) {
+            colvis.dom.collection.style.left = '0px';
+        }
+    });
+}
+$(document).on('click', 'div.ColVis button', keepColVisInWindow);

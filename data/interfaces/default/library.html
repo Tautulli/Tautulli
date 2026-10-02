@@ -602,7 +602,7 @@ DOCUMENTATION :: END
         };
         history_table = $('#history_table-SID-${data["section_id"]}').DataTable(history_table_options);
 
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12], sAlign: 'right' });
         $('#button-bar-history').empty().append(colvis.button());
 
         clearSearchButton('history_table-SID-${data["section_id"]}', history_table);
@@ -653,7 +653,7 @@ DOCUMENTATION :: END
         };
         collections_table = $('#collections_table-SID-${data["section_id"]}').DataTable(collections_table_options);
 
-        var colvis = new $.fn.dataTable.ColVis(collections_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        var colvis = new $.fn.dataTable.ColVis(collections_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
         $('#button-bar-collections').empty().append(colvis.button());
 
         clearSearchButton('collections_table-SID-${data["section_id"]}', collections_table);
@@ -688,7 +688,7 @@ DOCUMENTATION :: END
         };
         playlists_table = $('#playlists_table-SID-${data["section_id"]}').DataTable(playlists_table_options);
 
-        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
         $('#button-bar-playlists').empty().append(colvis.button());
 
         clearSearchButton('playlists_table-SID-${data["section_id"]}', playlists_table);
@@ -807,7 +807,7 @@ DOCUMENTATION :: END
         };
         media_info_table = $('#media_info_table-SID-${data["section_id"]}').DataTable(media_info_table_options);
 
-        var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        var colvis = new $.fn.dataTable.ColVis(media_info_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
         $('#button-bar-media-info').empty().append(colvis.button());
 
         clearSearchButton('media_info_table-SID-${data["section_id"]}', media_info_table);
@@ -845,7 +845,7 @@ DOCUMENTATION :: END
         export_table = $('#export_table-SID-${data["section_id"]}').DataTable(export_table_options);
         export_table.columns([7]).visible(false);
 
-        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
         $('#button-bar-export').empty().append(colvis.button());
 
         clearSearchButton('export_table-SID-${data["section_id"]}', export_table);

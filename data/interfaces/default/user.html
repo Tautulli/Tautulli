@@ -507,7 +507,7 @@ DOCUMENTATION :: END
         history_table = $('#history_table-UID-${data["user_id"]}').DataTable(history_table_options);
         history_table.column(2).visible(false);
 
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12], sAlign: 'right' });
         $('#button-bar-history').empty().append(colvis.button());
 
         clearSearchButton('history_table-UID-${data["user_id"]}', history_table);
@@ -572,7 +572,7 @@ DOCUMENTATION :: END
         };
         playlists_table = $('#playlists_table-SID-${data["user_id"]}').DataTable(playlists_table_options);
 
-        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
         $('#button-bar-playlists').empty().append(colvis.button());
 
         clearSearchButton('playlists_table-SID-${data["user_id"]}', playlists_table);
@@ -606,7 +606,7 @@ DOCUMENTATION :: END
         };
         user_ip_table = $('#user_ip_table-UID-${data["user_id"]}').DataTable(user_ip_table_options);
 
-        var colvis_user_ip = new $.fn.dataTable.ColVis( user_ip_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark'} );
+        var colvis_user_ip = new $.fn.dataTable.ColVis( user_ip_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' } );
         $('#button-bar-ip-address').empty().append(colvis_user_ip.button());
 
         clearSearchButton('user_ip_table-UID-${data["user_id"]}', user_ip_table);
@@ -640,7 +640,7 @@ DOCUMENTATION :: END
         login_log_table = $('#login_log_table-UID-${data["user_id"]}').DataTable(login_log_table_options);
         login_log_table.columns([1, 2]).visible(false);
 
-        var colvis_login = new $.fn.dataTable.ColVis( login_log_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [7] } );
+        var colvis_login = new $.fn.dataTable.ColVis( login_log_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [7], sAlign: 'right' } );
         $('#button-bar-login').empty().append(colvis_login.button());
 
         clearSearchButton('login_log_table-UID-${data["user_id"]}', login_log_table);
@@ -731,7 +731,7 @@ DOCUMENTATION :: END
         export_table = $('#export_table-SID-${data["user_id"]}').DataTable(export_table_options);
         export_table.columns([2, 7]).visible(false);
 
-        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
         $('#button-bar-export').empty().append(colvis.button());
 
         clearSearchButton('export_table-SID-${data["user_id"]}', export_table);
