@@ -3534,9 +3534,16 @@ table[id^='history_child'] tr.archived-library > td {
     -webkit-overflow-scrolling: touch;
 }
 /* With a mouse or trackpad the styled scrollbar takes up space. Always show it, so the page
-   does not narrow when the content grows past the window. */
+   does not narrow when the content grows past the window. The pages with a summary container
+   scroll it instead of the body container. */
 @media (hover: hover) and (pointer: fine) {
     .body-container {
+        overflow-y: scroll;
+    }
+    .body-container:has(.summary-container) {
+        overflow-y: auto;
+    }
+    .summary-container {
         overflow-y: scroll;
     }
 }
