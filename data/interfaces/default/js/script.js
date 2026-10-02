@@ -976,3 +976,12 @@ function highlightScrollerButton(scrollerId) {
         }
     });
 }
+
+// DataTables with scrollX and autoWidth off does not adjust the header on window resize.
+var adjustTablesTimeout;
+$(window).on('resize', function () {
+    clearTimeout(adjustTablesTimeout);
+    adjustTablesTimeout = setTimeout(function () {
+        if ($.fn.dataTable) $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+    }, 100);
+});
