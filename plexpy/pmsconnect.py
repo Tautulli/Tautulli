@@ -3122,9 +3122,6 @@ class PmsConnect(object):
             web_img = img.lower().startswith('http')
             resource_img = img.startswith('/:/resources')
 
-            if 'collection' in img and 'composite' in img:
-                img = img.replace('composite', 'thumb')
-
             if refresh and not web_img and not resource_img:
                 img_split = img.split('/')
                 if img_split[-1].isdigit():
@@ -3136,7 +3133,11 @@ class PmsConnect(object):
             elif clip:
                 params = {'url': '%s&%s' % (img, urlencode({'X-Plex-Token': self.token}))}
             else:
-                params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urlencode({'X-Plex-Token': self.token}))}
+                encoded_params = {'X-Plex-Token': self.token}
+                if 'composite' in img:
+                    encoded_params['width'] = width
+                    encoded_params['height'] = height
+                params = {'url': 'http://127.0.0.1:32400%s?%s' % (img, urlencode(encoded_params))}
 
             params['width'] = width
             params['height'] = height
