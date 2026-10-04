@@ -89,7 +89,7 @@
         % elif plexpy.INSTALL_TYPE in ('windows', 'macos'):
         <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank" rel="noreferrer">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>
         % else:
-        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
+        <a href="#" id="updateNow">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
         % endif
     </div>
     % else:
@@ -383,6 +383,11 @@ ${next.modalIncludes()}
     % endif
 
     % if _session['user_group'] == 'admin':
+    $('body').on('click', '#updateNow', function(e) {
+        e.preventDefault();
+        postAndShowPage('update');
+    });
+
     $('body').on('click', '#updateDismiss', function() {
         $('#updatebar').fadeOut();
         // Set cookie to remember dismiss decision for 1 hour.
@@ -421,7 +426,7 @@ ${next.modalIncludes()}
                     } else if (result.install_type === 'windows' || result.install_type === 'macos') {
                         msg += '<a href="' + result.release_url + '" target="_blank" rel="noreferrer">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>'
                     } else {
-                        msg += '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
+                        msg += '<a href="#" id="updateNow">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
                     }
                     $('#updatebar').html(msg).fadeIn();
                 }
@@ -437,7 +442,7 @@ ${next.modalIncludes()}
         $("#confirm-message").text("Are you sure you want to shutdown Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = "shutdown";
+            postAndShowPage("shutdown");
         });
     });
 
@@ -445,7 +450,7 @@ ${next.modalIncludes()}
         $("#confirm-message").text("Are you sure you want to restart Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = "restart";
+            postAndShowPage("restart");
         });
     });
 

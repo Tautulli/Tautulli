@@ -9,6 +9,27 @@ $(document).ajaxSend(function(event, jqXHR, settings) {
     }
 });
 
+// Run a state changing action with POST and show the countdown modal from the page it returns.
+// The page already loaded the scripts, so run only the inline script that starts the countdown.
+function postAndShowPage(url, data) {
+    $.ajax({
+        url: url,
+        data: data,
+        type: 'POST',
+        dataType: 'html',
+        success: function (html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            $('body').append(doc.getElementById('state-change-modal'));
+            $.globalEval($(doc).find('script:not([src])').filter(function () {
+                return this.text.indexOf('state-change-modal') !== -1;
+            }).text());
+        },
+        error: function () {
+            showMsg('<i class="fa fa-times"></i> The request failed.', false, true, 5000, true);
+        }
+    });
+}
+
 var p = {
     name: 'Unknown',
     version: 'Unknown',
