@@ -3423,13 +3423,17 @@ class WebInterface(object):
             first_run = True
             server_changed = True
 
-        for checked_config in config.CHECKED_SETTINGS:
-            checked_config = checked_config.lower()
-            if checked_config not in kwargs:
-                # checked items should be zero or one. if they were not sent then the item was not checked
-                kwargs[checked_config] = 0
-            else:
-                kwargs[checked_config] = 1
+        if first_run:
+            # The wizard shows only this checkbox. Other checked settings keep their values.
+            kwargs['system_analytics'] = int('system_analytics' in kwargs)
+        else:
+            for checked_config in config.CHECKED_SETTINGS:
+                checked_config = checked_config.lower()
+                if checked_config not in kwargs:
+                    # checked items should be zero or one. if they were not sent then the item was not checked
+                    kwargs[checked_config] = 0
+                else:
+                    kwargs[checked_config] = 1
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password') == '    ':
