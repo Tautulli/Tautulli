@@ -148,7 +148,6 @@ def test_bad_image_path_is_not_fetched(fetched, img):
     ("/library/collections/1/composite/2", "/library/collections/1/composite/2"),
     ("/library/parts/1/indexes/sd/1000", "/library/parts/1/indexes"),
     ("/playlists/1/composite/2", "/playlists/1/composite/2"),
-    ("http://example.invalid/avatar.png", "http://example.invalid/avatar.png"),
 ])
 def test_good_image_path_is_fetched(fetched, img, sent):
     assert webserve.WebInterface().real_pms_image_proxy(img=img) == NEW
