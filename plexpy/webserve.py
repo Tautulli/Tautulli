@@ -780,6 +780,7 @@ class WebInterface(object):
             return serve_template(template_name="library_recently_added.html", data=None, title="Recently Added")
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
@@ -957,6 +958,7 @@ class WebInterface(object):
         return result
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def get_media_info_file_sizes(self, section_id=None, rating_key=None, **kwargs):

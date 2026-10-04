@@ -286,6 +286,7 @@ media_info_table_options = {
             $('#refresh-media-info-table').prop('disabled', true);
             $.ajax({
                 url: 'get_media_info_file_sizes',
+                type: 'post',
                 async: true,
                 data: { section_id: section_id },
                 complete: function (xhr, status) {
@@ -416,6 +417,7 @@ function childTableOptionsMedia(rowData) {
             $('#refresh-media-info-table').prop('disabled', true);
             $.ajax({
                 url: 'get_media_info_file_sizes',
+                type: 'post',
                 async: true,
                 data: {
                     section_id: section_id,
