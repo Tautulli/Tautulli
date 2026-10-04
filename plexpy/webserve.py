@@ -1271,19 +1271,6 @@ class WebInterface(object):
         else:
             return {'message': 'Cannot delete media info cache while getting file sizes.'}
 
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    @requireAuth(member_of("admin"))
-    def delete_duplicate_libraries(self, **kwargs):
-        library_data = libraries.Libraries()
-
-        result = library_data.delete_duplicate_libraries()
-
-        if result:
-            return {'message': result}
-        else:
-            return {'message': 'Unable to delete duplicate libraries from the database.'}
-
     ##### Users #####
 
     @cherrypy.expose

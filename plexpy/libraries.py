@@ -24,7 +24,6 @@ from plexpy import database
 from plexpy import datatables
 from plexpy import helpers
 from plexpy import logger
-from plexpy import plextv
 from plexpy import pmsconnect
 from plexpy import session
 from plexpy import users
@@ -1283,19 +1282,3 @@ class Libraries(object):
                 return 'Unable to delete media info table cache, section_id not valid.'
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to delete media info table cache: %s." % e)
-
-    def delete_duplicate_libraries(self):
-        monitor_db = database.MonitorDatabase()
-
-        # Refresh the PMS_URL to make sure the server_id is updated
-        plextv.get_server_resources()
-
-        server_id = plexpy.CONFIG.PMS_IDENTIFIER
-
-        try:
-            logger.debug("Tautulli Libraries :: Deleting libraries where server_id does not match %s." % server_id)
-            monitor_db.action("DELETE FROM library_sections WHERE server_id != ?", [server_id])
-
-            return 'Deleted duplicate libraries from the database.'
-        except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to delete duplicate libraries: %s." % e)
