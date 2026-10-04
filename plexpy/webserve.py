@@ -5003,6 +5003,12 @@ class WebInterface(object):
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
         if img and not img.lower().startswith('http'):
+            if (not img.startswith(('/library/metadata/', '/library/collections/', '/library/parts/',
+                                    '/playlists/', '/:/resources/'))
+                    or '%' in img or '..' in img.split('/')):
+                logger.warn('Invalid image path received.')
+                return
+
             parts = 5
             if img.startswith('/playlists'):
                 parts -= 1
