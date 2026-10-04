@@ -4995,7 +4995,21 @@ class WebInterface(object):
             else:
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
+        if img and img.lower().startswith('http'):
+            if not self._is_stored_image(img, rating_key):
+                logger.warn('Unknown image URL received.')
+                if fallback in common.DEFAULT_IMAGES:
+                    fp = os.path.join(plexpy.PROG_DIR, 'data', common.DEFAULT_IMAGES[fallback])
+                    return serve_file(path=fp, content_type='image/png')
+                return
+
         if img and not img.lower().startswith('http'):
+            if (not img.startswith(('/library/metadata/', '/library/collections/', '/library/parts/',
+                                    '/playlists/', '/:/resources/'))
+                    or '%' in img or '..' in img.split('/')):
+                logger.warn('Invalid image path received.')
+                return
+
             parts = 5
             if img.startswith('/playlists'):
                 parts -= 1
@@ -5081,6 +5095,28 @@ class WebInterface(object):
                         img=fallback, rating_key=None, width=width, height=height,
                         opacity=opacity, background=background, blur=blur, img_format=img_format,
                         fallback=None, refresh=refresh, clip=clip, **kwargs)
+
+    @staticmethod
+    def _is_stored_image(img, rating_key):
+        """ Check that Tautulli stored this http image URL for this item. """
+        sql = ("SELECT 1 FROM users WHERE thumb = ? OR custom_avatar_url = ? "
+               "UNION ALL SELECT 1 FROM library_sections "
+               "WHERE thumb = ? OR art = ? OR custom_thumb_url = ? OR custom_art_url = ?")
+        args = [img] * 6
+        if str(rating_key).isdigit():
+            # Only these queries use the rating key indexes. Never query them without a key.
+            for table, cols in (('session_history_metadata', ('thumb', 'parent_thumb', 'grandparent_thumb', 'art', 'channel_thumb')),
+                                ('sessions', ('thumb', 'parent_thumb', 'grandparent_thumb', 'channel_thumb'))):
+                sql += (" UNION ALL SELECT 1 FROM %s WHERE "
+                        "(rating_key = ? AND (%s)) OR "
+                        "(parent_rating_key = ? AND parent_thumb = ?) OR "
+                        "(grandparent_rating_key = ? AND grandparent_thumb = ?)"
+                        % (table, ' OR '.join(c + ' = ?' for c in cols)))
+                args += [rating_key] + [img] * len(cols) + [rating_key, img, rating_key, img]
+        # This table has no index on img. Scan it only after the other tables miss.
+        sql += " UNION ALL SELECT 1 FROM image_hash_lookup WHERE img = ? LIMIT 1"
+        args.append(img)
+        return bool(database.MonitorDatabase().select_single(sql, args))
 
     @cherrypy.expose
     def image(self, *args, **kwargs):

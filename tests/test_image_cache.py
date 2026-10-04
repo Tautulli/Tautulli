@@ -103,3 +103,52 @@ def test_a_failed_swap_still_returns_the_image(cache, monkeypatch, error):
     assert fetch() == NEW
     assert path.read_bytes() == OLD
     assert list(cache.iterdir()) == [path]
+
+
+@pytest.fixture
+def fetched(app_config, tmp_path, monkeypatch):
+    app_config.CACHE_DIR = str(tmp_path)
+    app_config.CACHE_IMAGES = 0
+    calls = []
+
+    def get_image(self, **kwargs):
+        calls.append(kwargs["img"])
+        return NEW, "image/png"
+
+    monkeypatch.setattr(pmsconnect.PmsConnect, "get_image", get_image)
+    return calls
+
+
+@pytest.mark.parametrize("img", [
+    "@otherhost/a/b/c",
+    "/library/metadata/../..",
+    "library/metadata/1/thumb/2",
+    "/..",
+    "/library/metadata/../x/thumb",
+    "/library/metadata/1/thumb/..",
+    "/library/sections/1/refresh",
+    "/foo/library/metadata/1/thumb",
+    "/library/metadata/%2e%2e/%2e%2e",
+    "/library/metadata/%252e%252e/x",
+    "/library/metadatax/1/thumb",
+    "/playlistsx/1/composite/2",
+    "/:/resourcesx/a.png",
+    "/library/partsx/1/indexes",
+])
+def test_bad_image_path_is_not_fetched(fetched, img):
+    assert webserve.WebInterface().real_pms_image_proxy(img=img) is None
+    assert fetched == []
+
+
+@pytest.mark.parametrize("img, sent", [
+    # the proxy keeps only the first parts of a metadata path
+    ("/library/metadata/1/thumb/2", "/library/metadata/1/thumb"),
+    ("/:/resources/show-fallback.png", "/:/resources/show-fallback.png"),
+    ("/:/resources/a..b.png", "/:/resources/a..b.png"),
+    ("/library/collections/1/composite/2", "/library/collections/1/composite/2"),
+    ("/library/parts/1/indexes/sd/1000", "/library/parts/1/indexes"),
+    ("/playlists/1/composite/2", "/playlists/1/composite/2"),
+])
+def test_good_image_path_is_fetched(fetched, img, sent):
+    assert webserve.WebInterface().real_pms_image_proxy(img=img) == NEW
+    assert fetched == [sent]
