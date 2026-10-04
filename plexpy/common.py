@@ -447,7 +447,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Channel Identifier', 'type': 'str', 'value': 'channel_identifier', 'description': 'The Live TV channel identifier.'},
              {'name': 'Channel Title', 'type': 'str', 'value': 'channel_title', 'description': 'The Live TV channel title.'},
              {'name': 'Channel Thumb', 'type': 'str', 'value': 'channel_thumb', 'description': 'The URL for the Live TV channel logo.'},
-             {'name': 'Channel VCN', 'type': 'str', 'value': 'channel_title', 'description': 'The Live TV tuner channel number.'},
+             {'name': 'Channel VCN', 'type': 'str', 'value': 'channel_vcn', 'description': 'The Live TV tuner channel number.'},
              {'name': 'Secure', 'type': 'int', 'value': 'secure', 'description': 'If the stream is using a secure connection.', 'example': '0 or 1'},
              {'name': 'Relayed', 'type': 'int', 'value': 'relayed', 'description': 'If the stream is using Plex Relay.', 'example': '0 or 1'},
              {'name': 'Stream Local', 'type': 'int', 'value': 'stream_local', 'description': 'If the stream is local.', 'example': '0 or 1'},
