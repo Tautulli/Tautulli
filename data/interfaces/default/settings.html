@@ -2439,7 +2439,7 @@ $(document).ready(function() {
         $('#confirm-message').text("Are you sure you want to shutdown Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = 'shutdown';
+            postAndShowPage('shutdown');
         });
     });
 
@@ -2447,7 +2447,7 @@ $(document).ready(function() {
         $("#confirm-message").text("Are you sure you want to restart Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = 'restart';
+            postAndShowPage('restart');
         });
     });
 
@@ -2460,7 +2460,7 @@ $(document).ready(function() {
     });
 
     $('#modal_link_restart').click(function() {
-        window.location.href = 'restart';
+        postAndShowPage('restart');
     });
 
     $('#menu_link_show_advanced_settings').click(function() {
@@ -2558,7 +2558,7 @@ $(document).ready(function() {
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 settingsChanged = false;
-                window.location.href = 'checkout_git_branch?git_remote=' + new_remote + '&git_branch=' + new_branch;
+                postAndShowPage('checkout_git_branch', {git_remote: new_remote, git_branch: new_branch});
             });
         }
     });
@@ -2570,7 +2570,7 @@ $(document).ready(function() {
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             settingsChanged = false;
-            window.location.href = 'reset_git_install';
+            postAndShowPage('reset_git_install');
         });
     });
 

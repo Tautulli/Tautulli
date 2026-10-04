@@ -4511,16 +4511,19 @@ class WebInterface(object):
                               new_http_root=new_http_root, message=message, timer=timer, quote=quote)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     def shutdown(self, **kwargs):
         return self.do_state_change('shutdown', 'Shutting Down', 15)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     def restart(self, **kwargs):
         return self.do_state_change('restart', 'Restarting', 30)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     def update(self, **kwargs):
         if plexpy.DOCKER or plexpy.SNAP:
@@ -4532,6 +4535,7 @@ class WebInterface(object):
         return self.do_state_change('update', 'Updating', 120)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     def checkout_git_branch(self, git_remote=None, git_branch=None, **kwargs):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
@@ -4545,11 +4549,13 @@ class WebInterface(object):
         return self.do_state_change('checkout', 'Switching Git Branches', 120)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     def reset_git_install(self, **kwargs):
         return self.do_state_change('reset', 'Resetting to {}'.format(common.RELEASE), 120)
 
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     def restart_import_config(self, **kwargs):
         if config.IMPORT_THREAD:

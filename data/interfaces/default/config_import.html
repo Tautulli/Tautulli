@@ -112,7 +112,7 @@
                 var msg;
                 if (data.result === 'success') {
                     msg = "<i class='fa fa-check'></i>&nbsp; " + data.message;
-                    window.location.href = 'restart_import_config';
+                    postAndShowPage('restart_import_config');
                 } else {
                     msg = "<i class='fa fa-exclamation-triangle'></i>&nbsp; " + data.message;
                 }
