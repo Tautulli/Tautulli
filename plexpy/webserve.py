@@ -3321,19 +3321,6 @@ class WebInterface(object):
         return {'result': result, 'message': msg}
 
     @cherrypy.expose
-    @requireAuth(member_of("admin"))
-    def toggleVerbose(self, **kwargs):
-        plexpy.VERBOSE = not plexpy.VERBOSE
-
-        plexpy.CONFIG.VERBOSE_LOGS = plexpy.VERBOSE
-        plexpy.CONFIG.write()
-
-        logger.initLogger(console=not plexpy.QUIET, log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
-        logger.info("Verbose toggled, set to %s", plexpy.VERBOSE)
-        logger.debug("If you read this message, debug logging is available")
-        raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "logs")
-
-    @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
     @requireAuth()
     def log_js_errors(self, page, message, file, line, **kwargs):
@@ -3421,6 +3408,8 @@ class WebInterface(object):
                     kwargs[checked_config] = 0
                 else:
                     kwargs[checked_config] = 1
+
+        verbose_changed = not first_run and kwargs.get('verbose_logs') != plexpy.CONFIG.VERBOSE_LOGS
 
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password') == '    ':
@@ -3527,6 +3516,11 @@ class WebInterface(object):
         if first_run:
             webstart.restart()
             activity_pinger.connect_server(log=True, startup=True)
+
+        # Apply the debug logging setting without a restart
+        if verbose_changed:
+            plexpy.VERBOSE = bool(plexpy.CONFIG.VERBOSE_LOGS)
+            logger.initLogger(console=not plexpy.QUIET, log_dir=plexpy.CONFIG.LOG_DIR, verbose=plexpy.VERBOSE)
 
         # Reconfigure scheduler if intervals changed
         if reschedule:

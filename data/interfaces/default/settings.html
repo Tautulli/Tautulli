@@ -361,7 +361,14 @@
                         % endif
 
                         <div class="padded-header advanced-setting">
-                            <h3>System Analytics</h3>
+                            <h3>System</h3>
+                        </div>
+
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="verbose_logs" name="verbose_logs" value="1" ${config['verbose_logs']}> Enable Debug Logging
+                            </label>
+                            <p class="help-block">Write debug messages to the Tautulli log. Turn this on when you send logs for support.</p>
                         </div>
 
                         <div class="checkbox advanced-setting">
