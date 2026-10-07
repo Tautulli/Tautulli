@@ -1,0 +1,68 @@
+name: Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [nightly]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Tests (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.13']
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Set Up Python      
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run Linter
+        run: ruff check --select=E9,F63,F7,F82 plexpy
+
+      - name: Run Tests
+        run: pytest
+        env:
+          # The browser tests use the runner's Google Chrome. They skip
+          # where Playwright is not installed.
+          BROWSER_CHANNEL: chrome
+
+  # Single stable check name for branch protection. Require this one
+  # instead of the per-version matrix names, which change with the matrix.
+  tests-passed:
+    name: Check Test Results
+    needs: test
+    if: always() && !contains(github.event.head_commit.message, '[skip ci]')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Test Results
+        run: test "${{ needs.test.result }}" = "success"
+
+  discord:
+    name: Discord Notification
+    needs: test
+    if: always() && !contains(github.event.head_commit.message, '[skip ci]') && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post Status to Discord
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          status: ${{ needs.test.result == 'success' && 'success' || contains(needs.*.result, 'failure') && 'failure' || 'cancelled' }}
+          title: ${{ github.workflow }}
+          nofail: true

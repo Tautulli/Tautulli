@@ -19,6 +19,7 @@ import tempfile
 import threading
 import time
 import zipfile
+from contextlib import contextmanager
 
 import plexpy
 from plexpy import helpers
@@ -26,9 +27,79 @@ from plexpy import logger
 
 
 FILENAME = "tautulli.db"
-db_lock = threading.Lock()
+
+# Serializes database writes within the process. Reads run lock-free:
+# the default WAL journal mode supports concurrent readers alongside a
+# single writer, and other journal modes fall back to SQLite's busy
+# timeout for read/write contention. Re-entrant so that a write to a
+# second database file inside a transaction() block cannot self-deadlock.
+db_lock = threading.RLock()
+
+# Per-thread persistent connections keyed by database filename, plus the
+# connection of the explicit transaction currently open on the thread
+_thread_connections = threading.local()
+
+# Lock-free reads are only safe with WAL's snapshot isolation; other
+# journal modes serialize readers behind the write lock like before.
+# Resolved once (changing the journal mode requires a restart anyway).
+_reads_lock_free = None
+
+
+def _use_lock_free_reads():
+    global _reads_lock_free
+    if _reads_lock_free is None:
+        _reads_lock_free = str(plexpy.CONFIG.JOURNAL_MODE).upper() == 'WAL'
+    return _reads_lock_free
 
 IS_IMPORTING = False
+
+# Bumped whenever session_history contents change, so expensive history
+# aggregates can be cached until the next write. A lost concurrent bump
+# costs at most one extra recompute.
+history_version = 0
+
+
+def bump_history_version():
+    global history_version
+    history_version += 1
+
+
+def get_connection(filename):
+    """Return this thread's persistent connection to the database file.
+
+    SQLite connections cannot be shared across threads, and opening a new
+    connection per operation discards the page cache and re-runs the
+    setup PRAGMAs for every statement. Each thread keeps one long-lived
+    connection per database file instead; it is closed when the thread
+    exits. Pooled threads (CherryPy workers, schedulers) live for the
+    process lifetime, so do not route one-off temporary database files
+    through here — use sqlite3.connect directly and close it.
+    """
+    connections = getattr(_thread_connections, 'connections', None)
+    if connections is None:
+        connections = {}
+        _thread_connections.connections = connections
+
+    connection = connections.get(filename)
+    if connection is None:
+        connection = sqlite3.connect(filename, timeout=20)
+        try:
+            # Set database synchronous mode (default NORMAL)
+            connection.execute("PRAGMA synchronous = %s" % plexpy.CONFIG.SYNCHRONOUS_MODE)
+            # Set database journal mode (default WAL)
+            connection.execute("PRAGMA journal_mode = %s" % plexpy.CONFIG.JOURNAL_MODE)
+            # Set database cache size (default 32MB)
+            connection.execute("PRAGMA cache_size = -%s" % (get_cache_size() * 1024))
+        except Exception:
+            # A transient failure here (a full disk fails the first PRAGMA)
+            # must not leak the half-open connection; the caller retries
+            # and gets a fresh one
+            connection.close()
+            raise
+        connection.row_factory = dict_factory
+        connections[filename] = connection
+
+    return connection
 
 
 def set_is_importing(value):
@@ -113,14 +184,15 @@ def import_tautulli_db(database=None, method=None, backup=False):
                 db.action("UPDATE {table}_copy SET reference_id = reference_id + ?".format(table=table_name),
                           [session_history_rows])
 
+    if method == 'merge':
+        from_db_name = 'main'
+        copy = '_copy'
+    else:
+        from_db_name = 'import_db'
+        copy = ''
+
     # Migrate section_id from session_history_metadata to session_history
     if import_db_version < helpers.version_to_tuple('v2.7.0'):
-        if method == 'merge':
-            from_db_name = 'main'
-            copy = '_copy'
-        else:
-            from_db_name = 'import_db'
-            copy = ''
         db.action("ALTER TABLE {from_db}.session_history{copy} "
                   "ADD COLUMN section_id INTEGER".format(from_db=from_db_name,
                                                          copy=copy))
@@ -129,6 +201,28 @@ def import_tautulli_db(database=None, method=None, backup=False):
                   "WHERE {from_db}.session_history_metadata{copy}.id = "
                   "{from_db}.session_history{copy}.id)".format(from_db=from_db_name,
                                                                copy=copy))
+
+    # Migrate live and transcode_decision to session_history. An import
+    # carries over only the columns it already has, so without this the
+    # imported history reads as not live and matches no decision filter.
+    import_history_columns = [
+        c['name'] for c in
+        db.select("PRAGMA {from_db}.table_info(session_history{copy})".format(from_db=from_db_name,
+                                                                             copy=copy))
+    ]
+    for column, definition, from_table in (
+            ('live', 'INTEGER DEFAULT 0', 'session_history_metadata'),
+            ('transcode_decision', 'TEXT', 'session_history_media_info')):
+        if column in import_history_columns:
+            continue
+        db.action("ALTER TABLE {from_db}.session_history{copy} "
+                  "ADD COLUMN {column} {definition}".format(from_db=from_db_name, copy=copy,
+                                                            column=column, definition=definition))
+        db.action("UPDATE {from_db}.session_history{copy} SET {column} = ("
+                  "SELECT {column} FROM {from_db}.{from_table}{copy} "
+                  "WHERE {from_db}.{from_table}{copy}.id = "
+                  "{from_db}.session_history{copy}.id)".format(from_db=from_db_name, copy=copy,
+                                                               column=column, from_table=from_table))
 
     # Keep track of all table columns so that duplicates can be removed after importing
     table_columns = {}
@@ -199,8 +293,9 @@ def import_tautulli_db(database=None, method=None, backup=False):
         for table_name in session_history_tables:
             db.action("DROP TABLE {table}_copy".format(table=table_name))
 
-    vacuum()
+    optimize_db()
 
+    bump_history_version()
     logger.info("Tautulli Database :: Tautulli database import complete.")
     set_is_importing(False)
 
@@ -211,6 +306,35 @@ def import_tautulli_db(database=None, method=None, backup=False):
 def integrity_check():
     monitor_db = MonitorDatabase()
     result = monitor_db.select_single("PRAGMA integrity_check")
+    return result
+
+
+# Cached quick check for the status endpoint: monitoring tools poll it,
+# and a whole-database scan takes ~15 s on a multi-GB file
+_quick_check_cache = {'expiry': 0.0, 'result': None}
+_QUICK_CHECK_CACHE_TTL = 30  # seconds
+
+
+def quick_check_cached():
+    """Run a bounded database check outside the write lock.
+
+    Uses its own short-lived connection so neither readers nor writers
+    are blocked while the file is scanned, and caches the result
+    briefly so polling cannot stack scans.
+    """
+    now = time.time()
+    if _quick_check_cache['result'] is not None and now < _quick_check_cache['expiry']:
+        return _quick_check_cache['result']
+
+    connection = sqlite3.connect(db_filename(), timeout=20)
+    try:
+        connection.row_factory = dict_factory
+        result = connection.execute("PRAGMA quick_check(1)").fetchone()
+    finally:
+        connection.close()
+
+    _quick_check_cache['result'] = result
+    _quick_check_cache['expiry'] = now + _QUICK_CHECK_CACHE_TTL
     return result
 
 
@@ -273,35 +397,48 @@ def delete_rows_from_table(table, row_ids):
 
 def delete_session_history_rows(row_ids=None):
     success = []
-    for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
-        success.append(delete_rows_from_table(table=table, row_ids=row_ids))
+    monitor_db = MonitorDatabase()
+    with monitor_db.transaction():
+        for table in ('session_history', 'session_history_media_info', 'session_history_metadata'):
+            success.append(delete_rows_from_table(table=table, row_ids=row_ids))
+    # Bump after the commit. A reader that ran before it must not cache the old total as current.
+    bump_history_version()
     return all(success)
+
+
+def _delete_session_history_where(where_column, where_value):
+    monitor_db = MonitorDatabase()
+
+    try:
+        # Delete the side tables through the main table's id set, then
+        # the main table itself — one transaction, without materializing
+        # the id list in Python and issuing thousands of chunked DELETEs
+        with monitor_db.transaction():
+            for table in ('session_history_media_info', 'session_history_metadata'):
+                monitor_db.action("DELETE FROM {table} WHERE id IN "
+                                  "(SELECT id FROM session_history WHERE {column} = ?)".format(
+                                      table=table, column=where_column),
+                                  [where_value])
+            monitor_db.action("DELETE FROM session_history WHERE {column} = ?".format(column=where_column),
+                              [where_value])
+        bump_history_version()
+        return True
+    except Exception as e:
+        logger.error("Tautulli Database :: Failed to delete history for %s %s: %s"
+                     % (where_column, where_value, e))
+        return False
 
 
 def delete_user_history(user_id=None):
     if str(user_id).isdigit():
-        monitor_db = MonitorDatabase()
-
-        # Get all history associated with the user_id
-        result = monitor_db.select("SELECT id FROM session_history WHERE user_id = ?",
-                                   [user_id])
-        row_ids = [row['id'] for row in result]
-
         logger.info("Tautulli Database :: Deleting all history for user_id %s from database." % user_id)
-        return delete_session_history_rows(row_ids=row_ids)
+        return _delete_session_history_where('user_id', user_id)
 
 
 def delete_library_history(section_id=None):
     if str(section_id).isdigit():
-        monitor_db = MonitorDatabase()
-
-        # Get all history associated with the section_id
-        result = monitor_db.select("SELECT id FROM session_history WHERE section_id = ?",
-                                   [section_id])
-        row_ids = [row['id'] for row in result]
-
         logger.info("Tautulli Database :: Deleting all history for library section_id %s from database." % section_id)
-        return delete_session_history_rows(row_ids=row_ids)
+        return _delete_session_history_where('section_id', section_id)
 
 
 def vacuum():
@@ -322,7 +459,12 @@ def optimize():
 
     logger.info("Tautulli Database :: Optimizing database.")
     try:
-        monitor_db.action("PRAGMA optimize")
+        monitor_db.action("PRAGMA analysis_limit=400")
+        # The 0x10000 bit makes optimize examine all tables, not just the
+        # ones queried on this connection (which is none for a fresh
+        # connection); it is ignored by SQLite < 3.46, where the boot-time
+        # ANALYZE in dbcheck() covers statistics instead
+        monitor_db.action("PRAGMA optimize(0x10002)")
     except Exception as e:
         logger.error("Tautulli Database :: Failed to optimize database: %s" % e)
 
@@ -423,48 +565,114 @@ class MonitorDatabase(object):
 
     def __init__(self, filename=None):
         self.filename = db_filename(filename)
-        self.connection = sqlite3.connect(self.filename, timeout=20)
-        # Set database synchronous mode (default NORMAL)
-        self.connection.execute("PRAGMA synchronous = %s" % plexpy.CONFIG.SYNCHRONOUS_MODE)
-        # Set database journal mode (default WAL)
-        self.connection.execute("PRAGMA journal_mode = %s" % plexpy.CONFIG.JOURNAL_MODE)
-        # Set database cache size (default 32MB)
-        self.connection.execute("PRAGMA cache_size = -%s" % (get_cache_size() * 1024))
-        self.connection.row_factory = dict_factory
+
+    @property
+    def connection(self):
+        return get_connection(self.filename)
+
+    @contextmanager
+    def transaction(self):
+        """Group multiple statements into a single transaction.
+
+        All action() calls made on this thread for the same database file
+        inside the block run in one transaction, which is committed on
+        exit or rolled back on error. The write lock is held for the
+        whole block.
+        """
+        connection = self.connection
+        if getattr(_thread_connections, 'tx_connection', None) is connection:
+            # Already inside a transaction on this thread
+            yield self
+            return
+
+        with db_lock:
+            # Tolerate an external process holding the write lock with
+            # the same retry budget individual statements get
+            attempts = 0
+            while True:
+                try:
+                    connection.execute("BEGIN IMMEDIATE")
+                    break
+                except sqlite3.OperationalError as e:
+                    if "unable to open database file" not in str(e) and "database is locked" not in str(e):
+                        raise
+                    logger.warn("Tautulli Database :: Database Error: %s", e)
+                    attempts += 1
+                    if attempts >= 5:
+                        raise
+                    time.sleep(1)
+            # Save and restore any enclosing transaction's connection (a
+            # nested transaction on a different database file must not
+            # clear the outer marker, or the outer block's remaining
+            # writes would silently auto-commit per statement)
+            previous_tx_connection = getattr(_thread_connections, 'tx_connection', None)
+            _thread_connections.tx_connection = connection
+            try:
+                yield self
+            except Exception:
+                connection.rollback()
+                raise
+            else:
+                connection.commit()
+            finally:
+                _thread_connections.tx_connection = previous_tx_connection
 
     def action(self, query, args=None, return_last_id=False):
         if query is None:
             return
 
-        with db_lock:
-            sql_result = None
-            attempts = 0
+        connection = self.connection
+        # Writes are serialized by db_lock; reads run concurrently (WAL)
+        is_read = query.lstrip()[:7].upper().startswith(('SELECT', 'EXPLAIN')) and _use_lock_free_reads()
+        in_transaction = getattr(_thread_connections, 'tx_connection', None) is connection
 
-            while attempts < 5:
-                try:
-                    with self.connection as c:
-                        if args is None:
-                            sql_result = c.execute(query)
-                        else:
-                            sql_result = c.execute(query, args)
-                    # Our transaction was successful, leave the loop
-                    break
+        sql_result = None
+        attempts = 0
 
-                except sqlite3.OperationalError as e:
-                    e = str(e)
-                    if "unable to open database file" in e or "database is locked" in e:
-                        logger.warn("Tautulli Database :: Database Error: %s", e)
-                        attempts += 1
-                        time.sleep(1)
-                    else:
-                        logger.error("Tautulli Database :: Database error: %s", e)
+        while attempts < 5:
+            try:
+                if in_transaction:
+                    # This thread already holds db_lock via transaction();
+                    # do not commit until the transaction block exits
+                    sql_result = self._execute(connection, query, args)
+                elif is_read:
+                    sql_result = self._execute(connection, query, args)
+                else:
+                    with db_lock:
+                        with connection as c:
+                            sql_result = self._execute(c, query, args)
+                # Our transaction was successful, leave the loop
+                break
+
+            except sqlite3.OperationalError as e:
+                if "unable to open database file" in str(e) or "database is locked" in str(e):
+                    logger.warn("Tautulli Database :: Database Error: %s", e)
+                    attempts += 1
+                    if attempts >= 5:
+                        # Do not return None after exhausting the retries:
+                        # a silent failure inside a transaction() block
+                        # would let the block commit an incomplete write,
+                        # and select() would crash fetching from None
                         raise
-
-                except sqlite3.DatabaseError as e:
-                    logger.error("Tautulli Database :: Fatal Error executing %s :: %s", query, e)
+                    time.sleep(1)
+                else:
+                    logger.error("Tautulli Database :: Database error: %s", e)
                     raise
 
-            return sql_result
+            except sqlite3.DatabaseError as e:
+                logger.error("Tautulli Database :: Fatal Error executing %s :: %s", query, e)
+                raise
+
+        if return_last_id:
+            return sql_result.lastrowid if sql_result is not None else None
+
+        return sql_result
+
+    @staticmethod
+    def _execute(connection, query, args):
+        if args is None:
+            return connection.execute(query)
+        return connection.execute(query, args)
 
     def select(self, query, args=None):
 
@@ -483,6 +691,19 @@ class MonitorDatabase(object):
             return {}
 
         return sql_results
+
+    def insert(self, table_name, value_dict):
+        """Insert a new row and return its rowid.
+
+        Unlike upsert(), no UPDATE probe is attempted first; use this
+        when the row is known not to exist yet.
+        """
+        columns = list(value_dict.keys())
+        insert_query = (
+            "INSERT INTO " + table_name + " (" + ", ".join(columns) + ")" +
+            " VALUES (" + ", ".join(["?"] * len(columns)) + ")"
+        )
+        return self.action(insert_query, list(value_dict.values()), return_last_id=True)
 
     def upsert(self, table_name, value_dict, key_dict):
 
@@ -516,7 +737,3 @@ class MonitorDatabase(object):
         result = self.select_single(query="SELECT last_insert_rowid() AS last_id")
         if result:
             return result.get('last_id', None)
-        
-    def __del__(self):
-        # Close the database connection when object is garbage collected
-        self.connection.close()

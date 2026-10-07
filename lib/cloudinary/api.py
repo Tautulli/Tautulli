@@ -450,7 +450,7 @@ def update(public_id, **options):
     params = only(options, "moderation_status", "raw_convert",
                   "quality_override", "ocr",
                   "categorization", "detection", "similarity_search",
-                  "background_removal", "notification_url")
+                  "background_removal", "notification_url", "batch_id")
     if "tags" in options:
         params["tags"] = ",".join(utils.build_array(options["tags"]))
     if "face_coordinates" in options:
@@ -1567,7 +1567,7 @@ def __delete_resource_params(options, **params):
     :internal
     """
     p = dict(transformations=utils.build_eager(options.get('transformations')),
-             **only(options, "keep_original", "next_cursor", "invalidate", "batch_id"))
+             **only(options, "keep_original", "next_cursor", "invalidate", "batch_id", "notification_url"))
     p.update(params)
     return p
 

@@ -6,6 +6,22 @@ body:
     attributes:
       value: |
         Thanks for taking the time to help improve Tautulli!
+        **DO NO POST AI GENERATED FEATURE REQUESTS!** Please do not use AI to generate feature requests. You may use AI to assist and provide context, but the request must be written in your own words.
+  - type: checkboxes
+    id: search-existing
+    attributes:
+      label: Search Existing Issues
+      description: Have you searched existing issues (including closed ones) to see if this feature has already been requested?
+      options:
+        - label: Yes, I have searched existing issues.
+          required: true
+  - type: checkboxes
+    id: ai-disclosure
+    attributes:
+      label: AI Disclosure
+      description: Have you used AI to assist in creating this feature request?
+      options:
+        - label: Yes, I have used AI to assist in creating this feature request.
   - type: textarea
     id: problem
     attributes:

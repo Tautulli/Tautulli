@@ -68,6 +68,22 @@ def runGit(args):
     return output, err
 
 
+GIT_NAME_RE = re.compile(r'\w[\w./@+-]*')
+
+
+def valid_git_refs():
+    """Return True if GIT_REMOTE and GIT_BRANCH are safe to pass to git as single arguments."""
+    remote, branch = plexpy.CONFIG.GIT_REMOTE, plexpy.CONFIG.GIT_BRANCH
+    if not GIT_NAME_RE.fullmatch(remote or '') or not GIT_NAME_RE.fullmatch(branch or ''):
+        logger.error('Invalid git remote or branch name, skipping git command.')
+        return False
+    output, err = runGit('remote')
+    if remote not in (output or '').split():
+        logger.error('Git remote "%s" does not exist, skipping git command.', remote)
+        return False
+    return True
+
+
 def get_version():
 
     if plexpy.FROZEN and common.PLATFORM == 'Windows':
@@ -297,6 +313,9 @@ def update():
         return
 
     elif plexpy.INSTALL_TYPE == 'git':
+        if not valid_git_refs():
+            return
+
         output, err = runGit('pull --ff-only {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
                                                            plexpy.CONFIG.GIT_BRANCH))
 
@@ -387,6 +406,13 @@ def update():
 
 def reset_git_install():
     if plexpy.INSTALL_TYPE == 'git':
+        if not valid_git_refs():
+            return False
+
+        if not all(GIT_NAME_RE.fullmatch(v or '') for v in (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)):
+            logger.error('Invalid git user or repo name, skipping git command.')
+            return False
+
         logger.info('Attempting to reset git install to "{}/{}/{}"'.format(plexpy.CONFIG.GIT_REMOTE,
                                                                            plexpy.CONFIG.GIT_BRANCH,
                                                                            common.RELEASE))
@@ -416,6 +442,9 @@ def reset_git_install():
 
 def checkout_git_branch():
     if plexpy.INSTALL_TYPE == 'git':
+        if not valid_git_refs():
+            return
+
         logger.info('Attempting to checkout git branch "{}/{}"'.format(plexpy.CONFIG.GIT_REMOTE,
                                                                        plexpy.CONFIG.GIT_BRANCH))
 

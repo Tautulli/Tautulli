@@ -22,7 +22,7 @@ from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
 from collections import OrderedDict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from functools import reduce, wraps
 import hashlib
 from itertools import groupby, islice, zip_longest
@@ -226,7 +226,16 @@ def now(sep=False):
 
 
 def YMD_to_timestamp(ymd):
-    return datetime.strptime(ymd, "%Y-%m-%d").astimezone().timestamp()
+    # datetime also converts the day before, which Windows rejects near the epoch.
+    return time.mktime(datetime.strptime(ymd, "%Y-%m-%d").timetuple())
+
+
+def YMD_to_timestamp_range(ymd):
+    """Return the [start, end) epoch bounds of the local calendar day."""
+    day = datetime.strptime(ymd, "%Y-%m-%d")
+    day_start = day.astimezone().timestamp()
+    day_end = (day + timedelta(days=1)).astimezone().timestamp()
+    return int(day_start), int(day_end)
 
 
 def timestamp_to_YMDHMS(ts, sep=False, ymd=False):
@@ -515,6 +524,10 @@ def create_https_certificates(ssl_cert, ssl_key):
 
 
 def cast_to_int(s):
+    # get_xml_attr returns '' for missing attributes, making the empty
+    # string the most common failure; skip the exception machinery for it
+    if not s:
+        return 0
     try:
         return int(s)
     except (ValueError, TypeError):
@@ -522,6 +535,9 @@ def cast_to_int(s):
 
 
 def cast_to_float(s):
+    # 0 and False still go through float(), which returns 0.0
+    if s is None or s == '':
+        return 0
     try:
         return float(s)
     except (ValueError, TypeError):
@@ -1691,17 +1707,6 @@ def short_season(title):
     if title.startswith('Season ') and title[7:].isdigit():
         return 'S%s' % title[7:]
     return title
-
-
-def get_first_final_marker(markers):
-    first = None
-    final = None
-    for marker in markers:
-        if marker['first']:
-            first = marker
-        if marker['final']:
-            final = marker
-    return first, final
 
 
 def check_watched(media_type, view_offset, duration, marker_credits_first=None, marker_credits_final=None):

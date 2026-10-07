@@ -78,15 +78,6 @@ def check_active_sessions(ws_request=False):
 
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_error'})
 
-                            if stream['state'] == 'paused' and not ws_request:
-                                # The stream is still paused so we need to increment the paused_counter
-                                # Using the set config parameter as the interval, probably not the most accurate but
-                                # it will have to do for now. If it's a websocket request don't use this method.
-                                paused_counter = int(stream['paused_counter']) + plexpy.CONFIG.MONITORING_INTERVAL
-                                monitor_db.action("UPDATE sessions SET paused_counter = ? "
-                                                  "WHERE session_key = ? AND rating_key = ?",
-                                                  [paused_counter, stream['session_key'], stream['rating_key']])
-
                             if session['state'] == 'buffering' and plexpy.CONFIG.BUFFER_THRESHOLD > 0:
                                 # The stream is buffering so we need to increment the buffer_count
                                 # We're going just increment on every monitor ping,

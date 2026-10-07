@@ -21,6 +21,7 @@ import os
 import requests
 import shutil
 import threading
+import time
 
 from functools import partial, reduce
 from io import open
@@ -134,6 +135,9 @@ class Export(object):
 
         self.total_items = 0
         self.exported_items = 0
+        self._exported_items_lock = threading.Lock()
+        self._last_progress_write = 0.0
+        self._export_attrs_cache = {}
         self.success = False
 
         # Reset export options for m3u
@@ -160,6 +164,7 @@ class Export(object):
                 'artProvider': lambda o: self.get_resource_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
+                'canNormalizeLoudness': None,
                 'chapters': {
                     'id': None,
                     'tag': None,
@@ -341,11 +346,18 @@ class Export(object):
                             'audioChannelLayout': None,
                             'bitDepth': None,
                             'bitrateMode': None,
+                            'canNormalizeLoudness': None,
                             'channels': None,
                             'duration': None,
+                            'gainOffset': None,
+                            'loudness': None,
+                            'loudnessAnalysisVersion': None,
+                            'lra': None,
+                            'peak': None,
                             'profile': None,
                             'samplingRate': None,
                             'streamIdentifier': None,
+                            'threshold': None,
                             'visualImpaired': None
                         },
                         'subtitleStreams': {
@@ -600,6 +612,7 @@ class Export(object):
                 'artProvider': lambda o: self.get_resource_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
+                'canNormalizeLoudness': None,
                 'chapters': {
                     'id': None,
                     'tag': None,
@@ -782,11 +795,18 @@ class Export(object):
                             'audioChannelLayout': None,
                             'bitDepth': None,
                             'bitrateMode': None,
+                            'canNormalizeLoudness': None,
                             'channels': None,
                             'duration': None,
+                            'gainOffset': None,
+                            'loudness': None,
+                            'loudnessAnalysisVersion': None,
+                            'lra': None,
+                            'peak': None,
                             'profile': None,
                             'samplingRate': None,
                             'streamIdentifier': None,
+                            'threshold': None,
                             'visualImpaired': None
                         },
                         'subtitleStreams': {
@@ -1441,7 +1461,8 @@ class Export(object):
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails', 'hasVoiceActivity'
+                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt',
+                    'hasPreviewThumbnails', 'hasVoiceActivity', 'canNormalizeLoudness',
                 ],
                 9: self._get_all_metadata_attrs(_media_type)
             }
@@ -1554,7 +1575,8 @@ class Export(object):
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails', 'hasVoiceActivity',
+                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt',
+                    'hasPreviewThumbnails', 'hasVoiceActivity', 'canNormalizeLoudness',
                     'parentThumb', 'parentKey',
                     'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
                 ],
@@ -2047,7 +2069,15 @@ class Export(object):
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
 
-    def set_export_progress(self):
+    def set_export_progress(self, flush=False):
+        # Progress is written by every pool worker; throttle to roughly
+        # once per second so a large export does not issue one write
+        # transaction per exported item
+        now = time.time()
+        if not flush and now - self._last_progress_write < 1:
+            return
+        self._last_progress_write = now
+
         keys = {
             'id': self.export_id
         }
@@ -2112,11 +2142,14 @@ class Export(object):
         finally:
             pool.close()
             pool.join()
+            self.set_export_progress(flush=True)
             self.set_export_state()
 
     def _do_export(self, item):
         result = item._export_obj()
-        self.exported_items += 1
+        # Incremented from multiple pool threads
+        with self._exported_items_lock:
+            self.exported_items += 1
         self.set_export_progress()
         return result
 
@@ -2246,6 +2279,13 @@ class Export(object):
         return [attr for attr in all_attrs if attr not in exclude_attrs]
 
     def _get_export_attrs(self, media_type):
+        # The attribute and level maps are enormous nested literals that
+        # were rebuilt for every exported object (twice for level 9);
+        # they are constant per media type for the export's lifetime
+        cached = self._export_attrs_cache.get(media_type)
+        if cached is not None:
+            return cached
+
         media_attrs = self.return_attrs(media_type)
         metadata_level_attrs, media_info_level_attrs = self.return_levels(media_type)
 
@@ -2302,7 +2342,9 @@ class Export(object):
 
             export_attrs_list.append(value)
 
-        return reduce(helpers.dict_merge, export_attrs_list, {})
+        export_attrs = reduce(helpers.dict_merge, export_attrs_list, {})
+        self._export_attrs_cache[media_type] = export_attrs
+        return export_attrs
 
     @staticmethod
     def is_media_info_attr(attr):

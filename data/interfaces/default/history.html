@@ -65,7 +65,7 @@
             <div class="btn-group">
                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
             </div>
-            <div class="btn-group colvis-button-bar"></div>
+            <div class="btn-group colvis-button-bar"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
         </div>
     </div>
     <div class="table-card-back">
@@ -130,43 +130,57 @@
     $(document).ready(function () {
         var selected_user_id = "${_session['user_group']}" == "admin" ? null : "${_session['user_id']}";
 
+        var user_select_initialized = false;
+        var user_names_by_id = {};
+
         // Load user ids and names (for the selector)
-        $.ajax({
-            url: 'get_user_names',
-            type: 'GET',
-            dataType: 'json',
-            success: function (data) {
-                let select = $('#history-user');
-                let by_id = {};
-                data.sort(function (a, b) {
-                    return a.friendly_name.localeCompare(b.friendly_name);
-                });
-                data.forEach(function (item) {
-                    select.append('<option value="' + item.user_id + '">' +
-                        item.friendly_name + '</option>');
-                    by_id[item.user_id] = item.friendly_name;
-                });
-                select.selectpicker({
-                    countSelectedText: function(sel, total) {
-                        if (sel === 0 || sel === total) {
-                            return 'All users';
-                        } else if (sel > 1) {
-                            return sel + ' users';
-                        } else {
-                            return select.val().map(function(id) {
-                                return by_id[id];
-                            }).join(', ');
-                        }
-                    },
-                    style: 'btn-dark',
-                    actionsBox: true,
-                    selectedTextFormat: 'count',
-                    noneSelectedText: 'All users'
-                });
-                select.selectpicker('render');
-                select.selectpicker('selectAll');
-            }
-        });
+        function loadUserNames() {
+            $.ajax({
+                url: 'get_user_names',
+                type: 'GET',
+                data: { include_archived: include_archived },
+                dataType: 'json',
+                success: function (data) {
+                    let select = $('#history-user');
+                    data.sort(function (a, b) {
+                        return a.friendly_name.localeCompare(b.friendly_name);
+                    });
+                    user_names_by_id = {};
+                    select.empty();
+                    data.forEach(function (item) {
+                        select.append('<option value="' + item.user_id + '">' +
+                            item.friendly_name + '</option>');
+                        user_names_by_id[item.user_id] = item.friendly_name;
+                    });
+                    if (user_select_initialized) {
+                        select.selectpicker('refresh');
+                    } else {
+                        select.selectpicker({
+                            countSelectedText: function(sel, total) {
+                                if (sel === 0 || sel === total) {
+                                    return 'All users';
+                                } else if (sel > 1) {
+                                    return sel + ' users';
+                                } else {
+                                    return select.val().map(function(id) {
+                                        return user_names_by_id[id];
+                                    }).join(', ');
+                                }
+                            },
+                            style: 'btn-dark',
+                            actionsBox: true,
+                            selectedTextFormat: 'count',
+                            noneSelectedText: 'All users'
+                        });
+                        user_select_initialized = true;
+                    }
+                    select.selectpicker('render');
+                    select.selectpicker('selectAll');
+                }
+            });
+        }
+
+        loadUserNames();
 
         let history_user_last_id = selected_user_id;
 
@@ -179,7 +193,8 @@
                         json_data: JSON.stringify(d),
                         media_type: media_type,
                         transcode_decision: transcode_decision,
-                        user_id: selected_user_id
+                        user_id: selected_user_id,
+                        include_archived: include_archived
                     };
                 },
                 error: function(xhr, error, thrown) {
@@ -190,9 +205,10 @@
             var colvis = new $.fn.dataTable.ColVis(history_table, {
                 buttonText: '<i class="fa fa-columns"></i> Select columns',
                 buttonClass: 'btn btn-dark',
-                exclude: [0, 12]
+                exclude: [0, 12],
+                sAlign: 'right'
             });
-            $(colvis.button()).appendTo('div.colvis-button-bar');
+            $('div.colvis-button-bar').empty().append(colvis.button());
 
             clearSearchButton('history_table', history_table);
 

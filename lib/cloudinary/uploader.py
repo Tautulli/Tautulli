@@ -41,6 +41,9 @@ upload_options = [
 
 UPLOAD_LARGE_CHUNK_SIZE = 20000000
 
+# The tags, context and metadata endpoints accept these params but omit them from signature
+_NON_SIGNABLE_NOTIFICATION_PARAMS = ("notification_url", "batch_id")
+
 
 def upload(file, **options):
     """
@@ -378,6 +381,9 @@ def destroy(public_id, **options):
     :param options: Additional options for the deletion.
     :keyword str type: The storage type (upload, private, authenticated).
     :keyword bool invalidate: Invalidate cached copies on the CDN if True.
+    :keyword str notification_url: A URL to notify when the deletion is completed.
+    :keyword str batch_id: Correlation key for the completion notification, used to address it
+        when polling.
     :return: The result of the API call.
     :rtype: dict
     """
@@ -385,7 +391,9 @@ def destroy(public_id, **options):
         "timestamp": utils.now(),
         "type": options.get("type"),
         "invalidate": options.get("invalidate"),
-        "public_id": public_id
+        "public_id": public_id,
+        "notification_url": options.get("notification_url"),
+        "batch_id": options.get("batch_id")
     }
     return call_api("destroy", params, **options)
 
@@ -407,6 +415,9 @@ def rename(from_public_id, to_public_id, **options):
     :keyword str to_type: Change the resource to the specified upload type.
     :keyword dict context: Set or update contextual metadata.
     :keyword dict metadata: Set or update structured metadata.
+    :keyword str notification_url: A URL to notify when the rename is completed.
+    :keyword str batch_id: Correlation key for the completion notification, used to address it
+        when polling.
     :return: The result of the API call.
     :rtype: dict
     """
@@ -419,7 +430,9 @@ def rename(from_public_id, to_public_id, **options):
         "to_public_id": to_public_id,
         "to_type": options.get("to_type"),
         "context": options.get("context"),
-        "metadata": options.get("metadata")
+        "metadata": options.get("metadata"),
+        "notification_url": options.get("notification_url"),
+        "batch_id": options.get("batch_id")
     }
     return call_api("rename", params, **options)
 
@@ -438,6 +451,9 @@ def update_metadata(metadata, public_ids, **options):
     :keyword str resource_type: The resource type (image, raw, video). Default="image".
     :keyword str type: The storage type (upload, private, authenticated).
     :keyword bool clear_invalid: If True, remove keys that are not valid.
+    :keyword str notification_url: A URL to notify when the update is completed.
+    :keyword str batch_id: Correlation key for the completion notification, used to address it
+        when polling.
     :return: A list of public IDs that were updated.
     :rtype: dict
     """
@@ -446,8 +462,11 @@ def update_metadata(metadata, public_ids, **options):
         "metadata": utils.encode_context(metadata),
         "public_ids": utils.build_array(public_ids),
         "type": options.get("type"),
-        "clear_invalid": options.get("clear_invalid")
+        "clear_invalid": options.get("clear_invalid"),
+        "notification_url": options.get("notification_url"),
+        "batch_id": options.get("batch_id")
     }
+    options["non_signable"] = _NON_SIGNABLE_NOTIFICATION_PARAMS
     return call_api("metadata", params, **options)
 
 
@@ -509,6 +528,8 @@ def generate_sprite(tag=None, urls=None, **options):
     :param urls: List of URLs to create a sprite from (only if tag not set).
     :type urls: list[str], optional
     :param options: Additional sprite configuration.
+    :keyword str public_id: The public ID to assign to the generated sprite. When omitted, the
+        server derives one from the tag or URLs. Cannot be used with mode=download.
     :return: Dictionary with metadata and URLs of generated sprite resources.
     :rtype: dict
     """
@@ -543,6 +564,8 @@ def multi(tag=None, urls=None, **options):
     :param urls: A list of image URLs (if no tag is set).
     :type urls: list[str], optional
     :param options: Additional multi-configuration options.
+    :keyword str public_id: The public ID to assign to the generated file. When omitted, the server
+        derives one from the tag or URLs. Cannot be used with mode=download.
     :return: Dictionary with metadata and URLs of the generated file.
     :rtype: dict
     """
@@ -574,7 +597,11 @@ def explode(public_id, **options):
 
     :param public_id: The public ID of the file to explode.
     :type public_id: str
-    :param options: Additional explode options (format, notification_url, transformation).
+    :param options: Additional explode options (format, notification_url, batch_id, transformation).
+    :keyword str type: The storage type of the file to explode (upload, private, authenticated).
+        Default=upload.
+    :keyword str batch_id: Correlation key for the completion notification, used to address it
+        when polling.
     :return: The result of the API call.
     :rtype: dict
     """
@@ -582,7 +609,9 @@ def explode(public_id, **options):
         "timestamp": utils.now(),
         "public_id": public_id,
         "format": options.get("format"),
+        "type": options.get("type"),
         "notification_url": options.get("notification_url"),
+        "batch_id": options.get("batch_id"),
         "transformation": utils.generate_transformation_string(**options)[0]
     }
     return call_api("explode", params, **options)
@@ -702,6 +731,9 @@ def call_tags_api(tag, command, public_ids=None, **options):
     :param public_ids: A list of asset public IDs.
     :type public_ids: list[str], optional
     :param options: Additional options (e.g., type).
+    :keyword str notification_url: A URL to notify when the update is completed.
+    :keyword str batch_id: Correlation key for the completion notification, used to address it
+        when polling.
     :return: The result of the API call.
     :rtype: dict
     """
@@ -710,8 +742,11 @@ def call_tags_api(tag, command, public_ids=None, **options):
         "tag": tag,
         "public_ids": utils.build_array(public_ids),
         "command": command,
-        "type": options.get("type")
+        "type": options.get("type"),
+        "notification_url": options.get("notification_url"),
+        "batch_id": options.get("batch_id")
     }
+    options["non_signable"] = _NON_SIGNABLE_NOTIFICATION_PARAMS
     return call_api("tags", params, **options)
 
 
@@ -728,6 +763,9 @@ def call_context_api(context, command, public_ids=None, **options):
     :param public_ids: A list of asset public IDs.
     :type public_ids: list[str], optional
     :param options: Additional options (e.g., type).
+    :keyword str notification_url: A URL to notify when the update is completed.
+    :keyword str batch_id: Correlation key for the completion notification, used to address it
+        when polling.
     :return: The result of the API call.
     :rtype: dict
     """
@@ -736,8 +774,11 @@ def call_context_api(context, command, public_ids=None, **options):
         "context": utils.encode_context(context),
         "public_ids": utils.build_array(public_ids),
         "command": command,
-        "type": options.get("type")
+        "type": options.get("type"),
+        "notification_url": options.get("notification_url"),
+        "batch_id": options.get("batch_id")
     }
+    options["non_signable"] = _NON_SIGNABLE_NOTIFICATION_PARAMS
     return call_api("context", params, **options)
 
 
@@ -775,6 +816,7 @@ def text(text, **options):
 
 _SLIDESHOW_PARAMS = [
     "notification_url",
+    "batch_id",
     "public_id",
     "overwrite",
     "upload_preset",
@@ -788,6 +830,8 @@ def create_slideshow(**options):
     :param options: Additional parameters for the slideshow creation.
     :keyword str resource_type: The resource type, defaults to "video".
     :keyword str notification_url: A URL to be notified when the processing is completed.
+    :keyword str batch_id: Correlation key for the completion notification, used to address it
+        when polling.
     :keyword str public_id: The public ID to assign to the generated slideshow.
     :keyword bool overwrite: Whether to overwrite the slideshow if public_id already exists.
     :keyword str upload_preset: An upload preset to apply to the slideshow creation.

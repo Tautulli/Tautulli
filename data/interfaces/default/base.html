@@ -1,8 +1,11 @@
 <%
     import plexpy
-    from plexpy import version
+    from plexpy import libraries, users, version
     from plexpy.helpers import anon_url
     from plexpy.notifiers import BROWSER_NOTIFIERS
+
+    has_archived = _session['user_group'] == 'admin' and bool(users.Users().get_archived_user_ids() or
+                                                              libraries.Libraries().get_archived_section_ids())
 %>
 <!doctype html>
 
@@ -15,6 +18,10 @@
     <meta name="author" content="">
     <meta name="referrer" content="no-referrer">
     <meta name="csrf-token" content="${_csrf_token}">
+    <script>
+        // Runs before the body exists, so the nav has the archive icon from its first paint.
+        if (localStorage.getItem('include_archived') === '1') document.documentElement.classList.add('include-archived');
+    </script>
     <link href="${http_root}css/bootstrap3/bootstrap.min.css" rel="stylesheet">
     <link href="${http_root}css/pnotify.custom.min.css" rel="stylesheet" />
     <link href="${http_root}css/selectize.bootstrap3.css" rel="stylesheet" />
@@ -23,6 +30,22 @@
     <link href="${http_root}css/opensans.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.all.min.css" rel="stylesheet">
     <link href="${http_root}css/font-awesome.v4-shims.min.css" rel="stylesheet">
+    <script>
+        // Browsers lay out the first frame in a fallback font, then move the nav and headings when the
+        // web fonts arrive, even from cache. Keep the page hidden until the fonts are ready, at most 1 s.
+        // The browser keeps showing the previous page meanwhile.
+        if (document.fonts) {
+            var showPage = function () { document.documentElement.classList.remove('fonts-loading'); };
+            Promise.race([
+                Promise.all(['400 1em "Open Sans"', '600 1em "Open Sans"', '900 1em "Font Awesome 5 Free"'].map(function (font) {
+                    return document.fonts.load(font);
+                })),
+                new Promise(function (resolve) { setTimeout(resolve, 1000); })
+            ]).then(showPage, showPage);
+            // Hide last, so an error above never leaves the page hidden.
+            document.documentElement.classList.add('fonts-loading');
+        }
+    </script>
     ${next.headIncludes()}
 
     <!-- Favicons -->
@@ -66,7 +89,7 @@
         % elif plexpy.INSTALL_TYPE in ('windows', 'macos'):
         <a href="${anon_url('https://github.com/%s/%s/releases/tag/%s' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO, plexpy.LATEST_RELEASE))}" target="_blank" rel="noreferrer">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>
         % else:
-        <a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
+        <a href="#" id="updateNow">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>
         % endif
     </div>
     % else:
@@ -125,6 +148,9 @@
                     % else:
                     <li><a href="graphs">Graphs</a></li>
                     % endif
+                    % if has_archived:
+                    <li class="active" id="nav-archived-indicator"><a href="#" title="Showing archived users and libraries. Click to hide them."><i class="fa fa-lg fa-archive"></i></a></li>
+                    % endif
                     % if title == "Settings":
                     <li class="dropdown active">
                     % else:
@@ -135,6 +161,9 @@
                         <ul class="dropdown-menu" id="settings-dropdown-menu">
                             % if _session['user_group'] == 'admin':
                             <li><a href="settings"><i class="fa fa-fw fa-cogs"></i> Settings</a></li>
+                            % if has_archived:
+                            <li><a href="#" id="nav-show-archived"><i class="fa fa-fw fa-square-o"></i> Show Archived Data</a></li>
+                            % endif
                             <li role="separator" class="divider"></li>
                             <li><a href="logs"><i class="fa fa-fw fa-list-alt"></i> View Logs</a></li>
                             <li><a href="${anon_url('https://github.com/%s/%s/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer"><i class="fa fa-fw fa-question-circle"></i> FAQ</a></li>
@@ -337,7 +366,28 @@ ${next.modalIncludes()}
 <script src="${http_root}js/ajaxNotifications.js"></script>
 <script src="${http_root}js/kjua.min.js"></script>
 <script>
+    // Every page sends this with its stats. The browser keeps it across pages.
+    var include_archived = 0;
+    % if has_archived:
+    include_archived = getLocalStorage('include_archived', 0, false) === '1' ? 1 : 0;
+    if (include_archived) {
+        $('#nav-show-archived i').toggleClass('fa-square-o fa-check-square-o');
+    }
+    $('#nav-show-archived, #nav-archived-indicator a').click(function (e) {
+        e.preventDefault();
+        setLocalStorage('include_archived', 1 - include_archived, false);
+        location.reload();
+    });
+    % elif _session['user_group'] == 'admin':
+    setLocalStorage('include_archived', 0, false);
+    % endif
+
     % if _session['user_group'] == 'admin':
+    $('body').on('click', '#updateNow', function(e) {
+        e.preventDefault();
+        postAndShowPage('update');
+    });
+
     $('body').on('click', '#updateDismiss', function() {
         $('#updatebar').fadeOut();
         // Set cookie to remember dismiss decision for 1 hour.
@@ -376,7 +426,7 @@ ${next.modalIncludes()}
                     } else if (result.install_type === 'windows' || result.install_type === 'macos') {
                         msg += '<a href="' + result.release_url + '" target="_blank" rel="noreferrer">Download</a> and install the latest version or <a href="#" id="updateDismiss">Dismiss</a>'
                     } else {
-                        msg += '<a href="update">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
+                        msg += '<a href="#" id="updateNow">Update</a> or <a href="#" id="updateDismiss">Dismiss</a>';
                     }
                     $('#updatebar').html(msg).fadeIn();
                 }
@@ -392,7 +442,7 @@ ${next.modalIncludes()}
         $("#confirm-message").text("Are you sure you want to shutdown Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = "shutdown";
+            postAndShowPage("shutdown");
         });
     });
 
@@ -400,7 +450,7 @@ ${next.modalIncludes()}
         $("#confirm-message").text("Are you sure you want to restart Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = "restart";
+            postAndShowPage("restart");
         });
     });
 

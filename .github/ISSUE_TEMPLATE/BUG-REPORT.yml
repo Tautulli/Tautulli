@@ -6,6 +6,22 @@ body:
     attributes:
       value: |
         **THIS IS NOT THE PLACE TO ASK FOR SUPPORT!** Please use [Discord](https://tautulli.com/discord) for support issues.
+        **DO NO POST AI GENERATED BUG REPORTS!** Please do not use AI to generate bug reports. You may use AI to assist and provide context, but the report must be written in your own words.
+  - type: checkboxes
+    id: search-existing
+    attributes:
+      label: Search Existing Issues
+      description: Have you searched existing issues (including closed ones) to see if this bug has already been reported?
+      options:
+        - label: Yes, I have searched existing issues.
+          required: true
+  - type: checkboxes
+    id: ai-disclosure
+    attributes:
+      label: AI Disclosure
+      description: Have you used AI to assist in creating this bug report?
+      options:
+        - label: Yes, I have used AI to assist in creating this bug report.
   - type: textarea
     id: description
     attributes:

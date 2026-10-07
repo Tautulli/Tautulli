@@ -547,6 +547,9 @@ def start():
         # Repair any device left unvalidated by an earlier outage
         mobile_app.revalidate_devices()
 
+        # Start background newsletter thread
+        newsletter_handler.start_thread()
+
         # Schedule newsletters
         newsletter_handler.NEWSLETTER_SCHED.start()
         newsletter_handler.schedule_newsletters()
@@ -658,6 +661,7 @@ def dbcheck():
         "platform TEXT, platform_version TEXT, profile TEXT, machine_id TEXT, "
         "bandwidth INTEGER, location TEXT, quality_profile TEXT, secure INTEGER, relayed INTEGER, "
         "parent_rating_key INTEGER, grandparent_rating_key INTEGER, media_type TEXT, section_id INTEGER, "
+        "live INTEGER DEFAULT 0, transcode_decision TEXT, "
         "view_offset INTEGER DEFAULT 0)"
     )
 
@@ -710,6 +714,7 @@ def dbcheck():
         "is_active INTEGER DEFAULT 1, is_admin INTEGER DEFAULT 0, is_home_user INTEGER DEFAULT NULL, "
         "is_allow_sync INTEGER DEFAULT NULL, is_restricted INTEGER DEFAULT NULL, "
         "do_notify INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, deleted_user INTEGER DEFAULT 0, "
+        "is_archived INTEGER DEFAULT 0, "
         "allow_guest INTEGER DEFAULT 0, user_token TEXT, server_token TEXT, shared_libraries TEXT, "
         "filter_all TEXT, filter_movies TEXT, filter_tv TEXT, filter_music TEXT, filter_photos TEXT)"
     )
@@ -721,7 +726,7 @@ def dbcheck():
         "thumb TEXT, custom_thumb_url TEXT, art TEXT, custom_art_url TEXT, "
         "count INTEGER, parent_count INTEGER, child_count INTEGER, is_active INTEGER DEFAULT 1, "
         "do_notify INTEGER DEFAULT 1, do_notify_created INTEGER DEFAULT 1, keep_history INTEGER DEFAULT 1, "
-        "deleted_section INTEGER DEFAULT 0, UNIQUE(server_id, section_id))"
+        "deleted_section INTEGER DEFAULT 0, is_archived INTEGER DEFAULT 0, UNIQUE(server_id, section_id))"
     )
 
     # user_login table :: This table keeps record of the Tautulli guest logins
@@ -1897,6 +1902,38 @@ def dbcheck():
             "ALTER TABLE session_history_media_info ADD COLUMN subtitle_forced INTEGER"
         )
 
+    # Upgrade session_history table from earlier versions.
+    #
+    # Read the schema rather than a column, because a failed read says
+    # only that the read failed. A locked database and a bad disk raise
+    # the same error a missing column does.
+    session_history_columns = {
+        column[1] for column in c_db.execute("PRAGMA table_info(session_history)")
+    }
+    missing_columns = {'live', 'transcode_decision'} - session_history_columns
+
+    if missing_columns:
+        # The history table filters on these two, which used to live only
+        # in the side tables. Filtering on them read a wide side-table row
+        # for every history row. They are written once with the row and
+        # never updated, the same way section_id already is.
+        logger.debug("Altering database. Updating database table session_history.")
+        if 'live' in missing_columns:
+            c_db.execute(
+                "ALTER TABLE session_history ADD COLUMN live INTEGER DEFAULT 0"
+            )
+        if 'transcode_decision' in missing_columns:
+            c_db.execute(
+                "ALTER TABLE session_history ADD COLUMN transcode_decision TEXT"
+            )
+        c_db.execute(
+            "UPDATE session_history SET "
+            "live = COALESCE((SELECT live FROM session_history_metadata "
+            "WHERE session_history_metadata.id = session_history.id), 0), "
+            "transcode_decision = (SELECT transcode_decision FROM session_history_media_info "
+            "WHERE session_history_media_info.id = session_history.id)"
+        )
+
     # Upgrade session_history table from earlier versions
     try:
         c_db.execute("SELECT section_id FROM session_history")
@@ -1981,6 +2018,15 @@ def dbcheck():
         logger.debug("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0"
+        )
+
+    # Upgrade users table from earlier versions
+    try:
+        c_db.execute("SELECT is_archived FROM users")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table users.")
+        c_db.execute(
+            "ALTER TABLE users ADD COLUMN is_archived INTEGER DEFAULT 0"
         )
 
     # Upgrade users table from earlier versions
@@ -2279,6 +2325,15 @@ def dbcheck():
         logger.debug("Altering database. Updating database table library_sections.")
         c_db.execute(
             "ALTER TABLE library_sections ADD COLUMN is_active INTEGER DEFAULT 1"
+        )
+
+    # Upgrade library_sections table from earlier versions
+    try:
+        c_db.execute("SELECT is_archived FROM library_sections")
+    except sqlite3.OperationalError:
+        logger.debug("Altering database. Updating database table library_sections.")
+        c_db.execute(
+            "ALTER TABLE library_sections ADD COLUMN is_archived INTEGER DEFAULT 0"
         )
 
     # Upgrade library_sections table from earlier versions
@@ -2710,17 +2765,16 @@ def dbcheck():
     logger.info("Creating database indices....")
 
     # Create session_history table indices
+    # reference_id trails started so the history page bound reads a
+    # page's group keys straight out of the index. The leading column
+    # still serves every query that filtered on started alone.
     c_db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_session_history_started "
-        "ON session_history (started)"
+        "CREATE INDEX IF NOT EXISTS idx_session_history_started_reference_id "
+        "ON session_history (started, reference_id)"
     )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_stopped "
         "ON session_history (stopped)"
-    )
-    c_db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_session_history_media_type "
-        "ON session_history (media_type)"
     )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_media_type_stopped "
@@ -2743,8 +2797,8 @@ def dbcheck():
         "ON session_history (user)"
     )
     c_db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_session_history_user_id "
-        "ON session_history (user_id)"
+        "CREATE INDEX IF NOT EXISTS idx_session_history_user_id_started "
+        "ON session_history (user_id, started ASC)"
     )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_user_id_stopped "
@@ -2755,8 +2809,8 @@ def dbcheck():
         "ON session_history (user_id, rating_key)"
     )
     c_db.execute(
-        "CREATE INDEX IF NOT EXISTS idx_session_history_section_id "
-        "ON session_history (section_id)"
+        "CREATE INDEX IF NOT EXISTS idx_session_history_section_id_started "
+        "ON session_history (section_id, started ASC)"
     )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_section_id_stopped "
@@ -2767,6 +2821,15 @@ def dbcheck():
         "ON session_history (reference_id ASC)"
     )
 
+    # Drop redundant single-column indices that are fully covered by a
+    # composite index with the same leading column. They served no query
+    # the composites cannot, and each one added a B-tree update to every
+    # session_history write.
+    c_db.execute("DROP INDEX IF EXISTS idx_session_history_started")
+    c_db.execute("DROP INDEX IF EXISTS idx_session_history_media_type")
+    c_db.execute("DROP INDEX IF EXISTS idx_session_history_user_id")
+    c_db.execute("DROP INDEX IF EXISTS idx_session_history_section_id")
+
     # Create session_history_metadata table indices
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_rating_key "
@@ -2776,9 +2839,24 @@ def dbcheck():
         "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_guid "
         "ON session_history_metadata (guid)"
     )
+    # SQLite's LIKE-prefix optimization requires a NOCASE collated index
+    # (case_sensitive_like is never enabled); serves the history guid
+    # filter and the live-TV metadata fallback, which use guid LIKE 'x%'
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_guid_nocase "
+        "ON session_history_metadata (guid COLLATE NOCASE)"
+    )
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_live "
         "ON session_history_metadata (live)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_parent_rating_key "
+        "ON session_history_metadata (parent_rating_key)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_session_history_metadata_grandparent_rating_key "
+        "ON session_history_metadata (grandparent_rating_key)"
     )
 
     # Create session_history_media_info table indices
@@ -2799,6 +2877,28 @@ def dbcheck():
     c_db.execute(
         "CREATE INDEX IF NOT EXISTS idx_notify_log_action_tag "
         "ON notify_log (notify_action, tag)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_notify_log_notifier_id "
+        "ON notify_log (notifier_id, timestamp)"
+    )
+
+    # Create user_login table indices
+    # jwt_token is looked up on every authenticated web request, and
+    # ip_address is scanned by the sign-in rate limiter
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_user_login_jwt_token "
+        "ON user_login (jwt_token)"
+    )
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_user_login_ip_address "
+        "ON user_login (ip_address, timestamp)"
+    )
+
+    # Create recently_added table indices
+    c_db.execute(
+        "CREATE INDEX IF NOT EXISTS idx_recently_added_rating_key "
+        "ON recently_added (rating_key)"
     )
 
     # Create lookup table indices
@@ -2832,6 +2932,34 @@ def dbcheck():
     )
 
     logger.info("Database indices created.")
+
+    # Give every history row its group key.
+    #
+    # write_session_history inserts the row and group_history sets
+    # reference_id in a second statement. Everything that reads history
+    # groups by this column, so a row that never got one joins a single
+    # nameless group holding every other row that lost its key, and its
+    # play time lands on a group it has nothing to do with. The repair
+    # matches what group_history writes for a row it does not group. The
+    # row becomes its own group.
+    c_db.execute("UPDATE session_history SET reference_id = id WHERE reference_id IS NULL")
+
+    # The trigger fills the key inside the insert itself, so no insert
+    # path can leave it out: the importers and a database merge write
+    # history rows without going through group_history at all.
+    c_db.execute(
+        "CREATE TRIGGER IF NOT EXISTS session_history_reference_id "
+        "AFTER INSERT ON session_history WHEN NEW.reference_id IS NULL "
+        "BEGIN UPDATE session_history SET reference_id = NEW.id WHERE id = NEW.id; END"
+    )
+
+    # Refresh the query planner statistics (bounded by analysis_limit).
+    # This cannot be left to the scheduled "PRAGMA optimize": before
+    # SQLite 3.46 that pragma only considers tables already queried on
+    # the same connection, so on a fresh connection it is a no-op and
+    # sqlite_stat1 may otherwise never be populated.
+    c_db.execute("PRAGMA analysis_limit=400")
+    c_db.execute("ANALYZE")
 
     # Set database version
     result = c_db.execute("SELECT value FROM version_info WHERE key = 'version'").fetchone()
@@ -2894,6 +3022,7 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
     # Stop the notification threads
     for i in range(CONFIG.NOTIFICATION_THREADS):
         NOTIFY_QUEUE.put(None)
+    newsletter_handler.NEWSLETTER_QUEUE.put(None)
 
     CONFIG.write()
 

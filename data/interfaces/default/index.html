@@ -8,6 +8,7 @@
 <% from plexpy import PLEX_SERVER_UP %>
 <div class="container-fluid">
     % for section in config['home_sections']:
+    <div class="home-section">
     % if section == 'current_activity':
     <div class="row">
         <div class="col-md-12">
@@ -39,7 +40,7 @@
             <div class="home-padded-header padded-header">
                 <h3 class="pull-left">Watch Statistics</h3>
                 <div class="button-bar">
-                    <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles" style="margin-right: 3px">
+                    <div class="btn-group pull-left" data-toggle="buttons" id="watch-stats-toggles">
                         <label class="btn btn-dark btn-filter">
                             <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-plays" value="plays" autocomplete="off"> Play Count
                         </label>
@@ -47,7 +48,7 @@
                             <input type="radio" class="watched-stats-toggle" name="watched-stats-type" id="watched-stats-duration" value="duration" autocomplete="off"> Play Duration
                         </label>
                     </div>
-                    <div class="input-group pull-left" style="width: 1px; margin-right: 3px" id="watched-stats-days-selection">
+                    <div class="input-group pull-left" style="width: 1px" id="watched-stats-days-selection">
                         <span class="input-group-addon btn-dark inactive">Last</span>
                         <input type="number" class="form-control number-input" name="watched-stats-days" id="watched-stats-days" value="30" min="1" data-default="30" data-toggle="tooltip" title="Min: 1 day" />
                         <span class="input-group-addon btn-dark inactive">days</span>
@@ -97,7 +98,7 @@
                     </li>
                 </ul>
                 <div class="button-bar">
-                    <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles" style="margin-right: 3px">
+                    <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles">
                         <label class="btn btn-dark btn-filter" id="recently-added-label-all">
                             <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="all" autocomplete="off"> All
                         </label>
@@ -134,6 +135,7 @@
         </div>
     </div>
     % endif
+    </div>
     % endfor
 </div>
 </%def>
@@ -254,9 +256,21 @@
 
     var error_msg = 'There was an error communicating with your Plex Server.' + msg_settings;
 
+    // Show the sections top-down. A section shows once every section above it has loaded, so a
+    // late section never pushes visible content down. A spinner or an empty card slot means loading.
+    function showLoadedHomeSections() {
+        $('.home-section').each(function () {
+            $(this).show();
+            return !$(this).find('.fa-spin, [id^=activity-instance-]:not([data-key])').length;
+        });
+    }
+    $(document).on('ajaxComplete', showLoadedHomeSections);
+    // Show them all after 3 s, so a slow Plex server never hides the stats.
+    setTimeout(function () { $('.home-section').show(); }, 3000);
+
     % if 'current_activity' in config['home_sections'] or 'recently_added' in config['home_sections']:
     var server_status;
-    server_status = setInterval(function() {
+    function checkServerStatus() {
         $.getJSON('server_status', function (data) {
             if (data.connected === true) {
                 clearInterval(server_status);
@@ -278,7 +292,10 @@
                 % endif
             }
         });
-    }, 1000);
+    }
+    // Check once the page has run its scripts, or the activity waits a second to start loading.
+    $(document).ready(checkServerStatus);
+    server_status = setInterval(checkServerStatus, 1000);
     % endif
 </script>
 % if 'current_activity' in config['home_sections']:
@@ -376,9 +393,15 @@
                         var session_id = s.session_id;
                         var instance = $('#activity-instance-' + key);
 
+                        // Hold the new card's place at the card's size, so the cards keep the session order
+                        // and do not move whichever request finishes first.
+                        if (!(instance.length)) {
+                            $('#currentActivity').append('<div id="activity-instance-' + key + '" class="dashboard-activity-instance updated-temp" style="width: 100%;"></div>');
+                        }
+
                         // Create a new instance if it doesn't exist or recreate the entire instance
                         // if the rating key changed (for movies or episodes) of guid changed (for live tv) with the same session key
-                        if (!(instance.length) ||
+                        if (!(instance.data('key')) ||
                                 (s.media_type !== 'track' && s.rating_key !== instance.data('rating_key').toString()) ||
                                 (s.live === 1 && s.guid !== instance.data('guid'))) {
                             create_instances.push(key);
@@ -860,7 +883,8 @@
             async: true,
             data: {
                 time_range: time_range,
-                stats_type: stats_type
+                stats_type: stats_type,
+                include_archived: include_archived
             },
             complete: function (xhr, status) {
                 $("#home-stats").html(xhr.responseText);
@@ -903,7 +927,7 @@
             type: 'GET',
             cache: false,
             async: true,
-            data: { },
+            data: { include_archived: include_archived },
             complete: function (xhr, status) {
                 $("#library-stats").html(xhr.responseText);
                 statsCardCallback();

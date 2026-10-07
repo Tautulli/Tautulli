@@ -26,6 +26,10 @@ parts:
   tautulli:
     plugin: dump
     source: .
+    stage:
+      - -tests
+      - -pytest.ini
+      - -requirements-dev.txt
     stage-packages:
       - python3
       - python3-openssl

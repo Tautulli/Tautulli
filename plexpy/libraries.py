@@ -24,11 +24,19 @@ from plexpy import database
 from plexpy import datatables
 from plexpy import helpers
 from plexpy import logger
-from plexpy import plextv
 from plexpy import pmsconnect
 from plexpy import session
 from plexpy import users
 from plexpy.plex import Plex
+
+# Library section types change only when libraries are added or removed;
+# every graph endpoint checks up to 4 types, so cache them briefly
+_LIBRARY_TYPES_CACHE = {'types': None, 'expiry': 0}
+_LIBRARY_TYPES_CACHE_TTL = 60  # seconds
+
+
+def archived_library_cond(column='session_history.section_id', cond_prefix='AND'):
+    return "%s %s NOT IN (SELECT section_id FROM library_sections WHERE is_archived = 1) " % (cond_prefix, column)
 
 
 def refresh_libraries():
@@ -81,9 +89,13 @@ def refresh_libraries():
                 "section_id NOT IN ({})".format(", ".join(["?"] * len(section_ids)))
         monitor_db.action(query=query, args=[plexpy.CONFIG.PMS_IDENTIFIER] + section_ids)
 
-        new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
-        plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
-        plexpy.CONFIG.write()
+        _LIBRARY_TYPES_CACHE['types'] = None
+
+        # Only rewrite the config file when new libraries were found
+        if new_keys:
+            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+            plexpy.CONFIG.write()
 
         logger.info("Tautulli Libraries :: Libraries list refreshed.")
         return True
@@ -117,13 +129,22 @@ def add_live_tv_library(refresh=False):
 
     result = monitor_db.upsert('library_sections', key_dict=section_keys, value_dict=section_values)
 
+    _LIBRARY_TYPES_CACHE['types'] = None
+
 
 def has_library_type(section_type):
-    monitor_db = database.MonitorDatabase()
-    query = "SELECT * FROM library_sections WHERE section_type = ? AND deleted_section = 0"
-    args = [section_type]
-    result = monitor_db.select_single(query=query, args=args)
-    return bool(result)
+    now = helpers.timestamp()
+    # Work on a local reference: another thread may invalidate the cache
+    # (set 'types' to None) between the check and the membership test
+    types = _LIBRARY_TYPES_CACHE['types']
+    if types is None or now >= _LIBRARY_TYPES_CACHE['expiry']:
+        monitor_db = database.MonitorDatabase()
+        query = "SELECT DISTINCT section_type FROM library_sections WHERE deleted_section = 0"
+        result = monitor_db.select(query=query)
+        types = {row['section_type'] for row in result}
+        _LIBRARY_TYPES_CACHE['types'] = types
+        _LIBRARY_TYPES_CACHE['expiry'] = now + _LIBRARY_TYPES_CACHE_TTL
+    return section_type in types
 
 
 def get_collections(section_id=None):
@@ -292,10 +313,17 @@ class Libraries(object):
     def __init__(self):
         pass
 
-    def get_datatables_list(self, kwargs=None, grouping=None):
+    def get_datatables_list(self, kwargs=None, grouping=None, include_archived=False, include_deleted=False):
         data_tables = datatables.DataTables()
 
-        custom_where = [['library_sections.deleted_section', 0]]
+        custom_where = []
+
+        # A guest never sees deleted libraries
+        if not include_deleted or session.get_session_user_id():
+            custom_where.append(['library_sections.deleted_section', 0])
+
+        if not include_archived:
+            custom_where.append(['library_sections.is_archived', 0])
 
         if grouping is None:
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
@@ -303,7 +331,32 @@ class Libraries(object):
         if session.get_session_shared_libraries():
             custom_where.append(['library_sections.section_id', session.get_session_shared_libraries()])
 
-        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+        group_by = 'reference_id' if grouping else 'id'
+
+        # Aggregate the narrow session_history table once per section,
+        # then join the wide metadata table only for each section's most
+        # recent history row. The old form joined every history row of
+        # every section to the wide tables on every table draw (including
+        # a media_info join that no selected column used).
+        archived_cond = '' if include_archived else users.archived_user_cond(cond_prefix='WHERE')
+
+        # The shown row is the play with the latest start, and the highest id on a tie.
+        # The (key, started) index serves the lookup.
+        last_row_cond = '' if include_archived else users.archived_user_cond(column='s2.user_id')
+
+        history_agg = (
+            "(SELECT section_id, "
+            "COUNT(DISTINCT %s) AS plays, "
+            "SUM(CASE WHEN stopped > 0 THEN (stopped - started) ELSE 0 END) - "
+            "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) AS duration, "
+            "MAX(started) AS last_accessed, "
+            "(SELECT s2.id FROM session_history AS s2 "
+            "WHERE s2.section_id = session_history.section_id %s"
+            "ORDER BY s2.started DESC, s2.id DESC LIMIT 1) AS history_row_id "
+            "FROM session_history "
+            "%s"
+            "GROUP BY section_id) AS history_agg" % (group_by, last_row_cond, archived_cond)
+        )
 
         columns = ["library_sections.id AS row_id",
                    "library_sections.server_id",
@@ -317,12 +370,10 @@ class Libraries(object):
                    "library_sections.custom_thumb_url AS custom_thumb",
                    "library_sections.art AS library_art",
                    "library_sections.custom_art_url AS custom_art",
-                   "COUNT(DISTINCT %s) AS plays" % group_by,
-                   "SUM(CASE WHEN session_history.stopped > 0 THEN (session_history.stopped - session_history.started) \
-                    ELSE 0 END) - SUM(CASE WHEN session_history.paused_counter IS NULL THEN 0 ELSE \
-                    session_history.paused_counter END) AS duration",
-                   "MAX(session_history.started) AS last_accessed",
-                   "MAX(session_history.id) AS history_row_id",
+                   "COALESCE(history_agg.plays, 0) AS plays",
+                   "COALESCE(history_agg.duration, 0) AS duration",
+                   "history_agg.last_accessed",
+                   "history_agg.history_row_id",
                    "session_history_metadata.full_title AS last_played",
                    "session_history.rating_key",
                    "session_history_metadata.media_type",
@@ -340,22 +391,24 @@ class Libraries(object):
                    "session_history_metadata.originally_available_at",
                    "session_history_metadata.guid",
                    "library_sections.keep_history",
-                   "library_sections.is_active"
+                   "library_sections.is_active",
+                   "library_sections.is_archived AS is_archived",
+                   "library_sections.deleted_section"
                    ]
         try:
             query = data_tables.ssp_query(table_name='library_sections',
                                           columns=columns,
                                           custom_where=custom_where,
-                                          group_by=['library_sections.server_id', 'library_sections.section_id'],
+                                          group_by=[],
                                           join_types=['LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN',
                                                       'LEFT OUTER JOIN'],
-                                          join_tables=['session_history',
-                                                       'session_history_metadata',
-                                                       'session_history_media_info'],
-                                          join_evals=[['session_history.section_id', 'library_sections.section_id'],
-                                                      ['session_history.id', 'session_history_metadata.id'],
-                                                      ['session_history.id', 'session_history_media_info.id']],
+                                          join_tables=[history_agg,
+                                                       'session_history',
+                                                       'session_history_metadata'],
+                                          join_evals=[['history_agg.section_id', 'library_sections.section_id'],
+                                                      ['session_history.id', 'history_agg.history_row_id'],
+                                                      ['session_history_metadata.id', 'history_agg.history_row_id']],
                                           kwargs=kwargs)
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
@@ -412,7 +465,9 @@ class Libraries(object):
                    'originally_available_at': item['originally_available_at'],
                    'guid': item['guid'],
                    'keep_history': item['keep_history'],
-                   'is_active': item['is_active']
+                   'is_active': item['is_active'],
+                   'is_archived': item['is_archived'],
+                   'deleted_section': item['deleted_section']
                    }
 
             rows.append(row)
@@ -425,7 +480,8 @@ class Libraries(object):
 
         return dict
 
-    def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, refresh=False, kwargs=None):
+    def get_datatables_media_info(self, section_id=None, section_type=None, rating_key=None, refresh=False, kwargs=None,
+                                  include_archived=False):
         default_return = {'recordsFiltered': 0,
                           'recordsTotal': 0,
                           'draw': 0,
@@ -475,8 +531,8 @@ class Libraries(object):
             query = "SELECT MAX(started) AS last_played, COUNT(DISTINCT %s) AS play_count, " \
                     "rating_key, parent_rating_key, grandparent_rating_key " \
                     "FROM session_history " \
-                    "WHERE section_id = ? " \
-                    "GROUP BY %s " % (count_by, group_by)
+                    "WHERE section_id = ? %s" \
+                    "GROUP BY %s " % (count_by, '' if include_archived else users.archived_user_cond(), group_by)
             result = monitor_db.select(query, args=[section_id])
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
@@ -739,7 +795,7 @@ class Libraries(object):
             except IOError as e:
                 logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
 
-    def set_config(self, section_id=None, custom_thumb=None, custom_art=None, keep_history=None):
+    def set_config(self, section_id=None, custom_thumb=None, custom_art=None, keep_history=None, is_archived=None):
         if str(section_id).isdigit():
             monitor_db = database.MonitorDatabase()
 
@@ -752,13 +808,16 @@ class Libraries(object):
                 value_dict['custom_art_url'] = custom_art
             if keep_history is not None:
                 value_dict['keep_history'] = int(helpers.bool_true(keep_history))
+            if is_archived is not None:
+                value_dict['is_archived'] = int(helpers.bool_true(is_archived))
 
             try:
                 monitor_db.upsert('library_sections', value_dict, key_dict)
             except Exception as e:
                 logger.warn("Tautulli Libraries :: Unable to execute database query for set_config: %s." % e)
 
-    def get_details(self, section_id=None, server_id=None, include_last_accessed=False):
+    def get_details(self, section_id=None, server_id=None, include_last_accessed=False,
+                    include_archived=False):
         default_return = {'row_id': 0,
                           'server_id': '',
                           'section_id': 0,
@@ -772,6 +831,7 @@ class Libraries(object):
                           'is_active': 1,
                           'keep_history': 1,
                           'deleted_section': 0,
+                          'is_archived': 0,
                           'last_accessed': None,
                           }
 
@@ -782,7 +842,8 @@ class Libraries(object):
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
 
         library_details = self.get_library_details(section_id=section_id, server_id=server_id,
-                                                   include_last_accessed=include_last_accessed)
+                                                   include_last_accessed=include_last_accessed,
+                                                   include_archived=include_archived)
 
         if library_details:
             return library_details
@@ -794,7 +855,8 @@ class Libraries(object):
             refresh_libraries()
 
             library_details = self.get_library_details(section_id=section_id, server_id=server_id,
-                                                       include_last_accessed=include_last_accessed)
+                                                       include_last_accessed=include_last_accessed,
+                                                       include_archived=include_archived)
 
             if library_details:
                 return library_details
@@ -805,7 +867,8 @@ class Libraries(object):
                 # If there is no library data we must return something
                 return default_return
 
-    def get_library_details(self, section_id=None, server_id=None, include_last_accessed=False):
+    def get_library_details(self, section_id=None, server_id=None, include_last_accessed=False,
+                            include_archived=False):
         if server_id is None:
             server_id = plexpy.CONFIG.PMS_IDENTIFIER
 
@@ -814,6 +877,7 @@ class Libraries(object):
         if include_last_accessed:
             last_accessed = "MAX(session_history.started)"
             join = "LEFT OUTER JOIN session_history ON library_sections.section_id = session_history.section_id " \
+                   + ('' if include_archived else users.archived_user_cond())
 
         monitor_db = database.MonitorDatabase()
 
@@ -830,9 +894,10 @@ class Libraries(object):
                     "library_sections.thumb AS library_thumb, custom_thumb_url AS custom_thumb, " \
                     "library_sections.art AS library_art, " \
                     "custom_art_url AS custom_art, is_active, " \
-                    "keep_history, deleted_section, %s AS last_accessed " \
+                    "keep_history, deleted_section, is_archived, %s AS last_accessed " \
                     "FROM library_sections %s " \
-                    "WHERE %s AND server_id = ? " % (last_accessed, join, where)
+                    "WHERE %s AND server_id = ? " \
+                    "GROUP BY library_sections.id" % (last_accessed, join, where)
             result = monitor_db.select(query, args=args + [server_id])
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_library_details: %s." % e)
@@ -866,11 +931,12 @@ class Libraries(object):
                                    'is_active': item['is_active'],
                                    'keep_history': item['keep_history'],
                                    'deleted_section': item['deleted_section'],
+                                   'is_archived': item['is_archived'],
                                    'last_accessed': item['last_accessed']
                                    }
         return library_details
 
-    def get_watch_time_stats(self, section_id=None, grouping=None, query_days=None):
+    def get_watch_time_stats(self, section_id=None, grouping=None, query_days=None, include_archived=False):
         if not session.allow_session_library(section_id):
             return []
 
@@ -878,7 +944,7 @@ class Libraries(object):
             grouping = plexpy.CONFIG.GROUP_HISTORY_TABLES
 
         if query_days and query_days is not None:
-            query_days = map(helpers.cast_to_int, str(query_days).split(','))
+            query_days = list(map(helpers.cast_to_int, str(query_days).split(',')))
         else:
             query_days = [1, 7, 30, 0]
 
@@ -888,43 +954,46 @@ class Libraries(object):
 
         library_watch_time_stats = []
 
-        group_by = 'session_history.reference_id' if grouping else 'session_history.id'
+        group_by = 'reference_id' if grouping else 'id'
+        archived_cond = '' if include_archived else users.archived_user_cond()
 
-        for days in query_days:
-            timestamp_query = timestamp - days * 24 * 60 * 60
+        if str(section_id).isdigit():
+            # Compute every requested window with conditional aggregation
+            # in a single pass over the section's history instead of one
+            # full aggregate query per window. The old query also joined
+            # session_history_metadata without using any of its columns
+            # (section_id lives on session_history).
+            select_parts = []
+            for i, days in enumerate(query_days):
+                if days > 0:
+                    timestamp_query = timestamp - days * 24 * 60 * 60
+                    select_parts.append(
+                        "SUM(CASE WHEN stopped >= %(ts)d THEN (stopped - started) - "
+                        "(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END) ELSE 0 END) "
+                        "AS total_time_%(i)d, "
+                        "COUNT(DISTINCT CASE WHEN stopped >= %(ts)d THEN %(group_by)s END) "
+                        "AS total_plays_%(i)d" % {'ts': timestamp_query, 'i': i, 'group_by': group_by})
+                else:
+                    select_parts.append(
+                        "(SUM(stopped - started) - "
+                        "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) "
+                        "AS total_time_%(i)d, "
+                        "COUNT(DISTINCT %(group_by)s) AS total_plays_%(i)d" % {'i': i, 'group_by': group_by})
 
             try:
-                if days > 0:
-                    if str(section_id).isdigit():
-                        query = "SELECT (SUM(stopped - started) - " \
-                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                                "COUNT(DISTINCT %s) AS total_plays " \
-                                "FROM session_history " \
-                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE stopped >= %s " \
-                                "AND section_id = ?" % (group_by, timestamp_query)
-                        result = monitor_db.select(query, args=[section_id])
-                    else:
-                        result = []
-                else:
-                    if str(section_id).isdigit():
-                        query = "SELECT (SUM(stopped - started) - " \
-                                "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time, " \
-                                "COUNT(DISTINCT %s) AS total_plays " \
-                                "FROM session_history " \
-                                "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
-                                "WHERE section_id = ?" % group_by
-                        result = monitor_db.select(query, args=[section_id])
-                    else:
-                        result = []
+                query = "SELECT " + ", ".join(select_parts) + \
+                        " FROM session_history WHERE section_id = ? %s" % archived_cond
+                result = monitor_db.select_single(query, args=[section_id])
             except Exception as e:
                 logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
-                result = []
+                return []
 
-            for item in result:
-                if item['total_time']:
-                    total_time = item['total_time']
-                    total_plays = item['total_plays']
+            for i, days in enumerate(query_days):
+                total_time = result.get('total_time_%d' % i)
+                # Match the old per-window behavior exactly: a window
+                # with no (or zero) watch time reports zero plays too
+                if total_time:
+                    total_plays = result.get('total_plays_%d' % i) or 0
                 else:
                     total_time = 0
                     total_plays = 0
@@ -938,7 +1007,7 @@ class Libraries(object):
 
         return library_watch_time_stats
 
-    def get_user_stats(self, section_id=None, grouping=None):
+    def get_user_stats(self, section_id=None, grouping=None, include_archived=False):
         if not session.allow_session_library(section_id):
             return []
 
@@ -959,11 +1028,11 @@ class Libraries(object):
                         "COUNT(DISTINCT %s) AS total_plays, (SUM(stopped - started) - " \
                         "SUM(CASE WHEN paused_counter IS NULL THEN 0 ELSE paused_counter END)) AS total_time " \
                         "FROM session_history " \
-                        "JOIN session_history_metadata ON session_history_metadata.id = session_history.id " \
                         "JOIN users ON users.user_id = session_history.user_id " \
-                        "WHERE section_id = ? " \
+                        "WHERE section_id = ? %s" \
                         "GROUP BY users.user_id " \
-                        "ORDER BY total_plays DESC, total_time DESC" % group_by
+                        "ORDER BY total_plays DESC, total_time DESC" % (
+                            group_by, '' if include_archived else users.archived_user_cond())
                 result = monitor_db.select(query, args=[section_id])
             else:
                 result = []
@@ -990,7 +1059,7 @@ class Libraries(object):
 
         return session.mask_session_info(user_stats, mask_metadata=False)
 
-    def get_recently_watched(self, section_id=None, limit='10'):
+    def get_recently_watched(self, section_id=None, limit='10', include_archived=False):
         if not session.allow_session_library(section_id):
             return []
 
@@ -1002,17 +1071,29 @@ class Libraries(object):
 
         try:
             if str(section_id).isdigit():
+                # Find each item's most recent history row over the narrow
+                # table first, then join the wide metadata table for only
+                # the returned rows
+                last_rows = monitor_db.select(
+                    "SELECT session_history.id, MAX(started) AS last_started "
+                    "FROM session_history "
+                    "WHERE section_id = ? %s"
+                    "GROUP BY rating_key "
+                    "ORDER BY last_started DESC LIMIT ?" % (
+                        '' if include_archived else users.archived_user_cond()),
+                    args=[section_id, limit])
+                last_ids = [row['id'] for row in last_rows]
+
                 query = "SELECT session_history.id, session_history.media_type, guid, " \
                         "session_history.rating_key, session_history.parent_rating_key, session_history.grandparent_rating_key, " \
                         "title, parent_title, grandparent_title, original_title, " \
                         "thumb, parent_thumb, grandparent_thumb, media_index, parent_media_index, " \
-                        "year, originally_available_at, added_at, live, started, user, content_rating, labels, section_id " \
+                        "year, originally_available_at, added_at, session_history_metadata.live, started, user, content_rating, labels, section_id " \
                         "FROM session_history_metadata " \
                         "JOIN session_history ON session_history_metadata.id = session_history.id " \
-                        "WHERE section_id = ? " \
-                        "GROUP BY session_history.rating_key " \
-                        "ORDER BY MAX(started) DESC LIMIT ?"
-                result = monitor_db.select(query, args=[section_id, limit])
+                        "WHERE session_history.id IN (%s) " \
+                        "ORDER BY started DESC" % ",".join(["?"] * len(last_ids))
+                result = monitor_db.select(query, args=last_ids) if last_ids else []
             else:
                 result = []
         except Exception as e:
@@ -1053,12 +1134,31 @@ class Libraries(object):
 
         return session.mask_session_info(recently_watched)
 
-    def get_sections(self):
+    def get_archived_section_ids(self):
+        """Return the section_ids of all archived libraries.
+
+        Returns an empty list if the query fails.
+        """
         monitor_db = database.MonitorDatabase()
 
         try:
-            query = "SELECT section_id, section_name, section_type, agent " \
-                    "FROM library_sections WHERE deleted_section = 0"
+            result = monitor_db.select("SELECT section_id FROM library_sections WHERE is_archived = 1")
+        except Exception as e:
+            logger.warn("Tautulli Libraries :: Unable to execute database query for get_archived_section_ids: %s." % e)
+            return []
+
+        return [item['section_id'] for item in result]
+
+    def get_sections(self, include_archived=None):
+        monitor_db = database.MonitorDatabase()
+
+        library_cond = ''
+        if not include_archived:
+            library_cond = "AND is_archived = 0 "
+
+        try:
+            query = "SELECT section_id, section_name, section_type, agent, is_archived " \
+                    "FROM library_sections WHERE deleted_section = 0 %s" % library_cond
             result = monitor_db.select(query=query)
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to execute database query for get_sections: %s." % e)
@@ -1069,7 +1169,8 @@ class Libraries(object):
             library = {'section_id': item['section_id'],
                        'section_name': item['section_name'],
                        'section_type': item['section_type'],
-                       'agent': item['agent']
+                       'agent': item['agent'],
+                       'is_archived': item['is_archived']
                        }
             libraries.append(library)
 
@@ -1108,8 +1209,9 @@ class Libraries(object):
                             % (server_id, section_id))
                 try:
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 1, keep_history = 0 "
+                                      "SET deleted_section = 1, keep_history = 0, is_archived = 0 "
                                       "WHERE server_id = ? AND section_id = ?", [server_id, section_id])
+                    _LIBRARY_TYPES_CACHE['types'] = None
                     return delete_success
                 except Exception as e:
                     logger.warn("Tautulli Libraries :: Unable to execute database query for delete: %s." % e)
@@ -1117,19 +1219,34 @@ class Libraries(object):
         else:
             return False
 
-    def undelete(self, section_id=None, section_name=None):
+    def undelete(self, server_id=None, section_id=None, section_name=None, row_ids=None):
         monitor_db = database.MonitorDatabase()
 
         try:
-            if section_id and str(section_id).isdigit():
-                query = "SELECT * FROM library_sections WHERE section_id = ?"
-                result = monitor_db.select(query=query, args=[section_id])
+            if row_ids:
+                row_ids = list(map(helpers.cast_to_int, row_ids.split(',')))
+
+                # Get the section_ids corresponding to the row_ids
+                result = monitor_db.select("SELECT server_id, section_id FROM library_sections "
+                                           "WHERE id IN ({})".format(",".join(["?"] * len(row_ids))), row_ids)
+
+                success = [self.undelete(server_id=library['server_id'], section_id=library['section_id'])
+                           for library in result]
+                return bool(success) and all(success)
+
+            elif section_id and str(section_id).isdigit():
+                # A server_id limits the restore to that one library row
+                server_sql = " AND server_id = ?" if server_id else ""
+                args = [section_id, server_id] if server_id else [section_id]
+                query = "SELECT * FROM library_sections WHERE section_id = ?" + server_sql
+                result = monitor_db.select(query=query, args=args)
                 if result:
                     logger.info("Tautulli Libraries :: Restoring library with id %s to database." % section_id)
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 0, keep_history = 1 "
-                                      "WHERE section_id = ?",
-                                      [section_id])
+                                      "SET deleted_section = 0, keep_history = 1, is_archived = 0 "
+                                      "WHERE section_id = ?" + server_sql,
+                                      args)
+                    _LIBRARY_TYPES_CACHE['types'] = None
                     return True
                 else:
                     return False
@@ -1140,9 +1257,10 @@ class Libraries(object):
                 if result:
                     logger.info("Tautulli Libraries :: Restoring library with name %s to database." % section_name)
                     monitor_db.action("UPDATE library_sections "
-                                      "SET deleted_section = 0, keep_history = 1 "
+                                      "SET deleted_section = 0, keep_history = 1, is_archived = 0 "
                                       "WHERE section_name = ?",
                                       [section_name])
+                    _LIBRARY_TYPES_CACHE['types'] = None
                     return True
                 else:
                     return False
@@ -1164,19 +1282,3 @@ class Libraries(object):
                 return 'Unable to delete media info table cache, section_id not valid.'
         except Exception as e:
             logger.warn("Tautulli Libraries :: Unable to delete media info table cache: %s." % e)
-
-    def delete_duplicate_libraries(self):
-        monitor_db = database.MonitorDatabase()
-
-        # Refresh the PMS_URL to make sure the server_id is updated
-        plextv.get_server_resources()
-
-        server_id = plexpy.CONFIG.PMS_IDENTIFIER
-
-        try:
-            logger.debug("Tautulli Libraries :: Deleting libraries where server_id does not match %s." % server_id)
-            monitor_db.action("DELETE FROM library_sections WHERE server_id != ?", [server_id])
-
-            return 'Deleted duplicate libraries from the database.'
-        except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to delete duplicate libraries: %s." % e)

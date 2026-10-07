@@ -64,7 +64,7 @@ def plex_user_login(token=None, headers=None):
 
     if user_token and user_id:
         # Try to retrieve the user from the database.
-        # Also make sure guest access is enabled for the user and the user is not deleted.
+        # Also make sure guest access is enabled for the user and the user is not deleted or archived.
         user_data = Users()
         user_details = user_data.get_details(user_id=user_id)
         if user_id != str(user_details['user_id']):
@@ -73,8 +73,8 @@ def plex_user_login(token=None, headers=None):
         elif plexpy.CONFIG.HTTP_PLEX_ADMIN and user_details['is_admin']:
             # Plex admin login
             return user_details, 'admin'
-        elif not user_details['allow_guest'] or user_details['deleted_user']:
-            # Guest access is disabled or the user is deleted.
+        elif not user_details['allow_guest'] or user_details['deleted_user'] or user_details['is_archived']:
+            # Guest access is disabled or the user is deleted or archived.
             return None
 
         # Stop here if guest access is not enabled

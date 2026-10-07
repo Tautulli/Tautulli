@@ -53,7 +53,15 @@ DOCUMENTATION :: END
                     <div class="table-card-back">
                         <div class="user-info-wrapper">
                             <div class="user-info-poster-face" style="background-image: url(${page('pms_image_proxy', data['user_thumb'], None, 80, 80, fallback='user')});">
-                                % if not data['is_active']:
+                                % if data['deleted_user']:
+                                <span class="inactive-user-tooltip" data-toggle="tooltip" title="Deleted user">
+                                    <i class="fa fa-2x fa-trash-o"></i>
+                                </span>
+                                % elif data['is_archived']:
+                                <span class="inactive-user-tooltip" data-toggle="tooltip" title="Archived user">
+                                    <i class="fa fa-2x fa-archive"></i>
+                                </span>
+                                % elif not data['is_active']:
                                 <span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server">
                                     <i class="fa fa-2x fa-exclamation-triangle"></i>
                                 </span>
@@ -192,7 +200,7 @@ DOCUMENTATION :: END
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-history-button" id="refresh-history-list"><i class="fa fa-refresh"></i> Refresh history</button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-history"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-history"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -248,7 +256,7 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-refresh"></i> Refresh playlists
                                                 </button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-playlists"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-playlists"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -286,7 +294,7 @@ DOCUMENTATION :: END
                                                     <i class="fa fa-refresh"></i> Refresh exports
                                                 </button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-export"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-export"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -330,7 +338,7 @@ DOCUMENTATION :: END
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-ip-address-button" id="refresh-ip-address-list"><i class="fa fa-refresh"></i> Refresh IP addresses</button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-ip-address"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-ip-address"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -368,7 +376,7 @@ DOCUMENTATION :: END
                                             <div class="btn-group">
                                                 <button class="btn btn-dark refresh-login-button" id="refresh-login-list"><i class="fa fa-refresh"></i> Refresh logins</button>
                                             </div>
-                                            <div class="btn-group colvis-button-bar" id="button-bar-login"></div>
+                                            <div class="btn-group colvis-button-bar" id="button-bar-login"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
                                         </div>
                                     </div>
                                     <div class="table-card-back">
@@ -488,7 +496,8 @@ DOCUMENTATION :: END
                     json_data: JSON.stringify( d ),
                     user_id: user_id,
                     media_type: media_type,
-                    transcode_decision: transcode_decision
+                    transcode_decision: transcode_decision,
+                    include_archived: include_archived
                 };
             },
             error: function(xhr, error, thrown) {
@@ -498,8 +507,8 @@ DOCUMENTATION :: END
         history_table = $('#history_table-UID-${data["user_id"]}').DataTable(history_table_options);
         history_table.column(2).visible(false);
 
-        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12] });
-        $(colvis.button()).appendTo('#button-bar-history');
+        var colvis = new $.fn.dataTable.ColVis(history_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 12], sAlign: 'right' });
+        $('#button-bar-history').empty().append(colvis.button());
 
         clearSearchButton('history_table-UID-${data["user_id"]}', history_table);
 
@@ -563,8 +572,8 @@ DOCUMENTATION :: END
         };
         playlists_table = $('#playlists_table-SID-${data["user_id"]}').DataTable(playlists_table_options);
 
-        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-playlists');
+        var colvis = new $.fn.dataTable.ColVis(playlists_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
+        $('#button-bar-playlists').empty().append(colvis.button());
 
         clearSearchButton('playlists_table-SID-${data["user_id"]}', playlists_table);
     }
@@ -587,7 +596,8 @@ DOCUMENTATION :: END
             data: function ( d ) {
                 return {
                     json_data: JSON.stringify( d ),
-                    user_id: user_id
+                    user_id: user_id,
+                    include_archived: include_archived
                 };
             },
             error: function(xhr, error, thrown) {
@@ -596,8 +606,8 @@ DOCUMENTATION :: END
         };
         user_ip_table = $('#user_ip_table-UID-${data["user_id"]}').DataTable(user_ip_table_options);
 
-        var colvis_user_ip = new $.fn.dataTable.ColVis( user_ip_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark'} );
-        $( colvis_user_ip.button() ).appendTo('#button-bar-ip-address');
+        var colvis_user_ip = new $.fn.dataTable.ColVis( user_ip_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' } );
+        $('#button-bar-ip-address').empty().append(colvis_user_ip.button());
 
         clearSearchButton('user_ip_table-UID-${data["user_id"]}', user_ip_table);
     }
@@ -630,8 +640,8 @@ DOCUMENTATION :: END
         login_log_table = $('#login_log_table-UID-${data["user_id"]}').DataTable(login_log_table_options);
         login_log_table.columns([1, 2]).visible(false);
 
-        var colvis_login = new $.fn.dataTable.ColVis( login_log_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [7] } );
-        $( colvis_login.button() ).appendTo('#button-bar-login');
+        var colvis_login = new $.fn.dataTable.ColVis( login_log_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [7], sAlign: 'right' } );
+        $('#button-bar-login').empty().append(colvis_login.button());
 
         clearSearchButton('login_log_table-UID-${data["user_id"]}', login_log_table);
     }
@@ -653,7 +663,8 @@ DOCUMENTATION :: END
             async: true,
             data: {
                 user_id: user_id,
-                limit: 50
+                limit: 50,
+                include_archived: include_archived
             },
             complete: function(xhr, status) {
                 $("#user-recently-watched").html(xhr.responseText);
@@ -682,7 +693,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'user_watch_time_stats',
             async: true,
-            data: { user_id: user_id, user: username },
+            data: { user_id: user_id, user: username, include_archived: include_archived },
             complete: function(xhr, status) {
                 $("#user-time-stats").html(xhr.responseText);
             }
@@ -692,7 +703,7 @@ DOCUMENTATION :: END
         $.ajax({
             url: 'user_player_stats',
             async: true,
-            data: { user_id: user_id, user: username },
+            data: { user_id: user_id, user: username, include_archived: include_archived },
             complete: function(xhr, status) {
                 $("#user-player-stats").html(xhr.responseText);
             }
@@ -720,8 +731,8 @@ DOCUMENTATION :: END
         export_table = $('#export_table-SID-${data["user_id"]}').DataTable(export_table_options);
         export_table.columns([2, 7]).visible(false);
 
-        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark' });
-        $(colvis.button()).appendTo('#button-bar-export');
+        var colvis = new $.fn.dataTable.ColVis(export_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', sAlign: 'right' });
+        $('#button-bar-export').empty().append(colvis.button());
 
         clearSearchButton('export_table-SID-${data["user_id"]}', export_table);
     }

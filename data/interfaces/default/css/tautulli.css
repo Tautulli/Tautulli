@@ -261,6 +261,17 @@ object {
 .navbar-brand {
     padding: 3px 3px;
 }
+#nav-archived-indicator {
+    display: none;
+}
+.include-archived #nav-archived-indicator {
+    display: block;
+}
+/* Opacity, because visibility would start the nav links' transition: all, and WebKit then
+   keeps the links hidden for one more frame. */
+.fonts-loading body {
+    opacity: 0;
+}
 .nav > li > a {
     color: #999;
     -webkit-transition: all 0.3s ease;
@@ -871,6 +882,7 @@ a .users-poster-face:hover {
     height: 235px;
     width: 100%;
     padding: 5px;
+    position: relative;
     overflow: hidden;
     -webkit-transition: background 1s linear;
     transition: background 1s linear;
@@ -1057,30 +1069,37 @@ a .users-poster-face:hover {
     white-space: nowrap;
 }
 .dashboard-activity-info-item .sub-value.time-right {
-    margin-right: 60px;
+    margin-right: 87px;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
 }
+.dashboard-activity-info-item .sub-value.location-value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
 .dashboard-activity-info-item .sub-value .ip-container {
     display: inline-flex;
+    min-width: 0;
 }
 .dashboard-activity-info-item .sub-value .ip-address {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 125px;
 }
 .dashboard-activity-info-time {
     position: absolute;
-    top: 200px;
+    bottom: 6px;
     right: 10px;
     text-align: right;
     font-size: 10px;
     z-index: 2;
 }
 .dashboard-activity-info-channel {
-    display: inline-block;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
     max-width: 75px;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -1238,7 +1257,6 @@ a:hover .dashboard-activity-cover {
     -webkit-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     -moz-box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
     box-shadow: 0 0 4px rgba(0,0,0,.3),inset 0 0 0 1px rgba(255,255,255,.1);
-    overflow: hidden;
     float: right;
 }
 a .dashboard-activity-metadata-user-thumb:hover {
@@ -2959,6 +2977,9 @@ a .home-platforms-list-cover-face:hover
 .circle-full {
     background: #eeeeee;
 }
+table.dataTable tbody td.watched-status {
+    padding-right: 10px;
+}
 #graph-tabs {
     padding-bottom: 10px;
     float: none;
@@ -3005,7 +3026,7 @@ a .home-platforms-list-cover-face:hover
     margin-top: 20px;
     margin-bottom: 20px;
     width: 100%;
-    max-width: 1750px;
+    max-width: max(1750px, 100% - 140px);
     overflow: hidden;
 }
 .table-card-header {
@@ -3018,7 +3039,7 @@ a .home-platforms-list-cover-face:hover
     margin-top: 20px;
     margin-bottom: -20px;
     width: 100%;
-    max-width: 1750px;
+    max-width: max(1750px, 100% - 140px);
     display: flow-root;
 }
 .table-card-back td {
@@ -3035,10 +3056,46 @@ a .home-platforms-list-cover-face:hover
 .button-bar {
     float: right;
 }
+@media only screen and (min-width: 741px) {
+    .table-card-header:has(> .button-bar) {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 15px;
+    }
+    .button-bar:has(> .btn-group, > .btn) {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 3px;
+    }
+    /* A flex item measures the search box narrower than it lays out, so it needs a set width. */
+    #update_search_form div.input-group {
+        width: 250px;
+    }
+}
 .colvis-button-bar,
 .refresh-users-button,
 .refresh-libraries-button {
     /*float: right;*/
+}
+/* The home page shows its sections top-down as they load. Only the first shows at first paint. */
+.home-section + .home-section {
+    display: none;
+}
+/* DataTables builds the table after the first paint. Hide the bare table until then. */
+.table-card-back > table.display:not(.dataTable) {
+    visibility: hidden;
+}
+/* bootstrap-select draws the user picker once the user names load. Until then hide the bare
+   list box and hold the picker's fixed 220px, so the header keeps its size. */
+#graph-user,
+#history-user {
+    display: none;
+}
+#user-selection:has(#graph-user, #history-user) {
+    min-width: 220px;
+    min-height: 34px;
 }
 .refresh-users-button,
 .refresh-libraries-button {
@@ -3283,7 +3340,8 @@ div.dataTables_info {
 }
 .inactive-library-tooltip,
 .inactive-user-tooltip {
-    display: inline-block;
+    display: block;
+    overflow: hidden;
     position: relative;
     width: 100%;
     height: 100%;
@@ -3295,6 +3353,41 @@ div.dataTables_info {
     right: 0;
     bottom: 0;
     text-shadow: 0 0 2px rgba(0,0,0,.5);
+}
+tr.archived-user > td,
+tr.archived-library > td,
+tr.deleted-user > td,
+tr.deleted-library > td {
+    opacity: .5;
+}
+tr.archived-user:hover > td,
+tr.archived-library:hover > td,
+tr.deleted-user:hover > td,
+tr.deleted-library:hover > td {
+    opacity: 1;
+}
+/* A deleted row offers Restore in place of Delete and Purge */
+tr:not(.deleted-user) .restore-user,
+tr:not(.deleted-library) .restore-library {
+    display: none;
+}
+/* The hidden buttons keep their space and Restore takes the place of Delete, so the toggles line up */
+tr.deleted-user .delete-user,
+tr.deleted-user .purge-user,
+tr.deleted-library .delete-library,
+tr.deleted-library .purge-library {
+    visibility: hidden;
+}
+tr.deleted-user .restore-user,
+tr.deleted-library .restore-library {
+    position: absolute;
+    left: 0;
+    top: 3px;
+}
+/* An expanded history group is already dimmed, and its parent row shows the archive state */
+table[id^='history_child'] tr.archived-user > td,
+table[id^='history_child'] tr.archived-library > td {
+    opacity: 1;
 }
 .sign-out-tooltip:hover {
     color: #E5A00D;
@@ -3359,6 +3452,7 @@ div.dataTables_info {
 }
 .edit-user-toggles,
 .edit-library-toggles {
+    position: relative;
     padding-right: 10px;
 }
 .edit-user-toggles > input[type='checkbox'],
@@ -3375,6 +3469,11 @@ div.dataTables_info {
     color: #eee;
     cursor: pointer;
 }
+.edit-user-toggles > input[type='checkbox']:disabled + label,
+.edit-library-toggles > input[type='checkbox']:disabled + label {
+    color: #444;
+    cursor: default;
+}
 .edit-user-name > input[type='text'] {
     margin: 0;
 }
@@ -3387,8 +3486,10 @@ div.dataTables_info {
 }
 #users-to-delete > li,
 #users-to-purge > li,
+#users-to-restore > li,
 #libraries-to-delete > li,
-#libraries-to-purge > li {
+#libraries-to-purge > li,
+#libraries-to-restore > li {
     color: #e9a049;
 }
 #updatebar, #token_error_bar  {
@@ -3444,8 +3545,23 @@ div.dataTables_info {
     overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
+/* With a mouse or trackpad the styled scrollbar takes up space. Always show it, so the page
+   does not narrow when the content grows past the window. The pages with a summary container
+   scroll it instead of the body container. */
+@media (hover: hover) and (pointer: fine) {
+    .body-container {
+        overflow-y: scroll;
+    }
+    .body-container:has(.summary-container) {
+        overflow-y: auto;
+    }
+    .summary-container {
+        overflow-y: scroll;
+    }
+}
 ::-webkit-scrollbar {
     width: 15px;
+    height: 15px;
 }
 ::-webkit-scrollbar-track {
     background-color: rgba(0,0,0,.2);
@@ -3521,31 +3637,18 @@ pre::-webkit-scrollbar-thumb {
 @media only screen
   and (min-width: 740px)
   and (max-width: 1280px) {
-    .header-bar {
-        display: block;
-        float: none !important;
-    }
-    .button-bar {
-        float: left !important;
-        clear: both;
-        margin-top: 5px;
-    }
-    .button-bar .btn-group,
-    .button-bar > button.btn {
-        margin-right: 3px;
-    }
-    .button-bar > div,
-    .button-bar > button,
-    .button-bar > span {
-        float: left !important;
+    .home-padded-header .button-bar > div,
+    .home-padded-header .button-bar > button,
+    .home-padded-header .button-bar > span {
         margin-top: 10px;
     }
-    .button-bar > div > button.btn {
+    .home-padded-header .button-bar > div > button.btn {
         float: left !important;
         clear: both !important;
     }
     .home-padded-header .button-bar {
         float: left !important;
+        clear: both;
         margin-top: 0;
         margin-bottom: 15px;
     }
@@ -4694,7 +4797,6 @@ a.donate-with-crypto::after {
 
 /* Ace Editor Styles */
 #message-editor {
-    width: 100%;
     height: 300px;
 }
 /* Custom CSS to reduce Ace editor gutter width */
@@ -4723,12 +4825,7 @@ a.donate-with-crypto::after {
 }
 /* Responsive design for editor controls */
 @media (max-width: 768px) {
-    .editor-controls .text-left {
-        text-align: left !important;
-    }
     .editor-control-btn {
         margin-right: 6px;
-        width: 32px;
-        height: 32px;
     }
 }

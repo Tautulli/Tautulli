@@ -361,7 +361,14 @@
                         % endif
 
                         <div class="padded-header advanced-setting">
-                            <h3>System Analytics</h3>
+                            <h3>System</h3>
+                        </div>
+
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="verbose_logs" name="verbose_logs" value="1" ${config['verbose_logs']}> Enable Debug Logging
+                            </label>
+                            <p class="help-block">Write debug messages to the Tautulli log. Turn this on when you send logs for support.</p>
                         </div>
 
                         <div class="checkbox advanced-setting">
@@ -976,6 +983,12 @@
                                 <input type="checkbox" id="refresh_users_on_startup" name="refresh_users_on_startup" value="1" ${config['refresh_users_on_startup']}> Refresh Users List on Startup
                             </label>
                             <p class="help-block">Refresh the users list when Tautulli starts.</p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="auto_unarchive_users" name="auto_unarchive_users" value="1" ${config['auto_unarchive_users']}> Automatically Unarchive Returning Users
+                            </label>
+                            <p class="help-block">Unarchive an archived user when they regain access to the Plex server. Users which never lost access stay archived.</p>
                         </div>
 
                         <div class="form-group advanced-setting">
@@ -2426,7 +2439,7 @@ $(document).ready(function() {
         $('#confirm-message').text("Are you sure you want to shutdown Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = 'shutdown';
+            postAndShowPage('shutdown');
         });
     });
 
@@ -2434,7 +2447,7 @@ $(document).ready(function() {
         $("#confirm-message").text("Are you sure you want to restart Tautulli?");
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
-            window.location.href = 'restart';
+            postAndShowPage('restart');
         });
     });
 
@@ -2447,7 +2460,7 @@ $(document).ready(function() {
     });
 
     $('#modal_link_restart').click(function() {
-        window.location.href = 'restart';
+        postAndShowPage('restart');
     });
 
     $('#menu_link_show_advanced_settings').click(function() {
@@ -2545,7 +2558,7 @@ $(document).ready(function() {
             $('#confirm-modal').modal();
             $('#confirm-modal').one('click', '#confirm-button', function () {
                 settingsChanged = false;
-                window.location.href = 'checkout_git_branch?git_remote=' + new_remote + '&git_branch=' + new_branch;
+                postAndShowPage('checkout_git_branch', {git_remote: new_remote, git_branch: new_branch});
             });
         }
     });
@@ -2557,7 +2570,7 @@ $(document).ready(function() {
         $('#confirm-modal').modal();
         $('#confirm-modal').one('click', '#confirm-button', function () {
             settingsChanged = false;
-            window.location.href = 'reset_git_install';
+            postAndShowPage('reset_git_install');
         });
     });
 
@@ -2906,7 +2919,7 @@ $(document).ready(function() {
 
     $.ajax({
         url: 'get_library_sections',
-        data: { },
+        data: { include_archived: 1 },  // Always include archived libraries
         async: true,
         complete: function (data) {
             libraries_list = $.parseJSON(data.responseText);
@@ -2920,6 +2933,7 @@ $(document).ready(function() {
                         '<label>' + 
                             '<input type="checkbox" id="hlcard-' + key + '" name="hlcard-' + key + '" value="' + key + '"> ' + title + 
                         '</label>' + 
+                        (libraries_list[i].is_archived ? '<span class="pull-right" title="Archived library"><i class="fa fa-archive"></i></span>' : '') +
                     '</li>'
                 );
             }

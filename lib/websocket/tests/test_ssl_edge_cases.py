@@ -19,7 +19,7 @@ from websocket._socket import recv, send
 test_ssl_edge_cases.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 
 class SSLEdgeCasesTest(unittest.TestCase):
 
@@ -73,6 +74,21 @@ class SSLEdgeCasesTest(unittest.TestCase):
 
             with self.assertRaises(ssl.SSLCertVerificationError):
                 _ssl_socket(mock_sock, sslopt, "badssl.example")
+
+    def test_check_hostname_with_cert_none_raises_websocket_exception(self):
+        """check_hostname=True with cert_reqs=CERT_NONE must raise
+        WebSocketException, not leak ssl's raw ValueError."""
+        sock = socket.socket()
+        try:
+            with self.assertRaises(WebSocketException) as cm:
+                _ssl_socket(
+                    sock,
+                    {"cert_reqs": ssl.CERT_NONE, "check_hostname": True},
+                    "example.com",
+                )
+            self.assertIn("check_hostname", str(cm.exception))
+        finally:
+            sock.close()
 
     def test_ssl_context_configuration_edge_cases(self):
         """Test SSL context configuration with various edge cases"""

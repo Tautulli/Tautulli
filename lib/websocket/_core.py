@@ -2,7 +2,7 @@ import socket
 import struct
 import threading
 import time
-from typing import Optional, Union
+from typing import Any, Callable, Optional, Type, Union
 
 # websocket modules
 from ._abnf import ABNF, STATUS_NORMAL, continuous_frame, frame_buffer
@@ -10,8 +10,9 @@ from ._exceptions import (
     WebSocketProtocolException,
     WebSocketConnectionClosedException,
     WebSocketTimeoutException,
+    WebSocketException,
 )
-from ._handshake import SUPPORTED_REDIRECT_STATUSES, handshake
+from ._handshake import SUPPORTED_REDIRECT_STATUSES, handshake, handshake_response
 from ._http import connect, proxy_info
 from ._logging import debug, error, trace, isEnabledForError, isEnabledForTrace
 from ._socket import getdefaulttimeout, recv, send, sock_opt
@@ -23,7 +24,7 @@ from ._dispatcher import DispatcherBase, WrappedDispatcher
 _core.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -41,6 +42,17 @@ limitations under the License.
 __all__ = ["WebSocket", "create_connection"]
 
 
+def _normalize_close_reason(reason: Union[str, bytes, None]) -> bytes:
+    """Convert a close reason into the UTF-8 bytes for a close-frame payload."""
+    if reason is None:
+        return b""
+    if isinstance(reason, str):
+        return reason.encode("utf-8")
+    if isinstance(reason, bytes):
+        return reason
+    return bytes(reason)
+
+
 class WebSocket:
     """
     Low level WebSocket interface.
@@ -52,9 +64,7 @@ class WebSocket:
 
     >>> import websocket
     >>> ws = websocket.WebSocket()
-    >>> ws.connect("ws://echo.websocket.events")
-    >>> ws.recv()
-    'echo.websocket.events sponsored by Lob.com'
+    >>> ws.connect("ws://websockets.chilkat.io/wsChilkatEcho.ashx")
     >>> ws.send("Hello, Server")
     19
     >>> ws.recv()
@@ -81,15 +91,15 @@ class WebSocket:
 
     def __init__(
         self,
-        get_mask_key=None,
-        sockopt=None,
-        sslopt=None,
+        get_mask_key: Optional[Callable] = None,
+        sockopt: Optional[list] = None,
+        sslopt: Optional[dict] = None,
         fire_cont_frame: bool = False,
         enable_multithread: bool = True,
         skip_utf8_validation: bool = False,
-        dispatcher: Union[DispatcherBase, WrappedDispatcher] = None,
-        **_,
-    ):
+        dispatcher: Optional[Union[DispatcherBase, WrappedDispatcher]] = None,
+        **_: Any,
+    ) -> None:
         """
         Initialize WebSocket object.
 
@@ -99,10 +109,11 @@ class WebSocket:
             Optional dict object for ssl socket options. See FAQ for details.
         """
         self.sock_opt = sock_opt(sockopt, sslopt)
-        self.handshake_response = None
+        self.handshake_response: Optional[handshake_response] = None
         self.sock: Optional[socket.socket] = None
 
         self.connected = False
+        self.close_frame: Optional[ABNF] = None
         self.get_mask_key = get_mask_key
         # These buffer over the build-up of a single frame.
         self.frame_buffer = frame_buffer(self._recv, skip_utf8_validation)
@@ -130,6 +141,8 @@ class WebSocket:
         return self.__next__()
 
     def fileno(self):
+        if self.sock is None:
+            raise WebSocketException("Connection not established")
         return self.sock.fileno()
 
     def set_mask_key(self, func):
@@ -158,7 +171,7 @@ class WebSocket:
         """
         return self.sock_opt.timeout
 
-    def settimeout(self, timeout: Optional[Union[float, int]]):
+    def settimeout(self, timeout: Optional[Union[float, int]]) -> None:
         """
         Set the timeout to the websocket.
 
@@ -173,7 +186,7 @@ class WebSocket:
 
     timeout = property(gettimeout, settimeout)
 
-    def getsubprotocol(self):
+    def getsubprotocol(self) -> Optional[str]:
         """
         Get subprotocol
         """
@@ -184,7 +197,7 @@ class WebSocket:
 
     subprotocol = property(getsubprotocol)
 
-    def getstatus(self):
+    def getstatus(self) -> Optional[int]:
         """
         Get handshake status
         """
@@ -195,7 +208,7 @@ class WebSocket:
 
     status = property(getstatus)
 
-    def getheaders(self):
+    def getheaders(self) -> Optional[dict]:
         """
         Get handshake response header
         """
@@ -220,7 +233,7 @@ class WebSocket:
         If you set "header" list object, you can set your own custom header.
 
         >>> ws = WebSocket()
-        >>> ws.connect("ws://echo.websocket.events",
+        >>> ws.connect("ws://websockets.chilkat.io/wsChilkatEcho.ashx",
                 ...     header=["User-Agent: MyProgram",
                 ...             "x-custom: header"])
 
@@ -237,6 +250,8 @@ class WebSocket:
             Default value "Upgrade" set in _handshake.py
         suppress_origin: bool
             Suppress outputting origin header.
+        suppress_host: bool
+            Suppress outputting host header.
         host: str
             Custom host header string.
         timeout: int or float
@@ -245,7 +260,8 @@ class WebSocket:
         http_proxy_host: str
             HTTP proxy host name.
         http_proxy_port: str or int
-            HTTP proxy port. Default is 80.
+            HTTP proxy port. Required when http_proxy_host is set. Proxies
+            from environment variables default to port 80.
         http_no_proxy: list
             Whitelisted host names that don't use the proxy.
         http_proxy_auth: tuple
@@ -267,18 +283,36 @@ class WebSocket:
         try:
             self.handshake_response = handshake(self.sock, url, *addrs, **options)
             for _ in range(options.pop("redirect_limit", 3)):
-                if self.handshake_response.status in SUPPORTED_REDIRECT_STATUSES:
-                    url = self.handshake_response.headers["location"]
+                if (
+                    self.handshake_response is not None
+                    and self.handshake_response.status in SUPPORTED_REDIRECT_STATUSES
+                ):
+                    url = self.handshake_response.headers.get("location")
+                    if url is None:
+                        raise WebSocketException(
+                            "Redirect response without Location header, "
+                            f"status {self.handshake_response.status}"
+                        )
                     self.sock.close()
-                    self.sock, addrs = connect(
-                        url,
-                        self.sock_opt,
-                        proxy_info(**options),
-                        options.pop("socket", None),
-                    )
+                    try:
+                        self.sock, addrs = connect(
+                            url,
+                            self.sock_opt,
+                            proxy_info(**options),
+                            options.pop("socket", None),
+                        )
+                    except ValueError as e:
+                        raise WebSocketException(
+                            f"Invalid redirect target {url!r}: {e}"
+                        ) from e
                     self.handshake_response = handshake(
                         self.sock, url, *addrs, **options
                     )
+            if (
+                self.handshake_response is not None
+                and self.handshake_response.status in SUPPORTED_REDIRECT_STATUSES
+            ):
+                raise WebSocketException("Redirect limit exhausted")
             self.connected = True
         except:
             if self.sock:
@@ -315,11 +349,11 @@ class WebSocket:
         """
         return self.send(data, ABNF.OPCODE_BINARY)
 
-    def send_frame(self, frame) -> int:
+    def send_frame(self, frame: ABNF) -> int:
         """
         Send the data frame.
 
-        >>> ws = create_connection("ws://echo.websocket.events")
+        >>> ws = create_connection("ws://websockets.chilkat.io/wsChilkatEcho.ashx")
         >>> frame = ABNF.create_frame("Hello", ABNF.OPCODE_TEXT)
         >>> ws.send_frame(frame)
         >>> cont_frame = ABNF.create_frame("My name is ", ABNF.OPCODE_CONT, 0)
@@ -357,7 +391,7 @@ class WebSocket:
         """
         return self.send(payload, ABNF.OPCODE_BINARY)
 
-    def ping(self, payload: Union[str, bytes] = ""):
+    def ping(self, payload: Union[str, bytes] = "") -> None:
         """
         Send ping data.
 
@@ -370,7 +404,7 @@ class WebSocket:
             payload = payload.encode("utf-8")
         self.send(payload, ABNF.OPCODE_PING)
 
-    def pong(self, payload: Union[str, bytes] = ""):
+    def pong(self, payload: Union[str, bytes] = "") -> None:
         """
         Send pong data.
 
@@ -445,11 +479,7 @@ class WebSocket:
             if isEnabledForTrace():
                 trace(f"++Rcv raw: {repr(frame.format())}")
                 trace(f"++Rcv decoded: {frame.__str__()}")
-            if not frame:
-                # handle error:
-                # 'NoneType' object has no attribute 'opcode'
-                raise WebSocketProtocolException(f"Not a valid frame {frame}")
-            elif frame.opcode in (
+            if frame.opcode in (
                 ABNF.OPCODE_TEXT,
                 ABNF.OPCODE_BINARY,
                 ABNF.OPCODE_CONT,
@@ -484,7 +514,9 @@ class WebSocket:
         """
         return self.frame_buffer.recv_frame()
 
-    def send_close(self, status: int = STATUS_NORMAL, reason: bytes = b""):
+    def send_close(
+        self, status: int = STATUS_NORMAL, reason: Union[str, bytes] = b""
+    ) -> None:
         """
         Send close data to the server.
 
@@ -497,10 +529,18 @@ class WebSocket:
         """
         if status < 0 or status >= ABNF.LENGTH_16:
             raise ValueError("code is invalid range")
-        self.connected = False
-        self.send(struct.pack("!H", status) + reason, ABNF.OPCODE_CLOSE)
 
-    def close(self, status: int = STATUS_NORMAL, reason: bytes = b"", timeout: int = 3):
+        reason_bytes = _normalize_close_reason(reason)
+
+        self.connected = False
+        self.send(struct.pack("!H", status) + reason_bytes, ABNF.OPCODE_CLOSE)
+
+    def close(
+        self,
+        status: int = STATUS_NORMAL,
+        reason: Union[str, bytes] = b"",
+        timeout: Optional[Union[int, float]] = 3,
+    ) -> None:
         """
         Close Websocket object
 
@@ -508,7 +548,7 @@ class WebSocket:
         ----------
         status: int
             Status code to send. See VALID_CLOSE_STATUS in ABNF.
-        reason: bytes
+        reason: str or bytes
             The reason to close in UTF-8.
         timeout: int or float
             Timeout until receive a close frame.
@@ -519,9 +559,15 @@ class WebSocket:
         if status < 0 or status >= ABNF.LENGTH_16:
             raise ValueError("code is invalid range")
 
+        # Reset close_frame to avoid stale data from previous connections
+        self.close_frame = None
+
         try:
             self.connected = False
-            self.send(struct.pack("!H", status) + reason, ABNF.OPCODE_CLOSE)
+            self.send(
+                struct.pack("!H", status) + _normalize_close_reason(reason),
+                ABNF.OPCODE_CLOSE,
+            )
             if self.sock is None:
                 return
             sock_timeout = self.sock.gettimeout()
@@ -532,6 +578,8 @@ class WebSocket:
                     frame = self.recv_frame()
                     if frame.opcode != ABNF.OPCODE_CLOSE:
                         continue
+                    # Store the peer's close frame for access by higher-level APIs
+                    self.close_frame = frame
                     if isEnabledForError():
                         recv_status = struct.unpack("!H", frame.data[0:2])[0]
                         if recv_status >= 3000 and recv_status <= 4999:
@@ -557,19 +605,33 @@ class WebSocket:
         """
         Low-level asynchronous abort, wakes up other threads that are waiting in recv_*
         """
-        if self.connected:
-            self.sock.shutdown(socket.SHUT_RDWR)
+        if self.connected and self.sock is not None:
+            try:
+                self.sock.shutdown(socket.SHUT_RDWR)
+            except (OSError, AttributeError):
+                # Socket already closed or never connected
+                # abort() is best-effort, like shutdown()
+                debug("Socket already closed during abort")
 
     def shutdown(self):
         """
         close socket, immediately.
         """
         if self.sock:
-            self.sock.close()
-            self.sock = None
-            self.connected = False
+            try:
+                # Check if socket is still open before closing
+                if not self.sock._closed:
+                    self.sock.close()
+            except (OSError, AttributeError):
+                # Socket already closed or invalid file descriptor - this can happen
+                # during reconnection scenarios when network failures occur
+                debug("Socket already closed during shutdown")
+                pass
+            finally:
+                self.sock = None
+                self.connected = False
 
-    def _send(self, data: Union[str, bytes]):
+    def _send(self, data: Union[str, bytes]) -> int:
         if self.sock is None:
             raise WebSocketConnectionClosedException("socket is already closed.")
         if self.dispatcher:
@@ -577,6 +639,8 @@ class WebSocket:
         return send(self.sock, data)
 
     def _recv(self, bufsize):
+        if self.sock is None:
+            raise WebSocketConnectionClosedException("Connection is closed")
         try:
             return recv(self.sock, bufsize)
         except WebSocketConnectionClosedException:
@@ -587,7 +651,12 @@ class WebSocket:
             raise
 
 
-def create_connection(url: str, timeout=None, class_=WebSocket, **options):
+def create_connection(
+    url: str,
+    timeout: Optional[Union[float, int]] = None,
+    class_: Type[WebSocket] = WebSocket,
+    **options: Any,
+) -> WebSocket:
     """
     Connect to url and return websocket object.
 
@@ -598,7 +667,7 @@ def create_connection(url: str, timeout=None, class_=WebSocket, **options):
     You can customize using 'options'.
     If you set "header" list object, you can set your own custom header.
 
-    >>> conn = create_connection("ws://echo.websocket.events",
+    >>> conn = create_connection("ws://websockets.chilkat.io/wsChilkatEcho.ashx",
          ...     header=["User-Agent: MyProgram",
          ...             "x-custom: header"])
 
@@ -624,7 +693,8 @@ def create_connection(url: str, timeout=None, class_=WebSocket, **options):
     http_proxy_host: str
         HTTP proxy host name.
     http_proxy_port: str or int
-        HTTP proxy port. If not set, set to 80.
+        HTTP proxy port. Required when http_proxy_host is set. Proxies
+        from environment variables default to port 80.
     http_no_proxy: list
         Whitelisted host names that don't use the proxy.
     http_proxy_auth: tuple

@@ -259,8 +259,20 @@ def receive(ws):
     return None, None
 
 
+# The event types Tautulli processes; anything else is discarded before
+# paying for the UTF-8 decode, debug-log write, and JSON parse
+_EVENT_TYPE_TOKENS = (b'"playing"', b'"timeline"', b'"reachability"')
+
+
 def process(opcode, data):
     if opcode not in opcode_data:
+        return False
+
+    # Plex emits many event types Tautulli ignores (progress,
+    # transcodeSession.update, ...), often several per second during
+    # transcodes. This is only a cheap prefilter: the authoritative
+    # type check on the parsed JSON still happens below.
+    if not any(token in data for token in _EVENT_TYPE_TOKENS):
         return False
 
     try:
@@ -291,7 +303,7 @@ def process(opcode, data):
         except Exception as e:
             logger.exception("Tautulli WebSocket :: Failed to process session data: %s." % e)
 
-    if event_type == 'timeline':
+    elif event_type == 'timeline':
         event_data = event.get('TimelineEntry', event.get('_children', {}))
 
         if not event_data:
@@ -304,7 +316,7 @@ def process(opcode, data):
         except Exception as e:
             logger.exception("Tautulli WebSocket :: Failed to process timeline data: %s." % e)
 
-    if event_type == 'reachability':
+    elif event_type == 'reachability':
         event_data = event.get('ReachabilityNotification', event.get('_children', {}))
 
         if not event_data:

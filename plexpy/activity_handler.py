@@ -33,6 +33,14 @@ ACTIVITY_SCHED = None
 
 RECENTLY_ADDED_QUEUE = {}
 
+# Markers for active sessions: {session_key: (rating_key, markers, cached_at)}
+# Evicted by delete_metadata_cache() when a session stops. Entries are
+# re-read after a short TTL so markers that appear mid-session (Plex
+# still analyzing a just-added item) are picked up like they were when
+# the metadata cache file was re-read every tick.
+_MARKERS_CACHE = {}
+_MARKERS_CACHE_TTL = 60  # seconds
+
 
 class ActivityHandler(object):
 
@@ -72,7 +80,9 @@ class ActivityHandler(object):
 
     def get_live_session(self, skip_cache=False):
         pms_connect = pmsconnect.PmsConnect()
-        session_list = pms_connect.get_current_activity(skip_cache=skip_cache)
+        session_list = pms_connect.get_current_activity(
+            skip_cache_key=self.session_key if skip_cache else None,
+            session_key=self.session_key)
 
         if session_list:
             for session in session_list['sessions']:
@@ -90,10 +100,14 @@ class ActivityHandler(object):
             self.get_live_session()
 
         if self.session:
-            # Update our session temp table values
+            # Fold the websocket event's state into the row write instead
+            # of issuing a second UPDATE for it afterwards
+            self.session['state'] = self.state
+            self.session['view_offset'] = self.view_offset
             self.ap.write_session(session=self.session, notify=notify)
-
-        self.set_session_state()
+            self.get_db_session()
+        else:
+            self.set_session_state()
 
     def set_session_state(self, view_offset=None):
         self.ap.set_session_state(
@@ -210,7 +224,10 @@ class ActivityHandler(object):
         # Get our last triggered time
         buffer_last_triggered = self.ap.get_session_buffer_trigger_time(self.session_key)
 
-        self.update_db_session()
+        # Buffer events arrive in bursts while the client is already
+        # struggling; update the state from the websocket data without
+        # refetching all sessions from the server and rewriting the row
+        self.set_session_state()
 
         time_since_last_trigger = 0
         if buffer_last_triggered:
@@ -346,8 +363,11 @@ class ActivityHandler(object):
                     self.on_buffer()
 
             elif self.state == 'paused':
-                # Update the session last_paused timestamp
-                self.on_pause(still_paused=True)
+                # Plex keeps emitting events while paused; update the
+                # session last_paused timestamp only if the last set
+                # temporary stopped time exceeds 60 seconds
+                if helpers.timestamp() - self.db_session['stopped'] > 60:
+                    self.on_pause(still_paused=True)
 
             elif self.state == 'buffering':
                 self.on_buffer()
@@ -364,11 +384,23 @@ class ActivityHandler(object):
 
     def check_markers(self):
         # Monitor if the stream has reached the intro or credit marker offsets
-        self.get_metadata()
+        # A new handler is built per websocket message, so memoize the
+        # markers at module level instead of re-reading and re-parsing the
+        # metadata cache file from disk on every event
+        cached = _MARKERS_CACHE.get(self.session_key)
+        if cached is not None and cached[0] == self.rating_key \
+                and helpers.timestamp() - cached[2] < _MARKERS_CACHE_TTL:
+            markers = cached[1]
+        else:
+            self.get_metadata()
+            if not self.metadata:
+                return
+            markers = self.metadata.get('markers') or []
+            _MARKERS_CACHE[self.session_key] = (self.rating_key, markers, helpers.timestamp())
 
         marker_flag = False
 
-        for marker_idx, marker in enumerate(self.metadata['markers'], start=1):
+        for marker_idx, marker in enumerate(markers, start=1):
             # Websocket events only fire every 10 seconds
             # Check if the marker is within 10 seconds of the current viewOffset
             if marker['start_time_offset'] - 10000 <= self.view_offset <= marker['end_time_offset']:
@@ -390,7 +422,7 @@ class ActivityHandler(object):
 
                 break
 
-        if not marker_flag:
+        if not marker_flag and self.db_session and self.db_session['marker'] != 0:
             self.ap.set_marker(session_key=self.session_key, marker_idx=0)
 
     def _marker_callback(self, marker):
@@ -735,6 +767,11 @@ def on_created(rating_key, **kwargs):
         logger.error("Tautulli TimelineHandler :: Unable to retrieve metadata for rating_key %s" % str(rating_key))
 
 
+def clear_markers_cache():
+    _MARKERS_CACHE.clear()
+
+
 def delete_metadata_cache(session_key):
+    _MARKERS_CACHE.pop(session_key, None)
     file = Path(plexpy.CONFIG.CACHE_DIR) / 'session_metadata' / f'metadata-sessionKey-{session_key}.json'
     file.unlink(missing_ok=True)

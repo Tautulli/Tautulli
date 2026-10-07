@@ -1,5 +1,7 @@
 var users_to_delete = [];
 var users_to_purge = [];
+var users_to_restore = [];
+var users_edit_mode = 0;
 
 function toggleEditNames() {
     if ($('.edit-control').hasClass('hidden')) {
@@ -47,11 +49,13 @@ users_list_table_options = {
             "targets": [0],
             "data": null,
             "createdCell": function (td, cellData, rowData, row, col) {
-                $(td).html('<div class="edit-user-toggles">' + 
+                $(td).html('<div class="edit-user-toggles">' +
                     '<button class="btn btn-xs btn-warning delete-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-trash-o fa-fw"></i> Delete</button>&nbsp' +
                     '<button class="btn btn-xs btn-warning purge-user" data-id="' + rowData['row_id'] + '" data-toggle="button"><i class="fa fa-eraser fa-fw"></i> Purge</button>&nbsp&nbsp&nbsp' +
-                    '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
-                    '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + (rowData['allow_guest'] ? 'checked' : '') + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
+                    '<button class="btn btn-xs btn-warning restore-user" data-toggle="button"><i class="fa fa-undo fa-fw"></i> Restore</button>&nbsp&nbsp&nbsp' +
+                    '<input type="checkbox" id="keep_history-' + rowData['user_id'] + '" name="keep_history" value="1" ' + (rowData['keep_history'] ? 'checked' : '') + (rowData['deleted_user'] ? ' disabled' : '') + '><label class="edit-tooltip" for="keep_history-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle History"><i class="fa fa-history fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="allow_guest-' + rowData['user_id'] + '" name="allow_guest" value="1" ' + (rowData['allow_guest'] ? 'checked' : '') + (rowData['deleted_user'] ? ' disabled' : '') + '><label class="edit-tooltip" for="allow_guest-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Guest Access"><i class="fa fa-unlock-alt fa-lg fa-fw"></i></label>&nbsp' +
+                    '<input type="checkbox" id="is_archived-' + rowData['user_id'] + '" name="is_archived" value="1" ' + (rowData['is_archived'] ? 'checked' : '') + (rowData['deleted_user'] ? ' disabled' : '') + '><label class="edit-tooltip" for="is_archived-' + rowData['user_id'] + '" data-toggle="tooltip" title="Toggle Archived"><i class="fa fa-archive fa-lg fa-fw"></i></label>&nbsp' +
                     '</div>');
             },
             "width": "7%",
@@ -64,7 +68,9 @@ users_list_table_options = {
             "data": "user_thumb",
             "createdCell": function (td, cellData, rowData, row, col) {
                 var inactive = '';
-                if (!rowData['is_active']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
+                if (rowData['deleted_user']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="Deleted user"><i class="fa fa-trash-o"></i></span>'; }
+                else if (rowData['is_archived']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="Archived user"><i class="fa fa-archive"></i></span>'; }
+                else if (!rowData['is_active']) { inactive = '<span class="inactive-user-tooltip" data-toggle="tooltip" title="User not on Plex server"><i class="fa fa-exclamation-triangle"></i></span>'; }
                 $(td).html('<a href="' + page('user', rowData['user_id']) + '"" title="' + rowData['username'] + '"><div class="users-poster-face" style="background-image: url(' + page('pms_image_proxy', cellData, null, 80, 80, null, null, null, 'user') + ');">' + inactive + '</div></a>');
             },
             "orderable": false,
@@ -143,9 +149,9 @@ users_list_table_options = {
             "data": "ip_address",
             "createdCell": function (td, cellData, rowData, row, col) {
                 if (cellData) {
-                    isPrivateIP(cellData).then(function () {
+                    isPrivateIP(cellData).done(function () {
                         $(td).html(cellData || 'n/a');
-                    }, function () {
+                    }).fail(function () {
                         external_ip = '<span class="external-ip-tooltip" data-toggle="tooltip" title="External IP"><i class="fa fa-map-marker fa-fw"></i></span>';
                         $(td).html('<a href="javascript:void(0)" data-toggle="modal" data-target="#ip-info-modal">' + external_ip + cellData + '</a>');
                     });
@@ -182,7 +188,7 @@ users_list_table_options = {
                     } else if (rowData['transcode_decision'] === 'direct play') {
                         transcode_dec = '<span class="transcode-tooltip" data-toggle="tooltip" title="Direct Play"><i class="fa fa-play-circle fa-fw"></i></span>';
                     }
-                    $(td).html('<div><a href="#" data-target="#info-modal" data-toggle="modal"><div style="float: left;">' + transcode_dec + '&nbsp;' + cellData + '</div></a></div>');
+                    $(td).html('<a href="#" data-target="#info-modal" data-toggle="modal">' + transcode_dec + '&nbsp;' + cellData + '</a>');
                 } else {
                     $(td).html('n/a');
                 }
@@ -207,7 +213,7 @@ users_list_table_options = {
                         if (rowData['year']) { parent_info = ' (' + rowData['year'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="' + icon_title + '"><i class="fa ' + icon + ' fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, fallback) + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '">' + media_type + '&nbsp;' + thumb_popover + '</a></div>');
                     } else if (rowData['media_type'] === 'episode') {
                         icon = (rowData['live']) ? 'fa-broadcast-tower' : 'fa-television';
                         icon_title = (rowData['live']) ? 'Live TV' : 'Episode';
@@ -215,12 +221,12 @@ users_list_table_options = {
                         else if (rowData['live'] && rowData['originally_available_at']) { parent_info = ' (' + rowData['originally_available_at'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="' + icon_title + '"><i class="fa ' + icon + ' fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 450, null, null, null, fallback) + '" data-height="120" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '"><div style="float: left;" >' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '">' + media_type + '&nbsp;' + thumb_popover + '</a></div>');
                     } else if (rowData['media_type'] === 'track') {
                         if (rowData['parent_title']) { parent_info = ' (' + rowData['parent_title'] + ')'; }
                         media_type = '<span class="media-type-tooltip" data-toggle="tooltip" title="Track"><i class="fa fa-music fa-fw"></i></span>';
                         thumb_popover = '<span class="thumb-tooltip" data-toggle="popover" data-img="' + page('pms_image_proxy', rowData['thumb'], rowData['rating_key'], 300, 300, null, null, null, 'cover') + '" data-height="80" data-width="80">' + cellData + parent_info + '</span>';
-                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '"><div style="float: left;">' + media_type + '&nbsp;' + thumb_popover + '</div></a></div>');
+                        $(td).html('<div class="history-title"><a href="' + page('info', rowData['rating_key'], rowData['guid'], true, rowData['live']) + '">' + media_type + '&nbsp;' + thumb_popover + '</a></div>');
                     } else if (rowData['media_type']) {
                         $(td).html('<a href="' + page('info', rowData['rating_key']) + '">' + cellData + '</a>');
                     }
@@ -292,11 +298,20 @@ users_list_table_options = {
         showMsg(msg, false, false, 0)
     },
     "rowCallback": function (row, rowData) {
+        if (rowData['is_archived']) {
+            $(row).addClass('archived-user');
+        }
+        if (rowData['deleted_user']) {
+            $(row).addClass('deleted-user');
+        }
         if ($.inArray(rowData['user_id'], users_to_delete) !== -1) {
             $(row).find('button.delete-user[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
         }
         if ($.inArray(rowData['user_id'], users_to_purge) !== -1) {
             $(row).find('button.purge-user[data-id="' + rowData['row_id'] + '"]').toggleClass('btn-warning').toggleClass('btn-danger');
+        }
+        if ($.inArray(rowData['row_id'], users_to_restore) !== -1) {
+            $(row).find('button.restore-user').toggleClass('btn-warning').toggleClass('btn-success');
         }
     }
 }
@@ -333,11 +348,15 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
 
     var keep_history = 0;
     var allow_guest = 0;
+    var is_archived = 0;
     if ($('#keep_history-' + rowData['user_id']).is(':checked')) {
         keep_history = 1;
     }
     if ($('#allow_guest-' + rowData['user_id']).is(':checked')) {
         allow_guest = 1;
+    }
+    if ($('#is_archived-' + rowData['user_id']).is(':checked')) {
+        is_archived = 1;
     }
 
     friendly_name = tr.find('td.edit-user-control > .edit-user-name > input').val();
@@ -349,13 +368,17 @@ $('#users_list_table').on('change', 'td.edit-control > .edit-user-toggles > inpu
             user_id: rowData['user_id'],
             friendly_name: friendly_name,
             keep_history: keep_history,
-            allow_guest: allow_guest
+            allow_guest: allow_guest,
+            is_archived: is_archived
         },
         cache: false,
         async: true,
         success: function (data) {
             var msg = "User updated";
             showMsg(msg, false, true, 2000);
+            // The row stays until edit mode ends. A redraw here moved the rows under the
+            // cursor and left the tooltip of a replaced row on the page.
+            tr.toggleClass('archived-user', is_archived === 1);
         }
     });
 });
@@ -400,4 +423,19 @@ $('#users_list_table').on('click', 'td.edit-control > .edit-user-toggles > butto
         }
     }
     $(this).toggleClass('btn-warning').toggleClass('btn-danger');
+});
+
+$('#users_list_table').on('click', 'td.edit-control > .edit-user-toggles > button.restore-user', function () {
+    var tr = $(this).parents('tr');
+    var row = users_list_table.row(tr);
+    var rowData = row.data();
+
+    var index_restore = $.inArray(rowData['row_id'], users_to_restore);
+
+    if (index_restore === -1) {
+        users_to_restore.push(rowData['row_id']);
+    } else {
+        users_to_restore.splice(index_restore, 1);
+    }
+    $(this).toggleClass('btn-warning').toggleClass('btn-success');
 });

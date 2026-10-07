@@ -484,7 +484,7 @@ def get_notify_actions(return_dict=False):
     return tuple(a['name'] for a in available_notification_actions())
 
 
-def get_notifiers(notifier_id=None, notify_action=None):
+def get_notifiers(notifier_id=None, notify_action=None, include_last_triggered=True):
     notify_actions = get_notify_actions()
 
     where = where_id = where_action = ''
@@ -501,16 +501,27 @@ def get_notifiers(notifier_id=None, notify_action=None):
         where += ' AND '.join([w for w in [where_id, where_action] if w])
 
     db = database.MonitorDatabase()
-    result = db.select(
-        (
+
+    if include_last_triggered:
+        query = (
             "SELECT notifiers.id, notifiers.agent_id, notifiers.agent_name, notifiers.agent_label, notifiers.friendly_name, %s, "
             "MAX(notify_log.timestamp) AS last_triggered, notify_log.success AS last_success "
             "FROM notifiers "
             "LEFT OUTER JOIN notify_log ON notifiers.id = notify_log.notifier_id "
             "%s "
             "GROUP BY notifiers.id"
-        ) % (', '.join(notify_actions), where), args=args
-    )
+        ) % (', '.join(notify_actions), where)
+    else:
+        # The notification path only needs the notifier configuration;
+        # last_triggered/last_success (a scan of the unbounded notify_log
+        # table) is only displayed by the settings UI
+        query = (
+            "SELECT notifiers.id, notifiers.agent_id, notifiers.agent_name, notifiers.agent_label, notifiers.friendly_name, %s "
+            "FROM notifiers "
+            "%s"
+        ) % (', '.join(notify_actions), where)
+
+    result = db.select(query, args=args)
 
     for item in result:
         item['active'] = int(any([item.pop(k) for k in list(item.keys()) if k in notify_actions]))
@@ -530,7 +541,7 @@ def delete_notifier(notifier_id=None):
         return False
 
 
-def get_notifier_config(notifier_id=None, mask_passwords=False):
+def get_notifier_config(notifier_id=None, mask_passwords=False, load_config_options=True):
     if str(notifier_id).isdigit():
         notifier_id = int(notifier_id)
     else:
@@ -581,7 +592,14 @@ def get_notifier_config(notifier_id=None, mask_passwords=False):
         result['custom_conditions_logic'] = ''
 
     result['config'] = notifier_agent.config
-    result['config_options'] = notifier_agent.return_config_options(mask_passwords=mask_passwords)
+    if load_config_options:
+        # Building the config options is only needed for the settings UI
+        # and can be expensive: some agents fetch their vendor's device
+        # list over HTTPS (Join, Pushbullet), walk the scripts directory
+        # (Scripts), or query the users table (Email)
+        result['config_options'] = notifier_agent.return_config_options(mask_passwords=mask_passwords)
+    else:
+        result['config_options'] = []
     result['actions'] = notifier_actions
     result['notify_text'] = notifier_text
 
@@ -664,16 +682,16 @@ def set_notifier_config(notifier_id=None, **kwargs):
                 continue
             notifier['config'][cfg] = notifier_config[cfg]
 
-    if friendly_name := kwargs.get('friendly_name'):
-        notifier['friendly_name'] = friendly_name
+    if 'friendly_name' in kwargs:
+        notifier['friendly_name'] = kwargs['friendly_name']
     if custom_conditions := kwargs.get('custom_conditions'):
         if validated_conditions := validate_conditions(custom_conditions):
             notifier['custom_conditions'] = validated_conditions
         else:
             logger.error("Tautulli Notifiers :: Unable to update notification agent: Invalid custom conditions.")
             return False
-    if custom_conditions_logic := kwargs.get('custom_conditions_logic'):
-        notifier['custom_conditions_logic'] = custom_conditions_logic
+    if 'custom_conditions_logic' in kwargs:
+        notifier['custom_conditions_logic'] = kwargs['custom_conditions_logic']
 
     keys = {'id': notifier_id}
     values = {
@@ -702,8 +720,10 @@ def set_notifier_config(notifier_id=None, **kwargs):
         return False
 
 
-def send_notification(notifier_id=None, subject='', body='', notify_action='', notification_id=None, **kwargs):
-    notifier_config = get_notifier_config(notifier_id=notifier_id)
+def send_notification(notifier_id=None, subject='', body='', notify_action='', notification_id=None,
+                      notifier_config=None, **kwargs):
+    if notifier_config is None:
+        notifier_config = get_notifier_config(notifier_id=notifier_id, load_config_options=False)
     if notifier_config:
         agent = get_agent_class(agent_id=notifier_config['agent_id'],
                                 config=notifier_config['config'])
@@ -879,13 +899,26 @@ class PrettyMetadata(object):
         return 'View on ' + provider_name
 
     def get_title(self, divider='-'):
+        # Grouped TV parameters clear episode_name; ungrouped ones retain it.
+        grouped = (self.parameters.get('action') == 'created'
+                   and self.parameters.get('episode_name') == '')
         title = ''
         if self.media_type == 'movie':
             title = '%s (%s)' % (self.parameters['title'], self.parameters['year'])
         elif self.media_type == 'show':
             title = '%s (%s)' % (self.parameters['show_name'], self.parameters['year'])
+            season_num = self.parameters.get('season_num')
+            season_count = self.parameters.get('season_count', 0)
+            if grouped and season_num and season_count > 0:
+                label = 'Season' if season_count == 1 else 'Seasons'
+                title += ' - %s %s' % (label, season_num)
         elif self.media_type == 'season':
             title = '%s - %s' % (self.parameters['show_name'], self.parameters['season_name'])
+            episode_num = self.parameters.get('episode_num')
+            episode_count = self.parameters.get('episode_count', 0)
+            if grouped and episode_num and episode_count > 0:
+                label = 'Episode' if episode_count == 1 else 'Episodes'
+                title += ' - %s %s' % (label, episode_num)
         elif self.media_type == 'episode':
             season = helpers.short_season(self.parameters['season_name'])
             title = '%s - %s (%s %s E%s)' % (self.parameters['show_name'],
@@ -897,6 +930,11 @@ class PrettyMetadata(object):
             title = self.parameters['artist_name']
         elif self.media_type == 'album':
             title = '%s - %s' % (self.parameters['artist_name'], self.parameters['album_name'])
+            track_num = self.parameters.get('track_num')
+            track_count = self.parameters.get('track_count', 0)
+            if grouped and track_num and track_count > 0:
+                label = 'Track' if track_count == 1 else 'Tracks'
+                title += ' - %s %s' % (label, track_num)
         elif self.media_type == 'track':
             title = '%s - %s' % (self.parameters['track_name'], self.parameters['track_artist'])
         return title
@@ -1367,16 +1405,18 @@ class EMAIL(Notifier):
             msg["In-Reply-To"] = reply_msg_id
             msg["References"] = reply_msg_id
 
-        recipients = self.config['to'] + self.config['cc'] + self.config['bcc']
+
+        # Exclude undisclosed-recipients:; from the recipient list
+        recipients = [r for r in (self.config['to'] + self.config['cc'] + self.config['bcc']) if r != 'undisclosed-recipients:;']
 
         mailserver = None
         success = False
 
         try:
             if self.config['tls'] == 2:
-                mailserver = smtplib.SMTP_SSL(self.config['smtp_server'], self.config['smtp_port'])
+                mailserver = smtplib.SMTP_SSL(self.config['smtp_server'], self.config['smtp_port'], timeout=60)
             else:
-                mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'])
+                mailserver = smtplib.SMTP(self.config['smtp_server'], self.config['smtp_port'], timeout=60)
 
             mailserver.ehlo()
 
@@ -4420,11 +4460,11 @@ class TELEGRAM(Notifier):
                     if self.config['silent_notification']:
                         data['disable_notification'] = True
 
-                self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
-                                  data=data, files=files)
+                photo_result = self.make_request('https://api.telegram.org/bot{}/sendPhoto'.format(self.config['bot_token']),
+                                                 data=data, files=files)
 
                 if 'caption' in data:
-                    return
+                    return photo_result
 
                 data.pop('disable_notification', None)
 
@@ -4871,9 +4911,9 @@ class ZAPIER(Notifier):
 def check_browser_enabled():
     global BROWSER_NOTIFIERS
     BROWSER_NOTIFIERS = {}
-    for n in get_notifiers():
+    for n in get_notifiers(include_last_triggered=False):
         if n['agent_id'] == 17 and n['active']:
-            notifier_config = get_notifier_config(n['id'])
+            notifier_config = get_notifier_config(n['id'], load_config_options=False)
             BROWSER_NOTIFIERS[n['id']] = notifier_config['config']['auto_hide_delay']
 
 
