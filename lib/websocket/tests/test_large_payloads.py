@@ -12,7 +12,7 @@ from websocket._ssl_compat import SSLError
 test_large_payloads.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 
 class LargePayloadTest(unittest.TestCase):
     def test_frame_length_encoding_boundaries(self):

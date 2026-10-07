@@ -5,8 +5,10 @@ import os.path
 import socket
 import unittest
 from base64 import decodebytes as base64decode
+from unittest import mock
 
 import websocket as ws
+from websocket._abnf import ABNF
 from websocket._exceptions import (
     WebSocketBadStatusException,
     WebSocketAddressException,
@@ -14,6 +16,8 @@ from websocket._exceptions import (
 )
 from websocket._handshake import _create_sec_websocket_key
 from websocket._handshake import _validate as _validate_header
+from websocket._handshake import _get_handshake_headers
+from websocket._handshake import handshake_response
 from websocket._http import read_headers
 from websocket._utils import validate_utf8
 
@@ -21,7 +25,7 @@ from websocket._utils import validate_utf8
 test_websocket.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -194,6 +198,42 @@ class WebSocketTest(unittest.TestCase):
 
         self.assertEqual(sock.send_binary(b"1111111111101"), 19)
 
+    def test_send_close_accepts_text_reason(self):
+        sock = ws.WebSocket()
+        captured = {}
+
+        def fake_send(payload, opcode):
+            captured["payload"] = payload
+            captured["opcode"] = opcode
+            return len(payload)
+
+        sock.send = fake_send  # type: ignore[assignment]
+        sock.connected = True
+
+        sock.send_close(reason="normal close")
+
+        self.assertEqual(captured["opcode"], ws.ABNF.OPCODE_CLOSE)
+        self.assertIsInstance(captured["payload"], (bytes, bytearray))
+        self.assertTrue(captured["payload"].endswith(b"normal close"))
+
+    def test_close_accepts_text_reason(self):
+        sock = ws.WebSocket()
+        captured = {}
+
+        def fake_send(payload, opcode):
+            captured["payload"] = payload
+            captured["opcode"] = opcode
+            return len(payload)
+
+        sock.send = fake_send  # type: ignore[assignment]
+        sock.connected = True
+
+        sock.close(reason="normal close")
+
+        self.assertEqual(captured["opcode"], ws.ABNF.OPCODE_CLOSE)
+        self.assertIsInstance(captured["payload"], (bytes, bytearray))
+        self.assertTrue(captured["payload"].endswith(b"normal close"))
+
     def test_recv(self):
         # TODO: add longer frame data
         sock = ws.WebSocket()
@@ -213,16 +253,25 @@ class WebSocketTest(unittest.TestCase):
     def test_iter(self):
         count = 2
         s = ws.create_connection("wss://api.bitfinex.com/ws/2")
-        s.send('{"event": "subscribe", "channel": "ticker"}')
-        for _ in s:
-            count -= 1
-            if count == 0:
-                break
+        try:
+            s.send('{"event": "subscribe", "channel": "ticker"}')
+            for _ in s:
+                count -= 1
+                if count == 0:
+                    break
+            self.assertEqual(
+                count, 0, "WebSocket iterator failed to yield the expected frames"
+            )
+        finally:
+            s.close()
 
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
     def test_next(self):
         sock = ws.create_connection("wss://api.bitfinex.com/ws/2")
-        self.assertEqual(str, type(next(sock)))
+        try:
+            self.assertEqual(str, type(next(sock)))
+        finally:
+            sock.close()
 
     def test_internal_recv_strict(self):
         sock = ws.WebSocket()
@@ -400,7 +449,7 @@ class WebSocketTest(unittest.TestCase):
     def test_websocket_with_custom_header(self):
         s = ws.create_connection(
             f"ws://127.0.0.1:{LOCAL_WS_SERVER_PORT}",
-            headers={"User-Agent": "PythonWebsocketClient"},
+            header={"User-Agent": "PythonWebsocketClient"},
         )
         self.assertNotEqual(s, None)
         self.assertEqual(s.getsubprotocol(), None)
@@ -446,9 +495,24 @@ class UtilsTest(unittest.TestCase):
         self.assertEqual(state, False)
         state = validate_utf8(b"")
         self.assertEqual(state, True)
+        state = validate_utf8("κόσμε")
+        self.assertEqual(state, True)
+        state = validate_utf8("a\ud800b")
+        self.assertEqual(state, False)
+        state = validate_utf8("")
+        self.assertEqual(state, True)
 
 
 class HandshakeTest(unittest.TestCase):
+    def test_bad_status_exception_carries_status_message(self):
+        exc = WebSocketBadStatusException(
+            "Handshake status 404 Not Found", 404, "Not Found"
+        )
+        self.assertEqual(exc.status_code, 404)
+        self.assertEqual(exc.status_message, "Not Found")
+        self.assertIsNone(exc.resp_headers)
+        self.assertIsNone(exc.resp_body)
+
     @unittest.skipUnless(TEST_WITH_INTERNET, "Internet-requiring tests are disabled")
     def test_http_ssl(self):
         websock1 = ws.WebSocket(
@@ -495,6 +559,314 @@ class HandshakeTest(unittest.TestCase):
         self.assertRaises(ValueError, websock3.connect, "ws//example.com")
         self.assertRaises(WebSocketAddressException, websock3.connect, "ws://example")
         self.assertRaises(ValueError, websock3.connect, "example.com")
+
+    def test_suppress_host_header(self):
+        """Test suppress_host parameter in _get_handshake_headers function"""
+        # Test normal behavior (Host header included)
+        headers, key = _get_handshake_headers(
+            "/path", "ws://example.com:8080", "example.com", 8080, {}
+        )
+        host_headers = [h for h in headers if h.startswith("Host:")]
+        self.assertEqual(len(host_headers), 1)
+        self.assertEqual(host_headers[0], "Host: example.com:8080")
+
+        # Test suppress_host=False (explicit, should still include Host header)
+        headers, key = _get_handshake_headers(
+            "/path",
+            "ws://example.com:8080",
+            "example.com",
+            8080,
+            {"suppress_host": False},
+        )
+        host_headers = [h for h in headers if h.startswith("Host:")]
+        self.assertEqual(len(host_headers), 1)
+        self.assertEqual(host_headers[0], "Host: example.com:8080")
+
+        # Test suppress_host=True (Host header should be suppressed)
+        headers, key = _get_handshake_headers(
+            "/path",
+            "ws://example.com:8080",
+            "example.com",
+            8080,
+            {"suppress_host": True},
+        )
+        host_headers = [h for h in headers if h.startswith("Host:")]
+        self.assertEqual(len(host_headers), 0)
+
+        # Test with custom host header and suppress_host=False
+        headers, key = _get_handshake_headers(
+            "/path",
+            "ws://example.com:8080",
+            "example.com",
+            8080,
+            {"host": "custom-host.example.com", "suppress_host": False},
+        )
+        host_headers = [h for h in headers if h.startswith("Host:")]
+        self.assertEqual(len(host_headers), 1)
+        self.assertEqual(host_headers[0], "Host: custom-host.example.com")
+
+        # Test with custom host header and suppress_host=True (should suppress even custom host)
+        headers, key = _get_handshake_headers(
+            "/path",
+            "ws://example.com:8080",
+            "example.com",
+            8080,
+            {"host": "custom-host.example.com", "suppress_host": True},
+        )
+        host_headers = [h for h in headers if h.startswith("Host:")]
+        self.assertEqual(len(host_headers), 0)
+
+        # Test with standard ports (80, 443) - should not include port in host
+        headers, key = _get_handshake_headers(
+            "/path", "ws://example.com", "example.com", 80, {}
+        )
+        host_headers = [h for h in headers if h.startswith("Host:")]
+        self.assertEqual(len(host_headers), 1)
+        self.assertEqual(host_headers[0], "Host: example.com")
+
+        # Test suppress_host=True with standard port
+        headers, key = _get_handshake_headers(
+            "/path", "ws://example.com", "example.com", 80, {"suppress_host": True}
+        )
+        host_headers = [h for h in headers if h.startswith("Host:")]
+        self.assertEqual(len(host_headers), 0)
+
+    def test_suppress_host_websocket_connect(self):
+        """Test suppress_host parameter with WebSocket.connect()"""
+        websock = ws.WebSocket()
+
+        # Test that suppress_host parameter is accepted without error
+        # (Connection will fail but parameter should be accepted)
+        try:
+            websock.connect(
+                "ws://nonexistent.example.com", suppress_host=True, timeout=0.1
+            )
+        except (WebSocketAddressException, OSError, socket.timeout):
+            # Expected - connection should fail, but parameter was accepted
+            pass
+
+        # Test that suppress_host=False also works
+        try:
+            websock.connect(
+                "ws://nonexistent.example.com", suppress_host=False, timeout=0.1
+            )
+        except (WebSocketAddressException, OSError, socket.timeout):
+            # Expected - connection should fail, but parameter was accepted
+            pass
+
+
+class WebSocketCoreUnitTests(unittest.TestCase):
+    def test_iteration_helpers_and_next_aliases(self):
+        class TestError(Exception):
+            pass
+
+        sock = ws.WebSocket()
+        sock.recv = mock.Mock(side_effect=["first", TestError("stop")])
+
+        iterator = iter(sock)
+        self.assertEqual(next(iterator), "first")
+        with self.assertRaises(TestError):
+            next(iterator)
+
+        sock.recv = mock.Mock(return_value="again")
+        self.assertEqual(sock.__next__(), "again")
+        self.assertEqual(sock.next(), "again")
+
+    def test_fileno_requires_socket(self):
+        sock = ws.WebSocket()
+        with self.assertRaises(WebSocketException):
+            sock.fileno()
+
+        fake_socket = mock.Mock()
+        fake_socket.fileno.return_value = 42
+        sock.sock = fake_socket
+        self.assertEqual(sock.fileno(), 42)
+
+    def test_settimeout_updates_underlying_socket(self):
+        sock = ws.WebSocket()
+        fake_socket = mock.Mock()
+        sock.sock = fake_socket
+
+        sock.settimeout(5)
+        self.assertEqual(sock.gettimeout(), 5)
+        fake_socket.settimeout.assert_called_once_with(5)
+
+    def test_is_ssl_detection(self):
+        sock = ws.WebSocket()
+        self.assertFalse(sock.is_ssl())
+
+        class FakeSSLSocket:
+            pass
+
+        with mock.patch("websocket._core.ssl.SSLSocket", FakeSSLSocket):
+            sock.sock = FakeSSLSocket()
+            self.assertTrue(sock.is_ssl())
+
+    def test_send_frame_emits_trace_when_enabled(self):
+        sock = ws.WebSocket()
+        sock._send = mock.Mock(side_effect=lambda data: len(data))
+        sock.lock = mock.MagicMock()
+
+        frame = ABNF.create_frame("hi", ABNF.OPCODE_TEXT)
+
+        with mock.patch(
+            "websocket._core.isEnabledForTrace", return_value=True
+        ), mock.patch("websocket._core.trace") as trace_mock:
+            length = sock.send_frame(frame)
+
+        self.assertGreater(length, 0)
+        self.assertEqual(trace_mock.call_count, 2)
+
+    def test_connect_handles_redirects(self):
+        sock = ws.WebSocket()
+        first_socket = mock.Mock()
+        second_socket = mock.Mock()
+        connect_results = [
+            (first_socket, ("origin", 80, "/")),
+            (second_socket, ("redirect", 80, "/")),
+        ]
+
+        def fake_connect(url, *_):
+            return connect_results.pop(0)
+
+        redirect_resp = handshake_response(301, {"location": "ws://redirect"}, None)
+        success_resp = handshake_response(101, {}, None)
+
+        with mock.patch(
+            "websocket._core.connect", side_effect=fake_connect
+        ) as connect_mock, mock.patch(
+            "websocket._core.handshake", side_effect=[redirect_resp, success_resp]
+        ) as handshake_mock:
+            sock.connect("ws://origin", redirect_limit=1)
+
+        self.assertTrue(sock.connected)
+        self.assertIs(sock.sock, second_socket)
+        first_socket.close.assert_called_once()
+        self.assertEqual(
+            [call.args[0] for call in connect_mock.call_args_list],
+            ["ws://origin", "ws://redirect"],
+        )
+        self.assertEqual(handshake_mock.call_count, 2)
+
+    def test_connect_redirect_limit_exhausted_raises(self):
+        sock = ws.WebSocket()
+        sockets = []
+        redirect_resp = handshake_response(302, {"location": "ws://redirect"}, None)
+
+        def fake_connect(url, *args, **kwargs):
+            socket_mock = mock.Mock()
+            sockets.append(socket_mock)
+            return socket_mock, ("redirect", 80, "/")
+
+        with mock.patch(
+            "websocket._core.connect", side_effect=fake_connect
+        ) as connect_mock, mock.patch(
+            "websocket._core.handshake", return_value=redirect_resp
+        ):
+            with self.assertRaisesRegex(
+                ws.WebSocketException, "Redirect limit exhausted"
+            ):
+                sock.connect("ws://origin", redirect_limit=2)
+
+        self.assertEqual(connect_mock.call_count, 3)
+        self.assertFalse(sock.connected)
+        self.assertIsNone(sock.sock)
+        for socket_mock in sockets:
+            socket_mock.close.assert_called_once()
+
+    def test_connect_redirect_invalid_target_raises(self):
+        sock = ws.WebSocket()
+        redirect_resp = handshake_response(302, {"location": "https://redirect"}, None)
+
+        def fake_connect(url, *args, **kwargs):
+            if url == "https://redirect":
+                raise ValueError("scheme https is invalid")
+            return mock.Mock(), ("origin", 80, "/")
+
+        with mock.patch(
+            "websocket._core.connect", side_effect=fake_connect
+        ), mock.patch("websocket._core.handshake", return_value=redirect_resp):
+            with self.assertRaisesRegex(
+                ws.WebSocketException, "Invalid redirect target 'https://redirect'"
+            ):
+                sock.connect("ws://origin", redirect_limit=2)
+
+        self.assertFalse(sock.connected)
+        self.assertIsNone(sock.sock)
+
+    def test_connect_redirect_without_location_raises(self):
+        sock = ws.WebSocket()
+        redirect_resp = handshake_response(302, {}, None)  # no location header
+
+        def fake_connect(url, *args, **kwargs):
+            return mock.Mock(), ("origin", 80, "/")
+
+        with mock.patch(
+            "websocket._core.connect", side_effect=fake_connect
+        ), mock.patch("websocket._core.handshake", return_value=redirect_resp):
+            with self.assertRaisesRegex(ws.WebSocketException, "Location"):
+                sock.connect("ws://origin", redirect_limit=2)
+
+        self.assertFalse(sock.connected)
+        self.assertIsNone(sock.sock)
+
+    def test_shutdown_and_abort(self):
+        sock = ws.WebSocket()
+        socket_mock = mock.Mock()
+        socket_mock._closed = False
+        sock.sock = socket_mock
+        sock.connected = True
+
+        sock.shutdown()
+        socket_mock.close.assert_called_once()
+        self.assertIsNone(sock.sock)
+        self.assertFalse(sock.connected)
+
+        socket_mock = mock.Mock()
+        sock.sock = socket_mock
+        sock.connected = True
+        sock.abort()
+        socket_mock.shutdown.assert_called_once_with(socket.SHUT_RDWR)
+
+    def test_abort_tolerates_dead_socket(self):
+        sock = ws.WebSocket()
+        # never-connected socket: shutdown() raises ENOTCONN
+        # which abort() must not leak to the caller
+        real = socket.socket()
+        sock.sock = real
+        sock.connected = True
+
+        sock.abort()  # must not raise
+        real.close()
+
+    def test_create_connection_uses_custom_class(self):
+        class DummySocket:
+            def __init__(self, **kwargs):
+                self.init_kwargs = kwargs
+                self.timeout_value = None
+                self.url = None
+                self.options = None
+
+            def settimeout(self, value):
+                self.timeout_value = value
+
+            def connect(self, url, **options):
+                self.url = url
+                self.options = options
+
+        conn = ws.create_connection(
+            "ws://example.com",
+            timeout=5,
+            class_=DummySocket,
+            header={"User-Agent": "tester"},
+            origin="https://origin",
+        )
+
+        self.assertIsInstance(conn, DummySocket)
+        self.assertEqual(conn.url, "ws://example.com")
+        self.assertEqual(conn.timeout_value, 5)
+        self.assertIn("header", conn.options)
+        self.assertEqual(conn.options["origin"], "https://origin")
 
 
 if __name__ == "__main__":
