@@ -1,7 +1,7 @@
 import platform
 import sys
 
-__all__ = ['install', 'NullFinder']
+__all__ = ['NullFinder', 'install']
 
 
 def install(cls):
