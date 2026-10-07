@@ -204,27 +204,37 @@ class Markup(str):
         'Main » About'
         """
         value = str(self)
+        parts = []
+        pos = 0
 
-        # Look for comments then tags separately. Otherwise, a comment that
-        # contains a tag would end early, leaving some of the comment behind.
+        while (start := value.find("<", pos)) != -1:
+            if value.startswith("<!--", start):
+                # comment
+                if (end := value.find("-->", start + 4)) == -1:
+                    # unclosed
+                    break
 
-        # keep finding comment start marks
-        while (start := value.find("<!--")) != -1:
-            # find a comment end mark beyond the start, otherwise stop
-            if (end := value.find("-->", start)) == -1:
-                break
+                end += 3
+            else:
+                # tag
+                if (end := value.find(">", start)) == -1:
+                    # unclosed
+                    break
 
-            value = f"{value[:start]}{value[end + 3 :]}"
+                end += 1
 
-        # remove tags using the same method
-        while (start := value.find("<")) != -1:
-            if (end := value.find(">", start)) == -1:
-                break
+            parts.append(value[pos:start])
+            pos = end
 
-            value = f"{value[:start]}{value[end + 1 :]}"
+        # found at least one tag, combine parts
+        if pos > 0:
+            # any trailing data after the last closed tag
+            parts.append(value[pos:])
+            value = "".join(parts)
 
         # collapse spaces
         value = " ".join(value.split())
+        # unescape the processed value using the current class
         return self.__class__(value).unescape()
 
     @classmethod
@@ -237,7 +247,7 @@ class Markup(str):
         if rv.__class__ is not cls:
             return cls(rv)
 
-        return rv  # type: ignore[return-value]
+        return rv
 
     def __getitem__(self, key: t.SupportsIndex | slice, /) -> te.Self:
         return self.__class__(super().__getitem__(key))
