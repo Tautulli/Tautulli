@@ -79,7 +79,12 @@ class PyJWK:
                 f"Unable to find an algorithm for key: {self._jwk_data}",
             ) from None
 
-        self.key = self.Algorithm.from_jwk(self._jwk_data)
+        try:
+            self.key = self.Algorithm.from_jwk(self._jwk_data)
+        except (TypeError, ValueError) as error:
+            raise InvalidKeyError(
+                f"Unable to construct key from JWK: {error}"
+            ) from error
 
     @staticmethod
     def from_dict(obj: JWKDict, algorithm: str | None = None) -> PyJWK:
@@ -94,7 +99,7 @@ class PyJWK:
         return PyJWK(obj, algorithm)
 
     @staticmethod
-    def from_json(data: str, algorithm: None = None) -> PyJWK:
+    def from_json(data: str, algorithm: str | None = None) -> PyJWK:
         """Create a :class:`PyJWK` object from a JSON string.
         Implicitly calls :meth:`PyJWK.from_dict()`.
 
@@ -143,6 +148,9 @@ class PyJWKSet:
             raise PyJWKSetError("Invalid JWK Set value")
 
         for key in keys:
+            if not isinstance(key, dict):
+                # skip members that aren't JWK objects
+                continue
             try:
                 self.keys.append(PyJWK(key))
             except PyJWTError as error:

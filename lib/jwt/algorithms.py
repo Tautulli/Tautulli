@@ -33,6 +33,7 @@ from .utils import (
 )
 
 try:
+    from cryptography import x509
     from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import hashes
@@ -72,6 +73,7 @@ try:
         NoEncryption,
         PrivateFormat,
         PublicFormat,
+        load_der_public_key,
         load_pem_private_key,
         load_pem_public_key,
         load_ssh_public_key,
@@ -322,13 +324,36 @@ class HMACAlgorithm(Algorithm):
     def __init__(self, hash_alg: HashlibHash) -> None:
         self.hash_alg = hash_alg
 
+    @staticmethod
+    def _is_der_key(key_bytes: bytes) -> bool:
+        if not has_crypto:
+            return False
+
+        try:
+            load_der_public_key(key_bytes)
+        except (TypeError, ValueError, UnsupportedAlgorithm):
+            pass
+        else:
+            return True
+
+        try:
+            x509.load_der_x509_certificate(key_bytes)
+        except (TypeError, ValueError, UnsupportedAlgorithm):
+            return False
+        else:
+            return True
+
     def prepare_key(self, key: str | bytes) -> bytes:
         key_bytes = force_bytes(key)
 
         if len(key_bytes) == 0:
             raise InvalidKeyError("HMAC key must not be empty.")
 
-        if is_pem_format(key_bytes) or is_ssh_key(key_bytes):
+        if (
+            is_pem_format(key_bytes)
+            or is_ssh_key(key_bytes)
+            or self._is_der_key(key_bytes)
+        ):
             raise InvalidKeyError(
                 "The specified key is an asymmetric key or x509 certificate and"
                 " should not be used as an HMAC secret."
@@ -341,18 +366,76 @@ class HMACAlgorithm(Algorithm):
         # non-key-shaped input naturally. Even a symmetric (kty=oct) JWK
         # should be loaded via PyJWK / from_jwk rather than fed as raw JSON
         # bytes (whose contents are not the secret material).
-        stripped = key_bytes.lstrip()
-        if stripped.startswith(b"{"):
+        try:
+            jwk_obj = json.loads(key_bytes, parse_int=lambda _: 0)
+        except RecursionError:
             try:
-                jwk_obj = json.loads(key_bytes)
-            except ValueError:
-                jwk_obj = None
-            if isinstance(jwk_obj, dict) and "kty" in jwk_obj:
+                decoded_key = key_bytes.decode(
+                    json.detect_encoding(key_bytes), errors="surrogatepass"
+                )
+            except UnicodeError:
+                decoded_key = ""
+            stripped_key = decoded_key.lstrip("\ufeff \t\r\n")
+            has_jwk_member = False
+            index = 0
+            while index < len(decoded_key):
+                if decoded_key[index] != '"':
+                    index += 1
+                    continue
+                end = index + 1
+                while end < len(decoded_key):
+                    if decoded_key[end] == "\\":
+                        end += 2
+                    elif decoded_key[end] == '"':
+                        break
+                    else:
+                        end += 1
+                if end >= len(decoded_key):
+                    break
+                next_index = end + 1
+                while (
+                    next_index < len(decoded_key)
+                    and decoded_key[next_index] in " \t\r\n"
+                ):
+                    next_index += 1
+                if next_index < len(decoded_key) and decoded_key[next_index] == ":":
+                    try:
+                        has_jwk_member = (
+                            json.loads(decoded_key[index : end + 1]) == "kty"
+                        )
+                    except ValueError:
+                        pass
+                    if has_jwk_member:
+                        break
+                index = end + 1
+            if stripped_key.startswith("{") or (
+                stripped_key.startswith("[") and has_jwk_member
+            ):
                 raise InvalidKeyError(
                     "The specified key looks like a JWK and should not be "
                     "used directly as an HMAC secret. Load it via "
                     "PyJWK / HMACAlgorithm.from_jwk first."
-                )
+                ) from None
+            jwk_obj = None
+        except ValueError:
+            jwk_obj = None
+        contains_jwk_member = False
+        objects_to_check = [jwk_obj]
+        while objects_to_check:
+            obj = objects_to_check.pop()
+            if isinstance(obj, dict):
+                if "kty" in obj:
+                    contains_jwk_member = True
+                    break
+                objects_to_check.extend(obj.values())
+            elif isinstance(obj, list):
+                objects_to_check.extend(obj)
+        if contains_jwk_member:
+            raise InvalidKeyError(
+                "The specified key looks like a JWK and should not be "
+                "used directly as an HMAC secret. Load it via "
+                "PyJWK / HMACAlgorithm.from_jwk first."
+            )
 
         return key_bytes
 
@@ -391,7 +474,10 @@ class HMACAlgorithm(Algorithm):
         if obj.get("kty") != "oct":
             raise InvalidKeyError("Not an HMAC key")
 
-        return base64url_decode(obj["k"])
+        key_bytes = base64url_decode(obj["k"])
+        if len(key_bytes) == 0:
+            raise InvalidKeyError("HMAC key must not be empty.")
+        return key_bytes
 
     def check_key_length(self, key: bytes) -> str | None:
         min_length = self.hash_alg().digest_size
@@ -1018,8 +1104,18 @@ if has_crypto:
                         return Ed25519PublicKey.from_public_bytes(x)
                     return Ed448PublicKey.from_public_bytes(x)
                 d = base64url_decode(obj.get("d"))
+                private_key: Ed25519PrivateKey | Ed448PrivateKey
                 if curve == "Ed25519":
-                    return Ed25519PrivateKey.from_private_bytes(d)
-                return Ed448PrivateKey.from_private_bytes(d)
+                    private_key = Ed25519PrivateKey.from_private_bytes(d)
+                else:
+                    private_key = Ed448PrivateKey.from_private_bytes(d)
+                if (
+                    private_key.public_key().public_bytes(
+                        encoding=Encoding.Raw, format=PublicFormat.Raw
+                    )
+                    != x
+                ):
+                    raise InvalidKeyError("Public key does not match private key")
+                return private_key
             except ValueError as err:
                 raise InvalidKeyError("Invalid key parameter") from err
