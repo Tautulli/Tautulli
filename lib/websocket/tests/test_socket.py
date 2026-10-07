@@ -21,7 +21,7 @@ from websocket._exceptions import (
 test_socket.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 
 class SocketTest(unittest.TestCase):
     def test_default_socket_option(self):
@@ -351,6 +352,37 @@ class SocketTest(unittest.TestCase):
             mock_selector.register.assert_called()
             mock_selector.select.assert_called()
             mock_selector.close.assert_called()
+
+    def test_recv_selector_timeout_on_would_block(self):
+        mock_sock = Mock()
+        mock_sock.recv.side_effect = OSError(errno.EWOULDBLOCK, "would block")
+        mock_sock.gettimeout.return_value = 1.0
+
+        class FakeSelector:
+            def register(self, *args, **kwargs):
+                pass
+
+            def select(self, timeout):
+                return []
+
+            def close(self):
+                pass
+
+        with patch("selectors.DefaultSelector", return_value=FakeSelector()):
+            with self.assertRaises(WebSocketTimeoutException):
+                recv(mock_sock, 10)
+
+    def test_send_socket_timeout_error(self):
+        mock_sock = Mock()
+        timeout_exc = socket.timeout("timed out")
+        timeout_exc.args = ("timed out",)
+        mock_sock.send.side_effect = timeout_exc
+        mock_sock.gettimeout.return_value = 5.0
+
+        with self.assertRaises(WebSocketTimeoutException) as cm:
+            send(mock_sock, b"payload")
+
+        self.assertIn("timed out", str(cm.exception))
 
 
 if __name__ == "__main__":

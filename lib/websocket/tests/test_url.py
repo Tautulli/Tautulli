@@ -15,7 +15,7 @@ from websocket._exceptions import WebSocketProxyException
 test_url.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -208,6 +208,40 @@ class IsNoProxyHostTest(unittest.TestCase):
         self.assertTrue(_is_no_proxy_host("my.other.websocket.org", None))
         self.assertFalse(_is_no_proxy_host("any.websocket.com", None))
         os.environ["no_proxy"] = "my.websocket.org, .websocket.org"
+        self.assertTrue(_is_no_proxy_host("any.websocket.org", None))
+
+    def test_hostname_match_domain_without_leading_dot(self):
+        """Test that domains without leading dots work like urllib (fixes issues #968, #1005)"""
+        # Test domain matching without leading dots - should match subdomains
+        self.assertTrue(_is_no_proxy_host("any.websocket.org", ["websocket.org"]))
+        self.assertTrue(_is_no_proxy_host("my.other.websocket.org", ["websocket.org"]))
+        self.assertTrue(
+            _is_no_proxy_host("websocket.org", ["websocket.org"])
+        )  # Exact match
+        self.assertFalse(_is_no_proxy_host("websocket.com", ["websocket.org"]))
+        self.assertFalse(
+            _is_no_proxy_host("notwebsocket.org", ["websocket.org"])
+        )  # Should not match partial
+
+        # Test mixed formats work together
+        self.assertTrue(
+            _is_no_proxy_host("sub.example.com", ["websocket.org", "example.com"])
+        )
+        self.assertTrue(
+            _is_no_proxy_host("sub.websocket.org", ["websocket.org", "example.com"])
+        )
+
+        # Test with environment variable
+        os.environ["no_proxy"] = "websocket.org"
+        self.assertTrue(_is_no_proxy_host("any.websocket.org", None))
+        self.assertTrue(_is_no_proxy_host("my.other.websocket.org", None))
+        self.assertTrue(_is_no_proxy_host("websocket.org", None))
+        self.assertFalse(_is_no_proxy_host("websocket.com", None))
+
+        # Test mixed formats in environment
+        os.environ["no_proxy"] = "example.com, .websocket.org"
+        self.assertTrue(_is_no_proxy_host("sub.example.com", None))
+        self.assertTrue(_is_no_proxy_host("example.com", None))
         self.assertTrue(_is_no_proxy_host("any.websocket.org", None))
 
 
