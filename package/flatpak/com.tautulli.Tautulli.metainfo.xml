@@ -31,8 +31,8 @@
   </description>
   <launchable type="desktop-id">com.tautulli.Tautulli.desktop</launchable>
   <branding>
-    <color type="primary" scheme_preference="light">#f5c26b</color>
-    <color type="primary" scheme_preference="dark">#7a5a1a</color>
+    <color type="primary" scheme_preference="light">#e5a00d</color>
+    <color type="primary" scheme_preference="dark">#cc7b19</color>
   </branding>
   <screenshots>
     <screenshot type="default">
