@@ -79,7 +79,7 @@ jobs:
       - name: Install Dependencies (MacOS x86_64)
         if: matrix.os == 'macos' && matrix.arch == 'x86_64'
         run: |
-          pip install --force-reinstall cryptography==48.0.1 pyopenssl==26.2.0 --no-binary cffi
+          pip install --force-reinstall cryptography==48.0.1 --no-binary cffi
 
       - name: Build Package
         run: |

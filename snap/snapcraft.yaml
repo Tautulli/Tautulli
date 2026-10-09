@@ -41,12 +41,10 @@ parts:
       - -requirements-dev.txt
     stage-packages:
       - python3
-      - python3-openssl
       - python3-cryptography
     build-packages:
       - git
       - python3
-      - python3-openssl
       - python3-cryptography
     override-pull: |
       craftctl default
