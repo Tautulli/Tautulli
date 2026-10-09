@@ -77,6 +77,7 @@ DOCKER = False
 DOCKER_MOUNT = False
 SNAP = False
 SNAP_MIGRATE = False
+FLATPAK = False
 FROZEN = False
 
 SCHED = None
@@ -193,6 +194,8 @@ def initialize(config_file):
             build = '[Docker] '
         elif SNAP:
             build = '[Snap] '
+        elif FLATPAK:
+            build = '[Flatpak] '
         elif FROZEN:
             build = '[Bundle] '
         else:

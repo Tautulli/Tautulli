@@ -388,7 +388,7 @@ def import_tautulli_config(config=None, backup=False):
     # Remove keys that should not be imported
     for key in _DO_NOT_IMPORT_KEYS:
         delattr(imported_config, key)
-    if plexpy.DOCKER or plexpy.SNAP:
+    if plexpy.DOCKER or plexpy.SNAP or plexpy.FLATPAK:
         for key in _DO_NOT_IMPORT_KEYS_DOCKER:
             delattr(imported_config, key)
 

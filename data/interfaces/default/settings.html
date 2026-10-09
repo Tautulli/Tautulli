@@ -278,7 +278,7 @@
                                     The interval (in hours) Tautulli will check for a new update. Minimum 1, default 6.
                                 </p>
                             </div>
-                            % if not plexpy.SNAP and not plexpy.FROZEN:
+                            % if not plexpy.SNAP and not plexpy.FLATPAK and not plexpy.FROZEN:
                             <div class="checkbox">
                                 <label>
                                     <input type="checkbox" id="plexpy_auto_update" name="plexpy_auto_update" value="1" ${config['plexpy_auto_update']} ${docker_setting}> Update Automatically ${docker_msg | n}

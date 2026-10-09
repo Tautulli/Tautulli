@@ -146,6 +146,8 @@ def main():
         plexpy.DOCKER_MOUNT = not os.path.isfile('/config/DOCKER')
     if helpers.bool_true(os.getenv('TAUTULLI_SNAP', False)):
         plexpy.SNAP = True
+    if helpers.bool_true(os.getenv('TAUTULLI_FLATPAK', False)):
+        plexpy.FLATPAK = True
 
     if args.dev:
         plexpy.DEV = True

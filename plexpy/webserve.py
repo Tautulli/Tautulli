@@ -4491,7 +4491,7 @@ class WebInterface(object):
                       'message': 'Tautulli is up to date.'
                       }
 
-        if plexpy.DOCKER or plexpy.SNAP or plexpy.FROZEN:
+        if plexpy.DOCKER or plexpy.SNAP or plexpy.FLATPAK or plexpy.FROZEN:
             update['install_type'] = plexpy.INSTALL_TYPE
 
         return update
@@ -4526,7 +4526,7 @@ class WebInterface(object):
     @cherrypy.tools.allow(methods=['POST'])
     @requireAuth(member_of("admin"))
     def update(self, **kwargs):
-        if plexpy.DOCKER or plexpy.SNAP:
+        if plexpy.DOCKER or plexpy.SNAP or plexpy.FLATPAK:
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 
         # Show changelog after updating
