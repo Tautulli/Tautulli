@@ -115,6 +115,59 @@ jobs:
           name: Tautulli-${{ matrix.os }}-${{ matrix.arch}}-installer
           path: Tautulli-${{ matrix.os }}-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.${{ matrix.ext }}
 
+  build-flatpak:
+    name: Build Flatpak (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: 'x86_64'
+            runner: 'ubuntu-latest'
+          - arch: 'aarch64'
+            runner: 'ubuntu-24.04-arm'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Set Release Version
+        id: get_version
+        shell: bash
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "RELEASE_VERSION=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+          fi
+          if [[ $GITHUB_REF == refs/tags/*-beta ]]; then
+            echo "beta" > branch.txt
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "master" > branch.txt
+          else
+            echo ${GITHUB_REF#refs/heads/} > branch.txt
+          fi
+          echo $GITHUB_SHA > version.txt
+
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: Tautulli-linux-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.flatpak
+          manifest-path: package/flatpak/com.tautulli.Tautulli.yml
+          arch: ${{ matrix.arch }}
+          cache-key: flatpak-builder-${{ matrix.arch }}-${{ github.sha }}
+          upload-artifact: false
+
+      - name: Upload Flatpak
+        uses: actions/upload-artifact@v7
+        with:
+          name: Tautulli-linux-${{ matrix.arch }}-flatpak
+          path: Tautulli-linux-${{ steps.get_version.outputs.RELEASE_VERSION }}-${{ matrix.arch }}.flatpak
+
   virus-total:
     name: VirusTotal Scan
     needs: build-installer
@@ -136,7 +189,7 @@ jobs:
 
   release:
     name: Release Installers
-    needs: build-installer
+    needs: [build-installer, build-flatpak]
     if: always() && startsWith(github.ref, 'refs/tags/') && !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
     steps:
@@ -149,7 +202,7 @@ jobs:
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
       - name: Download Installers
-        if: needs.build-installer.result == 'success'
+        if: needs.build-installer.result == 'success' || needs.build-flatpak.result == 'success'
         uses: actions/download-artifact@v8
 
       - name: Get Changelog
@@ -178,10 +231,12 @@ jobs:
             Tautulli-windows-x64-installer/Tautulli-windows-${{ steps.get_version.outputs.RELEASE_VERSION }}-x64.exe
             Tautulli-macos-x86_64-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-x86_64.pkg
             Tautulli-macos-arm64-installer/Tautulli-macos-${{ steps.get_version.outputs.RELEASE_VERSION }}-arm64.pkg
+            Tautulli-linux-x86_64-flatpak/Tautulli-linux-${{ steps.get_version.outputs.RELEASE_VERSION }}-x86_64.flatpak
+            Tautulli-linux-aarch64-flatpak/Tautulli-linux-${{ steps.get_version.outputs.RELEASE_VERSION }}-aarch64.flatpak
 
   discord:
     name: Discord Notification
-    needs: [build-installer, release]
+    needs: [build-installer, build-flatpak, release]
     if: always() && !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
     steps:
@@ -189,6 +244,6 @@ jobs:
         uses: sarisia/actions-status-discord@v1
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          status: ${{ needs.build-installer.result == 'success' && 'success' || contains(needs.*.result, 'failure') && 'failure' || 'cancelled' }}
+          status: ${{ needs.build-installer.result == 'success' && needs.build-flatpak.result == 'success' && 'success' || contains(needs.*.result, 'failure') && 'failure' || 'cancelled' }}
           title: ${{ github.workflow }}
           nofail: true

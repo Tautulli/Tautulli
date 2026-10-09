@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Tautulli
+Comment=Monitor and track your Plex Media Server
+Exec=tautulli
+Icon=com.tautulli.Tautulli
+Terminal=false
+Categories=Network;
+Keywords=Plex;Monitoring;Statistics;

@@ -1,0 +1,33 @@
+app-id: com.tautulli.Tautulli
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: tautulli
+finish-args:
+  - --share=network
+  - --env=TAUTULLI_FLATPAK=True
+modules:
+  - python3-requirements.json
+  - name: tautulli
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/share/tautulli
+      - cp -r Tautulli.py CHANGELOG.md LICENSE data lib plexpy version.txt branch.txt /app/share/tautulli/
+      - install -Dm755 package/flatpak/tautulli.sh /app/bin/tautulli
+      - install -Dm644 package/flatpak/com.tautulli.Tautulli.desktop -t /app/share/applications
+      - install -Dm644 package/flatpak/com.tautulli.Tautulli.metainfo.xml -t /app/share/metainfo
+      - |
+        set -- $(grep -m1 -oE '^## v[0-9.]+ \([0-9-]+\)' CHANGELOG.md | tr -d '#v()')
+        test -n "$2"
+        sed -i "s/0\.0\.0/$1/g; s/1970-01-01/$2/" /app/share/metainfo/com.tautulli.Tautulli.metainfo.xml
+      - |
+        for size in 128 256; do
+          mkdir -p /app/share/icons/hicolor/${size}x${size}/apps
+          printf '<svg xmlns="http://www.w3.org/2000/svg" width="350" height="350"><image width="350" height="350" href="data:image/png;base64,%s"/></svg>' \
+            "$(base64 -w0 data/interfaces/default/images/logo-circle.png)" > /tmp/icon.svg
+          rsvg-convert -w ${size} -h ${size} /tmp/icon.svg -o /app/share/icons/hicolor/${size}x${size}/apps/com.tautulli.Tautulli.png
+        done
+    sources:
+      - type: dir
+        path: ../..
+        skip: [.git, tests, snap, .github, .flatpak-builder, flatpak_app, repo]

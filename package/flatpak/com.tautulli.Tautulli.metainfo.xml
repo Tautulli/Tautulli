@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.tautulli.Tautulli</id>
+  <name>Tautulli</name>
+  <summary>Monitor and track your Plex Media Server</summary>
+  <developer id="com.tautulli">
+    <name>Tautulli</name>
+  </developer>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <url type="homepage">https://tautulli.com</url>
+  <url type="bugtracker">https://github.com/Tautulli/Tautulli/issues</url>
+  <url type="faq">https://github.com/Tautulli/Tautulli/wiki/Frequently-Asked-Questions</url>
+  <url type="vcs-browser">https://github.com/Tautulli/Tautulli</url>
+  <description>
+    <p>
+      Tautulli runs next to your Plex Media Server.
+      It shows what was watched, who watched it, when, where, and how.
+      The web interface presents these statistics in tables and graphs.
+    </p>
+    <p>
+      Tautulli starts a local web server on port 8181 and opens it in your browser.
+      Run it with --nolaunch to start the server without opening a browser.
+    </p>
+    <ul>
+      <li>Current activity on your Plex Media Server</li>
+      <li>Watch history and statistics for users, libraries, and media</li>
+      <li>Notifications for playback and server events</li>
+      <li>Newsletters with recently added media</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">com.tautulli.Tautulli.desktop</launchable>
+  <branding>
+    <color type="primary" scheme_preference="light">#f5c26b</color>
+    <color type="primary" scheme_preference="dark">#7a5a1a</color>
+  </branding>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://tautulli.com/images/screenshots/activity-compressed.jpg?v=2</image>
+      <caption>Current activity</caption>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <categories>
+    <category>Network</category>
+  </categories>
+  <releases>
+    <release version="0.0.0" date="1970-01-01">
+      <url type="details">https://github.com/Tautulli/Tautulli/releases/tag/v0.0.0</url>
+    </release>
+  </releases>
+</component>
