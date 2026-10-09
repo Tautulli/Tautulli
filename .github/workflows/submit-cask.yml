@@ -16,9 +16,13 @@ jobs:
 
       - name: Bump Cask
         env:
+          GH_TOKEN: ${{ github.token }}
           HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
+          HOMEBREW_GIT_NAME: github-actions[bot]
+          HOMEBREW_GIT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
+          RELEASE_TAG="${RELEASE_TAG:-$(gh release view -R "$GITHUB_REPOSITORY" --json tagName -q .tagName)}"
           VERSION="${RELEASE_TAG#v}"
           brew tap tautulli/tap
           brew trust --tap tautulli/tap
