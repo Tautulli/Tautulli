@@ -3,6 +3,13 @@
 function check_tautulli_running () {
     if pgrep -x "Tautulli" > /dev/null
     then
+        # The installer command (Homebrew, sudo installer -pkg) sets COMMAND_LINE_INSTALL and cannot show a dialog
+        if [[ -n $COMMAND_LINE_INSTALL ]]
+        then
+            echo "Tautulli is still running. Please shutdown Tautulli before continuing.";
+            exit 1;
+        fi
+
         dialogText=`osascript -e 'set dialogText to button returned of (display dialog "Tautulli is still running. Please shutdown Tautulli before continuing." buttons {"Retry", "Abort"})'`;
 
         if [[ $dialogText == 'Retry' ]]
