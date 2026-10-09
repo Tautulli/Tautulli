@@ -1,4 +1,5 @@
 pytest==9.1.1
+cryptography==50.0.2
 ruff==0.16.10
 # CI runs the browser tests on one Python version
 playwright==1.63.0; python_version >= "3.13"

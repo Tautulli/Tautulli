@@ -486,36 +486,46 @@ def split_string(mystring, splitvar=','):
 def create_https_certificates(ssl_cert, ssl_key):
     """
     Create a self-signed HTTPS certificate and store in it in
-    'ssl_cert' and 'ssl_key'. Method assumes pyOpenSSL is installed.
+    'ssl_cert' and 'ssl_key'. Method assumes cryptography is installed.
 
     This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
     """
     try:
-        from OpenSSL import crypto
+        from cryptography import x509
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.x509.oid import NameOID
     except ImportError:
-        logger.error("Unable to generate self-signed certificates: Missing pyOpenSSL module.")
+        logger.error("Unable to generate self-signed certificates: Missing cryptography module.")
         return False
-    from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
-    issuer = common.PRODUCT
-    serial = timestamp()
-    not_before = 0
-    not_after = 60 * 60 * 24 * 365 * 10  # ten years
-    domains = ['DNS:' + d.strip() for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]
-    ips = ['IP:' + d.strip() for d in plexpy.CONFIG.HTTPS_IP.split(',') if d]
-    alt_names = ','.join(domains + ips).encode('utf-8')
+    alt_names = [x509.DNSName(d.strip()) for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]
+    alt_names += [x509.IPAddress(ip_address(d.strip())) for d in plexpy.CONFIG.HTTPS_IP.split(',') if d]
 
     # Create the self-signed Tautulli certificate
     logger.debug("Generating self-signed SSL certificate.")
-    pkey = createKeyPair(TYPE_RSA, 2048)
-    cert = createSelfSignedCertificate(issuer, pkey, serial, not_before, not_after, alt_names)
+    pkey = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, common.PRODUCT)])
+    now = datetime.now(timezone.utc)
+    builder = (x509.CertificateBuilder()
+               .subject_name(name)
+               .issuer_name(name)
+               .public_key(pkey.public_key())
+               .serial_number(timestamp())
+               .not_valid_before(now)
+               .not_valid_after(now + timedelta(days=365 * 10)))  # ten years
+    if alt_names:
+        builder = builder.add_extension(x509.SubjectAlternativeName(alt_names), critical=False)
+    cert = builder.sign(pkey, hashes.SHA256())
 
     # Save the key and certificate to disk
     try:
-        with open(ssl_cert, "w") as fp:
-            fp.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode('utf-8'))
-        with open(ssl_key, "w") as fp:
-            fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey).decode('utf-8'))
+        with open(ssl_cert, "wb") as fp:
+            fp.write(cert.public_bytes(serialization.Encoding.PEM))
+        with open(ssl_key, "wb") as fp:
+            fp.write(pkey.private_bytes(serialization.Encoding.PEM,
+                                        serialization.PrivateFormat.PKCS8,
+                                        serialization.NoEncryption()))
     except IOError as e:
         logger.error("Error creating SSL key and certificate: %s", e)
         return False
