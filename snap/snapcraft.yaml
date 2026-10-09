@@ -27,6 +27,15 @@ parts:
     plugin: dump
     source: .
     stage:
+      - -.dockerignore
+      - -Dockerfile
+      - -contrib
+      - -init-scripts
+      - -package
+      - -pylintrc
+      - CHANGELOG.md
+      - -*.md
+      - -start.bat
       - -tests
       - -pytest.ini
       - -requirements-dev.txt
