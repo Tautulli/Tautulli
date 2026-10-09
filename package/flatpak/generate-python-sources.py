@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Write python3-requirements.json for cryptography and pyopenssl.
+"""Write python3-requirements.json for cryptography.
 
-Tautulli vendors its other dependencies in lib/. The two versions come from
-package/requirements-package.txt, the same pins the installers use.
-Change them there, then run this script.
+Tautulli vendors its other dependencies in lib/. The version comes from
+package/requirements-package.txt, the same pin the installers use.
+Change it there, then run this script.
 It resolves one wheel set per architecture with pip, looks up each file URL on PyPI,
 and writes sha256-pinned sources for every resolved package. Requires network access.
 """
@@ -18,7 +18,7 @@ from pathlib import Path
 ARCHES = ('x86_64', 'aarch64')
 HERE = Path(__file__).resolve().parent
 PACKAGE_REQS = HERE.parent / 'requirements-package.txt'
-NAMES = ('cryptography', 'pyopenssl')
+NAMES = ('cryptography',)
 REQS = [line.strip() for line in PACKAGE_REQS.read_text().splitlines()
         if line.strip().split('==')[0].lower() in NAMES]
 
