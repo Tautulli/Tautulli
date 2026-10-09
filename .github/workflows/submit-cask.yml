@@ -1,0 +1,33 @@
+name: Submit Homebrew Cask
+
+on:
+  workflow_dispatch: ~
+  release:
+    types: [published]
+
+jobs:
+  homebrew:
+    name: Update Homebrew Cask
+    runs-on: macos-latest
+    if: ${{ !github.event.release.prerelease }}
+    steps:
+      - name: Set Up Homebrew
+        uses: Homebrew/actions/setup-homebrew@main
+
+      - name: Bump Cask
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HOMEBREW_GITHUB_API_TOKEN: ${{ secrets.GHACTIONS_TOKEN }}
+          HOMEBREW_GIT_NAME: github-actions[bot]
+          HOMEBREW_GIT_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          RELEASE_TAG="${RELEASE_TAG:-$(gh release view -R "$GITHUB_REPOSITORY" --json tagName -q .tagName)}"
+          VERSION="${RELEASE_TAG#v}"
+          brew tap tautulli/tap
+          brew trust --tap tautulli/tap
+          brew bump-cask-pr --write-only --commit --no-audit --no-style \
+            --version "$VERSION" tautulli/tap/tautulli
+
+          cd "$(brew --repo tautulli/tap)"
+          git push "https://x-access-token:${HOMEBREW_GITHUB_API_TOKEN}@github.com/Tautulli/homebrew-tap.git" HEAD
