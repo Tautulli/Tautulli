@@ -10,6 +10,10 @@ jobs:
   label:
     name: Label Issues / PRs
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
     steps:
       - name: Label
         uses: dessant/label-actions@v5
