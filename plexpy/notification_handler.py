@@ -557,6 +557,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
 
     child_metadata = []
     child_keys = kwargs.pop('child_keys', [])
+    new_show = kwargs.pop('new_show', 0)
     if child_keys:
         # Only media_index and parent_rating_key are needed for grouped
         # notifications; one children listing provides them for every
@@ -1132,6 +1133,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'episode_count': grandchild_count,
         'album_count': child_count,
         'track_count': grandchild_count,
+        'new_show': new_show,
         'year': notify_params['year'],
         'show_year': show_year,
         'release_date': CustomArrow(arrow.get(notify_params['originally_available_at']), date_format)

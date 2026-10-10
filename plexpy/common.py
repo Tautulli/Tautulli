@@ -544,6 +544,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Episode Count', 'type': 'int', 'value': 'episode_count', 'description': 'The number of episodes in a grouped recently added notification.'},
              {'name': 'Album Count', 'type': 'int', 'value': 'album_count', 'description': 'The number of albums in a grouped recently added notification.'},
              {'name': 'Track Count', 'type': 'int', 'value': 'track_count', 'description': 'The number of tracks in a grouped recently added notification.'},
+             {'name': 'New Show', 'type': 'int', 'value': 'new_show', 'description': 'If the TV show itself was added to the server, as opposed to a new season of an existing show.', 'example': '0 or 1'},
              {'name': 'Year', 'type': 'int', 'value': 'year', 'description': 'The release year for the item.'},
              {'name': 'Show Year', 'type': 'int', 'value': 'show_year', 'description': 'The release year of the TV show.'},
              {'name': 'Release Date', 'type': 'str', 'value': 'release_date', 'description': 'The release date (in date format) for the item.'},

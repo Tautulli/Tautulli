@@ -33,6 +33,11 @@ ACTIVITY_SCHED = None
 
 RECENTLY_ADDED_QUEUE = {}
 
+# Shows whose "created" timeline event arrived in the current recently added
+# batch, i.e. the show itself is new (as opposed to a new season of an
+# existing show). Used to expose the {new_show} notification parameter.
+RECENTLY_ADDED_NEW_SHOW = set()
+
 # Markers for active sessions: {session_key: (rating_key, markers, cached_at)}
 # Evicted by delete_metadata_cache() when a session stops. Entries are
 # re-read after a short TTL so markers that appear mid-session (Plex
@@ -538,6 +543,9 @@ class TimelineHandler(object):
                 queue_set = RECENTLY_ADDED_QUEUE.get(self.rating_key, set())
                 RECENTLY_ADDED_QUEUE[self.rating_key] = queue_set
 
+                if self.media_type == 'show':
+                    RECENTLY_ADDED_NEW_SHOW.add(self.rating_key)
+
                 logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) "
                                 "added to recently added queue."
                                 % (self.title, str(self.rating_key)))
@@ -564,6 +572,7 @@ class TimelineHandler(object):
                                 "removed from recently added queue."
                                 % str(self.rating_key))
                 del_keys(self.rating_key)
+                RECENTLY_ADDED_NEW_SHOW.discard(self.rating_key)
 
                 # Remove the callback if the item is removed
                 schedule_callback('rating_key-{}'.format(self.rating_key), remove_job=True)
@@ -702,28 +711,31 @@ def clear_recently_added_queue(rating_key, title):
 
     child_keys = RECENTLY_ADDED_QUEUE[rating_key]
 
+    new_show = int(rating_key in RECENTLY_ADDED_NEW_SHOW)
+
     if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_GRANDPARENT and len(child_keys) > 1:
-        on_created(rating_key, child_keys=child_keys)
+        on_created(rating_key, child_keys=child_keys, new_show=new_show)
 
     elif child_keys:
         for child_key in child_keys:
             grandchild_keys = RECENTLY_ADDED_QUEUE.get(child_key, [])
 
             if plexpy.CONFIG.NOTIFY_GROUP_RECENTLY_ADDED_PARENT and len(grandchild_keys) > 1:
-                on_created(child_key, child_keys=grandchild_keys)
+                on_created(child_key, child_keys=grandchild_keys, new_show=new_show)
 
             elif grandchild_keys:
                 for grandchild_key in grandchild_keys:
-                    on_created(grandchild_key)
+                    on_created(grandchild_key, new_show=new_show)
 
             else:
-                on_created(child_key)
+                on_created(child_key, new_show=new_show)
 
     else:
-        on_created(rating_key)
+        on_created(rating_key, new_show=new_show)
 
     # Remove all keys
     del_keys(rating_key)
+    RECENTLY_ADDED_NEW_SHOW.discard(rating_key)
 
 
 def on_created(rating_key, **kwargs):
