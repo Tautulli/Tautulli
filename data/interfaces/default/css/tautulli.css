@@ -2353,6 +2353,28 @@ li.advanced-setting {
     padding-top: 15px;
     padding-left: 105px;
 }
+.user-info-account {
+    margin-left: 10px;
+    font-size: 14px;
+    color: #999;
+}
+.user-info-account > span {
+    display: inline-block;
+    overflow-wrap: anywhere;
+}
+.user-info-account > span:not(:last-child):after {
+    content: " \00b7";
+}
+@media (max-width: 767px) {
+    .user-info-account,
+    .user-info-account > span {
+        display: block;
+        margin-left: 0;
+    }
+    .user-info-account > span:not(:last-child):after {
+        content: none;
+    }
+}
 .user-info-nav {
     margin-top: 15px;
     padding-left: 105px;

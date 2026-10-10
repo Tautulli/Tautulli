@@ -73,6 +73,14 @@ DOCUMENTATION :: END
                                 <span id="edit-user-tooltip" data-target="tooltip" title="Edit user details">
                                     <a href="#" data-toggle="modal" data-target="#edit-user-modal" id="toggle-edit-user-modal"><i class="fa fa-pencil"></i></a>
                                 </span>
+                                <span class="user-info-account">
+                                    % if data['username'] != data['friendly_name']:
+                                    <span>${data['username']}</span>
+                                    % endif
+                                    % if data['email']:
+                                    <span>${data['email']}</span>
+                                    % endif
+                                </span>
                                 % endif
                             </div>
                             <div class="user-info-nav">
