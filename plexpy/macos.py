@@ -16,6 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import signal
 import subprocess
 import sys
 import plistlib
@@ -29,6 +30,7 @@ except ImportError:
 
 if HAS_PYOBJC:
     import rumps
+    from PyObjCTools import MachSignals
 
 import plexpy
 from plexpy import common
@@ -66,6 +68,9 @@ class MacOSSystemTray(object):
 
     def start(self):
         logger.info("Launching MacOS menu bar icon.")
+        # Python runs signal handlers on the main thread, which the menu bar run loop blocks.
+        # MachSignals delivers SIGTERM through the run loop to the Quit menu item handler.
+        MachSignals.signal(signal.SIGTERM, self.tray_quit)
         try:
             self.tray_icon.run()
         except Exception as e:
