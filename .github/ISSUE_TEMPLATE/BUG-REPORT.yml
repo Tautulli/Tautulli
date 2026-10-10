@@ -96,7 +96,7 @@ body:
     attributes:
       label: Python Version
       description: Check Tautulli Settings > Help & Info page.
-      placeholder: eg. 3.8.10
+      placeholder: eg. 3.13.16
     validations:
       required: true
   - type: input
