@@ -204,9 +204,10 @@ def initialize(config_file):
         logger.info("Starting Tautulli {}".format(
             common.RELEASE
         ))
-        logger.info("{}{} {} ({}{})".format(
+        logger.info("{}{} {} ({}{}) ({})".format(
             build, common.PLATFORM, common.PLATFORM_RELEASE, common.PLATFORM_VERSION,
-            ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else ''
+            ' - {}'.format(common.PLATFORM_LINUX_DISTRO) if common.PLATFORM_LINUX_DISTRO else '',
+            common.PLATFORM_ARCHITECTURE
         ))
         logger.info("{} (UTC{})".format(
             str(SYS_TIMEZONE), SYS_UTC_OFFSET
@@ -3146,6 +3147,7 @@ def analytics_event(name, **kwargs):
     event.set_event_param('install', INSTALL_TYPE)
     event.set_event_param('branch', CONFIG.GIT_BRANCH)
     event.set_event_param('platform', common.PLATFORM)
+    event.set_event_param('platformArchitecture', common.PLATFORM_ARCHITECTURE)
     event.set_event_param('platformRelease', common.PLATFORM_RELEASE)
     event.set_event_param('platformVersion', common.PLATFORM_VERSION[:100])
     event.set_event_param('linuxDistro', common.PLATFORM_LINUX_DISTRO)

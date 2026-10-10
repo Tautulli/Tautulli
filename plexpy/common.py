@@ -26,6 +26,7 @@ from plexpy import version
 # Identify Our Application
 PRODUCT = 'Tautulli'
 PLATFORM = platform.system()
+PLATFORM_ARCHITECTURE = platform.machine()
 PLATFORM_RELEASE = platform.release()
 PLATFORM_VERSION = platform.version()
 # Same fields as the deprecated distro.linux_distribution(). Its codename prefers
