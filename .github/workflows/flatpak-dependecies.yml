@@ -6,6 +6,9 @@ on:
     paths:
       - 'package/requirements-package.txt'
 
+permissions:
+  contents: write
+
 jobs:
   update-flatpak:
     name: Update Flatpak Dependencies
@@ -35,6 +38,6 @@ jobs:
           
           # Only commit if changes exist to avoid empty commit failures
           if ! git diff --cached --quiet; then
-            git commit -m "chore: auto-update flatpak python modules"
+            git commit -m "Update flatpak python sources [dependabot skip]"
             git push
           fi
