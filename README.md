@@ -44,9 +44,6 @@ and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
 | Status | Branch: `master` | Branch: `beta` | Branch: `nightly` |
 | --- | --- | --- | --- |
 | Release   | [![Release@master][badge-release-master]][Releases Latest] <br> [![Release Date@master][badge-release-master-date]][Releases Latest] | [![Release@beta][badge-release-beta]][Releases] <br> [![Commits@beta][badge-release-beta-commits]][Commits Beta] | [![Last Commits@nightly][badge-release-nightly-last-commit]][commits Nightly] <br> [![Commits@nightly][badge-release-nightly-commits]][Commits Nightly] |
-| Docker    | [![Docker@master][badge-docker-master]][DockerHub] <br> [![Docker Build@master][badge-docker-master-ci]][Publish Docker Master] | [![Docker@beta][badge-docker-beta]][DockerHub] <br> [![Docker Build@beta][badge-docker-beta-ci]][Publish Docker Beta] | [![Docker@nightly][badge-docker-nightly]][DockerHub] <br> [![Docker Build@nightly][badge-docker-nightly-ci]][Publish Docker Nightly] |
-| Snap      | [![Snap@master][badge-snap-master]][Snapcraft] <br> [![Snap Build@master][badge-snap-master-ci]][Publish Snap Master] | [![Snap@beta][badge-snap-beta]][Snapcraft] <br> [![Snap Build@beta][badge-snap-beta-ci]][Publish Snap Beta] | [![Snap@nightly][badge-snap-nightly]][Snapcraft] <br> [![Snap Build@nightly][badge-snap-nightly-ci]][Publish Snap Nightly] |
-| Installer | [![Windows@master][badge-installer-master-win]][Releases Latest] <br> [![MacOS@master][badge-installer-master-macos]][Releases Latest] <br> [![Installer Build@master][badge-installer-master-ci]][Publish Installer Master] | [![Windows@beta][badge-installer-beta-win]][Releases] <br> [![MacOS@beta][badge-installer-beta-macos]][Releases] <br> [![Installer Build@beta][badge-installer-beta-ci]][Publish Installer Beta] | [![Installer Build@nightly][badge-installer-nightly-ci]][Publish Installer Nightly] |
 
 Read the [Installation Guides][Installation] for instructions on how to install Tautulli.
 
@@ -56,38 +53,17 @@ Read the [Installation Guides][Installation] for instructions on how to install 
 [badge-release-beta-commits]: https://img.shields.io/github/commits-since/Tautulli/Tautulli/latest/beta?style=flat-square&color=blue
 [badge-release-nightly-last-commit]: https://img.shields.io/github/last-commit/Tautulli/Tautulli/nightly?style=flat-square&color=blue
 [badge-release-nightly-commits]: https://img.shields.io/github/commits-since/Tautulli/Tautulli/latest/nightly?style=flat-square&color=blue
-[badge-docker-master]: https://img.shields.io/badge/docker-latest-blue?style=flat-square
-[badge-docker-master-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-docker.yml?style=flat-square&branch=master
-[badge-docker-beta]: https://img.shields.io/badge/docker-beta-blue?style=flat-square
-[badge-docker-beta-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-docker.yml?style=flat-square&branch=beta
-[badge-docker-nightly]: https://img.shields.io/badge/docker-nightly-blue?style=flat-square
-[badge-docker-nightly-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-docker.yml?style=flat-square&branch=nightly
-[badge-snap-master]: https://img.shields.io/badge/snap-stable-blue?style=flat-square
-[badge-snap-master-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-snap.yml?style=flat-square&branch=master
-[badge-snap-beta]: https://img.shields.io/badge/snap-beta-blue?style=flat-square
-[badge-snap-beta-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-snap.yml?style=flat-square&branch=beta
-[badge-snap-nightly]: https://img.shields.io/badge/snap-edge-blue?style=flat-square
-[badge-snap-nightly-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-snap.yml?style=flat-square&branch=nightly
-[badge-installer-master-win]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=windows&style=flat-square
-[badge-installer-master-macos]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=macos&style=flat-square
-[badge-installer-master-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-installers.yml?style=flat-square&branch=master
-[badge-installer-beta-win]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=windows&include_prereleases&style=flat-square
-[badge-installer-beta-macos]: https://img.shields.io/github/v/release/Tautulli/Tautulli?label=macos&include_prereleases&style=flat-square
-[badge-installer-beta-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-installers.yml?style=flat-square&branch=beta
-[badge-installer-nightly-ci]: https://img.shields.io/github/actions/workflow/status/Tautulli/Tautulli/.github/workflows/publish-installers.yml?style=flat-square&branch=nightly
 
 ## Support
 
 [![Wiki][badge-wiki]][Wiki]
 [![Discord][badge-discord]][Discord]
 [![Reddit][badge-reddit]][Reddit]
-[![Plex Forums][badge-forums]][Plex Forums]
 [![Issues][badge-issues]][Issues]
 
 [badge-wiki]: https://img.shields.io/badge/github-wiki-black?style=flat-square
 [badge-discord]: https://img.shields.io/discord/183396325142822912?label=discord&style=flat-square&color=7289DA
 [badge-reddit]: https://img.shields.io/reddit/subreddit-subscribers/tautulli?label=reddit&style=flat-square&color=FF5700
-[badge-forums]: https://img.shields.io/badge/plex%20forums-discussion-E5A00D?style=flat-square
 [badge-issues]: https://img.shields.io/badge/github-issues-black?style=flat-square
 
 If you think you've found a bug in Tautulli make sure you have read the [FAQ][]
@@ -99,8 +75,7 @@ problem isn't answered in the FAQ try the following first:
 -   Analyzing your logs, you just might find the solution yourself!
 -   Using the **search** function to see if this issue has already been reported/solved.
 -   Checking the [Wiki][] for [Installation][] instructions and reading the [FAQs][FAQ].
--   For basic questions try asking on [Discord][], [Reddit][], 
-    or the [Plex Forums][] first before opening an issue.
+-   For basic questions try asking on [Discord][] first before opening an issue.
 
 **If nothing has worked:**
 
@@ -159,17 +134,6 @@ https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
 [Wiki]: https://github.com/Tautulli/Tautulli/wiki
 [Discord]: https://tautulli.com/discord
 [Reddit]: https://reddit.com/r/Tautulli
-[Plex Forums]: https://forums.plex.tv/t/tautulli-monitor-your-plex-media-server/225242
 [Snapcraft]: https://snapcraft.io/tautulli
 [Commits Beta]: https://github.com/Tautulli/Tautulli/commits/beta
 [Commits Nightly]: https://github.com/Tautulli/Tautulli/commits/nightly
-
-[Publish Docker Master]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Amaster
-[Publish Docker Beta]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Abeta
-[Publish Docker Nightly]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Docker"+branch%3Anightly
-[Publish Snap Master]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Amaster
-[Publish Snap Beta]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Abeta
-[Publish Snap Nightly]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Snap"+branch%3Anightly
-[Publish Installer Master]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Amaster
-[Publish Installer Beta]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Abeta
-[Publish Installer Nightly]: https://github.com/Tautulli/Tautulli/actions?query=workflow%3A"Publish+Installers"+branch%3Anightly
