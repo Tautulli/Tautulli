@@ -1,0 +1,40 @@
+name: Update Flatpak Dependencies
+
+on:
+  pull_request:
+    branches: [nightly]
+    paths:
+      - 'package/requirements-package.txt'
+
+jobs:
+  update-flatpak:
+    name: Update Flatpak Dependencies
+    runs-on: ubuntu-latest
+    # Only run if the PR was opened by Dependabot
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set Up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+
+      - name: Update Flatpak JSON Manifest
+        run: |
+          python package/flatpak/generate-python-sources.py
+
+      - name: Commit Changes to PR
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add package/flatpak/python3-requirements.json
+          
+          # Only commit if changes exist to avoid empty commit failures
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: auto-update flatpak python modules"
+            git push
+          fi
