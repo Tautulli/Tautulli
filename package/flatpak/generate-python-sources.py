@@ -24,7 +24,7 @@ REQS = [line.strip() for line in PACKAGE_REQS.read_text().splitlines()
 
 
 def resolve(arch, reqs, dest):
-    cmd = [sys.executable, '-m', 'pip', 'download', '-q', '--python-version', '3.13',
+    cmd = [sys.executable, '-m', 'pip', 'download', '-q', '--python-version', '3.14',
            '--implementation', 'cp', '--only-binary=:all:', '-d', dest]
     for tag in ('manylinux_2_28', 'manylinux2014', 'manylinux_2_17'):
         cmd += ['--platform', f'{tag}_{arch}']
