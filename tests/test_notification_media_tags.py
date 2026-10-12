@@ -78,3 +78,62 @@ def test_unmatched_media_tag_is_stripped(app_config):
                                       parameters={"media_type": "movie"},
                                       agent_id=None, test=True)
     assert subject == "before  after"
+
+
+@pytest.mark.parametrize("live, expected", [
+    (1, "E\n L always!"),
+    (0, "E always"),
+    ("0", "E always"),
+    (None, "E always"),
+])
+def test_live_tag_keeps_its_section_only_for_live_tv(app_config, live, expected):
+    # Live TV is a flag on top of the media type, so a live episode keeps
+    # both its episode section and its live section. The second live section
+    # fails a greedy match, which would also drop " always". The empty live
+    # section must go too.
+    text = "<episode>E</episode><movie>M</movie><LIVE>\n L</LIVE> always<live>!</live><live></live>"
+
+    subject, body = build_notify_text(subject=text, body=text, notify_action="on_play",
+                                      parameters={"media_type": "episode", "live": live},
+                                      agent_id=10, test=True)
+
+    assert (subject, body) == (expected, expected)
+
+
+@pytest.mark.parametrize("media_type, live, expected", [
+    ("movie", 1, "ML|LM||L"),
+    ("movie", 0, "M|||"),
+    ("episode", 1, "|L|EL|LE"),
+    ("episode", 0, "||E|"),
+])
+def test_live_tag_nests_with_media_type_tags(app_config, media_type, live, expected):
+    # The live tag can sit inside or around a media type tag. Live TV can be
+    # a movie or an episode, so both media types get both nestings.
+    text = ("<movie>M<live>L</live></movie>|<live>L<movie>M</movie></live>|"
+            "<episode>E<live>L</live></episode>|<live>L<episode>E</episode></live>")
+
+    subject, _ = build_notify_text(subject=text, body="", notify_action="on_play",
+                                   parameters={"media_type": media_type, "live": live},
+                                   agent_id=10, test=True)
+
+    assert subject == expected
+
+
+@pytest.mark.parametrize("text", [
+    "a<live><episode>text</live></episode>b",
+    "a<episode><live>text</episode></live>b",
+])
+@pytest.mark.parametrize("media_type, live, expected", [
+    ("episode", 1, "atextb"),
+    ("episode", 0, "ab"),
+    ("movie", 1, "ab"),
+    ("movie", 0, "ab"),
+])
+def test_live_tag_crossed_with_media_type_tag(app_config, text, media_type, live, expected):
+    # When the closing tags cross, a dropped episode section takes one live
+    # tag with it. The lone live tag left behind must not reach the agent.
+    subject, _ = build_notify_text(subject=text, body="", notify_action="on_play",
+                                   parameters={"media_type": media_type, "live": live},
+                                   agent_id=10, test=True)
+
+    assert subject == expected

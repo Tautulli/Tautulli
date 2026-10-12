@@ -1869,7 +1869,7 @@
                             They <em>do not</em> separate the notification parameters (i.e. <span class="inline-pre">{show_name}</span> vs. <span class="inline-pre">{episode_name}</span>.
                         </p>
                         <p class="help-block">
-                            Note: Nesting tags inside each other is not supported.
+                            Note: Nesting tags inside each other is not supported, except the live TV tag which can go inside or around the other media type tags.
                         </p>
                     </div>
                     <div>
@@ -1894,13 +1894,24 @@
                     <div>
                         <h4>Artist / Album / Track Tag</h4>
                     </div>
-                    <div>
+                    <div style="padding-bottom: 10px;">
                         <p class="help-block">
                             All text inside <span class="inline-pre">&lt;artist&gt;&lt;/artist&gt;</span>/<span class="inline-pre">&lt;album&gt;&lt;/album&gt;</span>/<span class="inline-pre">&lt;track&gt;&lt;/track&gt;</span>
                             tags will only be sent when the media type is artist, album, or track, respectively.
                         </p>
                         <p><strong style="color: #fff;">Example:</strong></p>
                         <pre>{artist_name}&lt;album&gt; - {album_name}&lt;/album&gt;&lt;track&gt; - {album_name} - {track_name}&lt;/track&gt; was recently added to Plex.</pre>
+                    </div>
+                    <div>
+                        <h4>Live TV Tag</h4>
+                    </div>
+                    <div>
+                        <p class="help-block">
+                            All text inside <span class="inline-pre">&lt;live&gt;&lt;/live&gt;</span> tags will only be sent when the stream is Live TV.
+                            A Live TV movie or episode keeps the text inside both its media type tag and the <span class="inline-pre">&lt;live&gt;&lt;/live&gt;</span> tag.
+                        </p>
+                        <p><strong style="color: #fff;">Example:</strong></p>
+                        <pre>{user} started playing {title}&lt;live&gt; on {channel_title}&lt;/live&gt;.</pre>
                     </div>
                 </div>
             </div>

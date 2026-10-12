@@ -1352,6 +1352,10 @@ MEDIA_TAGS_REGEX = {
     'track': re.compile(ALL_TAGS.replace('<track>.*?</track>', '<track>|</track>'), re.IGNORECASE | re.DOTALL),
     'default': re.compile(ALL_TAGS, re.IGNORECASE | re.DOTALL),
 }
+LIVE_TAG_REGEX = {
+    True: re.compile(r'<live>|</live>', re.IGNORECASE),
+    False: re.compile(r'<live>.*?</live>|</?live>', re.IGNORECASE | re.DOTALL),
+}
 
 
 def build_notify_text(subject='', body='', notify_action=None, parameters=None, agent_id=None, test=False, as_json=False):
@@ -1373,10 +1377,11 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     media_type = parameters.get('media_type')
     pattern = MEDIA_TAGS_REGEX.get(media_type, MEDIA_TAGS_REGEX['default'])
+    live_pattern = LIVE_TAG_REGEX[bool(helpers.cast_to_int(parameters.get('live')))]
 
     # Remove the unwanted tags and strip any unmatch tags too.
-    subject = strip_tag(re.sub(pattern, '', subject), agent_id).strip(' \t\n\r')
-    body = strip_tag(re.sub(pattern, '', body), agent_id).strip(' \t\n\r')
+    subject = strip_tag(re.sub(live_pattern, '', re.sub(pattern, '', subject)), agent_id).strip(' \t\n\r')
+    body = strip_tag(re.sub(live_pattern, '', re.sub(pattern, '', body)), agent_id).strip(' \t\n\r')
     script_args = []
 
     if test:
