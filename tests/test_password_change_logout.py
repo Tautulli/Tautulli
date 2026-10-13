@@ -9,7 +9,7 @@ import pytest
 from hashing_passwords import check_hash, make_hash
 
 import plexpy
-from plexpy import libraries, logger, plextv, users, webserve
+from plexpy import activity_pinger, libraries, logger, plextv, users, webserve, webstart
 
 
 @pytest.fixture
@@ -23,7 +23,6 @@ def web(app_config, monkeypatch):
     # Keep the startup options unchanged so the save leaves the OS alone.
     plexpy.CONFIG.LAUNCH_STARTUP = 0
     plexpy.CONFIG.LAUNCH_BROWSER = 0
-    plexpy.CONFIG.JWT_UPDATE_SECRET = 0
     return webserve.WebInterface()
 
 
@@ -34,6 +33,14 @@ def test_a_new_password_logs_out_existing_sessions(web):
 
     assert check_hash("new-password", plexpy.CONFIG.HTTP_PASSWORD)
     assert plexpy.CONFIG.JWT_UPDATE_SECRET
+
+
+def test_a_new_password_saves_the_flag_to_the_config_file(web, app_config):
+    plexpy.CONFIG.HTTP_PASSWORD = make_hash("old-password")
+
+    web.configUpdate(http_password="new-password")
+
+    assert plexpy.config.Config(app_config._config_file).JWT_UPDATE_SECRET
 
 
 def test_removing_the_password_logs_out_existing_sessions(web):
@@ -69,4 +76,16 @@ def test_saving_other_settings_keeps_existing_sessions(web):
 
     web.configUpdate(verbose_logs="1")
 
+    assert not plexpy.CONFIG.JWT_UPDATE_SECRET
+
+
+def test_the_setup_wizard_keeps_the_new_session(web, monkeypatch):
+    # The setup wizard also sends analytics and restarts the web server.
+    monkeypatch.setattr(plexpy, "run_analytics", lambda **kwargs: None)
+    monkeypatch.setattr(webstart, "restart", lambda: None)
+    monkeypatch.setattr(activity_pinger, "connect_server", lambda **kwargs: None)
+
+    web.configUpdate(first_run="1", http_username="admin", http_password="new-password")
+
+    assert check_hash("new-password", plexpy.CONFIG.HTTP_PASSWORD)
     assert not plexpy.CONFIG.JWT_UPDATE_SECRET
