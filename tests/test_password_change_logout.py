@@ -1,9 +1,14 @@
-"""Changing the HTTP password logs out existing sessions on the next restart."""
+"""Changing the HTTP password logs out existing sessions on the next restart.
+
+configUpdate set jwt_update_secret to refresh the JWT secret, but then
+dropped every key that is not a setting, so the flag never reached the
+config. Login cookies issued with the old password stayed valid.
+"""
 
 import pytest
+from hashing_passwords import check_hash, make_hash
 
 import plexpy
-from hashing_passwords import check_hash, make_hash
 from plexpy import libraries, logger, plextv, users, webserve
 
 
