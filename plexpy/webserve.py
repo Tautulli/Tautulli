@@ -3411,14 +3411,18 @@ class WebInterface(object):
 
         verbose_changed = not first_run and kwargs.get('verbose_logs') != plexpy.CONFIG.VERBOSE_LOGS
 
+        # Refresh the JWT secret on restart to log out clients when the password changes
+        update_jwt_secret = False
+
         # If http password exists in config, do not overwrite when blank value received
         if kwargs.get('http_password') == '    ':
             del kwargs['http_password']
-        else:
-            if kwargs.get('http_password', '') != '':
+        elif 'http_password' in kwargs:
+            if kwargs['http_password'] != '':
                 kwargs['http_password'] = make_hash(kwargs['http_password'])
-            # Flag to refresh JWT uuid to log out clients
-            kwargs['jwt_update_secret'] = True and not first_run
+                update_jwt_secret = True
+            elif plexpy.CONFIG.HTTP_PASSWORD:
+                update_jwt_secret = True
 
         for plain_config, use_config in [(x[4:], x) for x in kwargs if x.startswith('use_')]:
             # the use prefix is fairly nice in the html, but does not match the actual config
@@ -3491,6 +3495,9 @@ class WebInterface(object):
             kwargs['first_run_complete'] = 1
 
         plexpy.CONFIG.process_kwargs(kwargs)
+
+        if update_jwt_secret and not first_run:
+            plexpy.CONFIG.JWT_UPDATE_SECRET = True
 
         # Write the config
         plexpy.CONFIG.write()
