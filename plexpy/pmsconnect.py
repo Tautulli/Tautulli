@@ -570,7 +570,8 @@ class PmsConnect(object):
         elif section_id:
             recent = self.get_library_recently_added(section_id, start, count, output_format='xml')
         else:
-            for media_type in media_types:
+            selected = [m for m in helpers.split_strip(media_type) if m in media_types] or media_types
+            for media_type in selected:
                 recents = self.get_recently_added_details(start, count, media_type)
                 recents_list += recents['recently_added']
 

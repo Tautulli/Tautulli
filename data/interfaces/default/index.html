@@ -99,20 +99,17 @@
                 </ul>
                 <div class="button-bar">
                     <div class="btn-group pull-left" data-toggle="buttons" id="recently-added-toggles">
-                        <label class="btn btn-dark btn-filter" id="recently-added-label-all">
-                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-all" value="all" autocomplete="off"> All
-                        </label>
                         <label class="btn btn-dark btn-filter" id="recently-added-label-movies">
-                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
+                            <input type="checkbox" name="recently-added-toggle" id="recently-added-toggle-movie" value="movie" autocomplete="off"> Movies
                         </label>
                         <label class="btn btn-dark btn-filter" id="recently-added-label-tv">
-                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
+                            <input type="checkbox" name="recently-added-toggle" id="recently-added-toggle-show" value="show" autocomplete="off"> TV Shows
                         </label>
                         <label class="btn btn-dark btn-filter" id="recently-added-label-music">
-                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-artist" value="artist" autocomplete="off"> Music
+                            <input type="checkbox" name="recently-added-toggle" id="recently-added-toggle-artist" value="artist" autocomplete="off"> Music
                         </label>
                         <label class="btn btn-dark btn-filter" id="recently-added-label-other_video">
-                            <input type="radio" name="recently-added-toggle" id="recently-added-toggle-other_video" value="other_video" autocomplete="off"> Videos
+                            <input type="checkbox" name="recently-added-toggle" id="recently-added-toggle-other_video" value="other_video" autocomplete="off"> Videos
                         </label>
                     </div>
                     <div class="input-group pull-left" style="width: 1px;" id="recently-added-count-selection">
@@ -971,10 +968,11 @@
     }
 
     var recently_added_count = getLocalStorage('home_stats_recently_added_count', 50);
-    var recently_added_type = getLocalStorage('home_stats_recently_added_type', 'all');;
+    var recently_added_type = getLocalStorage('home_stats_recently_added_type', '');
 
-    $('#recently-added-toggle-' + recently_added_type).prop('checked', true);
-    $('#recently-added-toggle-' + recently_added_type).closest('label').addClass('active');
+    $.each(recently_added_type.split(','), function (i, item) {
+        $('#recently-added-toggle-' + item).prop('checked', true).closest('label').addClass('active');
+    });
     $('#recently-added-count').val(recently_added_count);
 
     function recentlyAddedConnected() {
@@ -985,7 +983,7 @@
         $('#recently-added-toggles > label').removeClass('active');
         selected_filter = $('input[name=recently-added-toggle]:checked', '#recently-added-toggles');
         $(selected_filter).closest('label').addClass('active');
-        recently_added_type = $(selected_filter).val();
+        recently_added_type = $(selected_filter).map(function () { return $(this).val(); }).get().join(',');
         setLocalStorage('home_stats_recently_added_type', recently_added_type);
         recentlyAdded(recently_added_count, recently_added_type);
     });

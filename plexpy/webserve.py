@@ -5825,7 +5825,8 @@ class WebInterface(object):
 
             Optional parameters:
                 start (str):        The item number to start at
-                media_type (str):   The media type: movie, show, artist
+                media_type (str):   "movie", "show", "artist", "other_video",
+                                    or a comma separated list, e.g. "movie,show"
                 section_id (str):   The id of the Plex library section
 
             Returns:
