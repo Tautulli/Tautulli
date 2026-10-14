@@ -944,10 +944,15 @@
 % endif
 % if 'recently_added' in config['home_sections']:
 <script>
+    var recently_added_request;
+
     function recentlyAdded(recently_added_count, recently_added_type) {
         showMsg("Loading recently added items...", true, false, 0);
 
-        $.ajax({
+        if (recently_added_request) {
+            recently_added_request.abort();
+        }
+        recently_added_request = $.ajax({
             url: 'get_recently_added',
             type: 'GET',
             async: true,
@@ -959,6 +964,9 @@
                 $(".dashboard-recent-media-row").animate({ scrollLeft: 0 }, 1000);
             },
             complete: function (xhr, status) {
+                if (status === 'abort') {
+                    return;
+                }
                 $("#recentlyAdded").html(xhr.responseText);
                 $('#ajaxMsg').fadeOut();
                 highlightScrollerButton("#recently-added");
