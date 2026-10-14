@@ -873,10 +873,15 @@
 % endif
 % if 'watch_stats' in config['home_sections']:
 <script>
+    var home_stats_request;
+
     function getHomeStats(time_range, stats_type) {
         showMsg("Loading watch statistics...", true, false, 0);
 
-        $.ajax({
+        if (home_stats_request) {
+            home_stats_request.abort();
+        }
+        home_stats_request = $.ajax({
             url: 'home_stats',
             type: 'GET',
             cache: false,
@@ -887,6 +892,9 @@
                 include_archived: include_archived
             },
             complete: function (xhr, status) {
+                if (status === 'abort') {
+                    return;
+                }
                 $("#home-stats").html(xhr.responseText);
                 $('#ajaxMsg').fadeOut();
                 lockScroll('#home-stats .dashboard-stats-info-scroller');
