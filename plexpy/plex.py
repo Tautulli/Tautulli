@@ -50,7 +50,14 @@ class Plex(object):
         self.PlexServer = PlexObject(url, token)
 
     def get_library(self, section_id):
-        return self.PlexServer.library.sectionByID(int(section_id))
+        from plexapi.exceptions import NotFound
+
+        try:
+            library = self.PlexServer.library.sectionByID(int(section_id))
+        except NotFound:
+            library = None
+
+        return library
 
     def get_library_items(self, section_id):
         return self.get_library(section_id).all()

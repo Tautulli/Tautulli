@@ -3064,6 +3064,12 @@ table.dataTable tbody td.watched-status {
     max-width: max(1750px, 100% - 140px);
     display: flow-root;
 }
+.table-card-header.spaced {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-content: center;
+}
 .table-card-back td {
     font-size: 12px;
 }
@@ -3074,6 +3080,18 @@ table.dataTable tbody td.watched-status {
     font-size: 22px;
     font-weight: bold;
     line-height: 34px;
+}
+.info-bar {
+    display: inline;
+}
+.info-element {
+    display: inline-block;
+    border-radius: 1rem;
+    border: 0.2rem solid #242424;
+    padding: 0.7rem;
+    background-color: #3B3B3B;
+    font-style: italic;
+    color: #676767;
 }
 .button-bar {
     float: right;
