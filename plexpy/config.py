@@ -368,6 +368,14 @@ def import_tautulli_config(config=None, backup=False):
                     "Please wait until it is complete before importing another config.")
         return False
 
+    try:
+        return _import_tautulli_config(config, backup)
+    finally:
+        set_import_thread(None)
+        set_is_importing(False)
+
+
+def _import_tautulli_config(config, backup):
     if backup:
         # Make a backup of the current config first
         logger.info("Tautulli Config :: Creating a config backup before importing.")
@@ -397,8 +405,6 @@ def import_tautulli_config(config=None, backup=False):
     plexpy.CONFIG.write()
 
     logger.info("Tautulli Config :: Tautulli config import complete.")
-    set_import_thread(None)
-    set_is_importing(False)
 
     # Restart to apply changes
     plexpy.SIGNAL = 'restart'
