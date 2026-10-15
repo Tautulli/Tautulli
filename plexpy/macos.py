@@ -74,7 +74,7 @@ class MacOSSystemTray(object):
         try:
             self.tray_icon.run()
         except Exception as e:
-            logger.error("Unable to launch menu bar icon: %s." % e)
+            logger.exception("Unable to launch menu bar icon: %s." % e)
 
     def shutdown(self):
         rumps.quit_application()
@@ -178,7 +178,8 @@ def set_startup():
             if not os.path.exists(launch_agents):
                 try:
                     os.makedirs(launch_agents)
-                except OSError:
+                except OSError as e:
+                    logger.error("Failed to create MacOS launch agents folder: %s", e)
                     return False
 
             with open(plist_file_path, 'wb') as f:

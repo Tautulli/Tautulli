@@ -53,14 +53,14 @@ def runGit(args):
 
             logger.debug('Git output: ' + output)
         except OSError:
-            logger.debug('Command failed: %s', cmd)
+            logger.warn('Command failed: %s', cmd)
             continue
 
         if 'not found' in output or "not recognized as an internal or external command" in output:
-            logger.debug('Unable to find git with command ' + cmd)
+            logger.warn('Unable to find git with command ' + cmd)
             output = None
         elif 'fatal:' in output or err:
-            logger.error('Git returned bad info. Are you sure this is a git installation?')
+            logger.error('Git returned bad info. Are you sure this is a git installation? %s', err or output)
             output = None
         elif output:
             break
@@ -312,6 +312,7 @@ def check_github(scheduler=False, notify=False, use_cache=False):
 
 def update():
     if plexpy.INSTALL_TYPE in ('docker', 'snap', 'flatpak', 'windows', 'macos'):
+        logger.info('Tautulli cannot update itself for install type %s', plexpy.INSTALL_TYPE)
         return
 
     elif plexpy.INSTALL_TYPE == 'git':
@@ -335,6 +336,7 @@ def update():
 
         _, _ = runGit('clean -fd')
         clean_pyc()
+        logger.info('Update downloaded from git')
 
     elif plexpy.INSTALL_TYPE == 'source':
         tar_download_url = 'https://github.com/{}/{}/tarball/{}'.format(plexpy.CONFIG.GIT_USER,
@@ -404,6 +406,7 @@ def update():
             return
 
         clean_pyc()
+        logger.info('Update extracted from the downloaded archive')
 
 
 def reset_git_install():
@@ -441,6 +444,8 @@ def reset_git_install():
                 logger.error('Unable to reset Tautulli installation: ' + line)
                 return False
 
+        logger.info('Tautulli installation reset.')
+
 
 def checkout_git_branch():
     if plexpy.INSTALL_TYPE == 'git':
@@ -464,6 +469,9 @@ def checkout_git_branch():
 
         output, err = runGit('pull {} {}'.format(plexpy.CONFIG.GIT_REMOTE,
                                                  plexpy.CONFIG.GIT_BRANCH))
+        if output:
+            logger.info('Checked out git branch "{}/{}"'.format(plexpy.CONFIG.GIT_REMOTE,
+                                                               plexpy.CONFIG.GIT_BRANCH))
 
 
 def github_cache(cache, github_data=None, use_cache=True):
@@ -477,8 +485,8 @@ def github_cache(cache, github_data=None, use_cache=True):
         try:
             with open(cache_filepath, 'w', encoding='utf-8') as cache_file:
                 json.dump(cache_data, cache_file)
-        except:
-            pass
+        except Exception as e:
+            logger.debug('Unable to write GitHub %s cache: %s', cache, e, exc_info=True)
     else:
         if not use_cache:
             return
@@ -581,7 +589,7 @@ def clean_pyc():
                 try:
                     shutil.rmtree(dirpath)
                 except OSError as e:
-                    logger.error('Failed to remove directory %s: %s', dirpath, e)
+                    logger.warn('Failed to remove directory %s: %s', dirpath, e)
 
         for _file in files:
             if _file.lower().endswith('.pyc'):
@@ -589,7 +597,7 @@ def clean_pyc():
                 try:
                     os.remove(filepath)
                 except OSError as e:
-                    logger.error('Failed to remove file %s: %s', filepath, e)
+                    logger.warn('Failed to remove file %s: %s', filepath, e)
 
 
 def safe_extract(tar, path):

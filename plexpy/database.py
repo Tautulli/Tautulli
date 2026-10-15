@@ -114,7 +114,7 @@ def validate_database(database=None):
         logger.error("Tautulli Database :: Invalid database specified: %s", e)
         return 'Invalid database specified'
     except Exception as e:
-        logger.error("Tautulli Database :: Uncaught exception: %s", e)
+        logger.exception("Tautulli Database :: Uncaught exception: %s", e)
         return 'Uncaught exception'
 
     try:
@@ -124,7 +124,7 @@ def validate_database(database=None):
         logger.error("Tautulli Database :: Invalid database specified: %s", e)
         return 'Invalid database specified'
     except Exception as e:
-        logger.error("Tautulli Database :: Uncaught exception: %s", e)
+        logger.exception("Tautulli Database :: Uncaught exception: %s", e)
         return 'Uncaught exception'
 
     return 'success'
@@ -353,7 +353,7 @@ def clear_table(table=None):
             monitor_db.action("DELETE FROM %s" % table)
             return True
         except Exception as e:
-            logger.error("Tautulli Database :: Failed to clear database table '%s': %s." % (table, e))
+            logger.exception("Tautulli Database :: Failed to clear database table '%s': %s." % (table, e))
             return False
 
 
@@ -389,7 +389,7 @@ def delete_rows_from_table(table, row_ids):
                 query = "DELETE FROM " + table + " WHERE id IN (%s) " % ','.join(['?'] * len(row_ids_group))
                 monitor_db.action(query, row_ids_group)
         except Exception as e:
-            logger.error("Tautulli Database :: Failed to delete rows from %s database table: %s" % (table, e))
+            logger.exception("Tautulli Database :: Failed to delete rows from %s database table: %s" % (table, e))
             return False
 
     return True
@@ -424,8 +424,8 @@ def _delete_session_history_where(where_column, where_value):
         bump_history_version()
         return True
     except Exception as e:
-        logger.error("Tautulli Database :: Failed to delete history for %s %s: %s"
-                     % (where_column, where_value, e))
+        logger.exception("Tautulli Database :: Failed to delete history for %s %s: %s"
+                         % (where_column, where_value, e))
         return False
 
 
@@ -450,8 +450,9 @@ def vacuum():
         if page_count > 0 and freelist_count / page_count >= 0.20:
             logger.info("Tautulli Database :: Vacuuming database.")
             monitor_db.action("VACUUM")
+            logger.info("Tautulli Database :: Vacuum complete.")
     except Exception as e:
-        logger.error("Tautulli Database :: Failed to vacuum database: %s" % e)
+        logger.exception("Tautulli Database :: Failed to vacuum database: %s" % e)
 
 
 def optimize():
@@ -465,8 +466,9 @@ def optimize():
         # connection); it is ignored by SQLite < 3.46, where the boot-time
         # ANALYZE in dbcheck() covers statistics instead
         monitor_db.action("PRAGMA optimize(0x10002)")
+        logger.info("Tautulli Database :: Optimize complete.")
     except Exception as e:
-        logger.error("Tautulli Database :: Failed to optimize database: %s" % e)
+        logger.exception("Tautulli Database :: Failed to optimize database: %s" % e)
 
 
 def optimize_db():
@@ -490,6 +492,7 @@ def make_backup(cleanup=False, scheduler=False):
     corrupt = ''
     if not integrity:
         corrupt = '.corrupt'
+        logger.error("Tautulli Database :: Database integrity check failed. The backup is marked as corrupt.")
         plexpy.NOTIFY_QUEUE.put({'notify_action': 'on_plexpydbcorrupt'})
 
     if scheduler:
@@ -518,7 +521,7 @@ def make_backup(cleanup=False, scheduler=False):
             zipf.write(temp_path, arcname=FILENAME)
 
     except Exception as e:
-        logger.error("Tautulli Database :: Failed to backup database: %s", e)
+        logger.exception("Tautulli Database :: Failed to backup database: %s", e)
         return False
 
     finally:
@@ -534,11 +537,12 @@ def make_backup(cleanup=False, scheduler=False):
                 if os.stat(file_).st_mtime < now - plexpy.CONFIG.BACKUP_DAYS * 86400:
                     try:
                         os.remove(file_)
+                        logger.info("Tautulli Database :: Deleted old backup %s from the backup folder." % file_)
                     except OSError as e:
-                        logger.error("Tautulli Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
+                        logger.warn("Tautulli Database :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backup_folder):
-        logger.debug("Tautulli Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
+        logger.info("Tautulli Database :: Successfully backed up %s to %s" % (db_filename(), backup_file))
         return True
     else:
         logger.error("Tautulli Database :: Failed to backup %s to %s" % (db_filename(), backup_file))
@@ -599,6 +603,7 @@ class MonitorDatabase(object):
                     logger.warn("Tautulli Database :: Database Error: %s", e)
                     attempts += 1
                     if attempts >= 5:
+                        logger.error("Tautulli Database :: Giving up starting a transaction after %d attempts: %s", attempts, e)
                         raise
                     time.sleep(1)
             # Save and restore any enclosing transaction's connection (a
@@ -649,6 +654,8 @@ class MonitorDatabase(object):
                     logger.warn("Tautulli Database :: Database Error: %s", e)
                     attempts += 1
                     if attempts >= 5:
+                        logger.error("Tautulli Database :: Giving up after %d attempts: %s", attempts, e)
+                        logger.debug("Tautulli Database :: Failed query: %s", query)
                         # Do not return None after exhausting the retries:
                         # a silent failure inside a transaction() block
                         # would let the block commit an incomplete write,
@@ -657,10 +664,12 @@ class MonitorDatabase(object):
                     time.sleep(1)
                 else:
                     logger.error("Tautulli Database :: Database error: %s", e)
+                    logger.debug("Tautulli Database :: Failed query: %s", query)
                     raise
 
             except sqlite3.DatabaseError as e:
-                logger.error("Tautulli Database :: Fatal Error executing %s :: %s", query, e)
+                logger.error("Tautulli Database :: Fatal Error executing query :: %s", e)
+                logger.debug("Tautulli Database :: Failed query: %s", query)
                 raise
 
         if return_last_id:
@@ -727,7 +736,7 @@ class MonitorDatabase(object):
                 self.action(insert_query, list(value_dict.values()) + list(key_dict.values()))
             except sqlite3.IntegrityError:
                 trans_type = None
-                logger.info("Tautulli Database :: Queries failed: %s and %s", update_query, insert_query)
+                logger.debug("Tautulli Database :: Queries failed: %s and %s", update_query, insert_query)
 
         # We want to know if it was an update or insert
         return trans_type

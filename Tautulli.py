@@ -151,7 +151,7 @@ def main():
 
     if args.dev:
         plexpy.DEV = True
-        logger.debug("Tautulli is running in the dev environment.")
+        logger.info("Tautulli is running in the dev environment.")
 
     if args.daemon:
         if sys.platform == 'win32':

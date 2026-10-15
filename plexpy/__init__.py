@@ -251,13 +251,13 @@ def initialize(config_file):
         try:
             dbcheck()
         except Exception as e:
-            logger.error("Can't connect to the database: %s" % e)
+            logger.exception("Can't connect to the database: %s" % e)
 
         # Perform upgrades
         try:
             upgrade()
         except Exception as e:
-            logger.error("Could not perform upgrades: %s" % e)
+            logger.exception("Could not perform upgrades: %s" % e)
 
         # Add notifier configs to logger blacklist
         newsletters.blacklist_logger()
@@ -266,19 +266,19 @@ def initialize(config_file):
 
         # Check if Tautulli has a uuid
         if CONFIG.PMS_UUID == '' or not CONFIG.PMS_UUID:
-            logger.debug("Generating UUID...")
+            logger.info("Generating UUID...")
             CONFIG.PMS_UUID = generate_uuid()
             CONFIG.write()
 
         # Check if Tautulli has an API key
         if CONFIG.API_KEY == '':
-            logger.debug("Generating API key...")
+            logger.info("Generating API key...")
             CONFIG.API_KEY = generate_uuid()
             CONFIG.write()
 
         # Check if Tautulli has a jwt_secret
         if CONFIG.JWT_SECRET == '' or not CONFIG.JWT_SECRET or CONFIG.JWT_UPDATE_SECRET:
-            logger.debug("Generating JWT secret...")
+            logger.info("Generating JWT secret...")
             CONFIG.JWT_SECRET = generate_uuid()
             CONFIG.JWT_UPDATE_SECRET = False
             CONFIG.write()
@@ -497,7 +497,7 @@ def initialize_scheduler():
             try:
                 SCHED.start()
             except Exception as e:
-                logger.error(e)
+                logger.exception("Failed to start the scheduler: %s", e)
 
 
 def schedule_job(func, name, hours=0, minutes=0, seconds=0, args=None):
@@ -874,7 +874,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT started FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN started INTEGER"
         )
@@ -895,7 +895,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT title FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN title TEXT"
         )
@@ -919,7 +919,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT ip_address FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN ip_address TEXT"
         )
@@ -1000,7 +1000,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT buffer_count FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN buffer_count INTEGER DEFAULT 0"
         )
@@ -1012,7 +1012,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT last_paused FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN last_paused INTEGER"
         )
@@ -1021,7 +1021,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT section_id FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN section_id INTEGER"
         )
@@ -1030,7 +1030,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT stopped FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN stopped INTEGER"
         )
@@ -1039,7 +1039,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT transcode_key FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN transcode_key TEXT"
         )
@@ -1048,7 +1048,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT write_attempts FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN write_attempts INTEGER DEFAULT 0"
         )
@@ -1057,7 +1057,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT transcode_decision FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN transcode_decision TEXT"
         )
@@ -1087,7 +1087,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT raw_stream_info FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN product TEXT"
         )
@@ -1177,7 +1177,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT video_height FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN video_height INTEGER"
         )
@@ -1186,7 +1186,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT subtitles FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN subtitles INTEGER"
         )
@@ -1195,7 +1195,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT synced_version_profile FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN synced_version_profile TEXT"
         )
@@ -1207,7 +1207,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT transcode_hw_decoding FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN transcode_hw_decoding INTEGER"
         )
@@ -1219,7 +1219,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT watched FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN watched INTEGER DEFAULT 0"
         )
@@ -1228,7 +1228,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT live FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN live INTEGER"
         )
@@ -1240,7 +1240,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT session_id FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN session_id TEXT"
         )
@@ -1249,7 +1249,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT original_title FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN original_title TEXT"
         )
@@ -1258,7 +1258,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT secure FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN secure INTEGER"
         )
@@ -1270,7 +1270,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT rating_key_websocket FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN rating_key_websocket TEXT"
         )
@@ -1279,7 +1279,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT video_scan_type FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN video_scan_type TEXT"
         )
@@ -1297,7 +1297,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT video_dynamic_range FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN video_dynamic_range TEXT"
         )
@@ -1309,7 +1309,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT channel_identifier FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN channel_call_sign TEXT"
         )
@@ -1324,7 +1324,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT originally_available_at FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN originally_available_at TEXT"
         )
@@ -1336,7 +1336,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT guid FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN guid TEXT"
         )
@@ -1345,7 +1345,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT bandwidth FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.info(u"Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN bandwidth INTEGER"
         )
@@ -1357,7 +1357,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT initial_stream FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.info(u"Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN initial_stream INTEGER DEFAULT 1"
         )
@@ -1366,7 +1366,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT audio_language FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.info(u"Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN audio_language TEXT"
         )
@@ -1384,7 +1384,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT subtitle_language FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.info(u"Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN subtitle_language TEXT"
         )
@@ -1396,7 +1396,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT subtitle_forced FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.info(u"Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN subtitle_forced INTEGER"
         )
@@ -1408,7 +1408,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT intro FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.info(u"Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN intro INTEGER DEFAULT 0"
         )
@@ -1420,7 +1420,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT commercial FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.info(u"Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN commercial INTEGER DEFAULT 0"
         )
@@ -1429,7 +1429,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT marker FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug(u"Altering database. Updating database table sessions.")
+        logger.info(u"Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN marker INTEGER DEFAULT 0"
         )
@@ -1438,7 +1438,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT channel_id FROM sessions")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table sessions.")
+        logger.info("Altering database. Updating database table sessions.")
         c_db.execute(
             "ALTER TABLE sessions ADD COLUMN channel_id TEXT"
         )
@@ -1453,7 +1453,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT reference_id FROM session_history")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history.")
+        logger.info("Altering database. Updating database table session_history.")
         c_db.execute(
             "ALTER TABLE session_history ADD COLUMN reference_id INTEGER DEFAULT 0"
         )
@@ -1476,7 +1476,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT bandwidth FROM session_history")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history.")
+        logger.info("Altering database. Updating database table session_history.")
         c_db.execute(
             "ALTER TABLE session_history ADD COLUMN platform_version TEXT"
         )
@@ -1503,7 +1503,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT secure FROM session_history")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history.")
+        logger.info("Altering database. Updating database table session_history.")
         c_db.execute(
             "ALTER TABLE session_history ADD COLUMN secure INTEGER"
         )
@@ -1516,7 +1516,7 @@ def dbcheck():
         result = c_db.execute("SELECT platform FROM session_history "
                               "WHERE platform = 'windows'").fetchall()
         if len(result) > 0:
-            logger.debug("Altering database. Capitalizing Windows platform values in session_history table.")
+            logger.info("Altering database. Capitalizing Windows platform values in session_history table.")
             c_db.execute(
                 "UPDATE session_history SET platform = 'Windows' WHERE platform = 'windows' "
             )
@@ -1528,7 +1528,7 @@ def dbcheck():
         result = c_db.execute("SELECT platform FROM session_history "
                               "WHERE platform = 'macos'").fetchall()
         if len(result) > 0:
-            logger.debug("Altering database. Capitalizing macOS platform values in session_history table.")
+            logger.info("Altering database. Capitalizing macOS platform values in session_history table.")
             c_db.execute(
                 "UPDATE session_history SET platform = 'macOS' WHERE platform = 'macos' "
             )
@@ -1539,7 +1539,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT full_title FROM session_history_metadata")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_metadata.")
+        logger.info("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             "ALTER TABLE session_history_metadata ADD COLUMN full_title TEXT"
         )
@@ -1548,7 +1548,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT tagline FROM session_history_metadata")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_metadata.")
+        logger.info("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             "ALTER TABLE session_history_metadata ADD COLUMN tagline TEXT"
         )
@@ -1557,7 +1557,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT labels FROM session_history_metadata")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_metadata.")
+        logger.info("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             "ALTER TABLE session_history_metadata ADD COLUMN labels TEXT"
         )
@@ -1566,7 +1566,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT original_title FROM session_history_metadata")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_metadata.")
+        logger.info("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             "ALTER TABLE session_history_metadata ADD COLUMN original_title TEXT"
         )
@@ -1575,7 +1575,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT live FROM session_history_metadata")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_metadata.")
+        logger.info("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             "ALTER TABLE session_history_metadata ADD COLUMN live INTEGER DEFAULT 0"
         )
@@ -1593,7 +1593,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT marker_credits_first FROM session_history_metadata")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_metadata.")
+        logger.info("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             "ALTER TABLE session_history_metadata ADD COLUMN marker_credits_first INTEGER DEFAULT NULL"
         )
@@ -1605,7 +1605,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT channel_id FROM session_history_metadata")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_metadata.")
+        logger.info("Altering database. Updating database table session_history_metadata.")
         c_db.execute(
             "ALTER TABLE session_history_metadata ADD COLUMN channel_id TEXT"
         )
@@ -1620,7 +1620,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT transcode_decision FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN transcode_decision TEXT"
         )
@@ -1635,7 +1635,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT subtitles FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN video_bit_depth INTEGER"
         )
@@ -1755,7 +1755,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT subtitle_codec FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN subtitle_codec TEXT"
         )
@@ -1764,7 +1764,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT synced_version_profile FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN synced_version_profile TEXT"
         )
@@ -1776,7 +1776,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT transcode_hw_decoding FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN transcode_hw_decoding INTEGER"
         )
@@ -1792,7 +1792,7 @@ def dbcheck():
         result = c_db.execute("SELECT stream_container FROM session_history_media_info "
                               "WHERE stream_container IS NULL").fetchall()
         if len(result) > 0:
-            logger.debug("Altering database. Removing NULL values from session_history_media_info table.")
+            logger.info("Altering database. Removing NULL values from session_history_media_info table.")
             c_db.execute(
                 "UPDATE session_history_media_info SET stream_container = '' WHERE stream_container IS NULL"
             )
@@ -1812,7 +1812,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT video_scan_type FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN video_scan_type TEXT"
         )
@@ -1851,7 +1851,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT video_dynamic_range FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN video_dynamic_range TEXT"
         )
@@ -1871,7 +1871,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT audio_language FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN audio_language TEXT"
         )
@@ -1889,7 +1889,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT subtitle_language FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN subtitle_language TEXT"
         )
@@ -1901,7 +1901,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT subtitle_forced FROM session_history_media_info")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history_media_info.")
+        logger.info("Altering database. Updating database table session_history_media_info.")
         c_db.execute(
             "ALTER TABLE session_history_media_info ADD COLUMN subtitle_forced INTEGER"
         )
@@ -1921,7 +1921,7 @@ def dbcheck():
         # in the side tables. Filtering on them read a wide side-table row
         # for every history row. They are written once with the row and
         # never updated, the same way section_id already is.
-        logger.debug("Altering database. Updating database table session_history.")
+        logger.info("Altering database. Updating database table session_history.")
         if 'live' in missing_columns:
             c_db.execute(
                 "ALTER TABLE session_history ADD COLUMN live INTEGER DEFAULT 0"
@@ -1942,7 +1942,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT section_id FROM session_history")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table session_history.")
+        logger.info("Altering database. Updating database table session_history.")
         c_db.execute(
             "ALTER TABLE session_history ADD COLUMN section_id INTEGER"
         )
@@ -1992,7 +1992,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT do_notify FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN do_notify INTEGER DEFAULT 1"
         )
@@ -2001,7 +2001,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT keep_history FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN keep_history INTEGER DEFAULT 1"
         )
@@ -2010,7 +2010,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT custom_avatar_url FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN custom_avatar_url TEXT"
         )
@@ -2019,7 +2019,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT deleted_user FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN deleted_user INTEGER DEFAULT 0"
         )
@@ -2028,7 +2028,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT is_archived FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN is_archived INTEGER DEFAULT 0"
         )
@@ -2037,7 +2037,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT allow_guest FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN allow_guest INTEGER DEFAULT 0"
         )
@@ -2052,7 +2052,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT shared_libraries FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN shared_libraries TEXT"
         )
@@ -2076,7 +2076,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT is_admin FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0"
         )
@@ -2085,7 +2085,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT is_active FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1"
         )
@@ -2094,7 +2094,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT title FROM users")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table users.")
+        logger.info("Altering database. Updating database table users.")
         c_db.execute(
             "ALTER TABLE users ADD COLUMN title TEXT"
         )
@@ -2102,7 +2102,7 @@ def dbcheck():
     try:
         result = c_db.execute("SELECT * FROM users WHERE friendly_name = username").fetchall()
         if result:
-            logger.debug("Altering database. Resetting user friendly names equal to username.")
+            logger.info("Altering database. Resetting user friendly names equal to username.")
             c_db.execute("UPDATE users SET friendly_name = NULL WHERE friendly_name = username")
     except sqlite3.OperationalError:
        pass
@@ -2111,7 +2111,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT poster_url FROM notify_log")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notify_log.")
+        logger.info("Altering database. Updating database table notify_log.")
         c_db.execute(
             "ALTER TABLE notify_log ADD COLUMN poster_url TEXT"
         )
@@ -2120,7 +2120,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT timestamp FROM notify_log")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notify_log.")
+        logger.info("Altering database. Updating database table notify_log.")
         c_db.execute(
             "CREATE TABLE IF NOT EXISTS notify_log_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER, "
             "session_key INTEGER, rating_key INTEGER, parent_rating_key INTEGER, grandparent_rating_key INTEGER, "
@@ -2158,7 +2158,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT notifier_id FROM notify_log")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notify_log.")
+        logger.info("Altering database. Updating database table notify_log.")
         c_db.execute(
             "ALTER TABLE notify_log ADD COLUMN notifier_id INTEGER"
         )
@@ -2167,7 +2167,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT success FROM notify_log")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notify_log.")
+        logger.info("Altering database. Updating database table notify_log.")
         c_db.execute(
             "ALTER TABLE notify_log ADD COLUMN success INTEGER DEFAULT 0"
         )
@@ -2179,7 +2179,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT tag FROM notify_log")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notify_log.")
+        logger.info("Altering database. Updating database table notify_log.")
         c_db.execute(
             "ALTER TABLE notify_log ADD COLUMN tag TEXT"
         )
@@ -2188,7 +2188,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT start_time FROM newsletter_log")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table newsletter_log.")
+        logger.info("Altering database. Updating database table newsletter_log.")
         c_db.execute(
             "ALTER TABLE newsletter_log ADD COLUMN start_time INTEGER"
         )
@@ -2200,7 +2200,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT filename FROM newsletter_log")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table newsletter_log.")
+        logger.info("Altering database. Updating database table newsletter_log.")
         c_db.execute(
             "ALTER TABLE newsletter_log ADD COLUMN filename TEXT"
         )
@@ -2209,7 +2209,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT email_msg_id FROM newsletter_log")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table newsletter_log.")
+        logger.info("Altering database. Updating database table newsletter_log.")
         c_db.execute(
             "ALTER TABLE newsletter_log ADD COLUMN email_msg_id TEXT"
         )
@@ -2218,7 +2218,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT id_name FROM newsletters")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table newsletters.")
+        logger.info("Altering database. Updating database table newsletters.")
         c_db.execute(
             "ALTER TABLE newsletters ADD COLUMN id_name TEXT NOT NULL"
         )
@@ -2227,7 +2227,7 @@ def dbcheck():
     try:
         result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='newsletters'").fetchone()
         if "TEXT NOT NULL DEFAULT \"0 0 * * 0\"" in result[0]:
-            logger.debug("Altering database. Updating default cron value in newsletters table.")
+            logger.info("Altering database. Updating default cron value in newsletters table.")
             c_db.execute(
                 "CREATE TABLE newsletters_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 "agent_id INTEGER, agent_name TEXT, agent_label TEXT, id_name TEXT NOT NULL, "
@@ -2261,7 +2261,7 @@ def dbcheck():
     try:
         result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='library_sections'").fetchone()
         if "section_id INTEGER UNIQUE" in result[0]:
-            logger.debug("Altering database. Removing unique constraint on section_id from library_sections table.")
+            logger.info("Altering database. Removing unique constraint on section_id from library_sections table.")
             c_db.execute(
                 "CREATE TABLE library_sections_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 "server_id TEXT, section_id INTEGER, section_name TEXT, section_type TEXT, "
@@ -2297,7 +2297,7 @@ def dbcheck():
     try:
         result = c_db.execute("SELECT * FROM library_sections WHERE server_id = ''").fetchall()
         if len(result) > 0:
-            logger.debug("Altering database. Removing duplicate libraries from library_sections table.")
+            logger.info("Altering database. Removing duplicate libraries from library_sections table.")
             c_db.execute(
                 "DELETE FROM library_sections WHERE server_id = ''"
             )
@@ -2308,7 +2308,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT agent FROM library_sections")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table library_sections.")
+        logger.info("Altering database. Updating database table library_sections.")
         c_db.execute(
             "ALTER TABLE library_sections ADD COLUMN agent TEXT"
         )
@@ -2317,7 +2317,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT custom_art_url FROM library_sections")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table library_sections.")
+        logger.info("Altering database. Updating database table library_sections.")
         c_db.execute(
             "ALTER TABLE library_sections ADD COLUMN custom_art_url TEXT"
         )
@@ -2326,7 +2326,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT is_active FROM library_sections")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table library_sections.")
+        logger.info("Altering database. Updating database table library_sections.")
         c_db.execute(
             "ALTER TABLE library_sections ADD COLUMN is_active INTEGER DEFAULT 1"
         )
@@ -2335,7 +2335,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT is_archived FROM library_sections")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table library_sections.")
+        logger.info("Altering database. Updating database table library_sections.")
         c_db.execute(
             "ALTER TABLE library_sections ADD COLUMN is_archived INTEGER DEFAULT 0"
         )
@@ -2345,7 +2345,7 @@ def dbcheck():
         result = c_db.execute("SELECT thumb, art FROM library_sections WHERE section_id = ?",
                               [common.LIVE_TV_SECTION_ID]).fetchone()
         if result and (not result[0] or not result[1]):
-            logger.debug("Altering database. Updating database table library_sections.")
+            logger.info("Altering database. Updating database table library_sections.")
             c_db.execute("UPDATE library_sections SET thumb = ?, art =? WHERE section_id = ?",
                          [common.DEFAULT_LIVE_TV_THUMB,
                           common.DEFAULT_LIVE_TV_ART_FULL,
@@ -2357,7 +2357,7 @@ def dbcheck():
     try:
         result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='users'").fetchone()
         if "username TEXT NOT NULL UNIQUE" in result[0]:
-            logger.debug("Altering database. Removing unique constraint on username from users table.")
+            logger.info("Altering database. Removing unique constraint on username from users table.")
             c_db.execute(
                 "CREATE TABLE users_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, "
                 "user_id INTEGER DEFAULT NULL UNIQUE, username TEXT NOT NULL, friendly_name TEXT, "
@@ -2391,7 +2391,7 @@ def dbcheck():
     try:
         result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='mobile_devices'").fetchone()
         if "device_token TEXT NOT NULL UNIQUE" in result[0]:
-            logger.debug("Altering database. Dropping and recreating mobile_devices table.")
+            logger.info("Altering database. Dropping and recreating mobile_devices table.")
             c_db.execute(
                 "DROP TABLE mobile_devices"
             )
@@ -2407,7 +2407,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT last_seen FROM mobile_devices")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table mobile_devices.")
+        logger.info("Altering database. Updating database table mobile_devices.")
         c_db.execute(
             "ALTER TABLE mobile_devices ADD COLUMN last_seen INTEGER"
         )
@@ -2416,7 +2416,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT official FROM mobile_devices")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table mobile_devices.")
+        logger.info("Altering database. Updating database table mobile_devices.")
         c_db.execute(
             "ALTER TABLE mobile_devices ADD COLUMN official INTEGER DEFAULT 0"
         )
@@ -2429,7 +2429,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT onesignal_id FROM mobile_devices")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table mobile_devices.")
+        logger.info("Altering database. Updating database table mobile_devices.")
         c_db.execute(
             "ALTER TABLE mobile_devices ADD COLUMN onesignal_id TEXT"
         )
@@ -2438,7 +2438,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT platform FROM mobile_devices")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table mobile_devices.")
+        logger.info("Altering database. Updating database table mobile_devices.")
         c_db.execute(
             "ALTER TABLE mobile_devices ADD COLUMN platform TEXT"
         )
@@ -2455,7 +2455,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT push_token FROM mobile_devices")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table mobile_devices.")
+        logger.info("Altering database. Updating database table mobile_devices.")
         c_db.execute(
             "ALTER TABLE mobile_devices ADD COLUMN push_token TEXT"
         )
@@ -2464,7 +2464,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT custom_conditions FROM notifiers")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notifiers.")
+        logger.info("Altering database. Updating database table notifiers.")
         c_db.execute(
             "ALTER TABLE notifiers ADD COLUMN custom_conditions TEXT"
         )
@@ -2476,7 +2476,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT on_change FROM notifiers")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notifiers.")
+        logger.info("Altering database. Updating database table notifiers.")
         c_db.execute(
             "ALTER TABLE notifiers ADD COLUMN on_change INTEGER DEFAULT 0"
         )
@@ -2491,7 +2491,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT on_plexpydbcorrupt FROM notifiers")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notifiers.")
+        logger.info("Altering database. Updating database table notifiers.")
         c_db.execute(
             "ALTER TABLE notifiers ADD COLUMN on_plexpydbcorrupt INTEGER DEFAULT 0"
         )
@@ -2506,7 +2506,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT on_error FROM notifiers")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notifiers.")
+        logger.info("Altering database. Updating database table notifiers.")
         c_db.execute(
             "ALTER TABLE notifiers ADD COLUMN on_error INTEGER DEFAULT 0"
         )
@@ -2521,7 +2521,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT on_intro FROM notifiers")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notifiers.")
+        logger.info("Altering database. Updating database table notifiers.")
         c_db.execute(
             "ALTER TABLE notifiers ADD COLUMN on_intro INTEGER DEFAULT 0"
         )
@@ -2545,7 +2545,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT on_commercial FROM notifiers")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notifiers.")
+        logger.info("Altering database. Updating database table notifiers.")
         c_db.execute(
             "ALTER TABLE notifiers ADD COLUMN on_commercial INTEGER DEFAULT 0"
         )
@@ -2560,7 +2560,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT on_tokenexpired FROM notifiers")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table notifiers.")
+        logger.info("Altering database. Updating database table notifiers.")
         c_db.execute(
             "ALTER TABLE notifiers ADD COLUMN on_tokenexpired INTEGER DEFAULT 0"
         )
@@ -2575,7 +2575,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT rating_key FROM tvmaze_lookup")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table tvmaze_lookup.")
+        logger.info("Altering database. Updating database table tvmaze_lookup.")
         c_db.execute(
             "ALTER TABLE tvmaze_lookup ADD COLUMN rating_key INTEGER"
         )
@@ -2590,7 +2590,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT rating_key FROM themoviedb_lookup")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table themoviedb_lookup.")
+        logger.info("Altering database. Updating database table themoviedb_lookup.")
         c_db.execute(
             "ALTER TABLE themoviedb_lookup ADD COLUMN rating_key INTEGER"
         )
@@ -2605,7 +2605,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT success FROM user_login")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table user_login.")
+        logger.info("Altering database. Updating database table user_login.")
         c_db.execute(
             "ALTER TABLE user_login ADD COLUMN success INTEGER DEFAULT 1"
         )
@@ -2614,7 +2614,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT expiry FROM user_login")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table user_login.")
+        logger.info("Altering database. Updating database table user_login.")
         c_db.execute(
             "ALTER TABLE user_login ADD COLUMN expiry TEXT"
         )
@@ -2628,7 +2628,7 @@ def dbcheck():
                           "OR agent_label = 'OSX Notify' "
                           "OR agent_name = 'androidapp'").fetchone()
     if result:
-        logger.debug("Altering database. Renaming notifiers.")
+        logger.info("Altering database. Renaming notifiers.")
         c_db.execute(
             "UPDATE notifiers SET agent_label = 'Kodi' WHERE agent_label = 'XBMC'"
         )
@@ -2644,7 +2644,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT thumb_level FROM exports")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table exports.")
+        logger.info("Altering database. Updating database table exports.")
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN thumb_level INTEGER DEFAULT 0"
         )
@@ -2667,7 +2667,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT title FROM exports")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table exports.")
+        logger.info("Altering database. Updating database table exports.")
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN title TEXT"
         )
@@ -2679,7 +2679,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT total_items FROM exports")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table exports.")
+        logger.info("Altering database. Updating database table exports.")
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN exported_items INTEGER DEFAULT 0"
         )
@@ -2691,7 +2691,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT logo_level FROM exports")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table exports.")
+        logger.info("Altering database. Updating database table exports.")
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN logo_level INTEGER DEFAULT 0"
         )
@@ -2700,7 +2700,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT squareArt_level FROM exports")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table exports.")
+        logger.info("Altering database. Updating database table exports.")
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN squareArt_level INTEGER DEFAULT 0"
         )
@@ -2709,7 +2709,7 @@ def dbcheck():
     try:
         c_db.execute("SELECT theme_level FROM exports")
     except sqlite3.OperationalError:
-        logger.debug("Altering database. Updating database table exports.")
+        logger.info("Altering database. Updating database table exports.")
         c_db.execute(
             "ALTER TABLE exports ADD COLUMN theme_level INTEGER DEFAULT 0"
         )
@@ -2761,7 +2761,7 @@ def dbcheck():
     # Add "Local" user to database as default unauthenticated user.
     result = c_db.execute("SELECT id FROM users WHERE username = 'Local'")
     if not result.fetchone():
-        logger.debug("User 'Local' does not exist. Adding user.")
+        logger.info("User 'Local' does not exist. Adding user.")
         c_db.execute("INSERT INTO users (user_id, username) VALUES (0, 'Local')")
 
     logger.info("Database upgrade complete.")
@@ -2987,7 +2987,7 @@ def dbcheck():
         result = db.select("SELECT SQL FROM sqlite_master WHERE type='table' AND name='poster_urls'")
         if result:
             result = db.select("SELECT * FROM poster_urls")
-            logger.debug("Altering database. Updating database table imgur_lookup.")
+            logger.info("Altering database. Updating database table imgur_lookup.")
 
             data_factory = datafactory.DataFactory()
 
@@ -3035,21 +3035,21 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
         try:
             versioncheck.update()
         except Exception as e:
-            logger.warn("Tautulli failed to update: %s. Restarting." % e)
+            logger.warn("Tautulli failed to update: %s. Restarting." % e, exc_info=True)
 
     if checkout:
         logger.info("Tautulli is switching the git branch...")
         try:
             versioncheck.checkout_git_branch()
         except Exception as e:
-            logger.warn("Tautulli failed to switch git branch: %s. Restarting." % e)
+            logger.warn("Tautulli failed to switch git branch: %s. Restarting." % e, exc_info=True)
 
     if reset:
         logger.info("Tautulli is resetting the git install...")
         try:
             versioncheck.reset_git_install()
         except Exception as e:
-            logger.warn("Tautulli failed to reset git install: %s. Restarting." % e)
+            logger.warn("Tautulli failed to reset git install: %s. Restarting." % e, exc_info=True)
 
     if CREATEPID:
         logger.info("Removing PID file: %s", PIDFILE)

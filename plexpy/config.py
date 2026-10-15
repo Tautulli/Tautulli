@@ -379,7 +379,7 @@ def import_tautulli_config(config=None, backup=False):
     try:
         imported_config = Config(config, is_import=True)
     except:
-        logger.error("Tautulli Config :: Failed to import Tautulli config: error reading imported config file")
+        logger.exception("Tautulli Config :: Failed to import Tautulli config: error reading imported config file")
         return False
 
     logger.info("Tautulli Config :: Importing Tautulli config '%s'...", config)
@@ -431,11 +431,12 @@ def make_backup(cleanup=False, scheduler=False):
                 if os.stat(file_).st_mtime < now - plexpy.CONFIG.BACKUP_DAYS * 86400:
                     try:
                         os.remove(file_)
+                        logger.info("Tautulli Config :: Deleted old backup %s from the backup folder." % file_)
                     except OSError as e:
-                        logger.error("Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
+                        logger.warn("Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backup_folder):
-        logger.debug("Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.info("Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return True
     else:
         logger.error("Tautulli Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))

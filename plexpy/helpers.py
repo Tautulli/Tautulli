@@ -503,7 +503,7 @@ def create_https_certificates(ssl_cert, ssl_key):
     alt_names += [x509.IPAddress(ip_address(d.strip())) for d in plexpy.CONFIG.HTTPS_IP.split(',') if d]
 
     # Create the self-signed Tautulli certificate
-    logger.debug("Generating self-signed SSL certificate.")
+    logger.info("Generating self-signed SSL certificate.")
     pkey = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, common.PRODUCT)])
     now = datetime.now(timezone.utc)
@@ -846,7 +846,7 @@ def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
                                                            headers=headers, data=data)
 
     if response and not err_msg:
-        logger.debug("Tautulli Helpers :: Image '{}' ({}) uploaded to Imgur.".format(img_title, fallback))
+        logger.info("Tautulli Helpers :: Image '{}' ({}) uploaded to Imgur.".format(img_title, fallback))
         imgur_response_data = response.json().get('data')
         img_url = imgur_response_data.get('link', '').replace('http://', 'https://')
         delete_hash = imgur_response_data.get('deletehash', '')
@@ -874,7 +874,7 @@ def delete_from_imgur(delete_hash, img_title='', fallback=''):
                                                            headers=headers)
 
     if response and not err_msg:
-        logger.debug("Tautulli Helpers :: Image '{}' ({}) deleted from Imgur.".format(img_title, fallback))
+        logger.info("Tautulli Helpers :: Image '{}' ({}) deleted from Imgur.".format(img_title, fallback))
         return True
     else:
         if err_msg:
@@ -903,7 +903,7 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
                           public_id='{}_{}'.format(fallback, rating_key),
                           tags=['tautulli', fallback, str(rating_key)],
                           context={'title': img_title, 'rating_key': str(rating_key), 'fallback': fallback})
-        logger.debug("Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
+        logger.info("Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
         img_url = response.get('url', '')
     except Exception as e:
         logger.error("Tautulli Helpers :: Unable to upload image '{}' ({}) to Cloudinary: {}".format(img_title, fallback, e))
@@ -930,12 +930,12 @@ def delete_from_cloudinary(rating_key=None, delete_all=False):
             r = delete_resources_by_tag('tautulli', next_cursor=next_cursor)
             partial = r.get('partial', False)
             next_cursor = r.get('next_cursor', '')
-        logger.debug("Tautulli Helpers :: Deleted all images from Cloudinary.")
+        logger.info("Tautulli Helpers :: Deleted all images from Cloudinary.")
     elif rating_key:
         delete_resources_by_tag(str(rating_key))
-        logger.debug("Tautulli Helpers :: Deleted images from Cloudinary with rating_key {}.".format(rating_key))
+        logger.info("Tautulli Helpers :: Deleted images from Cloudinary with rating_key {}.".format(rating_key))
     else:
-        logger.debug("Tautulli Helpers :: Unable to delete images from Cloudinary: No rating_key provided.")
+        logger.warn("Tautulli Helpers :: Unable to delete images from Cloudinary: No rating_key provided.")
 
     return True
 

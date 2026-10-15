@@ -76,7 +76,7 @@ class WindowsSystemTray(object):
         try:
             self.tray_icon.start()
         except Exception as e:
-            logger.error("Unable to launch system tray icon: %s." % e)
+            logger.exception("Unable to launch system tray icon: %s." % e)
 
     def shutdown(self):
         self.tray_icon.shutdown()
