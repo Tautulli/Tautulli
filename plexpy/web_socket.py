@@ -46,7 +46,7 @@ def start_thread():
         # Check for any existing sessions on start up
         activity_pinger.check_active_sessions(ws_request=True)
     except Exception as e:
-        logger.error("Tautulli WebSocket :: Failed to check for active sessions: %s." % e)
+        logger.exception("Tautulli WebSocket :: Failed to check for active sessions: %s." % e)
         logger.warn("Tautulli WebSocket :: Attempt to fix by flushing temporary sessions...")
         database.delete_sessions()
 
@@ -230,7 +230,8 @@ def run():
             if ws_shutdown:
                 break
 
-            logger.error("Tautulli WebSocket :: %s.", e)
+            logger.error("Tautulli WebSocket :: %s.", e,
+                         exc_info=not isinstance(e, (websocket.WebSocketException, OSError)))
             close()
             break
 
@@ -280,7 +281,7 @@ def process(opcode, data):
         logger.websocket_debug(data)
         event = json.loads(data)
     except Exception as e:
-        logger.warn("Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
+        logger.warn("Tautulli WebSocket :: Error decoding message from websocket: %s" % e, exc_info=True)
         logger.websocket_error(data)
         return False
 
@@ -294,7 +295,7 @@ def process(opcode, data):
         event_data = event.get('PlaySessionStateNotification', event.get('_children', {}))
 
         if not event_data:
-            logger.debug("Tautulli WebSocket :: Session event found but unable to get websocket data.")
+            logger.warn("Tautulli WebSocket :: Session event found but unable to get websocket data.")
             return False
 
         try:
@@ -307,7 +308,7 @@ def process(opcode, data):
         event_data = event.get('TimelineEntry', event.get('_children', {}))
 
         if not event_data:
-            logger.debug("Tautulli WebSocket :: Timeline event found but unable to get websocket data.")
+            logger.warn("Tautulli WebSocket :: Timeline event found but unable to get websocket data.")
             return False
 
         try:
@@ -320,7 +321,7 @@ def process(opcode, data):
         event_data = event.get('ReachabilityNotification', event.get('_children', {}))
 
         if not event_data:
-            logger.debug("Tautulli WebSocket :: Reachability event found but unable to get websocket data.")
+            logger.warn("Tautulli WebSocket :: Reachability event found but unable to get websocket data.")
             return False
 
         try:

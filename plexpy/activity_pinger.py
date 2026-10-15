@@ -64,17 +64,20 @@ def check_active_sessions(ws_request=False):
                             # Here we can check the play states
                             if session['state'] != stream['state']:
                                 if session['state'] == 'paused':
-                                    logger.debug("Tautulli Monitor :: Session %s paused." % stream['session_key'])
+                                    logger.info("Tautulli Monitor :: Session %s paused." % stream['session_key'])
 
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_pause'})
 
                                 if session['state'] == 'playing' and stream['state'] == 'paused':
-                                    logger.debug("Tautulli Monitor :: Session %s resumed." % stream['session_key'])
+                                    logger.info("Tautulli Monitor :: Session %s resumed." % stream['session_key'])
 
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_resume'})
 
+                                if session['state'] == 'buffering':
+                                    logger.info("Tautulli Monitor :: Session %s is buffering." % stream['session_key'])
+
                                 if session['state'] == 'error':
-                                    logger.debug("Tautulli Monitor :: Session %s encountered an error." % stream['session_key'])
+                                    logger.info("Tautulli Monitor :: Session %s encountered an error." % stream['session_key'])
 
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_error'})
 
@@ -136,12 +139,13 @@ def check_active_sessions(ws_request=False):
                                     session['media_type'] == 'episode' and progress_percent >= plexpy.CONFIG.TV_WATCHED_PERCENT or
                                     session['media_type'] == 'track' and progress_percent >= plexpy.CONFIG.MUSIC_WATCHED_PERCENT) \
                                     and not any(d['notify_action'] == 'on_watched' for d in notify_states):
+                                    logger.info("Tautulli Monitor :: Session %s watched." % stream['session_key'])
                                     plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_watched'})
 
                 else:
                     # The user has stopped playing a stream
                     if stream['state'] != 'stopped':
-                        logger.debug("Tautulli Monitor :: Session %s stopped." % stream['session_key'])
+                        logger.info("Tautulli Monitor :: Session %s stopped." % stream['session_key'])
 
                         if not stream['stopped']:
                             # Set the stream stop time
@@ -156,6 +160,7 @@ def check_active_sessions(ws_request=False):
                             stream['media_type'] == 'episode' and progress_percent >= plexpy.CONFIG.TV_WATCHED_PERCENT or
                             stream['media_type'] == 'track' and progress_percent >= plexpy.CONFIG.MUSIC_WATCHED_PERCENT) \
                             and not any(d['notify_action'] == 'on_watched' for d in notify_states):
+                            logger.info("Tautulli Monitor :: Session %s watched." % stream['session_key'])
                             plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_watched'})
 
                         plexpy.NOTIFY_QUEUE.put({'stream_data': stream.copy(), 'notify_action': 'on_stop'})
@@ -189,9 +194,9 @@ def check_active_sessions(ws_request=False):
                 new_session = monitor_process.write_session(session)
 
                 if new_session:
-                    logger.debug("Tautulli Monitor :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
-                                 % (str(session['session_key']), str(session['user_id']), session['username'],
-                                    str(session['rating_key']), session['full_title'], '[Live TV]' if session['live'] else ''))
+                    logger.info("Tautulli Monitor :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
+                                % (str(session['session_key']), str(session['user_id']), session['username'],
+                                   str(session['rating_key']), session['full_title'], '[Live TV]' if session['live'] else ''))
 
         else:
             logger.debug("Tautulli Monitor :: Unable to read session list.")
@@ -204,7 +209,7 @@ def connect_server(log=True, startup=False):
     try:
         web_socket.start_thread()
     except Exception as e:
-        logger.error("Websocket :: Unable to open connection: %s." % e)
+        logger.exception("Websocket :: Unable to open connection: %s." % e)
 
 
 def check_server_updates():

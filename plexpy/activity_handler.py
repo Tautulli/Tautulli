@@ -127,6 +127,8 @@ class ActivityHandler(object):
         self.get_live_session(skip_cache=True)
 
         if not self.session:
+            logger.debug("Tautulli ActivityHandler :: Session %s not found in current activity. Not starting session."
+                         % str(self.session_key))
             return
 
         # Some DLNA clients create a new session temporarily when browsing the library
@@ -135,9 +137,11 @@ class ActivityHandler(object):
             time.sleep(1)
             self.get_live_session()
             if not self.session:
+                logger.info("Tautulli ActivityHandler :: DLNA session %s ended right after it started. "
+                            "Not starting session." % str(self.session_key))
                 return
 
-        logger.debug("Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
+        logger.info("Tautulli ActivityHandler :: Session %s started by user %s (%s) with ratingKey %s (%s)%s."
                         % (str(self.session['session_key']), str(self.session['user_id']), self.session['username'],
                         str(self.session['rating_key']), self.session['full_title'], ' [Live TV]' if self.session['live'] else ''))
 
@@ -153,7 +157,7 @@ class ActivityHandler(object):
         self.check_markers()
 
     def on_stop(self, force_stop=False):
-        logger.debug("Tautulli ActivityHandler :: Session %s %sstopped."
+        logger.info("Tautulli ActivityHandler :: Session %s %sstopped."
                         % (str(self.session_key), 'force ' if force_stop else ''))
 
         # Set the session last_paused timestamp
@@ -183,6 +187,8 @@ class ActivityHandler(object):
             self.ap.delete_session(row_id=row_id)
             delete_metadata_cache(self.session_key)
         else:
+            logger.warn("Tautulli ActivityHandler :: Failed to write history for session %s. "
+                        "Will try again in 30 seconds." % str(self.session_key))
             schedule_callback('session_key-{}'.format(self.session_key),
                                 func=force_stop_stream,
                                 args=[self.session_key, self.db_session['full_title'], self.db_session['user']],
@@ -190,7 +196,7 @@ class ActivityHandler(object):
 
     def on_pause(self, still_paused=False):
         if not still_paused:
-            logger.debug("Tautulli ActivityHandler :: Session %s paused." % str(self.session_key))
+            logger.info("Tautulli ActivityHandler :: Session %s paused." % str(self.session_key))
 
         # Set the session last_paused timestamp
         self.ap.set_session_last_paused(session_key=self.session_key, timestamp=helpers.timestamp())
@@ -201,7 +207,7 @@ class ActivityHandler(object):
             self.put_notification('on_pause')
 
     def on_resume(self):
-        logger.debug("Tautulli ActivityHandler :: Session %s resumed." % str(self.session_key))
+        logger.info("Tautulli ActivityHandler :: Session %s resumed." % str(self.session_key))
 
         # Set the session last_paused timestamp
         self.ap.set_session_last_paused(session_key=self.session_key, timestamp=None)
@@ -211,7 +217,7 @@ class ActivityHandler(object):
         self.put_notification('on_resume')
 
     def on_buffer(self):
-        logger.debug("Tautulli ActivityHandler :: Session %s is buffering." % self.session_key)
+        logger.info("Tautulli ActivityHandler :: Session %s is buffering." % self.session_key)
 
         # Increment our buffer count
         self.ap.increment_session_buffer_count(session_key=self.session_key)
@@ -242,42 +248,42 @@ class ActivityHandler(object):
             self.put_notification('on_buffer')
 
     def on_error(self):
-        logger.debug("Tautulli ActivityHandler :: Session %s encountered an error." % str(self.session_key))
+        logger.info("Tautulli ActivityHandler :: Session %s encountered an error." % str(self.session_key))
 
         self.update_db_session()
 
         self.put_notification('on_error')
 
     def on_change(self):
-        logger.debug("Tautulli ActivityHandler :: Session %s has changed transcode decision." % str(self.session_key))
+        logger.info("Tautulli ActivityHandler :: Session %s has changed transcode decision." % str(self.session_key))
 
         self.update_db_session()
 
         self.put_notification('on_change')
 
     def on_intro(self, marker):
-        logger.debug("Tautulli ActivityHandler :: Session %s reached intro marker." % str(self.session_key))
+        logger.info("Tautulli ActivityHandler :: Session %s reached intro marker." % str(self.session_key))
 
         self.set_session_state(view_offset=marker['start_time_offset'])
 
         self.put_notification('on_intro', marker=marker)
 
     def on_commercial(self, marker):
-        logger.debug("Tautulli ActivityHandler :: Session %s reached commercial marker." % str(self.session_key))
+        logger.info("Tautulli ActivityHandler :: Session %s reached commercial marker." % str(self.session_key))
 
         self.set_session_state(view_offset=marker['start_time_offset'])
 
         self.put_notification('on_commercial', marker=marker)
 
     def on_credits(self, marker):
-        logger.debug("Tautulli ActivityHandler :: Session %s reached credits marker." % str(self.session_key))
+        logger.info("Tautulli ActivityHandler :: Session %s reached credits marker." % str(self.session_key))
 
         self.set_session_state(view_offset=marker['start_time_offset'])
 
         self.put_notification('on_credits', marker=marker)
 
     def on_watched(self, marker=None):
-        logger.debug("Tautulli ActivityHandler :: Session %s watched." % str(self.session_key))
+        logger.info("Tautulli ActivityHandler :: Session %s watched." % str(self.session_key))
 
         if marker:
             self.set_session_state(view_offset=marker['start_time_offset'])
@@ -426,7 +432,10 @@ class ActivityHandler(object):
             self.ap.set_marker(session_key=self.session_key, marker_idx=0)
 
     def _marker_callback(self, marker):
-        if self.get_live_session():
+        if not self.get_live_session():
+            logger.info("Tautulli ActivityHandler :: Session %s not found in current activity. "
+                        "Skipping %s marker." % (str(self.session_key), marker['type']))
+        else:
             # Reset ActivityProcessor object for new database thread
             self.ap = activity_processor.ActivityProcessor()
 
@@ -600,6 +609,7 @@ class ReachabilityHandler(object):
         server_response = pms_connect.get_server_response()
 
         if not server_response:
+            logger.warn("Tautulli ReachabilityHandler :: Unable to get the remote access status from Plex.")
             return
 
         # Waiting for port mapping
@@ -731,8 +741,8 @@ def on_created(rating_key, **kwargs):
     metadata = pms_connect.get_metadata_details(rating_key)
 
     if metadata:
-        logger.debug("Tautulli TimelineHandler :: Library item '%s' (%s) added to Plex.",
-                     metadata['full_title'], str(rating_key))
+        logger.info("Tautulli TimelineHandler :: Library item '%s' (%s) added to Plex.",
+                    metadata['full_title'], str(rating_key))
 
         notify = True
         # now = helpers.timestamp()

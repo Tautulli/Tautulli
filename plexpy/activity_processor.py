@@ -183,6 +183,9 @@ class ActivityProcessor(object):
 
         # Return false if failed to retrieve user or library details
         if not user_details or not library_details:
+            logger.warn("Tautulli ActivityProcessor :: Unable to get user or library details for session %s "
+                        "(user_id %s, section_id %s). History not written."
+                        % (session['session_key'], session['user_id'], section_id))
             return False
 
         if session:
@@ -216,9 +219,9 @@ class ActivityProcessor(object):
             if str(session['rating_key']).isdigit() and session['media_type'] in ('movie', 'episode', 'track'):
                 logging_enabled = True
             else:
-                logger.debug("Tautulli ActivityProcessor :: Session %s ratingKey %s not logged. "
-                             "Does not meet logging criteria. Media type is '%s'" %
-                             (session['session_key'], session['rating_key'], session['media_type']))
+                logger.info("Tautulli ActivityProcessor :: Session %s ratingKey %s not logged. "
+                            "Does not meet logging criteria. Media type is '%s'" %
+                            (session['session_key'], session['rating_key'], session['media_type']))
                 return session['id']
 
             real_play_time = stopped - helpers.cast_to_int(session['started']) - helpers.cast_to_int(session['paused_counter'])
@@ -227,23 +230,23 @@ class ActivityProcessor(object):
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
                     logging_enabled = False
-                    logger.debug("Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs "
-                                 "which is less than %s seconds, so we're not logging it." %
-                                 (session['session_key'], session['rating_key'], str(real_play_time),
-                                  plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
+                    logger.info("Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs "
+                                "which is less than %s seconds, so we're not logging it." %
+                                (session['session_key'], session['rating_key'], str(real_play_time),
+                                 plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
             if session['media_type'] == 'track':
                 if real_play_time < 15 and helpers.cast_to_int(session['duration']) >= 30:
                     logging_enabled = False
-                    logger.debug("Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs, "
-                                 "looks like it was skipped so we're not logging it" %
-                                 (session['session_key'], session['rating_key'], str(real_play_time)))
+                    logger.info("Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs, "
+                                "looks like it was skipped so we're not logging it" %
+                                (session['session_key'], session['rating_key'], str(real_play_time)))
 
             if not user_details['keep_history']:
                 logging_enabled = False
-                logger.debug("Tautulli ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
+                logger.info("Tautulli ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
             elif not library_details['keep_history']:
                 logging_enabled = False
-                logger.debug("Tautulli ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
+                logger.info("Tautulli ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
 
             if logging_enabled:
                 db = database.MonitorDatabase()
@@ -263,6 +266,8 @@ class ActivityProcessor(object):
                 if session['live'] and not metadata:
                     metadata = session
                 elif not metadata:
+                    logger.warn("Tautulli ActivityProcessor :: Unable to get metadata for session %s ratingKey %s. "
+                                "History not written." % (session['session_key'], session['rating_key']))
                     return False
                 else:
                     if 'media_info' in metadata and len(metadata['media_info']) > 0:
@@ -463,6 +468,8 @@ class ActivityProcessor(object):
                         #              % session['session_key'])
                         db.insert(table_name='session_history_metadata', value_dict=values)
                     database.bump_history_version()
+                    logger.info("Tautulli ActivityProcessor :: History written for session %s ratingKey %s (history id %s)."
+                                % (session['session_key'], session['rating_key'], last_id))
                 except sqlite3.OperationalError as e:
                     # Locked/busy after all retries: the transaction has
                     # rolled back. Return falsy so the callers' existing
@@ -725,6 +732,7 @@ class ActivityProcessor(object):
     def regroup_history(self):
         logger.info("Tautulli ActivityProcessor :: Creating database backup...")
         if not database.make_backup():
+            logger.error("Tautulli ActivityProcessor :: Unable to create database backup. History not regrouped.")
             return False
 
         logger.info("Tautulli ActivityProcessor :: Regrouping session history...")
@@ -746,7 +754,7 @@ class ActivityProcessor(object):
             try:
                 self.group_history(session['id'], session)
             except Exception as e:
-                logger.error("Tautulli ActivityProcessor :: Error regrouping session history: %s", e)
+                logger.exception("Tautulli ActivityProcessor :: Error regrouping session history: %s", e)
                 return False
 
         logger.info("Tautulli ActivityProcessor :: Regrouping session history complete.")
