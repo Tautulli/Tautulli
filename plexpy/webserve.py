@@ -418,6 +418,7 @@ class WebInterface(object):
             pms_connect = pmsconnect.PmsConnect()
             result = pms_connect.get_recently_added_details(count=count, media_type=media_type)
         except IOError as e:
+            logger.error("Unable to retrieve data for get_recently_added: %s" % e)
             return serve_template(template_name="recently_added.html", data=None)
 
         if result and 'recently_added' in result:
@@ -639,11 +640,11 @@ class WebInterface(object):
             try:
                 library_data = libraries.Libraries()
                 library_details = library_data.get_details(section_id=section_id)
-            except:
-                logger.warn("Unable to retrieve library details for section_id %s " % section_id)
+            except Exception:
+                logger.exception("Unable to retrieve library details for section_id %r " % section_id)
                 return serve_template(template_name="library.html", title="Library", data=None, config=config)
         else:
-            logger.debug("Library page requested but no section_id received.")
+            logger.warn("Library page requested but no section_id received.")
             return serve_template(template_name="library.html", title="Library", data=None, config=config)
 
         return serve_template(template_name="library.html", title="Library", data=library_details, config=config)
@@ -699,7 +700,8 @@ class WebInterface(object):
                                         is_archived=is_archived)
 
                 return "Successfully updated library."
-            except:
+            except Exception:
+                logger.exception("Unable to update library section_id %r." % section_id)
                 return "Failed to update library."
 
     @cherrypy.expose
@@ -1400,11 +1402,11 @@ class WebInterface(object):
             try:
                 user_data = users.Users()
                 user_details = user_data.get_details(user_id=user_id)
-            except:
-                logger.warn("Unable to retrieve user details for user_id %s " % user_id)
+            except Exception:
+                logger.exception("Unable to retrieve user details for user_id %r " % user_id)
                 return serve_template(template_name="user.html", title="User", data=None)
         else:
-            logger.debug("User page requested but no user_id received.")
+            logger.warn("User page requested but no user_id received.")
             return serve_template(template_name="user.html", title="User", data=None)
 
         return serve_template(template_name="user.html", title="User", data=user_details)
@@ -1462,7 +1464,8 @@ class WebInterface(object):
                                      is_archived=is_archived)
                 status_message = "Successfully updated user."
                 return status_message
-            except:
+            except Exception:
+                logger.exception("Unable to update user_id %r." % user_id)
                 status_message = "Failed to update user."
                 return status_message
 
@@ -3346,6 +3349,7 @@ class WebInterface(object):
             with open(os.path.join(plexpy.CONFIG.LOG_DIR, filename), 'r', encoding='utf-8') as f:
                 return f'<pre>{html.escape(f.read())}</pre>'
         except IOError as e:
+            logger.warn("Unable to read log file '%s': %s" % (filename, e))
             return "Log file not found."
 
 
@@ -3543,6 +3547,7 @@ class WebInterface(object):
         if refresh_users:
             threading.Thread(target=users.refresh_users).start()
 
+        logger.info("Tautulli WebInterface :: Settings saved.")
         return {'result': 'success', 'message': 'Settings saved.'}
 
     @cherrypy.expose
@@ -3886,7 +3891,7 @@ class WebInterface(object):
             notifier = notifiers.get_notifier_config(notifier_id=notifier_id)
 
             if notifier:
-                logger.debug("Sending %s%s notification." % (test, notifier['agent_label']))
+                logger.info("Sending %s%s notification." % (test, notifier['agent_label']))
                 notification_handler.add_notifier_each(notifier_id=notifier_id,
                                                        notify_action=notify_action,
                                                        subject=subject,
@@ -3895,10 +3900,10 @@ class WebInterface(object):
                                                        **kwargs)
                 return {'result': 'success', 'message': 'Notification queued.'}
             else:
-                logger.debug("Unable to send %snotification, invalid notifier_id %s." % (test, notifier_id))
+                logger.warn("Unable to send %snotification, invalid notifier_id %r." % (test, notifier_id))
                 return {'result': 'error', 'message': 'Invalid notifier id %s.' % notifier_id}
         else:
-            logger.debug("Unable to send %snotification, no notifier_id received." % test)
+            logger.warn("Unable to send %snotification, no notifier_id received." % test)
             return {'result': 'error', 'message': 'No notifier id received.'}
 
     @cherrypy.expose
@@ -4494,7 +4499,7 @@ class WebInterface(object):
     @requireAuth(member_of("admin"))
     def checkout_git_branch(self, git_remote=None, git_branch=None, **kwargs):
         if git_branch == plexpy.CONFIG.GIT_BRANCH:
-            logger.error("Already on the %s branch" % git_branch)
+            logger.warn("Already on the %s branch" % git_branch)
             raise cherrypy.HTTPRedirect(plexpy.HTTP_ROOT + "home")
 
         # Set the new git remote and branch
@@ -5124,7 +5129,8 @@ class WebInterface(object):
             for key in config._DO_NOT_DOWNLOAD_KEYS:
                 setattr(cfg, key, '')
             cfg.write()
-        except:
+        except Exception:
+            logger.exception("Tautulli WebInterface :: Failed to export config.")
             cherrypy.response.status = 500
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
             return {'result': 'error', 'message': 'Error downloading config. Check the logs.'}
@@ -5168,7 +5174,7 @@ class WebInterface(object):
             finally:
                 temp_db.close()
         except Exception as e:
-            logger.error("Tautulli WebInterface :: Failed to export database: %s", e)
+            logger.exception("Tautulli WebInterface :: Failed to export database: %s", e)
             helpers.delete_file(temp_path)
             cherrypy.response.status = 500
             cherrypy.response.headers['Content-Type'] = 'application/json;charset=UTF-8'
@@ -7091,7 +7097,7 @@ class WebInterface(object):
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
-                logger.debug("Sending %s%s newsletter." % (test, newsletter['agent_label']))
+                logger.info("Sending %s%s newsletter." % (test, newsletter['agent_label']))
                 newsletter_handler.add_newsletter_each(newsletter_id=newsletter_id,
                                                        notify_action=notify_action,
                                                        subject=subject,
@@ -7100,10 +7106,10 @@ class WebInterface(object):
                                                         **kwargs)
                 return {'result': 'success', 'message': 'Newsletter queued.'}
             else:
-                logger.debug("Unable to send %snewsletter, invalid newsletter_id %s." % (test, newsletter_id))
+                logger.warn("Unable to send %snewsletter, invalid newsletter_id %r." % (test, newsletter_id))
                 return {'result': 'error', 'message': 'Invalid newsletter id %s.' % newsletter_id}
         else:
-            logger.debug("Unable to send %snotification, no newsletter_id received." % test)
+            logger.warn("Unable to send %snotification, no newsletter_id received." % test)
             return {'result': 'error', 'message': 'No newsletter id received.'}
 
     @cherrypy.expose
@@ -7190,10 +7196,10 @@ class WebInterface(object):
 
                 return newsletter_agent.generate_newsletter(preview=preview)
 
-            logger.error("Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
+            logger.warn("Failed to retrieve newsletter: Invalid newsletter_id %s" % newsletter_id)
             return "Failed to retrieve newsletter: invalid newsletter_id parameter"
 
-        logger.error("Failed to retrieve newsletter: Missing newsletter_id parameter.")
+        logger.warn("Failed to retrieve newsletter: Missing newsletter_id parameter.")
         return "Failed to retrieve newsletter: missing newsletter_id parameter"
 
     @cherrypy.expose

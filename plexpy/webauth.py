@@ -69,16 +69,19 @@ def plex_user_login(token=None, headers=None):
         user_details = user_data.get_details(user_id=user_id)
         if user_id != str(user_details['user_id']):
             # The user is not in the database.
+            logger.warn("Tautulli WebAuth :: Plex user '%s' is not a Tautulli user." % plex_user['username'])
             return None
         elif plexpy.CONFIG.HTTP_PLEX_ADMIN and user_details['is_admin']:
             # Plex admin login
             return user_details, 'admin'
         elif not user_details['allow_guest'] or user_details['deleted_user'] or user_details['is_archived']:
             # Guest access is disabled or the user is deleted or archived.
+            logger.warn("Tautulli WebAuth :: Guest access is not allowed for user '%s'." % user_details['username'])
             return None
 
         # Stop here if guest access is not enabled
         if not plexpy.CONFIG.ALLOW_GUEST_ACCESS:
+            logger.warn("Tautulli WebAuth :: Guest access is disabled. User '%s' cannot log in." % user_details['username'])
             return None
 
         # The user is in the database, and guest access is enabled, so try to retrieve a server token.
@@ -105,8 +108,8 @@ def plex_user_login(token=None, headers=None):
                                 % user_details['username'])
                     return None
             except Exception as e:
-                logger.warn("Tautulli WebAuth :: Unable to register user '%s' in database: %s."
-                            % (user_details['username'], e))
+                logger.exception("Tautulli WebAuth :: Unable to register user '%s' in database: %s."
+                                 % (user_details['username'], e))
                 return None
         else:
             logger.warn("Tautulli WebAuth :: Unable to retrieve Plex.tv server token for user '%s'."
@@ -318,8 +321,8 @@ class AuthController(object):
 
         if success:
             use_oauth = 'Plex OAuth' if oauth else 'form'
-            logger.debug("Tautulli WebAuth :: %s user '%s' logged into Tautulli using %s login."
-                         % (user_group.capitalize(), username, use_oauth))
+            logger.info("Tautulli WebAuth :: %s user '%s' logged into Tautulli using %s login."
+                        % (user_group.capitalize(), username, use_oauth))
 
     def on_logout(self, username, user_group, jwt_token=None):
         """Called on logout"""
@@ -327,7 +330,7 @@ class AuthController(object):
         if jwt_token:
             Users().clear_user_login_token(jwt_token=jwt_token)
 
-        logger.debug("Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
+        logger.info("Tautulli WebAuth :: %s user '%s' logged out of Tautulli." % (user_group.capitalize(), username))
 
     def get_loginform(self, redirect_uri=''):
         from plexpy.webserve import serve_template
@@ -433,19 +436,19 @@ class AuthController(object):
 
         elif admin_login == '1' and username:
             self.on_login(username=username)
-            logger.debug("Tautulli WebAuth :: Invalid admin login attempt from '%s'." % username)
+            logger.warn("Tautulli WebAuth :: Invalid admin login attempt from %r at IP '%s'." % (username, ip_address))
             cherrypy.response.status = 401
             return error_message
 
         elif username:
             self.on_login(username=username)
-            logger.debug("Tautulli WebAuth :: Invalid user login attempt from '%s'." % username)
+            logger.warn("Tautulli WebAuth :: Invalid user login attempt from %r at IP '%s'." % (username, ip_address))
             cherrypy.response.status = 401
             return error_message
 
         elif token:
             self.on_login(username='Plex OAuth', oauth=True)
-            logger.debug("Tautulli WebAuth :: Invalid Plex OAuth login attempt.")
+            logger.warn("Tautulli WebAuth :: Invalid Plex OAuth login attempt from IP '%s'." % ip_address)
             cherrypy.response.status = 401
             return error_message
 

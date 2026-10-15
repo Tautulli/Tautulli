@@ -86,7 +86,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_day: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_day: %s." % e)
             return None
 
         result_by_date_played = {item['date_played']: item for item in result}
@@ -215,7 +215,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_dayofweek: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_dayofweek: %s." % e)
             return None
 
         result_by_dayofweek = {item['dayofweek']: item for item in result}
@@ -323,7 +323,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_hourofday: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_hourofday: %s." % e)
             return None
 
         result_by_hourofday = {item['hourofday']: item for item in result}
@@ -429,7 +429,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_month: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_month: %s." % e)
             return None
 
         result_by_datestring = {item['datestring']: item for item in result}
@@ -545,7 +545,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_by_top_10_platforms: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_by_top_10_platforms: %s." % e)
             return None
 
         categories = []
@@ -645,7 +645,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_by_top_10_users: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_by_top_10_users: %s." % e)
             return None
 
         categories = []
@@ -736,7 +736,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_stream_type: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_per_stream_type: %s." % e)
             return None
 
         result_by_date_played = {item['date_played']: item for item in result}
@@ -820,7 +820,7 @@ class Graphs(object):
 
             result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_concurrent_streams_per_stream_type: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_concurrent_streams_per_stream_type: %s." % e)
             return None
 
         result_by_date_and_decision = helpers.group_by_keys(result, ('date_played', 'transcode_decision'))
@@ -924,7 +924,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_by_source_resolution: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_by_source_resolution: %s." % e)
             return None
 
         categories = []
@@ -1028,7 +1028,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_total_plays_by_stream_resolution: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_total_plays_by_stream_resolution: %s." % e)
             return None
 
         categories = []
@@ -1102,7 +1102,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_stream_type_by_top_10_platforms: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_stream_type_by_top_10_platforms: %s." % e)
             return None
 
         categories = []
@@ -1183,7 +1183,7 @@ class Graphs(object):
 
                 result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Graphs :: Unable to execute database query for get_stream_type_by_top_10_users: %s." % e)
+            logger.exception("Tautulli Graphs :: Unable to execute database query for get_stream_type_by_top_10_users: %s." % e)
             return None
 
         categories = []

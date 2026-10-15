@@ -78,8 +78,8 @@ class DataTables(object):
         if kwargs.get('json_data'):
             parameters = helpers.process_json_kwargs(json_kwargs=kwargs.get('json_data'))
         else:
-            logger.error('Tautulli DataTables :: Parameters for Datatables must be sent as a serialised json object '
-                         'named json_data.')
+            logger.warn('Tautulli DataTables :: Parameters for Datatables must be sent as a serialised json object '
+                        'named json_data.')
             return None
 
         extracted_columns = extract_columns(columns=columns)

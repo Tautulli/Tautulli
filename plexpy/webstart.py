@@ -60,7 +60,7 @@ def _patch_cheroot_makefile():
 
         makefile.BufferedWriter._flush_unlocked = _flush_unlocked_patched
     except Exception:
-        pass
+        logger.debug("Tautulli WebStart :: Unable to patch the cheroot socket writer.", exc_info=True)
 
 
 def _patch_cherrypy_cors_preflight():

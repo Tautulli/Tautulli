@@ -1912,7 +1912,7 @@ class Export(object):
             msg = "Individual file export is only allowed for library or user export."
 
         if msg:
-            logger.error("Tautulli Exporter :: %s", msg)
+            logger.warn("Tautulli Exporter :: %s", msg)
             return msg
 
         if self.user_id:
@@ -1981,12 +1981,12 @@ class Export(object):
 
         else:
             msg = "Export called but no section_id, user_id, or rating_key provided."
-            logger.error("Tautulli Exporter :: %s", msg)
+            logger.warn("Tautulli Exporter :: %s", msg)
             return msg
 
         if self.media_type not in self.MEDIA_TYPES:
             msg = "Cannot export media type '{}'.".format(self.media_type)
-            logger.error("Tautulli Exporter :: %s", msg)
+            logger.warn("Tautulli Exporter :: %s", msg)
             return msg
 
         if not self.MEDIA_TYPES[self.media_type][0]:
@@ -2044,7 +2044,7 @@ class Export(object):
             db.upsert(table_name='exports', key_dict=keys, value_dict=values)
             return db.last_insert_id()
         except Exception as e:
-            logger.error("Tautulli Exporter :: Unable to save export to database: %s", e)
+            logger.exception("Tautulli Exporter :: Unable to save export to database: %s", e)
             return False
 
     def set_export_state(self):
@@ -2672,7 +2672,7 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                                       join_evals=[],
                                       kwargs=kwargs)
     except Exception as e:
-        logger.warn("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s.", e)
+        logger.exception("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s.", e)
         return
 
     result = query['result']
