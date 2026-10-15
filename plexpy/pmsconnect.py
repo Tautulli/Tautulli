@@ -3497,6 +3497,7 @@ class PmsConnect(object):
             xml_head = dvrs_xml.getElementsByTagName('MediaContainer')
         except Exception as e:
             logger.warn("Tautulli Pmsconnect :: Unable to parse XML for get_dvrs_list: %s." % e)
+            return []
 
         dvrs_output = []
 
