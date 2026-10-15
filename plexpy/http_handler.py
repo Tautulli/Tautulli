@@ -124,7 +124,7 @@ class HTTPHandler(object):
         self.request_kwargs = request_kwargs
 
         if self.request_type not in self._valid_request_types:
-            logger.debug("HTTP request made but unsupported request type given.")
+            logger.warn("HTTP request made but unsupported request type given.")
             return None
 
         if uri:
@@ -147,7 +147,7 @@ class HTTPHandler(object):
             return responses[0]
 
         else:
-            logger.debug("HTTP request made but no uri endpoint provided.")
+            logger.warn("HTTP request made but no uri endpoint provided.")
             return None
 
     def _http_requests_pool(self, urls, workers=10, chunk=None):
@@ -170,7 +170,7 @@ class HTTPHandler(object):
                     yield work
             except Exception as e:
                 if not self._silent:
-                    logger.error("Failed to yield request: %s" % e)
+                    logger.exception("Failed to yield request: %s" % e)
             finally:
                 pool.close()
                 pool.join()

@@ -92,9 +92,7 @@ def refresh_users():
             if not item['username']:
                 item['username'] = item['title']
 
-            result = monitor_db.upsert('users', key_dict=keys_dict, value_dict=item)
-
-            if result == 'insert':
+            if monitor_db.upsert('users', key_dict=keys_dict, value_dict=item) == 'insert':
                 new_users.append(item['username'])
 
         # Unarchive users which became active again on the Plex server. Only users which were
@@ -114,10 +112,10 @@ def refresh_users():
         # Add new users to logger username filter
         logger.filter_usernames(new_users)
 
-        logger.info("Tautulli Users :: Users list refreshed.")
+        logger.info("Tautulli Users :: Users list refreshed. %s users returned, %s new.", len(result), len(new_users))
         return True
     else:
-        logger.warn("Tautulli Users :: Unable to refresh users list.")
+        logger.error("Tautulli Users :: Unable to refresh users list.")
         return False
 
 
@@ -230,7 +228,7 @@ class Users(object):
                                                       ],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_list: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_list: %s." % e)
             return
 
         users = query['result']
@@ -380,7 +378,7 @@ class Users(object):
                                                       ['session_history.id', 'session_history_media_info.id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_unique_ips: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_unique_ips: %s." % e)
             return
 
         results = query['result']
@@ -458,7 +456,7 @@ class Users(object):
                 if value_dict.get('is_archived'):
                     self.clear_user_login_token(user_id=user_id)
             except Exception as e:
-                logger.warn("Tautulli Users :: Unable to execute database query for set_config: %s." % e)
+                logger.exception("Tautulli Users :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, user_id=None, user=None, email=None, include_last_seen=False, include_archived=False):
         default_return = {'row_id': 0,
@@ -542,7 +540,7 @@ class Users(object):
                     "WHERE %s COLLATE NOCASE" % (last_seen, join, where)
             result = monitor_db.select(query, args=args)
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_user_details: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_user_details: %s." % e)
             result = []
 
         user_details = {}
@@ -631,7 +629,7 @@ class Users(object):
                         " FROM session_history WHERE user_id = ? %s" % archived_cond
                 result = monitor_db.select_single(query, args=[user_id])
             except Exception as e:
-                logger.warn("Tautulli Users :: Unable to execute database query for get_watch_time_stats: %s." % e)
+                logger.exception("Tautulli Users :: Unable to execute database query for get_watch_time_stats: %s." % e)
                 return []
 
             for i, days in enumerate(query_days):
@@ -681,7 +679,7 @@ class Users(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_player_stats: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_player_stats: %s." % e)
             result = []
 
         for item in result:
@@ -741,7 +739,7 @@ class Users(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_recently_watched: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_recently_watched: %s." % e)
             result = []
 
         for row in result:
@@ -788,7 +786,7 @@ class Users(object):
                     "FROM users %s" % where
             result = monitor_db.select(query=query)
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_users: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_users: %s." % e)
             return []
 
         users = []
@@ -851,7 +849,7 @@ class Users(object):
                     self.clear_user_login_token(user_id=user_id)
                     return delete_success
                 except Exception as e:
-                    logger.warn("Tautulli Users :: Unable to execute database query for delete: %s." % e)
+                    logger.exception("Tautulli Users :: Unable to execute database query for delete: %s." % e)
 
         else:
             return False
@@ -895,7 +893,7 @@ class Users(object):
                     return False
 
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for undelete: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for undelete: %s." % e)
 
     def get_archived_user_ids(self):
         """Return the user_ids of all archived users.
@@ -907,7 +905,7 @@ class Users(object):
         try:
             result = monitor_db.select("SELECT user_id FROM users WHERE is_archived = 1")
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_archived_user_ids: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_archived_user_ids: %s." % e)
             return []
 
         return [item['user_id'] for item in result]
@@ -931,7 +929,7 @@ class Users(object):
 
             result = monitor_db.select(query)
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_user_names: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_user_names: %s." % e)
             return None
 
         return session.friendly_name_to_username(result)
@@ -957,7 +955,8 @@ class Users(object):
                     return tokens
                 else:
                     return tokens
-            except:
+            except Exception as e:
+                logger.debug("Tautulli Users :: Unable to get tokens for user_id %s: %s.", user_id, e, exc_info=True)
                 return tokens
 
         return tokens
@@ -972,7 +971,7 @@ class Users(object):
                     "WHERE user_id = ?"
             result = monitor_db.select_single(query, args=[user_id])
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_filters: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_filters: %s." % e)
             result = {}
 
         filters_list = {}
@@ -1014,7 +1013,7 @@ class Users(object):
             try:
                 monitor_db.upsert(table_name='user_login', key_dict=keys, value_dict=values)
             except Exception as e:
-                logger.warn("Tautulli Users :: Unable to execute database query for set_login_log: %s." % e)
+                logger.exception("Tautulli Users :: Unable to execute database query for set_login_log: %s." % e)
 
     def get_user_login(self, jwt_token):
         monitor_db = database.MonitorDatabase()
@@ -1034,7 +1033,7 @@ class Users(object):
                                   [jwt_token])
                 return True
             except Exception as e:
-                logger.error("Tautulli Users :: Unable to clear user JWT token: %s.", e)
+                logger.exception("Tautulli Users :: Unable to clear user JWT token: %s.", e)
                 return False
 
         elif row_ids and row_ids is not None:
@@ -1046,7 +1045,7 @@ class Users(object):
                                   row_ids)
                 return True
             except Exception as e:
-                logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
+                logger.exception("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
                 return False
 
         elif str(user_id).isdigit():
@@ -1057,7 +1056,7 @@ class Users(object):
                                   "WHERE user_id = ? AND user_group = 'guest'",
                                   [user_id])
             except Exception as e:
-                logger.error("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
+                logger.exception("Tautulli Users :: Unable to clear JWT tokens: %s.", e)
                 return False
 
         return False
@@ -1103,7 +1102,7 @@ class Users(object):
                                           join_evals=[['user_login.user_id', 'users.user_id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for get_datatables_user_login: %s." % e)
             return
 
         results = query['result']
@@ -1154,5 +1153,5 @@ class Users(object):
             monitor_db.action('VACUUM')
             return True
         except Exception as e:
-            logger.warn("Tautulli Users :: Unable to execute database query for delete_login_log: %s." % e)
+            logger.exception("Tautulli Users :: Unable to execute database query for delete_login_log: %s." % e)
             return False

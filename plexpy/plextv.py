@@ -201,7 +201,7 @@ class PlexTV(object):
                            }
                     return pin
                 else:
-                    logger.warn("Tautulli PlexTV :: Could not get Plex authentication pin.")
+                    logger.error("Tautulli PlexTV :: Could not get Plex authentication pin.")
                     return None
 
             except Exception as e:

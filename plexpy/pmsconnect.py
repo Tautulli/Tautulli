@@ -771,7 +771,7 @@ class PmsConnect(object):
             elif a.getElementsByTagName('Playlist'):
                 metadata_main_list = a.getElementsByTagName('Playlist')
             else:
-                logger.debug("Tautulli Pmsconnect :: Metadata failed")
+                logger.warn("Tautulli Pmsconnect :: Metadata failed for rating_key %s." % rating_key)
                 return {}
 
             if (sync_id or rating_key) and len(metadata_main_list) > 1:
@@ -780,7 +780,7 @@ class PmsConnect(object):
                     (m for m in metadata_main_list
                      if helpers.get_xml_attr(m, 'ratingKey') == str(rating_key)), None)
                 if metadata_main is None:
-                    logger.debug("Tautulli Pmsconnect :: Metadata failed")
+                    logger.warn("Tautulli Pmsconnect :: Metadata failed for rating_key %s." % rating_key)
                     return {}
             else:
                 metadata_main = metadata_main_list[0]
@@ -2506,7 +2506,7 @@ class PmsConnect(object):
         plex_tv = plextv.PlexTV()
         if not plex_tv.get_plexpass_status():
             msg = 'No Plex Pass subscription'
-            logger.warn("Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
+            logger.error("Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
             return msg
 
         message = message.encode('utf-8') or 'The server owner has ended the stream.'
@@ -2528,7 +2528,7 @@ class PmsConnect(object):
 
         if not session:
             msg = 'Invalid session_key (%s) or session_id (%s)' % (session_key, session_id)
-            logger.warn("Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
+            logger.error("Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
             return msg
 
         if session_id:
@@ -2537,7 +2537,7 @@ class PmsConnect(object):
             return response.ok
         else:
             msg = 'Missing session_id'
-            logger.warn("Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
+            logger.error("Tautulli Pmsconnect :: Failed to terminate session: %s." % msg)
             return msg
 
     def get_item_children(self, rating_key='', media_type=None, get_grandchildren=False):
@@ -2820,7 +2820,7 @@ class PmsConnect(object):
 
             return pref_value
         else:
-            logger.debug("Tautulli Pmsconnect :: Server preferences queried but no parameter received.")
+            logger.warn("Tautulli Pmsconnect :: Server preferences queried but no parameter received.")
             return None
 
     def get_server_children(self):

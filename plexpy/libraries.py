@@ -93,14 +93,14 @@ def refresh_libraries():
 
         # Only rewrite the config file when new libraries were found
         if new_keys:
-            new_keys = plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys
-            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', new_keys)
+            plexpy.CONFIG.__setattr__('HOME_LIBRARY_CARDS', plexpy.CONFIG.HOME_LIBRARY_CARDS + new_keys)
             plexpy.CONFIG.write()
 
-        logger.info("Tautulli Libraries :: Libraries list refreshed.")
+        logger.info("Tautulli Libraries :: Libraries list refreshed. %s libraries returned, %s new.",
+                    len(library_keys), len(new_keys))
         return True
     else:
-        logger.warn("Tautulli Libraries :: Unable to refresh libraries list.")
+        logger.error("Tautulli Libraries :: Unable to refresh libraries list.")
         return False
 
 
@@ -411,7 +411,7 @@ class Libraries(object):
                                                       ['session_history_metadata.id', 'history_agg.history_row_id']],
                                           kwargs=kwargs)
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
+            logger.exception("Tautulli Libraries :: Unable to execute database query for get_list: %s." % e)
             return
 
         result = query['result']
@@ -506,7 +506,7 @@ class Libraries(object):
         # Get the library details
         library_details = self.get_details(section_id=section_id)
         if library_details['section_id'] == None:
-            logger.debug("Tautulli Libraries :: Library section_id %s not found." % section_id)
+            logger.warn("Tautulli Libraries :: Library section_id %r not found." % section_id)
             return default_return
 
         if not section_type:
@@ -535,7 +535,7 @@ class Libraries(object):
                     "GROUP BY %s " % (count_by, '' if include_archived else users.archived_user_cond(), group_by)
             result = monitor_db.select(query, args=[section_id])
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
+            logger.exception("Tautulli Libraries :: Unable to execute database query for get_datatables_media_info2: %s." % e)
             return default_return
 
         watched_list = {}
@@ -565,7 +565,7 @@ class Libraries(object):
                 library_count = library_children['library_count']
                 children_list = library_children['children_list']
             else:
-                logger.warn("Tautulli Libraries :: Unable to get a list of library items.")
+                logger.error("Tautulli Libraries :: Unable to get a list of library items.")
                 return default_return
 
             new_rows = []
@@ -685,7 +685,7 @@ class Libraries(object):
         # Get the library details
         library_details = self.get_details(section_id=section_id)
         if library_details['section_id'] == None:
-            logger.debug("Tautulli Libraries :: Library section_id %s not found." % section_id)
+            logger.warn("Tautulli Libraries :: Library section_id %r not found." % section_id)
             return False
         if library_details['section_type'] == 'photo':
             return False
@@ -784,7 +784,7 @@ class Libraries(object):
                     json.dump({'last_refreshed': cache_time, 'rows': rows}, outFile)
                 logger.debug("Tautulli Libraries :: Saved media info cache for rating_key %s." % rating_key)
             except IOError as e:
-                logger.debug("Tautulli Libraries :: Unable to create cache file for rating_key %s." % rating_key)
+                logger.warn("Tautulli Libraries :: Unable to create cache file for rating_key %s: %s." % (rating_key, e))
 
         elif section_id:
             try:
@@ -793,7 +793,7 @@ class Libraries(object):
                     json.dump({'last_refreshed': cache_time, 'rows': rows}, outFile)
                 logger.debug("Tautulli Libraries :: Saved media info cache for section_id %s." % section_id)
             except IOError as e:
-                logger.debug("Tautulli Libraries :: Unable to create cache file for section_id %s." % section_id)
+                logger.warn("Tautulli Libraries :: Unable to create cache file for section_id %s: %s." % (section_id, e))
 
     def set_config(self, section_id=None, custom_thumb=None, custom_art=None, keep_history=None, is_archived=None):
         if str(section_id).isdigit():
@@ -814,7 +814,7 @@ class Libraries(object):
             try:
                 monitor_db.upsert('library_sections', value_dict, key_dict)
             except Exception as e:
-                logger.warn("Tautulli Libraries :: Unable to execute database query for set_config: %s." % e)
+                logger.exception("Tautulli Libraries :: Unable to execute database query for set_config: %s." % e)
 
     def get_details(self, section_id=None, server_id=None, include_last_accessed=False,
                     include_archived=False):
@@ -900,7 +900,7 @@ class Libraries(object):
                     "GROUP BY library_sections.id" % (last_accessed, join, where)
             result = monitor_db.select(query, args=args + [server_id])
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_library_details: %s." % e)
+            logger.exception("Tautulli Libraries :: Unable to execute database query for get_library_details: %s." % e)
             result = []
 
         library_details = {}
@@ -985,7 +985,7 @@ class Libraries(object):
                         " FROM session_history WHERE section_id = ? %s" % archived_cond
                 result = monitor_db.select_single(query, args=[section_id])
             except Exception as e:
-                logger.warn("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
+                logger.exception("Tautulli Libraries :: Unable to execute database query for get_watch_time_stats: %s." % e)
                 return []
 
             for i, days in enumerate(query_days):
@@ -1037,7 +1037,7 @@ class Libraries(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_user_stats: %s." % e)
+            logger.exception("Tautulli Libraries :: Unable to execute database query for get_user_stats: %s." % e)
             result = []
 
         for item in result:
@@ -1097,7 +1097,7 @@ class Libraries(object):
             else:
                 result = []
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_recently_watched: %s." % e)
+            logger.exception("Tautulli Libraries :: Unable to execute database query for get_recently_watched: %s." % e)
             result = []
 
         for row in result:
@@ -1144,7 +1144,7 @@ class Libraries(object):
         try:
             result = monitor_db.select("SELECT section_id FROM library_sections WHERE is_archived = 1")
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_archived_section_ids: %s." % e)
+            logger.exception("Tautulli Libraries :: Unable to execute database query for get_archived_section_ids: %s." % e)
             return []
 
         return [item['section_id'] for item in result]
@@ -1161,7 +1161,7 @@ class Libraries(object):
                     "FROM library_sections WHERE deleted_section = 0 %s" % library_cond
             result = monitor_db.select(query=query)
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for get_sections: %s." % e)
+            logger.exception("Tautulli Libraries :: Unable to execute database query for get_sections: %s." % e)
             return None
 
         libraries = []
@@ -1214,7 +1214,7 @@ class Libraries(object):
                     _LIBRARY_TYPES_CACHE['types'] = None
                     return delete_success
                 except Exception as e:
-                    logger.warn("Tautulli Libraries :: Unable to execute database query for delete: %s." % e)
+                    logger.exception("Tautulli Libraries :: Unable to execute database query for delete: %s." % e)
 
         else:
             return False
@@ -1266,7 +1266,7 @@ class Libraries(object):
                     return False
 
         except Exception as e:
-            logger.warn("Tautulli Libraries :: Unable to execute database query for undelete: %s." % e)
+            logger.exception("Tautulli Libraries :: Unable to execute database query for undelete: %s." % e)
 
     def delete_media_info_cache(self, section_id=None):
         import os
