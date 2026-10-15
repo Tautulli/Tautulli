@@ -172,19 +172,18 @@ class ActivityProcessor(object):
 
                 return True
 
-    def write_session_history(self, session=None, import_metadata=None, is_import=False, import_ignore_interval=0):
-        section_id = session['section_id'] if not is_import else import_metadata['section_id']
+    def write_session_history(self, session=None):
+        section_id = session['section_id']
 
-        if not is_import:
-            user_data = users.Users()
-            user_details = user_data.get_details(user_id=session['user_id'])
+        user_data = users.Users()
+        user_details = user_data.get_details(user_id=session['user_id'])
 
-            library_data = libraries.Libraries()
-            library_details = library_data.get_details(section_id=section_id)
+        library_data = libraries.Libraries()
+        library_details = library_data.get_details(section_id=section_id)
 
-            # Return false if failed to retrieve user or library details
-            if not user_details or not library_details:
-                return False
+        # Return false if failed to retrieve user or library details
+        if not user_details or not library_details:
+            return False
 
         if session:
             logging_enabled = False
@@ -201,12 +200,7 @@ class ActivityProcessor(object):
 
             session = defaultdict(str, session)
 
-            if is_import:
-                if str(session['stopped']).isdigit():
-                    stopped = int(session['stopped'])
-                else:
-                    stopped = helpers.timestamp()
-            elif session['stopped']:
+            if session['stopped']:
                 stopped = int(session['stopped'])
             else:
                 stopped = helpers.timestamp()
@@ -214,11 +208,10 @@ class ActivityProcessor(object):
                                        state='stopped',
                                        stopped=stopped)
 
-            if not is_import:
-                self.write_continued_session(user_id=session['user_id'],
-                                             machine_id=session['machine_id'],
-                                             media_type=session['media_type'],
-                                             stopped=stopped)
+            self.write_continued_session(user_id=session['user_id'],
+                                         machine_id=session['machine_id'],
+                                         media_type=session['media_type'],
+                                         stopped=stopped)
 
             if str(session['rating_key']).isdigit() and session['media_type'] in ('movie', 'episode', 'track'):
                 logging_enabled = True
@@ -230,7 +223,7 @@ class ActivityProcessor(object):
 
             real_play_time = stopped - helpers.cast_to_int(session['started']) - helpers.cast_to_int(session['paused_counter'])
 
-            if not is_import and plexpy.CONFIG.LOGGING_IGNORE_INTERVAL:
+            if plexpy.CONFIG.LOGGING_IGNORE_INTERVAL:
                 if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
                         (real_play_time < int(plexpy.CONFIG.LOGGING_IGNORE_INTERVAL)):
                     logging_enabled = False
@@ -238,24 +231,17 @@ class ActivityProcessor(object):
                                  "which is less than %s seconds, so we're not logging it." %
                                  (session['session_key'], session['rating_key'], str(real_play_time),
                                   plexpy.CONFIG.LOGGING_IGNORE_INTERVAL))
-            if not is_import and session['media_type'] == 'track':
+            if session['media_type'] == 'track':
                 if real_play_time < 15 and helpers.cast_to_int(session['duration']) >= 30:
                     logging_enabled = False
                     logger.debug("Tautulli ActivityProcessor :: Play duration for session %s ratingKey %s is %s secs, "
                                  "looks like it was skipped so we're not logging it" %
                                  (session['session_key'], session['rating_key'], str(real_play_time)))
-            elif is_import and import_ignore_interval:
-                if (session['media_type'] == 'movie' or session['media_type'] == 'episode') and \
-                        (real_play_time < int(import_ignore_interval)):
-                    logging_enabled = False
-                    logger.debug("Tautulli ActivityProcessor :: Play duration for ratingKey %s is %s secs which is less than %s "
-                                 "seconds, so we're not logging it." %
-                                 (session['rating_key'], str(real_play_time), import_ignore_interval))
 
-            if not is_import and not user_details['keep_history']:
+            if not user_details['keep_history']:
                 logging_enabled = False
                 logger.debug("Tautulli ActivityProcessor :: History logging for user '%s' is disabled." % user_details['username'])
-            elif not is_import and not library_details['keep_history']:
+            elif not library_details['keep_history']:
                 logging_enabled = False
                 logger.debug("Tautulli ActivityProcessor :: History logging for library '%s' is disabled." % library_details['section_name'])
 
@@ -265,27 +251,22 @@ class ActivityProcessor(object):
                 media_info = {}
 
                 # Fetch metadata first so we can return false if it fails
-                if not is_import:
-                    logger.debug("Tautulli ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
-                    pms_connect = pmsconnect.PmsConnect()
-                    if session['live']:
-                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
-                                                                    cache_key=session['session_key'],
-                                                                    return_cache=True)
-                    else:
-                        metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
-
-                    if session['live'] and not metadata:
-                        metadata = session
-                    elif not metadata:
-                        return False
-                    else:
-                        if 'media_info' in metadata and len(metadata['media_info']) > 0:
-                            media_info = metadata['media_info'][0]
+                logger.debug("Tautulli ActivityProcessor :: Fetching metadata for item ratingKey %s" % session['rating_key'])
+                pms_connect = pmsconnect.PmsConnect()
+                if session['live']:
+                    metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']),
+                                                                cache_key=session['session_key'],
+                                                                return_cache=True)
                 else:
-                    metadata = import_metadata
-                    ## TODO: Fix media info from imports. Temporary media info from import session.
-                    media_info = session
+                    metadata = pms_connect.get_metadata_details(rating_key=str(session['rating_key']))
+
+                if session['live'] and not metadata:
+                    metadata = session
+                elif not metadata:
+                    return False
+                else:
+                    if 'media_info' in metadata and len(metadata['media_info']) > 0:
+                        media_info = metadata['media_info'][0]
 
                 # Write the history entry, its grouping, media info, and
                 # metadata atomically so a mid-chain failure cannot leave

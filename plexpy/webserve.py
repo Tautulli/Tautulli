@@ -69,8 +69,6 @@ from plexpy import mobile_app
 from plexpy import notification_handler
 from plexpy import notifiers
 from plexpy import plextv
-from plexpy import plexivity_import
-from plexpy import plexwatch_import
 from plexpy import pmsconnect
 from plexpy import users
 from plexpy import versioncheck
@@ -4079,25 +4077,20 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def import_database(self, app=None, database_file=None, database_path=None, method=None, backup=False,
-                        table_name=None, import_ignore_interval=0, **kwargs):
-        """ Import a Tautulli, PlexWatch, or Plexivity database into Tautulli.
+    def import_database(self, database_file=None, database_path=None, method=None, backup=False, **kwargs):
+        """ Import a Tautulli database into Tautulli.
 
             ```
             Required parameters:
-                app (str):                      "tautulli" or "plexwatch" or "plexivity"
                 database_file (file):           The database file to import (multipart/form-data)
                 or
                 database_path (str):            The full path to the database file to import
-                method (str):                   For Tautulli only, "merge" or "overwrite"
-                table_name (str):               For PlexWatch or Plexivity only, "processed" or "grouped"
+                method (str):                   "merge" or "overwrite"
 
 
             Optional parameters:
-                backup (bool):                  For Tautulli only, true or false whether to backup
+                backup (bool):                  true or false whether to backup
                                                 the current database before importing
-                import_ignore_interval (int):   For PlexWatch or Plexivity only, the minimum number
-                                                of seconds for a stream to import
 
             Returns:
                 json:
@@ -4106,9 +4099,6 @@ class WebInterface(object):
                      }
             ```
         """
-        if not app:
-            return {'result': 'error', 'message': 'No app specified for import'}
-
         if database_path:
             database_file_name = os.path.basename(database_path)
             database_cache_path = os.path.join(plexpy.CONFIG.CACHE_DIR, database_file_name + '.import.db')
@@ -4131,52 +4121,18 @@ class WebInterface(object):
         if not database_path:
             return {'result': 'error', 'message': 'No database specified for import'}
 
-        if app.lower() == 'tautulli':
-            db_check_msg = database.validate_database(database=database_path)
-            if db_check_msg == 'success':
-                threading.Thread(target=database.import_tautulli_db,
-                                 kwargs={'database': database_path,
-                                         'method': method,
-                                         'backup': helpers.bool_true(backup)}).start()
-                return {'result': 'success',
-                        'message': 'Database import has started. Check the logs to monitor any problems.'}
-            else:
-                if database_file:
-                    helpers.delete_file(database_path)
-                return {'result': 'error', 'message': db_check_msg}
-
-        elif app.lower() == 'plexwatch':
-            db_check_msg = plexwatch_import.validate_database(database_file=database_path,
-                                                              table_name=table_name)
-            if db_check_msg == 'success':
-                threading.Thread(target=plexwatch_import.import_from_plexwatch,
-                                 kwargs={'database_file': database_path,
-                                         'table_name': table_name,
-                                         'import_ignore_interval': import_ignore_interval}).start()
-                return {'result': 'success',
-                        'message': 'Database import has started. Check the logs to monitor any problems.'}
-            else:
-                if database_file:
-                    helpers.delete_file(database_path)
-                return {'result': 'error', 'message': db_check_msg}
-
-        elif app.lower() == 'plexivity':
-            db_check_msg = plexivity_import.validate_database(database_file=database_path,
-                                                              table_name=table_name)
-            if db_check_msg == 'success':
-                threading.Thread(target=plexivity_import.import_from_plexivity,
-                                 kwargs={'database_file': database_path,
-                                         'table_name': table_name,
-                                         'import_ignore_interval': import_ignore_interval}).start()
-                return {'result': 'success',
-                        'message': 'Database import has started. Check the logs to monitor any problems.'}
-            else:
-                if database_file:
-                    helpers.delete_file(database_path)
-                return {'result': 'error', 'message': db_check_msg}
-
+        db_check_msg = database.validate_database(database=database_path)
+        if db_check_msg == 'success':
+            threading.Thread(target=database.import_tautulli_db,
+                             kwargs={'database': database_path,
+                                     'method': method,
+                                     'backup': helpers.bool_true(backup)}).start()
+            return {'result': 'success',
+                    'message': 'Database import has started. Check the logs to monitor any problems.'}
         else:
-            return {'result': 'error', 'message': 'App not recognized for import'}
+            if database_file:
+                helpers.delete_file(database_path)
+            return {'result': 'error', 'message': db_check_msg}
 
     @cherrypy.expose
     @cherrypy.tools.allow(methods=['POST'])
@@ -4232,16 +4188,8 @@ class WebInterface(object):
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))
-    def import_database_tool(self, app=None, **kwargs):
-        if app == 'tautulli':
-            return serve_template(template_name="app_import.html", title="Import Tautulli Database", app="Tautulli")
-        elif app == 'plexwatch':
-            return serve_template(template_name="app_import.html", title="Import PlexWatch Database", app="PlexWatch")
-        elif app == 'plexivity':
-            return serve_template(template_name="app_import.html", title="Import Plexivity Database", app="Plexivity")
-
-        logger.warn("No app specified for import.")
-        return
+    def import_database_tool(self, **kwargs):
+        return serve_template(template_name="app_import.html", title="Import Tautulli Database")
 
     @cherrypy.expose
     @requireAuth(member_of("admin"))

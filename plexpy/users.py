@@ -912,22 +912,6 @@ class Users(object):
 
         return [item['user_id'] for item in result]
 
-    # Keep method for PlexWatch/Plexivity import
-    def get_user_id(self, user=None):
-        if user:
-            try:
-                monitor_db = database.MonitorDatabase()
-                query = "SELECT user_id FROM users WHERE username = ?"
-                result = monitor_db.select_single(query, args=[user])
-                if result:
-                    return result['user_id']
-                else:
-                    return None
-            except:
-                return None
-
-        return None
-
     def get_user_names(self, include_archived=False):
         monitor_db = database.MonitorDatabase()
 

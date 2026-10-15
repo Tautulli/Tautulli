@@ -1493,9 +1493,7 @@
                             <div class="row">
                                 <div class="col-md-9">
                                     <div class="btn-group">
-                                        <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="tautulli">Tautulli</button>
-                                        <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexwatch">PlexWatch</button>
-                                        <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal" data-app="plexivity">Plexivity</button>
+                                        <button class="btn btn-form toggle-app-import-modal" type="button" data-target="#app-import-modal" data-toggle="modal">Tautulli</button>
                                     </div>
                                 </div>
                             </div>
@@ -2841,7 +2839,6 @@ $(document).ready(function() {
     $(".toggle-app-import-modal").click(function() {
         $.ajax({
             url: 'import_database_tool',
-            data: { app: $(this).data('app') },
             cache: false,
             async: true,
             complete: function(xhr, status) {
