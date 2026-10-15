@@ -154,7 +154,13 @@ def import_tautulli_db(database=None, method=None, backup=False):
 
     logger.info("Tautulli Database :: Importing Tautulli database '%s' with import method '%s'...", database, method)
     set_is_importing(True)
+    try:
+        _import_tautulli_db_rows(database, method)
+    finally:
+        set_is_importing(False)
 
+
+def _import_tautulli_db_rows(database, method):
     db = MonitorDatabase()
     db.connection.execute("BEGIN IMMEDIATE")
     db.connection.execute("ATTACH ? AS import_db", [database])
@@ -297,7 +303,6 @@ def import_tautulli_db(database=None, method=None, backup=False):
 
     bump_history_version()
     logger.info("Tautulli Database :: Tautulli database import complete.")
-    set_is_importing(False)
 
     logger.info("Tautulli Database :: Deleting cached database: %s", database)
     os.remove(database)
