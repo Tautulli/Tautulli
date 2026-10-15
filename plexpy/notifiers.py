@@ -533,8 +533,8 @@ def delete_notifier(notifier_id=None):
     db = database.MonitorDatabase()
 
     if str(notifier_id).isdigit():
-        logger.debug("Tautulli Notifiers :: Deleting notifier_id %s from the database."
-                     % notifier_id)
+        logger.info("Tautulli Notifiers :: Deleting notifier_id %s from the database."
+                    % notifier_id)
         result = db.action("DELETE FROM notifiers WHERE id = ?", args=[notifier_id])
         return True
     else:
@@ -559,7 +559,7 @@ def get_notifier_config(notifier_id=None, mask_passwords=False, load_config_opti
         config = json.loads(result.pop('notifier_config', '{}'))
         notifier_agent = get_agent_class(agent_id=result['agent_id'], config=config)
     except Exception as e:
-        logger.error("Tautulli Notifiers :: Failed to get notifier config options: %s." % e)
+        logger.exception("Tautulli Notifiers :: Failed to get notifier config options: %s." % e)
         return
 
     if mask_passwords:
@@ -651,7 +651,7 @@ def add_notifier_config(agent_id=None, **kwargs):
         blacklist_logger()
         return notifier_id
     except Exception as e:
-        logger.warn("Tautulli Notifiers :: Unable to add notification agent: %s." % e)
+        logger.exception("Tautulli Notifiers :: Unable to add notification agent: %s." % e)
         return False
 
 
@@ -716,7 +716,7 @@ def set_notifier_config(notifier_id=None, **kwargs):
 
         return True
     except Exception as e:
-        logger.warn("Tautulli Notifiers :: Unable to update notification agent: %s." % e)
+        logger.exception("Tautulli Notifiers :: Unable to update notification agent: %s." % e)
         return False
 
 
@@ -733,7 +733,7 @@ def send_notification(notifier_id=None, subject='', body='', notify_action='', n
                             notification_id=notification_id,
                             **kwargs)
     else:
-        logger.debug("Tautulli Notifiers :: Notification requested but no notifier_id received.")
+        logger.warn("Tautulli Notifiers :: Notification requested but no notifier_id received.")
 
 
 def validate_conditions(custom_conditions):
@@ -963,7 +963,7 @@ class PrettyMetadata(object):
             poster_filename = 'poster_{}.png'.format(self.parameters['rating_key'])
             return (poster_filename, poster_content, 'image/png')
         
-        logger.error("Tautulli Notifiers :: Unable to retrieve image for notification.")
+        logger.warn("Tautulli Notifiers :: Unable to retrieve image for notification.")
 
 
 class Notifier(object):
@@ -1432,7 +1432,7 @@ class EMAIL(Notifier):
             success = True
 
         except Exception as e:
-            logger.error("Tautulli Notifiers :: %s notification failed: %s", self.NAME, e)
+            logger.exception("Tautulli Notifiers :: %s notification failed: %s", self.NAME, e)
 
         finally:
             if mailserver:
@@ -1611,7 +1611,7 @@ class FACEBOOK(Notifier):
                 logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
                 return True
             except Exception as e:
-                logger.error("Tautulli Notifiers :: Error sending {name} post: {e}".format(name=self.NAME, e=e))
+                logger.exception("Tautulli Notifiers :: Error sending {name} post: {e}".format(name=self.NAME, e=e))
                 return False
 
         else:
@@ -1889,8 +1889,8 @@ class GROUPME(Notifier):
                     data['attachments'] = [{'type': 'image',
                                             'url': r_content['payload']['picture_url']}]
                 else:
-                    logger.error("Tautulli Notifiers :: {name} poster failed: "
-                                 "[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.warn("Tautulli Notifiers :: {name} poster failed: "
+                                "[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
                     logger.debug("Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
 
         return self.make_request('https://api.groupme.com/v3/bots/post', json=data)
@@ -2546,11 +2546,15 @@ class MQTT(Notifier):
 
         logger.info("Tautulli Notifiers :: Sending {name} notification...".format(name=self.NAME))
 
-        paho.mqtt.publish.single(
-            topic, payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
-            hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
-            keepalive=self.config['keep_alive'], auth=auth or None, protocol=protocol
-        )
+        try:
+            paho.mqtt.publish.single(
+                topic, payload=json.dumps(data), qos=self.config['qos'], retain=bool(self.config['retain']),
+                hostname=self.config['broker'], port=self.config['port'], client_id=self.config['clientid'],
+                keepalive=self.config['keep_alive'], auth=auth or None, protocol=protocol
+            )
+        except Exception as e:
+            logger.exception("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+            return False
 
         logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
 
@@ -2874,6 +2878,7 @@ class OSX(Notifier):
             NSAutoreleasePool = self.objc.lookUpClass('NSAutoreleasePool')
 
             if not NSUserNotification or not NSUserNotificationCenter:
+                logger.error("Tautulli Notifiers :: {name} notification failed: notification classes not available".format(name=self.NAME))
                 return False
 
             pool = NSAutoreleasePool.alloc().init()
@@ -2900,7 +2905,7 @@ class OSX(Notifier):
             return True
 
         except Exception as e:
-            logger.error("Tautulli Notifiers :: {name} failed: {e}".format(name=self.NAME, e=e))
+            logger.exception("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
             return False
 
     def _return_config_options(self):
@@ -2986,12 +2991,12 @@ class PLEX(Notifier):
                     request = self._sendjson(host, 'GUI.ShowNotification', params)
 
                 if not request:
-                    raise Exception
+                    raise Exception("no valid response from host")
                 else:
                     logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
 
             except Exception as e:
-                logger.error("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+                logger.exception("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
                 return False
 
         return True
@@ -3304,8 +3309,8 @@ class PUSHBULLET(Notifier):
                     file_response.pop('data', None)
                     data.update(file_response)
                 else:
-                    logger.error("Tautulli Notifiers :: Unable to upload image to {name}: "
-                                 "[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
+                    logger.warn("Tautulli Notifiers :: Unable to upload image to {name}: "
+                                "[{r.status_code}] {r.reason}".format(name=self.NAME, r=r))
                     logger.debug("Tautulli Notifiers :: Request response: {}".format(request.server_message(r, True)))
 
         return self.make_request('https://api.pushbullet.com/v2/pushes', headers=headers, json=data)
@@ -3707,15 +3712,21 @@ class SCRIPTS(Notifier):
             out = '\n  '.join(output.decode('utf-8').splitlines())
             logger.debug("Tautulli Notifiers :: Script returned: \n  %s" % out)
 
-        if not self.script_killed:
-            logger.info("Tautulli Notifiers :: Script notification sent.")
-            return True
+        if self.script_killed:
+            return
+
+        if status != 0:
+            logger.error("Tautulli Notifiers :: Script notification failed: script exited with status code %s." % status)
+            return
+
+        logger.info("Tautulli Notifiers :: Script notification sent.")
+        return True
 
     def kill_script(self, process):
         process.kill()
         self.script_killed = True
-        logger.warn("Tautulli Notifiers :: Script exceeded timeout limit of %d seconds. "
-                    "Script killed." % self.config['timeout'])
+        logger.error("Tautulli Notifiers :: Script notification failed: script exceeded timeout limit of %d seconds. "
+                     "Script killed." % self.config['timeout'])
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
         """
@@ -3729,7 +3740,7 @@ class SCRIPTS(Notifier):
             return
         
         if not helpers.allow_mount(self.config['script_folder']):
-            logger.warn("Tautulli Notifiers :: Script folder is on a mounted path which is not allowed.")
+            logger.error("Tautulli Notifiers :: Script folder is on a mounted path which is not allowed.")
             return
 
         script = kwargs.get('script', self.config.get('script', ''))
@@ -3741,10 +3752,10 @@ class SCRIPTS(Notifier):
 
         # Don't try to run the script if the action does not have one
         if action and not script:
-            logger.debug("Tautulli Notifiers :: No script selected for action '%s', exiting..." % action)
+            logger.info("Tautulli Notifiers :: No script selected for action '%s', exiting..." % action)
             return
         elif not script:
-            logger.debug("Tautulli Notifiers :: No script selected, exiting...")
+            logger.warn("Tautulli Notifiers :: No script selected, exiting...")
             return
         # Check for a valid script file
         elif not os.path.isfile(script) or not script.endswith(tuple(self.script_exts)):
@@ -4197,7 +4208,7 @@ class TAUTULLIREMOTEAPP(Notifier):
         # Check mobile device is still registered
         device = mobile_app.get_mobile_devices(device_id=self.config['device_id'])
         if not device:
-            logger.warn("Tautulli Notifiers :: Unable to send Tautulli Remote app notification: device not registered.")
+            logger.error("Tautulli Notifiers :: Unable to send Tautulli Remote app notification: device not registered.")
             return
         else:
             device = device[0]
@@ -4205,8 +4216,8 @@ class TAUTULLIREMOTEAPP(Notifier):
         device_label = self._device_label(device)
 
         if device['push_token'] == mobile_app._PUSH_DISABLED:
-            logger.debug("Tautulli Notifiers :: %s notifications are disabled for this device %s.",
-                         self.NAME, device_label)
+            logger.info("Tautulli Notifiers :: %s notifications are disabled for this device %s.",
+                        self.NAME, device_label)
             return False
 
         # The relay builds a different message per platform, and an iOS device sent
@@ -4297,7 +4308,7 @@ class TAUTULLIREMOTEAPP(Notifier):
                     "OR (onesignal_id IS NOT NULL AND onesignal_id != ''))"
             return db.select(query=query, args=[mobile_app._PUSH_DISABLED])
         except Exception as e:
-            logger.warn("Tautulli Notifiers :: Unable to retrieve Tautulli Remote app devices list: %s." % e)
+            logger.warn("Tautulli Notifiers :: Unable to retrieve Tautulli Remote app devices list: %s." % e, exc_info=True)
             return []
 
     def _return_config_options(self):
@@ -4570,7 +4581,7 @@ class TWITTER(Notifier):
             logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
             return True
         except Exception as e:
-            logger.error("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+            logger.exception("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
             return False
 
     def agent_notify(self, subject='', body='', action='', **kwargs):
@@ -4760,12 +4771,12 @@ class XBMC(Notifier):
                     request = self._sendjson(host, 'GUI.ShowNotification', params)
 
                 if not request:
-                    raise Exception
+                    raise Exception("no valid response from host")
                 else:
                     logger.info("Tautulli Notifiers :: {name} notification sent.".format(name=self.NAME))
 
             except Exception as e:
-                logger.error("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
+                logger.exception("Tautulli Notifiers :: {name} notification failed: {e}".format(name=self.NAME, e=e))
                 return False
 
         return True

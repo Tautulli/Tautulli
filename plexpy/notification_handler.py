@@ -76,7 +76,7 @@ def start_threads(num_threads=1):
 
 def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, manual_trigger=False, **kwargs):
     if not notify_action:
-        logger.debug("Tautulli NotificationHandler :: Notify called but no action received.")
+        logger.warn("Tautulli NotificationHandler :: Notify called but no action received.")
         return
 
     if notifier_id:
@@ -87,7 +87,8 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
         notifiers_enabled = notifiers.get_notifiers(notify_action=notify_action, include_last_triggered=False)
 
     if notifiers_enabled and not manual_trigger:
-        logger.debug("Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s'." % notify_action)
+        logger.info("Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s': notifier_id %s."
+                    % (notify_action, ', '.join(str(n['id']) for n in notifiers_enabled)))
 
         # Check if notification conditions are satisfied
         conditions = notify_conditions(notify_action=notify_action,
@@ -96,10 +97,12 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
                                        **kwargs)
     else:
         conditions = True
+        if not notifiers_enabled:
+            logger.debug("Tautulli NotificationHandler :: No notifiers enabled for notify_action '%s'." % notify_action)
 
     if notifiers_enabled and (manual_trigger or conditions):
         if manual_trigger:
-            logger.debug("Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s' (manual trigger)." % notify_action)
+            logger.info("Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s' (manual trigger)." % notify_action)
 
         if stream_data or timeline_data:
             # Build the notification parameters
@@ -130,7 +133,11 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
                 data.update(kwargs)
                 plexpy.NOTIFY_QUEUE.put(data)
             else:
-                logger.debug("Tautulli NotificationHandler :: Custom notification conditions not satisfied, skipping notifier_id %s." % notifier['id'])
+                logger.info("Tautulli NotificationHandler :: Custom notification conditions not satisfied, skipping notifier_id %s." % notifier['id'])
+
+    elif notifiers_enabled:
+        for notifier in notifiers_enabled:
+            logger.info("Tautulli NotificationHandler :: Global notification conditions not satisfied, skipping notifier_id %s." % notifier['id'])
 
     # Add on_concurrent and on_newdevice to queue if action is on_play
     if notify_action == 'on_play':
@@ -215,7 +222,7 @@ def notify_conditions(notify_action=None, stream_data=None, timeline_data=None, 
     else:
         evaluated = True
 
-    logger.debug("Tautulli NotificationHandler :: Global notification conditions evaluated to '{}'.".format(evaluated))
+    logger.debug("Tautulli NotificationHandler :: Global notification conditions evaluated to '{}' for notify_action '{}'.".format(evaluated, notify_action))
     return evaluated
 
 
@@ -344,7 +351,7 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
                 logger.debug("Tautulli NotificationHandler :: Condition logic: %s > %s"
                              % (custom_conditions_logic, evaluated_logic))
             except Exception as e:
-                logger.error("Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
+                logger.exception("Tautulli NotificationHandler :: Unable to evaluate custom condition logic: %s." % e)
                 return False
         else:
             evaluated_logic = all(evaluated_conditions[1:])
@@ -365,6 +372,7 @@ def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data
     notifier_config = notifiers.get_notifier_config(notifier_id=notifier_id, load_config_options=False)
 
     if not notifier_config:
+        logger.error("Tautulli NotificationHandler :: Unable to send notification: no config found for notifier_id %s." % notifier_id)
         return
 
     if notify_action in ('test', 'api'):
@@ -1369,10 +1377,10 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
 
     # Make sure subject and body text are strings
     if not isinstance(subject, str):
-        logger.error("Tautulli NotificationHandler :: Invalid subject text. Using fallback.")
+        logger.warn("Tautulli NotificationHandler :: Invalid subject text. Using fallback.")
         subject = default_subject
     if not isinstance(body, str):
-        logger.error("Tautulli NotificationHandler :: Invalid body text. Using fallback.")
+        logger.warn("Tautulli NotificationHandler :: Invalid body text. Using fallback.")
         body = default_body
 
     media_type = parameters.get('media_type')
@@ -1393,10 +1401,10 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
         try:
             script_args = [str_formatter(arg) for arg in helpers.split_args(subject)]
         except LookupError as e:
-            logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
+            logger.warn("Tautulli NotificationHandler :: Unable to parse parameter %s in script argument. Using fallback." % e)
             script_args = []
         except Exception as e:
-            logger.exception("Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e)
+            logger.warn("Tautulli NotificationHandler :: Unable to parse custom script arguments: %s. Using fallback." % e, exc_info=True)
             script_args = []
 
     elif agent_id == 25 or as_json:
@@ -1405,51 +1413,51 @@ def build_notify_text(subject='', body='', notify_action=None, parameters=None, 
             try:
                 subject = json.loads(subject)
             except ValueError as e:
-                logger.error("Tautulli NotificationHandler :: Unable to parse custom %s json header data: %s. Using fallback." % (agent, e))
+                logger.warn("Tautulli NotificationHandler :: Unable to parse custom %s json header data: %s. Using fallback." % (agent, e))
                 subject = ''
         if subject:
             try:
                 subject = json.dumps(helpers.traverse_map(subject, str_formatter))
             except LookupError as e:
-                logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in %s header data. Using fallback." % (e, agent))
+                logger.warn("Tautulli NotificationHandler :: Unable to parse parameter %s in %s header data. Using fallback." % (e, agent))
                 subject = ''
             except Exception as e:
-                logger.exception("Tautulli NotificationHandler :: Unable to parse custom %s header data: %s. Using fallback." % (agent, e))
+                logger.warn("Tautulli NotificationHandler :: Unable to parse custom %s header data: %s. Using fallback." % (agent, e), exc_info=True)
                 subject = ''
 
         if body:
             try:
                 body = json.loads(body)
             except ValueError as e:
-                logger.error("Tautulli NotificationHandler :: Unable to parse custom webhook json body data: %s. Using fallback." % e)
+                logger.warn("Tautulli NotificationHandler :: Unable to parse custom webhook json body data: %s. Using fallback." % e)
                 body = ''
         if body:
             try:
                 body = json.dumps(helpers.traverse_map(body, str_formatter))
             except LookupError as e:
-                logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in webhook body data. Using fallback." % e)
+                logger.warn("Tautulli NotificationHandler :: Unable to parse parameter %s in webhook body data. Using fallback." % e)
                 body = ''
             except Exception as e:
-                logger.exception("Tautulli NotificationHandler :: Unable to parse custom webhook body data: %s. Using fallback." % e)
+                logger.warn("Tautulli NotificationHandler :: Unable to parse custom webhook body data: %s. Using fallback." % e, exc_info=True)
                 body = ''
 
     else:
         try:
             subject = str_formatter(subject)
         except LookupError as e:
-            logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
+            logger.warn("Tautulli NotificationHandler :: Unable to parse parameter %s in notification subject. Using fallback." % e)
             subject = str(default_subject).format(**parameters)
         except Exception as e:
-            logger.exception("Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e)
+            logger.warn("Tautulli NotificationHandler :: Unable to parse custom notification subject: %s. Using fallback." % e, exc_info=True)
             subject = str(default_subject).format(**parameters)
 
         try:
             body = str_formatter(body)
         except LookupError as e:
-            logger.error("Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
+            logger.warn("Tautulli NotificationHandler :: Unable to parse parameter %s in notification body. Using fallback." % e)
             body = str(default_body).format(**parameters)
         except Exception as e:
-            logger.exception("Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e)
+            logger.warn("Tautulli NotificationHandler :: Unable to parse custom notification body: %s. Using fallback." % e, exc_info=True)
             body = str(default_body).format(**parameters)
 
     return subject, body, script_args
@@ -1695,7 +1703,7 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=No
                 "WHERE rating_key = ?"
         tvmaze_info = db.select_single(query, args=[rating_key])
     except Exception as e:
-        logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e)
+        logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_tvmaze_by_tvdb_id: %s." % e, exc_info=True)
         return {}
 
     if not tvmaze_info:
@@ -1742,7 +1750,7 @@ def lookup_tvmaze_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, title=No
 
         else:
             if err_msg:
-                logger.error("Tautulli NotificationHandler :: {}".format(err_msg))
+                logger.warn("Tautulli NotificationHandler :: TVmaze lookup failed: {}".format(err_msg))
 
             if req_msg:
                 logger.debug("Tautulli NotificationHandler :: Request response: {}".format(req_msg))
@@ -1761,7 +1769,7 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, titl
                 "WHERE rating_key = ?"
         themoviedb_info = db.select_single(query, args=[rating_key])
     except Exception as e:
-        logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e)
+        logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_themoviedb_by_imdb_id: %s." % e, exc_info=True)
         return {}
 
     if not themoviedb_info:
@@ -1823,7 +1831,7 @@ def lookup_themoviedb_by_id(rating_key=None, thetvdb_id=None, imdb_id=None, titl
 
         else:
             if err_msg:
-                logger.error("Tautulli NotificationHandler :: {}".format(err_msg))
+                logger.warn("Tautulli NotificationHandler :: The Movie Database lookup failed: {}".format(err_msg))
 
             if req_msg:
                 logger.debug("Tautulli NotificationHandler :: Request response: {}".format(req_msg))
@@ -1845,14 +1853,14 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
                 "WHERE rating_key = ?"
         result = db.select_single(query, args=[rating_key])
     except Exception as e:
-        logger.warn("Tautulli NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e)
+        logger.warn("Tautulli NotificationHandler :: Unable to execute database query for get_themoviedb_info: %s." % e, exc_info=True)
         return {}
 
     if result:
         try:
             return json.loads(result['themoviedb_json'])
         except:
-            pass
+            logger.debug("Tautulli NotificationHandler :: Unable to parse cached The Movie Database info for rating_key %s." % rating_key, exc_info=True)
 
     themoviedb_json = {}
 
@@ -1879,7 +1887,7 @@ def get_themoviedb_info(rating_key=None, media_type=None, themoviedb_id=None):
 
     else:
         if err_msg:
-            logger.error("Tautulli NotificationHandler :: {}".format(err_msg))
+            logger.warn("Tautulli NotificationHandler :: The Movie Database lookup failed: {}".format(err_msg))
 
         if req_msg:
             logger.debug("Tautulli NotificationHandler :: Request response: {}".format(req_msg))
@@ -1896,7 +1904,7 @@ def lookup_musicbrainz_info(musicbrainz_type=None, rating_key=None, artist=None,
                 "WHERE rating_key = ?"
         musicbrainz_info = db.select_single(query, args=[rating_key])
     except Exception as e:
-        logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_musicbrainz: %s." % e)
+        logger.warn("Tautulli NotificationHandler :: Unable to execute database query for lookup_musicbrainz: %s." % e, exc_info=True)
         return {}
 
     if not musicbrainz_info and _lookup_recently_failed('musicbrainz', rating_key):

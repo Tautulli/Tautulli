@@ -63,7 +63,7 @@ def start_thread():
 
 def add_newsletter_each(newsletter_id=None, notify_action=None, **kwargs):
     if not notify_action:
-        logger.debug("Tautulli NewsletterHandler :: Notify called but no action received.")
+        logger.warn("Tautulli NewsletterHandler :: Notify called but no action received.")
         return
 
     data = {'newsletter': True,
@@ -126,6 +126,7 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
     newsletter_config = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
     if not newsletter_config:
+        logger.error("Tautulli NewsletterHandler :: Unable to prepare newsletter: no config found for newsletter_id %s." % newsletter_id)
         return
 
     if notify_action in ('test', 'api'):
@@ -171,6 +172,7 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
 
     if success:
         set_notify_success(newsletter_log_id)
+        logger.info("Tautulli NewsletterHandler :: Newsletter sent for newsletter_id %s." % newsletter_id)
         return True
 
 

@@ -129,8 +129,8 @@ def delete_newsletter(newsletter_id=None):
     db = database.MonitorDatabase()
 
     if str(newsletter_id).isdigit():
-        logger.debug("Tautulli Newsletters :: Deleting newsletter_id %s from the database."
-                     % newsletter_id)
+        logger.info("Tautulli Newsletters :: Deleting newsletter_id %s from the database."
+                    % newsletter_id)
         result = db.action("DELETE FROM newsletters WHERE id = ?", args=[newsletter_id])
         return True
     else:
@@ -162,7 +162,7 @@ def get_newsletter_config(newsletter_id=None, mask_passwords=False):
                                            config=config, email_config=email_config,
                                            subject=subject, body=body, message=message)
     except Exception as e:
-        logger.error("Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
+        logger.exception("Tautulli Newsletters :: Failed to get newsletter config options: %s." % e)
         return
 
     if mask_passwords:
@@ -218,7 +218,7 @@ def add_newsletter_config(agent_id=None, **kwargs):
         blacklist_logger()
         return newsletter_id
     except Exception as e:
-        logger.warn("Tautulli Newsletters :: Unable to add newsletter agent: %s." % e)
+        logger.exception("Tautulli Newsletters :: Unable to add newsletter agent: %s." % e)
         return False
 
 
@@ -287,7 +287,7 @@ def set_newsletter_config(newsletter_id=None, **kwargs):
         blacklist_logger()
         return True
     except Exception as e:
-        logger.warn("Tautulli Newsletters :: Unable to update newsletter agent: %s." % e)
+        logger.exception("Tautulli Newsletters :: Unable to update newsletter agent: %s." % e)
         return False
 
 
@@ -302,7 +302,7 @@ def send_newsletter(newsletter_id=None, subject=None, body=None, message=None, n
                                 message=message)
         return agent.send()
     else:
-        logger.debug("Tautulli Newsletters :: Notification requested but no newsletter_id received.")
+        logger.warn("Tautulli Newsletters :: Notification requested but no newsletter_id received.")
 
 
 def blacklist_logger():
@@ -341,6 +341,7 @@ def serve_template(template_name, **kwargs):
         template = _hplookup.get_template(template_name)
         return template.render(**kwargs), False
     except:
+        logger.exception("Tautulli Newsletters :: Failed to render newsletter template '%s'." % template_name)
         return exceptions.html_error_template().render(), True
 
 
@@ -528,7 +529,7 @@ class Newsletter(object):
             return False
 
         if not self._has_data():
-            logger.warn("Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
+            logger.info("Tautulli Newsletters :: %s newsletter has no data. Newsletter not sent." % self.NAME)
             return False
 
         self._save()
@@ -650,28 +651,28 @@ class Newsletter(object):
         try:
             subject = custom_formatter.format(str(self.subject), **self.parameters)
         except LookupError as e:
-            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
+            logger.warn("Tautulli Newsletter :: Unable to parse parameter %s in newsletter subject. Using fallback." % e)
             subject = str(self._DEFAULT_SUBJECT).format(**self.parameters)
         except Exception as e:
-            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e)
+            logger.warn("Tautulli Newsletter :: Unable to parse custom newsletter subject: %s. Using fallback." % e, exc_info=True)
             subject = str(self._DEFAULT_SUBJECT).format(**self.parameters)
 
         try:
             body = custom_formatter.format(str(self.body), **self.parameters)
         except LookupError as e:
-            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter body. Using fallback." % e)
+            logger.warn("Tautulli Newsletter :: Unable to parse parameter %s in newsletter body. Using fallback." % e)
             body = str(self._DEFAULT_BODY).format(**self.parameters)
         except Exception as e:
-            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter body: %s. Using fallback." % e)
+            logger.warn("Tautulli Newsletter :: Unable to parse custom newsletter body: %s. Using fallback." % e, exc_info=True)
             body = str(self._DEFAULT_BODY).format(**self.parameters)
 
         try:
             message = custom_formatter.format(str(self.message), **self.parameters)
         except LookupError as e:
-            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter message. Using fallback." % e)
+            logger.warn("Tautulli Newsletter :: Unable to parse parameter %s in newsletter message. Using fallback." % e)
             message = str(self._DEFAULT_MESSAGE).format(**self.parameters)
         except Exception as e:
-            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter message: %s. Using fallback." % e)
+            logger.warn("Tautulli Newsletter :: Unable to parse custom newsletter message: %s. Using fallback." % e, exc_info=True)
             message = str(self._DEFAULT_MESSAGE).format(**self.parameters)
 
         return subject, body, message
@@ -686,10 +687,10 @@ class Newsletter(object):
         try:
             filename = custom_formatter.format(str(filename), **self.parameters)
         except LookupError as e:
-            logger.error("Tautulli Newsletter :: Unable to parse parameter %s in newsletter filename. Using fallback." % e)
+            logger.warn("Tautulli Newsletter :: Unable to parse parameter %s in newsletter filename. Using fallback." % e)
             filename = str(self._DEFAULT_FILENAME).format(**self.parameters)
         except Exception as e:
-            logger.error("Tautulli Newsletter :: Unable to parse custom newsletter filename: %s. Using fallback." % e)
+            logger.warn("Tautulli Newsletter :: Unable to parse custom newsletter filename: %s. Using fallback." % e, exc_info=True)
             filename = str(self._DEFAULT_FILENAME).format(**self.parameters)
 
         return filename

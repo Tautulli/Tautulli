@@ -119,7 +119,7 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None,
         result = db.upsert(table_name='mobile_devices', key_dict=keys, value_dict=values)
         blacklist_logger()
     except Exception as e:
-        logger.warn("Tautulli MobileApp :: Failed to register mobile device in the database: %s." % e)
+        logger.exception("Tautulli MobileApp :: Failed to register mobile device in the database: %s." % e)
         return
 
     if result == 'insert':
@@ -174,7 +174,7 @@ def set_mobile_device_config(mobile_device_id=None, **kwargs):
         blacklist_logger()
         return True
     except Exception as e:
-        logger.warn("Tautulli MobileApp :: Unable to update mobile device: %s." % e)
+        logger.exception("Tautulli MobileApp :: Unable to update mobile device: %s." % e)
         return False
 
 
@@ -182,14 +182,15 @@ def delete_mobile_device(mobile_device_id=None, device_id=None):
     db = database.MonitorDatabase()
 
     if mobile_device_id:
-        logger.debug("Tautulli MobileApp :: Deleting mobile_device_id %s from the database." % mobile_device_id)
+        logger.info("Tautulli MobileApp :: Deleting mobile_device_id %s from the database." % mobile_device_id)
         result = db.action("DELETE FROM mobile_devices WHERE id = ?", args=[mobile_device_id])
         return True
     elif device_id:
-        logger.debug("Tautulli MobileApp :: Deleting device_id %s from the database." % device_id)
+        logger.info("Tautulli MobileApp :: Deleting device_id %s from the database." % device_id)
         result = db.action("DELETE FROM mobile_devices WHERE device_id = ?", args=[device_id])
         return True
     else:
+        logger.warn("Tautulli MobileApp :: Unable to delete mobile device: no mobile_device_id or device_id provided.")
         return False
 
 
@@ -214,7 +215,7 @@ def set_official(device_id, onesignal_id, push_token=None):
                            "%s" % where,
                            args=[official, device_id])
     except Exception as e:
-        logger.warn("Tautulli MobileApp :: Failed to set official flag: %s." % e)
+        logger.warn("Tautulli MobileApp :: Failed to set official flag: %s." % e, exc_info=True)
         return
 
 
@@ -229,7 +230,7 @@ def set_official_from_delivery(device, official):
                   args=[official, device['device_id']])
     except Exception as e:
         logger.warn("Tautulli MobileApp :: Failed to set official flag for device %s: %s."
-                    % (relay_device_id(device['push_token']), e))
+                    % (relay_device_id(device['push_token']), e), exc_info=True)
 
 
 def set_last_seen(device_token=None):
@@ -248,7 +249,7 @@ def set_last_seen(device_token=None):
         result = db.action("UPDATE mobile_devices SET last_seen = ? WHERE device_token = ?",
                            args=[last_seen, device_token])
     except Exception as e:
-        logger.warn("Tautulli MobileApp :: Failed to set last_seen time for device: %s." % e)
+        logger.warn("Tautulli MobileApp :: Failed to set last_seen time for device: %s." % e, exc_info=True)
         return
 
 
