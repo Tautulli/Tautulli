@@ -490,7 +490,7 @@ class Users(object):
 
         else:
             logger.warn("Tautulli Users :: Unable to retrieve user %s from database. Requesting user list refresh."
-                        % user_id if user_id else user)
+                        % (user_id if user_id else user))
             # Let's first refresh the user list to make sure the user isn't newly added and not in the db yet
             refresh_users()
 
@@ -502,7 +502,7 @@ class Users(object):
 
             else:
                 logger.warn("Tautulli Users :: Unable to retrieve user %s from database. Returning 'Local' user."
-                            % user_id if user_id else user)
+                            % (user_id if user_id else user))
                 # If there is no user data we must return something
                 # Use "Local" user to retain compatibility with PlexWatch database value
                 return default_return
