@@ -372,7 +372,7 @@ DOCUMENTATION :: END
                     % if data['live']:
                     <span class="thumb-tooltip dashboard-activity-info-channel" data-toggle="popover" data-img="${data['channel_thumb']}" data-height="40" data-width="40">${data['channel_title'] or (data['channel_vcn'] + ' ' + data['channel_call_sign'])}</span>
                     % elif data['view_offset']:
-                    ETA:
+                    Ends At:
                     <span id="stream-eta-${sk}">
                         <script>
                             $("#stream-eta-${sk}").html(moment().add(parseInt("${data['stream_duration']}") - parseInt("${data['view_offset']}"), 'milliseconds').format(time_format));
@@ -387,7 +387,7 @@ DOCUMENTATION :: END
                         </script>
                     </span>
                     % else:
-                    ETA: Unknown<br />0:00 / <span class="progress_time_total" id="stream-duration-${sk}">
+                    Ends At: Unknown<br />0:00 / <span class="progress_time_total" id="stream-duration-${sk}">
                         <script>
                             $("#stream-duration-${sk}").html(millisecondsToHoursMinutes(parseInt("${data['stream_duration']}")));
                         </script>
