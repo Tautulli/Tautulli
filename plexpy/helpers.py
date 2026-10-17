@@ -419,11 +419,23 @@ def cleanTitle(title):
     return title
 
 
-def clean_filename(filename, replace='_'):
-    whitelist = "-_.()[] {}{}".format(string.ascii_letters, string.digits)
-    cleaned_filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode()
-    cleaned_filename = ''.join(c if c in whitelist else replace for c in cleaned_filename)
-    return cleaned_filename
+def clean_filename(filename, replace='_', default='untitled'):
+    """ Returns a filename safe for use in the file system.
+
+        Parameters:
+            filename (str): Filename to make safe.
+            replace (str): Character to replace invalid characters with.
+            default (str): Filename to return if the cleaned filename is blank.
+    """
+    filename = unicodedata.normalize('NFC', filename)
+    cleaned = re.sub(r'[/\\?%*:|"<>\x7F\x00-\x1F]', replace, filename)
+    return cleaned.strip(' ._-') or default
+
+
+def truncate_title(title, max_bytes=150):
+    # File systems limit a file name to 255 bytes. NFC can make a title longer, so normalize before the cut.
+    title = unicodedata.normalize('NFC', str(title))
+    return title.encode('utf-8')[:max_bytes].decode('utf-8', 'ignore')
 
 
 def split_strip(s, delimiter=','):

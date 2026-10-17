@@ -2214,16 +2214,16 @@ class Export(object):
                 title = obj._defaultSyncTitle()
             else:
                 title = obj.title
-            filename = f'{media_type.capitalize()} - {title} [{obj.ratingKey}]'
+            filename = f'{media_type.capitalize()} - {helpers.truncate_title(title)} [{obj.ratingKey}]'
 
         elif self.rating_key:
-            filename = f'{self.media_type.capitalize()} - {self.obj_title} [{self.rating_key}]'
+            filename = f'{self.media_type.capitalize()} - {helpers.truncate_title(self.obj_title)} [{self.rating_key}]'
 
         elif self.user_id:
-            filename = f'User - {self.obj_title} - {self.export_type.capitalize()} [{self.user_id}]'
+            filename = f'User - {helpers.truncate_title(self.obj_title)} - {self.export_type.capitalize()} [{self.user_id}]'
 
         elif self.section_id:
-            filename = f'Library - {self.obj_title} - {self.export_type.capitalize()} [{self.section_id}]'
+            filename = f'Library - {helpers.truncate_title(self.obj_title)} - {self.export_type.capitalize()} [{self.section_id}]'
 
         else:
             filename = 'Export - Unknown'
@@ -2522,7 +2522,7 @@ class Export(object):
             ext = 'png'
         else:
             ext = 'jpg'
-        filename = helpers.clean_filename(f'{item_title} [{rating_key}].{resource}.{ext}')
+        filename = helpers.clean_filename(f'{helpers.truncate_title(item_title)} [{rating_key}].{resource}.{ext}')
         filepath = os.path.join(dirpath, filename)
 
         if not os.path.exists(dirpath):
