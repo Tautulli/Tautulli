@@ -2817,7 +2817,7 @@ def get_custom_fields(media_type, sub_media_type=None):
 def build_export_docs():
     export = Export()
 
-    section_head = '### <a id="{anchor}">{section}</a>\n\n'
+    section_head = '### {section}\n\n'
     section_details = '<details>\n' \
                       '<summary><strong>{field_type} Fields</strong></summary><br>\n\n' \
                       '{table}\n' \
@@ -2835,8 +2835,8 @@ def build_export_docs():
                 child_section_title = 'Photo Albums'
             else:
                 child_section_title = child_plural_media_type.capitalize()
-            child_text = u'\u2713<br>Includes [{}](#{}-{}) Level {{}}'.format(
-                child_section_title, media_type, child_media_type)
+            child_text = u'\u2713<br>Includes [{}](#{}) Level {{}}'.format(
+                child_section_title, child_plural_media_type)
             child_row = {
                 'attr': child_plural_media_type,
                 'level0': '',
@@ -2871,7 +2871,7 @@ def build_export_docs():
                 squareArt and attr == 'squareArtFile' or
                 theme and attr == 'themeFile'
             ):
-                text = 'Refer to [Resource Exports](#resource-export)'
+                text = 'Refer to [Resource Exports](#resource-exports)'
                 row = {
                     'attr': attr,
                     'level0': text,
@@ -2915,15 +2915,15 @@ def build_export_docs():
         if media_type == 'collection':
             section += (
                 '\n\n* <a id="collection-item">**Note:**</a> Collection `items` can be '
-                '[Movies](#movie), '
-                '[Shows](#show), [Seasons](#season), [Episodes](#episode), '
-                '[Artists](#artist), [Albums](#album), or [Tracks](#track) '
+                '[Movies](#movies), '
+                '[Shows](#shows), [Seasons](#seasons), [Episodes](#episodes), '
+                '[Artists](#artists), [Albums](#albums), or [Tracks](#tracks) '
                 'depending on the type of collection.'
             )
         elif media_type == 'playlist':
             section += (
                 '\n\n* <a id="playlist-item">**Note:**</a> Playlist `items` can be '
-                '[Movies](#movie), [Episodes](#episode), [Tracks](#track), or [Photos](#photo) '
+                '[Movies](#movies), [Episodes](#episodes), [Tracks](#tracks), or [Photos](#photos) '
                 'depending on the type of playlist.'
             )
 
