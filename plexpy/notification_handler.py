@@ -674,6 +674,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         notify_params['imdb_url'] = f'https://www.imdb.com/title/{notify_params["imdb_id"]}'
         notify_params['trakt_url'] = f'https://trakt.tv/search/imdb/{notify_params["imdb_id"]}'
         notify_params['simkl_url'] = f'https://api.simkl.com/redirect?to=Simkl&imdb={notify_params["imdb_id"]}'
+        notify_params['letterboxd_url'] = f'https://letterboxd.com/imdb/{notify_params["imdb_id"]}' if notify_params['media_type'] == 'movie' else ''
 
     if 'thetvdb://' in notify_params['guid'] or notify_params['thetvdb_id']:
         thetvdb_media_type = 'movie' if notify_params['media_type'] == 'movie' else 'series'
@@ -694,6 +695,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             notify_params['themoviedb_url'] = f'https://www.themoviedb.org/movie/{notify_params["themoviedb_id"]}'
             notify_params['trakt_url'] = f'https://trakt.tv/search/tmdb/{notify_params["themoviedb_id"]}?id_type=movie'
             notify_params['simkl_url'] = f'https://api.simkl.com/redirect?to=Simkl&tmdb={notify_params["themoviedb_id"]}'
+            notify_params['letterboxd_url'] = f'https://letterboxd.com/tmdb/{notify_params["themoviedb_id"]}'
 
         elif notify_params['media_type'] in ('show', 'season', 'episode'):
             notify_params['themoviedb_id'] = notify_params['themoviedb_id'] or notify_params['guid'].split('themoviedb://')[1].split('/')[0].split('?')[0]
@@ -767,6 +769,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
             if themoviedb_info.get('themoviedb_id'):
                 notify_params['trakt_url'] = f'https://trakt.tv/search/tmdb/{notify_params["themoviedb_id"]}?id_type={"show" if lookup_media_type == "tv" else "movie"}'
                 notify_params['simkl_url'] = f'https://api.simkl.com/redirect?to=Simkl&tmdb={notify_params["themoviedb_id"]}&type={"show" if lookup_media_type == "tv" else "movie"}'
+                notify_params['letterboxd_url'] = f'https://letterboxd.com/tmdb/{notify_params["themoviedb_id"]}' if lookup_media_type == 'movie' else ''
 
     # Get TVmaze info (for tv shows only)
     if plexpy.CONFIG.TVMAZE_LOOKUP and notify_params['media_type'] in ('show', 'season', 'episode'):
@@ -1191,6 +1194,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
         'lastfm_url': notify_params['lastfm_url'],
         'trakt_url': notify_params['trakt_url'],
         'simkl_url': notify_params['simkl_url'],
+        'letterboxd_url': notify_params['letterboxd_url'],
         'container': notify_params['container'],
         'bitrate': notify_params['bitrate'],
         'aspect_ratio': notify_params['aspect_ratio'],

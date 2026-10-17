@@ -818,7 +818,8 @@ class PrettyMetadata(object):
                 'themoviedb': 'The Movie Database',
                 'thetvdb': 'TheTVDB',
                 'trakt': 'Trakt',
-                'simkl': 'Simkl'
+                'simkl': 'Simkl',
+                'letterboxd': 'Letterboxd'
                 }
 
     @staticmethod
@@ -866,17 +867,12 @@ class PrettyMetadata(object):
             provider_name = 'Trakt'
         elif provider == 'simkl':
             provider_name = 'Simkl'
+        elif provider == 'letterboxd':
+            provider_name = 'Letterboxd'
         elif provider == 'lastfm':
             provider_name = 'Last.fm'
         elif provider == 'musicbrainz':
             provider_name = 'MusicBrainz'
-        # else:
-        #     if self.media_type == 'movie':
-        #         provider_name = 'IMDb'
-        #     elif self.media_type in ('show', 'season', 'episode'):
-        #         provider_name = 'TheTVDB'
-        #     elif self.media_type in ('artist', 'album', 'track'):
-        #         provider_name = 'Last.fm'
         return provider_name
 
     def get_provider_link(self, provider=None):
@@ -885,13 +881,6 @@ class PrettyMetadata(object):
             provider_link = self.get_plex_url()
         elif provider:
             provider_link = self.parameters.get(provider + '_url', '')
-        # else:
-        #     if self.media_type == 'movie':
-        #         provider_link = self.parameters.get('imdb_url', '')
-        #     elif self.media_type in ('show', 'season', 'episode'):
-        #         provider_link = self.parameters.get('thetvdb_url', '')
-        #     elif self.media_type in ('artist', 'album', 'track'):
-        #         provider_link = self.parameters.get('lastfm_url', '')
         return provider_link
 
     def get_caption(self, provider):

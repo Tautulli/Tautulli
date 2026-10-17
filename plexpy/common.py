@@ -589,6 +589,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Last.fm URL', 'type': 'str', 'value': 'lastfm_url', 'description': 'The Last.fm URL for the album.', 'help_text': 'Music library agent must be Last.fm'},
              {'name': 'Trakt URL', 'type': 'str', 'value': 'trakt_url', 'description': 'The Trakt URL for the movie or TV show.'},
              {'name': 'Simkl URL', 'type': 'str', 'value': 'simkl_url', 'description': 'The Simkl URL for the movie or TV show.'},
+             {'name': 'Letterboxd URL', 'type': 'str', 'value': 'letterboxd_url', 'description': 'The Letterboxd URL for the movie.'},
              {'name': 'Container', 'type': 'str', 'value': 'container', 'description': 'The media container of the original media.'},
              {'name': 'Bitrate', 'type': 'int', 'value': 'bitrate', 'description': 'The bitrate of the original media.'},
              {'name': 'Aspect Ratio', 'type': 'float', 'value': 'aspect_ratio', 'description': 'The aspect ratio of the original media.'},
