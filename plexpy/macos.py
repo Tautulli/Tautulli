@@ -162,7 +162,8 @@ def set_startup():
         plist_file_path = os.path.join(launch_agents, plist_file)
 
         exe = sys.executable
-        run_args = [arg for arg in plexpy.ARGS if arg != '--nolaunch']
+        args = plexpy.ARGS or []
+        run_args = [arg for arg in args if arg != '--nolaunch']
         if plexpy.FROZEN:
             args = [exe] + run_args
         else:
