@@ -47,6 +47,10 @@ jobs:
       BROWSER_CHANNEL: chrome
       # Remove the OAuth token and other secrets from the env that pytest sees.
       CLAUDE_CODE_SUBPROCESS_ENV_SCRUB: '1'
+      # The scrub forces permission mode default, which drops the action's acceptEdits.
+      # Without this rule every Edit and Write is denied. Edit rules cover every file
+      # tool. It allows the checkout only, and Claude Code still denies writes to .git.
+      EDIT_TOOLS: Edit(./**)
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -206,7 +210,7 @@ jobs:
             Stop and report instead if the cause is unclear or the fix spans more than a
             few files. Say what you found and what you would change.
           claude_args: |
-            --allowedTools "Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh issue view:*),${{ env.TEST_TOOLS }}"
+            --allowedTools "Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh issue view:*),${{ env.TEST_TOOLS }},${{ env.EDIT_TOOLS }}"
 
       - name: Run Claude Code (General)
         uses: anthropics/claude-code-action@v1
@@ -217,4 +221,4 @@ jobs:
           path_to_claude_code_executable: ${{ steps.cli.outputs.path }}
           additional_permissions: |
             actions: read
-          claude_args: ${{ (steps.pr.outputs.cross == 'false' || (github.event.issue.pull_request == null && github.event.pull_request == null)) && format('--allowedTools "{0}"', env.TEST_TOOLS) || '' }}
+          claude_args: ${{ (steps.pr.outputs.cross == 'false' || (github.event.issue.pull_request == null && github.event.pull_request == null)) && format('--allowedTools "{0},{1}"', env.TEST_TOOLS, env.EDIT_TOOLS) || '' }}
