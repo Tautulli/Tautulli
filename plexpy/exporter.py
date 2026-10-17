@@ -1888,25 +1888,25 @@ class Export(object):
         if not self.section_id and not self.user_id and not self.rating_key:
             msg = "Export called but no section_id, user_id, or rating_key provided."
         elif self.metadata_level not in self.METADATA_LEVELS:
-            msg = "Export called with invalid metadata_level '{}'.".format(self.metadata_level)
+            msg = f"Export called with invalid metadata_level '{self.metadata_level}'."
         elif self.media_info_level not in self.MEDIA_INFO_LEVELS:
-            msg = "Export called with invalid media_info_level '{}'.".format(self.media_info_level)
+            msg = f"Export called with invalid media_info_level '{self.media_info_level}'."
         elif self.thumb_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid thumb_level '{}'.".format(self.thumb_level)
+            msg = f"Export called with invalid thumb_level '{self.thumb_level}'."
         elif self.art_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid art_level '{}'.".format(self.art_level)
+            msg = f"Export called with invalid art_level '{self.art_level}'."
         elif self.logo_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid logo_level '{}'.".format(self.logo_level)
+            msg = f"Export called with invalid logo_level '{self.logo_level}'."
         elif self.squareArt_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid squareArt_level '{}'.".format(self.squareArt_level)
+            msg = f"Export called with invalid squareArt_level '{self.squareArt_level}'."
         elif self.theme_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid theme_level '{}'.".format(self.theme_level)
+            msg = f"Export called with invalid theme_level '{self.theme_level}'."
         elif self.file_format not in self.FILE_FORMATS:
-            msg = "Export called with invalid file_format '{}'.".format(self.file_format)
+            msg = f"Export called with invalid file_format '{self.file_format}'."
         elif self.export_type not in self.EXPORT_TYPES:
-            msg = "Export called with invalid export_type '{}'.".format(self.export_type)
+            msg = f"Export called with invalid export_type '{self.export_type}'."
         elif self.user_id and self.export_type != 'playlist':
-            msg = "Export called with invalid export_type '{}'. " \
+            msg = f"Export called with invalid export_type '{self.export_type}'. " \
                   "Only export_type 'playlist' is allowed for user export."
         elif self.individual_files and self.rating_key:
             msg = "Individual file export is only allowed for library or user export."
@@ -1985,7 +1985,7 @@ class Export(object):
             return msg
 
         if self.media_type not in self.MEDIA_TYPES:
-            msg = "Cannot export media type '{}'.".format(self.media_type)
+            msg = f"Cannot export media type '{self.media_type}'."
             logger.warn("Tautulli Exporter :: %s", msg)
             return msg
 
@@ -2008,7 +2008,7 @@ class Export(object):
 
         self.export_id = self.add_export()
         if not self.export_id:
-            msg = "Failed to export '{}'.".format(self.directory)
+            msg = f"Failed to export '{self.directory}'."
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
@@ -2214,20 +2214,16 @@ class Export(object):
                 title = obj._defaultSyncTitle()
             else:
                 title = obj.title
-            filename = '{} - {} [{}]'.format(
-                media_type.capitalize(), title, obj.ratingKey)
+            filename = f'{media_type.capitalize()} - {title} [{obj.ratingKey}]'
 
         elif self.rating_key:
-            filename = '{} - {} [{}]'.format(
-                self.media_type.capitalize(), self.obj_title, self.rating_key)
+            filename = f'{self.media_type.capitalize()} - {self.obj_title} [{self.rating_key}]'
 
         elif self.user_id:
-            filename = 'User - {} - {} [{}]'.format(
-                self.obj_title, self.export_type.capitalize(), self.user_id)
+            filename = f'User - {self.obj_title} - {self.export_type.capitalize()} [{self.user_id}]'
 
         elif self.section_id:
-            filename = 'Library - {} - {} [{}]'.format(
-                self.obj_title, self.export_type.capitalize(), self.section_id)
+            filename = f'Library - {self.obj_title} - {self.export_type.capitalize()} [{self.section_id}]'
 
         else:
             filename = 'Export - Unknown'
@@ -2400,7 +2396,7 @@ class Export(object):
         for d in data:
             if d.get('locations', []):
                 if 'grandparentTitle' in d:
-                    full_title = '{} - {}'.format(d.get('originalTitle') or d['grandparentTitle'], d['title'])
+                    full_title = f'{d.get("originalTitle") or d["grandparentTitle"]} - {d["title"]}'
                 else:
                     full_title = d['title']
                 metadata = {
@@ -2526,7 +2522,7 @@ class Export(object):
             ext = 'png'
         else:
             ext = 'jpg'
-        filename = helpers.clean_filename('{} [{}].{}.{}'.format(item_title, rating_key, resource, ext))
+        filename = helpers.clean_filename(f'{item_title} [{rating_key}].{resource}.{ext}')
         filepath = os.path.join(dirpath, filename)
 
         if not os.path.exists(dirpath):
@@ -2575,7 +2571,7 @@ def get_export(export_id):
             result['filename'] = None
             result['exists'] = check_export_exists(result['title'], result['timestamp'])
         else:
-            result['filename'] = '{}.{}'.format(result['title'], result['file_format'])
+            result['filename'] = f'{result["title"]}.{result["file_format"]}'
             result['exists'] = check_export_exists(result['title'], result['timestamp'], result['filename'])
 
     return result
@@ -2724,11 +2720,11 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
 
 
 def format_export_directory(title, timestamp):
-    return '{}.{}'.format(title, helpers.timestamp_to_YMDHMS(timestamp))
+    return f'{title}.{helpers.timestamp_to_YMDHMS(timestamp)}'
 
 
 def format_export_filename(title, file_format):
-    return '{}.{}'.format(title, file_format)
+    return f'{title}.{file_format}'
 
 
 def get_export_dirpath(title, timestamp=None, resources_directory=None):
@@ -2736,7 +2732,7 @@ def get_export_dirpath(title, timestamp=None, resources_directory=None):
         title = format_export_directory(title, timestamp)
     dirpath = os.path.join(plexpy.CONFIG.EXPORT_DIR, title)
     if resources_directory:
-        dirpath = os.path.join(dirpath, '{}.resources'.format(resources_directory))
+        dirpath = os.path.join(dirpath, f'{resources_directory}.resources')
     return dirpath
 
 
