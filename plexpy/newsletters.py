@@ -668,7 +668,7 @@ class Newsletter(object):
         newsletter_folder = plexpy.CONFIG.NEWSLETTER_DIR or os.path.join(plexpy.DATA_DIR, 'newsletters')
         filepath = os.path.join(newsletter_folder, self.filename_formatted)
 
-        if not helpers.is_subdir(self.filepath, newsletter_folder):
+        if not helpers.is_subdir(filepath, newsletter_folder):
             # Force newsletter file path into the newsletter folder
             logger.warn("Tautulli Newsletters :: Newsletter file path is outside of the newsletter folder. "
                         "Using default filename.")
