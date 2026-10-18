@@ -7179,15 +7179,11 @@ class WebInterface(object):
             newsletter = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
             if newsletter:
-                newsletter_agent = newsletters.get_agent_class(newsletter_id=newsletter_id,
-                                                               newsletter_id_name=newsletter['id_name'],
-                                                               agent_id=newsletter['agent_id'],
+                newsletter_agent = newsletters.get_agent_class(agent_id=newsletter['agent_id'],
                                                                config=newsletter['config'],
+                                                               email_config=newsletter['email_config'],
                                                                start_date=start_date,
-                                                               end_date=end_date,
-                                                               subject=newsletter['subject'],
-                                                               body=newsletter['body'],
-                                                               message=newsletter['message'])
+                                                               end_date=end_date)
                 preview = helpers.bool_true(preview)
                 raw = helpers.bool_true(raw)
 

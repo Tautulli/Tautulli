@@ -723,6 +723,14 @@ NEWSLETTER_PARAMETERS = [
         'category': 'Recently Added',
         'parameters': [
             {'name': 'Included Libraries', 'type': 'str', 'value': 'newsletter_libraries', 'description': 'The list of libraries included in the newsletter.'},
+            {'name': 'Movie Count', 'type': 'int', 'value': 'movie_count', 'description': 'The number of recently added movies.'},
+            {'name': 'Show Count', 'type': 'int', 'value': 'show_count', 'description': 'The number of recently added shows.'},
+            {'name': 'Season Count', 'type': 'int', 'value': 'season_count', 'description': 'The number of recently added seasons.'},
+            {'name': 'Episode Count', 'type': 'int', 'value': 'episode_count', 'description': 'The number of recently added episodes.'},
+            {'name': 'Artist Count', 'type': 'int', 'value': 'artist_count', 'description': 'The number of recently added artists.'},
+            {'name': 'Album Count', 'type': 'int', 'value': 'album_count', 'description': 'The number of recently added albums.'},
+            {'name': 'Track Count', 'type': 'int', 'value': 'track_count', 'description': 'The number of recently added tracks.'},
+            {'name': 'Other Video Count', 'type': 'int', 'value': 'other_video_count', 'description': 'The number of recently added other videos.'},
         ]
     }
 ]

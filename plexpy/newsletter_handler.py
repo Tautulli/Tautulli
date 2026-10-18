@@ -141,17 +141,17 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
     email_msg_id = email.utils.make_msgid()
     email_reply_msg_id = get_last_newsletter_email_msg_id(newsletter_id=newsletter_id, notify_action=notify_action)
 
-    newsletter_agent = newsletters.get_agent_class(newsletter_id=newsletter_id,
-                                                   newsletter_id_name=newsletter_config['id_name'],
-                                                   agent_id=newsletter_config['agent_id'],
+    newsletter_agent = newsletters.get_agent_class(agent_id=newsletter_config['agent_id'],
                                                    config=newsletter_config['config'],
                                                    email_config=newsletter_config['email_config'],
+                                                   newsletter_id=newsletter_id,
+                                                   newsletter_id_name=newsletter_config['id_name'],
                                                    subject=subject,
                                                    body=body,
                                                    message=message,
                                                    email_msg_id=email_msg_id,
-                                                   email_reply_msg_id=email_reply_msg_id
-                                                   )
+                                                   email_reply_msg_id=email_reply_msg_id)
+    newsletter_agent.retrieve_data_and_build_text()
 
     # Set the newsletter state in the db
     newsletter_log_id = set_notify_state(newsletter=newsletter_config,
