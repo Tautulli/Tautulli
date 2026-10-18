@@ -462,14 +462,14 @@ class Newsletter(object):
                 'data': self.data}
 
     def generate_newsletter(self, preview=False):
-        self.retrieve_data_and_build_text()
-
-        return self._generate_newsletter(preview=preview)
-
-    def _generate_newsletter(self, preview=False):
         if preview:
             self.is_preview = True
 
+        self.retrieve_data_and_build_text()
+
+        return self._generate_newsletter()
+
+    def _generate_newsletter(self):
         logger.info("Tautulli Newsletters :: Generating newsletter%s." % (' preview' if self.is_preview else ''))
 
         newsletter_rendered, self.template_error = serve_template(
