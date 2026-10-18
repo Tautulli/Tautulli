@@ -2829,10 +2829,15 @@ def build_export_docs():
             child_plural_media_type = export.PLURAL_MEDIA_TYPES[child_media_type]
             if child_media_type == 'photoalbum':
                 child_section_title = 'Photo Albums'
+                child_anchor = 'photo-albums'
+            elif child_media_type == 'item':
+                child_section_title = 'Items'
+                child_anchor = f'{_media_type}-item'
             else:
                 child_section_title = child_plural_media_type.capitalize()
+                child_anchor = child_plural_media_type
             child_text = u'\u2713<br>Includes [{}](#{}) Level {{}}'.format(
-                child_section_title, child_plural_media_type)
+                child_section_title, child_anchor)
             child_row = {
                 'attr': child_plural_media_type,
                 'level0': '',
