@@ -1351,6 +1351,7 @@ class EMAIL(Notifier):
                        'to': [],
                        'cc': [],
                        'bcc': [],
+                       'reply_to': '',
                        'smtp_server': '',
                        'smtp_port': 465,
                        'smtp_user': '',
@@ -1394,6 +1395,8 @@ class EMAIL(Notifier):
             msg["In-Reply-To"] = reply_msg_id
             msg["References"] = reply_msg_id
 
+        if self.config['reply_to']:
+            msg.add_header('Reply-To', self.config['reply_to'])
 
         # Exclude undisclosed-recipients:; from the recipient list
         recipients = [r for r in (self.config['to'] + self.config['cc'] + self.config['bcc']) if r != 'undisclosed-recipients:;']
@@ -1459,6 +1462,12 @@ class EMAIL(Notifier):
                           'value': self.config['from'],
                           'name': 'email_from',
                           'description': 'The email address of the sender.',
+                          'input_type': 'text'
+                          },
+                         {'label': 'Reply-To',
+                          'value': self.config['reply_to'],
+                          'name': 'email_reply_to',
+                          'description': 'Optional: alternative reply-to email address.',
                           'input_type': 'text'
                           },
                          {'label': 'To',
