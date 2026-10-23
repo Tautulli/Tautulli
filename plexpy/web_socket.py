@@ -22,6 +22,7 @@ import ssl
 import threading
 import time
 
+import certifi
 import websocket
 
 import plexpy
@@ -156,7 +157,10 @@ def run():
         uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
         secure = 'secure '
         if plexpy.CONFIG.VERIFY_SSL_CERT:
-            sslopt = {'context': ssl.create_default_context()}
+            # certifi covers a Python with no system CA store, like the macOS app
+            context = ssl.create_default_context()
+            context.load_verify_locations(certifi.where())
+            sslopt = {'context': context}
         else:
             sslopt = {'cert_reqs': ssl.CERT_NONE}
     else:

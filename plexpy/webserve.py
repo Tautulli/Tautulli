@@ -43,6 +43,7 @@ from mako.lookup import TemplateLookup
 import mako.template
 import mako.exceptions
 
+import certifi
 import websocket
 
 if sys.version_info >= (3, 6):
@@ -4286,7 +4287,10 @@ class WebInterface(object):
                     if ssl:
                         secure = 'secure '
                         if plexpy.CONFIG.VERIFY_SSL_CERT:
-                            sslopt = {'context': _ssl.create_default_context()}
+                            # certifi covers a Python with no system CA store, like the macOS app
+                            context = _ssl.create_default_context()
+                            context.load_verify_locations(certifi.where())
+                            sslopt = {'context': context}
                         else:
                             sslopt = {'cert_reqs': _ssl.CERT_NONE}
                     else:
