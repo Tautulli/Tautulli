@@ -30,7 +30,6 @@ from ipaddress import ip_address, ip_network, IPv4Address
 import ipwhois
 import ipwhois.exceptions
 import ipwhois.utils
-from IPy import IP
 import json
 import math
 import operator
@@ -755,17 +754,13 @@ def json_dumps_for_html(obj, **kwargs):
 
 def is_public_ip(host):
     ip = is_valid_ip(get_ip(host))
-    ip_version = ip.version()
-    ip_type = ip.iptype()
-    if ip and ip_type != 'LOOPBACK' and (
-            ip_version == 4 and ip_type == 'PUBLIC' or
-            ip_version == 6 and 'LOCAL' not in ip_type):
-        return True
-    return False
+    return bool(ip and ip.is_global and not ip.is_private and not ip.is_multicast)
 
 
 def get_ip(host):
     ip_address = ''
+    if not isinstance(host, str):
+        return ip_address
     if is_valid_ip(host):
         return host
     elif not re.match(r'^[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})$', host):
@@ -778,11 +773,11 @@ def get_ip(host):
 
 
 def is_valid_ip(address):
-    try:
-        return IP(address)
-    except TypeError:
+    if not isinstance(address, str):
         return False
-    except ValueError:
+    try:
+        return ip_address(address)
+    except (TypeError, ValueError):
         return False
 
 

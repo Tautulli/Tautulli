@@ -317,3 +317,110 @@ def test_timezone_is_pinned_to_utc():
     assert helpers.YMD_to_timestamp("1970-01-01") == 0
     local = sqlite3.connect(":memory:").execute("SELECT datetime(0, 'unixepoch', 'localtime')").fetchone()[0]
     assert local == "1970-01-01 00:00:00"
+
+
+# ---------------------------------------------------------------------------
+# is_valid_ip
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("ip_address, expected", [
+    # Valid IPv4 addresses
+    ("192.0.2.1", True),
+    ("0.0.0.0", True),
+    ("255.255.255.255", True),
+    ("192.168.1.1", True),
+    # Invalid IPv4 addresses
+    ("256.1.1.1", False),
+    ("192.168.1", False),
+    ("192.168.1.1.1", False),
+    ("192.168.001.1", False),
+    ("192.168.1.1/24", False),
+    # Valid IPv6 addresses
+    ("2001:db8::1", True),
+    ("2001:0db8:0000:0000:0000:0000:0000:0001", True),
+    ("::", True),
+    ("::1", True),
+    ("::ffff:192.0.2.1", True),
+    # Invalid IPv6 addresses
+    ("2001:db8::g1", False),
+    ("2001:db8::1::", False),
+    ("2001:db8:1", False),
+    ("2001:db8::1/64", False),
+    ("12345::1", False),
+    # Invalid values that are not address strings
+    ("", False),
+    (None, False),
+    (1234, False),
+])
+def test_is_valid_ip(ip_address, expected):
+    assert bool(helpers.is_valid_ip(ip_address)) is expected
+
+
+# ---------------------------------------------------------------------------
+# is_public_ip
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("address, expected", [
+    ("8.8.8.8", True),
+    ("1.1.1.1", True),
+    ("2606:4700:4700::1111", True),
+    ("192.168.1.1", False),
+    ("10.0.0.1", False),
+    ("172.16.0.1", False),
+    ("127.0.0.1", False),
+    ("::1", False),
+    ("0.0.0.0", False),
+    ("169.254.1.1", False),
+    ("224.0.0.1", False),
+    ("not-an-ip", False),
+    (None, False),
+])
+def test_is_public_ip(address, expected):
+    assert helpers.is_public_ip(address) is expected
+
+
+# ---------------------------------------------------------------------------
+# get_ip
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("address", [
+    "8.8.8.8",
+    "2001:4860:4860::8888",
+])
+def test_get_ip_returns_ip_address_unchanged(address, monkeypatch):
+    def unexpected_lookup(*args, **kwargs):
+        pytest.fail("IP literals should not be resolved through DNS")
+
+    monkeypatch.setattr(helpers.socket, "getaddrinfo", unexpected_lookup)
+    assert helpers.get_ip(address) == address
+
+
+@pytest.mark.parametrize("host", [None, 1234, [], {}])
+def test_get_ip_non_string_returns_empty(host):
+    assert helpers.get_ip(host) == ""
+
+
+def test_get_ip_resolves_hostname(monkeypatch):
+    monkeypatch.setattr(
+        helpers.socket,
+        "getaddrinfo",
+        lambda host, port: [(None, None, None, None, ("203.0.113.10", 0))],
+    )
+    assert helpers.get_ip("example.test") == "203.0.113.10"
+
+
+def test_get_ip_does_not_resolve_invalid_numeric_ipv4(monkeypatch):
+    def unexpected_lookup(*args, **kwargs):
+        pytest.fail("Invalid numeric IPv4 strings should not be resolved")
+
+    monkeypatch.setattr(helpers.socket, "getaddrinfo", unexpected_lookup)
+    assert helpers.get_ip("999.1.1.1") == ""
+
+
+def test_get_ip_returns_empty_when_resolution_fails(monkeypatch):
+    def failed_lookup(*args, **kwargs):
+        raise OSError("Name or service not known")
+
+    monkeypatch.setattr(helpers.socket, "getaddrinfo", failed_lookup)
+    assert helpers.get_ip("missing.example.test") == ""
+
