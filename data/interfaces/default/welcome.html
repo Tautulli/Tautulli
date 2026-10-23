@@ -273,7 +273,7 @@
             retValue.status = false;
             retValue.msg = "Please enter a username and password.";
             $("#authentication-status").html('<i class="fa fa-exclamation-circle"></i> Please enter a username and password.');
-            $('#authentication-status').fadeIn('fast').delay(2000).fadeOut('fast');
+            $('#authentication-status').fadeIn('fast');
         } else {
             retValue.status = true;
         }
@@ -289,7 +289,7 @@
             retValue.status = false;
             retValue.msg = "Please verify your server.";
             $("#pms-verify-status").html('<i class="fa fa-exclamation-circle"></i> Please verify your server.');
-            $('#pms-verify-status').fadeIn('fast').delay(2000).fadeOut('fast');
+            $('#pms-verify-status').fadeIn('fast');
         } else {
             retValue.status = true;
         }
@@ -305,7 +305,7 @@
             retValue.status = false;
             retValue.msg = "Please authenticate.";
             $("#pms-token-status").html('<i class="fa fa-exclamation-circle"></i> Please authenticate.');
-            $('#pms-token-status').fadeIn('fast').delay(2000).fadeOut('fast');
+            $('#pms-token-status').fadeIn('fast');
         } else {
             retValue.status = true;
         }
@@ -321,7 +321,7 @@
             retValue.status = false;
             retValue.msg = "Please enter a valid integer.";
             $("#ignore-int-status").html('<i class="fa fa-exclamation-circle"></i> Please enter a valid ignore interval.');
-            $('#ignore-int-status').fadeIn('fast').delay(2000).fadeOut('fast');
+            $('#ignore-int-status').fadeIn('fast');
         } else {
             retValue.status = true;
         }
@@ -374,7 +374,7 @@ $(document).ready(function() {
                     wizard.backButton.show();
                     $("#authentication-status").empty()
                         .append('<i class="fa fa-exclamation-circle"></i> ', $("<span>").text(data.message));
-                    $('#authentication-status').fadeIn('fast').delay(2000).fadeOut('fast');
+                    $('#authentication-status').fadeIn('fast');
                     return;
                 }
                 // A dropped reply means the web server restarted, so the save worked.
