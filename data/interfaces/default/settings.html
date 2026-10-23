@@ -144,24 +144,6 @@
                             </label>
                             <p class="help-block">Enable if you want Tautulli to calculate the total file size for TV Shows/Seasons and Artists/Albums on the media info tables.</p>
                         </div>
-                        <div class="checkbox advanced-setting">
-                            <label>
-                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
-                            </label>
-                            <p class="help-block">
-                                Enable to mask passwords, access tokens, and public IP addresses, and email addresses with asterisks (*) in the logs.<br />
-                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
-                            </p>
-                        </div>
-                        <div class="checkbox advanced-setting">
-                            <label>
-                                <input type="checkbox" id="log_blacklist_usernames" name="log_blacklist_usernames" value="1" ${config['log_blacklist_usernames']}> Mask Usernames in Logs
-                            </label>
-                            <p class="help-block">
-                                Enable to mask Plex usernames with asterisks (*) in the logs.<br />
-                                Note: Only logs from the time this setting is enabled will be masked.
-                            </p>
-                        </div>
 
                         <div class="padded-header">
                             <h3>History Logging</h3>
@@ -370,7 +352,24 @@
                             </label>
                             <p class="help-block">Write debug messages to the Tautulli log. Turn this on when you send logs for support.</p>
                         </div>
-
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="log_blacklist" name="log_blacklist" value="1" ${config['log_blacklist']}> Mask Sensitive Information in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask passwords, access tokens, and public IP addresses, and email addresses with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked. Do not post your logs publically without masking sensitive information!
+                            </p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
+                                <input type="checkbox" id="log_blacklist_usernames" name="log_blacklist_usernames" value="1" ${config['log_blacklist_usernames']}> Mask Usernames in Logs
+                            </label>
+                            <p class="help-block">
+                                Enable to mask Plex usernames with asterisks (*) in the logs.<br />
+                                Note: Only logs from the time this setting is enabled will be masked.
+                            </p>
+                        </div>
                         <div class="checkbox advanced-setting">
                             <label>
                                 <input type="checkbox" id="system_analytics" name="system_analytics" value="1" ${config['system_analytics']}> Send Anonymous System Analytics
