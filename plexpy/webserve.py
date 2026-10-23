@@ -3399,6 +3399,9 @@ class WebInterface(object):
             first_run = True
             server_changed = True
 
+        if first_run and not (kwargs.get('http_username', '').strip() and kwargs.get('http_password', '').strip()):
+            return {'result': 'error', 'message': 'A username and password are required.'}
+
         if first_run:
             # The wizard shows only this checkbox. Other checked settings keep their values.
             kwargs['system_analytics'] = int('system_analytics' in kwargs)

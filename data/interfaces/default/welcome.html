@@ -264,8 +264,8 @@
 <script src="${http_root}js/bootstrap-wizard.min.js"></script>
 <script>
     function validateAuthentication(el) {
-        var http_username = $("#http_username").val();
-        var http_password = $("#http_password").val();
+        var http_username = $.trim($("#http_username").val());
+        var http_password = $.trim($("#http_password").val());
         var valid_authentication = el.val();
         var retValue = {};
 
@@ -357,14 +357,28 @@ $(document).ready(function() {
     });
 
     wizard.on("submit", function(wizard) {
-        // Probably should not success before we know, but hopefully validation is good enough.
-        wizard.submitSuccess();
         $.ajax({
             type: "POST",
             url: wizard.args.submitUrl,
             data: wizard.serialize(),
             dataType: "json",
-            complete: function (data) {
+            complete: function (xhr) {
+                var data = xhr.responseJSON;
+                if (data && data.result === "error") {
+                    // Return to the authentication card with every typed value kept.
+                    wizard.submitFailure();
+                    wizard.setCard(1);
+                    wizard.enableNextButton();
+                    wizard.changeNextButton("Next", "btn-primary");
+                    wizard.updateProgressBar(100 / wizard._cards.length);
+                    wizard.backButton.show();
+                    $("#authentication-status").empty()
+                        .append('<i class="fa fa-exclamation-circle"></i> ', $("<span>").text(data.message));
+                    $('#authentication-status').fadeIn('fast').delay(2000).fadeOut('fast');
+                    return;
+                }
+                // A dropped reply means the web server restarted, so the save worked.
+                wizard.submitSuccess();
                 $(".countdown").countdown(function () { location.reload(); }, 5, "");
             }
         })

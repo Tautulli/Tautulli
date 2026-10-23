@@ -44,7 +44,7 @@ def test_first_run_keeps_unshown_checked_settings(web, app_config):
     before = {k: getattr(app_config, k) for k in UNSHOWN_KEYS}
     assert any(before.values())
 
-    web.configUpdate(first_run="1", http_username="", pms_port="32400")
+    web.configUpdate(first_run="1", http_username="admin", http_password="pw", pms_port="32400")
 
     assert {k: getattr(app_config, k) for k in UNSHOWN_KEYS} == before
     assert app_config.FIRST_RUN_COMPLETE == 1
@@ -52,7 +52,7 @@ def test_first_run_keeps_unshown_checked_settings(web, app_config):
 
 @pytest.mark.parametrize("posted, expected", [(False, 0), (True, 1)])
 def test_first_run_system_analytics_follows_the_box(web, app_config, posted, expected):
-    form = {"first_run": "1"}
+    form = {"first_run": "1", "http_username": "admin", "http_password": "pw"}
     if posted:
         form["system_analytics"] = "1"
 
