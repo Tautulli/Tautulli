@@ -288,6 +288,12 @@ def serve_template(template_name, **kwargs):
     interface_dir = os.path.join(str(plexpy.PROG_DIR), 'data/interfaces/')
     default_dir = os.path.join(str(interface_dir), plexpy.CONFIG.NEWSLETTER_TEMPLATES)
     custom_dir = plexpy.CONFIG.NEWSLETTER_CUSTOM_DIR
+    output_dir = plexpy.CONFIG.NEWSLETTER_DIR or os.path.join(plexpy.DATA_DIR, 'newsletters')
+
+    if custom_dir and helpers.is_subdir(custom_dir, output_dir):
+        logger.error("Tautulli Newsletters :: The custom newsletter template directory overlaps the newsletter "
+                     "directory. Using default templates instead.")
+        custom_dir = None
 
     if custom_dir:
         if helpers.allow_mount(custom_dir):
