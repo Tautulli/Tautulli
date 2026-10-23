@@ -9,6 +9,7 @@ from functools import cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Final
 
+from ._xdg import _expand_user
 from .api import PlatformDirsABC
 
 if TYPE_CHECKING:
@@ -139,7 +140,7 @@ class Windows(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
     @property
     def user_projects_dir(self) -> str:
         r"""Projects directory tied to the user, e.g. ``%USERPROFILE%\Projects``."""
-        return os.path.normpath(os.path.expanduser("~/Projects"))  # ruff:ignore[os-path-expanduser]
+        return os.path.normpath(_expand_user("~/Projects"))
 
     @property
     def user_publicshare_dir(self) -> str:
@@ -355,9 +356,11 @@ def _build_get_win_folder_via_ctypes() -> Callable[[str], str]:
         ole32.CLSIDFromString(folder_guid, byref(guid))
 
         path_ptr = wintypes.LPWSTR()
-        shell32.SHGetKnownFolderPath(byref(guid), _KF_FLAG_DONT_VERIFY, None, byref(path_ptr))
-        result = path_ptr.value
-        ole32.CoTaskMemFree(path_ptr)
+        try:
+            shell32.SHGetKnownFolderPath(byref(guid), _KF_FLAG_DONT_VERIFY, None, byref(path_ptr))
+            result = path_ptr.value
+        finally:
+            ole32.CoTaskMemFree(path_ptr)
 
         if result is None:
             msg = f"SHGetKnownFolderPath returned NULL for {csidl_name}"

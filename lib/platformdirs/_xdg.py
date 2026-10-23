@@ -132,7 +132,8 @@ class XDGMixin(PlatformDirsABC):
     def user_fonts_dir(self) -> str:
         """Fonts directory tied to the user, from ``$XDG_DATA_HOME/fonts`` if set, else platform default."""
         if path := _xdg_dir("XDG_DATA_HOME"):
-            return f"{os.path.expanduser(path)}/fonts"  # ruff:ignore[os-path-expanduser]  # API returns str, not Path
+            # posixpath keeps the XDG separator even when this mixin runs on a non-POSIX host.
+            return posixpath.join(path, "fonts")
         return super().user_fonts_dir
 
     @property

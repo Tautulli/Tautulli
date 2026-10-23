@@ -555,10 +555,12 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
             yield Path(path)
 
     def place_config_file(self, name: str | os.PathLike[str]) -> Path:
-        """Return the path of ``name`` under `user_config_dir`, creating the missing directories on the way.
+        """Return the path of ``name`` under `user_config_path`, creating the missing directories on the way.
 
         Each directory it creates, including the user directory itself, gets mode ``0o700`` whether or not
-        `ensure_exists` is set; directories that already exist keep their mode. It does not create the file.
+        `ensure_exists` is set; directories that already exist keep their mode. On Unix, root with `use_site_for_root`
+        places the file under the site directory instead and creates the missing directories with the default mode, so
+        other users can read them. It does not create the file.
 
         :param name: file path relative to the user directory, e.g. ``"sub/app.toml"``.
 
@@ -566,41 +568,47 @@ class PlatformDirsABC(ABC):  # ruff:ignore[too-many-public-methods]
         :raises RuntimeError: if the user directory starts with ``~`` because the home directory is unknown.
 
         """
-        return self._place_file(lambda dirs: dirs.user_config_dir, name)
+        return self._place_file(lambda dirs: dirs.user_config_path, name)
 
     def place_data_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_data_dir`."""
-        return self._place_file(lambda dirs: dirs.user_data_dir, name)
+        """Like `place_config_file`, under `user_data_path`."""
+        return self._place_file(lambda dirs: dirs.user_data_path, name)
 
     def place_cache_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_cache_dir`."""
-        return self._place_file(lambda dirs: dirs.user_cache_dir, name)
+        """Like `place_config_file`, under `user_cache_path`."""
+        return self._place_file(lambda dirs: dirs.user_cache_path, name)
 
     def place_state_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_state_dir`."""
-        return self._place_file(lambda dirs: dirs.user_state_dir, name)
+        """Like `place_config_file`, under `user_state_path`."""
+        return self._place_file(lambda dirs: dirs.user_state_path, name)
 
     def place_log_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_log_dir`."""
-        return self._place_file(lambda dirs: dirs.user_log_dir, name)
+        """Like `place_config_file`, under `user_log_path`."""
+        return self._place_file(lambda dirs: dirs.user_log_path, name)
 
     def place_runtime_file(self, name: str | os.PathLike[str]) -> Path:
-        """Like `place_config_file`, under `user_runtime_dir`.
+        """Like `place_config_file`, under `user_runtime_path`.
 
         :raises PermissionError: on Unix, if another user owns the temporary fallback directory.
 
         """
-        return self._place_file(lambda dirs: dirs.user_runtime_dir, name)
+        return self._place_file(lambda dirs: dirs.user_runtime_path, name)
 
-    def _place_file(self, user_dir: Callable[[PlatformDirsABC], str], name: str | os.PathLike[str]) -> Path:
+    def _place_file(self, user_path: Callable[[PlatformDirsABC], Path], name: str | os.PathLike[str]) -> Path:
         _ensure_inside_base("name", relative := os.fspath(name))
         if not Path(relative).parts:
             msg = f"name must point to a file, got {relative!r}"
             raise ValueError(msg)
         # Under ensure_exists the lookup itself would create the user directory with the default mode, not 0o700.
         (lookup := copy(self)).ensure_exists = False
-        _ensure_home_known(directory := user_dir(lookup))
-        _make_private_directories((path := Path(directory, relative)).parent)
+        # Under multipath *_dir joins the site directories with os.pathsep, so place under the single *_path.
+        _ensure_home_known(str(directory := user_path(lookup)))
+        path = directory / relative
+        if self._use_site:
+            # Site directories keep the default mode, as under ensure_exists, so other users can still read them.
+            path.parent.mkdir(parents=True, exist_ok=True)
+        else:
+            _make_private_directories(path.parent)
         return path
 
     def find_config_file(self, name: str | os.PathLike[str]) -> Path | None:
