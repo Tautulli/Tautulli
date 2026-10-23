@@ -11,7 +11,7 @@ from platformdirs.api import PlatformDirsABC
 
 if TYPE_CHECKING:
     import os
-    from collections.abc import Iterator
+    from collections.abc import Generator
 
 _APP_KINDS: Final[frozenset[str]] = frozenset({
     "user_data",
@@ -31,13 +31,15 @@ _APP_KINDS: Final[frozenset[str]] = frozenset({
 
 
 @contextmanager
-def isolated_dirs(root: str | os.PathLike[str]) -> Iterator[Path]:
+def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
     """Resolve every directory of :data:`~platformdirs.PlatformDirs` under ``root`` while the context is active.
 
     Each kind maps to ``<root>/<kind>``, where ``kind`` is the property name without ``_dir``, such as ``user_config``.
     The data, config, cache, state, log, runtime and preference kinds append ``appname`` and ``version``, so
     ``PlatformDirs("app", version="1.0").user_config_path`` becomes ``<root>/user_config/app/1.0``. Every thread of the
     current process sees the change, and subprocesses do not.
+
+    On Unix, ``use_site_for_root`` is ignored inside the context so user and site directories keep separate kinds.
 
     :param root: directory that holds the redirected directories
 
@@ -51,11 +53,11 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Iterator[Path]:
         )
         for name in PlatformDirsABC.__abstractmethods__
     }
-    # Unix and macOS build the site lists from search paths; the base versions derive them from the redirected dirs.
+    # Base site lists follow the redirected dirs, and disabling root redirection keeps user and site kinds separate.
     patches |= {
         name: value
         for name, value in vars(PlatformDirsABC).items()
-        if name.startswith("_site_") and name.endswith("_dirs")
+        if name == "_use_site" or (name.startswith("_site_") and name.endswith("_dirs"))
     }
     cls = platformdirs.PlatformDirs
     saved = {name: vars(cls)[name] for name in patches if name in vars(cls)}

@@ -275,7 +275,7 @@ class Unix(XDGMixin, _UnixDefaults):
         if not (path := _xdg_dir("XDG_RUNTIME_DIR")):
             reason = "XDG_RUNTIME_DIR is not set"
         else:
-            with suppress(FileExistsError):
+            with suppress(OSError):
                 self._optionally_create_directory(path, private=True)
             if not (problem := _runtime_dir_problem(path)):
                 return self._append_app_name_and_version(path, private=True)
@@ -354,7 +354,7 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
         return None
     if entry["quoted"] is not None:
         # xdg-user-dirs-update backslash-escapes $, `, " and \ inside the quotes.
-        value = re.sub(r"\\(.)", r"\1", value)
+        value = re.sub(r'\\([$`"\\])', r"\1", value)
     return prefix + value
 
 
