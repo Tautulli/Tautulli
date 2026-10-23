@@ -416,11 +416,11 @@ def test_get_ip_resolves_hostname(monkeypatch):
 
 
 def test_get_ip_does_not_resolve_invalid_numeric_ipv4(monkeypatch):
-    def unexpected_lookup(*args, **kwargs):
-        pytest.fail("Invalid numeric IPv4 strings should not be resolved")
-
-    monkeypatch.setattr(helpers.socket, "getaddrinfo", unexpected_lookup)
+    # get_ip has a bare except, so a pytest.fail in the stub would be swallowed
+    lookups = []
+    monkeypatch.setattr(helpers.socket, "getaddrinfo", lambda *args, **kwargs: lookups.append(args))
     assert helpers.get_ip("999.1.1.1") == ""
+    assert lookups == []
 
 
 def test_get_ip_returns_empty_when_resolution_fails(monkeypatch):
