@@ -372,10 +372,16 @@ def test_is_valid_ip(ip_address, expected):
     ("0.0.0.0", False),
     ("169.254.1.1", False),
     ("224.0.0.1", False),
+    ("100.64.0.1", False),
+    ("fd00::1", False),
     ("not-an-ip", False),
     (None, False),
 ])
-def test_is_public_ip(address, expected):
+def test_is_public_ip(address, expected, monkeypatch):
+    def failed_lookup(*args, **kwargs):
+        raise OSError("Name or service not known")
+
+    monkeypatch.setattr(helpers.socket, "getaddrinfo", failed_lookup)
     assert helpers.is_public_ip(address) is expected
 
 
