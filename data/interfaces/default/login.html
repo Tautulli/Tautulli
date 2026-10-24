@@ -1,6 +1,7 @@
 ﻿<%
     import plexpy
-    plex_login = plexpy.CONFIG.HTTP_PLEX_ADMIN or plexpy.CONFIG.ALLOW_GUEST_ACCESS
+    from plexpy.helpers import anon_url
+    plex_login = (plexpy.CONFIG.HTTP_PLEX_ADMIN or plexpy.CONFIG.ALLOW_GUEST_ACCESS) and plexpy.CONFIG.FIRST_RUN_COMPLETE
 %>
 <!doctype html>
 
@@ -79,6 +80,9 @@
                                 <ul class="submenu" style="${'display: block;' if not plex_login else ''}">
                                     <li>
                                         <form id="login-form">
+                                            % if not plexpy.CONFIG.FIRST_RUN_COMPLETE:
+                                            <div class="alert alert-warning" role="alert">On a new install, the username and password are in the <a class="alert-link" href="${anon_url('https://github.com/Tautulli/Tautulli/wiki/Asking-for-Support#how-can-i-share-my-logs')}" target="_blank" rel="noreferrer">Tautulli log</a>.</div>
+                                            % endif
                                             <div class="form-group">
                                                 <label for="username" class="control-label">
                                                     Username

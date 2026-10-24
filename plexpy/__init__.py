@@ -17,6 +17,7 @@ import ctypes
 from datetime import datetime, timezone, timedelta
 import os
 import queue
+import secrets
 import sqlite3
 import sys
 import subprocess
@@ -33,6 +34,7 @@ except ImportError:
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 from ga4mp import GtagMP
+from hashing_passwords import make_hash
 
 from plexpy import activity_handler
 from plexpy import activity_pinger
@@ -282,6 +284,8 @@ def initialize(config_file):
             CONFIG.JWT_SECRET = generate_uuid()
             CONFIG.JWT_UPDATE_SECRET = False
             CONFIG.write()
+
+        generate_first_run_password()
 
         # Get the previous version from the file
         version_lock_file = os.path.join(DATA_DIR, "version.lock")
@@ -3096,6 +3100,24 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
         MAC_SYS_TRAY_ICON.shutdown()
 
     os._exit(0)
+
+
+def generate_first_run_password():
+    """ Set a random password until the setup wizard is done, and log it once. """
+    if CONFIG.FIRST_RUN_COMPLETE or CONFIG.HTTP_PASSWORD:
+        return
+
+    password = secrets.token_urlsafe(12)
+    if not CONFIG.HTTP_USERNAME:
+        CONFIG.HTTP_USERNAME = 'tautulli'
+    CONFIG.HTTP_PASSWORD = make_hash(password)
+    CONFIG.HTTP_HASH_PASSWORD = 1
+    CONFIG.HTTP_HASHED_PASSWORD = 1
+    CONFIG.write()
+    lines = ["Setup wizard login", "Username: %s    Password: %s" % (CONFIG.HTTP_USERNAME, password)]
+    width = max(len(x) for x in lines) + 4
+    for line in ["*" * width] + ["* " + x.ljust(width - 4) + " *" for x in lines] + ["*" * width]:
+        logger.info(line)
 
 
 def generate_uuid():

@@ -97,16 +97,7 @@ def refusal(conf, warnings, peer, **headers):
     return warnings[-1]
 
 
-def test_the_body_points_a_first_run_client_to_the_wizard(conf):
-    status, body = get(conf, "/", "8.8.8.8")
-
-    assert body == (b"Tautulli refused this connection because no password is set and you are not on the "
-                    b"local network.\n\nConnect to Tautulli from the local network to run the setup wizard.\n")
-
-
-def test_the_body_points_a_configured_client_to_the_settings(conf, app_config):
-    app_config.FIRST_RUN_COMPLETE = 1
-
+def test_the_body_points_a_client_to_the_settings(conf):
     status, body = get(conf, "/", "8.8.8.8")
 
     assert body == (b"Tautulli refused this connection because no password is set and you are not on the "

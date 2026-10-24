@@ -435,10 +435,9 @@ def no_password_gate():
     response = cherrypy.response
     response.status = 403
     response.headers['Content-Type'] = 'text/plain;charset=utf-8'
-    action = "to set a password in the Settings." if plexpy.CONFIG.FIRST_RUN_COMPLETE else "to run the setup wizard."
     response.body = ("Tautulli refused this connection because no password is set and "
                      "you are not on the local network.\n\n"
-                     "Connect to Tautulli from the local network %s\n" % action).encode('utf-8')
+                     "Connect to Tautulli from the local network to set a password in the Settings.\n").encode('utf-8')
     request.handler = None
 
 

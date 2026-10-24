@@ -3503,6 +3503,9 @@ class WebInterface(object):
 
         if update_jwt_secret and not first_run:
             plexpy.CONFIG.JWT_UPDATE_SECRET = True
+        elif update_jwt_secret:
+            # End the generated-password session now. The new secret survives restarts.
+            plexpy.CONFIG.JWT_SECRET = plexpy.generate_uuid()
 
         # Write the config
         plexpy.CONFIG.write()

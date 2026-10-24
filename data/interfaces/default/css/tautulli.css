@@ -3284,6 +3284,14 @@ table.dataTable tbody td.watched-status {
     background: #f9be03;
     color: #eee;
 }
+.submenu .alert a,
+.submenu .alert a:hover {
+    display: inline;
+    padding: 0;
+    background: none;
+    color: inherit;
+    text-decoration: underline;
+}
 .ajaxMsg {
     background-color: rgba(255,255,255,0.075);
     color: #999999;

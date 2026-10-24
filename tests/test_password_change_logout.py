@@ -84,8 +84,10 @@ def test_the_setup_wizard_keeps_the_new_session(web, monkeypatch):
     monkeypatch.setattr(plexpy, "run_analytics", lambda **kwargs: None)
     monkeypatch.setattr(webstart, "restart", lambda: None)
     monkeypatch.setattr(activity_pinger, "connect_server", lambda **kwargs: None)
+    old_secret = plexpy.CONFIG.JWT_SECRET = "old-secret"
 
     web.configUpdate(first_run="1", http_username="admin", http_password="new-password")
 
     assert check_hash("new-password", plexpy.CONFIG.HTTP_PASSWORD)
+    assert plexpy.CONFIG.JWT_SECRET != old_secret
     assert not plexpy.CONFIG.JWT_UPDATE_SECRET
