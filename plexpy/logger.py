@@ -215,6 +215,12 @@ class PublicIPFilter(RegexFilter):
             return text.replace(ip, '.'.join(['***'] * 4))
         return text
 
+    def filter(self, record):
+        # A record with a keep_ip extra keeps its client IP.
+        if getattr(record, 'keep_ip', False):
+            return True
+        return super().filter(record)
+
 
 class PlexDirectIPFilter(RegexFilter):
     """
