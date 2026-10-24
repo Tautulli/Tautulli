@@ -1,5 +1,6 @@
 <%
     import plexpy
+    from plexpy.webauth import tautulli_login_disabled
     from plexpy import libraries, users, version
     from plexpy.helpers import anon_url
     from plexpy.notifiers import BROWSER_NOTIFIERS
@@ -179,8 +180,10 @@
                             <li><a href="#" id="nav-restart"><i class="fa fa-fw fa-refresh"></i> Restart</a></li>
                             <li><a href="#" id="nav-shutdown"><i class="fa fa-fw fa-power-off"></i> Shutdown</a></li>
                             % else:
+                            % if not tautulli_login_disabled():
                             <li><a href="#" data-target="#admin-login-modal" data-toggle="modal"><i class="fa fa-fw fa-lock"></i> Admin Login</a></li>
                             <li role="separator" class="divider"></li>
+                            % endif
                             % endif
                             % if _session['exp']:
                             <li><a href="${http_root}auth/logout"><i class="fa fa-fw fa-sign-out"></i> Sign Out</a></li>
@@ -202,6 +205,7 @@ ${next.headerIncludes()}
 ${next.modalIncludes()}
 
 % if _session['user_group'] != 'admin':
+% if not tautulli_login_disabled():
 <div id="admin-login-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="admin-login-modal">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -242,6 +246,7 @@ ${next.modalIncludes()}
         </div>
     </div>
 </div>
+% endif
 % else:
 <div id="donate-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="donate-modal">
     <div class="modal-dialog" role="document">

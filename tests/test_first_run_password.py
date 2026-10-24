@@ -100,3 +100,10 @@ def test_login_page_after_the_wizard(app_config, login_page):
     html = login_page()
     assert HINT not in html
     assert "Sign In with Plex" in html
+
+
+@pytest.mark.parametrize("allowed, form", [(0, False), (1, True)])
+def test_login_form_follows_the_allow_setting(app_config, login_page, allowed, form):
+    app_config.FIRST_RUN_COMPLETE = 1
+    app_config.ALLOW_TAUTULLI_LOGIN = allowed
+    assert ('id="login-form"' in login_page()) is form

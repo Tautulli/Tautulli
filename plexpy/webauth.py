@@ -121,11 +121,18 @@ def plex_user_login(token=None, headers=None):
         return None
 
 
+def tautulli_login_disabled():
+    """Return True when Allow Tautulli Login is off, Allow Plex Admin is on and the setup wizard is done."""
+    return bool(not plexpy.CONFIG.ALLOW_TAUTULLI_LOGIN
+                and plexpy.CONFIG.HTTP_PLEX_ADMIN
+                and plexpy.CONFIG.FIRST_RUN_COMPLETE)
+
+
 def check_credentials(username=None, password=None, token=None, admin_login='0', headers=None):
     """Verifies credentials for username and password.
     Returns True and the user group on success or False and no user group"""
 
-    if username and password:
+    if username and password and not tautulli_login_disabled():
         if plexpy.CONFIG.HTTP_PASSWORD:
             user_details = {'user_id': None, 'username': username}
             if username == plexpy.CONFIG.HTTP_USERNAME and check_hash(password, plexpy.CONFIG.HTTP_PASSWORD):

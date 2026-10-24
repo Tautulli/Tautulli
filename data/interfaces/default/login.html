@@ -1,6 +1,7 @@
 ﻿<%
     import plexpy
     from plexpy.helpers import anon_url
+    from plexpy.webauth import tautulli_login_disabled
     plex_login = (plexpy.CONFIG.HTTP_PLEX_ADMIN or plexpy.CONFIG.ALLOW_GUEST_ACCESS) and plexpy.CONFIG.FIRST_RUN_COMPLETE
 %>
 <!doctype html>
@@ -73,6 +74,7 @@
                                 </ul>
                             </li>
                             % endif
+                            % if not tautulli_login_disabled():
                             <li class="${'open' if not plex_login else ''}">
                                 <div class="link login-method-header">
                                     Sign In with Tautulli
@@ -107,6 +109,7 @@
                                     </li>
                                 </ul>
                             </li>
+                            % endif
                         </ul>
                     </div>
                 </div>
