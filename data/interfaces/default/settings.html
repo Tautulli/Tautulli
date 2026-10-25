@@ -717,29 +717,29 @@
 
                         <p class="help-block">Note: Authentication changes require a restart.</p>
                         <div class="form-group">
-                            <label for="http_username">HTTP Username</label>
+                            <label for="http_username">Admin Username</label>
                             <div class="row">
                                 <div class="col-md-4">
                                     <input type="text" class="form-control auth-settings" id="http_username" name="http_username" value="${config['http_username']}" size="30">
                                 </div>
                             </div>
-                            <p class="help-block">Username for web server authentication. Leave empty to disable.</p>
+                            <p class="help-block">Your Tautulli admin username. Leave empty to disable.</p>
                         </div>
                         <div class="form-group">
-                            <label for="http_password">HTTP Password</label>
+                            <label for="http_password">Admin Password</label>
                             <div class="row">
                                 <div class="col-md-4">
                                     <input type="password" class="form-control auth-settings" id="http_password" name="http_password" value="${config['http_password']}" size="30" autocomplete="new-password">
                                 </div>
                             </div>
-                            <p class="help-block">Password for web server authentication. Leave empty to disable.</p>
+                            <p class="help-block">Your Tautulli admin password. Leave empty to disable.</p>
                         </div>
 
                         <input type="checkbox" name="auth_changed" id="auth_changed" value="1" style="display: none;">
 
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin
+                                <input type="checkbox" class="auth-settings" name="http_plex_admin" id="http_plex_admin" value="1" ${config['http_plex_admin']} data-parsley-trigger="change"> Allow Plex Admin Login
                             </label>
                             <span id="allowPlexCheck" class="settings-warning"></span>
                             <p class="help-block">Allow the Plex server admin to login as a Tautulli admin using their Plex.tv account.</p>
@@ -748,7 +748,7 @@
                             <label>
                                 <input type="checkbox" id="allow_tautulli_login" name="allow_tautulli_login" value="1" ${config['allow_tautulli_login']}> Allow Tautulli Login
                             </label>
-                            <p class="help-block">If unchecked, only Sign In with Plex works. This needs Allow Plex Admin.</p>
+                            <p class="help-block">Allow the Tautulli admin to login using the username and password. If unchecked, only Sign In with Plex works and Allow Plex Admin Login must be enabled.</p>
                         </div>
                         <div class="checkbox">
                             <label>
