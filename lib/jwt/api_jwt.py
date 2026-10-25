@@ -76,16 +76,18 @@ class PyJWT:
         if options is None:
             return self.options
 
+        merged_options = cast("Options", dict(options))
+
         # (defensive) set defaults for verify_x to False if verify_signature is False
-        if not options.get("verify_signature", True):
-            options["verify_exp"] = options.get("verify_exp", False)
-            options["verify_nbf"] = options.get("verify_nbf", False)
-            options["verify_iat"] = options.get("verify_iat", False)
-            options["verify_aud"] = options.get("verify_aud", False)
-            options["verify_iss"] = options.get("verify_iss", False)
-            options["verify_sub"] = options.get("verify_sub", False)
-            options["verify_jti"] = options.get("verify_jti", False)
-        return {**self.options, **options}
+        if not merged_options.get("verify_signature", True):
+            merged_options["verify_exp"] = merged_options.get("verify_exp", False)
+            merged_options["verify_nbf"] = merged_options.get("verify_nbf", False)
+            merged_options["verify_iat"] = merged_options.get("verify_iat", False)
+            merged_options["verify_aud"] = merged_options.get("verify_aud", False)
+            merged_options["verify_iss"] = merged_options.get("verify_iss", False)
+            merged_options["verify_sub"] = merged_options.get("verify_sub", False)
+            merged_options["verify_jti"] = merged_options.get("verify_jti", False)
+        return {**self.options, **merged_options}
 
     def encode(
         self,
@@ -294,7 +296,7 @@ class PyJWT:
         """
         try:
             payload: dict[str, Any] = json.loads(decoded["payload"])
-        except ValueError as e:
+        except (ValueError, RecursionError) as e:
             raise DecodeError(f"Invalid payload string: {e}") from e
         if not isinstance(payload, dict):
             raise DecodeError("Invalid payload string: must be a json object")
@@ -453,7 +455,7 @@ class PyJWT:
 
     def _validate_jti(self, payload: dict[str, Any]) -> None:
         """
-        Checks whether "jti" if in the payload is valid or not
+        Checks whether "jti" in the payload is valid or not
         This is an Optional claim
 
         :param payload(dict): The payload which needs to be validated
@@ -473,7 +475,7 @@ class PyJWT:
     ) -> None:
         try:
             iat = int(payload["iat"])
-        except ValueError:
+        except (ValueError, TypeError, OverflowError):
             raise InvalidIssuedAtError(
                 "Issued At claim (iat) must be an integer."
             ) from None
@@ -488,7 +490,7 @@ class PyJWT:
     ) -> None:
         try:
             nbf = int(payload["nbf"])
-        except ValueError:
+        except (ValueError, TypeError, OverflowError):
             raise DecodeError("Not Before claim (nbf) must be an integer.") from None
 
         if nbf > (now + leeway):
@@ -502,7 +504,7 @@ class PyJWT:
     ) -> None:
         try:
             exp = int(payload["exp"])
-        except ValueError:
+        except (ValueError, TypeError, OverflowError):
             raise DecodeError(
                 "Expiration Time claim (exp) must be an integer."
             ) from None

@@ -9,6 +9,27 @@ $(document).ajaxSend(function(event, jqXHR, settings) {
     }
 });
 
+// Run a state changing action with POST and show the countdown modal from the page it returns.
+// The page already loaded the scripts, so run only the inline script that starts the countdown.
+function postAndShowPage(url, data) {
+    $.ajax({
+        url: url,
+        data: data,
+        type: 'POST',
+        dataType: 'html',
+        success: function (html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            $('body').append(doc.getElementById('state-change-modal'));
+            $.globalEval($(doc).find('script:not([src])').filter(function () {
+                return this.text.indexOf('state-change-modal') !== -1;
+            }).text());
+        },
+        error: function () {
+            showMsg('<i class="fa fa-times"></i> The request failed.', false, true, 5000, true);
+        }
+    });
+}
+
 var p = {
     name: 'Unknown',
     version: 'Unknown',
@@ -281,6 +302,7 @@ function resetFilters(text) {
     }
 }
 
+// Callers use done and fail. In jQuery 3, then fills the cell after DataTables sizes the header.
 function isPrivateIP(ip_address) {
     var defer = $.Deferred();
 
@@ -976,3 +998,32 @@ function highlightScrollerButton(scrollerId) {
         }
     });
 }
+
+// DataTables with scrollX and autoWidth off does not adjust the header on window resize.
+var adjustTablesTimeout;
+$(window).on('resize', function () {
+    clearTimeout(adjustTablesTimeout);
+    adjustTablesTimeout = setTimeout(function () {
+        if ($.fn.dataTable) $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+        if ($.fn.dataTable && $.fn.dataTable.ColVis) {
+            // Move an open Select columns menu to its button without a new fade.
+            $.each($.fn.dataTable.ColVis.aInstances, function (i, colvis) {
+                if (colvis.s.hidden) return;
+                colvis._fnCollectionShow();
+                $(colvis.dom.collection).stop(true).css('opacity', 1);
+                $(colvis.dom.background).stop(true).css('opacity', 0.1);
+            });
+            keepColVisInWindow();
+        }
+    }, 100);
+});
+
+// A menu wider than the space left of its button would start outside the window.
+function keepColVisInWindow() {
+    $.each($.fn.dataTable.ColVis.aInstances, function (i, colvis) {
+        if (!colvis.s.hidden && parseInt(colvis.dom.collection.style.left, 10) < 0) {
+            colvis.dom.collection.style.left = '0px';
+        }
+    });
+}
+$(document).on('click', 'div.ColVis button', keepColVisInWindow);

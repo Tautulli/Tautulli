@@ -23,7 +23,7 @@
                 <button class="btn btn-dark refresh-libraries-button" id="refresh-libraries-list"><i class="fa fa-refresh"></i> Refresh libraries</button>
             </div>
             % endif
-            <div class="btn-group colvis-button-bar"></div>
+            <div class="btn-group colvis-button-bar"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -57,12 +57,13 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge/Restore</h4>
             </div>
             <div class="modal-body" style="text-align: center;">
                 <ul id="libraries-to-delete" class="list-unstyled"></ul>
                 <ul id="libraries-to-purge" class="list-unstyled"></ul>
-                <p>This is permanent and cannot be undone!</p>
+                <ul id="libraries-to-restore" class="list-unstyled"></ul>
+                <p id="libraries-permanent">This is permanent and cannot be undone!</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
@@ -86,7 +87,9 @@
             type: 'POST',
             data: function ( d ) {
                 return { 
-                    json_data: JSON.stringify(d)
+                    json_data: JSON.stringify(d),
+                    include_archived: include_archived || libraries_edit_mode,
+                    include_deleted: libraries_edit_mode
                 };
             },
             error: function(xhr, error, thrown) {
@@ -95,8 +98,8 @@
         };
 
         libraries_list_table = $('#libraries_list_table').DataTable(libraries_list_table_options);
-        var colvis = new $.fn.dataTable.ColVis(libraries_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1] });
-        $(colvis.button()).appendTo('div.colvis-button-bar');
+        var colvis = new $.fn.dataTable.ColVis(libraries_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1], sAlign: 'right' });
+        $('div.colvis-button-bar').empty().append(colvis.button());
 
         clearSearchButton('libraries_list_table', libraries_list_table);
 
@@ -104,18 +107,21 @@
         $('#row-edit-mode').on('click', function () {
             $('#libraries-to-delete').html('');
             $('#libraries-to-purge').html('');
+            $('#libraries-to-restore').html('');
 
             if ($(this).hasClass('active')) {
                 $(this).tooltip('destroy');
 
-                if (libraries_to_purge.length > 0) {
+                if (libraries_to_purge.length > 0 || libraries_to_restore.length > 0) {
                     $('.edit-control').each(function () {
                         $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                        $(this).find('button.btn-success').toggleClass('btn-warning').toggleClass('btn-success');
                     });
 
                     libraries_to_purge = $.grep(libraries_to_purge, function (value) {
                         return $.inArray(value, libraries_to_delete) < 0;
                     });
+                    $('#libraries-permanent').toggle(libraries_to_delete.length > 0 || libraries_to_purge.length > 0);
 
                     if (libraries_to_delete.length > 0) {
                         $('#libraries-to-delete').prepend('<p>Are you REALLY sure you want to delete the following libraries:</p>');
@@ -131,32 +137,58 @@
                         }
                     }
 
+                    if (libraries_to_restore.length > 0) {
+                        $('#libraries-to-restore').prepend('<p>Are you sure you want to restore the following libraries:</p>');
+                        for (var i = 0; i < libraries_to_restore.length; i++) {
+                            $('#libraries-to-restore').append('<li>' + $('div[data-id=' + libraries_to_restore[i] + ']').text() + '</li>');
+                        }
+                    }
+
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        $.ajax({
-                            url: 'delete_all_library_history',
-                            type: 'POST',
-                            data: { row_ids: libraries_to_purge.join(',') },
-                            cache: false,
-                            async: true,
-                            success: function (data) {
-                                var msg = "Library history purged";
-                                showMsg(msg, false, true, 2000);
-                                libraries_list_table.draw();
-                            }
-                        });
-                        $.ajax({
-                            url: 'delete_library',
-                            type: 'POST',
-                            data: { row_ids: libraries_to_delete.join(',') },
-                            cache: false,
-                            async: true,
-                            success: function (data) {
-                                var msg = "Library deleted";
-                                showMsg(msg, false, true, 2000);
-                                libraries_list_table.draw();
-                            }
-                        });
+                        if (libraries_to_restore.length > 0) {
+                            $.ajax({
+                                url: 'undelete_library',
+                                type: 'POST',
+                                data: { row_ids: libraries_to_restore.join(',') },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    showMsg(data.message, false, true, 2000, data.result !== 'success');
+                                    if (data.result === 'success') {
+                                        libraries_list_table.draw();
+                                    }
+                                }
+                            });
+                        }
+                        if (libraries_to_purge.length > 0) {
+                            $.ajax({
+                                url: 'delete_all_library_history',
+                                type: 'POST',
+                                data: { row_ids: libraries_to_purge.join(',') },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "Library history purged";
+                                    showMsg(msg, false, true, 2000);
+                                    libraries_list_table.draw();
+                                }
+                            });
+                        }
+                        if (libraries_to_delete.length > 0) {
+                            $.ajax({
+                                url: 'delete_library',
+                                type: 'POST',
+                                data: { row_ids: libraries_to_delete.join(',') },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "Library deleted";
+                                    showMsg(msg, false, true, 2000);
+                                    libraries_list_table.draw();
+                                }
+                            });
+                        }
                     });
                 }
 
@@ -164,21 +196,28 @@
                     $(this).addClass('hidden');
                     $('#row-edit-mode-alert').fadeOut(200);
                 });
-
+                // Drops the libraries archived and deleted in edit mode
+                libraries_edit_mode = 0;
+                libraries_list_table.draw(false);
             } else {
                 $(this).tooltip({
                     container: '.body-container',
                     placement: 'bottom',
-                    title: 'Select libraries to delete/purge. Data is deleted/purged upon exiting edit mode.',
+                    title: 'Select libraries to update. Delete, purge, and restore apply upon exiting edit mode.',
                     trigger: 'manual'
                 }).tooltip('show');
 
                 libraries_to_delete = [];
                 libraries_to_purge = [];
+                libraries_to_restore = [];
                 $('.edit-control').each(function () {
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    $(this).find('button.btn-success').toggleClass('btn-warning').toggleClass('btn-success');
                     $(this).removeClass('hidden');
                 });
+                // Lists the archived and deleted libraries too
+                libraries_edit_mode = 1;
+                libraries_list_table.draw(false);
             }
         });
         % endif

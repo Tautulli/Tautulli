@@ -33,7 +33,7 @@ jobs:
             echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
           fi
           echo "commit=${GITHUB_SHA}" >> $GITHUB_OUTPUT
-          echo "docker_platforms=linux/amd64,linux/arm64/v8,linux/arm/v7,linux/arm/v6" >> $GITHUB_OUTPUT
+          echo "docker_platforms=linux/amd64,linux/arm64,linux/arm/v7" >> $GITHUB_OUTPUT
           echo "docker_image=${{ secrets.DOCKER_REPO }}/tautulli" >> $GITHUB_OUTPUT
 
       - name: Set Up QEMU

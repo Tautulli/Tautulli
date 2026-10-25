@@ -23,7 +23,7 @@
                 <button class="btn btn-dark refresh-users-button" id="refresh-users-list"><i class="fa fa-refresh"></i> Refresh users</button>
             </div>
             % endif
-            <div class="btn-group colvis-button-bar"></div>
+            <div class="btn-group colvis-button-bar"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -63,12 +63,13 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-                <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge</h4>
+                <h4 class="modal-title" id="myModalLabel">Confirm Delete/Purge/Restore</h4>
             </div>
             <div class="modal-body" style="text-align: center;">
                 <ul id="users-to-delete" class="list-unstyled"></ul>
                 <ul id="users-to-purge" class="list-unstyled"></ul>
-                <p>This is permanent and cannot be undone!</p>
+                <ul id="users-to-restore" class="list-unstyled"></ul>
+                <p id="users-permanent">This is permanent and cannot be undone!</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
@@ -92,7 +93,9 @@
             type: 'POST',
             data: function ( d ) {
                 return {
-                    json_data: JSON.stringify(d)
+                    json_data: JSON.stringify(d),
+                    include_archived: include_archived || users_edit_mode,
+                    include_deleted: users_edit_mode
                 };
             },
             error: function(xhr, error, thrown) {
@@ -101,8 +104,8 @@
         };
 
         users_list_table = $('#users_list_table').DataTable(users_list_table_options);
-        var colvis = new $.fn.dataTable.ColVis(users_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1] });
-        $(colvis.button()).appendTo('div.colvis-button-bar');
+        var colvis = new $.fn.dataTable.ColVis(users_list_table, { buttonText: '<i class="fa fa-columns"></i> Select columns', buttonClass: 'btn btn-dark', exclude: [0, 1], sAlign: 'right' });
+        $('div.colvis-button-bar').empty().append(colvis.button());
 
         clearSearchButton('users_list_table', users_list_table);
 
@@ -110,18 +113,21 @@
         $('#row-edit-mode').on('click', function () {
             $('#users-to-delete').html('');
             $('#users-to-purge').html('');
+            $('#users-to-restore').html('');
 
             if ($(this).hasClass('active')) {
                 $(this).tooltip('destroy');
 
-                if (users_to_delete.length > 0 || users_to_purge.length > 0) {
+                if (users_to_delete.length > 0 || users_to_purge.length > 0 || users_to_restore.length > 0) {
                     $('.edit-control').each(function () {
                         $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                        $(this).find('button.btn-success').toggleClass('btn-warning').toggleClass('btn-success');
                     });
 
                     users_to_purge = $.grep(users_to_purge, function (value) {
                         return $.inArray(value, users_to_delete) < 0;
                     });
+                    $('#users-permanent').toggle(users_to_delete.length > 0 || users_to_purge.length > 0);
 
                     if (users_to_delete.length > 0) {
                         $('#users-to-delete').prepend('<p>Are you REALLY sure you want to delete and purge all history for the following users:</p>');
@@ -137,32 +143,58 @@
                         }
                     }
 
+                    if (users_to_restore.length > 0) {
+                        $('#users-to-restore').prepend('<p>Are you sure you want to restore the following users:</p>');
+                        for (var i = 0; i < users_to_restore.length; i++) {
+                            $('#users-to-restore').append('<li>' + $('div[data-id=' + users_to_restore[i] + '] > input').val() + '</li>');
+                        }
+                    }
+
                     $('#confirm-modal-delete').modal();
                     $('#confirm-modal-delete').one('click', '#confirm-delete', function () {
-                        $.ajax({
-                            url: 'delete_all_user_history',
-                            type: 'POST',
-                            data: { row_ids: users_to_purge.join(',') },
-                            cache: false,
-                            async: true,
-                            success: function (data) {
-                                var msg = "User history purged";
-                                showMsg(msg, false, true, 2000);
-                                users_list_table.draw();
-                            }
-                        });
-                        $.ajax({
-                            url: 'delete_user',
-                            type: 'POST',
-                            data: { row_ids: users_to_delete.join(',') },
-                            cache: false,
-                            async: true,
-                            success: function (data) {
-                                var msg = "User deleted";
-                                showMsg(msg, false, true, 2000);
-                                users_list_table.draw();
-                            }
-                        });
+                        if (users_to_restore.length > 0) {
+                            $.ajax({
+                                url: 'undelete_user',
+                                type: 'POST',
+                                data: { row_ids: users_to_restore.join(',') },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    showMsg(data.message, false, true, 2000, data.result !== 'success');
+                                    if (data.result === 'success') {
+                                        users_list_table.draw();
+                                    }
+                                }
+                            });
+                        }
+                        if (users_to_purge.length > 0) {
+                            $.ajax({
+                                url: 'delete_all_user_history',
+                                type: 'POST',
+                                data: { row_ids: users_to_purge.join(',') },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "User history purged";
+                                    showMsg(msg, false, true, 2000);
+                                    users_list_table.draw();
+                                }
+                            });
+                        }
+                        if (users_to_delete.length > 0) {
+                            $.ajax({
+                                url: 'delete_user',
+                                type: 'POST',
+                                data: { row_ids: users_to_delete.join(',') },
+                                cache: false,
+                                async: true,
+                                success: function (data) {
+                                    var msg = "User deleted";
+                                    showMsg(msg, false, true, 2000);
+                                    users_list_table.draw();
+                                }
+                            });
+                        }
                     });
                 }
 
@@ -171,21 +203,29 @@
                     $('#row-edit-mode-alert').fadeOut(200);
                 });
                 toggleEditNames();
+                // Drops the users archived and deleted in edit mode
+                users_edit_mode = 0;
+                users_list_table.draw(false);
             } else {
                 $(this).tooltip({
                     container: '.body-container',
                     placement: 'bottom',
-                    title: 'Select users to delete/purge. Data is deleted/purged upon exiting edit mode.',
+                    title: 'Select users to update. Delete, purge, and restore apply upon exiting edit mode.',
                     trigger: 'manual'
                 }).tooltip('show');
 
                 users_to_delete = [];
                 users_to_purge = [];
+                users_to_restore = [];
                 $('.edit-control').each(function () {
                     $(this).find('button.btn-danger').toggleClass('btn-warning').toggleClass('btn-danger');
+                    $(this).find('button.btn-success').toggleClass('btn-warning').toggleClass('btn-success');
                     $(this).removeClass('hidden');
                 });
                 toggleEditNames();
+                // Lists the archived and deleted users too
+                users_edit_mode = 1;
+                users_list_table.draw(false);
             }
         });
         % endif

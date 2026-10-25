@@ -16,6 +16,7 @@
 #  along with Tautulli.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import signal
 import subprocess
 import sys
 import plistlib
@@ -29,6 +30,7 @@ except ImportError:
 
 if HAS_PYOBJC:
     import rumps
+    from PyObjCTools import MachSignals
 
 import plexpy
 from plexpy import common
@@ -66,10 +68,13 @@ class MacOSSystemTray(object):
 
     def start(self):
         logger.info("Launching MacOS menu bar icon.")
+        # Python runs signal handlers on the main thread, which the menu bar run loop blocks.
+        # MachSignals delivers SIGTERM through the run loop to the Quit menu item handler.
+        MachSignals.signal(signal.SIGTERM, self.tray_quit)
         try:
             self.tray_icon.run()
         except Exception as e:
-            logger.error("Unable to launch menu bar icon: %s." % e)
+            logger.exception("Unable to launch menu bar icon: %s." % e)
 
     def shutdown(self):
         rumps.quit_application()
@@ -157,7 +162,8 @@ def set_startup():
         plist_file_path = os.path.join(launch_agents, plist_file)
 
         exe = sys.executable
-        run_args = [arg for arg in plexpy.ARGS if arg != '--nolaunch']
+        args = plexpy.ARGS or []
+        run_args = [arg for arg in args if arg != '--nolaunch']
         if plexpy.FROZEN:
             args = [exe] + run_args
         else:
@@ -173,7 +179,8 @@ def set_startup():
             if not os.path.exists(launch_agents):
                 try:
                     os.makedirs(launch_agents)
-                except OSError:
+                except OSError as e:
+                    logger.error("Failed to create MacOS launch agents folder: %s", e)
                     return False
 
             with open(plist_file_path, 'wb') as f:

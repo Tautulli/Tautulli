@@ -1,10 +1,10 @@
-from typing import Union, Optional
+from typing import Any, Optional, Union
 
 """
 _utils.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ class NoLock:
     def __enter__(self) -> None:
         pass
 
-    def __exit__(self, exc_type, exc_value, traceback) -> None:
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         pass
 
 
@@ -443,13 +443,14 @@ def validate_utf8(utfbytes: Union[str, bytes]) -> bool:
     utfbytes: utf byte string to check.
     return value: if valid utf8 string, return true. Otherwise, return false.
     """
+    if isinstance(utfbytes, str):
+        utfbytes = utfbytes.encode("utf-8", "surrogatepass")
     return _validate_utf8(utfbytes)
 
 
 def extract_err_message(exception: Exception) -> Optional[str]:
     if exception.args:
-        exception_message: str = exception.args[0]
-        return exception_message
+        return str(exception.args[0])
     else:
         return None
 

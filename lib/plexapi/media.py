@@ -364,27 +364,29 @@ class AudioStream(MediaPartStream):
         Attributes:
             TAG (str): 'Stream'
             STREAMTYPE (int): 2
+            albumGain (float): The gain for the album (tracks only).
+            albumPeak (float): The peak for the album (tracks only).
+            albumRange (float): The range for the album (tracks only).
             audioChannelLayout (str): The audio channel layout of the audio stream (ex: 5.1(side)).
             bitDepth (int): The bit depth of the audio stream (ex: 16).
             bitrateMode (str): The bitrate mode of the audio stream (ex: cbr).
+            canNormalizeLoudness (bool): True if the audio stream can be normalized for loudness.
             channels (int): The number of audio channels of the audio stream (ex: 6).
             duration (int): The duration of audio stream in milliseconds.
+            endRamp (str): The end ramp for the track (tracks only).
+            gain (float): The gain for the track (tracks only).
+            gainOffset (float): The gain offset of the audio stream.
+            loudness (float): The loudness of the audio stream.
+            loudnessAnalysisVersion (float): The loudness analysis version of the audio stream.
+            lra (float): The loudness range of the audio stream.
+            peak (float): The peak of the audio stream.
             profile (str): The profile of the audio stream.
             samplingRate (int): The sampling rate of the audio stream (ex: xxx)
+            startRamp (str): The start ramp for the track (tracks only).
             streamIdentifier (int): The stream identifier of the audio stream.
+            threshold (float): The threshold of the audio stream.
             visualImpaired (bool): True if this is a visually impaired (AD) audio stream.
 
-            Track_only_attributes: The following attributes are only available for tracks.
-
-                * albumGain (float): The gain for the album.
-                * albumPeak (float): The peak for the album.
-                * albumRange (float): The range for the album.
-                * endRamp (str): The end ramp for the track.
-                * gain (float): The gain for the track.
-                * loudness (float): The loudness for the track.
-                * lra (float): The lra for the track.
-                * peak (float): The peak for the track.
-                * startRamp (str): The start ramp for the track.
     """
     TAG = 'Stream'
     STREAMTYPE = 2
@@ -392,26 +394,28 @@ class AudioStream(MediaPartStream):
     def _loadData(self, data):
         """ Load attribute values from Plex XML response. """
         super(AudioStream, self)._loadData(data)
-        self.audioChannelLayout = data.attrib.get('audioChannelLayout')
-        self.bitDepth = utils.cast(int, data.attrib.get('bitDepth'))
-        self.bitrateMode = data.attrib.get('bitrateMode')
-        self.channels = utils.cast(int, data.attrib.get('channels'))
-        self.duration = utils.cast(int, data.attrib.get('duration'))
-        self.profile = data.attrib.get('profile')
-        self.samplingRate = utils.cast(int, data.attrib.get('samplingRate'))
-        self.streamIdentifier = utils.cast(int, data.attrib.get('streamIdentifier'))
-        self.visualImpaired = utils.cast(bool, data.attrib.get('visualImpaired', '0'))
-
-        # Track only attributes
         self.albumGain = utils.cast(float, data.attrib.get('albumGain'))
         self.albumPeak = utils.cast(float, data.attrib.get('albumPeak'))
         self.albumRange = utils.cast(float, data.attrib.get('albumRange'))
+        self.audioChannelLayout = data.attrib.get('audioChannelLayout')
+        self.bitDepth = utils.cast(int, data.attrib.get('bitDepth'))
+        self.bitrateMode = data.attrib.get('bitrateMode')
+        self.canNormalizeLoudness = utils.cast(bool, data.attrib.get('canNormalizeLoudness', '0'))
+        self.channels = utils.cast(int, data.attrib.get('channels'))
+        self.duration = utils.cast(int, data.attrib.get('duration'))
         self.endRamp = data.attrib.get('endRamp')
         self.gain = utils.cast(float, data.attrib.get('gain'))
+        self.gainOffset = utils.cast(float, data.attrib.get('gainOffset'))
         self.loudness = utils.cast(float, data.attrib.get('loudness'))
+        self.loudnessAnalysisVersion = utils.cast(float, data.attrib.get('loudnessAnalysisVersion'))
         self.lra = utils.cast(float, data.attrib.get('lra'))
         self.peak = utils.cast(float, data.attrib.get('peak'))
+        self.profile = data.attrib.get('profile')
+        self.samplingRate = utils.cast(int, data.attrib.get('samplingRate'))
         self.startRamp = data.attrib.get('startRamp')
+        self.streamIdentifier = utils.cast(int, data.attrib.get('streamIdentifier'))
+        self.threshold = utils.cast(float, data.attrib.get('threshold'))
+        self.visualImpaired = utils.cast(bool, data.attrib.get('visualImpaired', '0'))
 
     def setSelected(self):
         """ Sets this audio stream as the selected audio stream.

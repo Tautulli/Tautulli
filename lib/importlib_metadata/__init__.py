@@ -44,9 +44,10 @@ from .compat import py311
 __all__ = [
     'Distribution',
     'DistributionFinder',
+    'MetadataNotFound',
     'PackageMetadata',
     'PackageNotFoundError',
-    'MetadataNotFound',
+    'PackagePath',
     'SimplePath',
     'distribution',
     'distributions',
@@ -216,7 +217,8 @@ class EntryPoint:
 
     def __init__(self, name: str, value: str, group: str) -> None:
         vars(self).update(name=name, value=value, group=group)
-        self.module
+        # resolve the value now, raising ValueError if it's invalid
+        _ = self.module
 
     def load(self) -> Any:
         """Load the entry point from its definition. If only a module
@@ -338,7 +340,7 @@ class EntryPoints(tuple):
         Repr with classname and tuple constructor to
         signal that we deviate from regular tuple behavior.
         """
-        return '%s(%r)' % (self.__class__.__name__, tuple(self))
+        return f'{self.__class__.__name__}({tuple(self)!r})'
 
     def select(self, **params) -> EntryPoints:
         """
@@ -467,7 +469,7 @@ class Distribution(metaclass=abc.ABCMeta):
         try:
             return next(iter(cls._prefer_valid(cls.discover(name=name))))
         except StopIteration:
-            raise PackageNotFoundError(name)
+            raise PackageNotFoundError(name) from None
 
     @classmethod
     def discover(
@@ -710,7 +712,7 @@ class Distribution(metaclass=abc.ABCMeta):
 
         def quoted_marker(section):
             section = section or ''
-            extra, sep, markers = section.partition(':')
+            extra, _sep, markers = section.partition(':')
             if extra and markers:
                 markers = f'({markers})'
             conditions = list(filter(None, [markers, make_condition(extra)]))
@@ -835,7 +837,7 @@ class FastPath:
     """
 
     @_clear_after_fork  # type: ignore[misc]
-    @functools.lru_cache()
+    @functools.lru_cache
     def __new__(cls, root):
         return super().__new__(cls)
 
@@ -961,8 +963,15 @@ class Prepared:
     def normalize(name):
         """
         PEP 503 normalization plus dashes as underscores.
+
+        Specifically avoids ``re.sub`` as prescribed for performance
+        benefits (see python/cpython#143658).
         """
-        return re.sub(r"[-_.]+", "-", name).lower().replace('-', '_')
+        value = name.lower().replace("-", "_").replace(".", "_")
+        # Condense repeats
+        while "__" in value:
+            value = value.replace("__", "_")
+        return value
 
     @staticmethod
     def legacy_normalize(name):
@@ -1063,7 +1072,7 @@ class PathDistribution(Distribution):
         filename, ext = os.path.splitext(stem)
         if ext not in ('.dist-info', '.egg-info'):
             return
-        name, sep, rest = filename.partition('-')
+        name, _sep, _rest = filename.partition('-')
         return name
 
 

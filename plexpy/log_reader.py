@@ -51,6 +51,7 @@ def get_log_tail(window=20, parsed=True, log_file=''):
     log_file = os.path.join(plexpy.CONFIG.PMS_LOGS_FOLDER, log_file)
 
     if not helpers.is_subdir(log_file, plexpy.CONFIG.PMS_LOGS_FOLDER):
+        logger.warn('Plex log file %r is outside the Plex logs folder.', log_file)
         return
 
     try:
@@ -79,7 +80,7 @@ def get_log_tail(window=20, parsed=True, log_file=''):
                 clean_lines.append(full_line)
 
         if line_error:
-            logger.error('Tautulli was unable to parse some lines of the Plex Media Server log.')
+            logger.warn('Tautulli was unable to parse some lines of the Plex Media Server log.')
 
         return clean_lines
     else:

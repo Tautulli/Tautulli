@@ -21,6 +21,7 @@ import os
 import requests
 import shutil
 import threading
+import time
 
 from functools import partial, reduce
 from io import open
@@ -134,6 +135,9 @@ class Export(object):
 
         self.total_items = 0
         self.exported_items = 0
+        self._exported_items_lock = threading.Lock()
+        self._last_progress_write = 0.0
+        self._export_attrs_cache = {}
         self.success = False
 
         # Reset export options for m3u
@@ -160,6 +164,7 @@ class Export(object):
                 'artProvider': lambda o: self.get_resource_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
+                'canNormalizeLoudness': None,
                 'chapters': {
                     'id': None,
                     'tag': None,
@@ -341,11 +346,18 @@ class Export(object):
                             'audioChannelLayout': None,
                             'bitDepth': None,
                             'bitrateMode': None,
+                            'canNormalizeLoudness': None,
                             'channels': None,
                             'duration': None,
+                            'gainOffset': None,
+                            'loudness': None,
+                            'loudnessAnalysisVersion': None,
+                            'lra': None,
+                            'peak': None,
                             'profile': None,
                             'samplingRate': None,
                             'streamIdentifier': None,
+                            'threshold': None,
                             'visualImpaired': None
                         },
                         'subtitleStreams': {
@@ -600,6 +612,7 @@ class Export(object):
                 'artProvider': lambda o: self.get_resource_provider(o, 'art'),
                 'audienceRating': None,
                 'audienceRatingImage': None,
+                'canNormalizeLoudness': None,
                 'chapters': {
                     'id': None,
                     'tag': None,
@@ -782,11 +795,18 @@ class Export(object):
                             'audioChannelLayout': None,
                             'bitDepth': None,
                             'bitrateMode': None,
+                            'canNormalizeLoudness': None,
                             'channels': None,
                             'duration': None,
+                            'gainOffset': None,
+                            'loudness': None,
+                            'loudnessAnalysisVersion': None,
+                            'lra': None,
+                            'peak': None,
                             'profile': None,
                             'samplingRate': None,
                             'streamIdentifier': None,
+                            'threshold': None,
                             'visualImpaired': None
                         },
                         'subtitleStreams': {
@@ -1441,7 +1461,8 @@ class Export(object):
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails', 'hasVoiceActivity'
+                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt',
+                    'hasPreviewThumbnails', 'hasVoiceActivity', 'canNormalizeLoudness',
                 ],
                 9: self._get_all_metadata_attrs(_media_type)
             }
@@ -1554,7 +1575,8 @@ class Export(object):
                 3: [
                     'art', 'thumb', 'key', 'chapterSource',
                     'chapters.tag', 'chapters.index', 'chapters.start', 'chapters.end', 'chapters.thumb',
-                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt', 'hasPreviewThumbnails', 'hasVoiceActivity',
+                    'updatedAt', 'lastViewedAt', 'viewCount', 'lastRatedAt',
+                    'hasPreviewThumbnails', 'hasVoiceActivity', 'canNormalizeLoudness',
                     'parentThumb', 'parentKey',
                     'grandparentArt', 'grandparentThumb', 'grandparentTheme', 'grandparentKey'
                 ],
@@ -1866,31 +1888,31 @@ class Export(object):
         if not self.section_id and not self.user_id and not self.rating_key:
             msg = "Export called but no section_id, user_id, or rating_key provided."
         elif self.metadata_level not in self.METADATA_LEVELS:
-            msg = "Export called with invalid metadata_level '{}'.".format(self.metadata_level)
+            msg = f"Export called with invalid metadata_level '{self.metadata_level}'."
         elif self.media_info_level not in self.MEDIA_INFO_LEVELS:
-            msg = "Export called with invalid media_info_level '{}'.".format(self.media_info_level)
+            msg = f"Export called with invalid media_info_level '{self.media_info_level}'."
         elif self.thumb_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid thumb_level '{}'.".format(self.thumb_level)
+            msg = f"Export called with invalid thumb_level '{self.thumb_level}'."
         elif self.art_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid art_level '{}'.".format(self.art_level)
+            msg = f"Export called with invalid art_level '{self.art_level}'."
         elif self.logo_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid logo_level '{}'.".format(self.logo_level)
+            msg = f"Export called with invalid logo_level '{self.logo_level}'."
         elif self.squareArt_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid squareArt_level '{}'.".format(self.squareArt_level)
+            msg = f"Export called with invalid squareArt_level '{self.squareArt_level}'."
         elif self.theme_level not in self.RESOURCE_LEVELS:
-            msg = "Export called with invalid theme_level '{}'.".format(self.theme_level)
+            msg = f"Export called with invalid theme_level '{self.theme_level}'."
         elif self.file_format not in self.FILE_FORMATS:
-            msg = "Export called with invalid file_format '{}'.".format(self.file_format)
+            msg = f"Export called with invalid file_format '{self.file_format}'."
         elif self.export_type not in self.EXPORT_TYPES:
-            msg = "Export called with invalid export_type '{}'.".format(self.export_type)
+            msg = f"Export called with invalid export_type '{self.export_type}'."
         elif self.user_id and self.export_type != 'playlist':
-            msg = "Export called with invalid export_type '{}'. " \
+            msg = f"Export called with invalid export_type '{self.export_type}'. " \
                   "Only export_type 'playlist' is allowed for user export."
         elif self.individual_files and self.rating_key:
             msg = "Individual file export is only allowed for library or user export."
 
         if msg:
-            logger.error("Tautulli Exporter :: %s", msg)
+            logger.warn("Tautulli Exporter :: %s", msg)
             return msg
 
         if self.user_id:
@@ -1959,12 +1981,12 @@ class Export(object):
 
         else:
             msg = "Export called but no section_id, user_id, or rating_key provided."
-            logger.error("Tautulli Exporter :: %s", msg)
+            logger.warn("Tautulli Exporter :: %s", msg)
             return msg
 
         if self.media_type not in self.MEDIA_TYPES:
-            msg = "Cannot export media type '{}'.".format(self.media_type)
-            logger.error("Tautulli Exporter :: %s", msg)
+            msg = f"Cannot export media type '{self.media_type}'."
+            logger.warn("Tautulli Exporter :: %s", msg)
             return msg
 
         if not self.MEDIA_TYPES[self.media_type][0]:
@@ -1986,7 +2008,7 @@ class Export(object):
 
         self.export_id = self.add_export()
         if not self.export_id:
-            msg = "Failed to export '{}'.".format(self.directory)
+            msg = f"Failed to export '{self.directory}'."
             logger.error("Tautulli Exporter :: %s", msg)
             return msg
 
@@ -2022,7 +2044,7 @@ class Export(object):
             db.upsert(table_name='exports', key_dict=keys, value_dict=values)
             return db.last_insert_id()
         except Exception as e:
-            logger.error("Tautulli Exporter :: Unable to save export to database: %s", e)
+            logger.exception("Tautulli Exporter :: Unable to save export to database: %s", e)
             return False
 
     def set_export_state(self):
@@ -2047,7 +2069,15 @@ class Export(object):
         db = database.MonitorDatabase()
         db.upsert(table_name='exports', key_dict=keys, value_dict=values)
 
-    def set_export_progress(self):
+    def set_export_progress(self, flush=False):
+        # Progress is written by every pool worker; throttle to roughly
+        # once per second so a large export does not issue one write
+        # transaction per exported item
+        now = time.time()
+        if not flush and now - self._last_progress_write < 1:
+            return
+        self._last_progress_write = now
+
         keys = {
             'id': self.export_id
         }
@@ -2112,11 +2142,14 @@ class Export(object):
         finally:
             pool.close()
             pool.join()
+            self.set_export_progress(flush=True)
             self.set_export_state()
 
     def _do_export(self, item):
         result = item._export_obj()
-        self.exported_items += 1
+        # Incremented from multiple pool threads
+        with self._exported_items_lock:
+            self.exported_items += 1
         self.set_export_progress()
         return result
 
@@ -2181,20 +2214,16 @@ class Export(object):
                 title = obj._defaultSyncTitle()
             else:
                 title = obj.title
-            filename = '{} - {} [{}]'.format(
-                media_type.capitalize(), title, obj.ratingKey)
+            filename = f'{media_type.capitalize()} - {helpers.truncate_title(title)} [{obj.ratingKey}]'
 
         elif self.rating_key:
-            filename = '{} - {} [{}]'.format(
-                self.media_type.capitalize(), self.obj_title, self.rating_key)
+            filename = f'{self.media_type.capitalize()} - {helpers.truncate_title(self.obj_title)} [{self.rating_key}]'
 
         elif self.user_id:
-            filename = 'User - {} - {} [{}]'.format(
-                self.obj_title, self.export_type.capitalize(), self.user_id)
+            filename = f'User - {helpers.truncate_title(self.obj_title)} - {self.export_type.capitalize()} [{self.user_id}]'
 
         elif self.section_id:
-            filename = 'Library - {} - {} [{}]'.format(
-                self.obj_title, self.export_type.capitalize(), self.section_id)
+            filename = f'Library - {helpers.truncate_title(self.obj_title)} - {self.export_type.capitalize()} [{self.section_id}]'
 
         else:
             filename = 'Export - Unknown'
@@ -2246,6 +2275,13 @@ class Export(object):
         return [attr for attr in all_attrs if attr not in exclude_attrs]
 
     def _get_export_attrs(self, media_type):
+        # The attribute and level maps are enormous nested literals that
+        # were rebuilt for every exported object (twice for level 9);
+        # they are constant per media type for the export's lifetime
+        cached = self._export_attrs_cache.get(media_type)
+        if cached is not None:
+            return cached
+
         media_attrs = self.return_attrs(media_type)
         metadata_level_attrs, media_info_level_attrs = self.return_levels(media_type)
 
@@ -2302,7 +2338,9 @@ class Export(object):
 
             export_attrs_list.append(value)
 
-        return reduce(helpers.dict_merge, export_attrs_list, {})
+        export_attrs = reduce(helpers.dict_merge, export_attrs_list, {})
+        self._export_attrs_cache[media_type] = export_attrs
+        return export_attrs
 
     @staticmethod
     def is_media_info_attr(attr):
@@ -2358,7 +2396,7 @@ class Export(object):
         for d in data:
             if d.get('locations', []):
                 if 'grandparentTitle' in d:
-                    full_title = '{} - {}'.format(d.get('originalTitle') or d['grandparentTitle'], d['title'])
+                    full_title = f'{d.get("originalTitle") or d["grandparentTitle"]} - {d["title"]}'
                 else:
                     full_title = d['title']
                 metadata = {
@@ -2484,7 +2522,7 @@ class Export(object):
             ext = 'png'
         else:
             ext = 'jpg'
-        filename = helpers.clean_filename('{} [{}].{}.{}'.format(item_title, rating_key, resource, ext))
+        filename = helpers.clean_filename(f'{helpers.truncate_title(item_title)} [{rating_key}].{resource}.{ext}')
         filepath = os.path.join(dirpath, filename)
 
         if not os.path.exists(dirpath):
@@ -2533,7 +2571,7 @@ def get_export(export_id):
             result['filename'] = None
             result['exists'] = check_export_exists(result['title'], result['timestamp'])
         else:
-            result['filename'] = '{}.{}'.format(result['title'], result['file_format'])
+            result['filename'] = f'{result["title"]}.{result["file_format"]}'
             result['exists'] = check_export_exists(result['title'], result['timestamp'], result['filename'])
 
     return result
@@ -2630,7 +2668,7 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
                                       join_evals=[],
                                       kwargs=kwargs)
     except Exception as e:
-        logger.warn("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s.", e)
+        logger.exception("Tautulli Exporter :: Unable to execute database query for get_export_datatable: %s.", e)
         return
 
     result = query['result']
@@ -2682,11 +2720,11 @@ def get_export_datatable(section_id=None, user_id=None, rating_key=None, kwargs=
 
 
 def format_export_directory(title, timestamp):
-    return '{}.{}'.format(title, helpers.timestamp_to_YMDHMS(timestamp))
+    return f'{title}.{helpers.timestamp_to_YMDHMS(timestamp)}'
 
 
 def format_export_filename(title, file_format):
-    return '{}.{}'.format(title, file_format)
+    return f'{title}.{file_format}'
 
 
 def get_export_dirpath(title, timestamp=None, resources_directory=None):
@@ -2694,7 +2732,7 @@ def get_export_dirpath(title, timestamp=None, resources_directory=None):
         title = format_export_directory(title, timestamp)
     dirpath = os.path.join(plexpy.CONFIG.EXPORT_DIR, title)
     if resources_directory:
-        dirpath = os.path.join(dirpath, '{}.resources'.format(resources_directory))
+        dirpath = os.path.join(dirpath, f'{resources_directory}.resources')
     return dirpath
 
 
@@ -2775,7 +2813,7 @@ def get_custom_fields(media_type, sub_media_type=None):
 def build_export_docs():
     export = Export()
 
-    section_head = '### <a id="{anchor}">{section}</a>\n\n'
+    section_head = '### {section}\n\n'
     section_details = '<details>\n' \
                       '<summary><strong>{field_type} Fields</strong></summary><br>\n\n' \
                       '{table}\n' \
@@ -2791,10 +2829,15 @@ def build_export_docs():
             child_plural_media_type = export.PLURAL_MEDIA_TYPES[child_media_type]
             if child_media_type == 'photoalbum':
                 child_section_title = 'Photo Albums'
+                child_anchor = 'photo-albums'
+            elif child_media_type == 'item':
+                child_section_title = 'Items'
+                child_anchor = f'{_media_type}-item'
             else:
                 child_section_title = child_plural_media_type.capitalize()
-            child_text = u'\u2713<br>Includes [{}](#{}-{}) Level {{}}'.format(
-                child_section_title, media_type, child_media_type)
+                child_anchor = child_plural_media_type
+            child_text = u'\u2713<br>Includes [{}](#{}) Level {{}}'.format(
+                child_section_title, child_anchor)
             child_row = {
                 'attr': child_plural_media_type,
                 'level0': '',
@@ -2829,7 +2872,7 @@ def build_export_docs():
                 squareArt and attr == 'squareArtFile' or
                 theme and attr == 'themeFile'
             ):
-                text = 'Refer to [Resource Exports](#resource-export)'
+                text = 'Refer to [Resource Exports](#resource-exports)'
                 row = {
                     'attr': attr,
                     'level0': text,
@@ -2873,15 +2916,15 @@ def build_export_docs():
         if media_type == 'collection':
             section += (
                 '\n\n* <a id="collection-item">**Note:**</a> Collection `items` can be '
-                '[Movies](#movie), '
-                '[Shows](#show), [Seasons](#season), [Episodes](#episode), '
-                '[Artists](#artist), [Albums](#album), or [Tracks](#track) '
+                '[Movies](#movies), '
+                '[Shows](#shows), [Seasons](#seasons), [Episodes](#episodes), '
+                '[Artists](#artists), [Albums](#albums), or [Tracks](#tracks) '
                 'depending on the type of collection.'
             )
         elif media_type == 'playlist':
             section += (
                 '\n\n* <a id="playlist-item">**Note:**</a> Playlist `items` can be '
-                '[Movies](#movie), [Episodes](#episode), [Tracks](#track), or [Photos](#photo) '
+                '[Movies](#movies), [Episodes](#episodes), [Tracks](#tracks), or [Photos](#photos) '
                 'depending on the type of playlist.'
             )
 

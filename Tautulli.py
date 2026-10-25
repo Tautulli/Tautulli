@@ -146,10 +146,12 @@ def main():
         plexpy.DOCKER_MOUNT = not os.path.isfile('/config/DOCKER')
     if helpers.bool_true(os.getenv('TAUTULLI_SNAP', False)):
         plexpy.SNAP = True
+    if helpers.bool_true(os.getenv('TAUTULLI_FLATPAK', False)):
+        plexpy.FLATPAK = True
 
     if args.dev:
         plexpy.DEV = True
-        logger.debug("Tautulli is running in the dev environment.")
+        logger.info("Tautulli is running in the dev environment.")
 
     if args.daemon:
         if sys.platform == 'win32':

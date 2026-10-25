@@ -1,0 +1,21 @@
+name: Label Issues / PRs
+
+on:
+  issues:
+    types: [labeled, unlabeled]
+  pull_request_target:
+    types: [labeled, unlabeled]
+
+jobs:
+  label:
+    name: Label Issues / PRs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Label
+        uses: dessant/label-actions@v5
+        with:
+          github-token: ${{ github.token }}

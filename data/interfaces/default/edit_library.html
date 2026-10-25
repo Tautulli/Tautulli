@@ -21,6 +21,7 @@ parent_count        Returns the parent item count for the library.
 child_count         Returns the child item count for the library.
 keep_history        Returns bool value for whether to keep history for the library.
 deleted_section     Returns bool value for whether the library is marked as deleted.
+is_archived         Returns bool value for whether the library is archived.
 
 DOCUMENTATION :: END
 </%doc>
@@ -58,9 +59,15 @@ DOCUMENTATION :: END
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
+                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])} ${'disabled' if data['deleted_section'] else ''}> Keep history
                     </label>
-                    <p class="help-block">Uncheck this if you do not want to keep any history on this library's activity.</p>
+                    <p class="help-block">Record and keep history for this library's activity.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="is_archived" name="is_archived" value="1" ${helpers.checked(data['is_archived'])} ${'disabled' if data['deleted_section'] else ''}> Archive library
+                    </label>
+                    <p class="help-block">Hide the library from the libraries list, history tables and statistics. All new activity is still recorded and history is kept.</p>
                 </div>
                 % if data['section_id']:
                 <div class="form-group">
@@ -95,8 +102,12 @@ DOCUMENTATION :: END
         var custom_thumb = $("#custom_thumb_url").val();
         var custom_art = $("#custom_art_url").val();
         var keep_history = 0;
+        var is_archived = 0;
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
+        }
+        if ($("#is_archived").is(":checked")) {
+            is_archived = 1;
         }
 
         $.ajax({
@@ -106,7 +117,8 @@ DOCUMENTATION :: END
                 section_id: '${data["section_id"]}',
                 custom_thumb: custom_thumb,
                 custom_art: custom_art,
-                keep_history: keep_history
+                keep_history: keep_history,
+                is_archived: is_archived
             },
             cache: false,
             async: true,

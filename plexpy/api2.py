@@ -154,7 +154,7 @@ class API2(object):
                 self._api_kwargs = kwargs
 
         if self._api_msg:
-            logger.api_debug('Tautulli APIv2 :: %s.' % self._api_msg)
+            logger.api_warn('Tautulli APIv2 :: %r.' % self._api_msg)
 
         logger.api_debug('Tautulli APIv2 :: Cleaned kwargs: %s' % self._api_kwargs)
 
@@ -689,7 +689,7 @@ General optional parameters:
             try:
                 out = xmltodict.unparse(out, pretty=True)
             except Exception as e:
-                logger.api_error('Tautulli APIv2 :: Failed to parse xml result')
+                logger.api_exception('Tautulli APIv2 :: Failed to parse xml result')
                 self._api_response_code = 500
                 try:
                     out['message'] = e
@@ -697,7 +697,7 @@ General optional parameters:
                     out = xmltodict.unparse(out, pretty=True)
 
                 except Exception as e:
-                    logger.api_error('Tautulli APIv2 :: Failed to parse xml result error message %s' % e)
+                    logger.api_exception('Tautulli APIv2 :: Failed to parse xml result error message %s' % e)
                     out = '''<?xml version="1.0" encoding="utf-8"?>
                                 <response>
                                     <message>%s</message>
@@ -739,7 +739,7 @@ General optional parameters:
 
                 result = call(**self._api_kwargs)
             except Exception as e:
-                logger.api_error('Tautulli APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
+                logger.api_exception('Tautulli APIv2 :: Failed to run %s with %s: %s' % (self._api_cmd, self._api_kwargs, e))
                 self._api_response_code = 500
                 if self._api_debug:
                     cherrypy.request.show_tracebacks = True

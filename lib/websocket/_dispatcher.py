@@ -2,18 +2,18 @@ import time
 import socket
 import inspect
 import selectors
-from typing import TYPE_CHECKING, Callable, Optional, Union
+from typing import Any, TYPE_CHECKING, Callable, Optional, Union
 
 if TYPE_CHECKING:
     from ._app import WebSocketApp
-from . import _logging
+from ._logging import info
 from ._socket import send
 
 """
 _dispatcher.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 
 class DispatcherBase:
     """
@@ -46,13 +47,13 @@ class DispatcherBase:
 
     def reconnect(self, seconds: int, reconnector: Callable) -> None:
         try:
-            _logging.info(
+            info(
                 f"reconnect() - retrying in {seconds} seconds [{len(inspect.stack())} frames in stack]"
             )
             time.sleep(seconds)
             reconnector(reconnecting=True)
         except KeyboardInterrupt as e:
-            _logging.info(f"User exited {e}")
+            info(f"User exited {e}")
             raise e
 
     def send(self, sock: socket.socket, data: Union[str, bytes]) -> int:
@@ -109,7 +110,7 @@ class SSLDispatcher(DispatcherBase):
         finally:
             sel.close()
 
-    def select(self, sock, sel: selectors.DefaultSelector):
+    def select(self, sock: Any, sel: selectors.DefaultSelector) -> Any:
         if self.app.sock is None:
             return None
         sock = self.app.sock.sock
@@ -134,8 +135,8 @@ class WrappedDispatcher:
         self,
         app: "WebSocketApp",
         ping_timeout: Optional[Union[float, int]],
-        dispatcher,
-        handleDisconnect,
+        dispatcher: Any,
+        handleDisconnect: Optional[Callable],
     ) -> None:
         self.app = app
         self.ping_timeout = ping_timeout
@@ -157,7 +158,7 @@ class WrappedDispatcher:
         self.dispatcher.buffwrite(sock, data, send, self.handleDisconnect)
         return len(data)
 
-    def timeout(self, seconds: float, callback: Callable, *args) -> None:
+    def timeout(self, seconds: float, callback: Callable, *args: Any) -> None:
         self.dispatcher.timeout(seconds, callback, *args)
 
     def reconnect(self, seconds: int, reconnector: Callable) -> None:

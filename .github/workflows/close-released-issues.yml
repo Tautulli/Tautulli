@@ -1,0 +1,95 @@
+name: Close Released Issues
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to process, for example v2.18.2
+        required: true
+      dry_run:
+        description: Only print the issues that would close
+        type: boolean
+        default: true
+
+jobs:
+  close:
+    name: Close linked issues
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          # Full history and tags so git log can walk back to the previous stable tag.
+          fetch-depth: 0
+
+      # A closing keyword on nightly closes the issue before a release ships it.
+      # The maintainer reopens it and adds the label fixed or added.
+      # This step closes it again, whether a commit, a PR, or only the label names it.
+      - name: Close issues fixed by this release
+        run: |
+          case "$TAG" in
+            *-beta) echo "Skipping prerelease $TAG"; exit 0 ;;
+          esac
+          prev=$(git describe --tags --abbrev=0 --exclude='*-beta' "$TAG^")
+          echo "Collecting issues for $prev..$TAG"
+
+          # Each line is "<issue number> <where it was found>".
+          # Each gh call gets its own assignment, so a gh failure stops the job.
+          # The "|| true" on a grep only covers "no match".
+          found=$(mktemp)
+          kw='\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?\s+('"$REPO"')?#\K[0-9]+'
+
+          for sha in $(git log --format=%H "$prev..$TAG"); do
+            msg=$(git log -1 --format=%B "$sha")
+            grep -oiP "$kw" <<< "$msg" | sed "s/\$/ commit ${sha:0:8}/" >> "$found" || true
+            prs=$(gh api "repos/$REPO/commits/$sha/pulls" --jq '.[].number')
+            for pr in $prs; do
+              info=$(gh pr view "$pr" --repo "$REPO" --json body,closingIssuesReferences)
+              body=$(jq -r .body <<< "$info")
+              grep -oiP "$kw" <<< "$body" | sed "s/\$/ PR #$pr/" >> "$found" || true
+              # A reference to another repository has the same number format, so filter by repository.
+              refs=$(jq -r --arg r "$REPO" '.closingIssuesReferences[] | select(.repository.owner.login + "/" + .repository.name == $r) | .number' <<< "$info")
+              for n in $refs; do echo "$n PR #$pr" >> "$found"; done
+            done
+          done
+
+          # Labels say nothing about this release, so only the latest release uses them.
+          # gh issue list joins repeated --label flags with AND, so query each label.
+          latest=$(gh release view --repo "$REPO" --json tagName --jq .tagName)
+          if [ "$latest" = "$TAG" ]; then
+            for label in fixed added; do
+              gh issue list --repo "$REPO" --state open --label "$label" --limit 1000 \
+                --json number --jq ".[].number | \"\(.) label:$label\"" >> "$found"
+            done
+          else
+            echo "$TAG is not the latest release ($latest), so labels are skipped"
+          fi
+
+          for n in $(cut -d' ' -f1 "$found" | sort -un); do
+            from=$(grep "^$n " "$found" | cut -d' ' -f2- | sort -u | paste -sd, -)
+            # Skip pull requests and numbers that do not exist.
+            if ! state=$(gh api "repos/$REPO/issues/$n" --jq 'if .pull_request then "pr" else .state end' 2>&1); then
+              case "$state" in *"Not Found"*) state=missing ;; *) echo "$state"; exit 1 ;; esac
+            fi
+            echo "#$n $state ($from)"
+            [ "$state" = open ] || continue
+            if [ "$DRY_RUN" = true ]; then
+              echo "  dry run, would close #$n"
+              continue
+            fi
+            # One call, so a retry after a failed close does not comment twice.
+            gh issue close "$n" --repo "$REPO" --reason completed \
+              --comment "This is now available in [Tautulli $TAG](https://github.com/$REPO/releases/tag/$TAG)."
+          done

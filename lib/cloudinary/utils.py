@@ -629,6 +629,16 @@ def json_body(params, headers=None):
 
 
 def sign_request(params, options):
+    """
+    Signs Upload API request parameters.
+
+    Keys listed in options["non_signable"] are still sent, but left out of the signature.
+
+    :param params: Params to sign and send.
+    :param options: Additional options, including non_signable.
+    :return: The params, with signature and api_key added.
+    :internal
+    """
     api_key = options.get("api_key", cloudinary.config().api_key)
     if not api_key:
         raise ValueError("Must supply api_key")
@@ -637,9 +647,11 @@ def sign_request(params, options):
         raise ValueError("Must supply api_secret")
     signature_algorithm = options.get("signature_algorithm", cloudinary.config().signature_algorithm)
     signature_version = options.get("signature_version", cloudinary.config().signature_version)
+    non_signable = options.get("non_signable") or ()
 
     params = cleanup_params(params)
-    params["signature"] = api_sign_request(params, api_secret, signature_algorithm, signature_version)
+    params_to_sign = params if not non_signable else dict((k, v) for k, v in params.items() if k not in non_signable)
+    params["signature"] = api_sign_request(params_to_sign, api_secret, signature_algorithm, signature_version)
     params["api_key"] = api_key
 
     return params
@@ -1254,6 +1266,7 @@ def build_multi_and_sprite_params(**options):
         "notification_url": options.get("notification_url"),
         "tag": tag,
         "urls": urls,
+        "public_id": options.get("public_id"),
         "transformation": generate_transformation_string(fetch_format=options.get("format"), **options)[0]
     }
     return params

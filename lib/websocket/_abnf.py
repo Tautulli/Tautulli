@@ -12,7 +12,7 @@ from ._utils import validate_utf8
 _abnf.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -66,6 +66,8 @@ __all__ = [
     "STATUS_MESSAGE_TOO_BIG",
     "STATUS_INVALID_EXTENSION",
     "STATUS_UNEXPECTED_CONDITION",
+    "STATUS_SERVICE_RESTART",
+    "STATUS_TRY_AGAIN_LATER",
     "STATUS_BAD_GATEWAY",
     "STATUS_TLS_HANDSHAKE_ERROR",
 ]
@@ -179,7 +181,7 @@ class ABNF:
             raise WebSocketProtocolException("rsv is not implemented, yet")
 
         if self.opcode not in ABNF.OPCODES:
-            raise WebSocketProtocolException("Invalid opcode %r", self.opcode)
+            raise WebSocketProtocolException(f"Invalid opcode {self.opcode!r}")
 
         if self.opcode == ABNF.OPCODE_PING and not self.fin:
             raise WebSocketProtocolException("Invalid ping frame.")
@@ -204,7 +206,7 @@ class ABNF:
             )
             code = struct.unpack("!H", data_bytes)[0]
             if not self._is_valid_close_status(code):
-                raise WebSocketProtocolException("Invalid close opcode %r", code)
+                raise WebSocketProtocolException(f"Invalid close opcode {code!r}")
 
     @staticmethod
     def _is_valid_close_status(code: int) -> bool:
@@ -307,7 +309,7 @@ class frame_buffer:
     _HEADER_LENGTH_INDEX = 6
 
     def __init__(
-        self, recv_fn: Callable[[int], int], skip_utf8_validation: bool
+        self, recv_fn: Callable[[int], bytes], skip_utf8_validation: bool
     ) -> None:
         self.recv = recv_fn
         self.skip_utf8_validation = skip_utf8_validation
@@ -375,7 +377,7 @@ class frame_buffer:
                 self.recv_header()
             if self.header is None:
                 raise WebSocketProtocolException("Header not received")
-            (fin, rsv1, rsv2, rsv3, opcode, has_mask, _) = self.header
+            fin, rsv1, rsv2, rsv3, opcode, has_mask, _ = self.header
 
             # Frame length
             if self.needs_length():

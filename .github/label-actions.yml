@@ -46,3 +46,15 @@ invalid:template-incomplete:
       :wave: @{issue-author}, please edit your PR to complete the template with
       all the required info. Your PR will be automatically closed in 5 days if
       the template is not completed. Thanks.
+
+invalid:ai-generated:
+  issues:
+    comment: >
+      :wave: @{issue-author}, please do not use AI to generate bug reports. You may use
+      AI to assist and provide context, but the issue must be written in your own words.
+      Your issue will be automatically closed in 5 days if the report is not rewritten.
+  prs:
+    comment: >
+      :wave: @{issue-author}, please do not use AI to generate pull requests. You may use
+      AI to assist and provide context, but the PR must be written in your own words.
+      Your PR will be automatically closed in 5 days if the PR is not rewritten.

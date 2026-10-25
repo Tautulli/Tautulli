@@ -22,7 +22,7 @@ from cloudinary.api import delete_resources_by_tag
 from cloudinary.uploader import upload
 from cloudinary.utils import cloudinary_url
 from collections import OrderedDict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from functools import reduce, wraps
 import hashlib
 from itertools import groupby, islice, zip_longest
@@ -30,7 +30,6 @@ from ipaddress import ip_address, ip_network, IPv4Address
 import ipwhois
 import ipwhois.exceptions
 import ipwhois.utils
-from IPy import IP
 import json
 import math
 import operator
@@ -226,7 +225,16 @@ def now(sep=False):
 
 
 def YMD_to_timestamp(ymd):
-    return datetime.strptime(ymd, "%Y-%m-%d").astimezone().timestamp()
+    # datetime also converts the day before, which Windows rejects near the epoch.
+    return time.mktime(datetime.strptime(ymd, "%Y-%m-%d").timetuple())
+
+
+def YMD_to_timestamp_range(ymd):
+    """Return the [start, end) epoch bounds of the local calendar day."""
+    day = datetime.strptime(ymd, "%Y-%m-%d")
+    day_start = day.astimezone().timestamp()
+    day_end = (day + timedelta(days=1)).astimezone().timestamp()
+    return int(day_start), int(day_end)
 
 
 def timestamp_to_YMDHMS(ts, sep=False, ymd=False):
@@ -410,11 +418,23 @@ def cleanTitle(title):
     return title
 
 
-def clean_filename(filename, replace='_'):
-    whitelist = "-_.()[] {}{}".format(string.ascii_letters, string.digits)
-    cleaned_filename = unicodedata.normalize('NFKD', filename).encode('ASCII', 'ignore').decode()
-    cleaned_filename = ''.join(c if c in whitelist else replace for c in cleaned_filename)
-    return cleaned_filename
+def clean_filename(filename, replace='_', default='untitled'):
+    """ Returns a filename safe for use in the file system.
+
+        Parameters:
+            filename (str): Filename to make safe.
+            replace (str): Character to replace invalid characters with.
+            default (str): Filename to return if the cleaned filename is blank.
+    """
+    filename = unicodedata.normalize('NFC', filename)
+    cleaned = re.sub(r'[/\\?%*:|"<>\x7F\x00-\x1F]', replace, filename)
+    return cleaned.strip(' ._-') or default
+
+
+def truncate_title(title, max_bytes=150):
+    # File systems limit a file name to 255 bytes. NFC can make a title longer, so normalize before the cut.
+    title = unicodedata.normalize('NFC', str(title))
+    return title.encode('utf-8')[:max_bytes].decode('utf-8', 'ignore')
 
 
 def split_strip(s, delimiter=','):
@@ -477,36 +497,46 @@ def split_string(mystring, splitvar=','):
 def create_https_certificates(ssl_cert, ssl_key):
     """
     Create a self-signed HTTPS certificate and store in it in
-    'ssl_cert' and 'ssl_key'. Method assumes pyOpenSSL is installed.
+    'ssl_cert' and 'ssl_key'. Method assumes cryptography is installed.
 
     This code is stolen from SickBeard (http://github.com/midgetspy/Sick-Beard).
     """
     try:
-        from OpenSSL import crypto
+        from cryptography import x509
+        from cryptography.hazmat.primitives import hashes, serialization
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.x509.oid import NameOID
     except ImportError:
-        logger.error("Unable to generate self-signed certificates: Missing pyOpenSSL module.")
+        logger.error("Unable to generate self-signed certificates: Missing cryptography module.")
         return False
-    from certgen import createKeyPair, createSelfSignedCertificate, TYPE_RSA
 
-    issuer = common.PRODUCT
-    serial = timestamp()
-    not_before = 0
-    not_after = 60 * 60 * 24 * 365 * 10  # ten years
-    domains = ['DNS:' + d.strip() for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]
-    ips = ['IP:' + d.strip() for d in plexpy.CONFIG.HTTPS_IP.split(',') if d]
-    alt_names = ','.join(domains + ips).encode('utf-8')
+    alt_names = [x509.DNSName(d.strip()) for d in plexpy.CONFIG.HTTPS_DOMAIN.split(',') if d]
+    alt_names += [x509.IPAddress(ip_address(d.strip())) for d in plexpy.CONFIG.HTTPS_IP.split(',') if d]
 
     # Create the self-signed Tautulli certificate
-    logger.debug("Generating self-signed SSL certificate.")
-    pkey = createKeyPair(TYPE_RSA, 2048)
-    cert = createSelfSignedCertificate(issuer, pkey, serial, not_before, not_after, alt_names)
+    logger.info("Generating self-signed SSL certificate.")
+    pkey = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, common.PRODUCT)])
+    now = datetime.now(timezone.utc)
+    builder = (x509.CertificateBuilder()
+               .subject_name(name)
+               .issuer_name(name)
+               .public_key(pkey.public_key())
+               .serial_number(timestamp())
+               .not_valid_before(now)
+               .not_valid_after(now + timedelta(days=365 * 10)))  # ten years
+    if alt_names:
+        builder = builder.add_extension(x509.SubjectAlternativeName(alt_names), critical=False)
+    cert = builder.sign(pkey, hashes.SHA256())
 
     # Save the key and certificate to disk
     try:
-        with open(ssl_cert, "w") as fp:
-            fp.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert).decode('utf-8'))
-        with open(ssl_key, "w") as fp:
-            fp.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, pkey).decode('utf-8'))
+        with open(ssl_cert, "wb") as fp:
+            fp.write(cert.public_bytes(serialization.Encoding.PEM))
+        with open(ssl_key, "wb") as fp:
+            fp.write(pkey.private_bytes(serialization.Encoding.PEM,
+                                        serialization.PrivateFormat.PKCS8,
+                                        serialization.NoEncryption()))
     except IOError as e:
         logger.error("Error creating SSL key and certificate: %s", e)
         return False
@@ -515,6 +545,10 @@ def create_https_certificates(ssl_cert, ssl_key):
 
 
 def cast_to_int(s):
+    # get_xml_attr returns '' for missing attributes, making the empty
+    # string the most common failure; skip the exception machinery for it
+    if not s:
+        return 0
     try:
         return int(s)
     except (ValueError, TypeError):
@@ -522,6 +556,9 @@ def cast_to_int(s):
 
 
 def cast_to_float(s):
+    # 0 and False still go through float(), which returns 0.0
+    if s is None or s == '':
+        return 0
     try:
         return float(s)
     except (ValueError, TypeError):
@@ -717,17 +754,13 @@ def json_dumps_for_html(obj, **kwargs):
 
 def is_public_ip(host):
     ip = is_valid_ip(get_ip(host))
-    ip_version = ip.version()
-    ip_type = ip.iptype()
-    if ip and ip_type != 'LOOPBACK' and (
-            ip_version == 4 and ip_type == 'PUBLIC' or
-            ip_version == 6 and 'LOCAL' not in ip_type):
-        return True
-    return False
+    return bool(ip and ip.is_global and not ip.is_private and not ip.is_multicast)
 
 
 def get_ip(host):
     ip_address = ''
+    if not isinstance(host, str):
+        return ip_address
     if is_valid_ip(host):
         return host
     elif not re.match(r'^[0-9]+(?:\.[0-9]+){3}(?!\d*-[a-z0-9]{6})$', host):
@@ -740,11 +773,11 @@ def get_ip(host):
 
 
 def is_valid_ip(address):
-    try:
-        return IP(address)
-    except TypeError:
+    if not isinstance(address, str):
         return False
-    except ValueError:
+    try:
+        return ip_address(address)
+    except (TypeError, ValueError):
         return False
 
 
@@ -820,7 +853,7 @@ def upload_to_imgur(img_data, img_title='', rating_key='', fallback=''):
                                                            headers=headers, data=data)
 
     if response and not err_msg:
-        logger.debug("Tautulli Helpers :: Image '{}' ({}) uploaded to Imgur.".format(img_title, fallback))
+        logger.info("Tautulli Helpers :: Image '{}' ({}) uploaded to Imgur.".format(img_title, fallback))
         imgur_response_data = response.json().get('data')
         img_url = imgur_response_data.get('link', '').replace('http://', 'https://')
         delete_hash = imgur_response_data.get('deletehash', '')
@@ -848,7 +881,7 @@ def delete_from_imgur(delete_hash, img_title='', fallback=''):
                                                            headers=headers)
 
     if response and not err_msg:
-        logger.debug("Tautulli Helpers :: Image '{}' ({}) deleted from Imgur.".format(img_title, fallback))
+        logger.info("Tautulli Helpers :: Image '{}' ({}) deleted from Imgur.".format(img_title, fallback))
         return True
     else:
         if err_msg:
@@ -877,7 +910,7 @@ def upload_to_cloudinary(img_data, img_title='', rating_key='', fallback=''):
                           public_id='{}_{}'.format(fallback, rating_key),
                           tags=['tautulli', fallback, str(rating_key)],
                           context={'title': img_title, 'rating_key': str(rating_key), 'fallback': fallback})
-        logger.debug("Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
+        logger.info("Tautulli Helpers :: Image '{}' ({}) uploaded to Cloudinary.".format(img_title, fallback))
         img_url = response.get('url', '')
     except Exception as e:
         logger.error("Tautulli Helpers :: Unable to upload image '{}' ({}) to Cloudinary: {}".format(img_title, fallback, e))
@@ -904,12 +937,12 @@ def delete_from_cloudinary(rating_key=None, delete_all=False):
             r = delete_resources_by_tag('tautulli', next_cursor=next_cursor)
             partial = r.get('partial', False)
             next_cursor = r.get('next_cursor', '')
-        logger.debug("Tautulli Helpers :: Deleted all images from Cloudinary.")
+        logger.info("Tautulli Helpers :: Deleted all images from Cloudinary.")
     elif rating_key:
         delete_resources_by_tag(str(rating_key))
-        logger.debug("Tautulli Helpers :: Deleted images from Cloudinary with rating_key {}.".format(rating_key))
+        logger.info("Tautulli Helpers :: Deleted images from Cloudinary with rating_key {}.".format(rating_key))
     else:
-        logger.debug("Tautulli Helpers :: Unable to delete images from Cloudinary: No rating_key provided.")
+        logger.warn("Tautulli Helpers :: Unable to delete images from Cloudinary: No rating_key provided.")
 
     return True
 
@@ -1691,17 +1724,6 @@ def short_season(title):
     if title.startswith('Season ') and title[7:].isdigit():
         return 'S%s' % title[7:]
     return title
-
-
-def get_first_final_marker(markers):
-    first = None
-    final = None
-    for marker in markers:
-        if marker['first']:
-            first = marker
-        if marker['final']:
-            final = marker
-    return first, final
 
 
 def check_watched(media_type, view_offset, duration, marker_credits_first=None, marker_credits_final=None):

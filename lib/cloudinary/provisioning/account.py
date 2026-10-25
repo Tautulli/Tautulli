@@ -464,7 +464,7 @@ def user_in_user_groups(user_id, **options):
     :return:                    List of groups user is in
     :rtype:                     dict
     """
-    uri = [USER_GROUPS_SUB_PATH, user_id]
+    uri = [USERS_SUB_PATH, user_id, "groups"]
     return _call_account_api("get", uri, {}, **options)
 
 

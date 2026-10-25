@@ -19,7 +19,7 @@ def force_bytes(value: Union[bytes, str]) -> bytes:
     elif isinstance(value, bytes):
         return value
     else:
-        raise TypeError("Expected a string value")
+        raise TypeError("Expected a string or bytes value")
 
 
 def base64url_decode(input: Union[bytes, str]) -> bytes:
@@ -113,18 +113,22 @@ _PEMS = {
     b"X509 CRL",
 }
 
-_PEM_RE = re.compile(
-    b"----[- ]BEGIN ("
-    + b"|".join(_PEMS)
-    + b""")[- ]----\r?
-.+?\r?
-----[- ]END \\1[- ]----\r?\n?""",
-    re.DOTALL,
+# Accept PEM formatting variants that the cryptography loader accepts, while
+# retaining the explicit asymmetric-key marker check.
+_PEM_MARKER_RE = re.compile(
+    b"(?=(----[- ](BEGIN|END) (" + b"|".join(_PEMS) + b")[- ]----))"
 )
 
 
 def is_pem_format(key: bytes) -> bool:
-    return bool(_PEM_RE.search(key))
+    begin_markers: dict[bytes, int] = {}
+    for marker in _PEM_MARKER_RE.finditer(key):
+        marker_type, label = marker.group(2), marker.group(3)
+        if marker_type == b"BEGIN":
+            begin_markers[label] = marker.start(1) + len(marker.group(1))
+        elif label in begin_markers and begin_markers[label] < marker.start(1):
+            return True
+    return False
 
 
 # Based on https://github.com/pyca/cryptography/blob/bcb70852d577b3f490f015378c75cba74986297b/src/cryptography/hazmat/primitives/serialization/ssh.py#L40-L46

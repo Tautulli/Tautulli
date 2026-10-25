@@ -8,20 +8,20 @@ jobs:
   check-branch:
     name: Check Pull Request
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v7
-
-      - name: Comment on Pull Request
-        uses: mshick/add-pr-comment@v3
-        if: github.base_ref != 'nightly'
+      - name: Check Target Branch
+        uses: Vankka/pr-target-branch-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          message: Pull requests must be made to the `nightly` branch. Thanks.
-          repo-token: ${{ github.token }}
+          target: "master beta"
+          exclude: nightly
+          change-to: nightly
+          comment: |
+            Pull requests must be made to the `nightly` branch.
+            
+            The base branch of this PR has been automatically changed to `nightly`, please check that there are no merge conflicts.
 
-      - name: Fail Workflow
-        if: github.base_ref != 'nightly'
-        run: |
-          echo Base: "$GITHUB_BASE_REF"
-          echo Head: "$GITHUB_HEAD_REF"
-          exit 1
+            Thanks.

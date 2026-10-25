@@ -15,6 +15,7 @@
 
 import os
 import re
+import shutil
 import time
 import threading
 import zipfile
@@ -75,6 +76,7 @@ _CONFIG_DEFINITIONS = {
     'API_ENABLED': (int, 'General', 1),
     'API_KEY': (str, 'General', ''),
     'API_SQL': (int, 'General', 0),
+    'AUTO_UNARCHIVE_USERS': (int, 'Monitoring', 1),
     'BUFFER_THRESHOLD': (int, 'Monitoring', 10),
     'BUFFER_WAIT': (int, 'Monitoring', 900),
     'BACKUP_DAYS': (int, 'General', 3),
@@ -226,6 +228,8 @@ _DO_NOT_DOWNLOAD_KEYS = [
 
 IS_IMPORTING = False
 IMPORT_THREAD = None
+# A signal handler runs shutdown(), which writes the config on the thread that may be writing
+WRITE_LOCK = threading.RLock()
 
 SETTINGS = [
     'ANON_REDIRECT',
@@ -303,6 +307,7 @@ CHECKED_SETTINGS = [
     'ALLOW_GUEST_ACCESS',
     'ANON_REDIRECT_DYNAMIC',
     'API_ENABLED',
+    'AUTO_UNARCHIVE_USERS',
     'CACHE_IMAGES',
     'CHECK_GITHUB',
     'ENABLE_HTTPS',
@@ -337,6 +342,7 @@ CHECKED_SETTINGS = [
     'TVMAZE_LOOKUP',
     'WEEK_START_MONDAY',
     'SYSTEM_ANALYTICS',
+    'VERBOSE_LOGS',
 ]
 
 
@@ -362,6 +368,14 @@ def import_tautulli_config(config=None, backup=False):
                     "Please wait until it is complete before importing another config.")
         return False
 
+    try:
+        return _import_tautulli_config(config, backup)
+    finally:
+        set_import_thread(None)
+        set_is_importing(False)
+
+
+def _import_tautulli_config(config, backup):
     if backup:
         # Make a backup of the current config first
         logger.info("Tautulli Config :: Creating a config backup before importing.")
@@ -373,7 +387,7 @@ def import_tautulli_config(config=None, backup=False):
     try:
         imported_config = Config(config, is_import=True)
     except:
-        logger.error("Tautulli Config :: Failed to import Tautulli config: error reading imported config file")
+        logger.exception("Tautulli Config :: Failed to import Tautulli config: error reading imported config file")
         return False
 
     logger.info("Tautulli Config :: Importing Tautulli config '%s'...", config)
@@ -382,7 +396,7 @@ def import_tautulli_config(config=None, backup=False):
     # Remove keys that should not be imported
     for key in _DO_NOT_IMPORT_KEYS:
         delattr(imported_config, key)
-    if plexpy.DOCKER or plexpy.SNAP:
+    if plexpy.DOCKER or plexpy.SNAP or plexpy.FLATPAK:
         for key in _DO_NOT_IMPORT_KEYS_DOCKER:
             delattr(imported_config, key)
 
@@ -391,8 +405,6 @@ def import_tautulli_config(config=None, backup=False):
     plexpy.CONFIG.write()
 
     logger.info("Tautulli Config :: Tautulli config import complete.")
-    set_import_thread(None)
-    set_is_importing(False)
 
     # Restart to apply changes
     plexpy.SIGNAL = 'restart'
@@ -425,11 +437,12 @@ def make_backup(cleanup=False, scheduler=False):
                 if os.stat(file_).st_mtime < now - plexpy.CONFIG.BACKUP_DAYS * 86400:
                     try:
                         os.remove(file_)
+                        logger.info("Tautulli Config :: Deleted old backup %s from the backup folder." % file_)
                     except OSError as e:
-                        logger.error("Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
+                        logger.warn("Tautulli Config :: Failed to delete %s from the backup folder: %s" % (file_, e))
 
     if backup_file in os.listdir(backup_folder):
-        logger.debug("Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
+        logger.info("Tautulli Config :: Successfully backed up %s to %s" % (plexpy.CONFIG_FILE, backup_file))
         return True
     else:
         logger.error("Tautulli Config :: Failed to backup %s to %s" % (plexpy.CONFIG_FILE, backup_file))
@@ -443,6 +456,10 @@ class Config(object):
 
     def __init__(self, config_file, is_import=False):
         """ Initialize the config with values from a file """
+        # Resolved settings cache: every CONFIG.X read previously re-ran
+        # an environment probe and a type cast; environment variables
+        # cannot change mid-process, so resolve once per key
+        self._settings_cache = {}
         self._config_file = config_file
         try:
             self._config = ConfigObj(self._config_file, encoding='utf-8')
@@ -493,12 +510,21 @@ class Config(object):
     def get_setting(self, name):
         """ Get the value of a setting, either from the config file or environment variable """
         key, definition_type, section, ini_key, default = self._define(name)
-        # Check if the key is in the environment variables
-        value = self._from_env(key)
-        if not value:
-            # If not, check if the key is in the config file
-            value = self._config[section].get(ini_key, default)
-        return self._cast_setting(definition_type, value, default)
+        try:
+            value = self._settings_cache[key]
+        except KeyError:
+            # Check if the key is in the environment variables
+            value = self._from_env(key)
+            if not value:
+                # If not, check if the key is in the config file
+                value = self._config[section].get(ini_key, default)
+            value = self._cast_setting(definition_type, value, default)
+            self._settings_cache[key] = value
+        if definition_type in (list, dict):
+            # Hand out a copy so callers cannot mutate the cached value
+            # (matches the old cast-per-read behavior)
+            return definition_type(value)
+        return value
     
     def set_setting(self, name, value):
         """ Set the value of a setting in the config file """
@@ -511,6 +537,7 @@ class Config(object):
 
         # If not, set the value in the config file
         self._config[section][ini_key] = self._cast_setting(definition_type, value, default)
+        self._settings_cache[key] = self._config[section][ini_key]
         return self._config[section][ini_key]
     
     def _from_env(self, key):
@@ -527,6 +554,10 @@ class Config(object):
 
     def write(self):
         """ Make a copy of the stored config and write it to the configured file """
+        # A config import merges directly into _config before writing;
+        # drop the resolved cache so re-reads pick up merged values
+        self._settings_cache.clear()
+
         new_config = ConfigObj(encoding="UTF-8")
         new_config.filename = self._config_file
 
@@ -549,10 +580,25 @@ class Config(object):
         # Write it to file
         logger.info("Tautulli Config :: Writing configuration to file")
 
-        try:
-            new_config.write()
-        except IOError as e:
-            logger.error("Tautulli Config :: Error writing configuration file: %s", e)
+        # Write a temp file and swap it in, so a crash never leaves a half written config
+        config_file = os.path.realpath(self._config_file)
+        temp_file = config_file + '.tmp'
+        with WRITE_LOCK:
+            try:
+                with open(temp_file, 'wb') as f:
+                    if os.path.exists(config_file):
+                        shutil.copymode(config_file, temp_file)
+                    new_config.write(f)
+                    f.flush()
+                    os.fsync(f.fileno())
+                os.replace(temp_file, config_file)
+            except OSError as e:
+                # A locked or bind mounted file cannot be replaced, so write it in place
+                logger.debug("Tautulli Config :: Unable to replace configuration file, writing in place: %s", e)
+                try:
+                    new_config.write()
+                except IOError as e:
+                    logger.error("Tautulli Config :: Error writing configuration file: %s", e)
 
         self._blacklist()
 
@@ -585,6 +631,7 @@ class Config(object):
             return super(Config, self).__delattr__(name)
         else:
             key, definition_type, section, ini_key, default = self._define(name)
+            self._settings_cache.pop(key, None)
             del self._config[section][ini_key]
 
     def process_kwargs(self, kwargs):

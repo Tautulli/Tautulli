@@ -194,6 +194,12 @@ def filter_session_info(list_of_dicts, filter_key=None):
             if str(d.get('section_id','')) not in session_library_ids:
                 continue
 
+            # Rows without a media type cannot be evaluated against the
+            # library content filters; keep them (they already passed the
+            # shared-library check). Previously `keep` leaked from the
+            # prior iteration or was unbound on the first.
+            keep = True
+
             if d.get('media_type'):
                 f_content_rating, f_labels = get_session_library_filters_type(session_library_filters,
                                                                               media_type=d['media_type'])

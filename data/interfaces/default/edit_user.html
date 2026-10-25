@@ -21,6 +21,7 @@ is_restricted       Returns bool value for whether the user account is restricte
 keep_history        Returns bool value for whether to keep history for the user.
 allow_guest         Returns bool value for whether to allow guest access for the user.
 deleted_user        Returns bool value for whether the user is marked as deleted.
+is_archived         Returns bool value for whether the user is archived.
 
 DOCUMENTATION :: END
 </%doc>
@@ -58,15 +59,21 @@ DOCUMENTATION :: END
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])}> Keep history
+                        <input type="checkbox" id="keep_history" name="keep_history" value="1" ${helpers.checked(data['keep_history'])} ${'disabled' if data['deleted_user'] else ''}> Keep history
                     </label>
-                    <p class="help-block">Uncheck this if you do not want to keep any history on this user's activity.</p>
+                    <p class="help-block">Record and keep history for this user's activity.</p>
                 </div>
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox" id="allow_guest" name="allow_guest" value="1" ${helpers.checked(data['allow_guest'])}> Allow Guest Access
+                        <input type="checkbox" id="allow_guest" name="allow_guest" value="1" ${helpers.checked(data['allow_guest'])} ${'disabled' if data['deleted_user'] else ''}> Allow Guest Access
                     </label>
-                    <p class="help-block">Uncheck this if you do not want to allow this user to login to Tautulli.</p>
+                    <p class="help-block">Allow this user to login to Tautulli as a guest. The user must have shared access to the Plex server.</p>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" id="is_archived" name="is_archived" value="1" ${helpers.checked(data['is_archived'])} ${'disabled' if data['deleted_user'] else ''}> Archive user
+                    </label>
+                    <p class="help-block">Hide the user from the users list, history tables and statistics. All new activity is still recorded and history is kept. The user can be unarchived at any time. An archived user cannot login as a guest.</p>
                 </div>
                 % if data['user_id']:
                 <div class="form-group">
@@ -102,11 +109,15 @@ DOCUMENTATION :: END
         var custom_thumb = $("#custom_avatar_url").val();
         var keep_history = 0;
         var allow_guest = 0;
+        var is_archived = 0;
         if ($("#keep_history").is(":checked")) {
             keep_history = 1;
         }
         if ($("#allow_guest").is(":checked")) {
             allow_guest = 1;
+        }
+        if ($("#is_archived").is(":checked")) {
+            is_archived = 1;
         }
 
         $.ajax({
@@ -117,7 +128,8 @@ DOCUMENTATION :: END
                 friendly_name: friendly_name,
                 custom_thumb: custom_thumb,
                 keep_history: keep_history,
-                allow_guest: allow_guest
+                allow_guest: allow_guest,
+                is_archived: is_archived
             },
             cache: false,
             async: true,

@@ -503,6 +503,11 @@ class Movie(
         """ Returns True if any of the media parts has generated preview (BIF) thumbnails. """
         return any(part.hasPreviewThumbnails for media in self.media for part in media.parts)
 
+    @property
+    def canNormalizeLoudness(self):
+        """ Returns True if any of the media audio streams can normalize loudness. """
+        return any(stream.canNormalizeLoudness for stream in self.audioStreams())
+
     def _prettyfilename(self):
         """ Returns a filename for use in download. """
         return f'{self.title} ({self.year})'
@@ -1212,6 +1217,11 @@ class Episode(
     def hasPreviewThumbnails(self):
         """ Returns True if any of the media parts has generated preview (BIF) thumbnails. """
         return any(part.hasPreviewThumbnails for media in self.media for part in media.parts)
+
+    @property
+    def canNormalizeLoudness(self):
+        """ Returns True if any of the media audio streams can normalize loudness. """
+        return any(stream.canNormalizeLoudness for stream in self.audioStreams())
 
     def season(self):
         """" Return the episode's :class:`~plexapi.video.Season`. """

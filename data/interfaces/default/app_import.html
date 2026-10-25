@@ -2,23 +2,10 @@
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="fa fa-remove"></i></button>
-            <h4 class="modal-title">Import ${app} Database</h4>
+            <h4 class="modal-title">Import Tautulli Database</h4>
         </div>
         <div class="modal-body" id="modal-text">
             <form id="import_database_form" enctype="multipart/form-data" method="post" name="import_database_form">
-                <input type="hidden" id="import_app" name="import_app" value="${app.lower()}" />
-                % if app in ('PlexWatch', 'Plexivity'):
-                <p class="help-block">
-                    <%
-                        v = ''
-                        if app == 'PlexWatch':
-                            v = '0.3.2'
-                        elif app == 'Plexivity':
-                            v = '0.9.8'
-                    %>
-                    <strong>Please ensure your ${app} database is at version ${v} or higher.</strong>
-                </p>
-                % endif
                 <div class="form-group">
                     <label for="import_database_file">Option 1: Upload a Database File</label>
                     <div class="row">
@@ -32,7 +19,7 @@
                             </div>
                         </div>
                     </div>
-                    <p class="help-block">Upload the ${app} database file you wish to import (max file size is 1GB).</p>
+                    <p class="help-block">Upload the Tautulli database file you wish to import (max file size is 1GB).</p>
                 </div>
                 <div class="form-group">
                     <label for="import_database_path">Option 2: Browse for a Database File</label>
@@ -46,9 +33,8 @@
                             </div>
                         </div>
                     </div>
-                    <p class="help-block">Browse for the ${app} database file you wish to import.</p>
+                    <p class="help-block">Browse for the Tautulli database file you wish to import.</p>
                 </div>
-                % if app == 'Tautulli':
                 <div class="form-group">
                     <label for="table_name">Import Method</label>
                     <div class="row">
@@ -80,29 +66,6 @@
                         <li>Registered Mobile Devices</li>
                     </ul>
                 </div>
-                % else:
-                <div class="form-group">
-                    <label for="import_table_name">Table Name</label>
-                    <div class="row">
-                        <div class="col-xs-4">
-                            <select class="form-control" id="import_table_name" name="import_table_name">
-                                <option value="processed">Processed</option>
-                                <option value="grouped">Grouped</option>
-                            </select>
-                        </div>
-                    </div>
-                    <p class="help-block">Select the table name from which you wish to import. Only import one of these, importing both will result in duplicated data.</p>
-                </div>
-                <div class="form-group">
-                    <label for="import_ignore_interval">Ignore Interval</label>
-                    <div class="row">
-                        <div class="col-xs-2">
-                            <input type="text" class="form-control" id="import_ignore_interval" name="import_ignore_interval" value="120" required>
-                        </div>
-                    </div>
-                    <p class="help-block">Enter the minimum duration (in seconds) an item must have been active for. Set to 0 to import all.</p>
-                </div>
-                % endif
             </form>
         </div>
         <div class="modal-footer">
@@ -123,13 +86,10 @@
     $("#import_db").click(function() {
         $(this).prop('disabled', true);
 
-        var app = $("#import_app").val();
         var database_file = $("#import_database_file")[0].files[0];
         var database_path = $("#import_database_path").val();
         var method = $("#import_method").val();
         var backup = $("#import_backup_db").is(':checked');
-        var table_name = $("#import_table_name").val();
-        var ignore_interval = $("#import_ignore_interval").val();
 
         var content_type;
         var process_data;
@@ -139,22 +99,16 @@
             content_type = false;
             process_data = false;
             data = new FormData();
-            data.append('app', app);
             data.append('database_file', database_file);
             data.append('method', method);
             data.append('backup', backup);
-            data.append('table_name', table_name);
-            data.append('ignore_interval', ignore_interval);
         } else {
             content_type = 'application/x-www-form-urlencoded; charset=UTF-8';
             process_data = true;
             data = {
-                app: app,
                 database_path: database_path,
                 method: method,
-                backup: backup,
-                table_name: table_name,
-                ignore_interval: ignore_interval
+                backup: backup
             }
         }
 

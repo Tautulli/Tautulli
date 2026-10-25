@@ -12,6 +12,7 @@ from importlib import abc
 from importlib import machinery
 import json
 import os
+import posixpath
 import re
 import shutil
 import stat
@@ -265,7 +266,12 @@ class Template:
             self.uri = self.module_id
 
         u_norm = self.uri.replace("\\", "/").lstrip("/")
-        u_norm = os.path.normpath(u_norm)
+        # use posixpath, not os.path, to normalize; this is the same
+        # module used by TemplateLookup to resolve the URI to a file,
+        # and unlike ntpath it has no notion of a drive designator, so
+        # a URI like "C:/../../secret.txt" retains its ".." segments
+        # here rather than having them absorbed into a drive root.
+        u_norm = posixpath.normpath(u_norm)
         if u_norm.startswith(".."):
             raise exceptions.TemplateLookupException(
                 'Template uri "%s" is invalid - '

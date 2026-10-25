@@ -76,7 +76,7 @@ class WindowsSystemTray(object):
         try:
             self.tray_icon.start()
         except Exception as e:
-            logger.error("Unable to launch system tray icon: %s." % e)
+            logger.exception("Unable to launch system tray icon: %s." % e)
 
     def shutdown(self):
         self.tray_icon.shutdown()
@@ -144,7 +144,8 @@ def set_startup():
     startup_reg_path = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
 
     exe = sys.executable
-    run_args = [arg for arg in plexpy.ARGS if arg != '--nolaunch']
+    args = plexpy.ARGS or []
+    run_args = [arg for arg in args if arg != '--nolaunch']
     if plexpy.FROZEN:
         args = [exe] + run_args
     else:

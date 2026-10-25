@@ -2,7 +2,7 @@
 __init__.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,4 +27,4 @@ from ._exceptions import *  # noqa: F401,F403
 from ._logging import *  # noqa: F401,F403
 from ._socket import *  # noqa: F401,F403
 
-__version__ = "1.9.0"
+__version__ = "1.9.2"

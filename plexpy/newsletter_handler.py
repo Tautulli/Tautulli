@@ -17,7 +17,9 @@
 
 from io import open
 import os
+import queue
 import shlex
+import threading
 
 from apscheduler.triggers.cron import CronTrigger
 import email.utils
@@ -30,18 +32,45 @@ from plexpy import newsletters
 
 
 NEWSLETTER_SCHED = None
+NEWSLETTER_QUEUE = queue.Queue()
+
+
+def process_queue():
+    while True:
+        params = NEWSLETTER_QUEUE.get()
+
+        if params is None:
+            break
+        elif params:
+            try:
+                notify(**params)
+            except Exception as e:
+                logger.exception("Tautulli NewsletterHandler :: Newsletter thread exception: %s" % e)
+
+        NEWSLETTER_QUEUE.task_done()
+
+    logger.info("Tautulli NewsletterHandler :: Newsletter thread exiting...")
+
+
+def start_thread():
+    # Newsletters build on their own worker so a long newsletter render
+    # cannot stall playback notifications behind it
+    logger.info("Tautulli NewsletterHandler :: Starting background newsletter handler thread.")
+    thread = threading.Thread(target=process_queue)
+    thread.daemon = True
+    thread.start()
 
 
 def add_newsletter_each(newsletter_id=None, notify_action=None, **kwargs):
     if not notify_action:
-        logger.debug("Tautulli NewsletterHandler :: Notify called but no action received.")
+        logger.warn("Tautulli NewsletterHandler :: Notify called but no action received.")
         return
 
     data = {'newsletter': True,
             'newsletter_id': newsletter_id,
             'notify_action': notify_action}
     data.update(kwargs)
-    plexpy.NOTIFY_QUEUE.put(data)
+    NEWSLETTER_QUEUE.put(data)
 
 
 def schedule_newsletters(newsletter_id=None):
@@ -97,6 +126,7 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
     newsletter_config = newsletters.get_newsletter_config(newsletter_id=newsletter_id)
 
     if not newsletter_config:
+        logger.error("Tautulli NewsletterHandler :: Unable to prepare newsletter: no config found for newsletter_id %s." % newsletter_id)
         return
 
     if notify_action in ('test', 'api'):
@@ -111,17 +141,17 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
     email_msg_id = email.utils.make_msgid()
     email_reply_msg_id = get_last_newsletter_email_msg_id(newsletter_id=newsletter_id, notify_action=notify_action)
 
-    newsletter_agent = newsletters.get_agent_class(newsletter_id=newsletter_id,
-                                                   newsletter_id_name=newsletter_config['id_name'],
-                                                   agent_id=newsletter_config['agent_id'],
+    newsletter_agent = newsletters.get_agent_class(agent_id=newsletter_config['agent_id'],
                                                    config=newsletter_config['config'],
                                                    email_config=newsletter_config['email_config'],
+                                                   newsletter_id=newsletter_id,
+                                                   newsletter_id_name=newsletter_config['id_name'],
                                                    subject=subject,
                                                    body=body,
                                                    message=message,
                                                    email_msg_id=email_msg_id,
-                                                   email_reply_msg_id=email_reply_msg_id
-                                                   )
+                                                   email_reply_msg_id=email_reply_msg_id)
+    newsletter_agent.retrieve_data_and_build_text()
 
     # Set the newsletter state in the db
     newsletter_log_id = set_notify_state(newsletter=newsletter_config,
@@ -142,6 +172,7 @@ def notify(newsletter_id=None, notify_action=None, **kwargs):
 
     if success:
         set_notify_success(newsletter_log_id)
+        logger.info("Tautulli NewsletterHandler :: Newsletter sent for newsletter_id %s." % newsletter_id)
         return True
 
 
@@ -151,10 +182,9 @@ def set_notify_state(newsletter, notify_action, subject, body, message, filename
     if newsletter and notify_action:
         db = database.MonitorDatabase()
 
-        keys = {'timestamp': helpers.timestamp(),
-                'uuid': newsletter_uuid}
-
-        values = {'newsletter_id': newsletter['id'],
+        values = {'timestamp': helpers.timestamp(),
+                  'uuid': newsletter_uuid,
+                  'newsletter_id': newsletter['id'],
                   'agent_id': newsletter['agent_id'],
                   'agent_name': newsletter['agent_name'],
                   'notify_action': notify_action,
@@ -168,18 +198,14 @@ def set_notify_state(newsletter, notify_action, subject, body, message, filename
                   'email_msg_id': email_msg_id,
                   'filename': filename}
 
-        db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
-        return db.last_insert_id()
+        return db.insert(table_name='newsletter_log', value_dict=values)
     else:
         logger.error("Tautulli NewsletterHandler :: Unable to set notify state.")
 
 
 def set_notify_success(newsletter_log_id):
-    keys = {'id': newsletter_log_id}
-    values = {'success': 1}
-
     db = database.MonitorDatabase()
-    db.upsert(table_name='newsletter_log', key_dict=keys, value_dict=values)
+    db.action("UPDATE newsletter_log SET success = 1 WHERE id = ?", [newsletter_log_id])
 
 
 def get_last_newsletter_email_msg_id(newsletter_id, notify_action):

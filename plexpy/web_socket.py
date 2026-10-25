@@ -46,7 +46,7 @@ def start_thread():
         # Check for any existing sessions on start up
         activity_pinger.check_active_sessions(ws_request=True)
     except Exception as e:
-        logger.error("Tautulli WebSocket :: Failed to check for active sessions: %s." % e)
+        logger.exception("Tautulli WebSocket :: Failed to check for active sessions: %s." % e)
         logger.warn("Tautulli WebSocket :: Attempt to fix by flushing temporary sessions...")
         database.delete_sessions()
 
@@ -157,7 +157,10 @@ def run():
         uri = plexpy.CONFIG.PMS_URL.replace('https://', 'wss://') + '/:/websockets/notifications'
         secure = 'secure '
         if plexpy.CONFIG.VERIFY_SSL_CERT:
-            sslopt = {'ca_certs': certifi.where()}
+            # certifi covers a Python with no system CA store, like the macOS app
+            context = ssl.create_default_context()
+            context.load_verify_locations(certifi.where())
+            sslopt = {'context': context}
         else:
             sslopt = {'cert_reqs': ssl.CERT_NONE}
     else:
@@ -230,7 +233,8 @@ def run():
             if ws_shutdown:
                 break
 
-            logger.error("Tautulli WebSocket :: %s.", e)
+            logger.error("Tautulli WebSocket :: %s.", e,
+                         exc_info=not isinstance(e, (websocket.WebSocketException, OSError)))
             close()
             break
 
@@ -259,8 +263,20 @@ def receive(ws):
     return None, None
 
 
+# The event types Tautulli processes; anything else is discarded before
+# paying for the UTF-8 decode, debug-log write, and JSON parse
+_EVENT_TYPE_TOKENS = (b'"playing"', b'"timeline"', b'"reachability"')
+
+
 def process(opcode, data):
     if opcode not in opcode_data:
+        return False
+
+    # Plex emits many event types Tautulli ignores (progress,
+    # transcodeSession.update, ...), often several per second during
+    # transcodes. This is only a cheap prefilter: the authoritative
+    # type check on the parsed JSON still happens below.
+    if not any(token in data for token in _EVENT_TYPE_TOKENS):
         return False
 
     try:
@@ -268,7 +284,7 @@ def process(opcode, data):
         logger.websocket_debug(data)
         event = json.loads(data)
     except Exception as e:
-        logger.warn("Tautulli WebSocket :: Error decoding message from websocket: %s" % e)
+        logger.warn("Tautulli WebSocket :: Error decoding message from websocket: %s" % e, exc_info=True)
         logger.websocket_error(data)
         return False
 
@@ -282,7 +298,7 @@ def process(opcode, data):
         event_data = event.get('PlaySessionStateNotification', event.get('_children', {}))
 
         if not event_data:
-            logger.debug("Tautulli WebSocket :: Session event found but unable to get websocket data.")
+            logger.warn("Tautulli WebSocket :: Session event found but unable to get websocket data.")
             return False
 
         try:
@@ -291,11 +307,11 @@ def process(opcode, data):
         except Exception as e:
             logger.exception("Tautulli WebSocket :: Failed to process session data: %s." % e)
 
-    if event_type == 'timeline':
+    elif event_type == 'timeline':
         event_data = event.get('TimelineEntry', event.get('_children', {}))
 
         if not event_data:
-            logger.debug("Tautulli WebSocket :: Timeline event found but unable to get websocket data.")
+            logger.warn("Tautulli WebSocket :: Timeline event found but unable to get websocket data.")
             return False
 
         try:
@@ -304,11 +320,11 @@ def process(opcode, data):
         except Exception as e:
             logger.exception("Tautulli WebSocket :: Failed to process timeline data: %s." % e)
 
-    if event_type == 'reachability':
+    elif event_type == 'reachability':
         event_data = event.get('ReachabilityNotification', event.get('_children', {}))
 
         if not event_data:
-            logger.debug("Tautulli WebSocket :: Reachability event found but unable to get websocket data.")
+            logger.warn("Tautulli WebSocket :: Reachability event found but unable to get websocket data.")
             return False
 
         try:

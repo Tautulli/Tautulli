@@ -73,4 +73,4 @@ def _ensure_int(value):
     try:
         return int(value)
     except (ValueError, TypeError):
-        raise ValueError("Value '" + value + "' must be an integer.")
+        raise ValueError("Value '{}' must be an integer.".format(value))

@@ -239,6 +239,8 @@ Australia/Lord_Howe
 Australia/Melbourne
 Australia/Perth
 Australia/Sydney
+CST6CDT
+EST5EDT
 Etc/GMT
 Etc/GMT+1
 Etc/GMT+10
@@ -309,6 +311,8 @@ Factory
 Indian/Chagos
 Indian/Maldives
 Indian/Mauritius
+MST7MDT
+PST8PDT
 Pacific/Apia
 Pacific/Auckland
 Pacific/Bougainville
@@ -355,7 +359,6 @@ Brazil/DeNoronha
 Brazil/East
 Brazil/West
 CET
-CST6CDT
 Canada/Atlantic
 Canada/Central
 Canada/Eastern
@@ -369,7 +372,6 @@ Chile/EasterIsland
 Cuba
 EET
 EST
-EST5EDT
 Egypt
 Eire
 Etc/GMT+0
@@ -395,7 +397,6 @@ Kwajalein
 Libya
 MET
 MST
-MST7MDT
 Mexico/BajaNorte
 Mexico/BajaSur
 Mexico/General
@@ -593,6 +594,5 @@ Atlantic/Faeroe
 Europe/Kiev
 Europe/Nicosia
 HST
-PST8PDT
 Pacific/Ponape
 Pacific/Truk

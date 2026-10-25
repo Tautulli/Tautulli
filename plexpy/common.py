@@ -26,9 +26,16 @@ from plexpy import version
 # Identify Our Application
 PRODUCT = 'Tautulli'
 PLATFORM = platform.system()
+PLATFORM_ARCHITECTURE = platform.machine()
 PLATFORM_RELEASE = platform.release()
 PLATFORM_VERSION = platform.version()
-PLATFORM_LINUX_DISTRO = ' '.join(x for x in distro.linux_distribution() if x)
+# Same fields as the deprecated distro.linux_distribution(). Its codename prefers
+# release_codename, so Ubuntu reports "Jammy Jellyfish" instead of "jammy".
+PLATFORM_LINUX_DISTRO = ' '.join(x for x in (
+    distro.name(),
+    distro.version(),
+    distro.os_release_attr('release_codename') or distro.codename()
+) if x)
 PLATFORM_DEVICE_NAME = platform.node()
 PYTHON_VERSION = platform.python_version()
 SQLITE_VERSION = sqlite3.sqlite_version
@@ -441,7 +448,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Channel Identifier', 'type': 'str', 'value': 'channel_identifier', 'description': 'The Live TV channel identifier.'},
              {'name': 'Channel Title', 'type': 'str', 'value': 'channel_title', 'description': 'The Live TV channel title.'},
              {'name': 'Channel Thumb', 'type': 'str', 'value': 'channel_thumb', 'description': 'The URL for the Live TV channel logo.'},
-             {'name': 'Channel VCN', 'type': 'str', 'value': 'channel_title', 'description': 'The Live TV tuner channel number.'},
+             {'name': 'Channel VCN', 'type': 'str', 'value': 'channel_vcn', 'description': 'The Live TV tuner channel number.'},
              {'name': 'Secure', 'type': 'int', 'value': 'secure', 'description': 'If the stream is using a secure connection.', 'example': '0 or 1'},
              {'name': 'Relayed', 'type': 'int', 'value': 'relayed', 'description': 'If the stream is using Plex Relay.', 'example': '0 or 1'},
              {'name': 'Stream Local', 'type': 'int', 'value': 'stream_local', 'description': 'If the stream is local.', 'example': '0 or 1'},
@@ -582,6 +589,7 @@ NOTIFICATION_PARAMETERS = [
              {'name': 'Last.fm URL', 'type': 'str', 'value': 'lastfm_url', 'description': 'The Last.fm URL for the album.', 'help_text': 'Music library agent must be Last.fm'},
              {'name': 'Trakt URL', 'type': 'str', 'value': 'trakt_url', 'description': 'The Trakt URL for the movie or TV show.'},
              {'name': 'Simkl URL', 'type': 'str', 'value': 'simkl_url', 'description': 'The Simkl URL for the movie or TV show.'},
+             {'name': 'Letterboxd URL', 'type': 'str', 'value': 'letterboxd_url', 'description': 'The Letterboxd URL for the movie.'},
              {'name': 'Container', 'type': 'str', 'value': 'container', 'description': 'The media container of the original media.'},
              {'name': 'Bitrate', 'type': 'int', 'value': 'bitrate', 'description': 'The bitrate of the original media.'},
              {'name': 'Aspect Ratio', 'type': 'float', 'value': 'aspect_ratio', 'description': 'The aspect ratio of the original media.'},
@@ -715,6 +723,14 @@ NEWSLETTER_PARAMETERS = [
         'category': 'Recently Added',
         'parameters': [
             {'name': 'Included Libraries', 'type': 'str', 'value': 'newsletter_libraries', 'description': 'The list of libraries included in the newsletter.'},
+            {'name': 'Movie Count', 'type': 'int', 'value': 'movie_count', 'description': 'The number of recently added movies.'},
+            {'name': 'Show Count', 'type': 'int', 'value': 'show_count', 'description': 'The number of recently added shows.'},
+            {'name': 'Season Count', 'type': 'int', 'value': 'season_count', 'description': 'The number of recently added seasons.'},
+            {'name': 'Episode Count', 'type': 'int', 'value': 'episode_count', 'description': 'The number of recently added episodes.'},
+            {'name': 'Artist Count', 'type': 'int', 'value': 'artist_count', 'description': 'The number of recently added artists.'},
+            {'name': 'Album Count', 'type': 'int', 'value': 'album_count', 'description': 'The number of recently added albums.'},
+            {'name': 'Track Count', 'type': 'int', 'value': 'track_count', 'description': 'The number of recently added tracks.'},
+            {'name': 'Other Video Count', 'type': 'int', 'value': 'other_video_count', 'description': 'The number of recently added other videos.'},
         ]
     }
 ]

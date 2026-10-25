@@ -1,6 +1,6 @@
 <!--
-    Please read contributing guide before submitting
-    your pull request. Please fill in each section below to help us better prioritize your pull request. Thanks!
+    Please read contributing guide before submitting your pull request.
+    Please fill in each section below to help us better prioritize your pull request. Thanks!
 -->
 
 ## Description

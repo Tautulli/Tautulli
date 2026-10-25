@@ -4,7 +4,7 @@
 _wsdump.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,16 +37,7 @@ except ImportError:
     pass
 
 
-def get_encoding() -> str:
-    encoding = getattr(sys.stdin, "encoding", "")
-    if not encoding:
-        return "utf-8"
-    else:
-        return encoding.lower()
-
-
 OPCODE_DATA = (websocket.ABNF.OPCODE_TEXT, websocket.ABNF.OPCODE_BINARY)
-ENCODING = get_encoding()
 
 
 class VAction(argparse.Action):
@@ -69,7 +60,9 @@ class VAction(argparse.Action):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="WebSocket Simple Dump Tool")
     parser.add_argument(
-        "url", metavar="ws_url", help="websocket url. ex. ws://echo.websocket.events/"
+        "url",
+        metavar="ws_url",
+        help="websocket url. ex. ws://websockets.chilkat.io/wsChilkatEcho.ashx",
     )
     parser.add_argument("-p", "--proxy", help="proxy url. ex. http://127.0.0.1:8080")
     parser.add_argument(
@@ -104,15 +97,8 @@ def parse_args() -> argparse.Namespace:
 
 
 class RawInput:
-    def raw_input(self, prompt: str = "") -> str:
-        line = input(prompt)
-
-        if ENCODING and ENCODING != "utf-8" and not isinstance(line, str):
-            line = line.decode(ENCODING).encode("utf-8")
-        elif isinstance(line, str):
-            line = line.encode("utf-8")
-
-        return line
+    def raw_input(self, prompt: str = "") -> bytes:
+        return input(prompt).encode("utf-8")
 
 
 class InteractiveConsole(RawInput, code.InteractiveConsole):
@@ -123,7 +109,7 @@ class InteractiveConsole(RawInput, code.InteractiveConsole):
         sys.stdout.write("\n> ")
         sys.stdout.flush()
 
-    def read(self) -> str:
+    def read(self) -> bytes:
         return self.raw_input("> ")
 
 
@@ -133,7 +119,7 @@ class NonInteractive(RawInput):
         sys.stdout.write("\n")
         sys.stdout.flush()
 
-    def read(self) -> str:
+    def read(self) -> bytes:
         return self.raw_input("")
 
 
@@ -168,9 +154,7 @@ def main() -> None:
             frame = ws.recv_frame()
         except websocket.WebSocketException:
             return websocket.ABNF.OPCODE_CLOSE, ""
-        if not frame:
-            raise websocket.WebSocketException(f"Not a valid frame {frame}")
-        elif frame.opcode in OPCODE_DATA:
+        if frame.opcode in OPCODE_DATA:
             return frame.opcode, frame.data
         elif frame.opcode == websocket.ABNF.OPCODE_CLOSE:
             ws.send_close()

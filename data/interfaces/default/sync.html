@@ -39,7 +39,7 @@
             <div class="btn-group">
                 <button class="btn btn-dark refresh-syncs-button" id="refresh-syncs-list"><i class="fa fa-refresh"></i> Refresh synced items</button>
             </div>
-            <div class="btn-group colvis-button-bar"></div>
+            <div class="btn-group colvis-button-bar"><div class="ColVis"><button class="btn btn-dark"><span><i class="fa fa-columns"></i> Select columns</span></button></div></div>
         </div>
     </div>
     <div class='table-card-back'>
@@ -122,9 +122,10 @@
             var colvis = new $.fn.dataTable.ColVis(sync_table, {
                 buttonText: '<i class="fa fa-columns"></i> Select columns',
                 buttonClass: 'btn btn-dark',
-                exclude: [0]
+                exclude: [0],
+                sAlign: 'right'
             });
-            $(colvis.button()).appendTo('div.colvis-button-bar');
+            $('div.colvis-button-bar').empty().append(colvis.button());
 
             clearSearchButton('sync_table', sync_table);
 

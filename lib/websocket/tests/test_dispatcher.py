@@ -17,7 +17,7 @@ from websocket._dispatcher import (
 test_dispatcher.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 
 class MockApp:
     """Mock WebSocketApp for testing"""
@@ -344,6 +345,24 @@ class DispatcherTest(unittest.TestCase):
 
             # Should return data length
             self.assertEqual(result, len(test_data))
+
+    def test_wrapped_dispatcher_send_no_handle_disconnect(self):
+        """WrappedDispatcher tolerates handleDisconnect=None per the rel
+        buffwrite contract: the disconnect callback is optional (rel's
+        BuffWriter substitutes a logging default), so None must be
+        forwarded as-is, never replaced by a no-op."""
+        mock_dispatcher = MockDispatcher()
+        wrapped = WrappedDispatcher(self.app, 10.0, mock_dispatcher, None)
+
+        self.assertIsNone(wrapped.handleDisconnect)
+
+        mock_sock = Mock()
+        with patch("websocket._dispatcher.send"):
+            result = wrapped.send(mock_sock, b"data")
+
+        call = mock_dispatcher.buffwrite_calls[0]
+        self.assertIsNone(call[3])
+        self.assertEqual(result, 4)
 
     def test_wrapped_dispatcher_timeout(self):
         """Test WrappedDispatcher timeout method"""

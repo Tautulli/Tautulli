@@ -1,10 +1,11 @@
 import logging
+from typing import Any, Optional
 
 """
 _logging.py
 websocket - WebSocket client library for Python
 
-Copyright 2025 engn33r
+Copyright 2026 engn33r
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,13 +26,15 @@ try:
 except ImportError:
 
     class NullHandler(logging.Handler):  # type: ignore[no-redef]
-        def emit(self, record) -> None:
+        def emit(self, record: Any) -> None:
             pass
 
 
 _logger.addHandler(NullHandler())
 
 _traceEnabled = False
+_trace_handler: Optional[logging.Handler] = None
+_default_level = _logger.getEffectiveLevel()
 
 __all__ = [
     "enableTrace",
@@ -48,7 +51,7 @@ __all__ = [
 
 def enableTrace(
     traceable: bool,
-    handler: logging.StreamHandler = logging.StreamHandler(),
+    handler: Optional[logging.Handler] = None,
     level: str = "DEBUG",
 ) -> None:
     """
@@ -59,11 +62,23 @@ def enableTrace(
     traceable: bool
         If set to True, traceability is enabled.
     """
-    global _traceEnabled
-    _traceEnabled = traceable
+    global _traceEnabled, _trace_handler
     if traceable:
-        _logger.addHandler(handler)
+        if handler is None:
+            handler = logging.StreamHandler()
+        if _trace_handler and _trace_handler in _logger.handlers:
+            _logger.removeHandler(_trace_handler)
+        _trace_handler = handler
+        if handler not in _logger.handlers:
+            _logger.addHandler(handler)
         _logger.setLevel(getattr(logging, level))
+        _traceEnabled = True
+    else:
+        _traceEnabled = False
+        if _trace_handler and _trace_handler in _logger.handlers:
+            _logger.removeHandler(_trace_handler)
+        _trace_handler = None
+        _logger.setLevel(_default_level)
 
 
 def dump(title: str, message: str) -> None:
