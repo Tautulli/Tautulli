@@ -36,7 +36,7 @@ jobs:
         run: ruff check --select=E9,F63,F7,F82 plexpy
 
       - name: Run Tests
-        run: pytest
+        run: pytest --color=yes
         env:
           # The browser tests use the runner's Google Chrome. They skip
           # where Playwright is not installed.
