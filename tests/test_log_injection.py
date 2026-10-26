@@ -6,7 +6,7 @@ from plexpy import api2, webauth
 FORGED = "\n2026-10-15 12:00:00 - INFO :: MainThread : forged"
 
 
-def test_a_newline_in_the_username_cannot_forge_a_log_line(monkeypatch, caplog):
+def test_a_newline_in_the_username_cannot_forge_a_log_line(app_config, monkeypatch, caplog):
     monkeypatch.setattr(webauth, "check_rate_limit", lambda ip: None)
     monkeypatch.setattr(webauth, "check_credentials", lambda **kwargs: (False, None, None))
     monkeypatch.setattr(webauth.AuthController, "on_login", lambda self, **kwargs: None)
