@@ -375,7 +375,7 @@
                                 <input type="checkbox" id="log_login_ip" name="log_login_ip" value="1" ${config['log_login_ip']}> Unmask IP Addresses in Logs for Failed Logins
                             </label>
                             <p class="help-block">
-                                Unmask IP addresses for failed login attempts in the logs (i.e. for use with fail2ban).
+                                Unmask IP addresses for failed login attempts in the logs (i.e. for use with fail2ban). Only applies when Mask Sensitive Information in Logs is also enabled.
                             </p>
                         </div>
                         <div class="checkbox advanced-setting">
@@ -3004,6 +3004,32 @@ $(document).ready(function() {
 
     $('#http_username, #http_password').change(function () {
         allowGuestAccessCheck();
+    });
+
+    function allowTautulliLoginCheck() {
+        if ($('#http_plex_admin').is(':checked')) {
+            $("#allow_tautulli_login").attr("disabled", false);
+        } else {
+            $("#allow_tautulli_login").attr("checked", false).attr("disabled", true);
+        }
+    }
+    allowTautulliLoginCheck();
+
+    $('#http_plex_admin').change(function () {
+        allowTautulliLoginCheck();
+    });
+
+    function unmaskLoginIPCheck() {
+        if ($('#log_blacklist').is(':checked')) {
+            $("#log_login_ip").attr("disabled", false);
+        } else {
+            $("#log_login_ip").attr("checked", false).attr("disabled", true);
+        }
+    }
+    unmaskLoginIPCheck();
+
+    $('#log_blacklist').change(function () {
+        unmaskLoginIPCheck();
     });
 
     // Load PMS downloads
