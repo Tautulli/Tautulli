@@ -84,8 +84,8 @@ def login_page(app_config, monkeypatch):
 
 
 HINT = ('<div class="alert alert-warning" role="alert">On a new install, the username and password are in the '
-        '<a class="alert-link" href="https://github.com/Tautulli/Tautulli/wiki/Asking-for-Support#how-can-i-share-my-logs" '
-        'target="_blank" rel="noreferrer">Tautulli log</a>.</div>')
+        '<a class="alert-link" href="https://github.com/Tautulli/Tautulli/wiki/Installation#accessing-the-setup-wizard" '
+        'target="_blank" rel="noreferrer">Tautulli logs</a>.</div>')
 
 
 def test_login_page_during_the_wizard(app_config, login_page):
