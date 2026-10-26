@@ -372,6 +372,14 @@
                         </div>
                         <div class="checkbox advanced-setting">
                             <label>
+                                <input type="checkbox" id="log_login_ip" name="log_login_ip" value="1" ${config['log_login_ip']}> Unmask IP Addresses in Logs for Failed Logins
+                            </label>
+                            <p class="help-block">
+                                Unmask IP addresses for failed login attempts in the logs (i.e. for use with fail2ban).
+                            </p>
+                        </div>
+                        <div class="checkbox advanced-setting">
+                            <label>
                                 <input type="checkbox" id="system_analytics" name="system_analytics" value="1" ${config['system_analytics']}> Send Anonymous System Analytics
                             </label>
                             <p class="help-block">Enable anonymous system analytics to help improve Tautulli. No personal information is collected. Refer to the

@@ -40,23 +40,26 @@ def keep_ip_record(msg, keep_ip=None):
     return record
 
 
-def test_public_ip_filter_keeps_the_ip_of_a_marked_record(app_config):
+@pytest.mark.parametrize("log_login_ip, record_keep_ip, expected_message", [
+    (0, None, "bad login at IP '***.***.***.***'."),
+    (1, True, "bad login at IP '8.8.8.8'."),
+])
+def test_public_ip_filter_respects_login_ip_setting(app_config, log_login_ip, record_keep_ip, expected_message):
     app_config.LOG_BLACKLIST = 1
-    record = keep_ip_record("bad login at IP '8.8.8.8'.", keep_ip=True)
-    assert logger.PublicIPFilter().filter(record) is True
-    assert record.getMessage() == "bad login at IP '8.8.8.8'."
-
-
-def test_public_ip_filter_masks_an_unmarked_record(app_config):
-    app_config.LOG_BLACKLIST = 1
-    record = keep_ip_record("bad login at IP '8.8.8.8'.")
+    app_config.LOG_LOGIN_IP = log_login_ip
+    record = keep_ip_record("bad login at IP '8.8.8.8'.", keep_ip=record_keep_ip)
     logger.PublicIPFilter().filter(record)
-    assert record.getMessage() == "bad login at IP '***.***.***.***'."
+    assert record.getMessage() == expected_message
 
 
-def test_failed_login_lines_send_the_keep_ip_mark(monkeypatch, caplog):
+@pytest.mark.parametrize("log_login_ip, expected_keep_ips", [
+    (0, [False] * 4),
+    (1, [True] * 4),
+])
+def test_failed_login_lines_send_the_keep_ip_mark(monkeypatch, caplog, app_config, log_login_ip, expected_keep_ips):
     from plexpy import webauth
 
+    app_config.LOG_LOGIN_IP = log_login_ip
     monkeypatch.setattr(webauth.cherrypy.request.remote, "ip", "8.8.8.8", raising=False)
     monkeypatch.setattr(webauth, "check_credentials", lambda **kwargs: (False, None, None))
     monkeypatch.setattr(webauth.AuthController, "on_login", lambda self, **kwargs: None)
@@ -75,4 +78,4 @@ def test_failed_login_lines_send_the_keep_ip_mark(monkeypatch, caplog):
         controller.signin(username="bob", password="x")
 
     assert len(caplog.records) == 4
-    assert [r.keep_ip for r in caplog.records] == [True] * 4
+    assert [r.keep_ip for r in caplog.records] == expected_keep_ips

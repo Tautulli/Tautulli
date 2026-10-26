@@ -393,7 +393,7 @@ class AuthController(object):
 
         if rate_limit:
             logger.debug("Tautulli WebAuth :: Too many incorrect login attempts from '%s'." % ip_address,
-                         extra={'keep_ip': True})
+                         extra={'keep_ip': bool(plexpy.CONFIG.LOG_LOGIN_IP)})
             error_message = {'status': 'error', 'message': 'Too many login attempts.'}
             cherrypy.response.status = 429
             cherrypy.response.headers['Retry-After'] = rate_limit
@@ -445,21 +445,21 @@ class AuthController(object):
         elif admin_login == '1' and username:
             self.on_login(username=username)
             logger.warn("Tautulli WebAuth :: Invalid admin login attempt from %r at IP '%s'." % (username, ip_address),
-                        extra={'keep_ip': True})
+                        extra={'keep_ip': bool(plexpy.CONFIG.LOG_LOGIN_IP)})
             cherrypy.response.status = 401
             return error_message
 
         elif username:
             self.on_login(username=username)
             logger.warn("Tautulli WebAuth :: Invalid user login attempt from %r at IP '%s'." % (username, ip_address),
-                        extra={'keep_ip': True})
+                        extra={'keep_ip': bool(plexpy.CONFIG.LOG_LOGIN_IP)})
             cherrypy.response.status = 401
             return error_message
 
         elif token:
             self.on_login(username='Plex OAuth', oauth=True)
             logger.warn("Tautulli WebAuth :: Invalid Plex OAuth login attempt from IP '%s'." % ip_address,
-                        extra={'keep_ip': True})
+                        extra={'keep_ip': bool(plexpy.CONFIG.LOG_LOGIN_IP)})
             cherrypy.response.status = 401
             return error_message
 
