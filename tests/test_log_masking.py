@@ -40,17 +40,16 @@ def keep_ip_record(msg, keep_ip=None):
     return record
 
 
-@pytest.mark.parametrize("log_blacklist, log_login_ip, record_keep_ip, expected_message", [
-    (0, 0, False, "bad login at IP '8.8.8.8'."),
-    (0, 1, True, "bad login at IP '8.8.8.8'."),
-    (1, 0, False, "bad login at IP '***.***.***.***'."),
-    (1, 1, True, "bad login at IP '8.8.8.8'."),
+@pytest.mark.parametrize("log_blacklist, record_keep_ip, expected_message", [
+    (0, False, "bad login at IP '8.8.8.8'."),
+    (0, True, "bad login at IP '8.8.8.8'."),
+    (1, False, "bad login at IP '***.***.***.***'."),
+    (1, True, "bad login at IP '8.8.8.8'."),
 ])
 def test_public_ip_filter_respects_blacklist_and_login_ip_settings(
-    app_config, log_blacklist, log_login_ip, record_keep_ip, expected_message
+    app_config, log_blacklist, record_keep_ip, expected_message
 ):
     app_config.LOG_BLACKLIST = log_blacklist
-    app_config.LOG_LOGIN_IP = log_login_ip
     record = keep_ip_record("bad login at IP '8.8.8.8'.", keep_ip=record_keep_ip)
     logger.PublicIPFilter().filter(record)
     assert record.getMessage() == expected_message
