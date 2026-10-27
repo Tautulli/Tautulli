@@ -1,4 +1,4 @@
-# version 2026d
+# version 2026e
 # redo posix_only
 # This zic input file is in the public domain.
 R d 1916 o - Jun 14 23s 1 S
@@ -2870,7 +2870,9 @@ Z America/Whitehorse -9:0:12 - LMT 1900 Au 20
 -7 - MST
 Z America/Winnipeg -6:28:36 - LMT 1887 Jul 16
 -6 W C%sT 2006
--6 C C%sT
+-6 C C%sT 2026 O 31
+-6 C CDT 2026 N 1 2
+-5 - EST
 Z America/Yakutat 14:41:5 - LMT 1867 O 19 0:31:13u
 -9:18:55 - LMT 1900 Au 20 12
 -9 - YST 1942
@@ -3570,6 +3572,8 @@ Z Europe/Dublin -0:25:21 - LMT 1880 Au 2
 -0:25:21 - DMT 1916 May 21 2s
 -0:25:21 1 IST 1916 O 1 2s
 0 G %s 1921 D 6
+0 G GMT/IST 1925 S Su>=16 2s
+0 - GMT 1926
 0 G GMT/IST 1940 F 25 2s
 0 1 IST 1946 O 6 2s
 0 - GMT 1947 Mar 16 2s
