@@ -59,16 +59,11 @@ def _tz_name_from_env(tzenv=None):
         # It's a file specification, expand it, if possible
         parts = os.path.realpath(tzenv).split(os.sep)
 
-        # Is it a zone info zone?
-        possible_tz = "/".join(parts[-2:])
-        if possible_tz in windows_tz.tz_win:
-            # Yup, it is
-            return possible_tz
-
-        # Maybe it's a short one, like UTC?
-        if parts[-1] in windows_tz.tz_win:
-            # Indeed
-            return parts[-1]
+        # Find the full zone name, including names with multiple slashes.
+        for start in range(len(parts)):
+            possible_tz = "/".join(parts[start:])
+            if possible_tz in windows_tz.tz_win:
+                return possible_tz
 
     log.debug("TZ does not contain a time zone name")
     return None

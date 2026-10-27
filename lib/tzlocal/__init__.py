@@ -8,8 +8,8 @@ else:
 from tzlocal.utils import assert_tz_offset
 
 __all__ = [
+    "assert_tz_offset",
     "get_localzone",
     "get_localzone_name",
     "reload_localzone",
-    "assert_tz_offset",
 ]
