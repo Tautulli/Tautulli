@@ -22,7 +22,7 @@ import re
 import sys
 import textwrap
 import types
-from collections.abc import Iterable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from contextlib import suppress
 from importlib import import_module
 from importlib.abc import MetaPathFinder
@@ -179,9 +179,11 @@ class EntryPoint:
     ...
     ValueError: ('Invalid object reference...invalid-name...
 
-    The same thing happens on construction.
+    Construction never raises; the value is validated only when
+    accessed or loaded.
 
-    >>> EntryPoint(name=None, group=None, value='invalid-name')
+    >>> ep = EntryPoint(name=None, group=None, value='invalid-name')
+    >>> ep.load()
     Traceback (most recent call last):
     ...
     ValueError: ('Invalid object reference...invalid-name...
@@ -217,8 +219,6 @@ class EntryPoint:
 
     def __init__(self, name: str, value: str, group: str) -> None:
         vars(self).update(name=name, value=value, group=group)
-        # resolve the value now, raising ValueError if it's invalid
-        _ = self.module
 
     def load(self) -> Any:
         """Load the entry point from its definition. If only a module
@@ -401,6 +401,25 @@ class FileHash:
         return f'<FileHash mode: {self.mode} value: {self.value}>'
 
 
+def _identify_dist(
+    accessor: Callable[[Distribution], str],
+) -> Callable[[Distribution], str]:
+    """
+    Decorate a required metadata accessor to identify the distribution
+    in the error raised when its field is absent.
+    """
+
+    @functools.wraps(accessor)
+    def wrapper(self: Distribution) -> str:
+        try:
+            return accessor(self)
+        except KeyError as exc:
+            (field,) = exc.args
+            raise KeyError(f'Metadata field {field} not present in {self}') from None
+
+    return wrapper
+
+
 class Distribution(metaclass=abc.ABCMeta):
     """
     An abstract Python distribution package.
@@ -561,6 +580,7 @@ class Distribution(metaclass=abc.ABCMeta):
         raise MetadataNotFound('No package metadata was found.')
 
     @property
+    @_identify_dist
     def name(self) -> str:
         """Return the 'Name' metadata for the distribution package."""
         return self.metadata['Name']
@@ -571,6 +591,7 @@ class Distribution(metaclass=abc.ABCMeta):
         return Prepared.normalize(self.name)
 
     @property
+    @_identify_dist
     def version(self) -> str:
         """Return the 'Version' metadata for the distribution package."""
         return self.metadata['Version']
@@ -890,6 +911,14 @@ class Lookup:
         From the children in the path, calculate early all of the
         children that appear to represent metadata (infos) or legacy
         metadata (eggs).
+
+        Children are considered in reverse lexicographic order, so when
+        a path supplies more than one metadata directory for a
+        distribution, as an interrupted or unclean upgrade may leave
+        behind, the greater one is found first
+        (python/cpython#100666). Because the order is lexicographic on
+        the directory name and not on the parsed version, it only
+        approximates a preference for the newer version.
         """
 
         base = os.path.basename(path.root).lower()
@@ -897,7 +926,7 @@ class Lookup:
         self.infos = FreezableDefaultDict(list)
         self.eggs = FreezableDefaultDict(list)
 
-        for child in path.children():
+        for child in sorted(path.children(), key=str.lower, reverse=True):
             low = child.lower()
             if low.endswith((".dist-info", ".egg-info")):
                 # rpartition is faster than splitext and suitable for this purpose.
@@ -963,15 +992,8 @@ class Prepared:
     def normalize(name):
         """
         PEP 503 normalization plus dashes as underscores.
-
-        Specifically avoids ``re.sub`` as prescribed for performance
-        benefits (see python/cpython#143658).
         """
-        value = name.lower().replace("-", "_").replace(".", "_")
-        # Condense repeats
-        while "__" in value:
-            value = value.replace("__", "_")
-        return value
+        return re.sub(r"[-_.]+", "-", name).lower().replace('-', '_')
 
     @staticmethod
     def legacy_normalize(name):
@@ -1028,6 +1050,16 @@ class PathDistribution(Distribution):
         :param path: SimplePath indicating the metadata directory.
         """
         self._path = path
+
+    def __str__(self) -> str:
+        """
+        Render as the metadata path, identifying the distribution
+        even when its metadata cannot name it.
+
+        >>> str(Distribution.at('foo-1.0.dist-info'))
+        'foo-1.0.dist-info'
+        """
+        return str(self._path)
 
     def read_text(self, filename: str | os.PathLike[str]) -> str | None:
         with suppress(
