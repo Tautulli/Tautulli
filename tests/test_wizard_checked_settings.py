@@ -67,3 +67,11 @@ def test_normal_save_zeroes_missing_checked_settings(web, app_config):
     web.configUpdate(http_port="8181")
 
     assert all(getattr(app_config, k) == 0 for k in config.CHECKED_SETTINGS)
+
+
+def test_normal_save_without_the_login_ip_box_turns_it_off(web, app_config):
+    app_config.LOG_LOGIN_IP = 1
+
+    web.configUpdate(http_port="8181")
+
+    assert app_config.LOG_LOGIN_IP == 0

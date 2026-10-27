@@ -35,15 +35,15 @@ def test_plex_direct_ip_filter(app_config, ip, expected):
 
 def keep_ip_record(msg, keep_ip=None):
     record = logging.LogRecord("tautulli", logging.WARNING, __file__, 0, msg, (), None)
-    if keep_ip:
+    if keep_ip is not None:
         record.keep_ip = keep_ip
     return record
 
 
 @pytest.mark.parametrize("log_blacklist, log_login_ip, record_keep_ip, expected_message", [
-    (0, 0, None, "bad login at IP '8.8.8.8'."),
+    (0, 0, False, "bad login at IP '8.8.8.8'."),
     (0, 1, True, "bad login at IP '8.8.8.8'."),
-    (1, 0, None, "bad login at IP '***.***.***.***'."),
+    (1, 0, False, "bad login at IP '***.***.***.***'."),
     (1, 1, True, "bad login at IP '8.8.8.8'."),
 ])
 def test_public_ip_filter_respects_blacklist_and_login_ip_settings(
@@ -88,3 +88,16 @@ def test_failed_login_lines_send_the_keep_ip_mark(
 
     assert len(caplog.records) == 4
     assert [r.keep_ip for r in caplog.records] == expected_keep_ips
+
+
+def test_failed_login_line_masks_the_ip_by_default(monkeypatch, caplog, app_config):
+    from plexpy import webauth
+
+    app_config.LOG_BLACKLIST = 1
+    monkeypatch.setattr(webauth.cherrypy.request.remote, "ip", "8.8.8.8", raising=False)
+    monkeypatch.setattr(webauth, "check_rate_limit", lambda ip: 30)
+
+    with caplog.at_level("DEBUG", logger="tautulli"):
+        webauth.AuthController().signin(username="bob", password="x")
+
+    assert [r.keep_ip for r in caplog.records] == [False]
