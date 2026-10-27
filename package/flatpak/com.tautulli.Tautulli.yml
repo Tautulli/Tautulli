@@ -16,7 +16,7 @@ modules:
       - install -Dm755 package/flatpak/tautulli.sh /app/bin/tautulli
       - install -Dm644 package/flatpak/com.tautulli.Tautulli.desktop -t /app/share/applications
       - install -Dm644 package/flatpak/com.tautulli.Tautulli.metainfo.xml -t /app/share/metainfo
-      - install -Dm644 data/interface/default/images/logo-circle.svg /app/share/icons/hicolor/scalable/apps/com.tautulli.Tautulli.svg
+      - install -Dm644 data/interfaces/default/images/logo-circle.svg /app/share/icons/hicolor/scalable/apps/com.tautulli.Tautulli.svg
       - |
         set -- $(grep -m1 -oE '^## v[0-9.]+ \([0-9-]+\)' CHANGELOG.md | tr -d '#v()')
         test -n "$2"
