@@ -16,18 +16,27 @@ modules:
       - install -Dm755 package/flatpak/tautulli.sh /app/bin/tautulli
       - install -Dm644 package/flatpak/com.tautulli.Tautulli.desktop -t /app/share/applications
       - install -Dm644 package/flatpak/com.tautulli.Tautulli.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 data/interface/default/images/logo-circle.svg /app/share/icons/hicolor/scalable/apps/com.tautulli.Tautulli.svg
       - |
         set -- $(grep -m1 -oE '^## v[0-9.]+ \([0-9-]+\)' CHANGELOG.md | tr -d '#v()')
         test -n "$2"
         sed -i "s/0\.0\.0/$1/g; s/1970-01-01/$2/" /app/share/metainfo/com.tautulli.Tautulli.metainfo.xml
-      - |
-        for size in 128 256; do
-          mkdir -p /app/share/icons/hicolor/${size}x${size}/apps
-          printf '<svg xmlns="http://www.w3.org/2000/svg" width="350" height="350"><image width="350" height="350" href="data:image/png;base64,%s"/></svg>' \
-            "$(base64 -w0 data/interfaces/default/images/logo-circle.png)" > /tmp/icon.svg
-          rsvg-convert -w ${size} -h ${size} /tmp/icon.svg -o /app/share/icons/hicolor/${size}x${size}/apps/com.tautulli.Tautulli.png
-        done
     sources:
       - type: dir
         path: ../..
-        skip: [.git, tests, snap, .github, .flatpak-builder, flatpak_app, repo]
+        skip: 
+          - .git
+          - .github
+          - .dockerignore
+          - Dockerfile
+          - contrib
+          - init-scripts
+          - pylintrc
+          - snap
+          - start.bat
+          - tests
+          - pytest.ini
+          - requirements-dev.txt
+          - .flatpak-builder
+          - flatpak_app
+          - repo
