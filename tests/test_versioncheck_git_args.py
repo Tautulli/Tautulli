@@ -84,6 +84,32 @@ def test_valid_values_reach_git_unchanged(git):
     ]
 
 
+def test_git_path_is_one_literal_executable(monkeypatch):
+    malicious_path = '/bin/sh" -c "id > /tmp/tautulli_rce'
+    calls = []
+
+    class Config:
+        GIT_PATH = malicious_path
+
+    class Process:
+        def communicate(self):
+            return b'ok', None
+
+    def fake_popen(argv, **kwargs):
+        calls.append((argv, kwargs))
+        return Process()
+
+    monkeypatch.setattr(plexpy, 'CONFIG', Config(), raising=False)
+    monkeypatch.setattr(plexpy, 'PROG_DIR', '/tmp', raising=False)
+    monkeypatch.setattr(versioncheck.platform, 'system', lambda: 'Linux')
+    monkeypatch.setattr(versioncheck.subprocess, 'Popen', fake_popen)
+
+    assert versioncheck.runGit('status --short') == ('ok', None)
+    argv, kwargs = calls[0]
+    assert argv == [malicious_path, 'status', '--short']
+    assert 'shell' not in kwargs
+
+
 @pytest.mark.parametrize('field', ['GIT_USER', 'GIT_REPO'])
 @pytest.mark.parametrize('value', ['-x', 'a b', 'a"b', ' -x', 'x\n', '.', '..', '', None])
 def test_bad_user_or_repo_runs_no_git_command(git, field, value):

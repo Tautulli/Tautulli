@@ -33,7 +33,7 @@ from plexpy import request
 def runGit(args):
 
     if plexpy.CONFIG.GIT_PATH:
-        git_locations = ['"' + plexpy.CONFIG.GIT_PATH + '"']
+        git_locations = [plexpy.CONFIG.GIT_PATH]
     else:
         git_locations = ['git']
 
@@ -41,13 +41,14 @@ def runGit(args):
         git_locations.append('/usr/local/git/bin/git')
 
     output = err = None
+    git_args = helpers.split_args(args)
 
     for cur_git in git_locations:
-        cmd = cur_git + ' ' + args
+        cmd = [cur_git] + git_args
 
         try:
-            logger.debug('Trying to execute: "' + cmd + '" in ' + plexpy.PROG_DIR)
-            p = subprocess.Popen(helpers.split_args(cmd), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=plexpy.PROG_DIR)
+            logger.debug('Trying to execute: "' + ' '.join(cmd) + '" in ' + plexpy.PROG_DIR)
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=plexpy.PROG_DIR)
             output, err = p.communicate()
             output = output.strip().decode()
 
