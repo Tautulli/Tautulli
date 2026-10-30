@@ -3,8 +3,6 @@
 The saved newsletter would otherwise load as a template on the next send.
 """
 
-import os
-
 import pytest
 
 from plexpy import newsletters
@@ -99,4 +97,5 @@ def test_symlink_and_dotdot_are_refused(dirs, monkeypatch, tmp_path):
 def test_refusal_uses_builtin_templates(dirs, monkeypatch):
     out, _ = dirs
 
-    assert lookup_dir(monkeypatch, out).endswith(os.path.join("data", "interfaces", "newsletters"))
+    selected_dir = lookup_dir(monkeypatch, out).replace("\\", "/")
+    assert selected_dir.endswith("/data/interfaces/newsletters")
