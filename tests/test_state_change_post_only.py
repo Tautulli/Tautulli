@@ -33,8 +33,10 @@ def request(app, method, path):
 
 @pytest.fixture
 def app(static_config, app_config, monkeypatch):  # noqa: F811
-    # The API key header skips the CSRF check, so the tests reach the method check.
+    # These tests cover HTTP methods, not CSRF. The CSRF behavior is tested directly below.
     app_config.API_KEY = "testkey"
+    for config in static_config.values():
+        config["tools.csrf.on"] = False
     monkeypatch.setattr(webserve.WebInterface, "do_state_change",
                         lambda self, signal, title, timer, **kwargs: "state changed")
     monkeypatch.setattr(plexpy, "DOCKER", False)
@@ -61,11 +63,11 @@ def test_post_is_accepted(app, handler):
 
 # The CSRF check with a real session token and no API key.
 
-def run_csrf_check(monkeypatch, headers):
+def run_csrf_check(monkeypatch, headers, path="/restart"):
     from types import SimpleNamespace
     from plexpy import webauth
     monkeypatch.setattr(cherrypy, "request", SimpleNamespace(
-        path_info="/restart", method="POST", headers=headers, params={}))
+        path_info=path, method="POST", headers=headers, params={}))
     monkeypatch.setattr(cherrypy, "session", {"_csrf_token": "s3ssion"}, raising=False)
     webauth.check_csrf_token()
 
@@ -77,5 +79,29 @@ def test_post_with_the_session_token_header_passes(app_config, monkeypatch):
 def test_post_without_a_token_gets_403(app_config, monkeypatch):
     with pytest.raises(cherrypy.HTTPError) as exc:
         run_csrf_check(monkeypatch, {})
+    assert exc.value.status == 403
 
-    assert exc.value.code == 403
+
+@pytest.mark.parametrize("path", ["/auth/signin", "/auth/signin/extra"])
+def test_api_key_header_passes_on_signin(app_config, monkeypatch, path):
+    app_config.API_KEY = "testkey"
+    run_csrf_check(monkeypatch, {"X-Api-Key": "testkey"}, path=path)
+
+
+def test_api_key_header_is_rejected_on_other_web_routes(app_config, monkeypatch):
+    app_config.API_KEY = "testkey"
+    with pytest.raises(cherrypy.HTTPError) as exc:
+        run_csrf_check(monkeypatch, {"X-Api-Key": "testkey"}, path="/restart")
+    assert exc.value.status == 403
+
+
+def test_api_key_header_is_rejected_on_signin_when_wrong(app_config, monkeypatch):
+    app_config.API_KEY = "testkey"
+    with pytest.raises(cherrypy.HTTPError) as exc:
+        run_csrf_check(monkeypatch, {"X-Api-Key": "wrong"}, path="/auth/signin")
+    assert exc.value.status == 403
+
+
+def test_api_key_header_remains_allowed_for_api_routes(app_config, monkeypatch):
+    app_config.API_KEY = "testkey"
+    run_csrf_check(monkeypatch, {"X-Api-Key": "testkey"}, path="/api/v2")
