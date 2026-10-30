@@ -442,23 +442,18 @@ class AuthController(object):
             cherrypy.response.status = 200
             return {'status': 'success', 'token': jwt_token, 'uuid': hash_pms_uuid()}
 
-        elif admin_login == '1' and username:
-            self.on_login(username=username)
-            logger.warn("Tautulli WebAuth :: Invalid admin login attempt from %r at IP '%s'." % (username, ip_address),
-                        extra={'keep_ip': bool(plexpy.CONFIG.LOG_LOGIN_IP)})
-            cherrypy.response.status = 401
-            return error_message
-
-        elif username:
-            self.on_login(username=username)
-            logger.warn("Tautulli WebAuth :: Invalid user login attempt from %r at IP '%s'." % (username, ip_address),
-                        extra={'keep_ip': bool(plexpy.CONFIG.LOG_LOGIN_IP)})
-            cherrypy.response.status = 401
-            return error_message
-
         elif token:
             self.on_login(username='Plex OAuth', oauth=True)
             logger.warn("Tautulli WebAuth :: Invalid Plex OAuth login attempt from IP '%s'." % ip_address,
+                        extra={'keep_ip': bool(plexpy.CONFIG.LOG_LOGIN_IP)})
+            cherrypy.response.status = 401
+            return error_message
+
+        else:
+            username = username or ''
+            self.on_login(username=username)
+            login_type = 'admin' if admin_login == '1' else 'user'
+            logger.warn("Tautulli WebAuth :: Invalid %s login attempt from %r at IP '%s'." % (login_type, username, ip_address),
                         extra={'keep_ip': bool(plexpy.CONFIG.LOG_LOGIN_IP)})
             cherrypy.response.status = 401
             return error_message
