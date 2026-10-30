@@ -11,10 +11,6 @@ from plexpy import webserve
 from tests.test_static_files import static_config  # noqa: F401
 
 
-API_KEY = "test-key"
-API_HEADERS = {"HTTP_X_API_KEY": API_KEY}
-
-
 def request(app, method, path, query="", body=b"", headers=None):
     status = []
     environ = {"REQUEST_METHOD": method, "PATH_INFO": path, "SCRIPT_NAME": "", "QUERY_STRING": query,
@@ -30,12 +26,13 @@ def request(app, method, path, query="", body=b"", headers=None):
 
 @pytest.fixture
 def app(static_config, monkeypatch):  # noqa: F811
-    # The API key header passes the CSRF check, so a POST reaches the dispatcher.
-    monkeypatch.setattr(plexpy.CONFIG, "API_KEY", API_KEY)
+    # This suite tests dispatcher behavior, not CSRF.
+    for config in static_config.values():
+        config["tools.csrf.on"] = False
     return cherrypy.Application(webserve.WebInterface(), "", config=static_config)
 
 
 @pytest.mark.parametrize("method", ["GET", "POST"])
 def test_delete_duplicate_libraries_is_gone(app, method):
-    status, _ = request(app, method, "/delete_duplicate_libraries", headers=API_HEADERS)
+    status, _ = request(app, method, "/delete_duplicate_libraries")
     assert status.startswith("404")

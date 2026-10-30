@@ -30,7 +30,7 @@ def request(app, method, path, query=""):
     status = []
     environ = {"REQUEST_METHOD": method, "PATH_INFO": path, "SCRIPT_NAME": "", "QUERY_STRING": query,
                "SERVER_NAME": "localhost", "SERVER_PORT": "80", "SERVER_PROTOCOL": "HTTP/1.1",
-               "HTTP_HOST": "localhost", "HTTP_X_API_KEY": "testkey", "REMOTE_ADDR": "127.0.0.1",
+               "HTTP_HOST": "localhost", "REMOTE_ADDR": "127.0.0.1",
                "CONTENT_LENGTH": "0", "wsgi.url_scheme": "http", "wsgi.input": io.BytesIO(),
                "wsgi.errors": sys.stderr, "wsgi.version": (1, 0), "wsgi.multithread": False,
                "wsgi.multiprocess": False, "wsgi.run_once": False}
@@ -40,8 +40,9 @@ def request(app, method, path, query=""):
 
 @pytest.fixture
 def app(static_config, app_config, monkeypatch):  # noqa: F811
-    # The API key header skips the CSRF check, so the tests reach the method check.
-    app_config.API_KEY = "testkey"
+    # These tests cover HTTP methods, not CSRF.
+    for config in static_config.values():
+        config["tools.csrf.on"] = False
     del calls[:]
     monkeypatch.setattr(libraries, "Libraries", FakeLibraries)
     return cherrypy.Application(webserve.WebInterface(), "", config=static_config)

@@ -7,7 +7,7 @@ import pytest
 
 import plexpy
 from plexpy import activity_pinger, libraries, logger, plextv, users, webserve, webstart
-from tests.test_removed_handlers import API_HEADERS, app, request  # noqa: F401
+from tests.test_removed_handlers import app, request  # noqa: F401
 from tests.test_static_files import static_config  # noqa: F401
 
 
@@ -88,6 +88,6 @@ def test_settings_page_shows_the_box_from_the_config(app, app_db, value, checked
 
 @pytest.mark.parametrize("method", ["GET", "POST"])
 def test_toggle_verbose_is_gone(app, method):
-    status, _ = request(app, method, "/toggleVerbose", headers=API_HEADERS)
+    status, _ = request(app, method, "/toggleVerbose")
     assert status.startswith("404")
 
