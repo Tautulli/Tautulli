@@ -58,7 +58,7 @@ def runGit(args):
             continue
 
         if 'not found' in output or "not recognized as an internal or external command" in output:
-            logger.warn('Unable to find git with command ' + cmd)
+            logger.warn('Unable to find git with command: %s', cmd)
             output = None
         elif 'fatal:' in output or err:
             logger.error('Git returned bad info. Are you sure this is a git installation? %s', err or output)
