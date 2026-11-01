@@ -602,11 +602,10 @@ def clean_pyc():
 
 
 def safe_extract(tar, path):
-    base_path = os.path.realpath(path)
+    if not hasattr(tarfile, 'data_filter'):
+        raise ValueError('Python 3.11.4 or later is required to extract updates. Update Python and try again.')
 
-    for member in tar.getmembers():
-        member_path = os.path.realpath(os.path.join(base_path, member.name))
-        if not helpers.is_subdir(member_path, base_path):
-            raise ValueError(f"Path traversal detected: {member.name}")
-
-    tar.extractall(path)
+    try:
+        tar.extractall(path, filter='data')
+    except tarfile.FilterError as e:
+        raise ValueError(str(e)) from e
