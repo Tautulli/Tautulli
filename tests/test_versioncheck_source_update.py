@@ -143,3 +143,28 @@ def test_traversal_archive_does_not_crash_update(src, caplog):
     run_update(src, make_tar([('../evil.txt', 'file', 'x')]))
     assert downloads(src) == []
     assert 'Invalid update archive' in caplog.text
+
+
+def test_html_body_does_not_crash(src, caplog):
+    run_update(src, b'<html>')
+    assert downloads(src) == []
+    assert 'Invalid update archive' in caplog.text
+
+
+def test_truncated_gzip_does_not_crash(src, caplog):
+    good = make_tar([('top/a.txt', 'file', 'x' * 5000)])
+    run_update(src, good[:len(good) // 2])
+    assert downloads(src) == []
+    assert 'Invalid update archive' in caplog.text
+
+
+def test_oserror_on_open_does_not_crash(src, caplog, monkeypatch):
+    data = make_tar([('top/a.txt', 'file', 'x')])  # build before patching
+
+    def boom(*a, **k):
+        raise PermissionError('denied')
+
+    monkeypatch.setattr(versioncheck.tarfile, 'open', boom)
+    run_update(src, data)
+    assert downloads(src) == []
+    assert 'Invalid update archive' in caplog.text

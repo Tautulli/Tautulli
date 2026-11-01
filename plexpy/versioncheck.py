@@ -362,12 +362,14 @@ def update():
 
         # Extract the tar to update folder
         logger.info('Extracting file: ' + tar_download_path)
-        tar = tarfile.open(tar_download_path)
+        tar = None
         try:
+            tar = tarfile.open(tar_download_path)
             safe_extract(tar, update_dir)
-        except ValueError as e:
+        except (ValueError, tarfile.TarError, OSError, EOFError) as e:
             logger.error('Invalid update archive: %s', e)
-            tar.close()
+            if tar:
+                tar.close()
             os.remove(tar_download_path)
             return
         else:
