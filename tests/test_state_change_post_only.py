@@ -105,3 +105,29 @@ def test_api_key_header_is_rejected_on_signin_when_wrong(app_config, monkeypatch
 def test_api_key_header_remains_allowed_for_api_routes(app_config, monkeypatch):
     app_config.API_KEY = "testkey"
     run_csrf_check(monkeypatch, {"X-Api-Key": "testkey"}, path="/api/v2")
+
+
+@pytest.mark.parametrize("path", ["/auth/logout", "/auth", "/authx/signin", "/auth/signi"])
+def test_api_key_header_is_rejected_on_other_auth_routes(app_config, monkeypatch, path):
+    app_config.API_KEY = "testkey"
+    with pytest.raises(cherrypy.HTTPError) as exc:
+        run_csrf_check(monkeypatch, {"X-Api-Key": "testkey"}, path=path)
+    assert exc.value.status == 403
+
+
+def test_empty_api_key_header_is_rejected_on_signin_with_empty_config_key(app_config, monkeypatch):
+    app_config.API_KEY = ""
+    with pytest.raises(cherrypy.HTTPError) as exc:
+        run_csrf_check(monkeypatch, {"X-Api-Key": ""}, path="/auth/signin")
+    assert exc.value.status == 403
+
+
+@pytest.mark.parametrize("path", ["/api", "/api/", "/api/v2"])
+def test_api_routes_need_no_csrf_token(app_config, monkeypatch, path):
+    run_csrf_check(monkeypatch, {}, path=path)
+
+
+def test_api_key_header_name_is_case_insensitive(app_config, monkeypatch):
+    from cherrypy.lib.httputil import HeaderMap
+    app_config.API_KEY = "testkey"
+    run_csrf_check(monkeypatch, HeaderMap({"x-api-key": "testkey"}), path="/auth/signin")
