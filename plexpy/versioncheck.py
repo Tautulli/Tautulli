@@ -353,7 +353,7 @@ def update():
             logger.error("Unable to retrieve new version from '%s', can't update", tar_download_url)
             return
 
-        download_name = plexpy.CONFIG.GIT_BRANCH + '-github'
+        download_name = plexpy.CONFIG.GIT_BRANCH.replace('/', '_') + '-github'
         tar_download_path = os.path.join(plexpy.DATA_DIR, download_name)
 
         # Save tar to disk

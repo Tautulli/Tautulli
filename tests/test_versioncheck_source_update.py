@@ -183,3 +183,11 @@ def test_stale_update_dir_does_not_block_update(src, monkeypatch, tmp_path):
     assert not (src.data_dir / 'update' / 'stale').exists()
     assert removed == [str(src.data_dir / 'nightly-github')]
     assert os.listdir(cwd) == []
+
+
+def test_slash_in_branch_does_not_crash(src):
+    plexpy.CONFIG.GIT_BRANCH = 'feature/x'
+    src.data = make_tar([('top/new.txt', 'file', 'fresh')])
+    versioncheck.update()
+    assert 'feature/x' in src.urls[0]
+    assert (src.prog / 'new.txt').read_text() == 'fresh'
