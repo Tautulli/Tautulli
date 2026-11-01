@@ -101,7 +101,8 @@ def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=Fa
             try:
                 NEWSLETTER_SCHED.reschedule_job(
                     newsletter_job_id, args=args, trigger=CronTrigger(
-                        minute=values[0], hour=values[1], day=values[2], month=values[3], day_of_week=values[4]
+                        minute=values[0], hour=values[1], day=values[2], month=values[3], day_of_week=values[4],
+                        timezone=plexpy.SYS_TIMEZONE
                     )
                 )
                 logger.info("Tautulli NewsletterHandler :: Re-scheduled newsletter: %s" % name)
@@ -111,7 +112,8 @@ def schedule_newsletter_job(newsletter_job_id, name='', func=None, remove_job=Fa
         try:
             NEWSLETTER_SCHED.add_job(
                 func, args=args, id=newsletter_job_id, trigger=CronTrigger(
-                    minute=values[0], hour=values[1], day=values[2], month=values[3], day_of_week=values[4]
+                    minute=values[0], hour=values[1], day=values[2], month=values[3], day_of_week=values[4],
+                    timezone=plexpy.SYS_TIMEZONE
                 ),
                 misfire_grace_time=None
             )
