@@ -363,6 +363,7 @@ def update():
         # Extract the tar to update folder
         logger.info('Extracting file: ' + tar_download_path)
         tar = None
+        shutil.rmtree(update_dir, ignore_errors=True)
         try:
             tar = tarfile.open(tar_download_path)
             safe_extract(tar, update_dir)

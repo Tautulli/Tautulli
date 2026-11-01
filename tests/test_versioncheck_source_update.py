@@ -168,3 +168,18 @@ def test_oserror_on_open_does_not_crash(src, caplog, monkeypatch):
     run_update(src, data)
     assert downloads(src) == []
     assert 'Invalid update archive' in caplog.text
+
+
+def test_stale_update_dir_does_not_block_update(src, monkeypatch, tmp_path):
+    cwd = tmp_path / 'cwd'
+    cwd.mkdir()
+    monkeypatch.chdir(cwd)
+    removed = []
+    real_remove = os.remove
+    monkeypatch.setattr(os, 'remove', lambda p: (removed.append(p), real_remove(p)))
+    (src.data_dir / 'update' / 'stale').mkdir(parents=True)
+    run_update(src, make_tar([('top/new.txt', 'file', 'fresh')]))
+    assert (src.prog / 'new.txt').read_text() == 'fresh'
+    assert not (src.data_dir / 'update' / 'stale').exists()
+    assert removed == [str(src.data_dir / 'nightly-github')]
+    assert os.listdir(cwd) == []
