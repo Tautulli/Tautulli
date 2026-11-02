@@ -13,8 +13,3 @@ updates:
       interval: "daily"
     target-branch: "nightly"
     open-pull-requests-limit: 20
-    groups:
-      tz-unignore:
-        patterns:
-          - "tzlocal"
-          - "platformdirs"
