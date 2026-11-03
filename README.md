@@ -47,6 +47,10 @@ and [PlexWatchWeb](https://github.com/ecleese/plexWatchWeb).
 
 Read the [Installation Guides][Installation] for instructions on how to install Tautulli.
 
+## One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/Tautulli/)
+
 [badge-release-master]: https://img.shields.io/github/v/release/Tautulli/Tautulli?style=flat-square
 [badge-release-master-date]: https://img.shields.io/github/release-date/Tautulli/Tautulli?style=flat-square&color=blue
 [badge-release-beta]: https://img.shields.io/github/v/release/Tautulli/Tautulli?include_prereleases&style=flat-square
