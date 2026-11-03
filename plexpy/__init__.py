@@ -255,12 +255,6 @@ def initialize(config_file):
         except Exception as e:
             logger.exception("Can't connect to the database: %s" % e)
 
-        # Perform upgrades
-        try:
-            upgrade()
-        except Exception as e:
-            logger.exception("Could not perform upgrades: %s" % e)
-
         # Add notifier configs to logger blacklist
         newsletters.blacklist_logger()
         notifiers.blacklist_logger()
@@ -3005,14 +2999,6 @@ def dbcheck():
             db.action('DROP TABLE poster_urls')
     except sqlite3.OperationalError:
         pass
-
-
-def upgrade():
-    logger.info("Checking if the configurastion upgrades are required...")
-
-    logger.info("Configuration upgrade complete.")
-
-    return
 
 
 def shutdown(restart=False, update=False, checkout=False, reset=False):
