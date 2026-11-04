@@ -71,7 +71,14 @@
 <div class="container">
     <div id="ajaxMsg" class="ajaxMsg"></div>
     % if _session['user_group'] == 'admin':
-    % if plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE is not False:
+    <% token_bad = plexpy.plextv_token_is_bad() %>
+    <div id="token_error_bar"${'' if token_bad else ' style="display: none;"'|n}>
+        <i class="fa fa-exclamation-triangle"></i> Your Plex.tv token is no longer valid.<br>
+        Please <a href="${http_root}settings#tabs_tabs-plex_media_server" data-tab-destination="plex_media_server" data-target="sign-in-plex">fetch a new token</a>.
+    </div>
+    % if token_bad:
+    <div id="updatebar" style="display: none;"></div>
+    % elif plexpy.CONFIG.CHECK_GITHUB and plexpy.UPDATE_AVAILABLE is not False:
     <div id="updatebar" style="display: none;">
         % if plexpy.UPDATE_AVAILABLE is None:
         You are running an unknown version of Tautulli.<br />
