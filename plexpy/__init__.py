@@ -106,6 +106,8 @@ COMMITS_BEHIND = None
 PREV_RELEASE = None
 LATEST_RELEASE = None
 UPDATE_AVAILABLE = False
+# The token value that plex.tv rejected, kept in memory only.
+PLEXTV_BAD_TOKEN = None
 
 UMASK = None
 
@@ -496,6 +498,10 @@ def initialize_scheduler():
                 SCHED.start()
             except Exception as e:
                 logger.exception("Failed to start the scheduler: %s", e)
+
+
+def plextv_token_is_bad():
+    return bool(PLEXTV_BAD_TOKEN) and PLEXTV_BAD_TOKEN == CONFIG.PMS_TOKEN
 
 
 def schedule_job(func, name, hours=0, minutes=0, seconds=0, args=None):

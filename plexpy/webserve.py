@@ -3560,8 +3560,8 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     def check_pms_token(self, **kwargs):
-        plex_tv = plextv.PlexTV()
-        if plex_tv.check_token() is False:
+        plextv.notify_token_expired()
+        if plexpy.plextv_token_is_bad():
             cherrypy.response.status = 401
 
     @cherrypy.expose
