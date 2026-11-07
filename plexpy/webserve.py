@@ -783,6 +783,7 @@ class WebInterface(object):
     @cherrypy.tools.allow(methods=['POST'])
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
+    @sanitize_out()
     @addtoapi()
     def get_library_media_info(self, section_id=None, section_type=None, rating_key=None, refresh='',
                                include_archived=None, **kwargs):
