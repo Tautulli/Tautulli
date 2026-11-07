@@ -921,6 +921,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
+    @sanitize_out()
     @addtoapi("get_playlists_table")
     def get_playlists_list(self, section_id=None, user_id=None, **kwargs):
         """ Get the data on the Tautulli playlists tables.
