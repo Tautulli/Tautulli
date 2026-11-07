@@ -3182,10 +3182,9 @@ class PLEXMOBILEAPP(Notifier):
                 return
 
             data['metadata'] = metadata
-            data['uri'] = 'server://{}/com.plexapp.plugins.library/library/metadata/{}'.format(
-                plexpy.CONFIG.PMS_IDENTIFIER, uri_rating_key or pretty_metadata.parameters['rating_key']
+            data['uri'] = 'plex://libraries/{}/metadata/{}?autoplay={}'.format(
+                plexpy.CONFIG.PMS_IDENTIFIER, uri_rating_key or pretty_metadata.parameters['rating_key'], int(self.config['tap_action'] == 'play')
             )
-            data['play'] = self.config['tap_action'] == 'play'
 
         headers = {'X-Plex-Token': plexpy.CONFIG.PMS_TOKEN}
 
