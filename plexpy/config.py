@@ -126,6 +126,7 @@ _CONFIG_DEFINITIONS = {
     'HTTPS_MIN_TLS_VERSION': (str, 'Advanced', 'TLSv1.2'),
     'HTTP_BASIC_AUTH': (int, 'General', 0),
     'HTTP_ENVIRONMENT': (str, 'General', 'production'),
+    'HTTP_GENERATED_PASSWORD': (str, 'General', ''),
     'HTTP_HASH_PASSWORD': (int, 'General', 1),
     'HTTP_HASHED_PASSWORD': (int, 'General', 1),
     'HTTP_HOST': (str, 'General', '0.0.0.0'),
@@ -218,7 +219,7 @@ _DO_NOT_IMPORT_KEYS = [
     'FIRST_RUN_COMPLETE', 'GET_FILE_SIZES_HOLD', 'GIT_PATH', 'PMS_LOGS_FOLDER',
     'BACKUP_DIR', 'CACHE_DIR', 'EXPORT_DIR', 'LOG_DIR', 'NEWSLETTER_DIR', 'NEWSLETTER_CUSTOM_DIR',
     'HTTP_HOST', 'HTTP_PORT', 'HTTP_ROOT',
-    'HTTP_USERNAME', 'HTTP_PASSWORD', 'HTTP_HASH_PASSWORD', 'HTTP_HASHED_PASSWORD',
+    'HTTP_USERNAME', 'HTTP_PASSWORD', 'HTTP_HASH_PASSWORD', 'HTTP_HASHED_PASSWORD', 'HTTP_GENERATED_PASSWORD',
     'ENABLE_HTTPS', 'HTTPS_CREATE_CERT', 'HTTPS_CERT', 'HTTPS_CERT_CHAIN', 'HTTPS_KEY',
     'PMS_TOKEN', 'JWT_SECRET'
 ]
@@ -466,6 +467,7 @@ class Config(object):
         # cannot change mid-process, so resolve once per key
         self._settings_cache = {}
         self._config_file = config_file
+        self.no_password_upgrade = False
         try:
             self._config = ConfigObj(self._config_file, encoding='utf-8')
         except ParseError as e:
@@ -790,3 +792,10 @@ class Config(object):
                 self.ANON_REDIRECT_DYNAMIC = 1
 
             self.CONFIG_VERSION = 22
+
+        if self.CONFIG_VERSION == 22:
+            # generate_first_run_password() sets a password once for a finished install with none
+            self.no_password_upgrade = (self.FIRST_RUN_COMPLETE and not self.HTTP_PASSWORD
+                                        and not self.ALLOW_PUBLIC_NO_PASSWORD)
+
+            self.CONFIG_VERSION = 23

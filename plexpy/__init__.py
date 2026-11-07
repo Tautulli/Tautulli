@@ -3102,18 +3102,22 @@ def shutdown(restart=False, update=False, checkout=False, reset=False):
 
 
 def generate_first_run_password():
-    """ Set a random password until the setup wizard is done, and log it once. """
-    if CONFIG.FIRST_RUN_COMPLETE or CONFIG.HTTP_PASSWORD:
+    """ Set a random password on a first run or a no-password upgrade, and log it once. """
+    if CONFIG.HTTP_PASSWORD or (CONFIG.FIRST_RUN_COMPLETE and not CONFIG.no_password_upgrade):
         return
 
     password = secrets.token_urlsafe(12)
     if not CONFIG.HTTP_USERNAME:
         CONFIG.HTTP_USERNAME = 'tautulli'
     CONFIG.HTTP_PASSWORD = make_hash(password)
+    # The login page shows a notice while this password is in use
+    CONFIG.HTTP_GENERATED_PASSWORD = CONFIG.HTTP_PASSWORD
     CONFIG.HTTP_HASH_PASSWORD = 1
     CONFIG.HTTP_HASHED_PASSWORD = 1
+    CONFIG.JWT_SECRET = generate_uuid()
     CONFIG.write()
-    lines = ["Setup wizard login", "Username: %s    Password: %s" % (CONFIG.HTTP_USERNAME, password)]
+    title = "Tautulli login" if CONFIG.FIRST_RUN_COMPLETE else "Setup wizard login"
+    lines = [title, "Username: %s    Password: %s" % (CONFIG.HTTP_USERNAME, password)]
     width = max(len(x) for x in lines) + 4
     for line in ["*" * width] + ["* " + x.ljust(width - 4) + " *" for x in lines] + ["*" * width]:
         logger.info(line)

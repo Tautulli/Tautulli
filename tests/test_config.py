@@ -105,7 +105,7 @@ def test_upgrade_migrates_fresh_config_to_latest_version(tmp_path):
 
     config = plexpy.config.Config(str(ini_path))
 
-    assert config.CONFIG_VERSION == 22
+    assert config.CONFIG_VERSION == 23
     assert config.GIT_USER == "Tautulli"
     assert config.GIT_REPO == "Tautulli"
     assert config.HTTP_ROOT == ""
@@ -134,7 +134,7 @@ def test_upgrade_migrates_old_style_values(tmp_path):
 
     config = plexpy.config.Config(str(ini_path))
 
-    assert config.CONFIG_VERSION == 22
+    assert config.CONFIG_VERSION == 23
     assert config.PMS_UPDATE_CHANNEL == "beta"
     assert config.HTTP_ROOT == "/tautulli/"
     assert config.JWT_UPDATE_SECRET == 1
@@ -186,7 +186,7 @@ def test_upgrade_migrates_more_old_style_values(tmp_path, monkeypatch):
 
     config = plexpy.config.Config(str(ini_path))
 
-    assert config.CONFIG_VERSION == 22
+    assert config.CONFIG_VERSION == 23
     assert config.HTTP_ROOT == ""
     assert config.MONITOR_PMS_UPDATES == 0
     assert config.BUFFER_THRESHOLD == 10
