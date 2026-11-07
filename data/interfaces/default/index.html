@@ -434,7 +434,7 @@
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', page('info', s.grandparent_rating_key))
                                     .attr('title', s.original_title || s.grandparent_title)
-                                    .text(s.original_title || s.grandparent_title);
+                                    .html(s.original_title || s.grandparent_title);
                             }
                             // Update cover if album changed
                             if (s.parent_rating_key !== instance.data('parent_rating_key').toString()) {
@@ -446,18 +446,18 @@
                                 $('#metadata-parent_title-' + key)
                                     .attr('href', page('info', s.parent_rating_key))
                                     .attr('title', s.parent_title)
-                                    .text(s.parent_title);
+                                    .html(s.parent_title);
                             }
                             // Update cover if track changed
                             if (s.rating_key !== instance.data('rating_key').toString()) {
                                 $('#metadata-grandparent_title-' + key)
                                     .attr('href', page('info', s.grandparent_rating_key))
                                     .attr('title', s.original_title || s.grandparent_title)
-                                    .text(s.original_title || s.grandparent_title);
+                                    .html(s.original_title || s.grandparent_title);
                                 $('#metadata-title-' + key)
                                     .attr('href', page('info', s.rating_key))
                                     .attr('title', s.title)
-                                    .text(s.title);
+                                    .html(s.title);
                             }
                         }
 
@@ -715,8 +715,8 @@
             },
             complete: function (xhr, status) {
                 var session = $.parseJSON(xhr.responseText);
-                $('#raw-stream-info-title').text(session.full_title);
-                $('#raw-stream-info-user').text(session.friendly_name);
+                $('#raw-stream-info-title').html(session.full_title);
+                $('#raw-stream-info-user').html(session.friendly_name);
                 $('#raw-stream-info').text(JSON.stringify(session, Object.keys(session).sort(), 4));
             }
         });

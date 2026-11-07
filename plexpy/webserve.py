@@ -6080,6 +6080,7 @@ class WebInterface(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @requireAuth()
+    @sanitize_out()
     @addtoapi()
     def get_activity(self, session_key=None, session_id=None, **kwargs):
         """ Get the current activity on the PMS.
