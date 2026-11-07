@@ -499,3 +499,162 @@ def test_write_keeps_symlinked_config(tmp_path, monkeypatch):
     assert sources == [os.path.realpath(real_path) + ".tmp"]
     assert link_path.is_symlink()
     assert plexpy.config.Config(str(real_path)).PMS_PORT == 2222
+
+
+# ---------------------------------------------------------------------------
+# A config.ini missing a section that every version writes was cut short.
+# Config() copies it aside before anything writes the defaults over it.
+# ---------------------------------------------------------------------------
+
+def _full_config(tmp_path):
+    ini_path = tmp_path / "config.ini"
+    config = plexpy.config.Config(str(ini_path))
+    config.FIRST_RUN_COMPLETE = 1
+    config.HTTP_USERNAME = "admin"
+    config.HTTP_PASSWORD = "hashedpw"
+    config.PMS_TOKEN = "plextoken123"
+    config.write()
+    return ini_path, ini_path.read_bytes()
+
+
+def _cut_before(data, marker):
+    return data[:data.index(marker)]
+
+
+@pytest.mark.parametrize("damage", [
+    lambda data: b"",
+    lambda data: b"\n\n  \n",
+    # first_run_complete survives, the login does not
+    lambda data: _cut_before(data, b"http_username"),
+    # a cut partway through a line still parses
+    lambda data: _cut_before(data, b"http_port = 8181") + b"http_port = 81",
+    lambda data: _cut_before(data, b"pms_token"),
+    # an install created under Python 2 has its sections in another order
+    lambda data: b"[PMS]\npms_token = plextoken123\n[Monitoring]\n[Advanced]\nconfig_version = 22\n",
+])
+def test_damaged_config_is_copied_aside(tmp_path, damage):
+    ini_path, data = _full_config(tmp_path)
+    damaged = damage(data)
+    ini_path.write_bytes(damaged)
+
+    config = plexpy.config.Config(str(ini_path))
+
+    assert os.path.dirname(config.damaged_copy) == str(tmp_path)
+    assert os.path.basename(config.damaged_copy).startswith("config.ini.damaged-")
+    with open(config.damaged_copy, "rb") as f:
+        assert f.read() == damaged
+    assert ini_path.read_bytes() == damaged
+
+
+def test_valid_config_is_not_copied(tmp_path):
+    ini_path, _ = _full_config(tmp_path)
+
+    assert plexpy.config.Config(str(ini_path)).damaged_copy is None
+    assert os.listdir(tmp_path) == ["config.ini"]
+
+
+def test_older_config_without_newer_keys_is_not_copied(tmp_path):
+    # Cloudinary and Newsletter arrived in 2018. Email is a section from PlexPy.
+    ini_path = tmp_path / "config.ini"
+    ini_path.write_text(
+        "[General]\nhttp_port = 8282\n"
+        "[Advanced]\nconfig_version = 9\n"
+        "[PMS]\npms_ip = 10.0.0.5\n"
+        "[Monitoring]\nmonitoring_interval = 60\n"
+        "[Email]\nemail_enabled = 0\n"
+    )
+
+    config = plexpy.config.Config(str(ini_path))
+
+    assert config.damaged_copy is None
+    assert config.HTTP_PORT == 8282
+    assert os.listdir(tmp_path) == ["config.ini"]
+
+
+def test_fresh_install_is_not_copied(tmp_path):
+    assert plexpy.config.Config(str(tmp_path / "config.ini")).damaged_copy is None
+    assert os.listdir(tmp_path) == []
+
+
+def test_config_import_is_not_copied(tmp_path):
+    ini_path = tmp_path / "import.ini"
+    ini_path.write_text("[PMS]\npms_port = 12345\n")
+
+    assert plexpy.config.Config(str(ini_path), is_import=True).damaged_copy is None
+    assert os.listdir(tmp_path) == ["import.ini"]
+
+
+# Each of the four sections counts, each start keeps its own copy, a failed
+# copy stops the load, and initialize() logs the copy to the log file.
+
+@pytest.mark.parametrize("section", ["General", "Advanced", "PMS", "Monitoring"])
+def test_config_without_one_section_is_copied_aside(tmp_path, section):
+    from configobj import ConfigObj
+    ini_path, _ = _full_config(tmp_path)
+    cfg = ConfigObj(str(ini_path), encoding="utf-8")
+    del cfg[section]
+    cfg.write()
+
+    assert plexpy.config.Config(str(ini_path)).damaged_copy is not None
+
+
+def test_each_damaged_start_keeps_its_own_copy(tmp_path, monkeypatch):
+    ini_path = tmp_path / "config.ini"
+    ini_path.write_bytes(b"")
+    times = iter(["20261107000001", "20261107000002"])
+    monkeypatch.setattr(plexpy.config.helpers, "now", lambda: next(times))
+
+    plexpy.config.Config(str(ini_path))
+    plexpy.config.Config(str(ini_path))
+
+    assert sorted(os.listdir(tmp_path)) == [
+        "config.ini", "config.ini.damaged-20261107000001", "config.ini.damaged-20261107000002"]
+
+
+def test_failed_copy_stops_the_load(tmp_path, monkeypatch):
+    ini_path = tmp_path / "config.ini"
+    ini_path.write_bytes(b"")
+
+    def fail(*args, **kwargs):
+        raise PermissionError("read only")
+    monkeypatch.setattr(plexpy.config.shutil, "copy2", fail)
+
+    with pytest.raises(OSError):
+        plexpy.config.Config(str(ini_path))
+
+
+class _StopInit(BaseException):
+    pass
+
+
+def test_initialize_logs_the_damaged_copy_to_the_log_file(tmp_path, monkeypatch):
+    ini_path = tmp_path / "config.ini"
+    backup_dir = tmp_path / "bk"
+    # The cut kept the backup settings, so the message must use them.
+    ini_path.write_text("[General]\nbackup_days = 17\nbackup_dir = %s\n" % backup_dir)
+    events = []
+    monkeypatch.setattr(plexpy, "DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(plexpy, "CONFIG", None)
+    monkeypatch.setattr(plexpy, "CONFIG_FILE", None)
+    monkeypatch.setattr(plexpy, "VERBOSE", False)
+    monkeypatch.setattr(plexpy, "_INITIALIZED", False)
+    monkeypatch.setenv("PLEXAPI_CONFIG_PATH", "")
+    monkeypatch.setenv("PLEXAPI_LOG_PATH", "")
+    monkeypatch.setenv("PLEXAPI_LOG_LEVEL", "")
+    monkeypatch.setattr(plexpy.plex, "initialize_plexapi", lambda: None)
+    monkeypatch.setattr(logger, "initLogger", lambda **kw: events.append("initLogger"))
+    monkeypatch.setattr(logger, "error", lambda msg, *args: events.append(msg % args))
+    # Stop initialize() right after the damage log line.
+    monkeypatch.setattr(plexpy, "dbcheck", lambda: (_ for _ in ()).throw(_StopInit()))
+
+    with pytest.raises(_StopInit):
+        plexpy.initialize(str(ini_path))
+
+    copy = plexpy.CONFIG.damaged_copy
+    assert copy is not None
+    errors = [e for e in events if "damaged" in e]
+    assert len(errors) == 1
+    assert copy in errors[0] and str(ini_path) in errors[0]
+    assert "zip in %s that" % backup_dir in errors[0]
+    assert "older than 17 days" in errors[0]
+    assert events.index("initLogger") < events.index(errors[0])

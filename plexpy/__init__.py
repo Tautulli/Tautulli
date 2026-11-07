@@ -251,6 +251,13 @@ def initialize(config_file):
         CONFIG.NEWSLETTER_DIR, _ = check_folder_writable(
             CONFIG.NEWSLETTER_DIR, os.path.join(DATA_DIR, 'newsletters'), 'newsletters')
 
+        if CONFIG.damaged_copy:
+            logger.error("Tautulli Config :: The config file %s is damaged. Tautulli copied it to %s "
+                         "and uses defaults for the missing settings. To restore, stop Tautulli. "
+                         "Then replace %s with the config.ini from the newest zip in %s that is older than this start. "
+                         "Tautulli deletes scheduled backups older than %s days, so restore soon.",
+                         config_file, CONFIG.damaged_copy, config_file, CONFIG.BACKUP_DIR, CONFIG.BACKUP_DAYS)
+
         # Initialize the database
         try:
             dbcheck()

@@ -472,6 +472,14 @@ class Config(object):
             logger.error("Tautulli Config :: Error reading configuration file: %s", e)
             raise
 
+        # write() writes each section whole and keeps the section order of the file.
+        # Every version since 2015 writes these four sections. A file without one was cut short.
+        self.damaged_copy = None
+        if not is_import and os.path.isfile(config_file) and \
+                not all(section in self._config for section in ('General', 'Advanced', 'PMS', 'Monitoring')):
+            self.damaged_copy = '%s.damaged-%s' % (config_file, helpers.now())
+            shutil.copy2(config_file, self.damaged_copy)
+
         for key in _CONFIG_DEFINITIONS:
             self.check_setting(key)
         if not is_import:
