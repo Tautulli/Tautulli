@@ -41,6 +41,8 @@ update_show_changelog = 0
 # Nothing listens on port 1, so a Plex server on this machine stays out of the test
 pms_port = 1
 [Advanced]
+# The tests run without a password, so Tautulli must not generate one
+allow_public_no_password = 1
 system_analytics = 0
 """
 
