@@ -39,14 +39,15 @@ def isolated_dirs(root: str | os.PathLike[str]) -> Generator[Path, None, None]:
     ``PlatformDirs("app", version="1.0").user_config_path`` becomes ``<root>/user_config/app/1.0``. Every thread of the
     current process sees the change, and subprocesses do not.
 
-    On Unix, ``use_site_for_root`` is ignored inside the context so user and site directories keep separate kinds.
+    On Unix, ``use_site_for_root`` is ignored inside the context so user and site directories keep separate kinds. A
+    relative ``root`` is made absolute on entry, so changing the working directory does not move the isolation root.
 
     :param root: directory that holds the redirected directories
 
-    :returns: ``root`` as a :class:`~pathlib.Path`
+    :returns: the absolute isolation root as a :class:`~pathlib.Path`
 
     """
-    base = Path(root)
+    base = Path(root).absolute()
     patches = {
         name: _redirect(
             base / (kind := name.removesuffix("_dir")), app=kind in _APP_KINDS, private=kind.startswith("user_")
