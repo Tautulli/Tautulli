@@ -3,7 +3,7 @@ importlib-metadata==10.1.0
 importlib-resources==7.1.0
 pyinstaller==6.19.0
 
-pyobjc-core==12.2.2; platform_system == "Darwin"
+pyobjc-core==13.0; platform_system == "Darwin"
 pyobjc-framework-Cocoa==13.0; platform_system == "Darwin"
 
 pywin32==312; platform_system == "Windows"
