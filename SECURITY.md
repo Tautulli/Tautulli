@@ -8,6 +8,15 @@ To report a security issue, please use the GitHub Security Advisory ["Report a V
 
 **Please do not report security vulnerabilities through public GitHub issues or Discord.**
 
+## Scope and Severity
+
+We score a report on what it demonstrates, not on what might be possible.
+
+* **Show it on real software.** If the issue depends on Plex Media Server or another upstream service behaving a certain way, show it happening on the real service. A mock server proves the Tautulli code path, not the full attack. Reports that rely on unverified upstream behavior are scored low until that behavior is shown.
+* **Code reading is not proof.** A finding based only on reading the source, by a person or an AI tool, counts as unverified until it is reproduced.
+* **Use the attacker's real access.** Say who the attacker is (unauthenticated, Plex friend, guest, or admin). Show the attack using only that access.
+* **Admins are trusted.** A Tautulli admin can already run scripts, change settings, and read the Plex token. A report that needs admin access, or root or file access on the host, is out of scope unless a non-admin can reach it. CSRF, guest access, and an instance with no password set are ways a non-admin can reach it. We may still patch the code behind an out-of-scope report. The patch does not bring the report into scope or raise its score.
+
 ## AI Assistance Notice
 
 Automated AI-generated reports without human review are not allowed and will be rejected. This is an open-source project maintained by volunteers. We do not have the resources to review reports that could have been avoided with proper human oversight.
