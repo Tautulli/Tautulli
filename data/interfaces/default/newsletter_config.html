@@ -4,7 +4,7 @@
     from plexpy import notifiers
     from plexpy.helpers import anon_url, checked, json_dumps_for_html
 
-    all_notifiers = sorted(notifiers.get_notifiers(), key=lambda k: (k['agent_label'].lower(), k['friendly_name'], k['id']))
+    all_notifiers = sorted(notifiers.get_notifiers(include_last_triggered=False), key=lambda k: (k['agent_label'].lower(), k['friendly_name'], k['id']))
     email_notifiers = [n for n in all_notifiers if n['agent_name'] == 'email']
     email_notifiers = [{'id': 0, 'agent_label': 'New Email Configuration', 'friendly_name': ''}] + email_notifiers
     other_notifiers = [{'id': 0, 'agent_label': 'Select a Notification Agent', 'friendly_name': ''}] + all_notifiers
