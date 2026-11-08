@@ -503,18 +503,19 @@ def get_notifiers(notifier_id=None, notify_action=None, include_last_triggered=T
     db = database.MonitorDatabase()
 
     if include_last_triggered:
+        # Each subquery is one seek on idx_notify_log_notifier_id.
+        # A join with GROUP BY read every notify_log row of every notifier.
         query = (
             "SELECT notifiers.id, notifiers.agent_id, notifiers.agent_name, notifiers.agent_label, notifiers.friendly_name, %s, "
-            "MAX(notify_log.timestamp) AS last_triggered, notify_log.success AS last_success "
+            "(SELECT MAX(timestamp) FROM notify_log WHERE notifier_id = notifiers.id) AS last_triggered, "
+            "(SELECT success FROM notify_log WHERE notifier_id = notifiers.id "
+            "ORDER BY timestamp DESC, id DESC LIMIT 1) AS last_success "
             "FROM notifiers "
-            "LEFT OUTER JOIN notify_log ON notifiers.id = notify_log.notifier_id "
-            "%s "
-            "GROUP BY notifiers.id"
+            "%s"
         ) % (', '.join(notify_actions), where)
     else:
-        # The notification path only needs the notifier configuration;
-        # last_triggered/last_success (a scan of the unbounded notify_log
-        # table) is only displayed by the settings UI
+        # The notification path only needs the notifier configuration.
+        # Only the settings UI shows last_triggered and last_success.
         query = (
             "SELECT notifiers.id, notifiers.agent_id, notifiers.agent_name, notifiers.agent_label, notifiers.friendly_name, %s "
             "FROM notifiers "
