@@ -14,7 +14,7 @@ import pytest
 from plexpy import pmsconnect
 from plexpy import webserve
 
-INFO_PAGE = Path(__file__).resolve().parent.parent / "data/interfaces/default/info.html"
+TEMPLATES = Path(__file__).resolve().parent.parent / "data/interfaces/default"
 OLD = b"old image"
 NEW = b"new image, longer than the old one"
 
@@ -119,12 +119,16 @@ def test_cached_image_is_served_with_its_content_type(cache, monkeypatch, img_fo
     assert kwargs["content_type"] == content_type
 
 
-def test_info_page_requests_the_background_art_as_jpg():
-    lines = INFO_PAGE.read_text(encoding="utf-8").splitlines()
-    (art,) = [line for line in lines if 'class="art-face"' in line]
+@pytest.mark.parametrize("template, call", [
     # The fallback gives Live TV items their art
-    assert ("page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080, "
-            "img_format='jpg', fallback=fallback)") in art
+    ("info.html", "page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080, "
+                  "img_format='jpg', fallback=fallback)"),
+    ("library.html", "page('pms_image_proxy', data['library_art'], None, 1920, 1080, img_format='jpg')"),
+])
+def test_page_requests_the_background_art_as_jpg(template, call):
+    lines = (TEMPLATES / template).read_text(encoding="utf-8").splitlines()
+    (art,) = [line for line in lines if 'class="art-face"' in line]
+    assert call in art
 
 
 @pytest.fixture

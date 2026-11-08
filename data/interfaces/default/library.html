@@ -41,7 +41,7 @@ DOCUMENTATION :: END
 <div class="container-fluid">
     <div class="row">
         % if data['library_art']:
-        <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['library_art'], None, 1920, 1080)})"></div>
+        <div class="art-face" style="background-image:url(${page('pms_image_proxy', data['library_art'], None, 1920, 1080, img_format='jpg')})"></div>
         % if _session['user_group'] == 'admin':
         <span class="overlay-refresh-image info-art" title="Refresh background image"><i class="fa fa-refresh refresh_pms_image"></i></span>
         % endif
