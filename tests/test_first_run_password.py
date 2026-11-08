@@ -161,7 +161,7 @@ def login_page(app_config, monkeypatch):
 
 
 HINT = ('<div class="alert alert-warning" role="alert">On a new install, the username and password are in the '
-        '<a class="alert-link" href="https://github.com/Tautulli/Tautulli/wiki/Installation#accessing-the-setup-wizard" '
+        '<a class="alert-link" href="https://github.com/Tautulli/Tautulli/wiki/Installation#tautulli-login" '
         'target="_blank" rel="noreferrer">Tautulli logs</a>.</div>')
 
 
@@ -174,7 +174,7 @@ def test_login_page_during_the_wizard(app_config, login_page):
 
 UPGRADE_HINT = ('<div class="alert alert-warning" role="alert">Tautulli set a password because none was set. '
                 'The username and password are in the <a class="alert-link" '
-                'href="https://github.com/Tautulli/Tautulli/wiki/Installation#accessing-the-setup-wizard" '
+                'href="https://github.com/Tautulli/Tautulli/wiki/Installation#tautulli-login" '
                 'target="_blank" rel="noreferrer">Tautulli logs</a>.</div>')
 
 
