@@ -1,7 +1,9 @@
+import operator
 import os
 import pathlib
 import sys
 import types
+import typing
 
 
 def wrap(path):  # pragma: no cover
@@ -20,3 +22,11 @@ def wrap(path):  # pragma: no cover
 
 
 relative_fix = wrap if sys.version_info < (3, 12) else lambda x: x
+
+
+# __protocol_attrs__ is only present on Python 3.12 and later.
+protocol_attrs = (
+    typing._get_protocol_attrs  # type: ignore[attr-defined] # private, 3.11 only
+    if sys.version_info < (3, 12)
+    else operator.attrgetter('__protocol_attrs__')
+)
