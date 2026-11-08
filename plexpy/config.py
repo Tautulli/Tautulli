@@ -647,7 +647,8 @@ class Config(object):
         else:
             key, definition_type, section, ini_key, default = self._define(name)
             self._settings_cache.pop(key, None)
-            del self._config[section][ini_key]
+            if section in self._config:
+                self._config[section].pop(ini_key, None)
 
     def process_kwargs(self, kwargs):
         """
