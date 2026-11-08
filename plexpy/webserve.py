@@ -5017,7 +5017,7 @@ class WebInterface(object):
             if not plexpy.CONFIG.CACHE_IMAGES or refresh or 'indexes' in img:
                 raise NotFound
 
-            return serve_file(path=ffp, content_type='image/png')
+            return serve_file(path=ffp, content_type='image/jpeg' if img_format == 'jpg' else 'image/png')
 
         except NotFound:
             # the image does not exist, download it from pms

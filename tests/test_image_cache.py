@@ -7,12 +7,14 @@ then reads the bytes. A file written in place could grow in between.
 import errno
 import os
 import threading
+from pathlib import Path
 
 import pytest
 
 from plexpy import pmsconnect
 from plexpy import webserve
 
+INFO_PAGE = Path(__file__).resolve().parent.parent / "data/interfaces/default/info.html"
 OLD = b"old image"
 NEW = b"new image, longer than the old one"
 
@@ -103,6 +105,26 @@ def test_a_failed_swap_still_returns_the_image(cache, monkeypatch, error):
     assert fetch() == NEW
     assert path.read_bytes() == OLD
     assert list(cache.iterdir()) == [path]
+
+
+@pytest.mark.parametrize("img_format, content_type", [("jpg", "image/jpeg"), ("png", "image/png")])
+def test_cached_image_is_served_with_its_content_type(cache, monkeypatch, img_format, content_type):
+    served = []
+    monkeypatch.setattr(webserve, "serve_file", lambda **kwargs: served.append(kwargs))
+
+    webserve.WebInterface().real_pms_image_proxy(img="/library/metadata/1/thumb/2", img_format=img_format)
+
+    (kwargs,) = served
+    assert kwargs["path"].endswith("." + img_format)
+    assert kwargs["content_type"] == content_type
+
+
+def test_info_page_requests_the_background_art_as_jpg():
+    lines = INFO_PAGE.read_text(encoding="utf-8").splitlines()
+    (art,) = [line for line in lines if 'class="art-face"' in line]
+    # The fallback gives Live TV items their art
+    assert ("page('pms_image_proxy', data['art'], data['rating_key'], 1920, 1080, "
+            "img_format='jpg', fallback=fallback)") in art
 
 
 @pytest.fixture
