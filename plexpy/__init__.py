@@ -824,7 +824,7 @@ def dbcheck():
         "CREATE TABLE IF NOT EXISTS mobile_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, "
         "device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, "
         "platform TEXT, version TEXT, friendly_name TEXT, "
-        "onesignal_id TEXT, push_token TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)"
+        "push_token TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)"
     )
 
     # tvmaze_lookup table :: This table keeps record of the TVmaze lookups
@@ -2431,19 +2431,6 @@ def dbcheck():
         c_db.execute(
             "ALTER TABLE mobile_devices ADD COLUMN official INTEGER DEFAULT 0"
         )
-        # Update official mobile device flag
-        for device_id, in c_db.execute("SELECT device_id FROM mobile_devices").fetchall():
-            c_db.execute("UPDATE mobile_devices SET official = ? WHERE device_id = ?",
-                         [mobile_app.validate_onesignal_id(device_id), device_id])
-
-    # Upgrade mobile_devices table from earlier versions
-    try:
-        c_db.execute("SELECT onesignal_id FROM mobile_devices")
-    except sqlite3.OperationalError:
-        logger.info("Altering database. Updating database table mobile_devices.")
-        c_db.execute(
-            "ALTER TABLE mobile_devices ADD COLUMN onesignal_id TEXT"
-        )
 
     # Upgrade mobile_devices table from earlier versions
     try:
@@ -2470,6 +2457,36 @@ def dbcheck():
         c_db.execute(
             "ALTER TABLE mobile_devices ADD COLUMN push_token TEXT"
         )
+
+    # Upgrade mobile_devices table from earlier versions (remove onesignal_id)
+    try:
+        result = c_db.execute("SELECT SQL FROM sqlite_master WHERE type='table' AND name='mobile_devices'").fetchone()
+        if "onesignal_id" in result[0]:
+            logger.info("Altering database. Removing onesignal_id from mobile_devices table.")
+            c_db.execute(
+                "DROP TABLE IF EXISTS mobile_devices_temp"
+            )
+            c_db.execute(
+                "CREATE TABLE mobile_devices_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "device_id TEXT NOT NULL UNIQUE, device_token TEXT, device_name TEXT, "
+                "platform TEXT, version TEXT, friendly_name TEXT, "
+                "push_token TEXT, last_seen INTEGER, official INTEGER DEFAULT 0)"
+            )
+            c_db.execute(
+                "INSERT INTO mobile_devices_temp (id, device_id, device_token, device_name, platform, version, "
+                "friendly_name, push_token, last_seen, official) "
+                "SELECT id, device_id, device_token, device_name, platform, version, "
+                "friendly_name, push_token, last_seen, official "
+                "FROM mobile_devices"
+            )
+            c_db.execute(
+                "DROP TABLE mobile_devices"
+            )
+            c_db.execute(
+                "ALTER TABLE mobile_devices_temp RENAME TO mobile_devices"
+            )
+    except sqlite3.OperationalError:
+        logger.warn("Unable to remove onesignal_id from mobile_devices.")
 
     # Upgrade notifiers table from earlier versions
     try:

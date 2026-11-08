@@ -15,6 +15,8 @@ DOCUMENTATION :: END
         <span>
             % if device['official'] == -1:
                 <span class="toggle-left official-tooltip" data-toggle="tooltip" data-placement="top" title="Notification Registration Validation Failed"><i class="fa fa-lg fa-fw fa-exclamation-triangle"></i></span>
+            % elif not device['push_token']:
+                <span class="toggle-left official-tooltip" data-toggle="tooltip" data-placement="top" title="Not Registered for Notifications. Update Tautulli Remote."><i class="fa fa-lg fa-fw fa-exclamation-triangle"></i></span>
             % elif device['official'] > 0:
                 <%
                     icon = 'mobile'

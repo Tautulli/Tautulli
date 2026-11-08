@@ -26,8 +26,6 @@ from plexpy import helpers
 from plexpy import logger
 
 
-_ONESIGNAL_APP_ID = '3b4b666a-d557-4b92-acdf-e2c8c4b95357'
-_ONESIGNAL_DISABLED = 'onesignal-disabled'
 _PUSH_DISABLED = 'push-disabled'
 
 _REVALIDATE_INTERVAL = 2  # seconds; the relay rate limits /v1/validate per client IP
@@ -100,8 +98,7 @@ def get_mobile_device_by_token(device_token=None):
 
 
 def add_mobile_device(device_id=None, device_name=None, device_token=None,
-                      platform=None, version=None, friendly_name=None, onesignal_id=None,
-                      push_token=None):
+                      platform=None, version=None, friendly_name=None, push_token=None):
     db = database.MonitorDatabase()
 
     keys = {'device_id': device_id}
@@ -109,7 +106,6 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None,
               'device_token': device_token,
               'platform': platform,
               'version': version,
-              'onesignal_id': onesignal_id,
               'push_token': push_token}
 
     if friendly_name:
@@ -131,7 +127,7 @@ def add_mobile_device(device_id=None, device_name=None, device_token=None,
     # same token wrote one within the throttle window
     _LAST_SEEN.pop(device_token, None)
     set_last_seen(device_token=device_token)
-    threading.Thread(target=set_official, args=[device_id, onesignal_id, push_token]).start()
+    threading.Thread(target=set_official, args=[device_id, push_token]).start()
     return True
 
 
@@ -145,9 +141,6 @@ def get_mobile_device_config(mobile_device_id=None):
     db = database.MonitorDatabase()
     result = db.select_single("SELECT * FROM mobile_devices WHERE id = ?",
                               args=[mobile_device_id])
-
-    if result['onesignal_id'] == _ONESIGNAL_DISABLED:
-        result['onesignal_id'] = ''
 
     if result['push_token'] == _PUSH_DISABLED:
         result['push_token'] = ''
@@ -194,14 +187,11 @@ def delete_mobile_device(mobile_device_id=None, device_id=None):
         return False
 
 
-def set_official(device_id, onesignal_id, push_token=None):
+def set_official(device_id, push_token=None):
     db = database.MonitorDatabase()
 
-    # Newer app versions register a push token; older ones only send a OneSignal ID.
-    if push_token:
-        official = validate_push_token(push_token=push_token)
-    else:
-        official = validate_onesignal_id(onesignal_id=onesignal_id)
+    # App versions before the relay register no push token and cannot receive notifications.
+    official = validate_push_token(push_token=push_token) if push_token else 0
 
     # An indeterminate result says nothing about the token, so don't let it
     # clear a device that has already validated.
@@ -253,25 +243,6 @@ def set_last_seen(device_token=None):
         return
 
 
-def validate_onesignal_id(onesignal_id):
-    if onesignal_id is None:
-        return 0
-    elif onesignal_id == _ONESIGNAL_DISABLED:
-        return 2
-
-    headers = {'Content-Type': 'application/json'}
-
-    logger.info("Tautulli MobileApp :: Validating OneSignal ID")
-    try:
-        r = requests.get(f'https://api.onesignal.com/apps/{_ONESIGNAL_APP_ID}/subscriptions/{onesignal_id}/user/identity', headers=headers)
-        status_code = r.status_code
-        logger.info("Tautulli MobileApp :: OneSignal ID validation returned status code %s", status_code)
-        return int(status_code == 200)
-    except Exception as e:
-        logger.warn("Tautulli MobileApp :: Failed to validate OneSignal ID: %s." % e)
-        return -1
-
-
 def validate_push_token(push_token):
     if push_token == _PUSH_DISABLED:
         return 2
@@ -302,9 +273,7 @@ def validate_push_token(push_token):
 
 
 def validates_remotely(device):
-    if device['push_token']:
-        return device['push_token'] != _PUSH_DISABLED
-    return bool(device['onesignal_id']) and device['onesignal_id'] != _ONESIGNAL_DISABLED
+    return bool(device['push_token']) and device['push_token'] != _PUSH_DISABLED
 
 
 def revalidate_devices():
@@ -323,7 +292,7 @@ def _revalidate_devices():
     logger.info("Tautulli MobileApp :: Validating %s mobile device registration(s).", len(devices))
 
     for device in devices:
-        set_official(device['device_id'], device['onesignal_id'], device['push_token'])
+        set_official(device['device_id'], device['push_token'])
         time.sleep(_REVALIDATE_INTERVAL)
 
 
