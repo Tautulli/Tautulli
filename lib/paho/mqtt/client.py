@@ -35,8 +35,11 @@ import urllib.parse
 import urllib.request
 import uuid
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterator, List, NamedTuple, Sequence, Tuple, Union, cast
+from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Union, cast, overload
 
+from paho.mqtt import _packet
+from paho.mqtt.exception import MalformedPacket
 from paho.mqtt.packettypes import PacketTypes
 
 from .enums import CallbackAPIVersion, ConnackCode, LogLevel, MessageState, MessageType, MQTTErrorCode, MQTTProtocolVersion, PahoClientMode, _ConnectionState
@@ -78,13 +81,13 @@ if TYPE_CHECKING:
         qos: int
         pos: int
         to_process: int
-        packet: bytes
+        packet: bytes | bytearray
         info: MQTTMessageInfo | None
 
     class SocketLike(Protocol):
         def recv(self, buffer_size: int) -> bytes:
             ...
-        def send(self, buffer: bytes) -> int:
+        def send(self, buffer: bytes | bytearray) -> int:
             ...
         def close(self) -> None:
             ...
@@ -216,7 +219,7 @@ sockpair_data = b"0"
 # * None is converted to a zero-length payload (i.e. b"")
 PayloadType = Union[str, bytes, bytearray, int, float, None]
 
-HTTPHeader = Dict[str, str]
+HTTPHeader = dict[str, str]
 WebSocketHeaders = Union[Callable[[HTTPHeader], HTTPHeader], HTTPHeader]
 
 CleanStartOption = Union[bool, Literal[3]]
@@ -247,8 +250,8 @@ class DisconnectFlags(NamedTuple):
     """
 
 
-CallbackOnConnect_v1_mqtt3 = Callable[["Client", Any, Dict[str, Any], MQTTErrorCode], None]
-CallbackOnConnect_v1_mqtt5 = Callable[["Client", Any, Dict[str, Any], ReasonCode, Union[Properties, None]], None]
+CallbackOnConnect_v1_mqtt3 = Callable[["Client", Any, dict[str, Any], MQTTErrorCode], None]
+CallbackOnConnect_v1_mqtt5 = Callable[["Client", Any, dict[str, Any], ReasonCode, Union[Properties, None]], None]
 CallbackOnConnect_v1 = Union[CallbackOnConnect_v1_mqtt5, CallbackOnConnect_v1_mqtt3]
 CallbackOnConnect_v2 = Callable[["Client", Any, ConnectFlags, ReasonCode, Union[Properties, None]], None]
 CallbackOnConnect = Union[CallbackOnConnect_v1, CallbackOnConnect_v2]
@@ -265,15 +268,15 @@ CallbackOnPublish_v1 = Callable[["Client", Any, int], None]
 CallbackOnPublish_v2 = Callable[["Client", Any, int, ReasonCode, Properties], None]
 CallbackOnPublish = Union[CallbackOnPublish_v1, CallbackOnPublish_v2]
 CallbackOnSocket = Callable[["Client", Any, "SocketLike"], None]
-CallbackOnSubscribe_v1_mqtt3 = Callable[["Client", Any, int, Tuple[int, ...]], None]
-CallbackOnSubscribe_v1_mqtt5 = Callable[["Client", Any, int, List[ReasonCode], Properties], None]
+CallbackOnSubscribe_v1_mqtt3 = Callable[["Client", Any, int, tuple[int, ...]], None]
+CallbackOnSubscribe_v1_mqtt5 = Callable[["Client", Any, int, list[ReasonCode], Properties], None]
 CallbackOnSubscribe_v1 = Union[CallbackOnSubscribe_v1_mqtt3, CallbackOnSubscribe_v1_mqtt5]
-CallbackOnSubscribe_v2 = Callable[["Client", Any, int, List[ReasonCode], Union[Properties, None]], None]
+CallbackOnSubscribe_v2 = Callable[["Client", Any, int, list[ReasonCode], Union[Properties, None]], None]
 CallbackOnSubscribe = Union[CallbackOnSubscribe_v1, CallbackOnSubscribe_v2]
 CallbackOnUnsubscribe_v1_mqtt3 = Callable[["Client", Any, int], None]
-CallbackOnUnsubscribe_v1_mqtt5 = Callable[["Client", Any, int, Properties, Union[ReasonCode, List[ReasonCode]]], None]
+CallbackOnUnsubscribe_v1_mqtt5 = Callable[["Client", Any, int, Properties, Union[ReasonCode, list[ReasonCode]]], None]
 CallbackOnUnsubscribe_v1 = Union[CallbackOnUnsubscribe_v1_mqtt3, CallbackOnUnsubscribe_v1_mqtt5]
-CallbackOnUnsubscribe_v2 = Callable[["Client", Any, int, List[ReasonCode], Union[Properties, None]], None]
+CallbackOnUnsubscribe_v2 = Callable[["Client", Any, int, list[ReasonCode], Union[Properties, None]], None]
 CallbackOnUnsubscribe = Union[CallbackOnUnsubscribe_v1, CallbackOnUnsubscribe_v2]
 
 # This is needed for typing because class Client redefined the name "socket"
@@ -285,7 +288,6 @@ class WebsocketConnectionError(ConnectionError):
 
         It's raised when unable to perform the Websocket handshake.
     """
-    pass
 
 
 def error_string(mqtt_errno: MQTTErrorCode | int) -> str:
@@ -348,37 +350,8 @@ def connack_string(connack_code: int|ReasonCode) -> str:
     else:
         return "Connection Refused: unknown reason."
 
-
-def convert_connack_rc_to_reason_code(connack_code: ConnackCode) -> ReasonCode:
-    """Convert a MQTTv3 / MQTTv3.1.1 connack result to `ReasonCode`.
-
-    This is used in `on_connect` callback to have a consistent API.
-
-    Be careful that the numeric value isn't the same, for example:
-
-    >>> ConnackCode.CONNACK_REFUSED_SERVER_UNAVAILABLE == 3
-    >>> convert_connack_rc_to_reason_code(ConnackCode.CONNACK_REFUSED_SERVER_UNAVAILABLE) == 136
-
-    It's recommended to compare by names
-
-    >>> code_to_test = ReasonCode(PacketTypes.CONNACK, "Server unavailable")
-    >>> convert_connack_rc_to_reason_code(ConnackCode.CONNACK_REFUSED_SERVER_UNAVAILABLE) == code_to_test
-    """
-    if connack_code == ConnackCode.CONNACK_ACCEPTED:
-        return ReasonCode(PacketTypes.CONNACK, "Success")
-    if connack_code == ConnackCode.CONNACK_REFUSED_PROTOCOL_VERSION:
-        return ReasonCode(PacketTypes.CONNACK, "Unsupported protocol version")
-    if connack_code == ConnackCode.CONNACK_REFUSED_IDENTIFIER_REJECTED:
-        return ReasonCode(PacketTypes.CONNACK, "Client identifier not valid")
-    if connack_code == ConnackCode.CONNACK_REFUSED_SERVER_UNAVAILABLE:
-        return ReasonCode(PacketTypes.CONNACK, "Server unavailable")
-    if connack_code == ConnackCode.CONNACK_REFUSED_BAD_USERNAME_PASSWORD:
-        return ReasonCode(PacketTypes.CONNACK, "Bad user name or password")
-    if connack_code == ConnackCode.CONNACK_REFUSED_NOT_AUTHORIZED:
-        return ReasonCode(PacketTypes.CONNACK, "Not authorized")
-
-    return ReasonCode(PacketTypes.CONNACK, "Unspecified error")
-
+# convert_connack_rc_to_reason_code was exposed in public API. Kept it exposed.
+convert_connack_rc_to_reason_code = _packet.convert_connack_rc_to_reason_code
 
 def convert_disconnect_error_code_to_reason_code(rc: MQTTErrorCode) -> ReasonCode:
     """Convert an MQTTErrorCode to Reason code.
@@ -401,6 +374,8 @@ def convert_disconnect_error_code_to_reason_code(rc: MQTTErrorCode) -> ReasonCod
         return ReasonCode(PacketTypes.DISCONNECT, "Keep alive timeout")
     if rc == MQTTErrorCode.MQTT_ERR_CONN_LOST:
         return ReasonCode(PacketTypes.DISCONNECT, "Unspecified error")
+    if rc == MQTTErrorCode.MQTT_ERR_PROTOCOL:
+        return ReasonCode(PacketTypes.DISCONNECT, "Protocol error")
     return ReasonCode(PacketTypes.DISCONNECT, "Unspecified error")
 
 
@@ -445,7 +420,7 @@ def _socketpair_compat() -> tuple[socket.socket, socket.socket]:
     listensock.bind(("127.0.0.1", 0))
     listensock.listen(1)
 
-    iface, port = listensock.getsockname()
+    _iface, port = listensock.getsockname()
     sock1 = socket.socket(
         socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_IP)
     sock1.setblocking(False)
@@ -453,19 +428,24 @@ def _socketpair_compat() -> tuple[socket.socket, socket.socket]:
         sock1.connect(("127.0.0.1", port))
     except BlockingIOError:
         pass
-    sock2, address = listensock.accept()
+    sock2, _address = listensock.accept()
     sock2.setblocking(False)
     listensock.close()
     return (sock1, sock2)
 
-
-def _force_bytes(s: str | bytes) -> bytes:
+@overload
+def _force_bytes(s: str) -> bytes: ...
+@overload
+def _force_bytes(s: bytes) -> bytes: ...
+@overload
+def _force_bytes(s: bytearray) -> bytearray: ...
+def _force_bytes(s: str | bytes | bytearray) -> bytes | bytearray:
     if isinstance(s, str):
         return s.encode("utf-8")
     return s
 
 
-def _encode_payload(payload: str | bytes | bytearray | int | float | None) -> bytes|bytearray:
+def _encode_payload(payload: str | bytes | bytearray | float | None) -> bytes | bytearray:
     if isinstance(payload, str):
         return payload.encode("utf-8")
 
@@ -489,7 +469,7 @@ class MQTTMessageInfo:
     message has been published, and/or wait until it is published.
     """
 
-    __slots__ = 'mid', '_published', '_condition', 'rc', '_iterpos'
+    __slots__ = '_condition', '_iterpos', '_published', 'mid', 'rc'
 
     def __init__(self, mid: int):
         self.mid = mid
@@ -569,7 +549,15 @@ class MQTTMessageInfo:
         """Returns True if the message associated with this object has been
         published, else returns False.
 
-        To wait for this to become true, look at `wait_for_publish`.
+        Returning False does not mean the publication failed; it means the
+        publication has not completed yet. To wait for this to become true,
+        look at `wait_for_publish`.
+
+        :raises ValueError: if the message was not queued due to the outgoing
+            queue being full.
+
+        :raises RuntimeError: if the message was not published for another
+            reason.
         """
         if self.rc == MQTTErrorCode.MQTT_ERR_QUEUE_SIZE:
             raise ValueError('Message is not queued due to ERR_QUEUE_SIZE')
@@ -586,7 +574,7 @@ class MQTTMessage:
     """ This is a class that describes an incoming message. It is
     passed to the `on_message` callback as the message parameter.
     """
-    __slots__ = 'timestamp', 'state', 'dup', 'mid', '_topic', 'payload', 'qos', 'retain', 'info', 'properties'
+    __slots__ = '_topic', 'dup', 'info', 'mid', 'payload', 'properties', 'qos', 'retain', 'state', 'timestamp'
 
     def __init__(self, mid: int = 0, topic: bytes = b""):
         self.timestamp = 0.0
@@ -595,7 +583,7 @@ class MQTTMessage:
         self.mid = mid
         """ The message id (int)."""
         self._topic = topic
-        self.payload = b""
+        self.payload: bytes | bytearray = b""
         """the message payload (bytes)"""
         self.qos = 0
         """ The message Quality of Service (0, 1 or 2)."""
@@ -647,7 +635,8 @@ class Client:
     functions as described below.
 
     :param CallbackAPIVersion callback_api_version: define the API version for user-callback (on_connect, on_publish,...).
-        This field is required and it's recommended to use the latest version (CallbackAPIVersion.API_VERSION2).
+        This field defaults to CallbackAPIVersion.VERSION1 to avoid breaking user's code.  However it's recommended
+        to migrate to the latest version (CallbackAPIVersion.VERSION2).
         See each callback for description of API for each version. The file docs/migrations.rst contains details on
         how to migrate between version.
 
@@ -769,7 +758,7 @@ class Client:
         if isinstance(self._callback_api_version, str):
             # Help user to migrate, it probably provided a client id
             # as first arguments
-            raise ValueError(
+            raise TypeError(
                 "Unsupported callback API version: version 2.0 added a callback_api_version, see docs/migrations.rst for details"
             )
         if self._callback_api_version not in CallbackAPIVersion:
@@ -810,7 +799,7 @@ class Client:
             "pos": 0,
         }
         self._out_packet: collections.deque[_OutPacket] = collections.deque()
-        self._last_msg_in = time_func()
+        self._last_bytes_received = time_func()
         self._last_msg_out = time_func()
         self._reconnect_min_delay = 1
         self._reconnect_max_delay = 120
@@ -832,7 +821,7 @@ class Client:
         self._will_properties: Properties | None = None
         self._will = False
         self._will_topic = b""
-        self._will_payload = b""
+        self._will_payload: bytes | bytearray = b""
         self._will_qos = 0
         self._will_retain = False
         self._on_message_filtered = MQTTMatcher()
@@ -1074,7 +1063,7 @@ class Client:
         return self._will_topic.decode("utf-8")
 
     @property
-    def will_payload(self) -> bytes | None:
+    def will_payload(self) -> bytes | bytearray | None:
         """
         The payload for the will message that is sent when disconnecting unexpectedly. None if a will shall not be sent.
 
@@ -1105,7 +1094,7 @@ class Client:
                 MQTT_LOG_DEBUG, "socket was None: %s", err)
             raise ConnectionError() from err
 
-    def _sock_send(self, buf: bytes) -> int:
+    def _sock_send(self, buf: bytes | bytearray) -> int:
         if self._sock is None:
             raise ConnectionError("self._sock is None")
 
@@ -1153,7 +1142,7 @@ class Client:
     ) -> None:
         self._reset_sockets()
 
-        self.__init__(client_id, clean_session, userdata)  # type: ignore[misc]
+        self.__init__(self.callback_api_version, client_id, clean_session, userdata)  # type: ignore[misc]
 
     def ws_set_options(
         self,
@@ -1229,7 +1218,7 @@ class Client:
             is mandatory.
         :param str certfile: PEM encoded client certificate filename. Used with
             keyfile for client TLS based authentication. Support for this feature is
-            broker dependent. Note that if the files in encrypted and needs a password to
+            broker dependent. Note that if the file is encrypted and needs a password to
             decrypt it, then this can be passed using the keyfile_password argument - you
             should take precautions to ensure that your password is
             not hard coded into your program by loading the password from a file
@@ -1237,7 +1226,7 @@ class Client:
             be requested to be typed in at a terminal window.
         :param str keyfile: PEM encoded client private keys filename. Used with
             certfile for client TLS based authentication. Support for this feature is
-            broker dependent. Note that if the files in encrypted and needs a password to
+            broker dependent. Note that if the file is encrypted and needs a password to
             decrypt it, then this can be passed using the keyfile_password argument - you
             should take precautions to ensure that your password is
             not hard coded into your program by loading the password from a file
@@ -1268,7 +1257,8 @@ class Client:
 
         # Create SSLContext object
         if tls_version is None:
-            tls_version = ssl.PROTOCOL_TLSv1_2
+            if hasattr(ssl, "PROTOCOL_TLSv1_2"):
+                tls_version = ssl.PROTOCOL_TLSv1_2
             # If the python version supports it, use highest TLS version automatically
             if hasattr(ssl, "PROTOCOL_TLS_CLIENT"):
                 # This also enables CERT_REQUIRED and check_hostname by default.
@@ -1473,11 +1463,11 @@ class Client:
 
         # FIXME: doesn't account for weight
         for answer in answers:
-            host, port, prio, weight = answer
+            host, port, _prio, _weight = answer
 
             try:
                 return self.connect(host, port, keepalive, bind_address, bind_port, clean_start, properties)
-            except Exception:  # noqa: S110
+            except Exception:  # noqa: S110,BLE001
                 pass
 
         raise ValueError("No SRV hosts responded")
@@ -1577,7 +1567,7 @@ class Client:
         self._out_packet.clear()
 
         with self._msgtime_mutex:
-            self._last_msg_in = time_func()
+            self._last_bytes_received = time_func()
             self._last_msg_out = time_func()
 
         # Put messages in progress in a valid state.
@@ -1638,10 +1628,24 @@ class Client:
         if timeout < 0.0:
             raise ValueError('Invalid timeout.')
 
+
+        # Tell mypy 2.2.0 self._sock is not None,
+        # avoiding: error: Value of type variable "_R" of "select" cannot be "SocketLike | None"  [type-var]
+        # (and for "_W") in select.select(rlist, wlist, [], timeout) below.
+        if self._sock is None:
+            msg=(
+                f"Client is not connected. Socket: {self._sock!r}). "
+                f"Last known Connection State: {self._state.name}"
+            )
+            self._easy_log(MQTT_LOG_ERR, msg)
+            return MQTT_ERR_NO_CONN
+
         if self.want_write():
             wlist = [self._sock]
         else:
             wlist = []
+
+
 
         # used to check if there are any bytes left in the (SSL) socket
         pending_bytes = 0
@@ -1677,7 +1681,7 @@ class Client:
             if self._state not in (_ConnectionState.MQTT_CS_DISCONNECTING, _ConnectionState.MQTT_CS_DISCONNECTED):
                 self._state = _ConnectionState.MQTT_CS_CONNECTION_LOST
             return MQTTErrorCode.MQTT_ERR_CONN_LOST
-        except Exception:
+        except Exception:  # noqa: BLE001
             # Note that KeyboardInterrupt, etc. can still terminate since they
             # are not derived from Exception
             return MQTTErrorCode.MQTT_ERR_UNKNOWN
@@ -1687,7 +1691,7 @@ class Client:
             if rc or self._sock is None:
                 return rc
 
-        if self._sockpairR and self._sockpairR in socklist[0]:
+        if self._sockpairR in socklist[0] and self._sockpairR:
             # Stimulate output write even though we didn't ask for it, because
             # at that point the publish or other command wasn't present.
             socklist[1].insert(0, self._sock)
@@ -1751,9 +1755,8 @@ class Client:
         :raises ValueError: if qos is not one of 0, 1 or 2
         :raises ValueError: if the length of the payload is greater than 268435455 bytes.
         """
-        if self._protocol != MQTTv5:
-            if topic is None or len(topic) == 0:
-                raise ValueError('Invalid topic.')
+        if self._protocol != MQTTv5 and (topic is None or len(topic) == 0):
+            raise ValueError('Invalid topic.')
 
         topic_bytes = topic.encode('utf-8')
 
@@ -1845,7 +1848,7 @@ class Client:
         Requires brokers that support bridge mode.
 
         Under bridge mode, the broker will identify the client as a bridge and
-        not send it's own messages back to it. Hence a subsciption of # is
+        not send it's own messages back to it. Hence a subscription of # is
         possible without message loops. This feature also correctly propagates
         the retain flag on the messages.
 
@@ -2091,10 +2094,9 @@ class Client:
             return MQTTErrorCode.MQTT_ERR_NO_CONN
 
         max_packets = len(self._out_messages) + len(self._in_messages)
-        if max_packets < 1:
-            max_packets = 1
+        max_packets = max(max_packets, 1)
 
-        for _ in range(0, max_packets):
+        for _ in range(max_packets):
             if self._sock is None:
                 return MQTTErrorCode.MQTT_ERR_NO_CONN
             rc = self._packet_read()
@@ -2169,6 +2171,8 @@ class Client:
 
         return MQTTErrorCode.MQTT_ERR_SUCCESS
 
+
+
     def max_inflight_messages_set(self, inflight: int) -> None:
         """Set the maximum number of messages with QoS>0 that can be part way
         through their network flow at once. Defaults to 20."""
@@ -2178,7 +2182,7 @@ class Client:
         """Set the maximum number of messages in the outgoing message queue.
         0 means unlimited."""
         if not isinstance(queue_size, int):
-            raise ValueError('Invalid type of queue size.')
+            raise TypeError("queue_size should be an int")
         self.max_queued_messages = queue_size
         return self
 
@@ -2439,7 +2443,7 @@ class Client:
 
     @property
     def on_connect(self) -> CallbackOnConnect | None:
-        """The callback called when the broker reponds to our connection request.
+        """The callback called when the broker responds to our connection request.
 
         Expected signature for callback API version 2::
 
@@ -2458,7 +2462,7 @@ class Client:
         :param Client client: the client instance for this callback
         :param userdata: the private user data as set in Client() or user_data_set()
         :param ConnectFlags connect_flags: the flags for this connection
-        :param ReasonCode reason_code: the connection reason code received from the broken.
+        :param ReasonCode reason_code: the connection reason code received from the broker.
                        In MQTT v5.0 it's the reason code defined by the standard.
                        In MQTT v3, we convert return code to a reason code, see
                        `convert_connack_rc_to_reason_code()`.
@@ -2642,7 +2646,7 @@ class Client:
         :param userdata: the private user data as set in Client() or user_data_set()
         :param int mid: matches the mid variable returned from the corresponding
                      `publish()` call, to allow outgoing messages to be tracked.
-        :param ReasonCode reason_code: the connection reason code received from the broken.
+        :param ReasonCode reason_code: the connection reason code received from the broker.
                      In MQTT v5.0 it's the reason code defined by the standard.
                      In MQTT v3 it's always the reason code Success
         :parama Properties properties: the MQTT v5.0 properties received from the broker.
@@ -2779,7 +2783,7 @@ class Client:
 
     @property
     def on_socket_open(self) -> CallbackOnSocket | None:
-        """The callback called just after the socket was opend.
+        """The callback called just after the socket was opened.
 
         This should be used to register the socket to an external event loop for reading.
 
@@ -3131,15 +3135,21 @@ class Client:
                     return MQTTErrorCode.MQTT_ERR_CONN_LOST
                 self._in_packet['to_process'] -= len(data)
                 self._in_packet['packet'] += data
+
+            with self._msgtime_mutex:
+                self._last_bytes_received = time_func()
+
             count -= 1
             if count == 0:
-                with self._msgtime_mutex:
-                    self._last_msg_in = time_func()
                 return MQTTErrorCode.MQTT_ERR_AGAIN
 
         # All data for this packet is read.
         self._in_packet['pos'] = 0
-        rc = self._packet_handle()
+        try:
+            rc = self._packet_handle()
+        except MalformedPacket as exc:
+            self._easy_log(MQTT_LOG_DEBUG, "Received malformed packet: %s", exc)
+            rc = MQTTErrorCode.MQTT_ERR_PROTOCOL
 
         # Free data and reset values
         self._in_packet = {
@@ -3154,7 +3164,7 @@ class Client:
         }
 
         with self._msgtime_mutex:
-            self._last_msg_in = time_func()
+            self._last_bytes_received = time_func()
         return rc
 
     def _packet_write(self) -> MQTTErrorCode:
@@ -3251,7 +3261,7 @@ class Client:
             buf = fmt % args
             try:
                 self.on_log(self, self._userdata, level, buf)
-            except Exception:  # noqa: S110
+            except Exception:  # noqa: S110,BLE001
                 # Can't _easy_log this, as we'll recurse until we break
                 pass  # self._logger will pick this up, so we're fine
         if self._logger is not None:
@@ -3266,13 +3276,14 @@ class Client:
 
         with self._msgtime_mutex:
             last_msg_out = self._last_msg_out
-            last_msg_in = self._last_msg_in
+            last_bytes_received = self._last_bytes_received
 
-        if self._sock is not None and (now - last_msg_out >= self._keepalive or now - last_msg_in >= self._keepalive):
-            if self._state == _ConnectionState.MQTT_CS_CONNECTED and self._ping_t == 0:
+        if self._sock is not None and (now - last_msg_out >= self._keepalive or now - last_bytes_received >= self._keepalive):
+            if self._state == _ConnectionState.MQTT_CS_CONNECTED and (self._ping_t == 0 or now - last_bytes_received < self.keepalive):
                 try:
-                    self._send_pingreq()
-                except Exception:
+                    if self._ping_t  == 0 or now - self._ping_t >= self._keepalive:
+                        self._send_pingreq()
+                except Exception:  # noqa: BLE001
                     self._sock_close()
                     self._do_on_disconnect(
                         packet_from_broker=False,
@@ -3281,7 +3292,7 @@ class Client:
                 else:
                     with self._msgtime_mutex:
                         self._last_msg_out = now
-                        self._last_msg_in = now
+                        self._last_bytes_received = now
             else:
                 self._sock_close()
 
@@ -3346,6 +3357,8 @@ class Client:
         self, packet: bytearray, remaining_length: int
     ) -> bytearray:
         remaining_bytes = []
+        if remaining_length > 268_435_455:
+            raise ValueError("Packet too large")
         while True:
             byte = remaining_length % 128
             remaining_length = remaining_length // 128
@@ -3356,10 +3369,9 @@ class Client:
             remaining_bytes.append(byte)
             packet.append(byte)
             if remaining_length == 0:
-                # FIXME - this doesn't deal with incorrectly large payloads
                 return packet
 
-    def _pack_str16(self, packet: bytearray, data: bytes | str) -> None:
+    def _pack_str16(self, packet: bytearray, data: bytearray | bytes | str) -> None:
         data = _force_bytes(data)
         packet.extend(struct.pack("!H", len(data)))
         packet.extend(data)
@@ -3368,7 +3380,7 @@ class Client:
         self,
         mid: int,
         topic: bytes,
-        payload: bytes|bytearray = b"",
+        payload: bytes | bytearray = b"",
         qos: int = 0,
         retain: bool = False,
         dup: bool = False,
@@ -3476,9 +3488,7 @@ class Client:
 
         connect_flags = 0
         if self._protocol == MQTTv5:
-            if self._clean_start is True:
-                connect_flags |= 0x02
-            elif self._clean_start == MQTT_CLEAN_START_FIRST_ONLY and self._mqttv5_first_connect:
+            if self._clean_start is True or (self._clean_start == MQTT_CLEAN_START_FIRST_ONLY and self._mqttv5_first_connect):
                 connect_flags |= 0x02
         elif self._clean_session:
             connect_flags |= 0x02
@@ -3590,22 +3600,20 @@ class Client:
         packet = bytearray()
         packet.append(command)
 
-        if self._protocol == MQTTv5:
-            if properties is not None or reasoncode is not None:
-                if reasoncode is None:
-                    reasoncode = ReasonCode(DISCONNECT >> 4, identifier=0)
-                remaining_length += 1
-                if properties is not None:
-                    packed_props = properties.pack()
-                    remaining_length += len(packed_props)
+        if self._protocol == MQTTv5 and (properties is not None or reasoncode is not None):
+            if reasoncode is None:
+                reasoncode = ReasonCode(DISCONNECT >> 4, identifier=0)
+            remaining_length += 1
+            if properties is not None:
+                packed_props = properties.pack()
+                remaining_length += len(packed_props)
 
         self._pack_remaining_length(packet, remaining_length)
 
-        if self._protocol == MQTTv5:
-            if reasoncode is not None:
-                packet += reasoncode.pack()
-                if properties is not None:
-                    packet += packed_props
+        if self._protocol == MQTTv5 and reasoncode is not None:
+            packet += reasoncode.pack()
+            if properties is not None:
+                packet += packed_props
 
         return self._packet_queue(command, packet, 0, 0)
 
@@ -3718,12 +3726,10 @@ class Client:
                     if m.qos == 0:
                         m.state = mqtt_ms_publish
                     elif m.qos == 1:
-                        # self._inflight_messages = self._inflight_messages + 1
                         if m.state == mqtt_ms_wait_for_puback:
                             m.dup = True
                         m.state = mqtt_ms_publish
                     elif m.qos == 2:
-                        # self._inflight_messages = self._inflight_messages + 1
                         if self._check_clean_session():
                             if m.state != mqtt_ms_publish:
                                 m.dup = True
@@ -3758,7 +3764,7 @@ class Client:
     def _packet_queue(
         self,
         command: int,
-        packet: bytes,
+        packet: bytes | bytearray,
         mid: int,
         qos: int,
         info: MQTTMessageInfo | None = None,
@@ -3785,10 +3791,9 @@ class Client:
 
         # If we have an external event loop registered, use that instead
         # of calling loop_write() directly.
-        if self._thread is None and self._on_socket_register_write is None:
-            if self._in_callback_mutex.acquire(False):
-                self._in_callback_mutex.release()
-                return self.loop_write()
+        if self._thread is None and self._on_socket_register_write is None and self._in_callback_mutex.acquire(False):
+            self._in_callback_mutex.release()
+            return self.loop_write()
 
         self._call_socket_register_write()
 
@@ -3842,53 +3847,44 @@ class Client:
         return MQTTErrorCode.MQTT_ERR_SUCCESS
 
     def _handle_connack(self) -> MQTTErrorCode:
-        if self._protocol == MQTTv5:
-            if self._in_packet['remaining_length'] < 2:
-                return MQTTErrorCode.MQTT_ERR_PROTOCOL
-        elif self._in_packet['remaining_length'] != 2:
-            return MQTTErrorCode.MQTT_ERR_PROTOCOL
+        result = _packet.decode_connack(self._in_packet["command"], self._in_packet["packet"], self._protocol)
 
-        if self._protocol == MQTTv5:
-            (flags, result) = struct.unpack(
-                "!BB", self._in_packet['packet'][:2])
-            if result == 1:
-                # This is probably a failure from a broker that doesn't support
-                # MQTT v5.
-                reason = ReasonCode(CONNACK >> 4, aName="Unsupported protocol version")
-                properties = None
-            else:
-                reason = ReasonCode(CONNACK >> 4, identifier=result)
-                properties = Properties(CONNACK >> 4)
-                properties.unpack(self._in_packet['packet'][2:])
-        else:
-            (flags, result) = struct.unpack("!BB", self._in_packet['packet'])
-            reason = convert_connack_rc_to_reason_code(result)
-            properties = None
+        flags = result.flags
+        reason = result.reason
+        properties = result.properties
+        connack_rc = result.rc
+
+        if properties is not None and hasattr(properties, "ServerKeepAlive"):
+            # MQTT 5.0: when the server returns a Server Keep Alive in
+            # CONNACK, the client must use that value instead of the one
+            # it sent (MQTT 5.0 spec 3.2.2.3.14).
+            self._keepalive = properties.ServerKeepAlive
+
         if self._protocol == MQTTv311:
-            if result == CONNACK_REFUSED_PROTOCOL_VERSION:
+            if connack_rc == CONNACK_REFUSED_PROTOCOL_VERSION:
                 if not self._reconnect_on_failure:
                     return MQTT_ERR_PROTOCOL
                 self._easy_log(
                     MQTT_LOG_DEBUG,
                     "Received CONNACK (%s, %s), attempting downgrade to MQTT v3.1.",
-                    flags, result
+                    flags, connack_rc
                 )
                 # Downgrade to MQTT v3.1
                 self._protocol = MQTTv31
                 return self.reconnect()
-            elif (result == CONNACK_REFUSED_IDENTIFIER_REJECTED
+            elif (connack_rc == CONNACK_REFUSED_IDENTIFIER_REJECTED
                     and self._client_id == b''):
                 if not self._reconnect_on_failure:
                     return MQTT_ERR_PROTOCOL
                 self._easy_log(
                     MQTT_LOG_DEBUG,
                     "Received CONNACK (%s, %s), attempting to use non-empty CID",
-                    flags, result,
+                    flags, connack_rc,
                 )
                 self._client_id = _base62(uuid.uuid4().int, padding=22).encode("utf8")
                 return self.reconnect()
 
-        if result == 0:
+        if connack_rc == 0:
             self._state = _ConnectionState.MQTT_CS_CONNECTED
             self._reconnect_delay = None
 
@@ -3897,7 +3893,7 @@ class Client:
                 MQTT_LOG_DEBUG, "Received CONNACK (%s, %s) properties=%s", flags, reason, properties)
         else:
             self._easy_log(
-                MQTT_LOG_DEBUG, "Received CONNACK (%s, %s)", flags, result)
+                MQTT_LOG_DEBUG, "Received CONNACK (%s, %s)", flags, connack_rc)
 
         # it won't be the first successful connect any more
         self._mqttv5_first_connect = False
@@ -3920,7 +3916,13 @@ class Client:
                             on_connect = cast(CallbackOnConnect_v1_mqtt3, on_connect)
 
                             on_connect(
-                                self, self._userdata, flags_dict, result)
+                                self,
+                                self._userdata,
+                                flags_dict,
+                                # TODO: ideally we should update the on_connect signature
+                                # this "rc" never was an MQTTErrorCode but always an ConnackCode
+                                cast(MQTTErrorCode, connack_rc),
+                                )
                     elif self._callback_api_version == CallbackAPIVersion.VERSION2:
                         on_connect = cast(CallbackOnConnect_v2, on_connect)
 
@@ -3946,7 +3948,7 @@ class Client:
                     if not self.suppress_exceptions:
                         raise
 
-        if result == 0:
+        if connack_rc == 0:
             rc = MQTTErrorCode.MQTT_ERR_SUCCESS
             with self._out_message_mutex:
                 for m in self._out_messages.values():
@@ -4010,21 +4012,33 @@ class Client:
                     self.loop_write()  # Process outgoing messages that have just been queued up
 
             return rc
-        elif result > 0 and result < 6:
+        elif connack_rc > 0 and connack_rc < 6:
             return MQTTErrorCode.MQTT_ERR_CONN_REFUSED
         else:
             return MQTTErrorCode.MQTT_ERR_PROTOCOL
 
+    def drop_out_messages(self) -> list[MQTTMessage]:
+        """ Drops all unacknowledged QoS >= 1 messages, and returns them.
+            For example, call this in on_connect to clear pending
+            messages with a topic alias before the Client
+            attempts to republish them on reconnection,
+            possibly to a rebooted new Broker instance
+            that may not know the old alias.  This would then
+            kick the client, causing an infinite reconnection loop.
+
+            The message ids of the returned MQTTMessage instances
+            are stored in their .mid attributes.
+        """
+        retval = []
+        with self._out_message_mutex:
+            retval = list(self._out_messages.values())
+            self._out_messages.clear()
+        return retval
+
     def _handle_disconnect(self) -> None:
-        packet_type = DISCONNECT >> 4
-        reasonCode = properties = None
-        if self._in_packet['remaining_length'] > 2:
-            reasonCode = ReasonCode(packet_type)
-            reasonCode.unpack(self._in_packet['packet'])
-            if self._in_packet['remaining_length'] > 3:
-                properties = Properties(packet_type)
-                props, props_len = properties.unpack(
-                    self._in_packet['packet'][1:])
+        result = _packet.decode_disconnect(self._in_packet["command"], self._in_packet["packet"], self._protocol)
+        reasonCode, properties = result.reason, result.properties
+
         self._easy_log(MQTT_LOG_DEBUG, "Received DISCONNECT %s %s",
                        reasonCode,
                        properties
@@ -4039,19 +4053,13 @@ class Client:
         )
 
     def _handle_suback(self) -> None:
-        self._easy_log(MQTT_LOG_DEBUG, "Received SUBACK")
-        pack_format = f"!H{len(self._in_packet['packet']) - 2}s"
-        (mid, packet) = struct.unpack(pack_format, self._in_packet['packet'])
+        result = _packet.decode_suback(self._in_packet["command"], self._in_packet["packet"], self._protocol)
+        mid = result.mid
+        reasoncodes = result.reason_codes
+        properties = result.properties
+        granted_qos = result.granted_qos
 
-        if self._protocol == MQTTv5:
-            properties = Properties(SUBACK >> 4)
-            props, props_len = properties.unpack(packet)
-            reasoncodes = [ReasonCode(SUBACK >> 4, identifier=c) for c in packet[props_len:]]
-        else:
-            pack_format = f"!{'B' * len(packet)}"
-            granted_qos = struct.unpack(pack_format, packet)
-            reasoncodes = [ReasonCode(SUBACK >> 4, identifier=c) for c in granted_qos]
-            properties = Properties(SUBACK >> 4)
+        self._easy_log(MQTT_LOG_DEBUG, "Received SUBACK")
 
         with self._callback_mutex:
             on_subscribe = self.on_subscribe
@@ -4089,41 +4097,25 @@ class Client:
                         raise
 
     def _handle_publish(self) -> MQTTErrorCode:
-        header = self._in_packet['command']
-        message = MQTTMessage()
-        message.dup = ((header & 0x08) >> 3) != 0
-        message.qos = (header & 0x06) >> 1
-        message.retain = (header & 0x01) != 0
-
-        pack_format = f"!H{len(self._in_packet['packet']) - 2}s"
-        (slen, packet) = struct.unpack(pack_format, self._in_packet['packet'])
-        pack_format = f"!{slen}s{len(packet) - slen}s"
-        (topic, packet) = struct.unpack(pack_format, packet)
-
-        if self._protocol != MQTTv5 and len(topic) == 0:
-            return MQTTErrorCode.MQTT_ERR_PROTOCOL
+        result = _packet.decode_publish(self._in_packet["command"], self._in_packet["packet"], self._protocol)
+        message = MQTTMessage(
+            mid=result.mid,
+            topic=result.topic,
+        )
+        message.dup = result.dup
+        message.qos = result.qos
+        message.retain = result.retain
+        message.properties = result.properties
+        message.payload = result.payload
 
         # Handle topics with invalid UTF-8
         # This replaces an invalid topic with a message and the hex
         # representation of the topic for logging. When the user attempts to
         # access message.topic in the callback, an exception will be raised.
         try:
-            print_topic = topic.decode('utf-8')
+            print_topic = result.topic.decode('utf-8')
         except UnicodeDecodeError:
-            print_topic = f"TOPIC WITH INVALID UTF-8: {topic!r}"
-
-        message.topic = topic
-
-        if message.qos > 0:
-            pack_format = f"!H{len(packet) - 2}s"
-            (message.mid, packet) = struct.unpack(pack_format, packet)
-
-        if self._protocol == MQTTv5:
-            message.properties = Properties(PUBLISH >> 4)
-            props, props_len = message.properties.unpack(packet)
-            packet = packet[props_len:]
-
-        message.payload = packet
+            print_topic = f"TOPIC WITH INVALID UTF-8: {result.topic!r}"
 
         if self._protocol == MQTTv5:
             self._easy_log(
@@ -4185,21 +4177,14 @@ class Client:
 
 
     def _handle_pubrel(self) -> MQTTErrorCode:
-        if self._protocol == MQTTv5:
-            if self._in_packet['remaining_length'] < 2:
-                return MQTTErrorCode.MQTT_ERR_PROTOCOL
-        elif self._in_packet['remaining_length'] != 2:
-            return MQTTErrorCode.MQTT_ERR_PROTOCOL
+        result = _packet.decode_pubrel(self._in_packet["command"], self._in_packet["packet"], self._protocol)
+        (mid, reasonCode, properties) = result.mid, result.reason, result.properties
 
-        mid, = struct.unpack("!H", self._in_packet['packet'][:2])
-        if self._protocol == MQTTv5:
-            if self._in_packet['remaining_length'] > 2:
-                reasonCode = ReasonCode(PUBREL >> 4)
-                reasonCode.unpack(self._in_packet['packet'][2:])
-                if self._in_packet['remaining_length'] > 3:
-                    properties = Properties(PUBREL >> 4)
-                    props, props_len = properties.unpack(
-                        self._in_packet['packet'][3:])
+        # TODO: by ignoring reason code & properties, we might probably not being
+        # MQTTv5 compliant.
+        _ = reasonCode
+        _ = properties
+
         self._easy_log(MQTT_LOG_DEBUG, "Received PUBREL (Mid: %d)", mid)
 
         with self._in_message_mutex:
@@ -4208,7 +4193,6 @@ class Client:
                 # prevents multiple callbacks for the same message.
                 message = self._in_messages.pop(mid)
                 self._handle_on_message(message)
-                self._inflight_messages -= 1
                 if self._max_inflight_messages > 0:
                     with self._out_message_mutex:
                         rc = self._update_inflight()
@@ -4252,21 +4236,14 @@ class Client:
         return MQTTErrorCode.MQTT_ERR_SUCCESS
 
     def _handle_pubrec(self) -> MQTTErrorCode:
-        if self._protocol == MQTTv5:
-            if self._in_packet['remaining_length'] < 2:
-                return MQTTErrorCode.MQTT_ERR_PROTOCOL
-        elif self._in_packet['remaining_length'] != 2:
-            return MQTTErrorCode.MQTT_ERR_PROTOCOL
+        result = _packet.decode_pubrec(self._in_packet["command"], self._in_packet["packet"], self._protocol)
+        (mid, reasonCode, properties) = result.mid, result.reason, result.properties
 
-        mid, = struct.unpack("!H", self._in_packet['packet'][:2])
-        if self._protocol == MQTTv5:
-            if self._in_packet['remaining_length'] > 2:
-                reasonCode = ReasonCode(PUBREC >> 4)
-                reasonCode.unpack(self._in_packet['packet'][2:])
-                if self._in_packet['remaining_length'] > 3:
-                    properties = Properties(PUBREC >> 4)
-                    props, props_len = properties.unpack(
-                        self._in_packet['packet'][3:])
+        # TODO: by ignoring reason code & properties, we might probably not being
+        # MQTTv5 compliant.
+        _ = reasonCode
+        _ = properties
+
         self._easy_log(MQTT_LOG_DEBUG, "Received PUBREC (Mid: %d)", mid)
 
         with self._out_message_mutex:
@@ -4279,24 +4256,11 @@ class Client:
         return MQTTErrorCode.MQTT_ERR_SUCCESS
 
     def _handle_unsuback(self) -> MQTTErrorCode:
-        if self._protocol == MQTTv5:
-            if self._in_packet['remaining_length'] < 4:
-                return MQTTErrorCode.MQTT_ERR_PROTOCOL
-        elif self._in_packet['remaining_length'] != 2:
-            return MQTTErrorCode.MQTT_ERR_PROTOCOL
+        result = _packet.decode_unsuback(self._in_packet["command"], self._in_packet["packet"], self._protocol)
 
-        mid, = struct.unpack("!H", self._in_packet['packet'][:2])
-        if self._protocol == MQTTv5:
-            packet = self._in_packet['packet'][2:]
-            properties = Properties(UNSUBACK >> 4)
-            props, props_len = properties.unpack(packet)
-            reasoncodes_list = [
-                ReasonCode(UNSUBACK >> 4, identifier=c)
-                for c in packet[props_len:]
-            ]
-        else:
-            reasoncodes_list = []
-            properties = Properties(UNSUBACK >> 4)
+        mid = result.mid
+        reasoncodes_list = result.reason_codes
+        properties = result.properties
 
         self._easy_log(MQTT_LOG_DEBUG, "Received UNSUBACK (Mid: %d)", mid)
         with self._callback_mutex:
@@ -4435,25 +4399,16 @@ class Client:
         return MQTTErrorCode.MQTT_ERR_SUCCESS
 
     def _handle_pubackcomp(
-        self, cmd: Literal['PUBACK'] | Literal['PUBCOMP']
+        self, cmd: Literal['PUBACK', 'PUBCOMP']
     ) -> MQTTErrorCode:
-        if self._protocol == MQTTv5:
-            if self._in_packet['remaining_length'] < 2:
-                return MQTTErrorCode.MQTT_ERR_PROTOCOL
-        elif self._in_packet['remaining_length'] != 2:
-            return MQTTErrorCode.MQTT_ERR_PROTOCOL
+        result: _packet.PubackPacket|_packet.PubcompPacket
+        if cmd == "PUBACK":
+            result = _packet.decode_puback(self._in_packet["command"], self._in_packet["packet"], self._protocol)
+        else:
+            result = _packet.decode_pubcomp(self._in_packet["command"], self._in_packet["packet"], self._protocol)
 
-        packet_type_enum = PUBACK if cmd == "PUBACK" else PUBCOMP
-        packet_type = packet_type_enum.value >> 4
-        mid, = struct.unpack("!H", self._in_packet['packet'][:2])
-        reasonCode = ReasonCode(packet_type)
-        properties = Properties(packet_type)
-        if self._protocol == MQTTv5:
-            if self._in_packet['remaining_length'] > 2:
-                reasonCode.unpack(self._in_packet['packet'][2:])
-                if self._in_packet['remaining_length'] > 3:
-                    props, props_len = properties.unpack(
-                        self._in_packet['packet'][3:])
+        (mid, reasonCode, properties) = result.mid, result.reason, result.properties
+
         self._easy_log(MQTT_LOG_DEBUG, "Received %s (Mid: %d)", cmd, mid)
 
         with self._out_message_mutex:
@@ -4514,7 +4469,7 @@ class Client:
             with self._in_callback_mutex:
                 try:
                     on_connect_fail(self, self._userdata)
-                except Exception as err:
+                except Exception as err:  # noqa: BLE001
                     self._easy_log(
                         MQTT_LOG_ERR, 'Caught exception in on_connect_fail: %s', err)
 
@@ -4612,7 +4567,7 @@ class Client:
             sock = self._ssl_wrap_socket(sock)
 
         if self._transport == "websockets":
-            sock.settimeout(self._keepalive)
+            sock.settimeout(self._connect_timeout)
             return _WebsocketWrapper(
                 socket=sock,
                 host=self._host,
@@ -4667,7 +4622,7 @@ class Client:
             if getattr(self._ssl_context, 'check_hostname', False):  # type: ignore
                 verify_host = False
 
-        ssl_sock.settimeout(self._keepalive)
+        ssl_sock.settimeout(self._connect_timeout)
         ssl_sock.do_handshake()
 
         if verify_host:
@@ -4906,8 +4861,7 @@ class _WebsocketWrapper:
 
             # if frame payload is shorter than the requested data, read only the possible part
             readindex = chunk_endindex
-            if payload_length < readindex:
-                readindex = payload_length
+            readindex = min(readindex, payload_length)
 
             if readindex > 0:
                 # get payload chunk
@@ -4918,7 +4872,7 @@ class _WebsocketWrapper:
                     for index in range(chunk_startindex, readindex):
                         payload[index] ^= mask_key[index % 4]
 
-                result = payload[chunk_startindex:readindex]
+                result = bytes(payload[chunk_startindex:readindex])
                 self._payload_head = readindex
             else:
                 payload = bytearray()
@@ -4951,7 +4905,7 @@ class _WebsocketWrapper:
             self.connected = False
             return b''
 
-    def _send_impl(self, data: bytes) -> int:
+    def _send_impl(self, data: bytes | bytearray) -> int:
 
         # if previous frame was sent successfully
         if len(self._sendbuffer) == 0:
@@ -4979,7 +4933,7 @@ class _WebsocketWrapper:
     def read(self, length: int) -> bytes:
         return self._recv_impl(length)
 
-    def send(self, data: bytes) -> int:
+    def send(self, data: bytes | bytearray) -> int:
         return self._send_impl(data)
 
     def write(self, data: bytes) -> int:
