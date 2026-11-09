@@ -123,10 +123,12 @@ def test_old_python_is_refused(src, tmp_path, monkeypatch):
 
 def test_absolute_member_stays_inside_dest(src, tmp_path):
     target = src.outside / 'evil.txt'
+    # data_filter strips a leading slash. It refuses a Windows drive letter.
+    name = '/' + target.relative_to(target.anchor).as_posix()
     dest = tmp_path / 'dest'
-    extract(make_tar([(str(target), 'file', 'x')]), dest)
+    extract(make_tar([(name, 'file', 'x')]), dest)
     assert not target.exists()
-    assert (dest / str(target).lstrip('/')).read_text() == 'x'
+    assert (dest / name.lstrip('/')).read_text() == 'x'
 
 
 def run_update(src, data):
