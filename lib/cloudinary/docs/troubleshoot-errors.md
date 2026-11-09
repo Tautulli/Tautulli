@@ -10,9 +10,12 @@ Failures raise exceptions from `cloudinary.exceptions`, mapped from the HTTP sta
 | `AuthorizationRequired` | 401 | Missing or wrong credentials, bad signature |
 | `NotAllowed` | 403 | Valid credentials without permission for this operation |
 | `NotFound` | 404 | No such asset, folder, or preset |
+| `NotAcceptable` | 406 | The operation is not supported for this resource (for example, adding assets to a dynamic collection) |
 | `AlreadyExists` | 409 | The resource exists (duplicate `external_id`, folder) |
 | `RateLimited` | 420 / 429 | Hourly API limit reached, **or** an add-on you are not subscribed to |
+| `Locked` | 423 | The asset is still processing |
 | `GeneralError` | 500 / 503 | A server-side failure |
+| `Error` | any other status | |
 
 All of them subclass `cloudinary.exceptions.Error`, so one handler catches everything:
 
@@ -126,9 +129,7 @@ uploading a large video, or while an eager or add-on-driven transformation is st
 running. This is transient: retry with backoff rather than treating it as a failure. For
 long jobs, prefer `eager_async=True` with a `notification_url` over polling.
 
-Note that 423 is not in this SDK's status-to-exception map, so it surfaces as a plain
-`Exception` rather than a `cloudinary.exceptions.Error` subclass — a handler that catches
-only `cloudinary.exceptions.Error` will miss it.
+It raises `cloudinary.exceptions.Locked`, so you can retry on that class specifically.
 
 ### A transformation is missing from the generated URL
 

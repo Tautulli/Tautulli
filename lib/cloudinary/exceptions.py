@@ -25,6 +25,14 @@ class BadRequest(Error):
     pass
 
 
+class NotAcceptable(Error):
+    pass
+
+
+class Locked(Error):
+    pass
+
+
 class GeneralError(Error):
     pass
 

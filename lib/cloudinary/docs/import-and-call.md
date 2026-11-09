@@ -14,7 +14,8 @@ Import the submodules you use explicitly. `import cloudinary` on its own gives y
 `config()`, `CloudinaryImage`, `CloudinaryVideo`, `Search`, and `cloudinary.utils`,
 but **not** `cloudinary.uploader` or `cloudinary.api` — reaching for those raises
 `AttributeError: module 'cloudinary' has no attribute 'uploader'` until you import
-them.
+them. The same applies to `cloudinary.collections` — use
+`from cloudinary import collections`.
 
 Calls are synchronous and return plain dictionaries. Positional arguments come first,
 then keyword options that pass through to the API:
