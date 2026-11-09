@@ -484,7 +484,7 @@ def get_notify_actions(return_dict=False):
     return tuple(a['name'] for a in available_notification_actions())
 
 
-def get_notifiers(notifier_id=None, notify_action=None, include_last_triggered=True):
+def get_notifiers(notifier_id=None, notify_action=None, include_last_triggered=False):
     notify_actions = get_notify_actions()
 
     where = where_id = where_action = ''
@@ -4893,7 +4893,7 @@ class ZAPIER(Notifier):
 def check_browser_enabled():
     global BROWSER_NOTIFIERS
     BROWSER_NOTIFIERS = {}
-    for n in get_notifiers(include_last_triggered=False):
+    for n in get_notifiers():
         if n['agent_id'] == 17 and n['active']:
             notifier_config = get_notifier_config(n['id'], load_config_options=False)
             BROWSER_NOTIFIERS[n['id']] = notifier_config['config']['auto_hide_delay']

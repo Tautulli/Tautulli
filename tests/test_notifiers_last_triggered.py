@@ -19,7 +19,8 @@ def add_log(db, rows):
 
 
 def last_triggered(**kwargs):
-    return [(n["id"], n["last_triggered"], n["last_success"]) for n in notifiers.get_notifiers(**kwargs)]
+    return [(n["id"], n["last_triggered"], n["last_success"])
+            for n in notifiers.get_notifiers(include_last_triggered=True, **kwargs)]
 
 
 def test_each_notifier_gets_its_newest_log_row(app_db):

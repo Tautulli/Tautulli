@@ -3671,7 +3671,7 @@ class WebInterface(object):
     @cherrypy.expose
     @requireAuth(member_of("admin"))
     def get_notifiers_table(self, **kwargs):
-        result = notifiers.get_notifiers()
+        result = notifiers.get_notifiers(include_last_triggered=True)
         return serve_template(template_name="notifiers_table.html", notifiers_list=result)
 
     @cherrypy.expose
