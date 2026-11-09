@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import posixpath
 import re
 import stat
 import sys
@@ -189,7 +190,7 @@ class _UnixDefaults(PlatformDirsABC):  # ruff:ignore[too-many-public-methods]
 
     def _temp_runtime_dir(self) -> str:
         # Another user can pre-create this predictable name, and XDG requires an owned runtime dir with mode 0700.
-        path = f"{gettempdir()}/runtime-{geteuid()}"
+        path = _temp_runtime_fallback()
         with suppress(FileExistsError):
             self._optionally_create_directory(path, private=True)
         if problem := _runtime_dir_problem(path, missing_ok=not self.ensure_exists, check_mode=False):
@@ -406,10 +407,15 @@ def _resolve_user_dirs_value(entry: re.Match[str]) -> str | None:
     return f"{prefix}{value}" or "/"
 
 
+def _temp_runtime_fallback() -> str:
+    # A temporary directory of / would give "//runtime-<uid>", which pathlib keeps as a distinct root.
+    return posixpath.join(gettempdir(), f"runtime-{geteuid()}")
+
+
 def _in_own_runtime_dir(path: Path) -> bool:
     # The lookup let a missing runtime directory pass, so another user may have created it since. The fallback goes
     # first because a rejected XDG_RUNTIME_DIR, such as /tmp, contains it.
-    for base in (f"{gettempdir()}/runtime-{geteuid()}", _xdg_dir("XDG_RUNTIME_DIR")):
+    for base in (_temp_runtime_fallback(), _xdg_dir("XDG_RUNTIME_DIR")):
         if base and path.is_relative_to(base):
             return not _runtime_dir_problem(base, missing_ok=False, check_mode=False)
     return True
