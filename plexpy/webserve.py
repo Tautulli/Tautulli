@@ -3643,7 +3643,7 @@ class WebInterface(object):
     @cherrypy.tools.json_out()
     @requireAuth(member_of("admin"))
     @addtoapi()
-    def get_notifiers(self, notify_action=None, **kwargs):
+    def get_notifiers(self, notify_action=None, include_last_triggered=True, **kwargs):
         """ Get a list of configured notifiers.
 
             ```
@@ -3651,7 +3651,8 @@ class WebInterface(object):
                 None
 
             Optional parameters:
-                notify_action (str):        The notification action to filter out
+                notify_action (str):             The notification action to filter out
+                include_last_triggered (bool):   True (default) or False to include the last trigger time for the notifiers
 
             Returns:
                 json:
@@ -3660,12 +3661,15 @@ class WebInterface(object):
                       "agent_name": "telegram",
                       "agent_label": "Telegram",
                       "friendly_name": "",
+                      "last_triggered": 1792223150,
+                      "last_success": 1,
                       "active": 1
                       }
                      ]
             ```
         """
-        result = notifiers.get_notifiers(notify_action=notify_action)
+        include_last_triggered = helpers.bool_true(include_last_triggered)
+        result = notifiers.get_notifiers(notify_action=notify_action, include_last_triggered=include_last_triggered)
         return result
 
     @cherrypy.expose
