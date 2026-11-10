@@ -7,11 +7,14 @@ from urllib3.exceptions import HTTPError
 
 import cloudinary
 from cloudinary.exceptions import (
+    Error,
     BadRequest,
     AuthorizationRequired,
     NotAllowed,
     NotFound,
+    NotAcceptable,
     AlreadyExists,
+    Locked,
     RateLimited,
     GeneralError
 )
@@ -23,8 +26,10 @@ EXCEPTION_CODES = {
     401: AuthorizationRequired,
     403: NotAllowed,
     404: NotFound,
+    406: NotAcceptable,
     409: AlreadyExists,
     420: RateLimited,
+    423: Locked,
     429: RateLimited,
     500: GeneralError,
     503: GeneralError
@@ -88,8 +93,11 @@ def execute_request(http_connector, method, params, headers, auth, api_url, **op
         # Error is parsing json
         raise GeneralError("Error parsing server response (%d) - %s. Got - %s" % (response.status, body, e))
 
+    if response.status >= 400 and "error" not in result and "message" in result:
+        result = {"error": {"message": result["message"]}}
+
     if "error" in result:
-        exception_class = EXCEPTION_CODES.get(response.status) or Exception
+        exception_class = EXCEPTION_CODES.get(response.status) or Error
         raise exception_class("Error {0} - {1}".format(response.status, result["error"]["message"]))
 
     return Response(result, response)

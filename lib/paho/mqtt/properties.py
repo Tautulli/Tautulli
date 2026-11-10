@@ -16,15 +16,8 @@
 
 import struct
 
+from .exception import MalformedPacket, MQTTException
 from .packettypes import PacketTypes
-
-
-class MQTTException(Exception):
-    pass
-
-
-class MalformedPacket(MQTTException):
-    pass
 
 
 def writeInt16(length):
@@ -79,8 +72,18 @@ def writeBytes(buffer):
     return writeInt16(len(buffer)) + buffer
 
 
-def readBytes(buffer):
-    length = readInt16(buffer)
+def readBytes(buffer, maxlen):
+    # Every property is framed by the Property Length field, so a value
+    # that reaches past the bytes left in that region cannot be parsed and
+    # is a malformed packet (MQTT v5.0 sections 2.2.2.1, 2.2.2.2 and 1.4).
+    # This is the same bound readUTF() already enforces for strings.
+    if maxlen >= 2:
+        length = readInt16(buffer)
+    else:
+        raise MalformedPacket("Not enough data to read binary data length")
+    maxlen -= 2
+    if length > maxlen:
+        raise MalformedPacket("Length delimited binary data too long")
     return buffer[2:2+length], length+2
 
 
@@ -122,6 +125,17 @@ class VariableByteIntegers:  # Variable Byte Integer
         value = 0
         bytes = 0
         while 1:
+            # A Variable Byte Integer is at most four bytes long, which also
+            # caps the value at 268,435,455 (MQTT v5.0 section 1.5.5).  A fifth
+            # byte, or running out of data while a continuation bit is still
+            # pending, means the packet cannot be parsed, so it is malformed
+            # (sections 1.4 and 2.2.2.2).
+            if bytes >= 4:
+                raise MalformedPacket(
+                    "Variable Byte Integer is more than four bytes long"
+                )
+            if len(buffer) == 0:
+                raise MalformedPacket("Not enough data to decode Variable Byte Integer")
             bytes += 1
             digit = buffer[0]
             buffer = buffer[1:]
@@ -242,7 +256,7 @@ class Properties:
     def getIdentFromName(self, compressedName):
         # return the identifier corresponding to the property name
         result = -1
-        for name in self.names.keys():
+        for name in self.names:
             if compressedName == name.replace(' ', ''):
                 result = self.names[name]
                 break
@@ -255,7 +269,7 @@ class Properties:
             object.__setattr__(self, name, value)
         else:
             # the name could have spaces in, or not.  Remove spaces before assignment
-            if name not in [aname.replace(' ', '') for aname in self.names.keys()]:
+            if name not in [aname.replace(' ', '') for aname in self.names]:
                 raise MQTTException(
                     f"Property name must be one of {self.names.keys()}")
             # check that this attribute applies to the packet type
@@ -292,7 +306,7 @@ class Properties:
     def __str__(self):
         buffer = "["
         first = True
-        for name in self.names.keys():
+        for name in self.names:
             compressedName = name.replace(' ', '')
             if hasattr(self, compressedName):
                 if not first:
@@ -304,7 +318,7 @@ class Properties:
 
     def json(self):
         data = {}
-        for name in self.names.keys():
+        for name in self.names:
             compressedName = name.replace(' ', '')
             if hasattr(self, compressedName):
                 val = getattr(self, compressedName)
@@ -316,7 +330,7 @@ class Properties:
 
     def isEmpty(self):
         rc = True
-        for name in self.names.keys():
+        for name in self.names:
             compressedName = name.replace(' ', '')
             if hasattr(self, compressedName):
                 rc = False
@@ -324,7 +338,7 @@ class Properties:
         return rc
 
     def clear(self):
-        for name in self.names.keys():
+        for name in self.names:
             compressedName = name.replace(' ', '')
             if hasattr(self, compressedName):
                 delattr(self, compressedName)
@@ -351,7 +365,7 @@ class Properties:
     def pack(self):
         # serialize properties into buffer for sending over network
         buffer = b""
-        for name in self.names.keys():
+        for name in self.names:
             compressedName = name.replace(' ', '')
             if hasattr(self, compressedName):
                 identifier = self.getIdentFromName(compressedName)
@@ -378,7 +392,7 @@ class Properties:
         elif type == self.types.index("Variable Byte Integer"):
             value, valuelen = VariableByteIntegers.decode(buffer)
         elif type == self.types.index("Binary Data"):
-            value, valuelen = readBytes(buffer)
+            value, valuelen = readBytes(buffer, propslen)
         elif type == self.types.index("UTF-8 Encoded String"):
             value, valuelen = readUTF(buffer, propslen)
         elif type == self.types.index("UTF-8 String Pair"):

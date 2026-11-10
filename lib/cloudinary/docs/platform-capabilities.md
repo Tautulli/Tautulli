@@ -99,6 +99,7 @@ URL building is local: no network call, no `api_secret`.
 | Read, update, restore, or delete an asset; manage folders and presets | `api` — the Assets Admin API | [Search and manage assets](search-and-manage-assets.md) |
 | Attach and query typed metadata fields | `api` + upload options | [Use structured metadata](use-structured-metadata.md) |
 | Find visually similar assets | `api.visual_search` — needs the feature enabled | [Visual Search](https://cloudinary.com/documentation/visual_search.md) |
+| Group assets into manual or dynamic collections and share them as public pages | `collections` — import explicitly, needs Collections on your plan | [Organize and share collections](organize-and-share-collections.md) |
 
 ## Analyze
 

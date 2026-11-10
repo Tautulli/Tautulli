@@ -30,11 +30,12 @@ class MQTTMatcher:
             node = self._root
             for sym in key.split('/'):
                 node = node._children[sym]
+        except KeyError as err:
+            raise KeyError(key) from err
+        else:
             if node._content is None:
                 raise KeyError(key)
             return node._content
-        except KeyError as ke:
-            raise KeyError(key) from ke
 
     def __delitem__(self, key):
         """Delete the value associated with some topic filter :key"""
@@ -44,11 +45,13 @@ class MQTTMatcher:
             for k in key.split('/'):
                  parent, node = node, node._children[k]
                  lst.append((parent, k, node))
-            # TODO
+        except KeyError as err:
+            raise KeyError(key) from err
+        else:
+            if node._content is None:
+                raise KeyError(key)
             node._content = None
-        except KeyError as ke:
-            raise KeyError(key) from ke
-        else:  # cleanup
+            # cleanup
             for parent, k, node in reversed(lst):
                 if node._children or node._content is not None:
                      break
@@ -66,11 +69,9 @@ class MQTTMatcher:
             else:
                 part = lst[i]
                 if part in node._children:
-                    for content in rec(node._children[part], i + 1):
-                        yield content
+                    yield from rec(node._children[part], i + 1)
                 if '+' in node._children and (normal or i > 0):
-                    for content in rec(node._children['+'], i + 1):
-                        yield content
+                    yield from rec(node._children['+'], i + 1)
             if '#' in node._children and (normal or i > 0):
                 content = node._children['#']._content
                 if content is not None:
