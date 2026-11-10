@@ -26,6 +26,7 @@ parts:
   tautulli:
     plugin: dump
     source: .
+    # Exclude entries only. One include entry makes snapcraft stage only the included files.
     stage:
       - -.dockerignore
       - -Dockerfile
@@ -33,8 +34,10 @@ parts:
       - -init-scripts
       - -package
       - -pylintrc
-      - CHANGELOG.md
-      - -*.md
+      - -API.md
+      - -CONTRIBUTING.md
+      - -README.md
+      - -SECURITY.md
       - -start.bat
       - -tests
       - -pytest.ini
