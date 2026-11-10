@@ -1,5 +1,4 @@
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 
-
-class MQTTException(Exception):
-    pass
+# Re-export MQTTException for compatibility with old code
+from .exception import MQTTException as MQTTException

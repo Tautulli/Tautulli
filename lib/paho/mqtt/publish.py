@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import collections
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, List, Tuple, Union
+from typing import TYPE_CHECKING, Any, Union
 
 from paho.mqtt.enums import CallbackAPIVersion, MQTTProtocolVersion
 from paho.mqtt.properties import Properties
@@ -64,9 +64,9 @@ if TYPE_CHECKING:
         qos: NotRequired[int]
         retain: NotRequired[bool]
 
-    MessageTuple = Tuple[str, paho.PayloadType, int, bool]
+    MessageTuple = tuple[str, paho.PayloadType, int, bool]
 
-    MessagesList = List[Union[MessageDict, MessageTuple]]
+    MessagesList = list[Union[MessageDict, MessageTuple]]
 
 
 def _do_publish(client: paho.Client):
