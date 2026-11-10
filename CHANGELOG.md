@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.19.1 (2026-11-10)
+
+* Other:
+  * Fix: Snap package not starting.
+
+
 ## v2.19.0 (2026-11-10)
 
 * Notes:
