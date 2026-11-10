@@ -40,6 +40,7 @@ directory of the repository.
 - [Transform and deliver an image](transform-and-deliver-image.md)
 - [Transform and deliver a video](transform-and-deliver-video.md)
 - [Search and manage assets](search-and-manage-assets.md)
+- [Organize and share collections](organize-and-share-collections.md)
 - [Moderate an upload](moderate-upload.md)
 - [Use structured metadata](use-structured-metadata.md)
 - [Use with Django](use-with-django.md)
