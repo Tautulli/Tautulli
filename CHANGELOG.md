@@ -1,5 +1,77 @@
 # Changelog
 
+## v2.19.0 (2026-11-10)
+
+* Notes:
+  * Support for Python 3.10 has been dropped. The minimum Python version is now 3.11.
+  * Installs without a password set will generate a temporary random password on upgrade. The temporary login info can be found in the Tautulli log file. Please change the password in the settings after logging in.
+* Activity:
+  * Change: Renamed ETA on activity cards to Ends At. (#2574)
+* History:
+  * Fix: Filtering history tables on collections and playlist media info pages showed incorrect results.
+  * New: Added feature to archive users and libraries while keeping their history. (#1435, #2778) (Thanks @akonopcz)
+    * Note: Archived users and libraries are excluded from all history and statistics by default. They can be shown using the "Show Archived Data" button in the navigation bar dropdown menu.
+  * New: Added ability to restore deleted users/libraries from the users/libraries tables in edit mode.
+* Notifications:
+  * Fix: Telegram notifications shown as failed in the notification logs when a poster with a caption is sent. (#2852) (Thanks @PilaScat)
+  * Fix: Dolby Vision Profile and Level notification parameters should be blank when not present. (#2381)
+  * Fix: Deep links for Plex Android / iOS app notifications not working.
+  * New: Added Ace editor for editing notification text.
+  * New: Added live TV notification exclusion tag.
+  * New: Added Letterboxd URL notification parameter. (#1904)
+  * New: Added Reply-To header to email notification agent. (#1702)
+  * Removed: OneSignal notifications for Tautulli Remote App.
+* Newsletters:
+  * Fix: Unable to save blank newsletter subject, body, or message.
+  * New: Added weeks and years time frame options for newsletters. (#2042)
+  * New: Added item counts to recently added newsletter parameters. (#1787)
+  * Fix: Do not allow custom newsletter templates inside the newsletter output folder. (Thanks @SHAHID-XT)
+  * Fix: Newsletter scheduler crash when local timezone cannot be resolved. (#2889, #2890)
+* Exporter:
+  * Fix: Truncate long titles in export filenames. (#2777)
+* UI:
+  * Fix: Collections composite poster not showing on media info pages.
+  * Fix: Broken collections click through link to Plex Web on media info pages.
+  * Fix: Alert message for an expired Plex token not showing up.
+  * Fix: Escape playlist titles in the Playlist tables. (CVE-2026-TBD) (Thanks @Cbdlll)
+  * Fix: Escape media info fields in the Media Info tables. (CVE-2026-TBD) (Thanks @Cbdlll)
+  * Fix: Escape subtitle language on the activity cards. (CVE-2026-TBD) (Thanks @Cbdlll)
+  * New: Various UI fixes and improvements.
+  * New: Allow selecting multiple media types for recently added on the homepage. (#2733)
+  * New: Added ability to disable Tautulli login and only allow Plex OAuth login. (#2092)
+* API:
+  * New: Added include_archived parameter to all history and statistics API commands.
+  * New: Added user_is_archived and library_is_archived to get_history API response.
+  * New: Added deleted_user and is_archived to get_users_table API response.
+  * New: Added deleted_section and is_archived to get_libraries_table API response.
+  * New: Added is_archived to get_user, get_users, get_user_names, get_library, and get_library_names API responses.
+  * New: Added row_ids parameter to undelete_user and undelete_library API commands.
+  * New: Added include_last_triggered parameter to get_notifiers API command.
+  * New: get_recently_added API command now accepts a comma separated list of media types.
+* Other:
+  * Fix: Some default settings were reset to disabled after completing the setup wizard.
+  * Fix: SSRF in /pms_image_proxy via unrestricted external image URL handling. (CVE-2026-TBD) (Thanks @larlarua)
+  * Fix: CSRF via State-Changing GET Endpoints Allows Administrative Actions. (CVE-2026-TBD) (Thanks @zaara2004)
+  * Fix: Generating self-signed SSL certificates not working.
+  * Fix: Changing admin HTTP password did not log out existing sessions. (#2868) (Thanks @spjoes)
+  * Fix: GIT_PATH command injection. (@SHAHID-XT)
+  * New: Major database optimizations and performance improvements.
+  * New: Added Homebrew Cask installation method for macOS. (#2867) (Thanks @manakbisht)
+  * New: Added Flatpak installation method for Linux.
+  * New: Added CPU architecture to the system analytics data.
+  * New: Update Docker image, and Windows and MacOS packages to Python 3.14.
+  * New: Improved Tautulli log messages to include full traceback for errors. (#2760)
+  * New: Refuse non-local clients when no password is set. This can be disabled by setting allow_public_no_password = 1 in the config file.
+  * New: Log IP address of failed login attempts. (#2092)
+  * New: Generate a temporary random login password on new installs to access the setup wizard. (CVE-2026-TBD) (Thanks @SHAHID-XT)
+  * New: Generate a temporary random login password on existing installs if no password is set.
+  * Change: Only allow X-Api-Key header for `/api` and `/auth/signin`.
+  * Removed: Drop support for arm/v6 Docker image.
+  * Removed: Drop support for macOS 10.13 and 10.14 for the Intel x86_64 installer package.
+  * Removed: /delete_duplicate_libraries endpoint removed.
+  * Removed: PlexWatch and Plexivity importers removed.
+
+
 ## v2.18.2 (2026-09-28)
 
 * Activity:
@@ -16,7 +88,7 @@
   * New: Allow "undisclosed-recipients:;" in Email/newsletter to field. (#2763, #2837) (Thanks @thePFLy)
   * New: Include season, episode, and track ranges in grouped titles for rich metadata cards. (#2835, #2836) (Thanks @herikwebb)
 * Newsletters:
-  * Fix: Path traversal in newsletter filename. (CVE-2026-TBD) (Thanks @router0mail)
+  * Fix: Path traversal in newsletter filename. (Thanks @router0mail)
   * New: Added edition_title to newsletter JSON data. (#2840)
 * Exporter:
   * New: Added loudness normalization info to export fields for movie and episode audio streams.
@@ -74,8 +146,8 @@
   * New: Added toggle for anonymous system analytics to the setup wizard and settings page. (#2781)
 * Other:
   * Fix: Improve Plex log file parsing.
-  * Fix: Path traversal in update tarfile extraction. (CVE-2026-TBD) (Thanks @tonghuaroot)
-  * Fix: Plex token leakage in case-sensitive URL bypass in pms_image_proxy. (CVE-2026-TBD) (Thanks @Xiaoyiyi23)
+  * Fix: Path traversal in update tarfile extraction. (Thanks @tonghuaroot)
+  * Fix: Plex token leakage in case-sensitive URL bypass in pms_image_proxy. (Thanks @Xiaoyiyi23)
   * New: Build separate MacOS arm64 and x86_64 packages for Apple silicon and Intel Macs.
   * New: Added security headers to cherrypy response headers.
 * API:
