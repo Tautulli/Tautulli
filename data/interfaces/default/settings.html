@@ -636,7 +636,7 @@
                                     <select class="form-control" id="x_frame_options" name="x_frame_options">
                                         <option value="SAMEORIGIN" ${'selected' if config['x_frame_options'] == 'SAMEORIGIN' else ''}>SAMEORIGIN (Default)</option>
                                         <option value="DENY" ${'selected' if config['x_frame_options'] == 'DENY' else ''}>DENY</option>
-                                        <option value="*" ${'selected' if config['x_frame_options'] == 'ALLOWALL' else ''}>ALLOWALL</option>
+                                        <option value="*" ${'selected' if config['x_frame_options'] in ('', '*') else ''}>ALLOWALL</option>
                                     </select>
                                 </div>
                             </div>

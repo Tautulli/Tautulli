@@ -1,7 +1,11 @@
+import re
+
 import cherrypy
 import pytest
 
 from plexpy import webstart
+
+from tests.test_archive_users import library, seeded, web_pages  # noqa: F401  (fixtures)
 
 
 @pytest.fixture
@@ -38,3 +42,20 @@ def test_the_other_security_headers_stay_fixed(app_config, response_headers):
 
     assert response_headers['X-Content-Type-Options'] == 'nosniff'
     assert response_headers['Referrer-Policy'] == 'strict-origin-when-cross-origin'
+
+
+@pytest.mark.parametrize('value, selected', [
+    ('SAMEORIGIN', 'SAMEORIGIN'),
+    ('DENY', 'DENY'),
+    ('*', '*'),
+    # #2807 told users to set a blank value by hand. It sends no header, same as *.
+    ('', '*'),
+])
+def test_settings_page_selects_the_saved_frame_option(web_pages, app_config, value, selected):
+    # A save posts the selected option's value. If the page does not select
+    # that value again, the next save writes SAMEORIGIN over it.
+    app_config.X_FRAME_OPTIONS = value
+
+    select = re.search(r'<select[^>]*id="x_frame_options".*?</select>', web_pages.settings(), re.S).group(0)
+
+    assert re.findall(r'<option value="([^"]*)" selected>', select) == [selected]
