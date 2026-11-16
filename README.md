@@ -56,12 +56,12 @@ Read the [Installation Guides][Installation] for instructions on how to install 
 
 ## Support
 
-[![Wiki][badge-wiki]][Wiki]
+[![Docs][badge-docs]][Docs]
 [![Discord][badge-discord]][Discord]
 [![Reddit][badge-reddit]][Reddit]
 [![Issues][badge-issues]][Issues]
 
-[badge-wiki]: https://img.shields.io/badge/github-wiki-black?style=flat-square
+[badge-docs]: https://img.shields.io/badge/tautulli-docs-black?style=flat-square
 [badge-discord]: https://img.shields.io/discord/183396325142822912?label=discord&style=flat-square&color=7289DA
 [badge-reddit]: https://img.shields.io/reddit/subreddit-subscribers/tautulli?label=reddit&style=flat-square&color=FF5700
 [badge-issues]: https://img.shields.io/badge/github-issues-black?style=flat-square
@@ -74,7 +74,7 @@ problem isn't answered in the FAQ try the following first:
 -   Turning your device off and on again.
 -   Analyzing your logs, you just might find the solution yourself!
 -   Using the **search** function to see if this issue has already been reported/solved.
--   Checking the [Wiki][] for [Installation][] instructions and reading the [FAQs][FAQ].
+-   Checking the [Docs][] for [Installation][] instructions and reading the [FAQs][FAQ].
 -   For basic questions try asking on [Discord][] first before opening an issue.
 
 **If nothing has worked:**
@@ -125,13 +125,13 @@ https://shop.highsoft.com/faq/non-commercial#non-commercial-redistribution.
 [Releases]: https://github.com/Tautulli/Tautulli/releases
 [Releases Latest]: https://github.com/Tautulli/Tautulli/releases/latest
 [License]: https://github.com/Tautulli/Tautulli/blob/master/LICENSE
-[FAQ]: https://github.com/Tautulli/Tautulli/wiki/Frequently-Asked-Questions
-[Installation]: https://github.com/Tautulli/Tautulli/wiki/Installation
+[FAQ]: https://docs.tautulli.com/frequently-asked-questions
+[Installation]: https://docs.tautulli.com/installation
 [Issues]: https://github.com/Tautulli/Tautulli/issues
 [Issue New]: https://github.com/Tautulli/Tautulli/issues/new/choose
 [Markdown syntax]: https://help.github.com/articles/github-flavored-markdown
 [Tautulli]: http://tautulli.com
-[Wiki]: https://github.com/Tautulli/Tautulli/wiki
+[Docs]: https://docs.tautulli.com
 [Discord]: https://tautulli.com/discord
 [Reddit]: https://reddit.com/r/Tautulli
 [Snapcraft]: https://snapcraft.io/tautulli

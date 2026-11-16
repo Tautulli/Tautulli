@@ -383,7 +383,7 @@
                                 <input type="checkbox" id="system_analytics" name="system_analytics" value="1" ${config['system_analytics']}> Send Anonymous System Analytics
                             </label>
                             <p class="help-block">Enable anonymous system analytics to help improve Tautulli. No personal information is collected. Refer to the
-                                <a href="${anon_url('https://github.com/%s/%s/wiki/Frequently-Asked-Questions#general-q21' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">
+                                <a href="${anon_url('https://docs.tautulli.com/frequently-asked-questions#general-q21')}" target="_blank" rel="noreferrer">
                                     FAQ
                                 </a>
                                 to see what data is being collected. You can disable this at any time.
@@ -1309,7 +1309,7 @@
                             Add a new notification agent, or configure an existing notification agent by clicking on the item below.
                         </p>
                         <p class="help-block">
-                            Please see the <a href="${anon_url('https://github.com/%s/%s/wiki/Notification-Agents-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">Notification Agents Guide</a> for instructions on setting up each notification agent.
+                            Please see the <a href="${anon_url('https://docs.tautulli.com/notification-agents-guide')}" target="_blank" rel="noreferrer">Notification Agents Guide</a> for instructions on setting up each notification agent.
                         </p>
                         <br />
                         <div id="plexpy-notifiers-table">
@@ -1371,7 +1371,7 @@
                         <div id="imgur_upload_options" style="overflow: hidden; display: ${'none' if config['notify_upload_posters'] != 1 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block">
-                                    Please see the <a href="${anon_url('https://github.com/%s/%s/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">3rd Party APIs Guide</a> for instructions on setting up Imgur.<br>
+                                    Please see the <a href="${anon_url('https://docs.tautulli.com/3rd-party-apis-guide')}" target="_blank" rel="noreferrer">3rd Party APIs Guide</a> for instructions on setting up Imgur.<br>
                                     Warning: Imgur uploads are rate-limited and newsletters may exceed the limit. Please use Cloudinary for newsletters instead.
                                 </p>
                             </div>
@@ -1399,7 +1399,7 @@
                         <div id="cloudinary_upload_options" style="overflow: hidden; display: ${'none' if config['notify_upload_posters'] != 3 else 'block'}">
                             <div class="form-group">
                                 <p class="help-block">
-                                    Please see the <a href="${anon_url('https://github.com/%s/%s/wiki/3rd-Party-APIs-Guide' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">3rd Party APIs Guide</a> for instructions on setting up Cloudinary.
+                                    Please see the <a href="${anon_url('https://docs.tautulli.com/3rd-party-apis-guide')}" target="_blank" rel="noreferrer">3rd Party APIs Guide</a> for instructions on setting up Cloudinary.
                                 </p>
                             </div>
                             <div class="form-group">
@@ -1708,7 +1708,7 @@
             </div>
             <div class="modal-body">
                 <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
-                    <strong>Please read the <a href="${anon_url('https://github.com/%s/%s/wiki/Frequently-Asked-Questions' % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO))}" target="_blank" rel="noreferrer">FAQ</a>
+                    <strong>Please read the <a href="${anon_url('https://docs.tautulli.com/frequently-asked-questions')}" target="_blank" rel="noreferrer">FAQ</a>
                         before asking for help!</strong>
                 </div>
             </div>

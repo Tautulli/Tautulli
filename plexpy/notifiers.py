@@ -4306,8 +4306,8 @@ class TAUTULLIREMOTEAPP(Notifier):
                                'Please install the library to encrypt the notification contents. '
                                'Instructions can be found in the '
                                '<a href="' + helpers.anon_url(
-                                 'https://github.com/%s/%s/wiki/Frequently-Asked-Questions#notifications-cryptography'
-                                 % (plexpy.CONFIG.GIT_USER, plexpy.CONFIG.GIT_REPO)) + '" target="_blank" rel="noreferrer">FAQ</a>.' ,
+                                 'https://docs.tautulli.com/frequently-asked-questions#notifications-cryptography'
+                               ) + '" target="_blank" rel="noreferrer">FAQ</a>.' ,
                 'input_type': 'help'
             })
         else:

@@ -55,9 +55,9 @@
                 <div class="row">
                     <div class="col-sm-6 col-sm-offset-3">
                         % if not plexpy.CONFIG.FIRST_RUN_COMPLETE:
-                        <div class="alert alert-warning" role="alert">On a new install, the username and password are in the <a class="alert-link" href="${anon_url('https://github.com/Tautulli/Tautulli/wiki/Installation#tautulli-login')}" target="_blank" rel="noreferrer">Tautulli logs</a>.</div>
+                        <div class="alert alert-warning" role="alert">On a new install, the username and password are in the <a class="alert-link" href="${anon_url('https://docs.tautulli.com/installation#tautulli-login')}" target="_blank" rel="noreferrer">Tautulli logs</a>.</div>
                         % elif plexpy.CONFIG.FIRST_RUN_COMPLETE and plexpy.CONFIG.HTTP_PASSWORD and plexpy.CONFIG.HTTP_PASSWORD == plexpy.CONFIG.HTTP_GENERATED_PASSWORD and not tautulli_login_disabled():
-                        <div class="alert alert-warning" role="alert">Tautulli set a password because none was set. The username and password are in the <a class="alert-link" href="${anon_url('https://github.com/Tautulli/Tautulli/wiki/Installation#tautulli-login')}" target="_blank" rel="noreferrer">Tautulli logs</a>.</div>
+                        <div class="alert alert-warning" role="alert">Tautulli set a password because none was set. The username and password are in the <a class="alert-link" href="${anon_url('https://docs.tautulli.com/installation#tautulli-login')}" target="_blank" rel="noreferrer">Tautulli logs</a>.</div>
                         % endif
                         <ul id="login-methods" class="accordion list-unstyled">
                             % if plex_login:
