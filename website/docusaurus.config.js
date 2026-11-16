@@ -2,6 +2,12 @@
 
 const repo = 'https://github.com/Tautulli/Tautulli';
 
+// generate-docs.py writes these pages. Their edit links open the source file.
+const editSources = {
+  'api-reference.md': 'plexpy/webserve.py',
+  'exporter-guide.md': 'website/docs/_exporter-guide.md',
+};
+
 /** @type {import('@docusaurus/types').Config} */
 module.exports = {
   title: 'Tautulli',
@@ -29,11 +35,8 @@ module.exports = {
         docs: {
           routeBasePath: '/',
           sidebarPath: './sidebars.js',
-          // api-reference.md is generated, so its edit link opens the docstrings.
           editUrl: ({docPath}) =>
-            docPath === 'api-reference.md'
-              ? `${repo}/edit/master/plexpy/webserve.py`
-              : `${repo}/edit/master/website/docs/${docPath}`,
+            `${repo}/edit/master/${editSources[docPath] ?? `website/docs/${docPath}`}`,
         },
         blog: false,
         pages: false,

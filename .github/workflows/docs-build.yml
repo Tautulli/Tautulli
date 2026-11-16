@@ -5,8 +5,9 @@ on:
   pull_request:
     paths:
       - 'website/**'
-      # The API reference page is generated from the docstrings in these files.
+      # generate-docs.py builds the API reference and the Exporter Guide field tables from these files.
       - 'plexpy/api2.py'
+      - 'plexpy/exporter.py'
       - 'plexpy/webserve.py'
       - '.github/workflows/docs-build.yml'
 
@@ -38,6 +39,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # prebuild runs api-reference.py with the runner's python3.
+      # prebuild runs generate-docs.py with the runner's python3.
       - name: Build Site
         run: npm run build

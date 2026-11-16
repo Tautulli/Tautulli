@@ -2,9 +2,9 @@
   "name": "tautulli-docs",
   "private": true,
   "scripts": {
-    "prestart": "python3 api-reference.py",
+    "prestart": "python3 generate-docs.py",
     "start": "docusaurus start",
-    "prebuild": "python3 api-reference.py",
+    "prebuild": "python3 generate-docs.py",
     "build": "docusaurus build",
     "serve": "docusaurus serve",
     "clear": "docusaurus clear"

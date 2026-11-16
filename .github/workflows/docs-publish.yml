@@ -6,8 +6,9 @@ on:
     branches: [master]
     paths:
       - 'website/**'
-      # The API reference page is generated from the docstrings in these files.
+      # generate-docs.py builds the API reference and the Exporter Guide field tables from these files.
       - 'plexpy/api2.py'
+      - 'plexpy/exporter.py'
       - 'plexpy/webserve.py'
       - '.github/workflows/docs-publish.yml'
 
