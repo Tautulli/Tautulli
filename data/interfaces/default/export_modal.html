@@ -215,7 +215,7 @@ DOCUMENTATION :: END
 
     var optgroups = (function () {
         var optgroups = [];
-        for (var i = 0; i <= 9; i++) {
+        for (var i = 0; i <= 10; i++) {
             optgroups.push({$order: i+1, value: i});
         }
         return optgroups
@@ -238,7 +238,8 @@ DOCUMENTATION :: END
         lockOptgroupOrder: true,
         render: {
             optgroup_header: function(data, escape) {
-                return '<div class="optgroup-header">' + escape(this.$input.data('field_type') + ' Level: ' + data.value) + '</div>';
+                var level = data.value > 9 ? 'Custom Only' : data.value;
+                return '<div class="optgroup-header">' + escape(this.$input.data('field_type') + ' Level: ' + level) + '</div>';
             },
             option: function (item, escape) {
                 return '<div data-field="' + escape(item.field) + '" data-level="' + escape(item.level) + '">' + escape(item.field) +'</div>';

@@ -1871,10 +1871,16 @@ class Export(object):
             if attr in child_media_types:
                 continue
 
+            # Level 9 leaves out an attribute whose top level key is in no level list.
+            # It gets the level above 9 and only exports as a custom field.
+            root_attr = attr.split('.')[0]
+            max_metadata_level = max(self.METADATA_LEVELS) + (0 if root_attr in metadata_levels else 1)
+            max_media_info_level = max(self.MEDIA_INFO_LEVELS) + (0 if root_attr in media_info_levels else 1)
+
             metadata_level = metadata_levels.get(
-                attr, max(self.METADATA_LEVELS) if not self.is_media_info_attr(attr) else None)
+                attr, max_metadata_level if not self.is_media_info_attr(attr) else None)
             media_info_level = media_info_levels.get(
-                attr, max(self.MEDIA_INFO_LEVELS) if self.is_media_info_attr(attr) else None)
+                attr, max_media_info_level if self.is_media_info_attr(attr) else None)
 
             if metadata_level is not None:
                 metadata_levels_map[prefix + attr] = metadata_level
