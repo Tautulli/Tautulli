@@ -105,11 +105,16 @@ def add_notifier_each(notifier_id=None, notify_action=None, stream_data=None, ti
             logger.info("Tautulli NotificationHandler :: Notifiers enabled for notify_action '%s' (manual trigger)." % notify_action)
 
         if stream_data or timeline_data:
+            build_poster = any(poster_required(notifiers.get_notifier_config(notifier_id=n['id'], load_config_options=False),
+                                               notify_action)
+                               for n in notifiers_enabled)
+
             # Build the notification parameters
             parameters = build_media_notify_params(notify_action=notify_action,
                                                    session=stream_data,
                                                    timeline=timeline_data,
                                                    manual_trigger=manual_trigger,
+                                                   build_poster=build_poster,
                                                    **kwargs)
         else:
             # Build the notification parameters
@@ -366,6 +371,33 @@ def notify_custom_conditions(notifier_id=None, parameters=None):
     return True
 
 
+def poster_required(notifier_config, notify_action):
+    if not notifier_config:
+        return True
+
+    agent_name = notifier_config['agent_name']
+    config = notifier_config['config']
+
+    # Agent settings that send poster_url
+    if agent_name in ('lunasea', 'zapier'):
+        return True
+    if agent_name in ('discord', 'slack') and config['incl_card']:
+        return True
+    if agent_name == 'microsoftteams' and config['incl_card'] and config['poster_size']:
+        return True
+    if agent_name in ('gotify', 'join', 'ntfy', 'twitter') and config['incl_poster']:
+        return True
+
+    # Notification text, custom conditions, MQTT topic, and IFTTT value3
+    notify_text = notifier_config['notify_text'].get(notify_action, {})
+    text = ' '.join((notify_text.get('subject', ''),
+                     notify_text.get('body', ''),
+                     json.dumps(notifier_config['custom_conditions']),
+                     str(config.get('topic', '')),
+                     str(config.get('value3', ''))))
+    return 'poster_url' in text or 'poster_title' in text
+
+
 def notify(notifier_id=None, notify_action=None, stream_data=None, timeline_data=None, parameters=None, **kwargs):
     logger.info("Tautulli NotificationHandler :: Preparing notification for notifier_id %s." % notifier_id)
 
@@ -508,7 +540,7 @@ def check_nofity_tag(notify_action, tag):
     return bool(result)
 
 
-def build_media_notify_params(notify_action=None, session=None, timeline=None, manual_trigger=False, **kwargs):
+def build_media_notify_params(notify_action=None, session=None, timeline=None, manual_trigger=False, build_poster=True, **kwargs):
     # Get time formats
     date_format = helpers.momentjs_to_arrow(plexpy.CONFIG.DATE_FORMAT)
     time_format = helpers.momentjs_to_arrow(plexpy.CONFIG.TIME_FORMAT)
@@ -864,7 +896,7 @@ def build_media_notify_params(notify_action=None, session=None, timeline=None, m
     else:
         plex_watch_url = ''
 
-    img_service = helpers.get_img_service(include_self=True)
+    img_service = helpers.get_img_service(include_self=True) if build_poster else ''
     fallback = 'poster-live' if notify_params['live'] else 'poster'
     if img_service not in ('', 'self-hosted'):
         img_info = get_img_info(img=poster_thumb, rating_key=poster_key, title=poster_title, fallback=fallback)
