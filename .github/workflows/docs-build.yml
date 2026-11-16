@@ -1,0 +1,43 @@
+name: Build Docs
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'website/**'
+      # The API reference page is generated from the docstrings in these files.
+      - 'plexpy/api2.py'
+      - 'plexpy/webserve.py'
+      - '.github/workflows/docs-build.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-docs:
+    name: Build Docs
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+
+      - name: Set Up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install Dependencies
+        run: npm ci
+
+      # prebuild runs api-reference.py with the runner's python3.
+      - name: Build Site
+        run: npm run build

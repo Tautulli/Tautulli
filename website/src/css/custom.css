@@ -1,0 +1,10 @@
+/* Tautulli orange, from data/interfaces/default/css/tautulli.css. */
+:root {
+  --ifm-color-primary: #cc7b19;
+  --ifm-color-primary-dark: #b86f17;
+  --ifm-color-primary-darker: #ad6815;
+  --ifm-color-primary-darkest: #8f5612;
+  --ifm-color-primary-light: #e0871c;
+  --ifm-color-primary-lighter: #e38d25;
+  --ifm-color-primary-lightest: #e79f48;
+}
