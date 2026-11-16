@@ -1,0 +1,21 @@
+# Cloudflare Pages reads this file from the build output. It maps the paths
+# of the old GitBook site at docs.tautulli.com to the new pages.
+/getting-started /installation 301
+/getting-started/installation /installation 301
+/getting-started/installation/install-as-a-daemon /installation 301
+/getting-started/upgrading-to-python-3 /installation 301
+/using-tautulli /notification-agents-guide 301
+/using-tautulli/notification-agents-guide /notification-agents-guide 301
+/using-tautulli/custom-notification-conditions /custom-notification-conditions 301
+/using-tautulli/exporter-guide /exporter-guide 301
+/using-tautulli/3rd-party-apis-guide /3rd-party-apis-guide 301
+/support /asking-for-support 301
+/support/asking-for-support /asking-for-support 301
+/support/frequently-asked-questions /frequently-asked-questions 301
+/support/debugging /debugging 301
+/extending-tautulli /custom-scripts 301
+/extending-tautulli/custom-scripts /custom-scripts 301
+/extending-tautulli/api-reference /api-reference 301
+# GitBook redirected each path with a trailing slash to the path without it.
+# This rule does the same, and the next request matches a rule above.
+/*/ /:splat 301
