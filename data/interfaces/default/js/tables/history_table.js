@@ -98,7 +98,7 @@ history_table_options = {
                 }
             },
             "width": "9%",
-            "className": "no-wrap"
+            "className": "datatable-wrap"
         },
         {
             "targets": [3],
