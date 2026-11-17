@@ -1,7 +1,7 @@
 cryptography==50.0.2
 importlib-metadata==10.1.0
 importlib-resources==7.1.0
-pyinstaller==6.19.0
+pyinstaller==6.22.3
 
 pyobjc-core==13.0; platform_system == "Darwin"
 pyobjc-framework-Cocoa==13.0; platform_system == "Darwin"
