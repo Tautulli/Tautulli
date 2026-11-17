@@ -12,3 +12,4 @@ start.bat
 tests
 pytest.ini
 requirements-dev.txt
+website
