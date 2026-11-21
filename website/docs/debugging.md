@@ -4,47 +4,29 @@ sidebar_label: Debugging
 sidebar_position: 5
 ---
 
-This page guides you through some common debugging steps to verify the
-information in Tautulli.
+This page guides you through some common debugging steps to verify the information in Tautulli.
 
 ## Activity
 
-_Triple_ clicking on the word `ACTIVITY` at the top of the Tautulli page will
-open up the raw XML file on your Plex server that Tautulli is parsing in order
-to show you the current activity on the server. Tautulli first opens a page
-that shows the "Plex XML URL". Click "Sign In" to sign in with Plex and view
-the XML.
+_Triple_ clicking on the word `ACTIVITY` at the top of the Tautulli page will open up the raw XML file on your Plex server that Tautulli is parsing in order to show you the current activity on the server. Tautulli first opens a page that shows the "Plex XML URL". Click "Sign In" to sign in with Plex and view the XML.
 
 ![Debugging Activity Shortcut](./images/debugging_activity.gif)
 
-If you are accessing Tautulli from outside your network and the address that
-Tautulli uses to connect to Plex isn't available you will need to fix the
-location in the "Plex XML URL" box before you sign in. If you find yourself using this XML shortcut often
-you can have Tautulli automatically override the link for you by shutting down
-Tautulli, editing `config.ini`, and editing the `pms_url_override` value to the
-public location of your Plex server.
+If you are accessing Tautulli from outside your network and the address that Tautulli uses to connect to Plex isn't available you will need to fix the location in the "Plex XML URL" box before you sign in. If you find yourself using this XML shortcut often you can have Tautulli automatically override the link for you by shutting down Tautulli, editing `config.ini`, and editing the `pms_url_override` value to the public location of your Plex server.
 
-_Note:_ Your browser will likely block this at first since it is a pop-up!
-You'll need to allow pop-ups in your browser for your Tautulli domain,
-instructions for the Chrome browser can be found
-[here](https://support.google.com/chrome/answer/95472?co=GENIE.Platform%3DDesktop&hl=en).
+_Note:_ Your browser will likely block this at first since it is a pop-up! You'll need to allow pop-ups in your browser for your Tautulli domain, instructions for the Chrome browser can be found [here](https://support.google.com/chrome/answer/95472?co=GENIE.Platform%3DDesktop&hl=en).
 
 ## Stream Info
 
-You can view the information that Tautulli has parsed from the raw XML data for
-a particular stream by _single_ clicking on the `STREAM` word in an activity
-card:
+You can view the information that Tautulli has parsed from the raw XML data for a particular stream by _single_ clicking on the `STREAM` word in an activity card:
 
 ![Debugging Stream Shortcut](./images/debugging_stream.gif)
 
-This information can be handy to check against when using text parameters or
-conditions in a Notification Agent.
+This information can be handy to check against when using text parameters or conditions in a Notification Agent.
 
 ## More XML Shortcuts
 
-Similar to triple clicking on the word `ACTIVITY` on the home page, if you _triple_
-click on one of the following you will be brought to the XML that the data is
-being generated from:
+Similar to triple clicking on the word `ACTIVITY` on the home page, if you _triple_ click on one of the following you will be brought to the XML that the data is being generated from:
 
 * "All Libraries" on the Libraries page
 * "All Users" on the Users page
