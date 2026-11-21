@@ -2,7 +2,7 @@
 
 const repo = 'https://github.com/Tautulli/Tautulli';
 const releasedUrl = 'https://docs.tautulli.com';
-const nightlyUrl = 'https://docs-nightly.tautulli.com';
+const nightlyUrl = 'https://nightly.docs.tautulli.com';
 
 // Cloudflare Pages sets CF_PAGES_BRANCH and CF_PAGES_URL in its builds.
 // master is the released site. Every other branch is a preview with noindex.

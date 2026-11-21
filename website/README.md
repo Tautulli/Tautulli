@@ -15,7 +15,7 @@ The site opens at http://localhost:3000. Search works only in a production build
 ## Build and publish
 
 Run `npm run build`, then `npm run serve` to preview it. `build/` holds the static site. `DOCS_URL` and `DOCS_BASE_URL` set the site URL and base path. Give `serve` the same values as `build`.
-Cloudflare Pages builds this directory when a push changes the docs. `master` publishes https://docs.tautulli.com. `nightly` publishes https://docs-nightly.tautulli.com with a notice bar and `noindex`. Other branches get a preview URL with `noindex`. `.nvmrc` sets the Node version for that build. `static/_redirects` maps the old GitBook paths.
+Cloudflare Pages builds this directory when a push changes the docs. `master` publishes https://docs.tautulli.com. `nightly` publishes https://nightly.docs.tautulli.com with a notice bar and `noindex`. Other branches get a preview URL with `noindex`. `.nvmrc` sets the Node version for that build. `static/_redirects` maps the old GitBook paths.
 
 ## Generated pages
 
