@@ -1,0 +1,8 @@
+{
+  "name": "tautulli-docs",
+  "compatibility_date": "2026-11-21",
+  "assets": {
+    "directory": "./build"
+  },
+  "previews": {}
+}
