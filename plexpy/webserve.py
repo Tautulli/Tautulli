@@ -4283,11 +4283,11 @@ class WebInterface(object):
 
         if identifier:
             if helpers.bool_true(get_url):
-                server = self.get_server_resources(pms_ip=hostname,
-                                                   pms_port=port,
-                                                   pms_ssl=ssl,
-                                                   pms_url_manual=manual,
-                                                   pms_identifier=identifier)
+                server = plextv.get_server_resources(return_server=True, pms_ip=hostname,
+                                                     pms_port=port,
+                                                     pms_ssl=ssl,
+                                                     pms_url_manual=manual,
+                                                     pms_identifier=identifier)
                 result['url'] = server['pms_url']
                 result['ws'] = None
 
@@ -4971,7 +4971,7 @@ class WebInterface(object):
                 img = '/library/metadata/{}/thumb'.format(rating_key)
 
         if img and img.lower().startswith('http'):
-            if not self._is_stored_image(img, rating_key):
+            if not WebInterface._is_stored_image(img, rating_key):
                 logger.warn('Unknown image URL received.')
                 if fallback in common.DEFAULT_IMAGES:
                     fp = os.path.join(plexpy.PROG_DIR, 'data', common.DEFAULT_IMAGES[fallback])
@@ -5066,8 +5066,8 @@ class WebInterface(object):
                     fp = os.path.join(plexpy.PROG_DIR, 'data', fbi)
                     return serve_file(path=fp, content_type='image/png')
                 elif fallback:
-                    return self.real_pms_image_proxy(
-                        img=fallback, rating_key=None, width=width, height=height,
+                    return WebInterface.real_pms_image_proxy(
+                        self, img=fallback, rating_key=None, width=width, height=height,
                         opacity=opacity, background=background, blur=blur, img_format=img_format,
                         fallback=None, refresh=refresh, clip=clip, **kwargs)
 

@@ -60,8 +60,7 @@ def test_websocket_connection_test_trusts_system_and_certifi(app_config, system_
     app_config.VERIFY_SSL_CERT = 1
     servers = [{"ip": "1.2.3.4", "port": "32400", "clientIdentifier": "abc"}]
     monkeypatch.setattr(plextv.PlexTV, "discover", lambda self: servers)
-    monkeypatch.setattr(webserve.WebInterface, "get_server_resources",
-                        lambda self, **kwargs: {"pms_url": PMS_URL})
+    monkeypatch.setattr(plextv, "get_server_resources", lambda **kwargs: {"pms_url": PMS_URL})
 
     result = webserve.WebInterface().get_server_id(hostname="1.2.3.4", port="32400", ssl=1,
                                                    get_url=1, test_websocket=1)
