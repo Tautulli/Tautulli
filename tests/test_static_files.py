@@ -73,6 +73,28 @@ def test_static_files_skip_the_server_cache_and_keep_the_browser_cache(static_co
     static = {path: conf for path, conf in static_config.items()
               if conf.get("tools.staticdir.on") or conf.get("tools.staticfile.on")}
 
-    assert sorted(static) == ["/css", "/favicon.ico", "/fonts", "/images", "/interfaces", "/js"]
+    assert sorted(static) == ["/css", "/favicon.ico", "/fonts", "/images", "/js"]
     assert not any(conf.get("tools.caching.on") for conf in static_config.values())
     assert all(conf.get("tools.expires.on") for conf in static.values())
+
+
+IMAGE_ROUTES = {
+    "image": lambda *path: webserve.WebInterface().image(*path),
+    "newsletter": lambda *path: webserve.WebInterface().newsletter_auth("image", *path),
+}
+
+
+@pytest.fixture(params=sorted(IMAGE_ROUTES))
+def image_route(request, monkeypatch):
+    monkeypatch.setattr(plexpy, "PROG_DIR", os.path.dirname(os.path.dirname(plexpy.__file__)))
+    return IMAGE_ROUTES[request.param]
+
+
+def test_image_routes_serve_a_file_in_the_images_folder(image_route):
+    with open(os.path.join(plexpy.PROG_DIR, "data/interfaces/default/images/logo.png"), "rb") as f:
+        assert b"".join(image_route("images", "logo.png")) == f.read()
+
+
+@pytest.mark.parametrize("path", [("..", "base.html"), ("..", "..", "..", "..", "plexpy", "__init__.py")])
+def test_image_routes_refuse_a_file_outside_the_images_folder(image_route, path):
+    assert image_route("images", *path) is None

@@ -5101,7 +5101,7 @@ class WebInterface(object):
             if len(args) >= 2 and args[0] == 'images':
                 resource_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/default')
                 img_path = os.path.join(resource_dir, *args)
-                if not helpers.is_subdir(img_path, resource_dir):
+                if not helpers.is_subdir(img_path, os.path.join(resource_dir, 'images')):
                     return
 
                 try:
@@ -7158,7 +7158,7 @@ class WebInterface(object):
                 if args[1] == 'images':
                     resource_dir = os.path.join(plexpy.PROG_DIR, 'data/interfaces/default')
                     img_path = os.path.join(resource_dir, *args[1:])
-                    if not helpers.is_subdir(img_path, resource_dir):
+                    if not helpers.is_subdir(img_path, os.path.join(resource_dir, 'images')):
                         return
 
                     try:

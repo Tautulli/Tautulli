@@ -275,15 +275,6 @@ def initialize(options):
             'tools.auth_basic.on': False,
             'tools.sessions.on': True,
         },
-        '/interfaces': {
-            'tools.nopwgate.on': False,
-            'tools.staticdir.on': True,
-            'tools.staticdir.dir': "interfaces",
-            'tools.expires.on': True,
-            'tools.expires.secs': 60 * 60 * 24 * 30,  # 30 days
-            'tools.sessions.on': False,
-            'tools.auth.on': False,
-        },
         '/images': {
             'tools.nopwgate.on': False,
             'tools.staticdir.on': True,

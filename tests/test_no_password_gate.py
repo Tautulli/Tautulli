@@ -178,7 +178,7 @@ def test_the_api_is_gated(conf):
 
 @pytest.mark.parametrize("path", ["/status", "/image", "/newsletter", "/favicon.ico",
                                   "/css/tautulli.css", "/js/script.js", "/images/logo.png",
-                                  "/interfaces/default/css/tautulli.css", "/fonts/fontawesome-webfont.woff"])
+                                  "/fonts/fontawesome-webfont.woff"])
 def test_exempt_routes_stay_open(conf, path):
     status, _ = get(conf, path, "8.8.8.8")
 
