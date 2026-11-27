@@ -116,7 +116,7 @@ class API2(object):
             self._api_response_code = 400
 
         self._api_callback = kwargs.pop('callback', None)
-        self._api_apikey = kwargs.pop('apikey', cherrypy.request.headers.get('X-Api-Key', None))
+        self._api_apikey = cherrypy.request.headers.get('X-Api-Key', kwargs.pop('apikey', None))
         self._api_cmd = kwargs.pop('cmd', None)
         self._api_debug = kwargs.pop('debug', False)
         self._api_profileme = kwargs.pop('profileme', None)
